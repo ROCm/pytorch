@@ -9,7 +9,11 @@
 #include <torch/custom_class_detail.h>
 
 namespace torch::jit {
+<<<<<<< HEAD
 
+=======
+OpCode parseOpCode(const char* str);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using c10::IValue;
 
 IValue expect_field(

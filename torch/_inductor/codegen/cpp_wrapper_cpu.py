@@ -21,7 +21,11 @@ from torch.fx.experimental.symbolic_shapes import ConvertIntKey, DivideByKey, Sy
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.symbol import symbol_is_type, SymT
 
+<<<<<<< HEAD
 from .. import config, cpp_builder, ir
+=======
+from .. import config, ir
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..utils import _align, DeferredLineBase, LineContext, normalize_name
 from ..virtualized import V
 from .aoti_hipify_utils import maybe_hipify_code_wrapper
@@ -58,6 +62,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
             self.device = "cpu"
         # must be initialized prior to calling super().__init__()
         self.included_devices: OrderedSet[str] = OrderedSet()
+<<<<<<< HEAD
         self.model_class_name_suffix = (
             ""
             if config.aot_inductor.dynamic_linkage
@@ -67,6 +72,9 @@ class CppWrapperCpu(PythonWrapperCodegen):
 
         super().__init__()
 
+=======
+        super().__init__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.declare = "auto "
         self.declare_maybe_reference = "decltype(auto) "
         self.ending = ";"
@@ -117,12 +125,16 @@ class CppWrapperCpu(PythonWrapperCodegen):
         # e.g. const double** is possible, but not const double* const*.  This means
         # that an array containing pointers must _already_ be properly const-qualified
         # by the c_type, and not add additional const-ness.
+<<<<<<< HEAD
         # MSVC does not support implicitly converting a const iterator to a const pointer.
         ptr_call = (
             "data()"
             if force_mutable or c_type.endswith("*") or cpp_builder.is_msvc_cl()
             else "cbegin()"
         )
+=======
+        ptr_call = "data()" if force_mutable or c_type.endswith("*") else "cbegin()"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             f"std::array<{c_type}, {len(elements)}>{{{', '.join(elements)}}}.{ptr_call}"
         )
@@ -221,6 +233,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
         self.add_device_include(self.device)
 
         if V.graph.aot_mode:
+<<<<<<< HEAD
             if config.aot_inductor.dynamic_linkage:
                 with open(
                     os.path.join(
@@ -233,6 +246,23 @@ class CppWrapperCpu(PythonWrapperCodegen):
                 self.header.splice(f"""#include \"{self.model_class_name_suffix}.h\"""")
             self.header.splice("\n")
 
+=======
+            with open(
+                os.path.join(os.path.dirname(__file__), "aoti_runtime", "interface.cpp")
+            ) as f:
+                self.header.splice(f.read())
+            self.header.splice("\n")
+
+        enable_kernel_profile = config.cpp.enable_kernel_profile and sys.platform in [
+            "linux",
+            "win32",
+        ]
+        if config.profiler_mark_wrapper_call or enable_kernel_profile:
+            # No C shim for profiling APIs, assuming profiling is a debugging feature which
+            # does not provide any ABI compatibility promise.
+            self.header.splice("#include <ATen/record_function.h>")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _include_extra_header(self, header: str):
         # This is needed for cpp to python dtype conversion
         self.header.splice(f"#include <{header}>")
@@ -507,8 +537,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
     def write_wrapper_decl(self):
         inputs_len = len(V.graph.graph_inputs.keys())
         if V.graph.aot_mode:
+<<<<<<< HEAD
             self.codegen_additional_funcs()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if V.graph.const_module:
                 self.header.splice(V.graph.const_module.wrapper_code.header)
 
@@ -520,12 +553,21 @@ class CppWrapperCpu(PythonWrapperCodegen):
 
             if V.graph.is_const_graph:
                 self.prefix.splice(
+<<<<<<< HEAD
                     f"""
                     void {self.aoti_model_class_name}::_const_run_impl(
                         std::vector<AtenTensorHandle>& output_handles,
                         DeviceStreamType stream,
                         AOTIProxyExecutorHandle proxy_executor
                     ) {{
+=======
+                    """
+                    void AOTInductorModel::_const_run_impl(
+                        std::vector<AtenTensorHandle>& output_handles,
+                        DeviceStreamType stream,
+                        AOTIProxyExecutorHandle proxy_executor
+                    ) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     """
                 )
             else:
@@ -533,18 +575,32 @@ class CppWrapperCpu(PythonWrapperCodegen):
                     # If we do not split the constant graph, we'll just create
                     # an empty implementation when wrapping the main module.
                     self.prefix.splice(
+<<<<<<< HEAD
                         f"""
                         void {self.aoti_model_class_name}::_const_run_impl(
                             std::vector<AtenTensorHandle>& output_handles,
                             DeviceStreamType stream,
                             AOTIProxyExecutorHandle proxy_executor
                         ) {{}}
+=======
+                        """
+                        void AOTInductorModel::_const_run_impl(
+                            std::vector<AtenTensorHandle>& output_handles,
+                            DeviceStreamType stream,
+                            AOTIProxyExecutorHandle proxy_executor
+                        ) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                         """
                     )
 
+<<<<<<< HEAD
                 run_impl_proto = f"""
                     void {self.aoti_model_class_name}::run_impl(
+=======
+                run_impl_proto = """
+                    void AOTInductorModel::run_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         AtenTensorHandle*
                             input_handles, // array of input AtenTensorHandle; handles
                                             // are stolen; the array itself is borrowed
@@ -554,7 +610,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
                                             // borrowed
                         DeviceStreamType stream,
                         AOTIProxyExecutorHandle proxy_executor
+<<<<<<< HEAD
                     ) {{
+=======
+                    ) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         __check_inputs_outputs(input_handles, output_handles);
                     """
 
@@ -584,7 +644,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
                     # Weights are promoted in the JIT mode
                     num_args = len(V.graph.graph_inputs) + len(V.graph.constants)
                     # release GIL to support multiple instances inference (in different threads of the same process)
+<<<<<<< HEAD
                     self.prefix.splice("py::gil_scoped_release_simple release;")
+=======
+                    self.prefix.splice("py::gil_scoped_release release;")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 self.prefix.splice(
                     f"""
@@ -626,10 +690,17 @@ class CppWrapperCpu(PythonWrapperCodegen):
             ), "Expect all constants to be Tensor"
             for idx, constants_key in enumerate(V.graph.constants.keys()):
                 if V.graph.aot_mode:
+<<<<<<< HEAD
                     # Weights are stored in constants_ and owned by ConstantHandle there.
                     # Don't call std::move here because it will cause constants_ to lose the ownership.
                     self.prefix.writeline(
                         f"""[[maybe_unused]] auto& {constants_key} = constants_->at({idx});"""
+=======
+                    # Weights are stored in constants_ and owned by RAIIAtenTensorHandle there.
+                    # Don't call std::move here because it will cause constants_ to lose the ownership.
+                    self.prefix.writeline(
+                        f"""[[maybe_unused]] auto {constants_key} = constants_->at({idx});"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 else:
                     # Append constants as inputs to the graph
@@ -665,9 +736,12 @@ class CppWrapperCpu(PythonWrapperCodegen):
             f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_device_type({name}, &{name}_device_type));"
         )
 
+<<<<<<< HEAD
     def codegen_additional_funcs(self):
         pass
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_model_kernels(self):
         self.prefix.writeline("namespace {")
 
@@ -721,6 +795,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
                     )
             self.prefix.writeline("}")
 
+<<<<<<< HEAD
     # MSVC string was longer than the limit of 16380 single-byte characters.
     # https://learn.microsoft.com/en-us/cpp/error-messages/compiler-errors-1/compiler-error-c2026
     MSVC_C2026_MAX_STRING_LENGTH = 16000
@@ -743,6 +818,8 @@ class CppWrapperCpu(PythonWrapperCodegen):
         else:
             self.prefix.writeline(f'{arg_name} = R"({arg_str_val})";')
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_model_constructor(self):
         """
         // Generated code example
@@ -767,6 +844,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
         num_outputs = len(V.graph.graph_outputs)
         num_constants = len(V.graph.constants)
         include_weights = (
+<<<<<<< HEAD
             "true"
             if config.aot_inductor.package_constants_in_so
             and config.aot_inductor.package_constants_on_disk_format != "binary_blob"
@@ -775,6 +853,13 @@ class CppWrapperCpu(PythonWrapperCodegen):
         self.prefix.splice(
             f"""
             {self.aoti_model_class_name}::{self.aoti_model_class_name}(std::shared_ptr<ConstantMap> constants_map,
+=======
+            "true" if config.aot_inductor.package_constants_in_so else "false"
+        )
+        self.prefix.splice(
+            f"""
+            AOTInductorModel::AOTInductorModel(std::shared_ptr<ConstantMap> constants_map,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                                std::shared_ptr<std::vector<ConstantHandle>> constants_array,
                                                const std::string& device_str,
                                                std::optional<std::string> cubin_dir)
@@ -893,6 +978,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
                     .replace("\t", "\\t")
                 )
 
+<<<<<<< HEAD
             # Origin code: self.prefix.writeline(f'in_spec_ = R"({config.aot_inductor.serialized_in_spec})";')
             # Fix msvc C2026 error via codegen_write_arg_with_large_length_string
             self.codegen_write_arg_with_large_length_string(
@@ -903,6 +989,13 @@ class CppWrapperCpu(PythonWrapperCodegen):
             self.codegen_write_arg_with_large_length_string(
                 arg_name="out_spec_",
                 arg_str_val=config.aot_inductor.serialized_out_spec,
+=======
+            self.prefix.writeline(
+                f'in_spec_ = R"({config.aot_inductor.serialized_in_spec})";'
+            )
+            self.prefix.writeline(
+                f'out_spec_ = R"({config.aot_inductor.serialized_out_spec})";'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             for idx, output in enumerate(V.graph.graph_outputs):
@@ -936,12 +1029,21 @@ class CppWrapperCpu(PythonWrapperCodegen):
         """
 
         self.prefix.splice(
+<<<<<<< HEAD
             f"""
             std::unordered_map<std::string, AtenTensorHandle> {self.aoti_model_class_name}::const_run_impl(
                 DeviceStreamType stream,
                 AOTIProxyExecutorHandle proxy_executor,
                 bool initialization
             ) {{
+=======
+            """
+            std::unordered_map<std::string, AtenTensorHandle> AOTInductorModel::const_run_impl(
+                DeviceStreamType stream,
+                AOTIProxyExecutorHandle proxy_executor,
+                bool initialization
+            ) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """
         )
         if not config.aot_inductor.use_runtime_constant_folding:
@@ -1090,7 +1192,10 @@ class CppWrapperCpu(PythonWrapperCodegen):
             output_buffer = V.graph.graph_outputs[idx]
             if isinstance(output_buffer, ir.BaseView):
                 output_storage = output_buffer.unwrap_view()
+<<<<<<< HEAD
                 assert isinstance(output_storage, (ir.BaseView, ir.MutableBox))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(output_storage.data, ir.ConstantBuffer):
                     is_constant_buffer = True
 
@@ -1124,7 +1229,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
     def generate_before_suffix(self, result):
         if not V.graph.is_const_graph:
             if V.graph.aot_mode:
+<<<<<<< HEAD
                 result.writeline(f"}} // {self.aoti_model_class_name}::run_impl")
+=======
+                result.writeline("} // AOTInductorModel::run_impl")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 result.writeline("} // inductor_entry_impl")
 
@@ -1132,7 +1241,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         """Generates the end of the code block, and any code needed to call it."""
         if V.graph.aot_mode:
             if V.graph.is_const_graph:
+<<<<<<< HEAD
                 result.writeline(f"}} // {self.aoti_model_class_name}::_const_run_impl")
+=======
+                result.writeline("} // AOTInductorModel::_const_run_impl")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 result.writeline("} // namespace torch::aot_inductor\n\n\n")
             return
@@ -1171,7 +1284,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
             """
         )
 
+<<<<<<< HEAD
         wrapper_body = "input_tensors = [arg if isinstance(arg, torch.Tensor) else torch.tensor(arg, device='cpu') for arg in args]"
+=======
+        wrapper_body = "input_tensors = [arg if isinstance(arg, torch.Tensor) else torch.tensor(arg) for arg in args]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if V.graph.constants:
             # Append constants to the input args for cpp wrapper.
             # Python wrapper directly gets the value inside the wrapper call
@@ -1249,7 +1366,10 @@ class CppWrapperCpu(PythonWrapperCodegen):
         device: str,
         *,
         debug_args: Optional[list[str]] = None,
+<<<<<<< HEAD
         debug_handle: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """debug_args kwarg allows CppWrapperCpuArrayRef to pass in wrapped arguments in
         place of args while preserving debug printer output."""
@@ -1266,16 +1386,26 @@ class CppWrapperCpu(PythonWrapperCodegen):
         ]
         with debug_printer_manager:
             shim_fn = self.get_c_shim_func_name(kernel, device)
+<<<<<<< HEAD
             self.write_provenance_debug_handle(shim_fn, debug_handle)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shim_fn_codes = (
                 f"AOTI_TORCH_ERROR_CODE_CHECK({shim_fn}({', '.join(args)}));"
             )
             if enable_kernel_profile:
+<<<<<<< HEAD
                 debug_handle_str = "" if debug_handle is None else f":{debug_handle}"
                 shim_fn_codes = textwrap.dedent(
                     f"""
                     {{
                       RAIIAtenRecordFunctionHandle record_{shim_fn}_("{shim_fn}{debug_handle_str}", nullptr);
+=======
+                shim_fn_codes = textwrap.dedent(
+                    f"""
+                    {{
+                      RECORD_FUNCTION("{shim_fn}", c10::ArrayRef<c10::IValue>());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                       {shim_fn_codes}
                     }}
                     """
@@ -1298,11 +1428,15 @@ class CppWrapperCpu(PythonWrapperCodegen):
             args = [*args, f"&{output_handle_name}"]
 
         device = d.type if (d := extern_kernel.get_device()) else self.device
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.generate_c_shim_extern_kernel_call(
             extern_kernel.get_kernel_name(), args, device
         )
 
+<<<<<<< HEAD
         if extern_kernel.python_kernel_name in (
             "torch.ops._c10d_functional.all_reduce_.default",
             "torch.ops._c10d_functional.wait_tensor.default",
@@ -1314,6 +1448,9 @@ class CppWrapperCpu(PythonWrapperCodegen):
                 f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_delete_tensor_object({output_handle_name}));"
             )
         elif not is_inplace:
+=======
+        if not is_inplace:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.writeline(f"RAIIAtenTensorHandle {name}({output_handle_name});")
 
     def _generate_extern_kernel_alloc_helper(self, extern_kernel, args):
@@ -1357,7 +1494,10 @@ class CppWrapperCpu(PythonWrapperCodegen):
                 raise NotImplementedError(f"unsupported type of {output=}")
         args = args + output_args
         device = d.type if (d := fallback_kernel.get_device()) else self.device
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.generate_c_shim_extern_kernel_call(
             fallback_kernel.cpp_kernel_name,  # type: ignore[arg-type]
             args,
@@ -1373,7 +1513,10 @@ class CppWrapperCpu(PythonWrapperCodegen):
         out_view: Optional[str],
         args: list[str],
         device: str,
+<<<<<<< HEAD
         debug_handle: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         if out_view:
             out_name = f"{out}_as_strided"
@@ -1382,6 +1525,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
         else:
             args.insert(0, out)
 
+<<<<<<< HEAD
         self.generate_c_shim_extern_kernel_call(
             kernel, args, device, debug_handle=debug_handle
         )
@@ -1395,6 +1539,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         return reduce
 
     def _generate_scatter_fallback(
+=======
+        self.generate_c_shim_extern_kernel_call(kernel, args, device)
+
+    def generate_scatter_fallback(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         output,
         inputs,
@@ -1404,8 +1553,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         reduce,
         kwargs,
     ):
+<<<<<<< HEAD
         reduce = self._get_scatter_reduce_enum(reduce)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # call the ABI shim function instead of the ATen one
         cpp_kernel_name = self.get_c_shim_func_name(cpp_kernel_name, self.device)
         # TODO: consider remove "_out" and add missing inplace variants to fallback_ops.py
@@ -1426,7 +1578,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         line += ");"
         self.writeline(line)
 
+<<<<<<< HEAD
     def _generate_index_put_fallback(self, kernel, x, indices, values, accumulate):
+=======
+    def generate_index_put_fallback(self, kernel, x, indices, values, accumulate):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: update aoti_torch_index_put_out in ir.py to use autogen out version
         # See the comment in codegen_reinterpret_view about why having something like
         # RAIIAtenTensorHandle(tmp_tensor_handle_2) in a tmp array can cause the corresponding
@@ -1485,7 +1641,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         else:
             self.writeline(f"{arg.inner} = {cexpr(arg.inner_expr)};")
 
+<<<<<<< HEAD
     def _codegen_dynamic_scalar(self, node):
+=======
+    def codegen_dynamic_scalar(self, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (data,) = (t.codegen_reference() for t in node.inputs)
         self.codegen_tensor_item(node.inputs[0].get_dtype(), data, f"{node.sym}_raw")
 
@@ -1504,6 +1664,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
         # record in unbacked_symbol_decls so we won't generate a declaration of the symbol again
         self.unbacked_symbol_decls.add(str(node.sym))
 
+<<<<<<< HEAD
     def codegen_dynamic_select_index(self, node, clamp):
         index_cpp_str = self.val_to_arg_str_for_prim_type(node.index, int)
         size_cpp_str = self.val_to_arg_str_for_prim_type(node.size, int)
@@ -1557,6 +1718,8 @@ class CppWrapperCpu(PythonWrapperCodegen):
         self.writeline(f"int64_t {sym} = {sym}_with_step < 0 ? 0 : {sym}_with_step;")
         self.unbacked_symbol_decls.add(str(sym))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def make_buffer_free(self, buffer):
         return (
             ""
@@ -1573,7 +1736,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
 
     def generate_profiler_mark_wrapper_call(self, stack):
         self.wrapper_call.writeline(
+<<<<<<< HEAD
             'RAIIAtenRecordFunctionHandle record_inductor_wrapper_call_("inductor_wrapper_call", nullptr);'
+=======
+            'RECORD_FUNCTION("inductor_wrapper_call", c10::ArrayRef<c10::IValue>());'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def generate_start_graph(self):
@@ -1630,6 +1797,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
         # This is why writeline needs to explicitly passed in as a parameter.
         var = f"int_array_{next(self.int_array_id)}"
         ctype = "int64_t"
+<<<<<<< HEAD
         if int_array == "{}":
             #  An array of unknown bound cannot be initialized with {}.
             if known_statically:
@@ -1649,6 +1817,14 @@ class CppWrapperCpu(PythonWrapperCodegen):
                         writeline(f"static const {ctype} {var}[] = {int_array};")
                 else:
                     writeline(f"const {ctype} {var}[] = {int_array};")
+=======
+        if var not in self.declared_int_array_vars:
+            self.declared_int_array_vars.add(var)
+            if known_statically:
+                writeline(f"static constexpr {ctype} {var}[] = {int_array};")
+            else:
+                writeline(f"const {ctype} {var}[] = {int_array};")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return var
 
     def make_buffer_allocation(self, buffer):
@@ -1659,11 +1835,18 @@ class CppWrapperCpu(PythonWrapperCodegen):
             buffer.get_size(),
             buffer.get_stride(),
             V.graph.get_allocation_size(buffer),
+<<<<<<< HEAD
             buffer.get_is_pinned(),
         )
 
     def make_allocation(
         self, name, device, dtype, shape, stride, allocation_shape=None, is_pinned=False
+=======
+        )
+
+    def make_allocation(
+        self, name, device, dtype, shape, stride, allocation_shape=None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if allocation_shape is None:
             allocation_shape = shape
@@ -1715,9 +1898,14 @@ class CppWrapperCpu(PythonWrapperCodegen):
         ]
 
         self.wrapper_call.writeline(f"AtenTensorHandle {handle_name};")
+<<<<<<< HEAD
         pinned_str = "_pinned" if is_pinned else ""
         self.wrapper_call.writeline(
             f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided{pinned_str}({', '.join(args)}));"
+=======
+        self.wrapper_call.writeline(
+            f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided({', '.join(args)}));"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if allocation_size != size:
@@ -1732,6 +1920,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
             self.wrapper_call.writeline(
                 f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_as_strided({', '.join(args)}));"
             )
+<<<<<<< HEAD
             self.wrapper_call.writeline(
                 f"wrap_with_raii_handle_if_needed({old_handle_name});"
             )
@@ -1741,6 +1930,12 @@ class CppWrapperCpu(PythonWrapperCodegen):
     def codegen_alloc_from_pool(
         self, name, offset, dtype, shape, stride
     ) -> tuple[str, list[str]]:
+=======
+
+        return f"RAIIAtenTensorHandle {name}({handle_name});"
+
+    def codegen_alloc_from_pool(self, name, offset, dtype, shape, stride) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         size = self.codegen_shape_tuple(shape)
         stride = self.codegen_shape_tuple(stride)
         tmp_name = f"tmp_tensor_handle_{next(self.tmp_tensor_id)}"
@@ -1757,6 +1952,7 @@ class CppWrapperCpu(PythonWrapperCodegen):
             ),
             f"&{tmp_name}",
         ]
+<<<<<<< HEAD
         # We return the lines instead of writing here because writing here is bug prune.
         # If you write aoti_torch__alloc_from_pool lines, you must write the RAIIAtenTensorHandle
         # as well, otherwise you get memory leaks
@@ -1765,6 +1961,13 @@ class CppWrapperCpu(PythonWrapperCodegen):
             f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch__alloc_from_pool({', '.join(args)}));",
         ]
         return f"RAIIAtenTensorHandle({tmp_name})", allocations_to_write
+=======
+        self.wrapper_call.writeline(f"AtenTensorHandle {tmp_name};")
+        self.wrapper_call.writeline(
+            f"AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch__alloc_from_pool({', '.join(args)}));"
+        )
+        return f"RAIIAtenTensorHandle({tmp_name})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_reinterpret_view(
         self,
@@ -1879,7 +2082,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
         # ```
         return final_tensor_str
 
+<<<<<<< HEAD
     def codegen_device_copy(self, src, dst, non_blocking: Union[bool, str]):
+=======
+    def codegen_device_copy(self, src, dst, non_blocking: bool):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """This function is overridden by cpp_wrapper_cpu_array_ref, so we don't need to
         handle cases where dst is not an AtenTensorHandle."""
         self.writeline(
@@ -1984,9 +2191,13 @@ class CppWrapperCpu(PythonWrapperCodegen):
         finally:
             self.pop_codegened_graph()
 
+<<<<<<< HEAD
     def codegen_while_loop(self, while_loop, stack_output=False):
         if stack_output:
             raise NotImplementedError("NYI cpp wrapper for while_loop_stack_output")
+=======
+    def codegen_while_loop(self, while_loop):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is_bool_pred = isinstance(
             while_loop.cond_subgraph.graph.graph_outputs[0], ir.ShapeAsConstantBuffer
         )
@@ -2347,7 +2558,11 @@ class CppWrapperCpu(PythonWrapperCodegen):
 
         scoped_lines.writeline("{")
         with scoped_lines.indent():
+<<<<<<< HEAD
             scoped_lines.writeline("py::gil_scoped_acquire_simple acquire;")
+=======
+            scoped_lines.writeline("py::gil_scoped_acquire acquire;")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             scoped_lines.writelines(lines_in_scope.split("\n"))
         scoped_lines.writelines("}")
         return scoped_lines._lines
@@ -2702,7 +2917,11 @@ if (!custom_op_wrapper) {
             "AtenTensorHandle", tensor_call_args, force_mutable=True
         )
 
+<<<<<<< HEAD
         extern_kernel_node_index = len(V.extern_kernel_nodes) - 1
+=======
+        extern_kernel_node_index = len(V.graph.extern_kernel_nodes) - 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.writeline(
             f"aoti_torch_proxy_executor_call_function(proxy_executor, "
             f"{extern_kernel_node_index}, "

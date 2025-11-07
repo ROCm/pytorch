@@ -11,7 +11,11 @@ namespace torch::jit {
  * \brief A structure describing a match of a pattern in a graph.
  *
  * The structure contains an anchor node, from which the match was found, and
+<<<<<<< HEAD
  * match-maps for nodes and values. A match-map specifies the correspondence
+=======
+ * match-maps for nodes and values. A match-map specifies the correspondance
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * between nodes in the pattern graph (match-map keys) with nodes in the actual
  * graph (match-map values). We keep such maps for both nodes and values.
  */
@@ -38,7 +42,11 @@ struct Match {
  * graph are ignored during matching (IOW, we're essentially performing DCE on
  * the pattern).
  *  - Pattern graph nodes cannot alias. TODO: the check not implemented yet.
+<<<<<<< HEAD
  *  - Aliasing nodes in the graph cannot constitute a match (i.e. through all
+=======
+ *  - Aliasing nodes in the graph cannot consitute a match (i.e. through all
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * found matches, no nodes in the subgraph alias with each other). TODO: check
  * not implemented yet.
  *  - The matcher will not mutate either the pattern graph or the matched graph.

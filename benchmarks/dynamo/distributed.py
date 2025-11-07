@@ -158,7 +158,11 @@ if __name__ == "__main__":
     model_arg.add_argument(
         "--torchbench-model",
         "--torchbench_model",
+<<<<<<< HEAD
         help="name of torchbench model, e.g. BERT_pytorch",
+=======
+        help="name of torchbench model, e.g. hf_Bert",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     model_arg.add_argument(
         "--toy-model", "--toy_model", action="store_true", help="use toy model instead"

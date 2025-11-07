@@ -14,13 +14,18 @@
 #include <ATen/cpu/FlushDenormal.h>
 
 #ifdef USE_FBGEMM
+<<<<<<< HEAD
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wextra-semi")
 #include <fbgemm/Fbgemm.h>
 C10_DIAGNOSTIC_POP()
+=======
+#include <fbgemm/Fbgemm.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // USE_FBGEMM
 #if defined(__aarch64__) && !defined(C10_MOBILE)
 #include <cpuinfo.h>
 #endif
+<<<<<<< HEAD
 namespace at {
 
 namespace {
@@ -99,6 +104,11 @@ std::string precision2str(Float32Precision prec) {
   TORCH_CHECK(false, "Invalid enum Float32Precision(", static_cast<int>(prec), ")");
 }
 
+=======
+
+namespace at {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Context::Context() = default;
 
 // TODO: This could be bad juju if someone calls globalContext() in the
@@ -192,6 +202,7 @@ void Context::setUserEnabledNNPACK(bool e) {
   enabled_nnpack = e;
 }
 
+<<<<<<< HEAD
 bool Context::allowTF32CuDNN(std::optional<Float32Op> op) const {
   if (!op.has_value()) {
     bool allow_tf32_rnn = float32Precision(Float32Backend::CUDA, Float32Op::RNN) == Float32Precision::TF32;
@@ -207,14 +218,21 @@ bool Context::allowTF32CuDNN(std::optional<Float32Op> op) const {
     return float32Precision(Float32Backend::CUDA, op.value()) == Float32Precision::TF32;
   }
   warn_deprecated_fp32_precision_api();
+=======
+bool Context::allowTF32CuDNN() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return allow_tf32_cudnn;
 }
 
 void Context::setAllowTF32CuDNN(bool b) {
+<<<<<<< HEAD
   setFloat32Precision(Float32Backend::CUDA, Float32Op::RNN, b ? Float32Precision::TF32 : Float32Precision::NONE);
   setFloat32Precision(Float32Backend::CUDA, Float32Op::CONV, b ? Float32Precision::TF32 : Float32Precision::NONE);
   allow_tf32_cudnn = b;
   warn_deprecated_fp32_precision_api();
+=======
+  allow_tf32_cudnn = b;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void Context::setSDPPriorityOrder(const std::vector<int64_t>& order) {
@@ -235,6 +253,7 @@ bool Context::allowTF32OneDNN() const {
   return allow_tf32_onednn;
 }
 
+<<<<<<< HEAD
   // NOLINTNEXTLINE(clang-diagnostic-unused-parameter)
   void Context::setAllowTF32OneDNN(bool b){
   #ifdef USE_XPU
@@ -242,6 +261,14 @@ bool Context::allowTF32OneDNN() const {
   #else
   TORCH_WARN("TF32 acceleration on top of oneDNN is available for Intel GPUs. The current Torch version does not have Intel GPU Support.");
   #endif
+=======
+void Context::setAllowTF32OneDNN(bool b){
+#ifdef USE_XPU
+  allow_tf32_onednn = b;
+#else
+  TORCH_WARN("TF32 acceleration on top of oneDNN is available for Intel GPUs. The current Torch version does not have Intel GPU Support.");
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool Context::userEnabledFlashSDP() const {
@@ -292,6 +319,48 @@ bool Context::userEnabledOverrideableSDP() const {
   return enabled_overrideable;
 }
 
+<<<<<<< HEAD
+=======
+static constexpr const auto cublas_config_var_name = "CUBLAS_WORKSPACE_CONFIG";
+static constexpr const std::array<const char*, 2> cublas_deterministic_configs = {":4096:8", ":16:8"};
+#ifdef USE_ROCM
+static constexpr const auto hipblaslt_allow_tf32 = "HIPBLASLT_ALLOW_TF32";
+#endif
+
+bool Context::checkCuBLASConfigDeterministic() {
+  // If using CUDA 10.2 or greater, need to make sure CuBLAS workspace config
+  // is set to deterministic setting
+  if (hasCUDART()) {
+    const auto workspace_config = c10::utils::get_env(cublas_config_var_name);
+    return (workspace_config == cublas_deterministic_configs[0] || workspace_config == cublas_deterministic_configs[1]);
+  }
+  return true;
+}
+
+void Context::alertCuBLASConfigNotDeterministic() const {
+  static const bool cublas_config_deterministic = checkCuBLASConfigDeterministic();
+  if (C10_LIKELY(!deterministicAlgorithms() || cublas_config_deterministic)) {
+    return;
+  }
+
+  auto msg = c10::str(
+    "Deterministic behavior was enabled with either `torch.use_deterministic_algorithms(True)` or ",
+    "`at::Context::setDeterministicAlgorithms(true)`, but this operation is not deterministic because ",
+    "it uses CuBLAS and you have CUDA >= 10.2. To enable deterministic behavior in this ",
+    "case, you must set an environment variable before running your PyTorch application: ",
+    cublas_config_var_name, "=", cublas_deterministic_configs[0], " or ",
+    cublas_config_var_name, "=", cublas_deterministic_configs[1], ". For more information, go to ",
+    "https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility"
+  );
+
+  if (deterministicAlgorithmsWarnOnly()) {
+    TORCH_WARN(msg);
+  } else {
+    TORCH_CHECK(false, msg);
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool Context::benchmarkCuDNN() const {
   return benchmark_cudnn;
 }
@@ -308,6 +377,7 @@ void Context::setBenchmarkLimitCuDNN(int b) {
   benchmark_limit_cudnn = b;
 }
 
+<<<<<<< HEAD
 bool Context::immediateMiopen() const {
   return immediate_miopen;
 }
@@ -373,10 +443,41 @@ Float32Precision Context::float32Precision(Float32Backend backend, Float32Op op)
     return Float32Precision::NONE;
   }
   return precision;
+=======
+bool Context::allowTF32CuBLAS() const {
+#ifdef USE_ROCM
+    const auto allow_tf32 = c10::utils::check_env(hipblaslt_allow_tf32);
+    if (allow_tf32 != true) {
+      return false;
+    }
+#endif
+  return float32_matmul_precision != at::Float32MatmulPrecision::HIGHEST;
+}
+
+void Context::setAllowTF32CuBLAS(bool b) {
+#ifdef USE_ROCM
+  const auto allow_tf32 = c10::utils::check_env(hipblaslt_allow_tf32);
+  if (allow_tf32 != true) {
+    C10_LOG_FIRST_N(INFO, 10) << "torch.backends.cuda.matmul.allow_tf32 is not supported on ROCm by default. "
+                              << "Please set environment variable HIPBLASLT_ALLOW_TF32=1 to enable it.";
+    return;
+  }
+#endif
+  float32_matmul_precision = b ? at::Float32MatmulPrecision::HIGH : at::Float32MatmulPrecision::HIGHEST;
+}
+
+Float32MatmulPrecision Context::float32MatmulPrecision() const {
+  return float32_matmul_precision;
+}
+
+void Context::setFloat32MatmulPrecision(Float32MatmulPrecision p) {
+  float32_matmul_precision = p;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void Context::setFloat32MatmulPrecision(const std::string &s) {
   auto match = [this](const std::string & s_) {
+<<<<<<< HEAD
     warn_deprecated_fp32_precision_api();
     // TODO: consider if CuDNN field needs to also be set for potential future CuDNN ops like multi-headed attention
     if (s_ == "highest") {
@@ -393,6 +494,17 @@ void Context::setFloat32MatmulPrecision(const std::string &s) {
       float32_matmul_precision = at::Float32MatmulPrecision::MEDIUM;
       setFloat32Precision(Float32Backend::CUDA, Float32Op::MATMUL, Float32Precision::TF32);
       setFloat32Precision(Float32Backend::MKLDNN, Float32Op::MATMUL, Float32Precision::BF16);
+=======
+    // TODO: consider if CuDNN field needs to also be set for potential future CuDNN ops like multi-headed attention
+    if (s_ == "highest") {
+      float32_matmul_precision = at::Float32MatmulPrecision::HIGHEST;
+      return true;
+    } else if (s_ == "high") {
+      float32_matmul_precision = at::Float32MatmulPrecision::HIGH;
+      return true;
+    } else if (s_ == "medium") {
+      float32_matmul_precision = at::Float32MatmulPrecision::MEDIUM;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return true;
     }
     return false;
@@ -406,6 +518,7 @@ void Context::setFloat32MatmulPrecision(const std::string &s) {
     "setFloat32MatmulPrecision call has no effect.");
 }
 
+<<<<<<< HEAD
 void Context::setFloat32Precision(Float32Backend backend, Float32Op op, Float32Precision p) {
   auto it = fp32_precision.find(std::make_pair(backend, op));
   TORCH_CHECK(
@@ -418,6 +531,8 @@ void Context::setFloat32Precision(Float32Backend backend, Float32Op op, Float32P
   it->second = p;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 at::LinalgBackend Context::linalgPreferredBackend() const {
   return linalg_preferred_backend;
 }
@@ -442,9 +557,12 @@ at::BlasBackend Context::blasPreferredBackend() {
   // call site for blasPreferredBackend(), we set it to an actual value.
   if (blas_preferred_backend == at::BlasBackend::Default) {
     blas_preferred_backend = at::BlasBackend::Cublas;
+<<<<<<< HEAD
     // This logic sits in the getter because it needs to validate
     // values set via env vars such as TORCH_BLAS_PREFER_CUBLASLT
     // which initialize the backend without calling the setter
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_ROCM
     // AMD Instinct targets prefer hipblaslt
     static const bool hipblaslt_preferred = []() {
@@ -453,6 +571,12 @@ at::BlasBackend Context::blasPreferredBackend() {
 #if ROCM_VERSION >= 60400
           "gfx1200", "gfx1201",
 #endif
+<<<<<<< HEAD
+=======
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #if ROCM_VERSION >= 60500
           "gfx950"
 #endif
@@ -474,6 +598,7 @@ at::BlasBackend Context::blasPreferredBackend() {
   // hipblaslt support for all archs is not as complete as hipblas
   if (blas_preferred_backend == at::BlasBackend::Cublaslt) {
     static const bool hipblaslt_unsupported = []() {
+<<<<<<< HEAD
       if(!hasCuBLASLt())
       {
           return true;
@@ -485,6 +610,18 @@ at::BlasBackend Context::blasPreferredBackend() {
 #endif
 #if ROCM_VERSION >= 70000
           "gfx950", "gfx1150", "gfx1151"
+=======
+      static const std::vector<std::string> archs = {
+          "gfx90a", "gfx942",
+#if ROCM_VERSION >= 60300
+          "gfx1100", "gfx1101", "gfx1200", "gfx1201",
+#endif
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
+#endif
+#if ROCM_VERSION >= 60500
+          "gfx950"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
       };
       for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
@@ -503,6 +640,7 @@ at::BlasBackend Context::blasPreferredBackend() {
   return blas_preferred_backend;
 }
 
+<<<<<<< HEAD
 bool Context::ckSupported() {
 #ifdef USE_ROCM
   static const std::vector<std::string> supported_archs = {
@@ -521,6 +659,8 @@ bool Context::ckSupported() {
 #endif
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void Context::setBlasPreferredBackend(at::BlasBackend b) {
 #ifdef _MSC_VER
   TORCH_WARN_ONCE(
@@ -530,6 +670,7 @@ void Context::setBlasPreferredBackend(at::BlasBackend b) {
 #else
   TORCH_CHECK((b != at::BlasBackend::Cublaslt) || hasCuBLASLt(),
       "Cannot set preferred backend to cuBLASLt if PyTorch has not been compiled with cuBLASLt.");
+<<<<<<< HEAD
 #ifdef USE_ROCM
   static const bool ckSupportedFlag = ckSupported();
   static const bool hasCKGEMMFlag = hasCKGEMM();
@@ -538,6 +679,10 @@ void Context::setBlasPreferredBackend(at::BlasBackend b) {
       "architecture supported for CK: ", ckSupportedFlag,
       ", PyTorch built with CK GEMM support: ", hasCKGEMMFlag);
 #endif
+=======
+  TORCH_CHECK((b != at::BlasBackend::Ck) || hasROCM(),
+      "Cannot set preferred backend to Ck if PyTorch has not been compiled for ROCm.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (b != at::BlasBackend::Default && b != at::BlasBackend::Cublas) {
     TORCH_WARN_ONCE(
       "torch.backends.cuda.preferred_blas_library is an experimental feature. "
@@ -549,6 +694,7 @@ void Context::setBlasPreferredBackend(at::BlasBackend b) {
 #endif
 }
 
+<<<<<<< HEAD
 at::ROCmFABackend Context::getROCmFAPreferredBackend() {
 #ifdef USE_ROCM
   // Set potential "Default" value so we don't have to interpret at call sites.
@@ -572,10 +718,14 @@ at::ROCmFABackend Context::getROCmFAPreferredBackend() {
   }
 #endif
 
+=======
+at::ROCmFABackend Context::getROCmFAPreferredBackend() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return rocm_fa_preferred_backend;
 }
 
 void Context::setROCmFAPreferredBackend(at::ROCmFABackend b) {
+<<<<<<< HEAD
 #ifdef USE_ROCM
   static const bool hasCKSDPAFlag = hasCKSDPA();
   static const bool ckSupportedFlag = ckSupported();
@@ -583,10 +733,37 @@ void Context::setROCmFAPreferredBackend(at::ROCmFABackend b) {
       "Cannot set preferred SDPA backend to CK since following conditions are not true: ",
       "architecture supported for CK: ", ckSupportedFlag,
       ", PyTorch built with CK SDPA support: ", hasCKSDPAFlag);
+=======
+
+  // TODO: add plumbing for hasCK for validity checking
+  TORCH_CHECK((b != at::ROCmFABackend::Ck) || hasROCM(),
+      "Cannot set preferred flash attention backend to Ck if PyTorch has not been compiled for ROCm.");
+#ifdef USE_ROCM
+  if(b == at::ROCmFABackend::Ck) {
+    static const bool ck_unsupported = []() {
+      static const std::vector<std::string> archs = {
+          "gfx90a",  "gfx942", "gfx950"
+      };
+      for (auto index: c10::irange(detail::getCUDAHooks().deviceCount())) {
+        if (!detail::getCUDAHooks().isGPUArch(archs, index)) {
+          TORCH_WARN_ONCE(
+            "Attempting to use CK on an unsupported architecture! Cannot set backend to CK");
+          return true;
+        }
+      }
+      return false;
+    }();
+    if(!ck_unsupported) rocm_fa_preferred_backend = b;
+  }
+  else {
+     rocm_fa_preferred_backend = b;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   rocm_fa_preferred_backend = b;
 }
 
+<<<<<<< HEAD
 CuBLASReductionOption Context::allowFP16ReductionCuBLAS() const {
   return allow_fp16_reduction_cublas;
 }
@@ -614,6 +791,22 @@ CuBLASReductionOption Context::allowBF16ReductionCuBLAS() const {
 
 void Context::setAllowBF16ReductionCuBLAS(bool allow_reduced_precision, bool allow_splitk) {
   allow_bf16_reduction_cublas = get_reduction_option(allow_reduced_precision, allow_splitk);
+=======
+bool Context::allowFP16ReductionCuBLAS() const {
+  return allow_fp16_reduction_cublas;
+}
+
+void Context::setAllowFP16ReductionCuBLAS(bool b) {
+  allow_fp16_reduction_cublas = b;
+}
+
+bool Context::allowBF16ReductionCuBLAS() const {
+  return allow_bf16_reduction_cublas;
+}
+
+void Context::setAllowBF16ReductionCuBLAS(bool b) {
+  allow_bf16_reduction_cublas = b;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool Context::allowFP16AccumulationCuBLAS() const {
@@ -673,6 +866,7 @@ bool Context::hasLAPACK() {
 #endif
 }
 
+<<<<<<< HEAD
 bool Context::hasEigenSparse() {
 #if AT_USE_EIGEN_SPARSE()
   return true;
@@ -681,6 +875,8 @@ bool Context::hasEigenSparse() {
 #endif
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 at::QEngine Context::qEngine() const {
   static auto _quantized_engine = []() {
     at::QEngine qengine = at::kNoQEngine;
@@ -704,14 +900,22 @@ at::QEngine Context::qEngine() const {
 #endif
     return qengine;
   }();
+<<<<<<< HEAD
   auto qt_engine = quantized_engine.load();
   return qt_engine == at::QEngine::NoQEngine ? _quantized_engine : qt_engine;
+=======
+  return quantized_engine.value_or(_quantized_engine);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void Context::setQEngine(at::QEngine e) {
   const auto& qengines = supportedQEngines();
   if (std::find(qengines.begin(), qengines.end(), e) != qengines.end()) {
+<<<<<<< HEAD
     quantized_engine.store(e);
+=======
+    quantized_engine = e;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return;
   }
   TORCH_CHECK(false, "quantized engine ", toString(e), " is not supported");
@@ -723,9 +927,23 @@ const std::vector<at::QEngine>& Context::supportedQEngines() {
     // Engines are listed in priority order: later one wins
     // By default we prefer FBGEMM if we're running on server side
     // QNNPACK on server side has some issue, so we disable it by default.
+<<<<<<< HEAD
 #ifdef USE_PYTORCH_QNNPACK
     engines.push_back(at::kQNNPACK);
 #endif
+=======
+#ifdef C10_MOBILE
+    engines.push_back(at::kNoQEngine);
+#ifdef USE_PYTORCH_QNNPACK
+    engines.push_back(at::kQNNPACK);
+#endif
+#else  // C10_MOBILE
+#ifdef USE_PYTORCH_QNNPACK
+    engines.push_back(at::kQNNPACK);
+#endif
+    engines.push_back(at::kNoQEngine);
+#endif // C10_MOBILE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if AT_MKLDNN_ENABLED()
     engines.push_back(at::kONEDNN);
@@ -857,7 +1075,10 @@ void Context::setAllowFP16ReductionCPU(bool b) {
 #if defined(__aarch64__) && !defined(C10_MOBILE)
     if (!cpuinfo_initialize() || !cpuinfo_has_arm_fp16_arith())
 #else
+<<<<<<< HEAD
     // NOLINTNEXTLINE(facebook-hte-MissingBraces)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (true)
 #endif
       TORCH_CHECK(false, "Float16 arithmetic is not supported by the CPU!");

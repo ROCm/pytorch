@@ -13,8 +13,12 @@ import signal
 import sys
 import threading
 import time
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, TypeVar
+=======
+from typing import Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 from torch.distributed.elastic.timer.api import TimerClient, TimerRequest

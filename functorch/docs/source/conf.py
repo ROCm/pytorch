@@ -50,7 +50,11 @@ extensions = [
     "myst_nb",
 ]
 
+<<<<<<< HEAD
 # sys.path.insert(0, os.path.abspath('./tutorials'))
+=======
+# sys.path.insert(0, os.path.abspath('./notebooks'))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # build the templated autosummary files
 # autosummary_generate = True
@@ -131,7 +135,11 @@ language = "en"
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This patterns also effect to html_static_path and html_extra_path
+<<<<<<< HEAD
 exclude_patterns = ["tutorials/colab**", "tutorials/_src/**"]
+=======
+exclude_patterns = ["notebooks/colab**", "notebooks/_src/**"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = "sphinx"

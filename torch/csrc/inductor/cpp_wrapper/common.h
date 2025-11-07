@@ -6,7 +6,12 @@
 #include <utility>
 
 #include <Python.h>
+<<<<<<< HEAD
 #include <pybind11/gil_simple.h>
+=======
+#define PYBIND11_SIMPLE_GIL_MANAGEMENT
+#include <pybind11/gil.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Include some often-used cpp_wrapper headers, for precompiling.
 #include <c10/util/BFloat16.h>

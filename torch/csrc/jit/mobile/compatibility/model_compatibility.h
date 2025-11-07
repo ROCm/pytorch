@@ -93,7 +93,11 @@ enum ModelCompatibilityStatus {
 
 struct ModelCompatCheckResult {
   ModelCompatibilityStatus status;
+<<<<<<< HEAD
   std::vector<std::string> errors;
+=======
+  std::vector<std::string> errors{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 // Takes in information about a runtime and a model and returns if the two are
 // compatible with one another.

@@ -144,7 +144,12 @@ inline std::string _all_equal_numel_error(at::ArrayRef<Tensor> tensors) {
 inline bool _apply_preamble(ArrayRef<Tensor> tensors) {
   checkDeviceType("CPU_tensor_apply", tensors, kCPU);
   checkLayout("CPU_tensor_apply", tensors, kStrided);
+<<<<<<< HEAD
   TORCH_CHECK(_all_equal_numel(tensors), _all_equal_numel_error(tensors));
+=======
+  if (!_all_equal_numel(tensors))
+    TORCH_CHECK(false, _all_equal_numel_error(tensors));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // An empty tensor has no elements
   for (auto& t : tensors)
     if (t.numel() == 0)

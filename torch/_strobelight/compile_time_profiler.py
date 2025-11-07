@@ -127,7 +127,11 @@ class StrobelightCompileTimeProfiler:
 
             if not shutil.which("strobeclient"):
                 logger.info(
+<<<<<<< HEAD
                     "strobeclient not found, can't enable compile time strobelight profiling, seems"
+=======
+                    "strobeclient not found, cant enable compile time strobelight profiling, seems"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "like you are not on a FB machine."
                 )
                 return
@@ -145,7 +149,11 @@ class StrobelightCompileTimeProfiler:
             async_stack_max_len=cls.max_stack_length,
             run_user_name="pt2-profiler/"
             + os.environ.get("USER", os.environ.get("USERNAME", "")),
+<<<<<<< HEAD
             sample_tags={cls.identifier},  # pyrefly: ignore  # bad-argument-type
+=======
+            sample_tags={cls.identifier},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     @classmethod

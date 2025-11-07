@@ -2,7 +2,10 @@
 
 #include <ATen/record_function.h>
 #include <c10/core/impl/PyInterpreter.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/overloaded.h>
 #include <torch/csrc/DynamicTypes.h>
 #include <torch/csrc/autograd/utils/wrap_outputs.h>
@@ -89,7 +92,11 @@ struct type_caster<std::shared_ptr<torch::CapturedTraceback>> {
       std::shared_ptr<torch::CapturedTraceback>,
       _("torch._C._profiler.CapturedTraceback"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (Py_TYPE(src.ptr()) == &THPCapturedTracebackType) {
       value = reinterpret_cast<THPCapturedTraceback*>(src.ptr())->data;
       return true;
@@ -221,7 +228,12 @@ PyObject* RecordFunctionFast_enter(PyObject* selfGeneric, PyObject* unused) {
     TORCH_INTERNAL_ASSERT(
         !self->guard,
         "Trying to enter a new record_function_fast context but the guard is unexpectedly already set");
+<<<<<<< HEAD
     auto scope = at::RecordScope::FUNCTION;
+=======
+    self->guard =
+        std::make_unique<at::RecordFunction>(at::RecordScope::FUNCTION);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<at::IValue> args;
     std::unordered_map<std::string, at::IValue> kwargs;
     bool profiler_need_input = torch::autograd::profiler::profilerEnabled() &&
@@ -251,6 +263,7 @@ PyObject* RecordFunctionFast_enter(PyObject* selfGeneric, PyObject* unused) {
         if (THPUtils_checkString(value)) {
           ivalue = at::IValue(THPUtils_unpackString(value));
         } else {
+<<<<<<< HEAD
           // Handle other types (not strings, not lists)
           auto match = torch::jit::tryToInferPrimitiveType(value);
           if (match.success()) {
@@ -279,6 +292,11 @@ PyObject* RecordFunctionFast_enter(PyObject* selfGeneric, PyObject* unused) {
                   "Unable to infer type of value in the List for keyword: ",
                   key_str);
             }
+=======
+          auto match = torch::jit::tryToInferPrimitiveType(value);
+          if (match.success()) {
+            ivalue = torch::jit::toIValue(value, match.type());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           } else {
             TORCH_WARN("Unable to infer type of value for keyword: ", key_str);
             ivalue = at::IValue("NULL");
@@ -287,6 +305,7 @@ PyObject* RecordFunctionFast_enter(PyObject* selfGeneric, PyObject* unused) {
         kwargs[key_str] = ivalue;
       }
     }
+<<<<<<< HEAD
     auto it = kwargs.find("scope");
     if (it != kwargs.end()) {
       auto value = it->second;
@@ -298,6 +317,8 @@ PyObject* RecordFunctionFast_enter(PyObject* selfGeneric, PyObject* unused) {
       }
     }
     self->guard = std::make_unique<at::RecordFunction>(scope);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     self->guard->before(THPUtils_unpackString(self->name), &args, &kwargs);
   }
   Py_RETURN_NONE;
@@ -376,10 +397,14 @@ void initPythonBindings(PyObject* module) {
               bool /* adjust_profiler_step */,
               bool /* disable_external_correlation*/,
               bool /* profile_all_threads */,
+<<<<<<< HEAD
               bool /* capture_overload_names */,
               bool /* record_python_gc_info */,
               bool /* expose_kineto_event_metadata */,
               std::string /* custom_profiler_config*/
+=======
+              bool /* capture_overload_names */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               >(),
           "An experimental config for Kineto features. Please note that"
           "backward compatibility is not guaranteed.\n"
@@ -394,6 +419,7 @@ void initPythonBindings(PyObject* module) {
           "       that expose CUDA device, stream and event synchronization activities. This feature is new\n"
           "       and currently disabled by default.\n"
           "    adjust_profiler_step (bool) : whether to adjust the profiler step to\n"
+<<<<<<< HEAD
           "       match the parent python event duration. This feature is new and currently disabled by default.\n"
           "    disable_external_correlation (bool) : whether to disable external correlation\n"
           "    profile_all_threads (bool) : whether to profile all threads\n"
@@ -401,6 +427,12 @@ void initPythonBindings(PyObject* module) {
           "    record_python_gc_info (bool) : adds python gc events to profile\n"
           "    expose_kineto_event_metadata (bool) : whether to expose KinetoEvent metadata in the PyTorch Profiler\n"
           "    custom_profiler_config (string) : Used to pass some configurations to the custom profiler backend.\n",
+=======
+          "       match the parent python event duration. This feature is new and currently disabled by default.\n",
+          "    disable_external_correlation (bool) : whether to disable external correlation\n",
+          "    profile_all_threads (bool) : whether to profile all threads\n",
+          "    capture_overload_names (bool) : whether to include ATen overload names in the profile\n",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           py::arg("profiler_metrics") = std::vector<std::string>(),
           py::arg("profiler_measure_per_kernel") = false,
           py::arg("verbose") = false,
@@ -409,10 +441,14 @@ void initPythonBindings(PyObject* module) {
           py::arg("adjust_profiler_step") = false,
           py::arg("disable_external_correlation") = false,
           py::arg("profile_all_threads") = false,
+<<<<<<< HEAD
           py::arg("capture_overload_names") = false,
           py::arg("record_python_gc_info") = false,
           py::arg("expose_kineto_event_metadata") = false,
           py::arg("custom_profiler_config") = "")
+=======
+          py::arg("capture_overload_names") = false)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def(py::pickle(
           [](const ExperimentalConfig& p) { // __getstate__
             py::list py_metrics;
@@ -435,6 +471,7 @@ void initPythonBindings(PyObject* module) {
                 p.disable_external_correlation,
                 p.profile_all_threads,
                 p.capture_overload_names,
+<<<<<<< HEAD
                 p.record_python_gc_info,
                 p.expose_kineto_event_metadata,
                 p.custom_profiler_config,
@@ -442,6 +479,14 @@ void initPythonBindings(PyObject* module) {
           },
           [](const py::tuple& t) { // __setstate__
             TORCH_CHECK(t.size() < 5, "Expected at least 5 values in state");
+=======
+                p.performance_events);
+          },
+          [](const py::tuple& t) { // __setstate__
+            if (t.size() >= 5) {
+              throw std::runtime_error("Expected at least 5 values in state");
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             py::list py_metrics = t[0].cast<py::list>();
             std::vector<std::string> metrics{py_metrics.size()};

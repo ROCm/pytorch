@@ -109,15 +109,22 @@ if torch._C._has_mkldnn:
             # depends on the alignment of internally-stored metadata.
             # In aot mode, we need to firstly save the packed weight, when loading it,
             # it will be in a different address which doesn't work.
+<<<<<<< HEAD
             # Disable MKL prepack linear in AOT mode.
             # Disable MKL prepack linear when batch_size has free symbols.
+=======
+            # Disable MKL prepack linear in AOT mode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             packed_weight_op = (
                 mkldnn._reorder_linear_weight
                 if (
                     is_lp_weight
                     or mkldnn._is_mkldnn_acl_supported()
                     or V.aot_compilation
+<<<<<<< HEAD
                     or has_free_symbols(batch_size)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 else torch.ops.mkl._mkl_reorder_linear_weight
             )
@@ -130,12 +137,16 @@ if torch._C._has_mkldnn:
         ):
             packed_linear_inputs: tuple[Any, ...] = (input, packed_weight_node)
             transpose_weight_node = packed_weight_node.args[0]
+<<<<<<< HEAD
             if (
                 is_lp_weight
                 or mkldnn._is_mkldnn_acl_supported()
                 or V.aot_compilation
                 or has_free_symbols(batch_size)
             ):
+=======
+            if is_lp_weight or mkldnn._is_mkldnn_acl_supported() or V.aot_compilation:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 packed_linear_inputs += (bias, "none", [], "")
                 packed_linear_op: Callable[..., Any] = mkldnn._linear_pointwise.default
             else:
@@ -712,7 +723,10 @@ if torch._C._has_mkldnn:
             if any(_other_input_not_inplaceable(n, other_index) for n in binary_nodes):
                 return False
             if any(
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 n.args[other_index].op in ["placeholder", "output"]
                 for n in binary_nodes
             ):
@@ -1226,6 +1240,10 @@ if torch._C._has_mkldnn:
         weight_meta_value = linear_node.args[weight_idx].meta.get("val")
         if input_meta_value is None or weight_meta_value is None:
             return False
+<<<<<<< HEAD
+=======
+        batch_size = input_meta_value.shape[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             input_meta_value.dtype == torch.float64
             or weight_meta_value.dtype == torch.float64
@@ -1235,6 +1253,7 @@ if torch._C._has_mkldnn:
             torch.bfloat16,
             torch.float16,
         )
+<<<<<<< HEAD
         reduced_f32_matmul_enabled = torch.backends.mkldnn.matmul.fp32_precision in [  # type: ignore[attr-defined]
             "bf16",
             "tf32",
@@ -1249,6 +1268,14 @@ if torch._C._has_mkldnn:
             not compute_with_lp
             and not mkldnn._is_mkldnn_acl_supported()
             and not torch._C.has_mkl
+=======
+        # on x86, for fp32, mkl should be enabled and batch_size should not be a free symbol.
+        # on aarch64, use mkldnn op for fp32 as well if acl is enabled
+        if (
+            not is_lp_weight
+            and not mkldnn._is_mkldnn_acl_supported()
+            and ((not torch._C.has_mkl) or has_free_symbols(batch_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return False
         for meta_value in [input_meta_value, weight_meta_value]:
@@ -1459,6 +1486,7 @@ if torch._C._has_mkldnn:
                     torch.bfloat16,
                     torch.float16,
                 )
+<<<<<<< HEAD
                 reduced_f32_matmul_enabled = (
                     torch.backends.mkldnn.matmul.fp32_precision in ["bf16", "tf32"]  # type: ignore[attr-defined]
                 )
@@ -1472,6 +1500,18 @@ if torch._C._has_mkldnn:
                 )
                 packed_linear_node = mkldnn_device_op.pack_linear(
                     graph, compute_with_lp, batch_size, input, packed_weight_node, bias
+=======
+                batch_size = input.meta.get("val").shape[0]
+                if has_free_symbols(batch_size):
+                    assert is_lp_weight or mkldnn._is_mkldnn_acl_supported(), (
+                        f"only bf16/fp16 weight prepacking supports dynamic shape inputs but got {weight_dtype}"
+                    )
+                packed_weight_node = mkldnn_device_op.pack_linear_weight(
+                    graph, is_lp_weight, transpose_weight_node, batch_size
+                )
+                packed_linear_node = mkldnn_device_op.pack_linear(
+                    graph, is_lp_weight, batch_size, input, packed_weight_node, bias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
                 linear_node.replace_all_uses_with(packed_linear_node)

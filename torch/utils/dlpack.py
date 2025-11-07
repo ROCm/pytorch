@@ -1,14 +1,24 @@
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+from typing import Any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import enum
 
+<<<<<<< HEAD
 from torch._C import _to_dlpack as to_dlpack
 from torch.types import Device as _Device
+=======
+from torch._C import _from_dlpack
+from torch._C import _to_dlpack as to_dlpack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = [
     "DLDeviceType",
     "from_dlpack",
+<<<<<<< HEAD
 ]
 
 class DLDeviceType(enum.IntEnum):
@@ -16,11 +26,23 @@ class DLDeviceType(enum.IntEnum):
     kDLCPU = 1,
     kDLCUDA = 2,
     kDLCUDAHost = 3,
+=======
+    "to_dlpack",
+]
+
+
+class DLDeviceType(enum.IntEnum):
+    # Enums as in DLPack specification (aten/src/ATen/dlpack.h)
+    kDLCPU = 1,
+    kDLGPU = 2,
+    kDLCPUPinned = 3,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     kDLOpenCL = 4,
     kDLVulkan = 7,
     kDLMetal = 8,
     kDLVPI = 9,
     kDLROCM = 10,
+<<<<<<< HEAD
     kDLROCMHost = 11,
     kDLExtDev = 12,
     kDLCUDAManaged = 13,
@@ -28,6 +50,10 @@ class DLDeviceType(enum.IntEnum):
     kDLWebGPU = 15,
     kDLHexagon = 16,
     kDLMAIA = 17,
+=======
+    kDLExtDev = 12,
+    kDLOneAPI = 14,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 torch._C._add_docstr(to_dlpack, r"""to_dlpack(tensor) -> PyCapsule
@@ -55,12 +81,16 @@ The DLPack capsule shares the tensor's memory.
 
 # TODO: add a typing.Protocol to be able to tell Mypy that only objects with
 # __dlpack__ and __dlpack_device__ methods are accepted.
+<<<<<<< HEAD
 def from_dlpack(
     ext_tensor: Any,
     *,
     device: Optional[_Device] = None,
     copy: Optional[bool] = None
 ) -> 'torch.Tensor':
+=======
+def from_dlpack(ext_tensor: Any) -> 'torch.Tensor':
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """from_dlpack(ext_tensor) -> Tensor
 
     Converts a tensor from an external library into a ``torch.Tensor``.
@@ -82,6 +112,7 @@ def from_dlpack(
             an opaque ``PyCapsule`` instance, typically produced by a
             ``to_dlpack`` function or method.
 
+<<<<<<< HEAD
         device (torch.device or str or None): An optional PyTorch device
             specifying where to place the new tensor. If None (default), the
             new tensor will be on the same device as ``ext_tensor``.
@@ -89,6 +120,8 @@ def from_dlpack(
         copy (bool or None): An optional boolean indicating whether or not to copy
             ``self``. If None, PyTorch will copy only if necessary.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Examples::
 
         >>> import torch.utils.dlpack
@@ -119,6 +152,7 @@ def from_dlpack(
 
     """
     if hasattr(ext_tensor, '__dlpack__'):
+<<<<<<< HEAD
         # Only populate kwargs if any of the optional arguments are, in fact, not None. Otherwise,
         # leave them out, since we might end up falling back to no-extra-kwargs __dlpack__ call.
         kwargs: dict[str, Any] = {}
@@ -142,11 +176,19 @@ def from_dlpack(
         # stream
         if ext_device[0] in (DLDeviceType.kDLCUDA, DLDeviceType.kDLROCM):
             stream = torch.cuda.current_stream(f'cuda:{ext_device[1]}')
+=======
+        device = ext_tensor.__dlpack_device__()
+        # device is either CUDA or ROCm, we need to pass the current
+        # stream
+        if device[0] in (DLDeviceType.kDLGPU, DLDeviceType.kDLROCM):
+            stream = torch.cuda.current_stream(f'cuda:{device[1]}')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # cuda_stream is the pointer to the stream and it is a public
             # attribute, but it is not documented
             # The array API specify that the default legacy stream must be passed
             # with a value of 1 for CUDA
             # https://data-apis.org/array-api/latest/API_specification/array_object.html?dlpack-self-stream-none#dlpack-self-stream-none
+<<<<<<< HEAD
             is_cuda = ext_device[0] == DLDeviceType.kDLCUDA
             # Since pytorch is not using PTDS by default, lets directly pass
             # the legacy stream
@@ -169,3 +211,16 @@ def from_dlpack(
         # Old versions just call the converter
         dlpack = ext_tensor
     return torch._C._from_dlpack(dlpack)
+=======
+            is_cuda = device[0] == DLDeviceType.kDLGPU
+            # Since pytorch is not using PTDS by default, lets directly pass
+            # the legacy stream
+            stream_ptr = 1 if is_cuda and stream.cuda_stream == 0 else stream.cuda_stream
+            dlpack = ext_tensor.__dlpack__(stream=stream_ptr)
+        else:
+            dlpack = ext_tensor.__dlpack__()
+    else:
+        # Old versions just call the converter
+        dlpack = ext_tensor
+    return _from_dlpack(dlpack)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

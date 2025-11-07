@@ -1,15 +1,22 @@
 # mypy: allow-untyped-defs
 from __future__ import annotations
 
+<<<<<<< HEAD
 from typing import cast, Generic, Optional, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Callable, cast, Generic, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = ["Future", "collect_all", "wait_all"]
 
 
@@ -17,7 +24,15 @@ T = TypeVar("T")
 S = TypeVar("S")
 
 
+<<<<<<< HEAD
 class Future(torch._C.Future, Generic[T]):
+=======
+class _PyFutureMeta(type(torch._C.Future), type(Generic)):  # type: ignore[misc, no-redef]
+    pass
+
+
+class Future(torch._C.Future, Generic[T], metaclass=_PyFutureMeta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""
     Wrapper around a ``torch._C.Future`` which encapsulates an asynchronous
     execution of a callable, e.g. :meth:`~torch.distributed.rpc.rpc_async`. It

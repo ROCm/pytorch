@@ -27,8 +27,11 @@
 #include <ATen/ops/zeros.h>
 #include <ATen/ops/zeros_like.h>
 #include <ATen/ops/empty_strided.h>
+<<<<<<< HEAD
 #include <ATen/ops/_cudnn_attention_backward.h>
 #include <ATen/ops/_cudnn_attention_backward_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/_flash_attention_backward.h>
 #include <ATen/ops/_flash_attention_backward_native.h>
 #include <ATen/ops/_efficient_attention_backward.h>
@@ -100,14 +103,22 @@ std::tuple<Tensor, Tensor, Tensor> _flash_attention_backward(
   std::optional<at::Tensor> dk{std::nullopt};
   std::optional<at::Tensor> dv{std::nullopt};
 
+<<<<<<< HEAD
   //  The kernel computes regardless we will drop for this functions return
+=======
+  //  The kernel computes irregardless we will drop for this functions return
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor grad_softmax;
 
   // Currently unused args:
   std::optional<at::Tensor> alibi_slopes{std::nullopt};
   const float softcap = 0.0;
 
+<<<<<<< HEAD
   bool deterministic{false};
+=======
+  bool determinisitic{false};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& ctx = at::globalContext();
   if (ctx.deterministicAlgorithms()) {
     if (ctx.deterministicAlgorithmsWarnOnly()) {
@@ -115,7 +126,11 @@ std::tuple<Tensor, Tensor, Tensor> _flash_attention_backward(
           "Flash Attention defaults to a non-deterministic algorithm. ",
           "To explicitly enable determinism call torch.use_deterministic_algorithms(True, warn_only=False).");
     } else {
+<<<<<<< HEAD
       deterministic = true;
+=======
+      determinisitic = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -150,7 +165,11 @@ std::tuple<Tensor, Tensor, Tensor> _flash_attention_backward(
         non_null_window_right,
 #endif
         softcap,
+<<<<<<< HEAD
         deterministic,
+=======
+        determinisitic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         philox_seed,
         philox_offset);
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue));
@@ -178,7 +197,11 @@ std::tuple<Tensor, Tensor, Tensor> _flash_attention_backward(
         non_null_window_right,
 #endif
         softcap,
+<<<<<<< HEAD
         deterministic,
+=======
+        determinisitic,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         philox_seed,
         philox_offset);
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue));
@@ -188,7 +211,11 @@ std::tuple<Tensor, Tensor, Tensor> _flash_attention_backward(
   return std::make_tuple(Tensor(), Tensor(), Tensor());
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor, Tensor> _cudnn_attention_backward(
+=======
+std::tuple<Tensor, Tensor, Tensor> _scaled_dot_product_cudnn_attention_backward_cuda(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_out,
     const Tensor& query,
     const Tensor& key,
@@ -215,6 +242,7 @@ std::tuple<Tensor, Tensor, Tensor> _cudnn_attention_backward(
       }
     }
 
+<<<<<<< HEAD
     const bool is_nested = cum_seq_q.defined();
     const int64_t max_seqlen_batch_q = query.size(2);
     const int64_t max_seqlen_batch_k = key.size(2);
@@ -326,6 +354,59 @@ std::tuple<Tensor, Tensor, Tensor> _cudnn_attention_backward(
         philox_offset);
       return std::make_tuple(std::move(dq), std::move(dk), std::move(dv));
     }
+=======
+    const int64_t batch_size = query.size(0);
+    const int64_t num_heads = query.size(1);
+    const int64_t head_dim_qk = query.size(3);
+    const int64_t head_dim_v = value.size(3);
+    const int64_t max_seqlen_batch_q = query.size(2);
+    const int64_t max_seqlen_batch_k = key.size(2);
+
+    // This is needed because SaveVariable automatically converts
+    // std::optional to undefined tensor
+    std::optional<Tensor> attn_bias_;
+    if (attn_bias.defined()) {
+      attn_bias_ = attn_bias;
+    }
+    if (attn_bias_.has_value()) {
+      const auto bias_dim = attn_bias_.value().dim();
+      if (bias_dim == 2) {
+        attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_seqlen_batch_q, max_seqlen_batch_k});
+      } else if (bias_dim == 3) {
+        attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_seqlen_batch_q, max_seqlen_batch_k});
+      } else {
+        TORCH_CHECK(bias_dim == 4, "cuDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ", attn_bias_.value().dim(), "D");
+        attn_bias_ = attn_bias_.value().expand({batch_size, attn_bias_.value().size(1), max_seqlen_batch_q, max_seqlen_batch_k});
+      }
+    }
+
+    const auto softmax_scale = sdp::calculate_scale(query, scale).expect_float();
+    auto dq = at::empty_like(query);
+    auto dk = at::empty_like(key);
+    auto dv = at::empty_like(value);
+    run_cudnn_SDP_bprop(batch_size /*int64_t b*/,
+                        num_heads /*int64_t h*/,
+                        max_q/*int64_t s_q*/,
+                        max_k/*int64_t s_kv*/,
+                        head_dim_qk /*int64_t d_qk*/,
+                        head_dim_v /*int64_t d_v*/,
+                        softmax_scale /*float scaling_factor*/,
+                        is_causal /*bool is_causal*/,
+                        dropout_p /*float dropout_probability*/,
+                        query /*const Tensor& q*/,
+                        key /*const Tensor& k*/,
+                        value /*const Tensor& v*/,
+                        attn_bias_ /*const std::optional<Tensor>& attn_bias*/,
+                        out /*const Tensor& o*/,
+                        grad_out/*const Tensor& dO*/,
+                        logsumexp.unsqueeze(-1)/*const Tensor& softmaxstats*/,
+                        dq/*Tensor& dQ*/,
+                        dk/*Tensor& dK*/,
+                        dv/*Tensor& dV*/,
+                        philox_seed/*Tensor& dropoutseed*/,
+                        philox_offset/*Tensor& dropoutoffset*/);
+    return std::make_tuple(std::move(dq), std::move(dk), std::move(dv));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor>
@@ -495,7 +576,11 @@ _efficient_attention_backward(
   // ROCM Implementation
   if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck)
   {
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto my_softmax_scale = sdp::calculate_scale(query, scale).expect_float();
     // Store grad_bias in optional
     std::optional<at::Tensor> opt_grad_bias = grad_bias;
@@ -1185,6 +1270,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> _scaled_dot_product_e
   }
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor, Tensor> _scaled_dot_product_cudnn_attention_backward_cuda(
     const Tensor& grad_out,
     const Tensor& query,
@@ -1221,4 +1307,6 @@ std::tuple<Tensor, Tensor, Tensor> _scaled_dot_product_cudnn_attention_backward_
             scale);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

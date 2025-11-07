@@ -7,10 +7,17 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from datetime import timedelta
 from typing import Optional
+=======
+from collections.abc import Iterable
+from contextlib import contextmanager
+from datetime import timedelta
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 

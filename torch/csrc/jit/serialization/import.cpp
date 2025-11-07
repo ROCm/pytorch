@@ -71,15 +71,25 @@ static void postSetStateValidate(const IValue& v) {
 c10::intrusive_ptr<c10::ivalue::Object> ObjLoaderFunc(
     const at::StrongTypePtr& type,
     IValue input) {
+<<<<<<< HEAD
   const auto& cls = type.type_->expectRef<at::ClassType>();
   auto qn = cls.name();
   size_t n = cls.numAttributes();
+=======
+  auto cls = type.type_->expect<at::ClassType>();
+  auto qn = cls->name();
+  size_t n = cls->numAttributes();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (checkHasValidSetGetState(cls)) {
     auto obj = c10::ivalue::Object::create(type, n);
     // XXX: Do not optimize __setstate__, so that we don't try to
     // specialize the class before it is initialized.
     GraphOptimizerEnabledGuard guard(false);
+<<<<<<< HEAD
     Function& set_state = cls.getMethod("__setstate__");
+=======
+    Function& set_state = cls->getMethod("__setstate__");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // since we are in the middle of unpickling we might still have lists and
     // dicts that do not have accurate tags (e.g. they report they are
     // List[Any]). But we need to run __setstate__ which will check the input
@@ -96,7 +106,11 @@ c10::intrusive_ptr<c10::ivalue::Object> ObjLoaderFunc(
     auto dict = std::move(input).toGenericDict();
     auto obj = c10::ivalue::Object::create(type, n);
     for (const auto i : c10::irange(n)) {
+<<<<<<< HEAD
       obj->setSlot(i, dict.at(cls.getAttributeName(i)));
+=======
+      obj->setSlot(i, dict.at(cls->getAttributeName(i)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return obj;
   }

@@ -111,7 +111,12 @@ def replicate(
 ) -> list[T]:
     if not _replicatable_module(network):
         raise RuntimeError(
+<<<<<<< HEAD
             "Cannot replicate network where python modules are children of ScriptModule"
+=======
+            "Cannot replicate network where python modules are "
+            "childrens of ScriptModule"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if not devices:

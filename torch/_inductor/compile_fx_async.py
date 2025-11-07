@@ -1,6 +1,9 @@
 from __future__ import annotations
 
+<<<<<<< HEAD
 from collections import deque
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from typing import Any, Callable, Optional, TYPE_CHECKING
 from typing_extensions import final, override
@@ -9,11 +12,15 @@ import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncComp
 from torch._inductor.output_code import CompiledFxGraphConstants, OutputCode
 
 from .compile_fx import _CompileFxKwargs, _InProcessFxCompile, FxCompile
+<<<<<<< HEAD
 from .output_code import complex_memory_overlap  # noqa: F401
 
 
 # When async compile works with cache, remove the disabling below
 BUG_CACHES_DONT_WORK_WITH_ASYNC = True
+=======
+from .output_code import complex_memory_overlap as complex_memory_overlap  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -33,6 +40,7 @@ class _PostCompileData:
     graph_kwargs: _CompileFxKwargs
 
 
+<<<<<<< HEAD
 @dataclass
 class ProgressiveCompilationState:
     progression_futures: deque[Future[_WireProtocolPickledOutput]]
@@ -75,11 +83,17 @@ class ProgressiveCompilationState:
         return optimized_output_code, should_clear_state
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # _AsyncOutputCode handles the actual management of waiting for an
 # out-of-process compile to finish and then switching over to it.
 @final
 class _AsyncOutputCode(OutputCode):
+<<<<<<< HEAD
     _eager_fn: Optional[Callable[..., Any]]
+=======
+    _eager_forward: Optional[Callable[..., Any]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _output_code: Optional[OutputCode]
     _future: Optional[Future[_WireProtocolPickledOutput]]
     _callback: Callable[[_WireProtocolPickledOutput], OutputCode]
@@ -88,16 +102,26 @@ class _AsyncOutputCode(OutputCode):
 
     def __init__(
         self,
+<<<<<<< HEAD
         # eager_fn is run until the future is finished.
         eager_fn: Callable[..., Any],
+=======
+        # eager_forward is run until the future is finished.
+        eager_forward: Callable[..., Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # this responds with the result of the out-of-process compile when it's
         # ready.
         future: Future[_WireProtocolPickledOutput],
         # this callback gets called to turn the _WireProtocolPickledOutput into an OutputCode
         callback: Callable[[_WireProtocolPickledOutput], OutputCode],
     ) -> None:
+<<<<<<< HEAD
         self._eager_fn = eager_fn
         self._boxed_call = getattr(eager_fn, "_boxed_call", False)
+=======
+        self._eager_forward = eager_forward
+        self._boxed_call = getattr(eager_forward, "_boxed_call", False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._output_code = None
 
         self._future = future
@@ -106,11 +130,19 @@ class _AsyncOutputCode(OutputCode):
     @override
     def __call__(self, *args: Any) -> Any:
         if self._future is not None and self._future.done():
+<<<<<<< HEAD
             args = self._switch_to_compiled_fn(args)
 
         if eager_fn := self._eager_fn:
             _AsyncFxCompile._stat_eager_runs += 1
             return eager_fn(*args)
+=======
+            args = self._switch_to_compiled_forward(args)
+
+        if eager_forward := self._eager_forward:
+            _AsyncFxCompile._stat_eager_runs += 1
+            return eager_forward(*args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         else:
             _AsyncFxCompile._stat_compiled_runs += 1
@@ -118,7 +150,11 @@ class _AsyncOutputCode(OutputCode):
             return self._output_code.__call__(*args)
 
     # Takes and returns the args (converted to the "right" boxed mode)
+<<<<<<< HEAD
     def _switch_to_compiled_fn(self, args: tuple[Any, ...]) -> tuple[Any, ...]:
+=======
+    def _switch_to_compiled_forward(self, args: tuple[Any, ...]) -> tuple[Any, ...]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self._future is not None
 
         # TODO: If the future ended in an exception do we want to continue
@@ -134,7 +170,11 @@ class _AsyncOutputCode(OutputCode):
             )
 
         self._output_code = output_code
+<<<<<<< HEAD
         self._eager_fn = None
+=======
+        self._eager_forward = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         boxed_call = getattr(output_code, "_boxed_call", False)
 
         if self._boxed_call != boxed_call:
@@ -155,7 +195,11 @@ class _AsyncOutputCode(OutputCode):
         constants: CompiledFxGraphConstants,
         graph_kwargs: _CompileFxKwargs,
     ) -> None:
+<<<<<<< HEAD
         if self._eager_fn is not None:
+=======
+        if self._eager_forward is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._post_compile_data = _PostCompileData(
                 example_inputs, constants, graph_kwargs
             )
@@ -218,7 +262,11 @@ class _AsyncFxCompile(FxCompile):
         _AsyncFxCompile._stat_bg_started += 1
         f = self._compile._send_to_child_async(inputs)
 
+<<<<<<< HEAD
         # This is called by _switch_to_compiled_fn() when f has a result...
+=======
+        # This is called by _switch_to_compiled_forward() when f has a result...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def callback(pickled_output: _WireProtocolPickledOutput) -> OutputCode:
             _AsyncFxCompile._stat_bg_finished += 1
             output = pickled_output.deserialize(constants)
@@ -226,6 +274,7 @@ class _AsyncFxCompile(FxCompile):
             return output.graph
 
         return _AsyncOutputCode(eager_output_code, f, callback)
+<<<<<<< HEAD
 
 
 # _ProgressiveOutputCode handles running a fast compile first, then hot-swapping
@@ -396,3 +445,5 @@ class _ProgressiveFxCompile(FxCompile):
             return output.graph
 
         return _ProgressiveOutputCode(fast_output_code, progression_futures, callback)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

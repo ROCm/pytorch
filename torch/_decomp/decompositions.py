@@ -5,12 +5,20 @@ import itertools
 import numbers
 import operator
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from contextlib import nullcontext
 from enum import Enum
 from functools import partial, reduce
 from itertools import chain, product
 from typing import Any, cast, Optional, Union
+=======
+from collections.abc import Iterable
+from enum import Enum
+from functools import partial, reduce
+from itertools import chain, product
+from typing import Any, Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._meta_registrations
@@ -53,7 +61,11 @@ class Reduction(Enum):
 
 
 # This wraps a decomposition and performs various type promotion logic within it, depending on the strategy provided
+<<<<<<< HEAD
 # We're currently reusing ELEMENTWISE_TYPE_PROMOTION_KIND, although some of the usages are on non-elementwise ops
+=======
+# We're currently re-using ELEMENTWISE_TYPE_PROMOTION_KIND, although some of the usages are on non-elementwise ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Will need to validate the non-elementwise uses
 def type_casts(
     f: Callable,
@@ -382,7 +394,10 @@ def to_real_dtype(dtype: torch.dtype):
 def mse_loss(
     self: Tensor, target: Tensor, reduction: int = Reduction.MEAN.value
 ) -> Tensor:
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     loss = (self - target) ** 2
     return apply_loss_reduction(loss, reduction)
 
@@ -416,7 +431,10 @@ def smooth_l1_loss(
     beta: float = 1.0,
 ):
     loss = (self - target).abs()
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     loss = torch.where(loss < beta, 0.5 * loss**2 / beta, loss - 0.5 * beta)
     return apply_loss_reduction(loss, reduction)
 
@@ -724,7 +742,14 @@ def slice_forward(
     end: Optional[int] = None,
     step: int = 1,
 ):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import statically_known_true
+=======
+    from torch.fx.experimental.symbolic_shapes import (
+        guard_size_oblivious,
+        statically_known_true,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ndim = self.dim()
     if ndim == 0:
@@ -739,6 +764,7 @@ def slice_forward(
     start_val = start if start is not None else 0
     end_val = end if end is not None else sys.maxsize  # 2^63 - 1
 
+<<<<<<< HEAD
     if start_val < 0:
         start_val += sizes[dim]
 
@@ -748,13 +774,30 @@ def slice_forward(
     if start_val < 0:
         start_val = 0
     elif start_val > sizes[dim]:
+=======
+    if guard_size_oblivious(start_val < 0):
+        start_val += sizes[dim]
+
+    if guard_size_oblivious(end_val < 0):
+        end_val += sizes[dim]
+
+    if guard_size_oblivious(start_val < 0):
+        start_val = 0
+    elif guard_size_oblivious(start_val > sizes[dim]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         start_val = sizes[dim]
 
     if statically_known_true(end_val == sys.maxsize):
         end_val = sizes[dim]
+<<<<<<< HEAD
     elif end_val < start_val:
         end_val = start_val
     elif end_val > sizes[dim]:
+=======
+    elif guard_size_oblivious(end_val < start_val):
+        end_val = start_val
+    elif guard_size_oblivious(end_val > sizes[dim]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         end_val = sizes[dim]
 
     storage_offset = self.storage_offset() + start_val * strides[dim]
@@ -814,7 +857,11 @@ def slice_scatter(
     if start == 0 and end == dim_size and step == 1:
         return src.clone()
 
+<<<<<<< HEAD
     indices: list[Optional[Tensor]] = [None] * input.dim()
+=======
+    indices = [None] * input.dim()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     idx = torch.arange(dim_size, device=input.device)
     indices[dim] = (idx - start) // step
 
@@ -924,7 +971,11 @@ def im2col(
     def check_positive(param, param_name, strict=True):
         cond = all(p > 0 for p in param) if strict else all(p >= 0 for p in param)
         torch._check(
+<<<<<<< HEAD
             cond, lambda: f"{param_name} should be greater than zero, but got {param}"
+=======
+            cond, lambda: "{param_name} should be greater {'than' zero, but got {param}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     check_positive(kernel_size, "kernel_size")
@@ -947,7 +998,11 @@ def im2col(
     )
     torch._check(
         all(c > 0 for c in output_size),
+<<<<<<< HEAD
         lambda: f"Given an input with spatial size {tuple(shape[-2:])}, "
+=======
+        lambda: f"Given an input with spacial size {tuple(shape[-2:])}, "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f"kernel_size={kernel_size}, dilation={dilation}, "
         f"padding={padding}, stride={stride}, "
         "the calculated shape of the array of sliding blocks "
@@ -1009,7 +1064,11 @@ def col2im(
     def check_positive(param, param_name, strict=True):
         cond = all(p > 0 for p in param) if strict else all(p >= 0 for p in param)
         torch._check(
+<<<<<<< HEAD
             cond, lambda: f"{param_name} should be greater than zero, but got {param}"
+=======
+            cond, lambda: "{param_name} should be greater than zero, but got {param}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     check_positive(kernel_size, "kernel_size")
@@ -1173,8 +1232,11 @@ def native_dropout(input: Tensor, p: float, train: Optional[bool]):
 @register_decomposition(aten._softmax)
 @out_wrapper()
 def _softmax(x: Tensor, dim: int, half_to_float: bool):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # eager softmax returns a contiguous tensor. Ensure that decomp also returns
     # a contiguous tensor.
     x = x.contiguous()
@@ -1184,7 +1246,11 @@ def _softmax(x: Tensor, dim: int, half_to_float: bool):
         x, type_promotion_kind=utils.ELEMENTWISE_TYPE_PROMOTION_KIND.DEFAULT
     )
     x = x.to(computation_dtype)
+<<<<<<< HEAD
     if guard_or_false(x.numel() == 0):
+=======
+    if x.numel() == 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unnormalized = torch.exp(x)
     else:
         x_max = torch.amax(x, dim, keepdim=True)
@@ -1198,8 +1264,11 @@ def _softmax(x: Tensor, dim: int, half_to_float: bool):
 @register_decomposition(aten._log_softmax)
 @out_wrapper(exact_dtype=True)
 def _log_softmax(x: Tensor, dim: int, half_to_float: bool):
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # eager log_softmax returns a contiguous tensor. Ensure that decomp also
     # returns a contiguous tensor.
     x = x.contiguous()
@@ -1209,7 +1278,11 @@ def _log_softmax(x: Tensor, dim: int, half_to_float: bool):
         x, type_promotion_kind=utils.ELEMENTWISE_TYPE_PROMOTION_KIND.DEFAULT
     )
     x = x.to(computation_dtype)
+<<<<<<< HEAD
     if guard_or_false(x.numel() == 0):
+=======
+    if x.numel() == 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shifted = x
     else:
         x_max = torch.amax(x, dim, keepdim=True)
@@ -1442,6 +1515,7 @@ def tensor_split_tensor_indices_or_sections_py_impl(
         assert isinstance(sections, IntLike)
         return self.tensor_split(sections, dim)
     else:
+<<<<<<< HEAD
         ctx = nullcontext
         if (fake_mode := torch._guards.detect_fake_mode()) and (
             shape_env := fake_mode.shape_env
@@ -1454,6 +1528,10 @@ def tensor_split_tensor_indices_or_sections_py_impl(
         with ctx():
             indices = [i.item() for i in tensor_indices_or_sections]
         # WARNING: Tempted to torch._check(x>0) on the indices here?  You
+=======
+        indices = [i.item() for i in tensor_indices_or_sections]
+        # WARNING: Tempted to torch._check_is_size on the indices here?  You
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # can't: tensor_split works with negative values in indices:
         #
         # >>> torch.tensor_split(torch.randn(10), torch.tensor([-5, 5]))
@@ -1553,9 +1631,15 @@ def native_group_norm_backward(
         lambda: f"Expect gamma to have {C} elements but got {gamma.numel() if gamma is not None else -1}",
     )
 
+<<<<<<< HEAD
     cpg = C // group
     torch._check(
         C == cpg * group,
+=======
+    cpg, _rem = divmod(C, group)
+    torch._check(
+        _rem == 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lambda: f"Expect number of channels {C} to be evenly-divisible by number of groups {group}",
     )
 
@@ -1681,9 +1765,15 @@ def native_layer_norm_backward(
 
     N = prod(inner_dims)  # type: ignore[arg-type]
     M = prod(outer_dims)  # type: ignore[arg-type]
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import statically_known_true
 
     if statically_known_true(M == 0) or statically_known_true(N == 0):
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+
+    if guard_size_oblivious(M <= 0) or guard_size_oblivious(N <= 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             input.new_zeros(input_shape) if output_mask[0] else None,
             input.new_zeros(input_shape[axis:]) if output_mask[1] else None,
@@ -1691,7 +1781,10 @@ def native_layer_norm_backward(
         )
     mean = _unsqueeze_to_dim(mean, input_cast.dim())  # type: ignore[union-attr]
     rstd = _unsqueeze_to_dim(rstd, input_cast.dim())  # type: ignore[union-attr]
+<<<<<<< HEAD
     assert input_cast is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     x_hat = (input_cast - mean) * rstd
     if weight_cast is not None:
         grad_x_hat = grad_out_cast * weight_cast
@@ -1724,8 +1817,13 @@ def native_layer_norm_backward(
 
     return (
         _maybe_cast(d_input, input.dtype),
+<<<<<<< HEAD
         _maybe_cast(d_weight, weight.dtype if weight is not None else None),
         _maybe_cast(d_bias, bias.dtype if bias is not None else None),
+=======
+        _maybe_cast(d_weight, input.dtype),
+        _maybe_cast(d_bias, input.dtype),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -1757,6 +1855,7 @@ def native_layer_norm_backward_out(
     return grad_input
 
 
+<<<<<<< HEAD
 @register_decomposition(aten._fused_rms_norm_backward.default)
 def _fused_rms_norm_backward(
     grad_out: Tensor,
@@ -1832,6 +1931,8 @@ def _fused_rms_norm_backward(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def native_batch_norm_helper(
     input: Tensor,
     weight: Optional[Tensor],
@@ -2790,7 +2891,11 @@ def _index_add(
     if alpha != 1:
         python_type = utils.dtype_to_type(x.dtype)
         torch._check(
+<<<<<<< HEAD
             python_type is bool
+=======
+            python_type == bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             or utils.is_weakly_lesser_type(type(alpha), python_type),
             lambda: f"alpha argument of type {type(alpha)} cannot be safely cast to type {python_type}!",
         )
@@ -4001,9 +4106,15 @@ def _unsafe_masked_index(x, mask, indices, fill):
         lambda: "tensors used as masks must be bool tensors",
     )
 
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false
 
     if guard_or_false(x.numel() == 0):
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+
+    if guard_size_oblivious(x.numel() == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         meta_result = torch._meta_registrations.meta_index_Tensor(x, indices)
         return x.new_full(meta_result.shape, fill)
 
@@ -4079,7 +4190,10 @@ def _nll_loss_forward(
         return result, total_weight
 
     if weight is not None:
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         w = w.expand(self.shape)
         wsum = torch.gather(w, channel_dim, safe_target_).squeeze(channel_dim)
         wsum = torch.where(target != ignore_index, wsum, 0)
@@ -4136,7 +4250,11 @@ def nll_loss2d_forward(
     return _nll_loss_forward(self, target, weight, reduction, ignore_index)
 
 
+<<<<<<< HEAD
 # These are adapted from aten/src/ATen/native/UpSample.h, which is based on
+=======
+# These are adapted from aten/src/ATen/native/UpSample.h, wich is based on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # https://en.wikipedia.org/wiki/Bicubic_interpolation#Bicubic_convolution_algorithm
 def _upsample_cubic_convolution1(x: Tensor, A: float) -> Tensor:
     return ((A + 2) * x - (A + 3)) * x * x + 1
@@ -4476,7 +4594,11 @@ def should_fold(tensor1: torch.Tensor, tensor2: torch.Tensor, is_out: bool) -> b
 
     t1, t2 = (tensor1, tensor2) if tensor1.ndim >= tensor2.ndim else (tensor2, tensor1)
 
+<<<<<<< HEAD
     from torch.fx.experimental.symbolic_shapes import guard_or_false
+=======
+    from torch.fx.experimental.symbolic_shapes import guard_size_oblivious
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not (t1.ndim >= 3 and t2.ndim <= 2):
         return False
@@ -4484,7 +4606,11 @@ def should_fold(tensor1: torch.Tensor, tensor2: torch.Tensor, is_out: bool) -> b
         return True
     if tensor1.ndim == 2:
         return False
+<<<<<<< HEAD
     if guard_or_false(t1.numel() == 0):
+=======
+    if guard_size_oblivious(t1.numel() == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return True
 
     t1_shape = t1.shape
@@ -4496,7 +4622,11 @@ def should_fold(tensor1: torch.Tensor, tensor2: torch.Tensor, is_out: bool) -> b
     for size in reversed(t1_shape[1:]):
         expected_stride.append(size * expected_stride[-1])
     return all(
+<<<<<<< HEAD
         guard_or_false(size == 1) or guard_or_false(left == right)
+=======
+        guard_size_oblivious(size == 1) or left == right
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for left, right, size in zip(
             t1_stride, list(reversed(expected_stride)), t1_shape
         )
@@ -4896,9 +5026,13 @@ def _reflection_pad_backward(grad_output, x, padding):
 @register_decomposition(aten.aminmax)
 @out_wrapper("min", "max")
 def aminmax(self, *, dim=None, keepdim=False):
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
     amin = torch.amin(self, dim=dim, keepdim=keepdim)
     # pyrefly: ignore [bad-argument-type]
+=======
+    amin = torch.amin(self, dim=dim, keepdim=keepdim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     amax = torch.amax(self, dim=dim, keepdim=keepdim)
     return amin, amax
 
@@ -5092,7 +5226,10 @@ def scaled_dot_product_flash_attention_for_cpu(
         is_causal=is_causal,
         dropout_mask=None,
         scale=scale,
+<<<<<<< HEAD
         enable_gqa=query.size(1) != key.size(1),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     # Why this change?
     # In pre-dispatch export scaled_dot_product_attention is executed via
@@ -5143,7 +5280,10 @@ def baddbmm(self, batch1, batch2, beta=1, alpha=1):
         alpha = int(alpha)
     result = torch.bmm(batch1, batch2)
     if not isinstance(alpha, numbers.Number) or alpha != 1:
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = result * alpha
     if beta == 0:
         return result

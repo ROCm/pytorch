@@ -1,10 +1,17 @@
 # mypy: allow-untyped-defs
 import inspect
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from functools import lru_cache, partial, wraps
 from itertools import chain
 from typing import Optional, TYPE_CHECKING, TypeVar, Union
+=======
+from collections.abc import Sequence
+from functools import lru_cache, partial, wraps
+from itertools import chain
+from typing import Callable, Optional, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 
@@ -240,7 +247,10 @@ def get_decompositions(
 
     registry = global_decomposition_table[type]
     packets_to_overloads = defaultdict(list)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for opo in registry:
         if isinstance(opo, (OpOverload, OpOverloadPacket)):
             packets_to_overloads[opo.overloadpacket].append(opo)
@@ -419,7 +429,10 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.native_dropout_backward,
             aten.native_group_norm_backward,
             aten.native_layer_norm_backward,
+<<<<<<< HEAD
             aten._fused_rms_norm_backward,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             aten.new_empty,
             aten.new_full,
             aten.new_ones,

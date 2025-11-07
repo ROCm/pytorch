@@ -19,8 +19,13 @@ pip_install \
   transformers==4.36.2
 
 pip_install coloredlogs packaging
+<<<<<<< HEAD
 pip_install onnxruntime==1.23.1
 pip_install onnxscript==0.5.4
+=======
+pip_install onnxruntime==1.18.1
+pip_install onnxscript==0.3.1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Cache the transformers model to be used later by ONNX tests. We need to run the transformers
 # package to download the model. By default, the model is cached at ~/.cache/huggingface/hub/

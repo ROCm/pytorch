@@ -2,9 +2,14 @@
 import functools
 import operator
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
+=======
+from dataclasses import dataclass
+from typing import Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed._shard.sharded_tensor.metadata as sharded_tensor_meta

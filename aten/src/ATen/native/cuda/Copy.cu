@@ -1,4 +1,5 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
+<<<<<<< HEAD
 #include <ATen/Context.h>
 #include <ATen/Dispatch.h>
 #include <ATen/Dispatch_v2.h>
@@ -6,6 +7,15 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/cuda/CUDAEvent.h>
 #include <ATen/cuda/CachingHostAllocator.h>
+=======
+#include <ATen/core/Tensor.h>
+#include <ATen/Context.h>
+#include <ATen/Dispatch.h>
+#include <ATen/Dispatch_v2.h>
+#include <ATen/cuda/CachingHostAllocator.h>
+#include <ATen/cuda/CUDAContext.h>
+#include <ATen/cuda/CUDAEvent.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/cuda/PeerToPeerAccess.h>
 #include <ATen/native/Copy.h>
 #include <ATen/native/TensorIterator.h>
@@ -27,6 +37,7 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 namespace {
 
 // Initial pool size for CUDA events per device.
@@ -45,6 +56,8 @@ at::cuda::CUDAEventPtr getEventFromPool(const at::DeviceIndex device_idx) {
 
 } // namespace
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void neg_kernel_cuda(TensorIteratorBase &iter);
 void conj_kernel_cuda(TensorIteratorBase &iter);
 
@@ -281,6 +294,7 @@ void copy_device_to_device(TensorIterator& iter,
     // write-after-read dependencies on the destination side are handled, so
     // that no one is operating on the dst memory when we perform the copy.
     // src waits on dst barrier (src already waits on src)
+<<<<<<< HEAD
 
     // Use event pool for better performance instead of creating new events
     auto dst_ready = getEventFromPool(dst_device.index());
@@ -289,6 +303,14 @@ void copy_device_to_device(TensorIterator& iter,
 
     device_guard.set_device(src_device);
     dst_ready->block(copy_stream);
+=======
+    CUDAEvent dst_ready;
+    device_guard.set_device(dst_device);
+    dst_ready.record(getCurrentCUDAStream(dst_device.index()));
+
+    device_guard.set_device(src_device);
+    dst_ready.block(copy_stream);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   if (memcpy_eligible) {
@@ -327,11 +349,19 @@ void copy_device_to_device(TensorIterator& iter,
     // operate on dst's copy until the copy is complete.
 
     // Still on src_device, record stream event
+<<<<<<< HEAD
     auto src_ready = getEventFromPool(src_device.index());
     src_ready->record(copy_stream);
 
     device_guard.set_device(dst_device);
     src_ready->block(getCurrentCUDAStream(dst_device.index()));
+=======
+    CUDAEvent src_ready;
+    src_ready.record(copy_stream);
+
+    device_guard.set_device(dst_device);
+    src_ready.block(getCurrentCUDAStream(dst_device.index()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   AT_CUDA_CHECK(cudaGetLastError());

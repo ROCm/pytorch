@@ -11,8 +11,13 @@ struct TORCH_API SavedVariableHooks {
   virtual ~SavedVariableHooks() = default;
   virtual std::optional<std::pair<c10::SafePyObject, c10::SafePyObject>>
   retrieve_unpack_hook_data() const {
+<<<<<<< HEAD
     TORCH_CHECK(
         false, "Compiled Autograd only supports python saved tensor hooks ");
+=======
+    throw std::runtime_error(
+        "Compiled Autograd only supports python saved tensor hooks ");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 

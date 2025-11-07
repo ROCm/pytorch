@@ -15,7 +15,11 @@ def _is_valid_linear_block_sparse_pattern(
 
 # This is a stop-gap measure as current flow does not allow module
 # specific block sparse pattern.
+<<<<<<< HEAD
 # In fact there is no way to convey sparse pattern via module config
+=======
+# Infact there is no way to convey sparse pattern via module config
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # of quantization flow. Thus using the global context to convey
 # sparsity pattern.
 # Once the flow supports it, this should be removed.

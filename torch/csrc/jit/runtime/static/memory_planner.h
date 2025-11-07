@@ -35,7 +35,11 @@ class StorageGroup {
   // allocated for all tensors in this storage group. Initially it
   // is zero, eventually it gets updated by the MemoryPlanner.
   size_t max_tensor_size_ = 0;
+<<<<<<< HEAD
   std::vector<at::Tensor*> group_;
+=======
+  std::vector<at::Tensor*> group_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // A contiguous buffer of `StorageImpl`s
@@ -263,7 +267,11 @@ class MemoryPlanner {
   // to an ordinary "strong reference" state.
   std::vector<IValue*> borrowed_ivalues_needing_incref_;
 
+<<<<<<< HEAD
   std::vector<std::pair<size_t, at::Tensor*>> managed_output_tensors_;
+=======
+  std::vector<std::pair<size_t, at::Tensor*>> managed_output_tensors_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::DataPtr buffer_; // allocated each time we call Run()
   uint8_t* buffer_start_{nullptr};
   uint8_t* buffer_end_{nullptr};
@@ -292,7 +300,11 @@ class StandardMemoryPlanner : public MemoryPlanner {
   void allocateManagedTensors() override;
   void deallocateManagedTensors() override;
 
+<<<<<<< HEAD
   std::vector<StorageGroup> managed_tensors_;
+=======
+  std::vector<StorageGroup> managed_tensors_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace torch::jit

@@ -57,12 +57,18 @@ from torch.testing._internal.common_utils import (
     TemporaryDirectoryName,
     TemporaryFileName,
     TEST_DILL,
+<<<<<<< HEAD
     TEST_WITH_MTIA,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 from torch.testing._internal.two_tensor import TwoTensor  # noqa: F401
 from torch.utils._import_utils import import_dill
+<<<<<<< HEAD
 from pickle import UnpicklingError
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if not IS_WINDOWS:
@@ -70,9 +76,12 @@ if not IS_WINDOWS:
 else:
     MAP_SHARED, MAP_PRIVATE = None, None
 
+<<<<<<< HEAD
 if TEST_WITH_MTIA:
     import mtia.host_runtime.torch_mtia.dynamic_library  # noqa: F401
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # These tests were all copied from `test/test_torch.py` at some point, so see
 # the actual blame, see this revision
 # https://github.com/pytorch/pytorch/blame/9a2691f2fc948b9792686085b493c61793c2de30/test/test_torch.py
@@ -295,7 +304,11 @@ class SerializationMixin:
             5,
             6
         ]
+<<<<<<< HEAD
         for i in range(100):
+=======
+        for i in range(0, 100):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             data.append(0)
         t = torch.tensor(data, dtype=torch.uint8)
 
@@ -652,10 +665,13 @@ class SerializationMixin:
         xpu_last_map_locations = [
             f'xpu:{torch.xpu.device_count() - 1}',
         ]
+<<<<<<< HEAD
         mtia_0_map_locations = generate_map_locations('mtia')
         mtia_last_map_locations = [
             f'mtia:{torch.mtia.device_count() - 1}',
         ]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def check_map_locations(map_locations, dtype, intended_device):
             for fileobject_lambda in fileobject_lambdas:
@@ -681,6 +697,7 @@ class SerializationMixin:
                 torch.float,
                 torch.device('xpu', torch.xpu.device_count() - 1)
             )
+<<<<<<< HEAD
         if torch.mtia.is_available():
             check_map_locations(mtia_0_map_locations, torch.float, torch.device('mtia', 0))
             check_map_locations(
@@ -688,6 +705,8 @@ class SerializationMixin:
                 torch.float,
                 torch.device('mtia', torch.mtia.device_count() - 1)
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(torch.cuda.is_available(), "Testing torch.load on CPU-only machine")
     def test_load_nonexistent_device(self):
@@ -762,7 +781,11 @@ class SerializationMixin:
                                           'readinto() stress test')
 
     def test_serialization_filelike_uses_readinto(self):
+<<<<<<< HEAD
         # For maximum efficiency, when reading a file-like object,
+=======
+        # For maximum effiency, when reading a file-like object,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # ensure the C API calls readinto instead of read.
         a = torch.randn(5, 4)
 
@@ -1372,6 +1395,7 @@ class TestSerialization(TestCase, SerializationMixin):
                                             "file an issue with the following so that we can make `weights_only=True`"):
                     torch.load(f, weights_only=True)
 
+<<<<<<< HEAD
     def test_weights_only_blocked_func_error_msg(self):
         import datetime
         import zoneinfo
@@ -1405,6 +1429,8 @@ class TestSerialization(TestCase, SerializationMixin):
                 loaded_data = torch.load(f)
                 self.assertEqual(loaded_data, data)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize('weights_only', (False, True))
     def test_serialization_math_bits(self, weights_only):
         t = torch.randn(1, dtype=torch.cfloat)
@@ -4553,7 +4579,11 @@ class TestSerialization(TestCase, SerializationMixin):
         with TemporaryFileName() as f:
             torch.save(m, f)
             try:
+<<<<<<< HEAD
                 old_value = os.environ.get(env_var, None)
+=======
+                old_value = os.environ[env_var] if env_var in os.environ else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 os.environ[env_var] = "1"
                 # if weights_only is explicitly set, TORCH_FORCE_NO_WEIGHTS_ONLY_LOAD cannot override it
                 with self.assertRaisesRegex(pickle.UnpicklingError, "Weights only load failed"):
@@ -4802,6 +4832,7 @@ class TestSerialization(TestCase, SerializationMixin):
 
             assert x.dtype == y.dtype
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("getrefcount does not work in dynamo")
     def test_serializaion_no_storage_leak(self):
         # Test https://github.com/pytorch/pytorch/issues/149846
@@ -4814,6 +4845,8 @@ class TestSerialization(TestCase, SerializationMixin):
         ref2 = sys.getrefcount(storage)
         self.assertEqual(ref1, ref2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run(self, *args, **kwargs):
         with serialization_method(use_zip=True):
             return super().run(*args, **kwargs)

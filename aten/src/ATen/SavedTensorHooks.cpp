@@ -13,7 +13,11 @@ namespace {
   // and left at true for the rest of the execution.
   // It's an optimization so that users who never use default hooks don't need to
   // read the thread_local variables pack_hook_ and unpack_hook_.
+<<<<<<< HEAD
   bool is_initialized(false);
+=======
+  static bool is_initialized(false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static void assertSavedTensorHooksNotDisabled() {

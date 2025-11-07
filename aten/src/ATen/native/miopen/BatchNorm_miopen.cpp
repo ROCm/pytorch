@@ -191,9 +191,13 @@ std::tuple<Tensor, Tensor, Tensor> miopen_batch_norm_backward(
   }
   checkAllSameType(c, {input, grad_output});
   checkAllSameType(c, {weight, save_mean, save_var});
+<<<<<<< HEAD
   // TODO: is weight required to be contiguous?
   checkAllContiguous(c, {save_mean, save_var});
   // TODO: TensorArg check should start handle memory format
+=======
+  checkAllContiguous(c, {save_mean, save_var});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(input->is_contiguous(input->suggest_memory_format()));
   TORCH_CHECK(grad_output->is_contiguous(input->suggest_memory_format()));
   checkDimRange(c, input, 2, 6 /* exclusive */);
@@ -210,7 +214,12 @@ std::tuple<Tensor, Tensor, Tensor> miopen_batch_norm_backward(
     mode = miopenBNSpatial;
   }
 
+<<<<<<< HEAD
   auto grad_input_t  = at::empty(input->sizes(), input->options(), input->suggest_memory_format());
+=======
+  auto grad_input_t = at::empty(
+      input->sizes(), input->options(), input->suggest_memory_format());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto grad_weight_t = at::empty(weight->sizes(), weight->options());
   auto grad_bias_t   = at::empty(weight->sizes(), weight->options());
 

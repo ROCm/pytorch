@@ -1,8 +1,12 @@
 # mypy: allow-untyped-decorators
 # mypy: allow-untyped-defs
 import inspect
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._decomp
@@ -147,7 +151,11 @@ def native_layer_norm_backward(
     inner_dims = input_shape[axis:]
     outer_dims = input_shape[:axis]
     inner_dim_indices = list(range(axis, input_ndim))
+<<<<<<< HEAD
     outer_dim_indices = list(range(axis))
+=======
+    outer_dim_indices = list(range(0, axis))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     N = 1
     for i in inner_dims:

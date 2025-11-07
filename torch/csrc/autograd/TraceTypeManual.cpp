@@ -245,12 +245,21 @@ static void general_trace_function(
           tracer::addInputs(
               node, args[i].name().c_str(), iter->toBoolList().vec());
         } else {
+<<<<<<< HEAD
           TORCH_CHECK(false, "unsupported input list type: ", elem_type->str());
+=======
+          throw std::runtime_error(
+              "unsupported input list type: " + elem_type->str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       } else if (iter->isObject()) {
         tracer::addInputs(node, args[i].name().c_str(), iter->toObject());
       } else {
+<<<<<<< HEAD
         TORCH_CHECK(false, "unsupported input type: ", type->str());
+=======
+        throw std::runtime_error("unsupported input type: " + type->str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
     graph->insertNode(node);
@@ -276,19 +285,30 @@ static void general_trace_function(
           AT_ASSERT(iter->isTensorList());
           tracer::addOutput(node, iter->toTensorList());
         } else {
+<<<<<<< HEAD
           TORCH_CHECK(
               false, "unsupported output list type: ", elem_type->str());
+=======
+          throw std::runtime_error(
+              "unsupported output list type: " + elem_type->str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       } else if (type->kind() == TypeKind::ClassType) {
         AT_ASSERT(iter->isObject());
         tracer::addOutput(node, iter->toObject());
       } else {
+<<<<<<< HEAD
         TORCH_CHECK(
             false,
             "unsupported output type: ",
             type->str(),
             ", from operator: ",
             toString(op.operator_name()));
+=======
+        throw std::runtime_error(
+            "unsupported output type: " + type->str() +
+            ", from operator: " + toString(op.operator_name()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }

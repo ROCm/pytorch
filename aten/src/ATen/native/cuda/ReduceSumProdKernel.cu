@@ -13,6 +13,7 @@ namespace at::native {
 template <typename scalar_t, typename acc_t = scalar_t, typename out_t = scalar_t>
 struct sum_functor {
   void operator()(TensorIterator& iter) {
+<<<<<<< HEAD
     const auto sum_combine = [] GPU_LAMBDA(acc_t a, acc_t b) -> acc_t {
       return a + b;
     };
@@ -26,6 +27,26 @@ struct sum_functor {
         iter, func_wrapper<out_t>(sum_combine)
       );
     }
+=======
+#ifdef USE_ROCM
+    // Half and BFloat16 can be packed in groups of up to 8 elements and
+    // can use *_DWORDX4 instructions to achieve that.
+    const bool is_16_bits =
+      ( (std::is_same<at::Half, scalar_t>::value) ||
+        (std::is_same<at::BFloat16, scalar_t>::value) );
+    if (is_16_bits) {
+      gpu_reduce_kernel<scalar_t, out_t, /*vt0=*/4, /*input_vec_size=*/8>(
+        iter, func_wrapper<out_t>([] GPU_LAMBDA(acc_t a, acc_t b) -> acc_t {
+          return a + b;
+        }));
+      return;
+    }
+#endif
+    gpu_reduce_kernel<scalar_t, out_t>(
+        iter, func_wrapper<out_t>([] GPU_LAMBDA(acc_t a, acc_t b) -> acc_t {
+          return a + b;
+        }));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -72,8 +93,13 @@ struct nansum_functor_complex {
 #if AT_USE_JITERATOR()
   void operator()(TensorIterator& iter) {
     std::string func = jiterator_stringify(
+<<<<<<< HEAD
         arg_t combine(arg_t a, arg_t b) {
           return a + (std::isnan(b) ? arg_t{0.} : b);
+=======
+        arg_t combine(arg_t a, scalar_t b) {
+          return a + (std::isnan(b) ? arg_t{0.} : arg_t{b});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     );
     jitted_gpu_reduce_kernel<nansum_name, scalar_t, scalar_t>(
@@ -82,7 +108,11 @@ struct nansum_functor_complex {
 #else
   void operator()(TensorIterator& iter) {
     using acc_t = at::opmath_type<scalar_t>;
+<<<<<<< HEAD
     gpu_reduce_kernel<scalar_t, scalar_t>(
+=======
+    gpu_reduce_kernel<scalar_t, acc_t>(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         iter, NanSumOps<acc_t, acc_t>{});
   }
 #endif
@@ -149,6 +179,7 @@ struct prod_functor<c10::complex<at::Half>> {
 #endif
 };
 
+<<<<<<< HEAD
 template <typename scalar_t, typename enable = void>
 struct xor_sum_functor {
   void operator()(TensorIterator& iter) {
@@ -194,6 +225,8 @@ struct xor_sum_functor<scalar_t, std::enable_if_t<std::is_same_v<scalar_t, bool>
   }
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // The function `reduce_dispatch` below dispatches to the kernel based
 // on the type of `iter`. It takes care of the common logic
 // for handling Half-Precision floating types.
@@ -262,6 +295,7 @@ static void prod_kernel_cuda(TensorIterator& iter) {
   reduce_dispatch<prod_functor>(iter, general_dispatcher);
 }
 
+<<<<<<< HEAD
 static void xor_sum_kernel_cuda(TensorIterator& iter) {
   // Use iter.dtype(1) to dispatch based on the type of the input tensor
   AT_DISPATCH_ALL_TYPES_AND3(
@@ -274,5 +308,10 @@ REGISTER_DISPATCH(sum_stub, &sum_kernel_cuda)
 REGISTER_DISPATCH(nansum_stub, &nansum_kernel_cuda)
 REGISTER_DISPATCH(prod_stub, &prod_kernel_cuda)
 REGISTER_DISPATCH(xor_sum_stub, &xor_sum_kernel_cuda)
+=======
+REGISTER_DISPATCH(sum_stub, &sum_kernel_cuda)
+REGISTER_DISPATCH(nansum_stub, &nansum_kernel_cuda)
+REGISTER_DISPATCH(prod_stub, &prod_kernel_cuda)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace at::native

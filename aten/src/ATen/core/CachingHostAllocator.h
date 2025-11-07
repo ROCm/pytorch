@@ -1,12 +1,18 @@
 #pragma once
 
 #include <c10/core/Allocator.h>
+<<<<<<< HEAD
 #include <c10/core/AllocatorConfig.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/Stream.h>
 #include <c10/core/thread_pool.h>
 #include <c10/util/flat_hash_map.h>
 #include <c10/util/llvmMathExtras.h>
+<<<<<<< HEAD
 #include <iostream>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 
 #include <deque>
@@ -39,7 +45,11 @@ struct HostBlock {
 };
 
 template <typename B>
+<<<<<<< HEAD
 struct alignas(hardware_destructive_interference_size) FreeBlockList {
+=======
+struct alignas(64) FreeBlockList {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::mutex mutex_;
   std::deque<B*> list_;
 };
@@ -50,6 +60,7 @@ namespace {
   constexpr size_t MAX_SIZE_INDEX = 64;
 }
 
+<<<<<<< HEAD
 // A large reserved pinned memory segment that is created in advance which is used
 // to allocate small pinned memory requests to avoid calling into expensive APIs.
 // We never free this memory and move up the pointer as we allocate new blocks
@@ -101,6 +112,21 @@ struct TORCH_API HostStats {
   // SUM: bytes allocated/reserved by this memory allocator. This accounts
   // for both free and in-use blocks.
   Stat allocated_bytes;
+=======
+// Struct containing memory allocator summary statistics for host.
+struct TORCH_API HostStats {
+  // COUNT: allocations requested by client code. Note that active
+  // count can be extracted by looking at current allocations
+  Stat allocation;
+  // COUNT: number of allocated segments from host memory allocation.
+  Stat segment;
+
+  // SUM: bytes allocated by this memory alocator. Note that active bytes
+  // can be extracted by looking at current bytes allocated
+  Stat allocated_bytes;
+  // SUM: bytes reserved by this memory allocator (both free and used)
+  Stat reserved_bytes;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // SUM: time spent in cudaHostAlloc/cudaHostRegister in microseconds
   DurationStat host_alloc_time;
@@ -114,14 +140,18 @@ struct TORCH_API HostStats {
 
   // COUNT: number of times cudaHostFree/cudaHostUnregister was called.
   int64_t num_host_free = 0; // This is derived from segment or timing
+<<<<<<< HEAD
 
   // Count of cudaHostAlloc/cudaHostRegister per bucket
   std::vector<int64_t> bucket_allocation = std::vector<int64_t>(MAX_SIZE_INDEX);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // Struct containing memory allocator summary statistics for host, as they
 // are staged for reporting. This is a temporary struct that is used to
 // avoid locking the allocator while collecting stats.
+<<<<<<< HEAD
 struct alignas(hardware_destructive_interference_size) HostStatsStaged {
   std::mutex timing_mutex_;
   // COUNT: total allocations (active + free)
@@ -140,6 +170,21 @@ struct alignas(hardware_destructive_interference_size) HostStatsStaged {
   // LOCK: access to this stat is protected by the per bucket free_list_[index].mutex_
   std::vector<Stat> allocation_bucket_stats = std::vector<Stat>(MAX_SIZE_INDEX);
   // SUM: bytes of allocation per bucket (active + free)
+=======
+struct alignas(64) HostStatsStaged {
+  std::mutex timing_mutex_;
+  // COUNT: allocations requested by client code resulting in a new segment/block allocation
+  // LOCK: access to this stat is protected by the allocator's blocks_mutex_
+  Stat allocation;
+  // SUM: bytes within active memory blocks, including blocks that are
+  // currently in the free list.
+  // LOCK: access to this stat is protected by the allocator's blocks_mutex_
+  Stat allocated_bytes;
+  // COUNT: number of allocations per bucket
+  // LOCK: access to this stat is protected by the per bucket free_list_[index].mutex_
+  std::vector<Stat> allocation_bucket_stats = std::vector<Stat>(MAX_SIZE_INDEX);
+  // SUM: bytes of allocation per bucket
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // LOCK: access to this stat is protected by the per bucket free_list_[index].mutex_
   std::vector<Stat> allocated_bytes_bucket_stats = std::vector<Stat>(MAX_SIZE_INDEX);
   // SUM: time spent in cudaHostAlloc/cudaHostRegister
@@ -258,6 +303,15 @@ struct CachingHostAllocatorImpl {
     // Check in the recently freed blocks with pending events to see if we
     // can reuse them. Call get_free_block again after processing events
     if (pinned_use_background_threads()) {
+<<<<<<< HEAD
+=======
+      process_events_for_specific_size(roundSize);
+      block = get_free_block(roundSize);
+      if (block) {
+        return {block->ptr_, reinterpret_cast<void*>(block)};
+      }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Launch the background thread and process events in a loop.
       static bool background_thread_flag [[maybe_unused]] = [this] {
         getBackgroundThreadPool()->run([&]() {
@@ -293,7 +347,10 @@ struct CachingHostAllocatorImpl {
     auto* block = reinterpret_cast<B*>(ctx);
 
     std::optional<std::vector<E>> events;
+<<<<<<< HEAD
     ska::flat_hash_set<S> streams;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {
       std::lock_guard<std::mutex> g(block->mutex_);
       block->allocated_ = false;
@@ -302,23 +359,38 @@ struct CachingHostAllocatorImpl {
       } else {
         events = std::vector<E>();
         events->reserve(block->streams_.size());
+<<<<<<< HEAD
         block->event_count_ += block->streams_.size();
         // Move out streams to avoid holding the mutex during event recording
         streams = std::move(block->streams_);
+=======
+        for (auto stream : block->streams_) {
+          record_stream(events, stream);
+        }
+        block->event_count_ += events->size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         block->streams_.clear();
       }
     }
 
+<<<<<<< HEAD
     // Event recording must be done outside the mutex to avoid potential
     // deadlocks (e.g., when Python GIL is involved)
     for (auto stream : streams) {
       record_stream(events, stream);
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!events) {
       auto index = size_index(block->size_);
       std::lock_guard<std::mutex> g(free_list_[index].mutex_);
       free_list_[index].list_.push_back(block);
+<<<<<<< HEAD
+=======
+      stats_.allocation_bucket_stats[index].decrease(1);
+      stats_.allocated_bytes_bucket_stats[index].decrease(block->size_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       // restore these events that record by used streams.
       std::lock_guard<std::mutex> g(events_mutex_);
@@ -378,12 +450,18 @@ struct CachingHostAllocatorImpl {
       for (auto* block : blocks_to_remove) {
         blocks_.erase(block);
         ptr_to_block_.erase(block->ptr_);
+<<<<<<< HEAD
         auto index = size_index(block->size_);
         free_block(block);
         stats_.allocations.decrease(1);
         stats_.allocated_bytes.decrease(block->size_);
         stats_.allocation_bucket_stats[index].decrease(1);
         stats_.allocated_bytes_bucket_stats[index].decrease(block->size_);
+=======
+        stats_.allocation.decrease(1);
+        stats_.allocated_bytes.decrease(block->size_);
+        free_block(block);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         delete block;
       }
     }
@@ -394,8 +472,12 @@ struct CachingHostAllocatorImpl {
   }
 
   virtual bool pinned_use_background_threads() {
+<<<<<<< HEAD
     return c10::CachingAllocator::AcceleratorAllocatorConfig::
         pinned_use_background_threads();
+=======
+    return false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   virtual void copy_data(void* dest [[maybe_unused]], const void* src [[maybe_unused]], std::size_t count [[maybe_unused]]) const {
@@ -430,17 +512,29 @@ struct CachingHostAllocatorImpl {
       // per bucket (we pick index 0 arbitrarily). These are also all the host
       // allocations, not taking into account caching and free lists.
       if (i == 0) {
+<<<<<<< HEAD
         stats.allocations = stats_.allocations;
         stats.allocated_bytes = stats_.allocated_bytes;
         stats.num_host_alloc = stats.allocations.allocated;
         stats.num_host_free = stats.allocations.freed;
+=======
+        stats.segment = stats_.allocation;
+        stats.reserved_bytes = stats_.allocated_bytes;
+        stats.num_host_alloc = stats.segment.allocated;
+        stats.num_host_free = stats.segment.freed;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
 
       // Bucket stats need to be merged with the slow-path stats. We do this in
       // a best effort manner, since we can't really replay the cached events per bucket.
+<<<<<<< HEAD
       add_bucket_stats(stats.active_requests, stats_.active_bucket_stats[i]);
       add_bucket_stats(stats.active_bytes, stats_.active_bytes_bucket_stats[i]);
       stats.bucket_allocation[i] = stats_.allocation_bucket_stats[i].allocated;
+=======
+      add_bucket_stats(stats.allocation, stats_.allocation_bucket_stats[i]);
+      add_bucket_stats(stats.allocated_bytes, stats_.allocated_bytes_bucket_stats[i]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     // Get the timing stats
@@ -455,7 +549,11 @@ struct CachingHostAllocatorImpl {
   }
 
   void resetAccumulatedStats() {
+<<<<<<< HEAD
     // Resetting accumulated memory stats requires concurrently holding both the
+=======
+    // Reseting accumulated memory stats requires concurrently holding both the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // free list mutexes and the blocks mutex. Previously, this was only done in
     // empty_cache function.
     for (size_t i = 0; i < free_list_.size(); ++i) {
@@ -464,11 +562,17 @@ struct CachingHostAllocatorImpl {
       std::lock_guard<std::mutex> gb(blocks_mutex_, std::adopt_lock);
 
       if (i == 0) {
+<<<<<<< HEAD
         stats_.allocations.reset_accumulated();
         stats_.allocated_bytes.reset_accumulated();
       }
       stats_.active_bucket_stats[i].reset_accumulated();
       stats_.active_bytes_bucket_stats[i].reset_accumulated();
+=======
+        stats_.allocation.reset_accumulated();
+        stats_.allocated_bytes.reset_accumulated();
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       stats_.allocation_bucket_stats[i].reset_accumulated();
       stats_.allocated_bytes_bucket_stats[i].reset_accumulated();
     }
@@ -482,7 +586,11 @@ struct CachingHostAllocatorImpl {
   }
 
   void resetPeakStats() {
+<<<<<<< HEAD
     // Resetting peak memory stats requires concurrently holding both the
+=======
+    // Reseting peak memory stats requires concurrently holding both the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // free list mutexes and the blocks mutex. Previously, this was only done in
     // empty_cache function.
     for (size_t i = 0; i < free_list_.size(); ++i) {
@@ -491,11 +599,17 @@ struct CachingHostAllocatorImpl {
       std::lock_guard<std::mutex> gb(blocks_mutex_, std::adopt_lock);
 
       if (i == 0) {
+<<<<<<< HEAD
         stats_.allocations.reset_peak();
         stats_.allocated_bytes.reset_peak();
       }
       stats_.active_bucket_stats[i].reset_peak();
       stats_.active_bytes_bucket_stats[i].reset_peak();
+=======
+        stats_.allocation.reset_peak();
+        stats_.allocated_bytes.reset_peak();
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       stats_.allocation_bucket_stats[i].reset_peak();
       stats_.allocated_bytes_bucket_stats[i].reset_peak();
     }
@@ -512,7 +626,11 @@ struct CachingHostAllocatorImpl {
   virtual void add_allocated_block(B* block) {
     std::lock_guard<std::mutex> g(blocks_mutex_);
     blocks_.insert(block);
+<<<<<<< HEAD
     stats_.allocations.increase(1);
+=======
+    stats_.allocation.increase(1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stats_.allocated_bytes.increase(block->size_);
     ptr_to_block_.insert({block->ptr_, block});
 
@@ -525,8 +643,11 @@ struct CachingHostAllocatorImpl {
       std::lock_guard<std::mutex> g(free_list_[index].mutex_);
       stats_.allocation_bucket_stats[index].increase(1);
       stats_.allocated_bytes_bucket_stats[index].increase(size);
+<<<<<<< HEAD
       stats_.active_bucket_stats[index].increase(1);
       stats_.active_bytes_bucket_stats[index].increase(size);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -537,8 +658,13 @@ struct CachingHostAllocatorImpl {
       B* block = free_list_[index].list_.back();
       free_list_[index].list_.pop_back();
       block->allocated_ = true;
+<<<<<<< HEAD
       stats_.active_bucket_stats[index].increase(1);
       stats_.active_bytes_bucket_stats[index].increase(size);
+=======
+      stats_.allocation_bucket_stats[index].increase(1);
+      stats_.allocated_bytes_bucket_stats[index].increase(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return block;
     }
     return nullptr;
@@ -632,8 +758,13 @@ struct CachingHostAllocatorImpl {
         auto index = size_index(block->size_);
         std::lock_guard<std::mutex> g(free_list_[index].mutex_);
         free_list_[index].list_.push_back(block);
+<<<<<<< HEAD
         stats_.active_bucket_stats[index].decrease(1);
         stats_.active_bytes_bucket_stats[index].decrease(size);
+=======
+        stats_.allocation_bucket_stats[index].decrease(1);
+        stats_.allocated_bytes_bucket_stats[index].decrease(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (size != -1) {
           return;
         }
@@ -669,7 +800,11 @@ struct CachingHostAllocatorImpl {
     TORCH_CHECK_NOT_IMPLEMENTED(false, "Not implemented for query_event");
   }
 
+<<<<<<< HEAD
   alignas(hardware_destructive_interference_size) std::mutex blocks_mutex_;
+=======
+  alignas(64) std::mutex blocks_mutex_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ska::flat_hash_set<B*> blocks_; // block list
   ska::flat_hash_map<void*, B*> ptr_to_block_;
 
@@ -677,17 +812,28 @@ struct CachingHostAllocatorImpl {
   // size. This allows us to quickly find a free block of the right size.
   // We use deque to store per size free list and guard the list with its own
   // mutex.
+<<<<<<< HEAD
   alignas(hardware_destructive_interference_size) std::vector<FreeBlockList<B>>
       free_list_{MAX_SIZE_INDEX};
 
   alignas(hardware_destructive_interference_size) std::mutex events_mutex_;
+=======
+  alignas(64) std::vector<FreeBlockList<B>> free_list_ =
+      std::vector<FreeBlockList<B>>(MAX_SIZE_INDEX);
+
+  alignas(64) std::mutex events_mutex_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::deque<std::pair<E, B*>> events_; // event queue paired with block
 
   // Indicates whether the object is active.
   // Set to false in the destructor to signal background threads to stop.
   std::atomic<bool> active_{true};
 protected:
+<<<<<<< HEAD
   alignas(hardware_destructive_interference_size) HostStatsStaged stats_;
+=======
+  alignas(64) HostStatsStaged stats_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct TORCH_API HostAllocator : public at::Allocator {

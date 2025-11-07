@@ -7,12 +7,17 @@ from typing import Union
 import torch
 from torch import Tensor
 from torch._inductor import config, utils
+<<<<<<< HEAD
 from torch._inductor.pattern_matcher import PatternMatcherPass
 from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.utils import run_and_get_code
 from torch.nn.functional import ScalingType  # type: ignore[attr-defined]
 from torch.testing._internal.common_cuda import (
     _get_torch_cuda_version,
+=======
+from torch._inductor.test_case import run_tests, TestCase
+from torch.testing._internal.common_cuda import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PLATFORM_SUPPORTS_FP8,
     PLATFORM_SUPPORTS_MX_GEMM,
 )
@@ -22,14 +27,22 @@ from torch.testing._internal.common_utils import (
     parametrize,
 )
 from torch.testing._internal.inductor_utils import (
+<<<<<<< HEAD
     _quantize_blockwise,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _quantize_rowwise,
     _quantize_tensorwise,
     _to_fp8_saturated,
     HAS_CPU,
+<<<<<<< HEAD
     HAS_CUDA_AND_TRITON,
 )
 from torch.testing._internal.jit_utils import FileCheck
+=======
+    HAS_CUDA,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton_tma_device
 
 
@@ -46,7 +59,11 @@ def _fix_fp8_dtype_for_rocm(
     # with MI300 supported FP8 types if device is GPU:
     #    e4m3fn -> e4m3fnuz
     #    e5m2   -> e5m2fnuz
+<<<<<<< HEAD
     # Supports single, tuple and list of dtypes
+=======
+    # Supports single, typle and list of dtypes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Keeps the same test name for CUDA and ROCm
     # Also it allows to enable FP8 inductor tests for CPU
     if (
@@ -469,6 +486,7 @@ class TestFP8Lowering(TestCase):
             # autotuning for the compiled case, the results can be different because of
             # the way blocks of results are accumulated (float addition not associative), so
             # setting a small absolute tolerance in these tests
+<<<<<<< HEAD
             if dtype == torch.bfloat16:
                 self.assertEqual(y_eager, y_compiled, rtol=5e-2, atol=0.07)
             else:
@@ -638,6 +656,8 @@ class TestFP8Lowering(TestCase):
             # autotuning for the compiled case, the results can be different because of
             # the way blocks of results are accumulated (float addition not associative), so
             # setting a small absolute tolerance in these tests
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.testing.assert_close(y_eager, y_compiled, rtol=1e-2, atol=0.05)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
@@ -704,6 +724,7 @@ class TestFP8Lowering(TestCase):
         )
         self.assertEqual(y_eager.dtype, dtype)
         self.assertEqual(y_compiled.dtype, dtype)
+<<<<<<< HEAD
         torch.testing.assert_close(y_eager, y_compiled, rtol=5e-2, atol=0.07)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
@@ -877,6 +898,8 @@ class TestFP8Lowering(TestCase):
         ).run(code[0])
         self.assertEqual(y_eager.dtype, dtype)
         self.assertEqual(y_compiled.dtype, dtype)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.testing.assert_close(y_eager, y_compiled, rtol=1e-2, atol=0.05)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
@@ -935,7 +958,11 @@ class TestFP8Lowering(TestCase):
             )
         self.assertEqual(y_eager.dtype, dtype)
         self.assertEqual(y_compiled.dtype, dtype)
+<<<<<<< HEAD
         torch.testing.assert_close(y_eager, y_compiled, rtol=5e-2, atol=0.07)
+=======
+        torch.testing.assert_close(y_eager, y_compiled, rtol=1e-2, atol=0.07)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, f8_msg)
     @parametrize("M", (1, 3, 33, 257, 1024))
@@ -1114,5 +1141,9 @@ class TestFP8Lowering(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON or HAS_CPU:
+=======
+    if HAS_CUDA or HAS_CPU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

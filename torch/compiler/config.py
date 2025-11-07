@@ -20,6 +20,7 @@ from torch.utils._config_module import Config, install_config_module
 
 __all__ = [
     "job_id",
+<<<<<<< HEAD
     "dynamic_shapes",
     "assume_static_by_default",
     "automatic_dynamic_shapes",
@@ -35,6 +36,8 @@ __all__ = [
     "enable_cpp_symbolic_shape_guards",
     "wrap_top_frame",
     "reorderable_logging_functions",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -74,6 +77,7 @@ different profiles.  If you know your workload is truly SPMD, you can run with
 consistent profiles across all ranks.
 """
 
+<<<<<<< HEAD
 pgo_extra_read_key: Optional[str] = Config(
     env_name_default="TORCH_COMPILE_STICKY_PGO_READ", default=None
 )
@@ -87,6 +91,8 @@ Read key: Besides reading from the default state, this also reads from the speci
 and merges it with the default state.
 """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 cache_key_tag: str = Config(env_name_default="TORCH_COMPILE_CACHE_KEY_TAG", default="")
 """
@@ -94,6 +100,7 @@ Tag to be included in the cache key generation for all torch compile caching.
 A common use case for such a tag is to break caches.
 """
 
+<<<<<<< HEAD
 force_disable_caches: bool = Config(
     justknob="pytorch/remote_cache:force_disable_caches",
     env_name_force=[
@@ -106,6 +113,8 @@ force_disable_caches: bool = Config(
 Force disables all caching -- This will take precedence over and override any other caching flag
 """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 dynamic_sources: str = Config(
     env_name_default="TORCH_COMPILE_DYNAMIC_SOURCES", default=""
 )
@@ -128,6 +137,7 @@ This whitelist is dominant over all other flags dynamic=False, force_nn_module_p
 and force_parameter_static_shapes.
 """
 
+<<<<<<< HEAD
 # force a python GC before recording cudagraphs
 force_cudagraph_gc: bool = Config(env_name_default="TORCH_CUDAGRAPH_GC", default=False)
 """
@@ -277,4 +287,6 @@ at the right time, leading to incorrect logging.
 """
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 install_config_module(sys.modules[__name__])

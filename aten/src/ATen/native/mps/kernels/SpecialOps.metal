@@ -89,4 +89,10 @@ REGISTER_SPECIAL(short, float);
 REGISTER_SPECIAL(int, float);
 REGISTER_SPECIAL(long, float);
 REGISTER_SPECIAL(half, half);
+<<<<<<< HEAD
 REGISTER_SPECIAL(bfloat, bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_SPECIAL(bfloat, bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

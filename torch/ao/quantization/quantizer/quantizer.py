@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from typing import Annotated, Optional, Union
+=======
+from dataclasses import dataclass, field
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -82,7 +87,11 @@ an input edge or an output value
 input edge is the connection between input node and the node consuming the input, so it's a Tuple[Node, Node]
 output value is an fx Node
 """
+<<<<<<< HEAD
 EdgeOrNode = Annotated[Union[tuple[Node, Node], Node], None]
+=======
+EdgeOrNode = Union[tuple[Node, Node], Node]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 EdgeOrNode.__module__ = "torch.ao.quantization.quantizer.quantizer"
 
 
@@ -112,7 +121,11 @@ class DerivedQuantizationSpec(QuantizationSpecBase):
 
 @dataclass
 class QuantizationAnnotation:
+<<<<<<< HEAD
     """How are input argument or output should be quantized,
+=======
+    """How are input arguemnt or output should be quantized,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     expressed as QuantizationSpec, this corresponds to how a Tensor in the
     operator Graph is observed (PTQ) or fake quantized (QAT)
     """

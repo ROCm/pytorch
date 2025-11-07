@@ -31,7 +31,10 @@ class FileBaton:
             True if the file could be created, else False.
         """
         try:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.fd = os.open(self.lock_file_path, os.O_CREAT | os.O_EXCL)
             return True
         except FileExistsError:
@@ -53,7 +56,11 @@ class FileBaton:
             if self.warn_after_seconds is not None:
                 if time.time() - start_time > self.warn_after_seconds and not has_warned:
                     warnings.warn(f'Waited on lock file "{self.lock_file_path}" for '
+<<<<<<< HEAD
                                   f'{self.warn_after_seconds} seconds.', stacklevel=2)
+=======
+                                  f'{self.warn_after_seconds} seconds.')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     has_warned = True
 
     def release(self):

@@ -6,12 +6,15 @@ from typing import Generic, Optional, TypeVar, Union
 import torch
 
 
+<<<<<<< HEAD
 # Note: For benchmarking changes to samplers, see:
 # /benchmarks/data/samplers_bench.py
 # This benchmark compares the performance of different sampler implementations
 # and can be used to evaluate the impact of optimizations.
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "BatchSampler",
     "RandomSampler",
@@ -32,6 +35,13 @@ class Sampler(Generic[_T_co]):
     way to iterate over indices or lists of indices (batches) of dataset elements,
     and may provide a :meth:`__len__` method that returns the length of the returned iterators.
 
+<<<<<<< HEAD
+=======
+    Args:
+        data_source (Dataset): This argument is not used and will be removed in 2.2.0.
+            You may still have custom implementation that utilizes it.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Example:
         >>> # xdoctest: +SKIP
         >>> class AccedingSequenceLengthSampler(Sampler[int]):
@@ -63,6 +73,18 @@ class Sampler(Generic[_T_co]):
               calculation involving the length of a :class:`~torch.utils.data.DataLoader`.
     """
 
+<<<<<<< HEAD
+=======
+    def __init__(self, data_source: Optional[Sized] = None) -> None:
+        if data_source is not None:
+            import warnings
+
+            warnings.warn(
+                "`data_source` argument is not used and will be removed in 2.2.0."
+                "You may still have custom implementation that utilizes it."
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __iter__(self) -> Iterator[_T_co]:
         raise NotImplementedError
 
@@ -98,7 +120,11 @@ class SequentialSampler(Sampler[int]):
     r"""Samples elements sequentially, always in the same order.
 
     Args:
+<<<<<<< HEAD
         data_source (Sized): data source to sample from. Must implement __len__.
+=======
+        data_source (Dataset): dataset to sample from
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     data_source: Sized
@@ -119,7 +145,11 @@ class RandomSampler(Sampler[int]):
     If with replacement, then user can specify :attr:`num_samples` to draw.
 
     Args:
+<<<<<<< HEAD
         data_source (Sized): data source to sample from. Must implement __len__.
+=======
+        data_source (Dataset): dataset to sample from
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         replacement (bool): samples are drawn on-demand with replacement if ``True``, default=``False``
         num_samples (int): number of samples to draw, default=`len(dataset)`.
         generator (Generator): Generator used in sampling.
@@ -223,6 +253,7 @@ class WeightedRandomSampler(Sampler[int]):
 
     Example:
         >>> # xdoctest: +IGNORE_WANT("non-deterministic")
+<<<<<<< HEAD
         >>> list(
         ...     WeightedRandomSampler(
         ...         [0.1, 0.9, 0.4, 0.7, 3.0, 0.6], 5, replacement=True
@@ -234,6 +265,11 @@ class WeightedRandomSampler(Sampler[int]):
         ...         [0.9, 0.4, 0.05, 0.2, 0.3, 0.1], 5, replacement=False
         ...     )
         ... )
+=======
+        >>> list(WeightedRandomSampler([0.1, 0.9, 0.4, 0.7, 3.0, 0.6], 5, replacement=True))
+        [4, 4, 1, 4, 5]
+        >>> list(WeightedRandomSampler([0.9, 0.4, 0.05, 0.2, 0.3, 0.1], 5, replacement=False))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [0, 1, 4, 3, 2]
     """
 
@@ -293,6 +329,7 @@ class BatchSampler(Sampler[list[int]]):
             its size would be less than ``batch_size``
 
     Example:
+<<<<<<< HEAD
         >>> list(
         ...     BatchSampler(
         ...         SequentialSampler(range(10)), batch_size=3, drop_last=False
@@ -302,6 +339,11 @@ class BatchSampler(Sampler[list[int]]):
         >>> list(
         ...     BatchSampler(SequentialSampler(range(10)), batch_size=3, drop_last=True)
         ... )
+=======
+        >>> list(BatchSampler(SequentialSampler(range(10)), batch_size=3, drop_last=False))
+        [[0, 1, 2], [3, 4, 5], [6, 7, 8], [9]]
+        >>> list(BatchSampler(SequentialSampler(range(10)), batch_size=3, drop_last=True))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         [[0, 1, 2], [3, 4, 5], [6, 7, 8]]
     """
 
@@ -331,6 +373,10 @@ class BatchSampler(Sampler[list[int]]):
         self.drop_last = drop_last
 
     def __iter__(self) -> Iterator[list[int]]:
+<<<<<<< HEAD
+=======
+        # Implemented based on the benchmarking in https://github.com/pytorch/pytorch/pull/76951
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sampler_iter = iter(self.sampler)
         if self.drop_last:
             # Create multiple references to the same iterator

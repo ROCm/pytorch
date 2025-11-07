@@ -21,10 +21,17 @@ from ._util import AxisError, UFuncTypeError
 from math import pi, e  # usort: skip
 
 
+<<<<<<< HEAD
 all = all  # noqa: PLW0127
 alltrue = all
 
 any = any  # noqa: PLW0127
+=======
+all = all
+alltrue = all
+
+any = any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 sometrue = any
 
 inf = float("inf")

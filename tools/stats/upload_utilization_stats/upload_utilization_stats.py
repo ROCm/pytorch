@@ -60,7 +60,10 @@ class SegmentGenerator:
         df[time_col_name] = pd.to_datetime(df[time_col_name], unit="s", utc=True)
 
         # get unique cmd names
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unique_cmds_df = pd.DataFrame(df[cmd_col_name].unique(), columns=[cmd_col_name])
 
         # get all detected python cmds

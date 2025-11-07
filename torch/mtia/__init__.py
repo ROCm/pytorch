@@ -5,8 +5,12 @@ This package enables an interface for accessing MTIA backend in python
 
 import threading
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import device as _device, Tensor
@@ -205,11 +209,14 @@ def attach_out_of_memory_observer(
     torch._C._mtia_attachOutOfMemoryObserver(observer)
 
 
+<<<<<<< HEAD
 def is_bf16_supported(including_emulation: bool = True):
     r"""Return a bool indicating if the current MTIA device supports dtype bfloat16."""
     return True
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_device_capability(device: Optional[_device_t] = None) -> tuple[int, int]:
     r"""Return capability of a given device as a tuple of (major version, minor version).
 
@@ -303,7 +310,11 @@ class StreamContext:
         self.idx = _get_device_index(None, True)
         if not torch.jit.is_scripting():
             if self.idx is None:
+<<<<<<< HEAD
                 self.idx = -1  # pyrefly: ignore [bad-assignment]
+=======
+                self.idx = -1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.src_prev_stream = (
             None if not torch.jit.is_scripting() else torch.mtia.default_stream(None)
@@ -341,6 +352,7 @@ class StreamContext:
         torch.mtia.set_stream(self.src_prev_stream)  # type: ignore[arg-type]
 
 
+<<<<<<< HEAD
 def _set_stream_by_id(stream_id, device_index, device_type):
     r"""set stream specified by the stream id, device index and
         device type
@@ -352,6 +364,8 @@ def _set_stream_by_id(stream_id, device_index, device_type):
     torch._C._mtia_setStream(stream_id, device_index, device_type)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def stream(stream: Optional["torch.mtia.Stream"]) -> StreamContext:
     r"""Wrap around the Context-manager StreamContext that selects a given stream.
 
@@ -409,7 +423,10 @@ __all__ = [
     "default_stream",
     "memory_stats",
     "max_memory_allocated",
+<<<<<<< HEAD
     "memory_allocated",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "reset_peak_memory_stats",
     "get_device_capability",
     "get_device_properties",
@@ -423,5 +440,8 @@ __all__ = [
     "device",
     "set_rng_state",
     "get_rng_state",
+<<<<<<< HEAD
     "is_bf16_supported",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

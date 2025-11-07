@@ -23,6 +23,7 @@ def intern(string: str, /) -> str:
 @substitute_in_graph(sys.getrecursionlimit, can_constant_fold_through=True)
 def getrecursionlimit() -> int:
     return sys.getrecursionlimit()
+<<<<<<< HEAD
 
 
 if hasattr(sys, "get_int_max_str_digits"):
@@ -32,3 +33,5 @@ if hasattr(sys, "get_int_max_str_digits"):
         return sys.get_int_max_str_digits()
 
     __all__ += ["get_int_max_str_digits"]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

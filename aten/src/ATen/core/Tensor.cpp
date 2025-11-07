@@ -138,7 +138,11 @@ void Tensor::_backward(TensorList inputs,
         const std::optional<Tensor>& gradient,
         std::optional<bool> keep_graph,
         bool create_graph) const {
+<<<<<<< HEAD
   impl::GetVariableHooks()->_backward(*this, inputs, gradient, keep_graph, create_graph);
+=======
+  return impl::GetVariableHooks()->_backward(*this, inputs, gradient, keep_graph, create_graph);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 const TensorBase& TensorBase::requires_grad_(bool _requires_grad) const {
@@ -173,6 +177,7 @@ unsigned TensorBase::_register_hook(std::function<TensorBase(const TensorBase&)>
   return impl::GetVariableHooks()->_register_hook(*this, std::move(hook));
 }
 
+<<<<<<< HEAD
 std::optional<ScalarType> TensorBase::grad_dtype() const {
   return impl::GetVariableHooks()->grad_dtype(*this);
 }
@@ -181,4 +186,6 @@ void TensorBase::set_grad_dtype(const std::optional<ScalarType>& grad_dtype) con
   return impl::GetVariableHooks()->set_grad_dtype(*this, grad_dtype);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at

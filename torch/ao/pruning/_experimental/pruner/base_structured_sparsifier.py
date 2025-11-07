@@ -1,8 +1,14 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from itertools import chain
 from operator import getitem
 from typing import Optional, Union
+=======
+from itertools import chain
+from operator import getitem
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F
@@ -260,7 +266,10 @@ class BaseStructuredSparsifier(BaseSparsifier):
                     module.register_parameter(
                         "_bias", nn.Parameter(module.bias.detach())
                     )
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     module.bias = None
                     module.prune_bias = prune_bias
 

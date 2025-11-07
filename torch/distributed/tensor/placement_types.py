@@ -1,6 +1,7 @@
 # mypy: allow-untyped-defs
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
+<<<<<<< HEAD
 from dataclasses import dataclass, field
 from typing import cast, Optional
 
@@ -9,6 +10,13 @@ import torch._C
 import torch.distributed._functional_collectives as funcol
 from torch._C._distributed import Placement
 from torch.distributed._local_tensor import maybe_run_for_local_tensor
+=======
+from dataclasses import dataclass
+from typing import cast, Optional
+
+import torch
+import torch.distributed._functional_collectives as funcol
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor._collective_utils import (
     fill_empty_tensor_to_shards,
@@ -18,6 +26,7 @@ from torch.distributed.tensor._collective_utils import (
     shard_dim_alltoall,
     unpad_tensor,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor._ops._mask_buffer import MaskBuffer
 
 
@@ -29,6 +38,40 @@ Placement.__module__ = "torch.distributed.tensor.placement_types"
 
 
 class Shard(torch._C._distributed.Shard):
+=======
+
+
+__all__ = ["Placement", "Shard", "Replicate", "Partial"]
+
+
+class Placement:
+    """
+    The base class for the Placement type, where it describes how a DTensor is placed onto the
+    ``DeviceMesh``. ``Placement`` and ``DeviceMesh`` together could describe the DTensor Layout.
+    It is the base class of the three main DTensor Placement types: ``Shard``, ``Replicate``,
+    and ``Partial``.
+
+    This class is not meant to be used directly, mainly served as a typing stub.
+    """
+
+    # convenient utils to check for placement types
+    def is_shard(self, dim: Optional[int] = None) -> bool:
+        is_shard_instance = isinstance(self, Shard)
+        if dim is not None and is_shard_instance:
+            return cast(Shard, self).dim == dim
+        else:
+            return is_shard_instance
+
+    def is_replicate(self) -> bool:
+        return isinstance(self, Replicate)
+
+    def is_partial(self) -> bool:
+        return isinstance(self, Partial)
+
+
+@dataclass(frozen=True)
+class Shard(Placement):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     The ``Shard(dim)`` placement describes the DTensor sharding on tensor dimension
     ``dim`` over a corresponding ``DeviceMesh`` dimension, where each rank on the
@@ -46,6 +89,11 @@ class Shard(torch._C._distributed.Shard):
         evenly divisible on a DeviceMesh dimension is currently experimental and subject to change.
     """
 
+<<<<<<< HEAD
+=======
+    dim: int
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _split_tensor(
         self,
         tensor: torch.Tensor,
@@ -80,7 +128,11 @@ class Shard(torch._C._distributed.Shard):
         pad_sizes: list[int] = []
         for shard in tensor_list:
             if with_padding:
+<<<<<<< HEAD
                 pad_size = Shard._get_shard_pad_size(full_chunk_size, shard, self.dim)
+=======
+                pad_size = full_chunk_size - shard.size(self.dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 shard = pad_tensor(shard, self.dim, pad_size)
                 pad_sizes.append(pad_size)
             if contiguous:
@@ -89,8 +141,12 @@ class Shard(torch._C._distributed.Shard):
         return shard_list, pad_sizes
 
     @staticmethod
+<<<<<<< HEAD
     @maybe_run_for_local_tensor
     def local_shard_size_and_offset(
+=======
+    def _local_shard_size_and_offset(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         curr_local_size: int,
         num_chunks: int,
         rank: int,
@@ -124,6 +180,7 @@ class Shard(torch._C._distributed.Shard):
             )
             return local_shard_size, shard_starting_idx
 
+<<<<<<< HEAD
     def _local_shard_size_and_offset(
         self,
         curr_local_size: int,
@@ -146,6 +203,8 @@ class Shard(torch._C._distributed.Shard):
                 local_tensor = local_tensor.contiguous()
         return local_tensor
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _shard_tensor(
         self,
         tensor: torch.Tensor,
@@ -173,11 +232,16 @@ class Shard(torch._C._distributed.Shard):
                 tensor, num_chunks, with_padding=False, contiguous=True
             )
 
+<<<<<<< HEAD
             return self._select_shard(scatter_list, mesh_dim_local_rank)
+=======
+            return scatter_list[mesh_dim_local_rank]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         scatter_list, pad_sizes = self._split_tensor(
             tensor, num_chunks, with_padding=True, contiguous=True
         )
+<<<<<<< HEAD
 
         it = iter(scatter_list)
         first = next(it)
@@ -186,12 +250,16 @@ class Shard(torch._C._distributed.Shard):
         assert all(first.shape == v.shape for v in it)
 
         output = torch.empty_like(first)
+=======
+        output = torch.empty_like(scatter_list[mesh_dim_local_rank])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # perform scatter from the src_data_rank as data source when it is not None
         mesh_scatter(
             output, scatter_list, mesh, mesh_dim=mesh_dim, group_src=src_data_rank
         )
 
+<<<<<<< HEAD
         return Shard._maybe_unpad_tensor_with_sizes(
             self.dim, output, pad_sizes, mesh_dim_local_rank, True
         )
@@ -207,6 +275,14 @@ class Shard(torch._C._distributed.Shard):
     ) -> torch.Tensor:
         shard_placement = cls(dim)
         return shard_placement._shard_tensor(tensor, mesh, mesh_dim, src_data_rank)
+=======
+        # Only unpad if the local_tensor was padded on the dimension.
+        if pad_sizes[mesh_dim_local_rank] > 0:
+            output = unpad_tensor(output, self.dim, pad_sizes[mesh_dim_local_rank])
+            # Unpad might return a view, hence we need to remake it contiguous
+            output = output.contiguous()
+        return output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _reduce_shard_tensor(
         self,
@@ -227,7 +303,10 @@ class Shard(torch._C._distributed.Shard):
             return tensor
 
         is_padded = tensor.size(self.dim) % num_chunks != 0
+<<<<<<< HEAD
         pad_sizes = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_padded:
             scattered_list, pad_sizes = self._split_tensor(
                 tensor, num_chunks, with_padding=True, contiguous=True
@@ -241,6 +320,7 @@ class Shard(torch._C._distributed.Shard):
         )
 
         if is_padded:
+<<<<<<< HEAD
             assert pad_sizes is not None
             output = Shard._maybe_unpad_tensor_with_sizes(
                 self.dim, output, pad_sizes, my_coordinate[mesh_dim], False
@@ -282,6 +362,11 @@ class Shard(torch._C._distributed.Shard):
 
         return local_tensor
 
+=======
+            output = unpad_tensor(output, self.dim, pad_sizes[my_coordinate[mesh_dim]])  # type: ignore[possibly-undefined]
+        return output
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _to_replicate_tensor(
         self,
         local_tensor: torch.Tensor,
@@ -294,17 +379,32 @@ class Shard(torch._C._distributed.Shard):
         is replicated on the previously sharded mesh dimension
         """
         num_chunks = mesh.size(mesh_dim=mesh_dim)
+<<<<<<< HEAD
         logical_dim_size = current_logical_shape[self.dim]
 
         local_tensor = self._maybe_pad_tensor(
             local_tensor, logical_dim_size, num_chunks
         )
+=======
+
+        logical_dim_size = current_logical_shape[self.dim]
+        is_padded = logical_dim_size % num_chunks != 0
+
+        if is_padded:
+            full_chunk_size = (logical_dim_size + num_chunks - 1) // num_chunks
+            pad_size = full_chunk_size - local_tensor.size(self.dim)
+            local_tensor = pad_tensor(local_tensor, self.dim, pad_size)
+
+        if not local_tensor.is_contiguous():
+            local_tensor = local_tensor.contiguous()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         result = funcol.all_gather_tensor(
             local_tensor,
             gather_dim=self.dim,
             group=(mesh, mesh_dim),
         )
+<<<<<<< HEAD
 
         result = self._maybe_unpad_tensor(result, logical_dim_size, num_chunks)
 
@@ -315,6 +415,13 @@ class Shard(torch._C._distributed.Shard):
     def _select_shard(shards: list[torch.Tensor], shard_index) -> torch.Tensor:
         return shards[shard_index].clone()
 
+=======
+        if is_padded:
+            unpad_size = full_chunk_size * num_chunks - logical_dim_size  # type: ignore[possibly-undefined]
+            result = unpad_tensor(result, self.dim, unpad_size)
+        return result
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _replicate_to_shard(
         self,
         local_tensor: torch.Tensor,
@@ -333,6 +440,7 @@ class Shard(torch._C._distributed.Shard):
             with_padding=False,
             contiguous=False,
         )
+<<<<<<< HEAD
 
         return Shard._select_shard(shards, shard_index)
 
@@ -433,6 +541,9 @@ class Shard(torch._C._distributed.Shard):
             local_tensor = unpad_tensor(local_tensor, new_shard_dim, new_dim_unpad_size)  # type: ignore[possibly-undefined]
 
         return local_tensor
+=======
+        return shards[shard_index].clone()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _to_new_shard_dim(
         self,
@@ -454,14 +565,39 @@ class Shard(torch._C._distributed.Shard):
 
         num_chunks = mesh.size(mesh_dim=mesh_dim)
 
+<<<<<<< HEAD
         local_tensor = Shard._pad_for_new_shard_dim(
             current_logical_shape, local_tensor, num_chunks, self.dim, new_shard_dim
         )
+=======
+        old_dim_logical_size = current_logical_shape[self.dim]
+        new_dim_logical_size = current_logical_shape[new_shard_dim]
+        old_dim_padding = old_dim_logical_size % num_chunks != 0
+        new_dim_padding = new_dim_logical_size % num_chunks != 0
+        if old_dim_padding:
+            old_dim_full_chunk_size = (
+                old_dim_logical_size + num_chunks - 1
+            ) // num_chunks
+            old_dim_pad_size = old_dim_full_chunk_size - local_tensor.size(self.dim)
+            local_tensor = pad_tensor(local_tensor, self.dim, old_dim_pad_size)
+        if new_dim_padding:
+            new_dim_full_chunk_size = (
+                new_dim_logical_size + num_chunks - 1
+            ) // num_chunks
+            new_dim_pad_size = new_dim_full_chunk_size * num_chunks - local_tensor.size(
+                new_shard_dim
+            )
+            local_tensor = pad_tensor(local_tensor, new_shard_dim, new_dim_pad_size)
+
+        if not local_tensor.is_contiguous():
+            local_tensor = local_tensor.contiguous()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         new_tensor = shard_dim_alltoall(
             local_tensor, self.dim, new_shard_dim, mesh, mesh_dim
         )
 
+<<<<<<< HEAD
         new_tensor = Shard._unpad_for_new_shard_dim(
             current_logical_shape,
             new_tensor,
@@ -473,6 +609,28 @@ class Shard(torch._C._distributed.Shard):
 
         return new_tensor
 
+=======
+        if old_dim_padding:
+            old_dim_unpad_size = (
+                old_dim_full_chunk_size * num_chunks - current_logical_shape[self.dim]  # type: ignore[possibly-undefined]
+            )
+            new_tensor = unpad_tensor(new_tensor, self.dim, old_dim_unpad_size)  # type: ignore[possibly-undefined]
+
+        if new_dim_padding:
+            local_shard_size_on_new_dim = self._local_shard_size_and_offset(
+                new_dim_logical_size, num_chunks, my_coordinate[mesh_dim]
+            )[0]
+            new_dim_unpad_size = new_dim_full_chunk_size - local_shard_size_on_new_dim  # type: ignore[possibly-undefined]
+            new_tensor = unpad_tensor(new_tensor, new_shard_dim, new_dim_unpad_size)  # type: ignore[possibly-undefined]
+
+        return new_tensor
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Shard):
+            return False
+        return self.dim == other.dim
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __hash__(self) -> int:
         return hash(self.dim)
 
@@ -487,8 +645,17 @@ class Shard(torch._C._distributed.Shard):
         return f"S({self.dim})"
 
 
+<<<<<<< HEAD
 # Need to inherit from Shard here so that isinstance(some_strided_shard, Shard) will work.
 class _StridedShard(torch._C._distributed.StridedShard, Shard):
+=======
+# kw_only is only available in python >= 3.10
+kw_only_dataclass = dict(kw_only=True) if "kw_only" in dataclass.__kwdefaults__ else {}
+
+
+@dataclass(frozen=True, **kw_only_dataclass)
+class _StridedShard(Shard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     _StridedShard is only introduced to support 2D FSDP2 + TP sharding where the tensor
     is sharded on the TP mesh dimension first, then sharded on the FSDP mesh dimension.
@@ -546,6 +713,21 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
     TODO: we should remove _StridedShard placement once we can unify it with Shard
     """
 
+<<<<<<< HEAD
+=======
+    split_factor: int
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, _StridedShard):
+            return self.dim == other.dim and self.split_factor == other.split_factor
+        elif isinstance(other, Shard):
+            # TODO: this is to avoid extra all-gather in dtensor op dispatch
+            # note that sharding prop would not produce _StridedShard and an
+            # placement inequality would introduce an all-gather for resharding
+            return self.dim == other.dim
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __hash__(self) -> int:
         return hash((self.dim, self.split_factor))
 
@@ -559,6 +741,7 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
         """human readable representation of the _StridedShard placement"""
         return f"_S({self.dim}, {self.split_factor})"
 
+<<<<<<< HEAD
     @classmethod
     def _make_shard_tensor(
         cls,
@@ -574,6 +757,8 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
             tensor, mesh, mesh_dim, src_data_rank
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _split_tensor(
         self,
         tensor: torch.Tensor,
@@ -586,6 +771,7 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
             f"Sharding dim {self.dim} greater than tensor ndim {tensor.ndim}"
         )
 
+<<<<<<< HEAD
         # Essentially _StridedShard express the right-to-left sharding in the
         # reversed order. Here we perform first_split as the virtual "right" sharding,
         # and then second_split as the virtual "left" sharding, and finally assemble
@@ -616,6 +802,35 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
         if with_padding:
             pad_sizes = [max_chunk_size - shard.size(self.dim) for shard in shard_list]
 
+=======
+        # num_chunks represents the size of this StridedShard mesh dim, while self.split_factor
+        # represents the aggregate num chunks for other shardings applied logically earlier than this strided shard.
+        # (e.g. in FSDP+TP case, num_chunks is size(dp dim), split_factor is size(tp dim))
+        total_split = num_chunks * self.split_factor
+
+        tensor_list = list(torch.chunk(tensor, total_split, dim=self.dim))
+        tensor_list = fill_empty_tensor_to_shards(
+            tensor_list, self.dim, total_split - len(tensor_list)
+        )
+
+        # compute the chunk size inline with ``torch.chunk`` to calculate padding
+        full_chunk_size = (tensor.size(self.dim) + total_split - 1) // total_split
+
+        shard_list: list[torch.Tensor] = []
+        pad_sizes: list[int] = []
+        for i in range(num_chunks):
+            shard = torch.cat(
+                [tensor_list[i + j * num_chunks] for j in range(self.split_factor)],
+                dim=self.dim,
+            )
+            if with_padding:
+                pad_size = full_chunk_size * self.split_factor - shard.size(self.dim)
+                shard = pad_tensor(shard, self.dim, pad_size)
+                pad_sizes.append(pad_size)
+            if contiguous:
+                shard = shard.contiguous()
+            shard_list.append(shard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return shard_list, pad_sizes
 
     def _to_replicate_tensor(
@@ -626,6 +841,7 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
         current_logical_shape: list[int],
     ) -> torch.Tensor:
         """
+<<<<<<< HEAD
         replay the replicate-to-shard process to understand how to stitch shards back
         """
         num_chunks = mesh.size(mesh_dim=mesh_dim)
@@ -713,6 +929,112 @@ class _StridedShard(torch._C._distributed.StridedShard, Shard):
 
 
 class Replicate(torch._C._distributed.Replicate):
+=======
+        Given a tensor with strided sharding (e.g. [StridedShard(d), Shard(d)]),
+        this function is called during the process of converting to [Replicate(), Replicate()],
+        and `local_tensor` represents the portion of the tensor on this rank after the intermediate step of
+        converting to [StridedShard(d), Replicate()] in right-to-left unsharding order.
+
+        note: this conversion logic is pretty specialized on this 2D case.  It could be generalized further. This
+        is a common enough case to be worth fixing (since it occurs when applying TP and then FSDP to a model).
+
+        note: this does not support 'reduce_scatter' for StridedShard.
+
+        Example
+        -------
+        mesh = (DP=2, TP=2)
+        # single-gpu "weight" of size 5, will be 'uneven' for sharding
+        original = torch.arange(5)
+
+        tp sharded tensor
+        -----------------
+        `tp = distribute_tensor(x, world_mesh['tp'], [Shard(0)])`
+
+        local_tensors:
+        rank0: [0,1,2]    rank1: [3,4]
+        rank1: [0,1,2]    rank3: [3,4]
+
+        fsdp+tp sharded tensor
+        ----------------------
+        `dp_tp = ...` (the process of creating a strided-shard tensor is skipped over as it is complicated
+        dp_tp has placement (_StridedShard(0, split_factor=2), Shard(0))
+        local_tensors:
+        rank0: [0,1]  rank1: [3]
+        rank1: [2]    rank3: [4]
+
+        Now, say someone wants to reconstruct dp_tp's full tensor. This will invoke 'redistribute' to replicate.
+        redistribute will first replicate the "Shard(0)" placement on the rightmost mesh dim, then replicate the
+        StridedShard placement second, which is implemented by this function.
+        So our starting point (`local_tensor` arg) is the result of replicating the Shard(0) placement across the
+        TP dim, which looks like this.
+
+        Note the discrepancy with the 'tp sharded tensor' line above!  We'll fix it by locally shuffling data.
+
+        local_tensors:
+        rank0: [0,1,3]  rank1: [0,1,3]
+        rank2: [2,4]    rank3: [2,4]
+
+        Step 1: replicate over the DP dimension.  Afterwards, each rank can locally sort the values.
+          note: we need padding to do this allgather, and we'll need to keep track of the padding amount for later
+                local_tensors:
+        rank0: [0,1,3,2,4]    rank1: [0,1,3,2,4]
+        rank2: [0,1,3,2,4]    rank3: [0,1,3,2,4]
+
+        Step 2: chunk and shuffle values around to account for the wrong order of operations above
+        and get the original tensor content back
+
+        01324#       <- our allgather includes padding, if padding was applied in step 1
+        01324        <- Remove the padding
+        013, 24      <- chunk once, 'undoing' the DP allgather
+        01, 3, 2, 4  <- chunk each chunk, 'undoing' the initial (wrong) TP allgather performed by Shard(0)->Replicate()
+        012, 34      <- interleave with stride=TP mesh dim size
+        01234        <- concatenate
+
+        Note: the current implementation of this function is incomplete, and supports only the common pattern of one
+        strided shard placement, which is used in the FSDP + TP case.  We could extend this implementation to handle
+        multiple strided shardings (e.g. [StridedShard, StridedShard, Shard]), by repeating the chunking step more times
+        and handling more complex shuffling in the last step.  On the other hand, we plan to replace 'StridedShard'
+        with using just Shard and specifying a sharding order, so it may be ok to leave this as-is for the time being.
+        """
+        num_chunks = mesh.size(mesh_dim=mesh_dim)
+        logical_dim_size = current_logical_shape[self.dim]
+        full_chunk_size = (logical_dim_size + num_chunks - 1) // num_chunks
+        local_pad_size = full_chunk_size - local_tensor.size(self.dim)
+
+        local_tensor = pad_tensor(local_tensor, self.dim, local_pad_size)
+
+        if not local_tensor.is_contiguous():
+            local_tensor = local_tensor.contiguous()
+
+        result = funcol.all_gather_tensor(
+            local_tensor,
+            gather_dim=self.dim,
+            group=(mesh, mesh_dim),
+        )
+        if isinstance(result, funcol.AsyncCollectiveTensor):
+            result = result.wait()
+
+        if result.shape[self.dim] > logical_dim_size:
+            result = unpad_tensor(
+                result, self.dim, result.shape[self.dim] - logical_dim_size
+            )
+
+        # this reverses our 'all_gather' but gives every rank a copy
+        outer_shards = torch.chunk(result, num_chunks, dim=self.dim)
+        # this undoes the 'Shard(0)' -> Replicate() that happened over the wrong mesh dim in the first place
+        inner_shards: list[torch.Tensor] = []
+        for p in outer_shards:
+            inner_shards.extend(torch.chunk(p, self.split_factor, dim=self.dim))
+        # now we just have to correctly stride the shards
+        reordered_shards = []
+        for i in range(self.split_factor):
+            reordered_shards.extend(inner_shards[i :: self.split_factor])
+        return torch.cat(reordered_shards, dim=self.dim).contiguous()
+
+
+@dataclass(frozen=True)
+class Replicate(Placement):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     The ``Replicate()`` placement describes the DTensor replicating on a corresponding
     ``DeviceMesh`` dimension, where each rank on the DeviceMesh dimension holds a
@@ -720,6 +1042,12 @@ class Replicate(torch._C._distributed.Replicate):
     DTensor APIs (i.e. ``distribute_tensor``, ``DTensor.from_local``, etc.)
     """
 
+<<<<<<< HEAD
+=======
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Replicate)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __hash__(self) -> int:
         # every replicate placement is the same
         return -1
@@ -736,9 +1064,14 @@ class Replicate(torch._C._distributed.Replicate):
         """
         return "R"
 
+<<<<<<< HEAD
     @classmethod
     def _make_replicate_tensor(
         cls,
+=======
+    def _replicate_tensor(
+        self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tensor: torch.Tensor,
         mesh: DeviceMesh,
         mesh_dim: int,
@@ -760,6 +1093,7 @@ class Replicate(torch._C._distributed.Replicate):
             mesh_broadcast(tensor, mesh, mesh_dim=mesh_dim, group_src=src_data_rank)
         return tensor
 
+<<<<<<< HEAD
     def _replicate_tensor(
         self,
         tensor: torch.Tensor,
@@ -771,6 +1105,11 @@ class Replicate(torch._C._distributed.Replicate):
 
 
 class Partial(torch._C._distributed.Partial):
+=======
+
+@dataclass(frozen=True)
+class Partial(Placement):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     The ``Partial(reduce_op)`` placement describes the DTensor that is pending
     reduction on a specified ``DeviceMesh`` dimension, where each rank on the
@@ -789,6 +1128,11 @@ class Partial(torch._C._distributed.Partial):
         and can only be used by the ``DTensor.from_local`` API.
     """
 
+<<<<<<< HEAD
+=======
+    reduce_op: str = "sum"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _reduce_value(
         self, tensor: torch.Tensor, mesh: DeviceMesh, mesh_dim: int
     ) -> torch.Tensor:
@@ -817,7 +1161,11 @@ class Partial(torch._C._distributed.Partial):
         # _partition_value: partition the value of a replicated tensor on the mesh dimension
 
         # _partition_value is the conjugate operation of _reduce_value
+<<<<<<< HEAD
         # - i.e. _partition_value on a sum reduce op is just a division operation
+=======
+        # - i.e. _partition_value on a sum reduce op is just a divison operation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # - the _reduce_value on a sum reduce op would just be a sum(allreduce) operation
         # TODO: if the reduce_op is min/max, etc. the _partition_value should be a
         # different operation
@@ -825,6 +1173,14 @@ class Partial(torch._C._distributed.Partial):
         num_chunks = mesh.size(mesh_dim=mesh_dim)
         return tensor / num_chunks
 
+<<<<<<< HEAD
+=======
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Partial):
+            return False
+        return self.reduce_op == other.reduce_op
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __hash__(self) -> int:
         return 1 + hash(self.reduce_op)
 
@@ -843,6 +1199,7 @@ class Partial(torch._C._distributed.Partial):
 
 # We keep the old _Partial name for a while for BC reason
 _Partial = Partial
+<<<<<<< HEAD
 
 
 @dataclass(frozen=True)
@@ -989,3 +1346,5 @@ class MaskPartial(Partial):
         human readable representation of the MaskPartial placement
         """
         return "MaskP"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

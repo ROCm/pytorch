@@ -1,7 +1,11 @@
 from __future__ import annotations
 
 import inspect
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -17,7 +21,11 @@ if triton is not None:
     from triton import Config
     from triton.compiler import CompiledKernel
     from triton.runtime.autotuner import OutOfResources
+<<<<<<< HEAD
     from triton.runtime.jit import JITFunction, KernelInterface
+=======
+    from triton.runtime.jit import KernelInterface
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     try:
         from triton.runtime.autotuner import PTXASError
@@ -37,7 +45,11 @@ if triton is not None:
 
         def GPUTarget(
             backend: str,
+<<<<<<< HEAD
             arch: int | str,
+=======
+            arch: Union[int, str],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             warp_size: int,
         ) -> Any:
             if torch.version.hip:
@@ -87,6 +99,7 @@ if triton is not None:
     except ImportError:
         knobs = None
 
+<<<<<<< HEAD
     try:
         from triton.runtime.cache import triton_key  # type: ignore[attr-defined]
     except ImportError:
@@ -98,6 +111,11 @@ if triton is not None:
         "_semantic" in inspect.signature(triton.language.core.view).parameters
     )
     HAS_TRITON = True
+=======
+    builtins_use_semantic_kwarg = (
+        "_semantic" in inspect.signature(triton.language.core.view).parameters
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else:
 
     def _raise_error(*args: Any, **kwargs: Any) -> Any:
@@ -133,6 +151,7 @@ else:
         tensor = Any
         dtype = Any
 
+<<<<<<< HEAD
     class JITFunction:  # type: ignore[no-redef]
         pass
 
@@ -142,6 +161,12 @@ else:
 
 
 def cc_warp_size(cc: str | int) -> int:
+=======
+    HAS_WARP_SPEC = False
+
+
+def cc_warp_size(cc: Union[str, int]) -> int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if torch.version.hip:
         cc_str = str(cc)
         if "gfx10" in cc_str or "gfx11" in cc_str:
@@ -175,5 +200,8 @@ __all__ = [
     "triton",
     "cc_warp_size",
     "knobs",
+<<<<<<< HEAD
     "triton_key",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

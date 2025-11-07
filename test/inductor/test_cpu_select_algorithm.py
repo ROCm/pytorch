@@ -26,7 +26,10 @@ from torch.testing._internal.common_quantized import (
 )
 from torch.testing._internal.common_utils import (
     IS_MACOS,
+<<<<<<< HEAD
     IS_WINDOWS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parametrize,
     skipIfWindows,
     TEST_MKL,
@@ -52,7 +55,11 @@ aten = torch.ops.aten
 
 
 def patches(fn):
+<<<<<<< HEAD
     def skip_cache(self, choices, name, key, benchmark, hint_override=None):
+=======
+    def skip_cache(self, choices, name, key, benchmark):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if benchmark is None:
             return {}
         timings = benchmark(choices)
@@ -297,10 +304,13 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
                     dtype == torch.float16
                     and torch.ops.mkldnn._is_mkldnn_fp16_supported()
                 )
+<<<<<<< HEAD
                 or (
                     dtype == torch.float32
                     and not dynamo_config.assume_static_by_default
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             and epilogue != "mul"
             and epilogue != "div"
@@ -309,15 +319,33 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
                 and epilogue == "add"
                 and not bias
             )
+<<<<<<< HEAD
+=======
+            or (
+                dtype == torch.float32
+                and epilogue == "add"
+                and not bias
+                and not dynamo_config.assume_static_by_default
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             # Several scenarios where epilogue fusion is not counted in:
             # 1. For bfloat16, the epilogue fusion is part of the template,
             #    not fused via scheduler. This will also be true for float16 when
+<<<<<<< HEAD
             #    hardware has the float16 instruction. And this will also be true
             #    for float32 dynamic mode. The exception is mul or div fusion
             #    which is not supported for oneDNN linear.
             # 2. For bfloat16/float16, when oneDNN linear is not applied, linear w/o bias
             #    plus epilogue add is treated as linear w/ bias.
+=======
+            #    hardware has the float16 instruction. The exception is mul or
+            #    div fusion which is not supported for oneDNN linear.
+            # 2. For bfloat16/float16, when oneDNN linear is not applied, linear w/o bias
+            #    plus epilogue add is treated as linear w/ bias.
+            # 3. For float32, when dynamic shapes is enabled, mkl linear is not applied.
+            #    and linear w/o bias plus epilogue add is treated as addmm.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(counters["inductor"]["cpp_epilogue_fusion_counter"], 0)
         else:
             self.assertEqual(counters["inductor"]["cpp_epilogue_fusion_counter"], 1)
@@ -798,7 +826,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
         with verify(dtype) as (atol, rtol):
             self.common(mod, (v,), atol=atol, rtol=rtol)
         self.assertEqual(counters["inductor"]["cpp_templated_kernel_counter"], 3)
+<<<<<<< HEAD
         self.assertEqual(counters["inductor"]["cpp_epilogue_fusion_counter"], 0)
+=======
+        self.assertEqual(counters["inductor"]["cpp_epilogue_fusion_counter"], 2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(
         not torch._C._cpu._is_amx_tile_supported(), "AMX ISA support is required"
@@ -828,7 +860,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
         self.assertEqual(counters["inductor"]["cpp_templated_kernel_counter"], 1)
         vec_amx = VecAMX()
         # Currently brgemm config is only added for half
+<<<<<<< HEAD
         if dtype == torch.half and not vec_amx.is_amx_fp16_supported():
+=======
+        if dtype == torch.half:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._check_brgemm_counter(vec_amx)
         else:
             self._check_amx_counter(vec_amx)
@@ -1956,7 +1992,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
         input = torch.randn(*B, in_features).to(dtype=torch.float32)
 
         other = torch.randn(*B, out_features).to(dtype=dtype)
+<<<<<<< HEAD
         # Avoid hitting qlinear inplace sum fusion
+=======
+        # Avoid hiting qlinear inplace sum fusion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input_3d:
             other2 = torch.randn(B[0] * B[1], out_features).to(dtype=dtype)
         else:
@@ -1973,7 +2013,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
 
             def forward(self, x, other, other2):
                 res = self.epilogue(self.linear(x) + other)
+<<<<<<< HEAD
                 # Avoid hitting qlinear inplace sum fusion
+=======
+                # Avoid hiting qlinear inplace sum fusion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if self.input_3d:
                     other2 = other2.view(2, other2.size(0) // 2, other2.size(1))
                 else:
@@ -2213,7 +2257,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
             def forward(self, x):
                 return [linear(x) for linear in self.linears]
 
+<<<<<<< HEAD
         # each linear has different num of out features, thus invalid grouped gemm
+=======
+        # each linear has different num of out features, thus invaild grouped gemm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtypes = []
         if torch.ops.mkldnn._is_mkldnn_bf16_supported():
             dtypes.append(torch.bfloat16)
@@ -2680,7 +2728,11 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
     @torch.no_grad
     @unittest.skipIf(not TEST_MKL, "Test requires MKL")
     @parametrize("bs", (5,))
+<<<<<<< HEAD
     @parametrize("Mdim", (3, 64))  # Test small Mdim which uses reshaped weights
+=======
+    @parametrize("Mdim", (64,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float)
     def test_bmm_self_square(self, bs, Mdim, dtype):
         class M(torch.nn.Module):
@@ -2769,6 +2821,7 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
 
     @patches
     @torch.no_grad
+<<<<<<< HEAD
     @parametrize("bs", (1, 50))
     @parametrize("Mdim", (192,))
     @parametrize("Kdim", (196,))
@@ -2796,6 +2849,8 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
 
     @patches
     @torch.no_grad
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float)
     def test_aoti_bmm_unique_identifiers(self, dtype):
         try:
@@ -2910,6 +2965,7 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
         with verify(u.dtype) as (atol, rtol):
             self.common(mod, (u, v))
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not torch._C._cpu._is_amx_tile_supported(), "AMX ISA support is required"
     )
@@ -2951,6 +3007,8 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
             # Check that only 2 kernels are in the generated code
             assert code.count("AMXState amx_state") == 2
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @dynamo_config.patch({"dynamic_shapes": True, "assume_static_by_default": False})
 class _DynamicShapesTestBase(BaseTestSelectAlgorithm):
@@ -3160,5 +3218,9 @@ instantiate_device_type_tests(
 if __name__ == "__main__":
     from torch.testing._internal.inductor_utils import HAS_CPU
 
+<<<<<<< HEAD
     if HAS_CPU and not (IS_MACOS or IS_WINDOWS):
+=======
+    if HAS_CPU and not IS_MACOS:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

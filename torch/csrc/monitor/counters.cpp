@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/monitor/counters.h>
 
 #include <unordered_set>
@@ -22,10 +25,15 @@ const char* aggregationName(Aggregation agg) {
     case Aggregation::MIN:
       return "min";
     default:
+<<<<<<< HEAD
       TORCH_CHECK(
           false,
           "unknown aggregation: ",
           std::to_string(static_cast<int>(agg)));
+=======
+      throw std::runtime_error(
+          "unknown aggregation: " + std::to_string(static_cast<int>(agg)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

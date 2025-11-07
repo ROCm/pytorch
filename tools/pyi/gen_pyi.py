@@ -422,6 +422,7 @@ def gen_nn_functional(fm: FileManager) -> None:
                         "Tensor",
                     )
                 ],
+<<<<<<< HEAD
                 f"max_pool{d}d_with_indices": [
                     defs(
                         f"max_pool{d}d_with_indices",
@@ -435,6 +436,8 @@ def gen_nn_functional(fm: FileManager) -> None:
                         "tuple[Tensor, Tensor]",
                     )
                 ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         )
 
@@ -564,6 +567,7 @@ def gen_nn_functional(fm: FileManager) -> None:
                     "Tensor",
                 )
             ],
+<<<<<<< HEAD
             "elu": [
                 defs(
                     "elu",
@@ -813,6 +817,8 @@ def gen_nn_functional(fm: FileManager) -> None:
                     "Tensor",
                 )
             ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
     )
 
@@ -994,7 +1000,10 @@ def add_docstr_to_hint(docstr: str, hint: str) -> str:
         hint = hint.removesuffix("...").rstrip()  # remove "..."
         content = hint + "\n" + textwrap.indent(f'r"""\n{docstr}\n"""', prefix="    ")
         # Remove trailing whitespace on each line
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return "\n".join(map(str.rstrip, content.splitlines())).rstrip()
 
     # attribute or property
@@ -1175,6 +1184,7 @@ def gen_pyi(
                     "None",
                 )
             ],
+<<<<<<< HEAD
             "_functionalize_mutation_counter": [
                 defs(
                     "_functionalize_mutation_counter",
@@ -1196,6 +1206,8 @@ def gen_pyi(
                     "_int",
                 )
             ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "_functionalize_are_all_mutations_hidden_from_autograd": [
                 defs(
                     "_functionalize_are_all_mutations_hidden_from_autograd",
@@ -1221,8 +1233,13 @@ def gen_pyi(
             "_functionalize_was_storage_changed": [
                 defs("_functionalize_was_storage_changed", ["tensor: Tensor"], "_bool")
             ],
+<<<<<<< HEAD
             "_functionalize_mark_storage_changed": [
                 "def _functionalize_mark_storage_changed(tensor: Tensor) -> _bool: ..."
+=======
+            "_functionalize_set_storage_changed": [
+                "def _functionalize_set_storage_changed(tensor: Tensor) -> _bool: ..."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
             "_functionalize_has_metadata_mutation": [
                 defs(
@@ -1581,6 +1598,7 @@ def gen_pyi(
                     "S",
                 )
             ],
+<<<<<<< HEAD
             "_dtensor__new__": [
                 "@staticmethod\n"
                 + defs(
@@ -1594,6 +1612,8 @@ def gen_pyi(
                     "S",
                 )
             ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "__contains__": [defs("__contains__", ["self", "item: Any", "/"], "_bool")],
             "__getitem__": [defs("__getitem__", ["self", INDICES, "/"], "Tensor")],
             "__setitem__": [
@@ -2013,10 +2033,17 @@ def gen_pyi(
 
     # Include only the functions that contain hints, to prevent undefined
     # symbols to be included in the `__all__` directive.
+<<<<<<< HEAD
     hinted_function_names = {
         name for name, hint in unsorted_function_hints.items() if hint
     }
     all_symbols = sorted(hinted_function_names.union(structseqs))
+=======
+    hinted_function_names = [
+        name for name, hint in unsorted_function_hints.items() if hint
+    ]
+    all_symbols = sorted(list(structseqs) + hinted_function_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_directive = [
         "__all__ = [",
         *(f'    "{name}",' for name in all_symbols),
@@ -2102,6 +2129,7 @@ def main() -> None:
         default=".",
         help="path to output directory",
     )
+<<<<<<< HEAD
     parser.add_argument(
         "--template-dir",
         default=".",
@@ -2111,6 +2139,10 @@ def main() -> None:
     fm = FileManager(
         install_dir=args.out, template_dir=args.template_dir, dry_run=False
     )
+=======
+    args = parser.parse_args()
+    fm = FileManager(install_dir=args.out, template_dir=".", dry_run=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gen_pyi(
         args.native_functions_path,
         args.tags_path,

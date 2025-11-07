@@ -202,6 +202,9 @@ void _load_precompile_entry(
     const py::handle& code_obj,
     py::object guard_manager,
     py::object dynamo_code);
+<<<<<<< HEAD
 py::list _debug_get_precompile_entries(const py::handle& code_obj);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #endif

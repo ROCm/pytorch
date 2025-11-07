@@ -48,7 +48,11 @@ sccache --zero-stats
 sccache --show-stats
 
 :: Call PyTorch build script
+<<<<<<< HEAD
 python -m build --wheel --no-isolation --outdir "%PYTORCH_FINAL_PACKAGE_DIR%"
+=======
+python setup.py bdist_wheel -d "%PYTORCH_FINAL_PACKAGE_DIR%"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 :: show sccache stats
 sccache --show-stats

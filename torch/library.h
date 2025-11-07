@@ -89,7 +89,11 @@ struct NoInferSchemaTag {};
 
 #define HAS_PT2_COMPLIANT_TAG
 
+<<<<<<< HEAD
 // For multipy/torchdeploy use case  // codespell:ignore multipy
+=======
+// For multipy/torchdeploy use case
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 enum class _RegisterOrVerify { REGISTER, VERIFY };
 
 template <class CurClass>
@@ -115,7 +119,11 @@ class TORCH_API CppFunction final {
       Func* f,
       std::enable_if_t<
           c10::guts::is_function_type<Func>::value,
+<<<<<<< HEAD
           std::nullptr_t>  /*unused*/= nullptr)
+=======
+          std::nullptr_t> = nullptr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : func_(c10::KernelFunction::makeFromUnboxedRuntimeFunction(f)),
         cpp_signature_(c10::impl::CppSignature::make<Func>()),
         schema_(
@@ -129,7 +137,11 @@ class TORCH_API CppFunction final {
       FuncPtr f,
       std::enable_if_t<
           c10::is_compile_time_function_pointer<FuncPtr>::value,
+<<<<<<< HEAD
           std::nullptr_t>  /*unused*/= nullptr)
+=======
+          std::nullptr_t> = nullptr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : func_(c10::KernelFunction::makeFromUnboxedFunction(f)),
         cpp_signature_(
             c10::impl::CppSignature::make<typename FuncPtr::FuncType>()),
@@ -144,7 +156,11 @@ class TORCH_API CppFunction final {
       Lambda&& f,
       std::enable_if_t<
           c10::guts::is_functor<std::decay_t<Lambda>>::value,
+<<<<<<< HEAD
           std::nullptr_t>  /*unused*/= nullptr)
+=======
+          std::nullptr_t> = nullptr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : func_(c10::KernelFunction::makeFromUnboxedLambda(
             std::forward<Lambda>(f))),
         cpp_signature_(c10::impl::CppSignature::make<Lambda>()),
@@ -310,7 +326,11 @@ class TORCH_API CppFunction final {
 
   // The "setter" for dispatch_key_
   template <typename Func>
+<<<<<<< HEAD
   friend CppFunction dispatch(c10::DispatchKey /*k*/, Func&& /*raw_f*/);
+=======
+  friend CppFunction dispatch(c10::DispatchKey, Func&&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // The only class which actually pulls out values from CppFunction (does so
   // destructively, felt too lazy to write accessors that I don't even
@@ -746,14 +766,22 @@ class TORCH_API Library final {
   // These overloads cover cases when a SelectiveStr (see Note [Selective
   // build]) has been disabled at compile time.  In that case, don't generate
   // any code referencing the passed in functions at all.
+<<<<<<< HEAD
   Library& def(detail::SelectiveStr<false> /*unused*/, const std::vector<at::Tag>& tags [[maybe_unused]] = {}) & {
+=======
+  Library& def(detail::SelectiveStr<false>, const std::vector<at::Tag>& tags [[maybe_unused]] = {}) & {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return *this;
   }
   Library& def(detail::SelectiveStr<true> raw_schema, const std::vector<at::Tag>& tags = {}) & {
     return def(raw_schema.operator const char*(), tags);
   }
   template <typename Func>
+<<<<<<< HEAD
   Library& def(detail::SelectiveStr<false> /*unused*/, Func&& /*raw_f*/, const std::vector<at::Tag>& tags [[maybe_unused]] = {}) & {
+=======
+  Library& def(detail::SelectiveStr<false>, Func&& /*raw_f*/, const std::vector<at::Tag>& tags [[maybe_unused]] = {}) & {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return *this;
   }
   template <typename Func>
@@ -764,12 +792,20 @@ class TORCH_API Library final {
 
   template <typename Func>
   // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
+<<<<<<< HEAD
   Library& impl(detail::SelectiveStr<false> /*unused*/, Func&& /*raw_f*/) & {
+=======
+  Library& impl(detail::SelectiveStr<false>, Func&& /*raw_f*/) & {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return *this;
   }
   template <typename Dispatch, typename Func>
   Library& impl(
+<<<<<<< HEAD
       detail::SelectiveStr<false> /*unused*/,
+=======
+      detail::SelectiveStr<false>,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
       Dispatch&& /*key*/,
       // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
@@ -877,7 +913,11 @@ class TORCH_API Library final {
       const std::vector<at::Tag>& tags = {},
       _RegisterOrVerify rv = _RegisterOrVerify::REGISTER) &;
   Library& _def(
+<<<<<<< HEAD
       std::variant<c10::OperatorName, c10::FunctionSchema>&& /*name_or_schema*/,
+=======
+      std::variant<c10::OperatorName, c10::FunctionSchema>&&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       CppFunction&& f,
       const std::vector<at::Tag>& tags = {}) &;
   Library& _impl(
@@ -926,7 +966,11 @@ class TorchLibraryInit final {
             }
 
       void initialize() {
+<<<<<<< HEAD
         lib = std::make_unique<Library>(kind, ns, key, file, line);
+=======
+        lib = std::unique_ptr<Library>(new Library(kind, ns, key, file, line));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         init_function(*lib);
       }
 };
@@ -1022,7 +1066,11 @@ class TorchLibraryInit final {
 /// Macro for defining a function that will be run at static
 /// initialization time to define operator overrides for dispatch key
 /// `k` (must be an unqualified enum member of c10::DispatchKey) in
+<<<<<<< HEAD
 /// namespace `ns` (must be a valid C++ identifier, no quotes).  Use this
+=======
+/// namespace `ns` (must be a valid C++ identifer, no quotes).  Use this
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /// macro when you want to implement a preexisting set of custom
 /// operators on a new dispatch key (e.g., you want to provide CUDA
 /// implementations of already existing operators).  One common usage

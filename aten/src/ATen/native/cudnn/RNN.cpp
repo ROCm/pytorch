@@ -245,7 +245,11 @@ descriptor(cudnnHandle_t handle, DropoutDescriptor&& dropout_desc) const {
       datatype,
       input_datatype,
       algo,
+<<<<<<< HEAD
       at::globalContext().allowTF32CuDNN(at::Float32Op::RNN));
+=======
+      at::globalContext().allowTF32CuDNN());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
     rnn_desc.set(
         handle,
@@ -261,7 +265,11 @@ descriptor(cudnnHandle_t handle, DropoutDescriptor&& dropout_desc) const {
         datatype,
         input_datatype,
         algo,
+<<<<<<< HEAD
         at::globalContext().allowTF32CuDNN(at::Float32Op::RNN));
+=======
+        at::globalContext().allowTF32CuDNN());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
   return rnn_desc;
 }
@@ -1222,7 +1230,11 @@ cudnnRNNAlgo_t get_algo(
 }
 
 cudnnDataType_t promote_rnn_math_type(cudnnDataType_t dtype) {
+<<<<<<< HEAD
   if (dtype == CUDNN_DATA_HALF || dtype == CUDNN_DATA_BFLOAT16) {
+=======
+  if (dtype == CUDNN_DATA_HALF) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return CUDNN_DATA_FLOAT;
   }
   return dtype;

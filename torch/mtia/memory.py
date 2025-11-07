@@ -36,6 +36,7 @@ def max_memory_allocated(device: Optional[_device_t] = None) -> int:
     return memory_stats(device).get("dram", 0).get("peak_bytes", 0)
 
 
+<<<<<<< HEAD
 def memory_allocated(device: Optional[_device_t] = None) -> int:
     r"""Return the current MTIA memory occupied by tensors in bytes for a given device.
 
@@ -49,6 +50,8 @@ def memory_allocated(device: Optional[_device_t] = None) -> int:
     return memory_stats(device).get("dram", 0).get("allocated_bytes", 0)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def reset_peak_memory_stats(device: Optional[_device_t] = None) -> None:
     r"""Reset the peak memory stats for a given device.
 
@@ -66,6 +69,9 @@ def reset_peak_memory_stats(device: Optional[_device_t] = None) -> None:
 __all__ = [
     "memory_stats",
     "max_memory_allocated",
+<<<<<<< HEAD
     "memory_allocated",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "reset_peak_memory_stats",
 ]

@@ -58,10 +58,15 @@ jobs:
           else
             COMMIT_SHA="${{ github.sha }}"
           fi
+<<<<<<< HEAD
           {
             echo "sha=${COMMIT_SHA}"
             echo "tag_name=trunk/${COMMIT_SHA}"
           } >> "${GITHUB_OUTPUT}"
+=======
+          echo "sha=${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
+          echo "tag_name=trunk/${COMMIT_SHA}" >> "${GITHUB_OUTPUT}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       - name: Validate commit SHA
         run: |
@@ -89,7 +94,11 @@ jobs:
             echo "✅ Commit ${COMMIT_SHA} is valid (automatic push trigger)"
           fi
 
+<<<<<<< HEAD
       - name: Create and push tag(s) with retry
+=======
+      - name: Create and push tag with retry
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         id: check_tag
         env:
           TAG_NAME: ${{ steps.commit.outputs.tag_name }}
@@ -114,6 +123,7 @@ jobs:
             return 1
           }
 
+<<<<<<< HEAD
           # Counters for summary reporting
           created_count=0
           skipped_count=0
@@ -131,6 +141,16 @@ jobs:
             fi
           }
           trap finish EXIT
+=======
+          # Exit early if tag already exists
+          if check_tag_exists; then
+            echo "✅ Tag already exists - no action needed"
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "Tag ${TAG_NAME} does not exist, proceeding with creation"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           # Retry configuration
           MAX_RETRIES=5
@@ -205,6 +225,7 @@ jobs:
             }
           }
 
+<<<<<<< HEAD
           # New behavior for push events: enumerate commits in the push and tag each one.
           # For workflow_dispatch, retain existing single-SHA behavior.
 
@@ -278,11 +299,21 @@ jobs:
               failed_count=1
               exit 1
             fi
+=======
+          # Execute with retry
+          if retry_with_backoff "tag_with_retry" "Creating tag ${TAG_NAME} for commit ${COMMIT_SHA}"; then
+            echo "exists=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          else
+            echo "Tag creation failed after all retry attempts"
+            exit 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           fi
 
       - name: Tag creation summary
         if: always()
         run: |
+<<<<<<< HEAD
           if [ "${{ github.event_name }}" = "push" ]; then
             echo "Trigger: push on main"
             echo "Created: ${{ steps.check_tag.outputs.created_count }}"
@@ -312,4 +343,21 @@ jobs:
             if [ -n "${{ github.event.inputs.commit_sha }}" ]; then
               echo "  Manual commit: ${{ github.event.inputs.commit_sha }}"
             fi
+=======
+          if [ "${{ steps.check_tag.outputs.exists }}" = "true" ]; then
+            echo "✅ Tag ${{ steps.commit.outputs.tag_name }} already existed - no action needed"
+          elif [ "${{ job.status }}" = "success" ]; then
+            echo "✅ Successfully created tag ${{ steps.commit.outputs.tag_name }} for commit ${{ steps.commit.outputs.sha }}"
+          else
+            echo "❌ Failed to create tag ${{ steps.commit.outputs.tag_name }} for commit ${{ steps.commit.outputs.sha }}"
+          fi
+
+          echo ""
+          echo "Tag details:"
+          echo "  Name: ${{ steps.commit.outputs.tag_name }}"
+          echo "  Commit: ${{ steps.commit.outputs.sha }}"
+          echo "  Trigger: ${{ github.event_name }}"
+          if [ -n "${{ github.event.inputs.commit_sha }}" ]; then
+            echo "  Manual commit: ${{ github.event.inputs.commit_sha }}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           fi

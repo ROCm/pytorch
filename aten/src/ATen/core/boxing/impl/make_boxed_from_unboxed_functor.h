@@ -105,7 +105,11 @@ using supported_primitive_arg_types = guts::typelist::typelist<
 // So a valid input type is one that our boxed functor wrapper can
 // unbox from an IValue into a C++ value.
 //
+<<<<<<< HEAD
 // Whereas a valid output type is one that our wrapper can receive
+=======
+// Whereas a valid output type is one that our wrapper can recieve
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // as a C++ value from the unboxed functor, and box into an IValue.
 
 //
@@ -561,7 +565,11 @@ struct wrap_kernel_functor_unboxed_<
   // doesn't use &&
   static ReturnType call(
       OperatorKernel* functor,
+<<<<<<< HEAD
       DispatchKeySet /*unused*/,
+=======
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       ParameterTypes... args) {
     KernelFunctor* functor_ = static_cast<KernelFunctor*>(functor);
     // Note [Plumbing Keys Through The Dispatcher 2]
@@ -629,8 +637,13 @@ call_functor_with_args_from_stack_(
     OperatorKernel* functor,
     DispatchKeySet dispatchKeySet,
     Stack* stack,
+<<<<<<< HEAD
     std::index_sequence<ivalue_arg_indices...> /*unused*/,
     guts::typelist::typelist<ArgTypes...>* /*unused*/) {
+=======
+    std::index_sequence<ivalue_arg_indices...>,
+    guts::typelist::typelist<ArgTypes...>*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   (void)(stack); // when sizeof...(ivalue_arg_indices) == 0, this argument would
                  // be unused and we have to silence the compiler warning.
 
@@ -708,7 +721,11 @@ struct push_outputs<std::tuple<OutputTypes...>, AllowDeprecatedTypes> final {
   static void call_(
       std::tuple<OutputTypes...>&& output,
       Stack* stack,
+<<<<<<< HEAD
       std::index_sequence<indices...> /*unused*/) {
+=======
+      std::index_sequence<indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::push(
         *stack,
         return_to_ivalue<OutputTypes, AllowDeprecatedTypes>::call(
@@ -718,7 +735,11 @@ struct push_outputs<std::tuple<OutputTypes...>, AllowDeprecatedTypes> final {
   static void copy_(
       const std::tuple<OutputTypes...>& output,
       Stack* stack,
+<<<<<<< HEAD
       std::index_sequence<indices...> /*unused*/) {
+=======
+      std::index_sequence<indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch::jit::push(
         *stack,
         return_to_ivalue<OutputTypes, AllowDeprecatedTypes>::copy(
@@ -741,7 +762,11 @@ struct make_boxed_from_unboxed_functor final {
 
   static void call(
       OperatorKernel* functor,
+<<<<<<< HEAD
       const OperatorHandle& /*unused*/,
+=======
+      const OperatorHandle&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       DispatchKeySet dispatchKeySet,
       Stack* stack) {
     using ReturnType =

@@ -28,7 +28,10 @@ pushd ${PACKAGE_DIR}/magma-${MAGMA_VERSION}
 patch < ${PACKAGE_FILES}/CMake.patch
 patch < ${PACKAGE_FILES}/cmakelists.patch
 patch -p0 < ${PACKAGE_FILES}/thread_queue.patch
+<<<<<<< HEAD
 patch -p1 < ${PACKAGE_FILES}/cuda13.patch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 patch -p1 < ${PACKAGE_FILES}/getrf_shfl.patch
 patch -p1 < ${PACKAGE_FILES}/getrf_nbparam.patch
 # The build.sh script expects to be executed from the sources root folder
@@ -38,7 +41,10 @@ popd
 # Package recipe, license and tarball
 # Folder and package name are backward compatible for the build workflow
 cp ${PACKAGE_FILES}/build.sh ${PACKAGE_RECIPE}/build.sh
+<<<<<<< HEAD
 cp ${PACKAGE_FILES}/cuda13.patch ${PACKAGE_RECIPE}/cuda13.patch
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 cp ${PACKAGE_FILES}/thread_queue.patch ${PACKAGE_RECIPE}/thread_queue.patch
 cp ${PACKAGE_FILES}/cmakelists.patch ${PACKAGE_RECIPE}/cmakelists.patch
 cp ${PACKAGE_FILES}/getrf_shfl.patch ${PACKAGE_RECIPE}/getrf_shfl.patch

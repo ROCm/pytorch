@@ -85,11 +85,19 @@ void cpu_max_unpool(
     if constexpr (is_3d) {
       TORCH_CHECK(false, "Found an invalid max index: ", optional_error_index.value(),
           " (output volumes are of size ", output_depth,
+<<<<<<< HEAD
           "x", output_height, "x", output_width, ")");
     } else {
       TORCH_CHECK(false, "Found an invalid max index: ", optional_error_index.value(),
           " (output volumes are of size ", output_height,
           "x", output_width, ")");
+=======
+          "x", output_height, "x", output_width);
+    } else {
+      TORCH_CHECK(false, "Found an invalid max index: ", optional_error_index.value(),
+          " (output volumes are of size ", output_height,
+          "x", output_width);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 

@@ -44,12 +44,17 @@ function install_ucc() {
 
   ./autogen.sh
 
+<<<<<<< HEAD
   if [[ -n "$CUDA_VERSION"  && $CUDA_VERSION == 13* ]]; then
     NVCC_GENCODE="-gencode=arch=compute_86,code=compute_86"
   else
     # We only run distributed tests on Tesla M60 and A10G
     NVCC_GENCODE="-gencode=arch=compute_52,code=sm_52 -gencode=arch=compute_86,code=compute_86"
   fi
+=======
+  # We only run distributed tests on Tesla M60 and A10G
+  NVCC_GENCODE="-gencode=arch=compute_52,code=sm_52 -gencode=arch=compute_86,code=compute_86"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if [[ -n "$ROCM_VERSION" ]]; then
     if [[ -n "$PYTORCH_ROCM_ARCH" ]]; then

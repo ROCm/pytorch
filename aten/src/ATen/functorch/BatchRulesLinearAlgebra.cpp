@@ -39,7 +39,11 @@ Tensor vdot_decomp(const Tensor& A, const Tensor& B) {
 // NB: I wrote this like this because we *might* want its for a future matmul
 // batch rule that isn't decomposed...
 // "tv" = tensor @ vector
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>> tv_batch_rule(
+=======
+static std::tuple<Tensor, std::optional<int64_t>> tv_batch_rule(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self, std::optional<int64_t> self_bdim,
     const Tensor& other, std::optional<int64_t> other_bdim) {
   if (self_bdim && other_bdim) {
@@ -66,7 +70,11 @@ std::tuple<Tensor, std::optional<int64_t>> tv_batch_rule(
   TORCH_INTERNAL_ASSERT(false, "can't get here");
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>> mv_batch_rule(
+=======
+static std::tuple<Tensor, std::optional<int64_t>> mv_batch_rule(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self, std::optional<int64_t> self_bdim,
     const Tensor& other, std::optional<int64_t> other_bdim) {
   auto self_logical_rank = rankWithoutBatchDim(self, self_bdim);
@@ -79,7 +87,11 @@ std::tuple<Tensor, std::optional<int64_t>> mv_batch_rule(
   return tv_batch_rule(self, self_bdim, other, other_bdim);
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>> mm_batch_rule(
+=======
+static std::tuple<Tensor, std::optional<int64_t>> mm_batch_rule(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self, std::optional<int64_t> self_bdim,
     const Tensor& other, std::optional<int64_t> other_bdim) {
   auto self_logical_rank = rankWithoutBatchDim(self, self_bdim);
@@ -94,7 +106,11 @@ std::tuple<Tensor, std::optional<int64_t>> mm_batch_rule(
   return std::make_tuple( at::matmul(self_, other_), 0 );
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>> bmm_batch_rule(
+=======
+static std::tuple<Tensor, std::optional<int64_t>> bmm_batch_rule(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& self, std::optional<int64_t> self_bdim,
     const Tensor& other, std::optional<int64_t> other_bdim) {
   auto self_logical_rank = rankWithoutBatchDim(self, self_bdim);
@@ -176,7 +192,11 @@ struct LinalgCheckMatrixUnaryRuleHelper;
 
 template <char const *op_name, typename F, F Func, typename A, typename... T>
 struct LinalgCheckMatrixUnaryRuleHelper<op_name, F, Func, typelist<A, T...>> {
+<<<<<<< HEAD
   static Tensor check_and_reshape_input(const Tensor& tensor, std::optional<int64_t> batch_dim) {
+=======
+  static inline Tensor check_and_reshape_input(const Tensor& tensor, std::optional<int64_t> batch_dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(rankWithoutBatchDim(tensor, batch_dim) >= 2, op_name, ": The input tensor A must have at least 2 dimensions.");
     return moveBatchDimToFront(tensor, batch_dim);
   }
@@ -222,7 +242,11 @@ struct LinalgCheckMatrixBinaryRuleHelper;
 
 template <char const *op_name, typename F, F Func, typename A, typename B, typename... T>
 struct LinalgCheckMatrixBinaryRuleHelper<op_name, F, Func, typelist<A, B, T...>> {
+<<<<<<< HEAD
   static std::tuple<Tensor, Tensor> check_inputs_and_reshape_inputs(
+=======
+  static inline std::tuple<Tensor, Tensor> check_inputs_and_reshape_inputs(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const Tensor& first, std::optional<int64_t> first_bdim,
       const Tensor& second, std::optional<int64_t> second_bdim) {
     TORCH_CHECK(rankWithoutBatchDim(first, first_bdim) >= 2,
@@ -250,7 +274,11 @@ struct LinalgCheckMatrixBinaryRuleHelper<op_name, F, Func, typelist<A, B, T...>>
   }
 };
 
+<<<<<<< HEAD
 void expect_at_least_rank(
+=======
+static void expect_at_least_rank(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& tensor,
     std::optional<int64_t> tensor_bdim,
     int64_t expected_rank,
@@ -384,7 +412,11 @@ fourOutputs solve_ex_batch_rule(
 
   // NOTE [ solve_ex Batch Rule Contiguity ]
   // A determines whether or not linalg_solve takes an optimized path. We need the check on A_ to match the one run on
+<<<<<<< HEAD
   // A as BatchedTensor since it might have been saved by autograd (specifically by the jvp) and the autograd behavior
+=======
+  // A as BatchedTensor since it might have been saved by autograd (specifically by the jvp) and the autograd behvaior
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // differs based on whether or not the optimized path was taken
   const auto batched_A_was_contiguous = A_bdim.has_value() ? at::select(A, *A_bdim, 0).is_contiguous() : A.is_contiguous();
   if (batched_A_was_contiguous && !A.is_complex()) {
@@ -472,7 +504,11 @@ atol_rtol_tensor_batch_rule(
   return std::make_tuple(Func(input_, atol_, rtol_, hermitian), 0);
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, std::optional<int64_t>>
+=======
+static std::tuple<Tensor, std::optional<int64_t>>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 pinv_batch_rule(
     const Tensor& input, std::optional<int64_t> input_bdim, const std::optional<Tensor>& atol,
     const std::optional<int64_t> atol_bdim, const std::optional<Tensor>& rtol,

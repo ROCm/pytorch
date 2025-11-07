@@ -1,5 +1,6 @@
 #pragma once
 
+<<<<<<< HEAD
 // See https://github.com/pytorch/pytorch/issues/161660
 // This compile flag is intended to be passed in to CppExtensions that rely on
 // the stable ABI via the `extra_compile_args` argument. This is a stopgap
@@ -13,6 +14,8 @@
     "TensorBase.h should not be included when TORCH_STABLE_ONLY compile flag is passed"
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/Device.h>
 #include <c10/core/Layout.h>
 #include <c10/core/MemoryFormat.h>
@@ -100,7 +103,11 @@ class TORCH_API TensorBase {
   // Create a Tensor with a +0 reference count. Special care must be
   // taken to avoid decrementing this reference count at destruction
   // time. Intended to support MaybeOwnedTraits<Tensor>.
+<<<<<<< HEAD
   explicit TensorBase(unsafe_borrow_t /*unused*/, const TensorBase& rhs)
+=======
+  explicit TensorBase(unsafe_borrow_t, const TensorBase& rhs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : impl_(c10::intrusive_ptr<at::TensorImpl, UndefinedTensorImpl>(rhs.impl_.get(), c10::raw::DontIncreaseRefcount{})) {}
   friend MaybeOwnedTraits<TensorBase>;
 
@@ -111,7 +118,13 @@ class TORCH_API TensorBase {
   explicit TensorBase(
       c10::intrusive_ptr<TensorImpl, UndefinedTensorImpl> tensor_impl)
       : impl_(std::move(tensor_impl)) {
+<<<<<<< HEAD
     TORCH_CHECK(impl_.get(), "TensorImpl with nullptr is not supported");
+=======
+    if (impl_.get() == nullptr) {
+      throw std::runtime_error("TensorImpl with nullptr is not supported");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   TensorBase(const TensorBase&) = default;
   TensorBase(TensorBase&&) noexcept = default;
@@ -135,7 +148,11 @@ class TORCH_API TensorBase {
   }
 
   TensorBase contiguous(MemoryFormat memory_format=MemoryFormat::Contiguous) const {
+<<<<<<< HEAD
     if (is_contiguous_or_false(memory_format)) {
+=======
+    if (is_contiguous(memory_format)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return *this;
     } else {
       return __dispatch_contiguous(memory_format);
@@ -276,6 +293,7 @@ class TORCH_API TensorBase {
     return impl_->is_contiguous(memory_format);
   }
 
+<<<<<<< HEAD
   // Like is_contiguous, but more dynamic shape-friendly. May return a symbolic representation of
   // contiguity instead of SymTrue SymFalse, when results are data-dependent.
   c10::SymBool sym_is_contiguous(at::MemoryFormat memory_format=at::MemoryFormat::Contiguous) const {
@@ -295,6 +313,8 @@ class TORCH_API TensorBase {
     return impl_->is_contiguous(memory_format);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool is_non_overlapping_and_dense() const {
     return impl_->is_non_overlapping_and_dense();
   }
@@ -928,10 +948,13 @@ public:
 
   const TensorBase& requires_grad_(bool _requires_grad=true) const;
 
+<<<<<<< HEAD
   std::optional<ScalarType> grad_dtype() const;
 
   void set_grad_dtype(const std::optional<ScalarType>& grad_dtype) const;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // View Variables
   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -952,7 +975,11 @@ protected:
   c10::intrusive_ptr<TensorImpl, UndefinedTensorImpl> impl_;
 
 private:
+<<<<<<< HEAD
   TensorBase __dispatch_contiguous(c10::MemoryFormat /*memory_format*/) const;
+=======
+  TensorBase __dispatch_contiguous(c10::MemoryFormat) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 inline DeviceIndex get_device(const TensorBase& self) {

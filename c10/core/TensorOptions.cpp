@@ -1,5 +1,12 @@
 #include <c10/core/TensorOptions.h>
 
+<<<<<<< HEAD
+=======
+#include <c10/core/Device.h>
+#include <c10/core/Layout.h>
+#include <c10/util/Optional.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <iostream>
 
 namespace c10 {

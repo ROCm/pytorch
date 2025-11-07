@@ -56,7 +56,11 @@ jobs:
           cache: pip
           architecture: x64
 
+<<<<<<< HEAD
       - run: pip install pyyaml==6.0.2
+=======
+      - run: pip install pyyaml==6.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shell: bash
 
       - name: Verify mergeability

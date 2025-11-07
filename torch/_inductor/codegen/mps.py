@@ -366,7 +366,11 @@ class MetalOverrides(OpOverrides):
 
     @staticmethod
     def round(x: CSEVariable) -> str:
+<<<<<<< HEAD
         return f"metal::rint({x})"
+=======
+        return f"metal::round({x})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def pow(a: CSEVariable, b: CSEVariable) -> str:
@@ -421,8 +425,11 @@ class MetalOverrides(OpOverrides):
         # Binary special ops
         for name in [
             "polygamma",
+<<<<<<< HEAD
             "igamma",
             "igammac",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "zeta",
         ]:
             setattr(cls, name, functools.partialmethod(cls._special_binary, name=name))
@@ -435,10 +442,13 @@ class MetalOverrides(OpOverrides):
             "chebyshev_polynomial_w",
             "hermite_polynomial_h",
             "hermite_polynomial_he",
+<<<<<<< HEAD
             "shifted_chebyshev_polynomial_t",
             "shifted_chebyshev_polynomial_u",
             "shifted_chebyshev_polynomial_v",
             "shifted_chebyshev_polynomial_w",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]:
             setattr(
                 cls,
@@ -516,7 +526,10 @@ class MetalKernel(SIMDKernel):
         var = self.args.output(name)
         index = self.prepare_indexing(index)
         dtype_str = self.dtype_to_str(V.graph.get_dtype(name))
+<<<<<<< HEAD
         # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reduction_dim = next(t for t in self.range_trees if t.is_reduction)
         # Only one thread in the reduction group needs to store the results
         line = f"{var}[{self.index_to_str(index)}] = static_cast<{dtype_str}>({value});"
@@ -538,7 +551,11 @@ class MetalKernel(SIMDKernel):
         var_def = "threadgroup " if is_threadgroup else ""
         var_def += f"{dtype} {var_name}"
         if elem_count:
+<<<<<<< HEAD
             var_def += f"[{self.sexpr(elem_count)}]"
+=======
+            var_def += f"[{elem_count}]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if default_value is not None:
             assert not is_threadgroup, "Thread group var can not have default value"
             var_def += f" = {default_value}"
@@ -583,12 +600,16 @@ class MetalKernel(SIMDKernel):
         reduction_idx = ""
         acc_buf_size = 1
         for rd in self.range_trees:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not rd.is_reduction:
                 continue
             if reduction_idx:
                 reduction_idx += " + "
             reduction_idx += f"{rd.name} * {acc_buf_size}"
+<<<<<<< HEAD
 
             if isinstance(rd.numel, sympy.Integer):
                 acc_buf_size *= rd.numel
@@ -604,6 +625,10 @@ class MetalKernel(SIMDKernel):
             if isinstance(acc_buf_size, sympy.Integer)
             else self.simd_group_size
         )
+=======
+            acc_buf_size *= rd.numel
+        acc_buf_size = min(acc_buf_size, self.max_threadgroup_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if reduction_type == "any":
             acc = self._new_idxvar(dtype)
@@ -627,7 +652,13 @@ class MetalKernel(SIMDKernel):
 
         if reduction_type in ["prod", "sum"]:
             acc_dtype = DTYPE_TO_COMPUTATION_DTYPE[src_dtype]
+<<<<<<< HEAD
             acc_buf = self._new_idxvar(acc_dtype, shmem_buf_size)
+=======
+            acc_buf = self._new_idxvar(
+                acc_dtype, ceildiv(acc_buf_size, self.simd_group_size)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not self.multistage_reduction_entry:
                 val = value
             else:
@@ -638,6 +669,7 @@ class MetalKernel(SIMDKernel):
                     acc_dtype, default_value=default_val, is_threadgroup=False
                 )
                 self.compute.splice(f"{val} {reduction_op}= {value};")
+<<<<<<< HEAD
 
             return self.cse.generate(
                 self.stores,
@@ -701,6 +733,55 @@ class MetalKernel(SIMDKernel):
                 self.stores,
                 f"c10::metal::threadgroup_{reduction_type}({data_acc_buf}, {idx_acc_buf}, "
                 f"{val}, {idx_val}, {reduction_idx}, {acc_buf_size_str})",
+=======
+            return self.cse.generate(
+                self.stores,
+                f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {val}, {reduction_idx}, {acc_buf_size})",
+                dtype=DTYPE_TO_COMPUTATION_DTYPE[dtype],
+            )
+        if reduction_type in ["max", "min", "argmin", "argmax"]:
+            acc_buf = self._new_idxvar(src_dtype, acc_buf_size)
+            acc_thread_var = f"{acc_buf}[{reduction_idx}]"
+            src_metal_type = DTYPE_TO_METAL[src_dtype]
+            if not self.multistage_reduction_entry:
+                self.compute.splice(
+                    f"{acc_thread_var} = static_cast<{src_metal_type}>({value});"
+                )
+                return self.cse.generate(
+                    self.stores,
+                    f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size})",
+                    dtype=dtype,
+                )
+            lim_fn = "lowest" if reduction_type.endswith("max") else "max"
+            self.indexing_code.writeline(
+                f"{acc_thread_var} = ::metal::numeric_limits<{src_metal_type}>::{lim_fn}();"
+            )
+            if reduction_type.startswith("arg"):
+                idx_var = next(
+                    t for t in self.range_tree_nodes.values() if t.is_reduction
+                )
+                idx_acc_buf = self._new_idxvar(torch.long, acc_buf_size)
+                cmp_op = ">" if reduction_type == "argmax" else "<"
+                idx_thread_var = f"{idx_acc_buf}[{reduction_idx}]"
+                self.indexing_code.splice(f"{idx_thread_var} = -1;")
+                self.compute.splice(f"""
+                if ({value} {cmp_op} {acc_thread_var}) {{
+                    {acc_thread_var} = {value};
+                    {idx_thread_var} = {idx_var.name};
+                }}
+                """)
+                return self.cse.generate(
+                    self.stores,
+                    f"{idx_acc_buf}[c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size})]",
+                    dtype=dtype,
+                )
+            self.compute.writeline(
+                f"{acc_thread_var} = ::c10::metal::{reduction_type}({acc_thread_var}, {value});"
+            )
+            return self.cse.generate(
+                self.stores,
+                f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype=dtype,
             )
         if reduction_type == "welford_reduce":
@@ -709,7 +790,11 @@ class MetalKernel(SIMDKernel):
                 self.compute.splice(f"{acc_buf}[{reduction_idx}] = {value};")
                 wf_res = self.cse.generate(
                     self.compute,
+<<<<<<< HEAD
                     f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size_str})",
+=======
+                    f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dtype=torch.float32,
                 )
                 return _unwrap_helper(wf_res)
@@ -740,7 +825,11 @@ class MetalKernel(SIMDKernel):
                 self.compute.writeline(f"{acc_thread_var} = {inp_value};")
             wf_res = self.cse.generate(
                 self.stores if self.multistage_reduction_entry else self.compute,
+<<<<<<< HEAD
                 f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size_str})",
+=======
+                f"c10::metal::threadgroup_{reduction_type}({acc_buf}, {acc_buf_size})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype=torch.float32,
             )
             return _unwrap_helper(wf_res)
@@ -750,15 +839,20 @@ class MetalKernel(SIMDKernel):
         index_expr = self.rename_indexing(entry.expr)
         index_str = self.sexpr(index_expr)  # type: ignore[misc]
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-argument]
         if not entry.is_reduction or (
             isinstance(entry.root.numel, sympy.Integer)
             and entry.root.numel <= self.max_threadgroup_size
         ):
+=======
+        if not entry.is_reduction or entry.root.numel <= self.max_threadgroup_size:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.indexing_code.writeline(
                 f"{self.index_dtype} {entry.name} = {index_str};"
             )
             return
+<<<<<<< HEAD
 
         acc_size = (
             entry.root.numel
@@ -766,10 +860,13 @@ class MetalKernel(SIMDKernel):
             else sympy.Symbol(f"{entry.root.prefix}numel", integer=True, positive=True)
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.multistage_reduction_entry.append(entry)
         # When reducing the tensor whose size exceeds max threadgroup size
         # loop over extra indices per reduction thread and perform part of the operation
         # using values in the shared memory
+<<<<<<< HEAD
 
         # Use floats so that it doesn't do integer division
         loop_size = (acc_size + float(self.max_threadgroup_size - 1)) // float(
@@ -796,6 +893,21 @@ class MetalKernel(SIMDKernel):
                 or loop_size * self.max_threadgroup_size != acc_size
             ):
                 self.body.writeline(f"if ({entry.name} >= {acc_size}) break;")
+=======
+        loop_size = (
+            entry.root.numel + self.max_threadgroup_size - 1
+        ) // self.max_threadgroup_size
+        self.body.writeline(
+            f"for(auto {entry.name}_cnt = 0; {entry.name}_cnt < {loop_size}; ++{entry.name}_cnt) {{"
+        )
+        with self.body.indent():
+            self.body.writeline(
+                f"{self.index_dtype} {entry.name} = {loop_size} * {index_str} + {entry.name}_cnt;"
+            )
+            # Check that reduction is performed only within tensor boundary
+            if loop_size * self.max_threadgroup_size != entry.root.numel:
+                self.body.writeline(f"if ({entry.name} >= {entry.root.numel}) break;")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_body(self) -> None:
         """
@@ -862,6 +974,7 @@ class MetalKernel(SIMDKernel):
 
             if self.inside_reduction:
                 total_reduction_size = math.prod(
+<<<<<<< HEAD
                     t.numel
                     for t in self.range_trees
                     # pyrefly: ignore [missing-argument]
@@ -874,6 +987,11 @@ class MetalKernel(SIMDKernel):
                     if isinstance(total_reduction_size, sympy.Integer)
                     else self.max_threadgroup_size
                 )
+=======
+                    t.numel for t in self.range_trees if t.is_reduction
+                )
+                threadgroup_size = min(total_reduction_size, self.max_threadgroup_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 code.writeline(
                     f"[[max_total_threads_per_threadgroup({threadgroup_size})]]"
                 )
@@ -897,6 +1015,7 @@ class MetalKernel(SIMDKernel):
                     code.writeline(f"constant {dtype_str}* {inner},")
                 for outer, inner in self.args.sizevars.items():
                     code.writeline(f"constant long& {inner},")
+<<<<<<< HEAD
 
                 # Write dynamic values as inputs
                 for idx_var in idx_vars:
@@ -905,6 +1024,8 @@ class MetalKernel(SIMDKernel):
                     else:
                         code.writeline(f"constant long& {idx_var.prefix}numel,")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(idx_vars) < 4, "Up to 3 index variables are supported"
                 thread_pos_dtype = (
                     f"uint{len(idx_vars)}" if len(idx_vars) > 1 else "uint"
@@ -938,12 +1059,17 @@ class MetalKernel(SIMDKernel):
 
         return code.getvalue()
 
+<<<<<<< HEAD
     def call_kernel(
         self, name: str, node: Any = None, deallocate_ws: bool = True
     ) -> None:
         """
         Codegens a call to this kernel
         """
+=======
+    def call_kernel(self, name: str, node: Any = None) -> None:
+        """Codegen a call to this kernel"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         wrapper = V.graph.wrapper_code
         # Make sure sizevars has been computed
         for v in self.args.sizevars.keys():
@@ -957,6 +1083,7 @@ class MetalKernel(SIMDKernel):
         args = [*self.args.output_buffers.keys(), *self.args.input_buffers.keys()]
         args = [arg for arg in args if arg not in self.removed_buffers]
         args += [str(v) for v in self.args.sizevars.keys()]
+<<<<<<< HEAD
         arg_types = [arg_name_to_type[arg] for arg in args]
 
         # Add any dynamic ints as inputs
@@ -974,6 +1101,10 @@ class MetalKernel(SIMDKernel):
                 args.append(str(expr))
                 arg_types.append(int)
 
+=======
+
+        arg_types = [arg_name_to_type[arg] for arg in args]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expr_printer = self.cexpr if V.graph.cpp_wrapper else self.pexpr
 
         def format_threads(threads: list[str], kwarg: str) -> str:
@@ -989,7 +1120,10 @@ class MetalKernel(SIMDKernel):
             threads = [
                 expr_printer(
                     sympy.Min(v.numel, self.max_threadgroup_size)  # type: ignore[misc]
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if v.is_reduction
                     else v.numel
                 )
@@ -1005,7 +1139,10 @@ class MetalKernel(SIMDKernel):
         if self.inside_reduction:
             threads = [
                 expr_printer(sympy.Min(v.numel, self.max_threadgroup_size))  # type: ignore[misc]
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if v.is_reduction
                 else "1"
                 for v in self.active_range_trees()
@@ -1022,7 +1159,11 @@ class MetalKernel(SIMDKernel):
         wrapper.generate_kernel_call(
             name,
             args,
+<<<<<<< HEAD
             device=torch.device("mps"),
+=======
+            device=torch.device("cpu"),  # TODO: Fix me, MPS does not expose streams now
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             triton=False,
             arg_types=arg_types,
         )
@@ -1068,6 +1209,7 @@ class MetalScheduling(SIMDScheduling):
             # Either using MultiKernel concept or overriding SIMDScheduling.codegen_node_scheduling
             mps_lib_name = f"mps_lib_{wrapper.next_kernel_suffix()}"
 
+<<<<<<< HEAD
             kernel_name = f"{mps_lib_name}"
             wrapper.src_to_kernel[src_code] = kernel_name
 
@@ -1075,6 +1217,18 @@ class MetalScheduling(SIMDScheduling):
                 # For shimified version, generate source constant instead of direct instantiation
                 src_code = f"const char* {mps_lib_name}_source = " + src_code
 
+=======
+            if V.graph.cpp_wrapper:
+                src_code = (
+                    f"at::native::mps::DynamicMetalShaderLibrary {mps_lib_name}"
+                    + src_code
+                )
+                kernel_name = f"{mps_lib_name}_func"
+            else:
+                kernel_name = f"{mps_lib_name}.generated_kernel"
+
+            wrapper.src_to_kernel[src_code] = kernel_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             origins, detailed_origins = get_kernel_metadata(node_schedule, wrapper)
             metadata_comment = f"{origins}\n{detailed_origins}"
             wrapper.define_kernel(mps_lib_name, src_code, metadata_comment, gpu=False)

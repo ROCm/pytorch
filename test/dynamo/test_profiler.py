@@ -162,6 +162,7 @@ class DynamoProfilerTests(torch._dynamo.test_case.TestCase):
             any(e.name == "TorchDynamo Cache Lookup" for e in prof.events())
         )
 
+<<<<<<< HEAD
     def test_profiler_enabled_export(self):
         class Mod(torch.nn.Module):
             def __init__(self):
@@ -190,6 +191,8 @@ class DynamoProfilerTests(torch._dynamo.test_case.TestCase):
             res = opt_mod.graph_module(x)
             self.assertEqual(ref, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_profiler_dynamo_compiled_region(self):
         def fn(x, y):
             r = y.sum(dim=1)
@@ -209,7 +212,11 @@ class DynamoProfilerTests(torch._dynamo.test_case.TestCase):
                 torch.randn(10, 15),
             )
 
+<<<<<<< HEAD
         annotations = [e.name for e in prof.events() if "Torch-Compiled" in e.name]
+=======
+        annotations = [e.name for e in prof.events() if "Compiled" in e.name]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             annotations,
             [

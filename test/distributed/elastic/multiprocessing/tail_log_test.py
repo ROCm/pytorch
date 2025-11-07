@@ -84,6 +84,7 @@ class TailLogTest(unittest.TestCase):
         )
         self.assertTrue(tail.stopped())
 
+<<<<<<< HEAD
     def test_tail_write_to_dst_file(self):
         """
         writer() writes 0 - max (on number on each line) to a log file.
@@ -131,6 +132,8 @@ class TailLogTest(unittest.TestCase):
         )
         self.assertTrue(tail.stopped())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tail_with_custom_prefix(self):
         """
         writer() writes 0 - max (on number on each line) to a log file.
@@ -178,6 +181,7 @@ class TailLogTest(unittest.TestCase):
             self.assertIn(f"[worker{i}][{i}]", headers)
         self.assertTrue(tail.stopped())
 
+<<<<<<< HEAD
     def test_tail_with_custom_filter(self):
         """
         writer() writes 0 - max (on number on each line) to a log file.
@@ -224,6 +228,8 @@ class TailLogTest(unittest.TestCase):
         self.assertEqual({f"[writer{i}]": {2, 12} for i in range(nprocs)}, actual)
         self.assertTrue(tail.stopped())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tail_no_files(self):
         """
         Ensures that the log tail can gracefully handle no log files

@@ -3,9 +3,14 @@
 import contextlib
 import functools
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from copy import deepcopy
 from typing import Optional, Union
+=======
+from copy import deepcopy
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -99,8 +104,11 @@ class ReplicateTest(MultiProcessInductorTestCase):
         self.create_pg(device)
         torch._dynamo.config.optimize_ddp = "python_reducer"
         torch.manual_seed(123)
+<<<<<<< HEAD
         if device_type == "xpu":
             torch.use_deterministic_algorithms(True, warn_only=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = Net(checkpoint=checkpoint).to(device)
         input = torch.randn([1, DIM], device=device)
 

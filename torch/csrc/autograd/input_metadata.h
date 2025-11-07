@@ -38,8 +38,12 @@ struct TORCH_API InputMetadata {
       const at::TensorOptions& options,
       MetadataShape input_shape,
       bool is_tensor_subclass,
+<<<<<<< HEAD
       bool is_nested,
       std::optional<at::ScalarType> grad_dtype);
+=======
+      bool is_nested);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   InputMetadata(const at::Tensor& t);
 
   const at::TensorOptions& options() const {
@@ -98,6 +102,7 @@ struct TORCH_API InputMetadata {
   // Danger: not thread safe, caller must protect with lock
   SymIntSmallVec& mutable_shape_as_dim_vector();
 
+<<<<<<< HEAD
   std::optional<at::ScalarType> grad_dtype() const {
     TORCH_INTERNAL_ASSERT(!was_default_constructed_);
     return grad_dtype_;
@@ -108,13 +113,18 @@ struct TORCH_API InputMetadata {
     grad_dtype_ = grad_dtype;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   at::Tensor shape_as_tensor() const;
   bool is_nestedness_same(const at::Tensor& grad) const;
   bool maybe_expandable_to(const at::Tensor& grad) const;
 
+<<<<<<< HEAD
   // NB: The engine does not use the dtype from the options, but rather the
   //     grad_dtype_ field to validate grad_output dtype.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
   const at::TensorOptions options_;
   MetadataShape shape_;
@@ -122,11 +132,14 @@ struct TORCH_API InputMetadata {
   bool is_tensor_subclass_ = false;
   bool is_nested_ = false;
   bool was_default_constructed_ = true;
+<<<<<<< HEAD
 
   // The grad_dtype_ field is the dtype that the engine expects the grad to be.
   // When nullopt, grad_dtype_ is allowed to be any dtype.
   // This field is mutated if THPVariable_set_grad_dtype is called
   // and the AccumulateGrad has already been created.
   std::optional<at::ScalarType> grad_dtype_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 } // namespace torch::autograd

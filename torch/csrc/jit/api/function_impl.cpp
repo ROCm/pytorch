@@ -62,7 +62,11 @@ T& toGraphFunctionImpl(F& function) {
 
 } // namespace
 
+<<<<<<< HEAD
 static void placeholderCreator(GraphFunction& /*unused*/) {
+=======
+static void placeholderCreator(GraphFunction&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   throw RecursiveMethodCallError();
 }
 

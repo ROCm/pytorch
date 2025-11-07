@@ -96,7 +96,14 @@ class EtcdRendezvousBackend(RendezvousBackend):
         def get_state():
             result = self.get_state()
             if result is not None:
+<<<<<<< HEAD
                 return *result, False
+=======
+                tmp = *result, False
+                # Python 3.6 does not support tuple unpacking in return
+                # statements.
+                return tmp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
 
         if token:
@@ -126,7 +133,10 @@ class EtcdRendezvousBackend(RendezvousBackend):
         return tmp
 
     def _decode_state(self, result: etcd.EtcdResult) -> tuple[bytes, Token]:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base64_state = result.value.encode()
 
         try:
@@ -136,7 +146,10 @@ class EtcdRendezvousBackend(RendezvousBackend):
                 "The state object is corrupt. See inner exception for details."
             ) from exc
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return state, result.modifiedIndex
 
 

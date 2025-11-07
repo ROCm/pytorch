@@ -32,7 +32,11 @@ torch.cuda.memory._dump_snapshot("my_snapshot.pickle")
 
 ## Using the visualizer
 
+<<<<<<< HEAD
 Open <https://pytorch.org/memory_viz> and drag/drop the pickled snapshot file into the visualizer.
+=======
+Open [pytorch.org/memory_viz](https://pytorch.org/memory_viz>) and drag/drop the pickled snapshot file into the visualizer.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 The visualizer is a javascript application that runs locally on your computer. It does not upload any snapshot data.
 
 

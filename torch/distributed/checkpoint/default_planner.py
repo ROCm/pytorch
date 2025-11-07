@@ -313,8 +313,12 @@ class DefaultLoadPlanner(LoadPlanner):
         self.is_coordinator = is_coordinator
 
     def create_local_plan(self) -> LoadPlan:
+<<<<<<< HEAD
         if self.metadata is None:
             raise AssertionError("self.metadata is not None")
+=======
+        assert self.metadata is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.flatten_state_dict:
             # To support checkpoints that are saved before v2.4, we have to
             # differentiate if the missing keys are due to old checkpoints.
@@ -409,7 +413,11 @@ class _EmptyStateDictLoadPlanner(DefaultLoadPlanner):
             return True
 
         if key in self.keys:
+<<<<<<< HEAD
             return True
+=======
+            True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         unflattened_keys: list[str] = []
         planner_data = metadata.planner_data.get(key)
@@ -433,10 +441,15 @@ class _EmptyStateDictLoadPlanner(DefaultLoadPlanner):
         metadata: Optional[Metadata] = None,
         is_coordinator: bool = False,
     ) -> None:
+<<<<<<< HEAD
         if state_dict:
             raise AssertionError("not state_dict")
         if metadata is None:
             raise AssertionError("metadata is not None")
+=======
+        assert not state_dict
+        assert metadata is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # rebuild the state dict from the metadata
         for k, v in metadata.state_dict_metadata.items():
@@ -551,16 +564,25 @@ def create_default_global_save_plan(
     for plan in all_plans:
         new_items = []
         for item in plan.items:
+<<<<<<< HEAD
             if item.type != WriteItemType.SHARD:
                 if item.index.fqn in md:
                     raise AssertionError("item.index.fqn not in md")
+=======
+            if not item.type == WriteItemType.SHARD:
+                assert item.index.fqn not in md
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if item.type == WriteItemType.BYTE_IO:
                 md[item.index.fqn] = BytesStorageMetadata()
                 new_items.append(item)
             else:
+<<<<<<< HEAD
                 if item.tensor_data is None:
                     raise AssertionError("item.tensor_data is not None")
+=======
+                assert item.tensor_data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tensor_md = cast(
                     TensorStorageMetadata,
                     md.setdefault(
@@ -580,11 +602,18 @@ def create_default_global_save_plan(
                     new_item = dataclasses.replace(item, index=new_index)
                 new_items.append(new_item)
 
+<<<<<<< HEAD
                 if item.tensor_data.chunk is None:
                     raise AssertionError(f"""
                     Cannot create MD for tensor without bounds.
                     FQN: {item.index.fqn}
                 """)
+=======
+                assert item.tensor_data.chunk is not None, f"""
+                    Cannot create MD for tensor without bounds.
+                    FQN: {item.index.fqn}
+                """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 tensor_md.chunks.append(item.tensor_data.chunk)
         new_plans.append(dataclasses.replace(plan, items=new_items))
     return (new_plans, Metadata(md))
@@ -660,7 +689,11 @@ def _validate_global_plan(global_plan: list[SavePlan], metadata: Metadata) -> bo
 
         # Check whether combined chunk cover the whole tensor
         tensor_volume = reduce(operator.mul, value.size, 1)
+<<<<<<< HEAD
         if len(global_plan) > 1 and chunks_volume != tensor_volume:
+=======
+        if chunks_volume != tensor_volume:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             logger.warning(
                 """
                     key:%s invalid fill tensor-volume:

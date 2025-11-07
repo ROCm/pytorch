@@ -2,6 +2,10 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/mps/Copy.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mps/MPSGraphSonomaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/ops/_copy_from_and_resize_native.h>
 #include <ATen/ops/_copy_from_native.h>
@@ -59,6 +63,10 @@ static void copy_cast_mps(at::Tensor& dst,
         outputTensor = [mpsGraph castTensor:outputTensor toType:dstDType name:@"cast"];
       }
       if (needs_conj) {
+<<<<<<< HEAD
+=======
+        TORCH_CHECK(supportsComplex(), "MPS complex tensors conjugation needs MacOS14+");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         outputTensor = [mpsGraph conjugateWithTensor:outputTensor name:nil];
       }
 
@@ -273,7 +281,28 @@ static at::Tensor& copy_kernel_mps(at::Tensor& dst_, const at::Tensor& src_, boo
     // for GPU to GPU copies we only encode to stream's command buffer (no flushing)
     stream->copy(sourceBuffer, destBuffer, src.nbytes(), src_byte_offset, dst_byte_offset, profile_id);
   } else {
+<<<<<<< HEAD
     if (dst_byte_offset) {
+=======
+    // Simulate cast to Complex on older MacOS by initializing real and imag parts
+    if (dst_.is_complex() && !supportsComplex()) {
+      if (!src.is_complex()) {
+        at::real(dst_).copy_(src);
+        at::imag(dst_).fill_(0);
+      } else if (src.is_conj() || dst_.is_conj()) {
+        // One cannot take view of conjugated tensor, but for some reason real and imag views are fine
+        // Use this to implement a conjugation
+        at::real(dst_).copy_(at::real(src));
+        if (src.is_conj() != dst_.is_conj()) {
+          at::imag(dst_).copy_(at::neg(at::imag(src)));
+        } else {
+          at::imag(dst_).copy_(at::imag(src));
+        }
+      } else {
+        at::view_as_real(dst_).copy_(at::view_as_real(src));
+      }
+    } else if (dst_byte_offset) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto maybeCastedSource =
           at::empty(dst_.sizes(), dst_.scalar_type(), std::nullopt, kMPS, std::nullopt, std::nullopt);
       auto maybeCastedSourceBuffer = getMTLBufferStorage(maybeCastedSource);

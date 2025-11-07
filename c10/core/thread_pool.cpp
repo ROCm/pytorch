@@ -87,7 +87,13 @@ bool ThreadPool::inThreadPool() const {
 }
 
 void ThreadPool::run(std::function<void()> func) {
+<<<<<<< HEAD
   TORCH_CHECK(threads_.size() > 0, "No threads to run a task");
+=======
+  if (threads_.empty()) {
+    throw std::runtime_error("No threads to run a task");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unique_lock<std::mutex> lock(mutex_);
 
   // Set task and signal condition variable so that a worker thread will

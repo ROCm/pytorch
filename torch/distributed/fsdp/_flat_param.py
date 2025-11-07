@@ -4,10 +4,17 @@ import functools
 import logging
 import os
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Generator, Iterator, Sequence
 from enum import auto, Enum
 from itertools import accumulate, chain
 from typing import Any, cast, NamedTuple, no_type_check, Optional, Union
+=======
+from collections.abc import Generator, Iterator, Sequence
+from enum import auto, Enum
+from itertools import accumulate, chain
+from typing import Any, Callable, cast, NamedTuple, no_type_check, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -360,8 +367,12 @@ class FlatParameter(nn.Parameter, metaclass=_FlatParameterMeta):
     _is_padding_mask: list[bool]
 
     def __new__(cls, data=None, requires_grad=True):
+<<<<<<< HEAD
         if cls is not FlatParameter:
             raise AssertionError("subclasses FlatParameter not supported")
+=======
+        assert cls is FlatParameter, "subclasses FlatParameter not supported"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r = nn.Parameter.__new__(nn.Parameter, data, requires_grad)  # type: ignore[call-arg]
         r._is_flat_param = True  # type: ignore[attr-defined]
         return r
@@ -399,6 +410,7 @@ class FlatParameter(nn.Parameter, metaclass=_FlatParameterMeta):
         Args:
             See the Attributes in the class docstring.
         """
+<<<<<<< HEAD
         if len(param_infos) != len(shapes):
             raise AssertionError(
                 f"Expected param_infos length {len(param_infos)} to match shapes length {len(shapes)}"
@@ -419,6 +431,13 @@ class FlatParameter(nn.Parameter, metaclass=_FlatParameterMeta):
             raise AssertionError(
                 f"Expected param_infos length {len(param_infos)} to match param_extensions length {len(param_extensions)}"
             )
+=======
+        assert len(param_infos) == len(shapes)
+        assert len(param_infos) == len(strides)
+        assert len(param_infos) == len(contiguities)
+        assert len(param_infos) == len(fqns)
+        assert len(param_infos) == len(param_extensions)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._num_params = len(param_infos)
         self._param_infos = param_infos
         self._shapes = shapes
@@ -434,15 +453,20 @@ class FlatParameter(nn.Parameter, metaclass=_FlatParameterMeta):
                 numels_without_padding.append(numel)
         self._numels = tuple(numels_without_padding)
         self._numels_with_padding = tuple(numels)
+<<<<<<< HEAD
         if len(self._numels) != self._num_params:
             raise AssertionError(
                 f"Expected _numels length {len(self._numels)} to equal _num_params {self._num_params}"
             )
+=======
+        assert len(self._numels) == self._num_params
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._shared_param_infos = tuple(shared_param_infos)
         self._modules = {pi.module for pi in self._param_infos}.union(
             {spi.module for spi in self._shared_param_infos}
         )
+<<<<<<< HEAD
         if (params is None) != (shared_params is None):
             raise AssertionError(
                 "Expected params and shared_params to both be None or both be not None"
@@ -452,14 +476,25 @@ class FlatParameter(nn.Parameter, metaclass=_FlatParameterMeta):
                 raise AssertionError(
                     f"Expected shared_params to be not None and have length {len(shared_param_infos)}, got {shared_params}"
                 )
+=======
+        assert (params is None) == (shared_params is None)
+        if params is not None:
+            assert shared_params is not None and len(shared_params) == len(
+                shared_param_infos
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._params = []
             for param, is_padding in zip(params, is_padding_mask):
                 if not is_padding:
                     self._params.append(param)
+<<<<<<< HEAD
             if shared_params is not None:
                 self._shared_params = shared_params
             else:
                 self._shared_params = []
+=======
+            self._shared_params = shared_params
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Mark the original parameters to avoid flattening them into
             # another `FlatParameter` during recursive construction
             for param in chain(self._params, self._shared_params):
@@ -565,12 +600,19 @@ class FlatParamHandle:
         # Only align addresses for `use_orig_params=True` (for now)
         align_addresses = use_orig_params
         self._init_get_unflat_views_fn(align_addresses)
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = device
         self._device_handle = _FSDPDeviceHandle.from_device(self.device)
         self.process_group = process_group
         if self._use_fake_all_gather or self._use_fake_reduce:
+<<<<<<< HEAD
             self._fake_process_group = FakeProcessGroup._create_internal(
+=======
+            self._fake_process_group = FakeProcessGroup(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 rank=process_group.rank(), world_size=process_group.size()
             )
         self.rank = process_group.rank()
@@ -605,8 +647,12 @@ class FlatParamHandle:
         # before `_init_flat_param()`, which performs the actual validation
         self._orig_param_dtype = params[0].dtype
         self._init_param_reduce_dtypes(mp_param_dtype, mp_reduce_dtype)
+<<<<<<< HEAD
         if self._fwd_bwd_param_dtype is None:
             raise AssertionError("Expected _fwd_bwd_param_dtype to be not None")  # mypy
+=======
+        assert self._fwd_bwd_param_dtype is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._aligned_numel = (
             _get_aligned_numel(unsharded_dtype=self._fwd_bwd_param_dtype)
             if align_addresses
@@ -834,8 +880,12 @@ class FlatParamHandle:
             dtype = tensor.dtype
             flat_param_requires_grad = flat_param_requires_grad or tensor.requires_grad
             device = tensor.device
+<<<<<<< HEAD
         if flat_param_requires_grad is None:
             raise AssertionError("Requires non-empty `tensors` list")
+=======
+        assert flat_param_requires_grad is not None, "Requires non-empty `tensors` list"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return dtype, flat_param_requires_grad, device
 
     def flatten_tensors(
@@ -936,10 +986,15 @@ class FlatParamHandle:
         else:
             self._fwd_bwd_param_dtype = mp_param_dtype or self._orig_param_dtype
             self._reduce_dtype = mp_reduce_dtype or self._orig_param_dtype
+<<<<<<< HEAD
         if self._fwd_bwd_param_dtype is None:
             raise AssertionError("Expected _fwd_bwd_param_dtype to be not None")
         if self._reduce_dtype is None:
             raise AssertionError("Expected _reduce_dtype to be not None")
+=======
+        assert self._fwd_bwd_param_dtype is not None
+        assert self._reduce_dtype is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ###################################
     # SHARD INITIALIZATION & METADATA #
@@ -1015,10 +1070,16 @@ class FlatParamHandle:
         shard_param_infos = self._get_shard_metadata(
             unsharded_start_idx, unsharded_end_idx
         )
+<<<<<<< HEAD
         if len(shard_param_infos) != flat_param._num_params:
             raise AssertionError(
                 f"Expects length {flat_param._num_params} but got {len(shard_param_infos)}"
             )
+=======
+        assert len(shard_param_infos) == flat_param._num_params, (
+            f"Expects length {flat_param._num_params} but got {len(shard_param_infos)}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         flat_param._shard_param_infos = shard_param_infos  # type: ignore[attr-defined]
         flat_param._shard_numel_padded = numel_padded  # type: ignore[attr-defined]
 
@@ -1034,10 +1095,16 @@ class FlatParamHandle:
         unsharded flat parameter specifying the shard.
         """
         flat_param_offsets = self._get_flat_param_offsets()
+<<<<<<< HEAD
         if len(flat_param_offsets) != len(self.flat_param._numels_with_padding):
             raise AssertionError(
                 f"Expected {len(self.flat_param._numels_with_padding)} but got {len(flat_param_offsets)}"
             )
+=======
+        assert len(flat_param_offsets) == len(self.flat_param._numels_with_padding), (
+            f"Expected {len(self.flat_param._numels_with_padding)} but got {len(flat_param_offsets)}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_param_infos: list[_ShardParamInfo] = []
         sharded_flat_param_numel = unsharded_end_idx - unsharded_start_idx + 1
         # `unsharded_param_start_idx` and `unsharded_param_end_idx` are indices
@@ -1065,6 +1132,7 @@ class FlatParamHandle:
                         unsharded_start_idx - unsharded_param_start_idx
                     )
                     offset_in_shard = 0
+<<<<<<< HEAD
                 if not (
                     offset_in_shard >= 0 and offset_in_shard < sharded_flat_param_numel
                 ):
@@ -1072,6 +1140,14 @@ class FlatParamHandle:
                         f"Invalid `offset_in_shard` of {offset_in_shard} for "
                         f"sharded flat parameter with {sharded_flat_param_numel} numel"
                     )
+=======
+                assert (
+                    offset_in_shard >= 0 and offset_in_shard < sharded_flat_param_numel
+                ), (
+                    f"Invalid `offset_in_shard` of {offset_in_shard} for "
+                    f"sharded flat parameter with {sharded_flat_param_numel} numel"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 intra_param_end_idx = (
                     min(unsharded_param_end_idx, unsharded_end_idx)
                     - unsharded_param_start_idx
@@ -1115,10 +1191,16 @@ class FlatParamHandle:
         else:
             chunk = chunks[rank]
         numel_to_pad = chunks[0].numel() - chunk.numel()
+<<<<<<< HEAD
         if numel_to_pad < 0:
             raise AssertionError(
                 "Chunk's size should be at most the first chunk's size"
             )
+=======
+        assert numel_to_pad >= 0, (
+            "Chunk's size should be at most the first chunk's size"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return chunk, numel_to_pad
 
     @staticmethod
@@ -1149,16 +1231,24 @@ class FlatParamHandle:
         This requires ``tensor`` to have 1D shape and ensures that the returned
         shape is 1D.
         """
+<<<<<<< HEAD
         if len(tensor.shape) != 1:
             raise AssertionError(f"Expected 1D tensor shape, got {tensor.shape}")
+=======
+        assert len(tensor.shape) == 1, f"{tensor.shape}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unpadded_sharded_tensor, numel_to_pad = FlatParamHandle._get_unpadded_shard(
             tensor, rank, world_size
         )
         unpadded_sharded_size = unpadded_sharded_tensor.size()
+<<<<<<< HEAD
         if len(unpadded_sharded_size) != 1:
             raise AssertionError(
                 f"Expected 1D unpadded_sharded_size, got {unpadded_sharded_size}"
             )
+=======
+        assert len(unpadded_sharded_size) == 1, f"{unpadded_sharded_size}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.Size([unpadded_sharded_size[0] + numel_to_pad])
 
     def _get_flat_param_offsets(self) -> list[tuple[int, int]]:
@@ -1585,8 +1675,12 @@ class FlatParamHandle:
                 warnings.warn(
                     f"[Rank {self.rank}] Only some but not all ranks have a "
                     "`None` `FlatParameter` gradient, so FSDP is using zeros to "
+<<<<<<< HEAD
                     "approximate those ranks' sharded gradients being `None`",
                     stacklevel=2,
+=======
+                    "approximate those ranks' sharded gradients being `None`"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             flat_param._saved_grad_shard = None  # type: ignore[assignment]
             sharded_grad = torch.zeros(flat_param._sharded_size, device=self.device)  # type: ignore[attr-defined]
@@ -2098,7 +2192,11 @@ class FlatParamHandle:
             _p_assert(
                 hasattr(module, param_name),
                 f"{module_name + '.' + param_name if module_name else param_name} is missing",
+<<<<<<< HEAD
             )
+=======
+            )  # did not save FQN info in `_shared_param_infos`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             param = getattr(module, param_name)
             prim_param = getattr(prim_module, prim_param_name)
             if (
@@ -2169,8 +2267,12 @@ class FlatParamHandle:
                 offset = shard_param_info.offset_in_shard
                 numel_in_shard = shard_param_info.numel_in_shard
                 param.data = flat_param[offset : offset + numel_in_shard]
+<<<<<<< HEAD
         if self.flat_param._shared_params is None:
             raise AssertionError("Expected _shared_params to be not None")
+=======
+        assert self.flat_param._shared_params is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, (
             param,
             (param_name, module, _, prim_param_name, prim_module, _),
@@ -2234,8 +2336,12 @@ class FlatParamHandle:
                         )
                 else:
                     param.grad = None
+<<<<<<< HEAD
         if flat_param._shared_params is None:
             raise AssertionError("Expected _shared_params to be not None")
+=======
+        assert flat_param._shared_params is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for param, (_, _, _, prim_param_name, prim_module, _) in zip(
             flat_param._shared_params, flat_param._shared_param_infos
         ):
@@ -2336,9 +2442,14 @@ class FlatParamHandle:
                 flat_param._params[i] = param
             if needs_param_writeback:
                 expected_shape = torch.Size([numel_in_shard])
+<<<<<<< HEAD
                 src = param if self.uses_sharded_strategy else param.view(-1)
                 self._writeback_tensor(
                     src, flat_param, i, expected_shape, offset_in_shard, True
+=======
+                self._writeback_tensor(
+                    param, flat_param, i, expected_shape, offset_in_shard, True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 wroteback = True
 
@@ -2370,6 +2481,7 @@ class FlatParamHandle:
                     if flat_param_grad is None:
                         flat_param_grad = torch.zeros_like(flat_param)
                     expected_shape = torch.Size([numel_in_shard])
+<<<<<<< HEAD
                     src = (
                         param.grad
                         if self.uses_sharded_strategy
@@ -2377,6 +2489,10 @@ class FlatParamHandle:
                     )
                     self._writeback_tensor(
                         src,
+=======
+                    self._writeback_tensor(
+                        param.grad,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         flat_param_grad,
                         i,
                         expected_shape,
@@ -2435,8 +2551,12 @@ class FlatParamHandle:
                 f"[Rank {rank}] {'Parameter' if is_param else 'Gradient'} needs "
                 f"writeback in {self._training_state}\n"
                 f"expected shape={expected_shape} shape={src_shape} "
+<<<<<<< HEAD
                 f"expected device={dst_tensor.device} device={src_device}",
                 stacklevel=2,
+=======
+                f"expected device={dst_tensor.device} device={src_device}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         if src_tensor is not None and src_tensor.shape != expected_shape:
             # NOTE: Gradient shape mismatch is not possible in practice since
@@ -2450,8 +2570,12 @@ class FlatParamHandle:
             dst_tensor[offset : offset + expected_shape.numel()].copy_(src_tensor)
         else:
             dst_tensor[offset : offset + expected_shape.numel()].zero_()
+<<<<<<< HEAD
             if self.flat_param._is_grad_none_mask is None:
                 raise AssertionError("Expected _is_grad_none_mask to be not None")
+=======
+            assert self.flat_param._is_grad_none_mask is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.flat_param._is_grad_none_mask[tensor_index] = True
 
     def _reset_flat_param_grad_info_if_needed(self):
@@ -2470,8 +2594,12 @@ class FlatParamHandle:
         if not self._use_orig_params:
             return
         flat_param = self.flat_param
+<<<<<<< HEAD
         if flat_param._params is None:
             raise AssertionError("Expected _params to be not None")  # mypy
+=======
+        assert flat_param._params is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         all_grad_none = True
         requires_grad = False
         for param in flat_param._params:
@@ -2497,7 +2625,10 @@ class FlatParamHandle:
     ###########
     def flat_param_to(self, *args, **kwargs):
         """Wrap an in-place call to ``.to()`` for ``self.flat_param``."""
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.flat_param.data = self.flat_param.to(*args, **kwargs)
         if self._use_orig_params:
             # Refresh the views because their storage may have changed
@@ -2616,16 +2747,24 @@ class FlatParamHandle:
             "Expects to only be called in the post-backward after gradient computation",
         )
         flat_param = self.flat_param
+<<<<<<< HEAD
         if flat_param._params is None:
             raise AssertionError("Expected _params to be not None")  # mypy
+=======
+        assert flat_param._params is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, param in enumerate(flat_param._params):  # type: ignore[arg-type]
             # As long as the parameter requires gradient, it should receive a
             # meaningful gradient (even if the gradient happens to be zeros)
             if param.requires_grad:
+<<<<<<< HEAD
                 if flat_param._is_grad_none_mask is None:
                     raise AssertionError(
                         "Expected _is_grad_none_mask to be not None"
                     )  # mypy
+=======
+                assert flat_param._is_grad_none_mask is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 flat_param._is_grad_none_mask[i] = False
 
     #######################

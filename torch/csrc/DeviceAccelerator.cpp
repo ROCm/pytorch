@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/core/AllocatorConfig.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/DeviceAccelerator.h>
 #include <torch/csrc/utils/device_lazy_init.h>
 
@@ -73,6 +76,7 @@ void initModule(PyObject* module) {
     torch::utils::maybe_initialize_device(device_type);
     return at::accelerator::maybeExchangeDevice(device_index);
   });
+<<<<<<< HEAD
 
   m.def("_accelerator_isAllocatorInitialized", []() {
     const auto device_type = at::accelerator::getAccelerator(true).value();
@@ -141,6 +145,8 @@ void initModule(PyObject* module) {
   m.def("_accelerator_setAllocatorSettings", [](std::string env) {
     c10::CachingAllocator::setAllocatorSettings(env);
   });
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace torch::accelerator

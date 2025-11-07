@@ -16,8 +16,12 @@ from collections import OrderedDict
 from contextlib import contextmanager
 from functools import lru_cache
 
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
 from collections.abc import Callable
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import torch
@@ -48,7 +52,10 @@ from torch.fx.graph import _PyTreeCodeGen, _PyTreeInfo
 
 from .wrappers import _wrap_submodules
 from .utils import _materialize_cpp_cia_ops
+<<<<<<< HEAD
 from . import config
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if TYPE_CHECKING:
     from torch._C._aoti import AOTIModelContainerRunner
@@ -67,6 +74,10 @@ class ExportDynamoConfig:
 # is called multiple times.
 @lru_cache
 def aot_compile_warning():
+<<<<<<< HEAD
+=======
+    from torch._inductor import config
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     log.warning("+============================+")
     log.warning("|     !!!   WARNING   !!!    |")
@@ -125,15 +136,24 @@ def aot_compile(
     """
     from torch.export._trace import _export_to_torch_ir
     from torch._inductor.decomposition import select_decomp_table
+<<<<<<< HEAD
     from torch._inductor import config as inductor_config
 
     aot_compile_warning()
 
     if inductor_config.is_predispatch:
+=======
+    from torch._inductor import config
+
+    aot_compile_warning()
+
+    if config.is_predispatch:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gm = torch.export._trace._export(f, args, kwargs, dynamic_shapes, pre_dispatch=True).module()
     else:
         # We want to export to Torch IR here to utilize the pre_grad passes in
         # inductor, which run on Torch IR.
+<<<<<<< HEAD
         with torch._export.config.patch(use_new_tracer_experimental=True):
             gm = _export_to_torch_ir(
                 f,
@@ -146,11 +166,27 @@ def aot_compile(
                 # dynamo_flat_name_to_original_fqn which is coming from Dynamo.
                 restore_fqn=False,
             )
+=======
+        gm = _export_to_torch_ir(
+            f,
+            args,
+            kwargs,
+            dynamic_shapes,
+            disable_constraint_solver=disable_constraint_solver,
+            same_signature=same_signature,
+            # Disabling this flag, because instead we can rely on the mapping
+            # dynamo_flat_name_to_original_fqn which is coming from Dynamo.
+            restore_fqn=False,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     with torch.no_grad():
         so_path = torch._inductor.aot_compile(gm, args, kwargs, options=options)  # type: ignore[arg-type]
 
+<<<<<<< HEAD
     assert isinstance(so_path, (str, list))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return so_path
 
 def aot_load(so_path: str, device: str) -> Callable:

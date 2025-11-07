@@ -1,8 +1,14 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial
 from typing import Any, no_type_check
+=======
+from dataclasses import dataclass
+from functools import partial
+from typing import Any, Callable, no_type_check
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist

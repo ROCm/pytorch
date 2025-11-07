@@ -105,7 +105,11 @@ class TORCH_API OperatorEntry final {
   // versa that is an error.  (Refcounting for the registrations is
   // handled in the OperatorHandle in Dispatcher)
   void registerSchema(
+<<<<<<< HEAD
       FunctionSchema&& /*schema*/,
+=======
+      FunctionSchema&&,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::string&& debug,
       std::vector<at::Tag> tags = {});
   void deregisterSchema();

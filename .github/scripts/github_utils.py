@@ -18,7 +18,10 @@ class GitHubComment:
     body_text: str
     created_at: str
     author_login: str
+<<<<<<< HEAD
     author_url: Optional[str]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     author_association: str
     editor_login: Optional[str]
     database_id: int

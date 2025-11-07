@@ -1,5 +1,8 @@
 # Owner(s): ["oncall: distributed"]
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 from typing import TYPE_CHECKING
 
@@ -7,7 +10,10 @@ import torch
 import torch.distributed.checkpoint as dcp
 import torch.nn as nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch.distributed._composable.replicate_with_fsdp import replicate
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.checkpoint import FileSystemReader
 from torch.distributed.checkpoint.default_planner import _EmptyStateDictLoadPlanner
 from torch.distributed.checkpoint.state_dict import get_state_dict, set_state_dict
@@ -32,7 +38,11 @@ from torch.distributed.tensor.parallel import (
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_distributed import (
     MultiProcessTestCase,
+<<<<<<< HEAD
     requires_accelerator_dist_backend,
+=======
+    requires_nccl,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_if_lt_x_gpu,
 )
 from torch.testing._internal.common_utils import (
@@ -40,7 +50,10 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     skip_but_pass_in_sandcastle_if,
+<<<<<<< HEAD
     TEST_XPU,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.distributed.checkpoint_utils import with_temp_dir
 
@@ -49,10 +62,13 @@ if TYPE_CHECKING:
     from torch.distributed.checkpoint.metadata import STATE_DICT_TYPE
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 backend = torch.distributed.get_default_backend_for_device(device_type)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # MLP Layer
 class MLPModule(torch.nn.Module):
     def __init__(self, d_hid: int):
@@ -86,7 +102,11 @@ class ComposabilityTest(MultiProcessTestCase):
     @classmethod
     def backend_str(cls) -> str:
         # Testing with NCCL backend
+<<<<<<< HEAD
         return backend
+=======
+        return "nccl"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def setUp(self):
         super().setUp()
@@ -101,17 +121,27 @@ class ComposabilityTest(MultiProcessTestCase):
 
     @property
     def world_size(self):
+<<<<<<< HEAD
         return 8
+=======
+        return 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def device(self):
         return self.rank
 
+<<<<<<< HEAD
     @requires_accelerator_dist_backend(["nccl", "xccl"])
     @skip_if_lt_x_gpu(8)
     @skip_but_pass_in_sandcastle_if(
         not TEST_MULTIGPU and not TEST_XPU, "Test requires 4+ GPUs"
     )
+=======
+    @requires_nccl()
+    @skip_if_lt_x_gpu(4)
+    @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "Test requires 4+ GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pp_and_dcp(self):
         """
         Test that pipeline parallelism and distributed checkpointing can be used together and
@@ -152,11 +182,19 @@ class ComposabilityTest(MultiProcessTestCase):
                     x = layer(x)
                 return x
 
+<<<<<<< HEAD
         device = torch.device(device_type, self.device)
         torch.accelerator.set_device_index(self.device)
         store = torch.distributed.FileStore(self.file_name, self.world_size)
         torch.distributed.init_process_group(
             backend=backend,
+=======
+        device = torch.device("cuda", self.device)
+        torch.cuda.set_device(self.device)
+        store = torch.distributed.FileStore(self.file_name, self.world_size)
+        torch.distributed.init_process_group(
+            backend="nccl",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             store=store,
             rank=self.rank,
             world_size=self.world_size,
@@ -169,8 +207,13 @@ class ComposabilityTest(MultiProcessTestCase):
             {f"{i}": MLPModule(dim) for i in range(total_layers)}
         )
         # Calculate start and end indices based on rank
+<<<<<<< HEAD
         start_index = self.rank
         end_index = start_index + 1
+=======
+        start_index = self.rank * 2
+        end_index = start_index + 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pp_model = PPModelChunk(full_model, start_index, end_index)
 
         pp_model.to(self.device)
@@ -201,11 +244,17 @@ class ComposabilityTest(MultiProcessTestCase):
 
         _dcp_test(self)
 
+<<<<<<< HEAD
     @requires_accelerator_dist_backend(["nccl", "xccl"])
     @skip_if_lt_x_gpu(8)
     @skip_but_pass_in_sandcastle_if(
         not TEST_MULTIGPU and not TEST_XPU, "Test requires 8+ GPUs"
     )
+=======
+    @requires_nccl()
+    @skip_if_lt_x_gpu(8)
+    @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "Test requires 8+ GPUs")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "ScheduleClass",
         [
@@ -224,10 +273,18 @@ class ComposabilityTest(MultiProcessTestCase):
         ],
     )
     def test_3d_with_tp_dp_pp(self, ScheduleClass, MixedPrecisionParam):
+<<<<<<< HEAD
         torch.accelerator.set_device_index(self.device)
         store = torch.distributed.FileStore(self.file_name, self.world_size)
         torch.distributed.init_process_group(
             backend=backend,
+=======
+        _device_raii = torch.device("cuda", self.device)
+        torch.cuda.set_device(self.device)
+        store = torch.distributed.FileStore(self.file_name, self.world_size)
+        torch.distributed.init_process_group(
+            backend="nccl",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             store=store,
             rank=self.rank,
             world_size=self.world_size,
@@ -238,7 +295,11 @@ class ComposabilityTest(MultiProcessTestCase):
         num_microbatches = 8
         dp_size = self.world_size // (tp_size * pp_size)
         device_mesh = init_device_mesh(
+<<<<<<< HEAD
             device_type,
+=======
+            "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mesh_shape=(dp_size, pp_size, tp_size),
             mesh_dim_names=("dp", "pp", "tp"),
         )
@@ -285,6 +346,7 @@ class ComposabilityTest(MultiProcessTestCase):
                 parallelize_module(layer, tp_mesh, parallelize_plan)
             return model
 
+<<<<<<< HEAD
         if issubclass(ScheduleClass, PipelineScheduleSingle):
             n_virtual = 1
         else:
@@ -323,6 +385,58 @@ class ComposabilityTest(MultiProcessTestCase):
             loss_fn=loss_fn,
             scale_grads=False,
         )
+=======
+        # Attach to a schedule
+        if issubclass(ScheduleClass, PipelineScheduleSingle):
+            stage_idx = pp_group.rank()
+            partial_model = nn.Sequential(
+                *full_model[stage_idx * 2 : stage_idx * 2 + 2]
+            )
+            partial_model.to(self.device)
+
+            tp_model = apply_tp(partial_model, tp_mesh)
+            dp_model = apply_fsdp(tp_model)
+            pipeline_stage = PipelineStage(
+                dp_model,
+                stage_idx,
+                pp_group.size(),
+                self.device,
+                group=pp_group,
+            )
+            partial_models = [pipeline_stage.submod]
+            pipeline_schedule = ScheduleClass(
+                pipeline_stage,
+                n_microbatches=num_microbatches,
+                loss_fn=loss_fn,
+            )
+        else:
+            n_virtual = 2
+            num_stages = pp_group.size() * n_virtual
+            stages = []
+            for i in range(n_virtual):
+                stage_idx = pp_group.rank() + n_virtual * i
+                # divide the model layers by the number of stages
+                partial_model = nn.Sequential(*full_model[stage_idx : stage_idx + 1])
+                partial_model.to(self.device)
+
+                tp_model = apply_tp(partial_model, tp_mesh)
+                dp_model = apply_fsdp(tp_model)
+                stage = PipelineStage(
+                    dp_model,
+                    stage_idx,
+                    num_stages,
+                    self.device,
+                    group=pp_group,
+                )
+
+                stages.append(stage)
+                partial_models = [pipeline_stage.submod for pipeline_stage in stages]
+            pipeline_schedule = ScheduleClass(
+                stages,
+                n_microbatches=num_microbatches,
+                loss_fn=loss_fn,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         optimizer_kwargs = {
             "lr": 0.01,
@@ -336,7 +450,11 @@ class ComposabilityTest(MultiProcessTestCase):
             for model in partial_models
         ]
 
+<<<<<<< HEAD
         for _train_step in range(5):
+=======
+        for train_step in range(5):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for optimizer in optimizers:
                 optimizer.zero_grad()
             inputs = torch.rand((num_microbatches, dim), device=self.device)
@@ -355,6 +473,7 @@ class ComposabilityTest(MultiProcessTestCase):
 
         torch.distributed.destroy_process_group()
 
+<<<<<<< HEAD
     @requires_accelerator_dist_backend(["nccl", "xccl"])
     @skip_if_lt_x_gpu(8)
     @skip_but_pass_in_sandcastle_if(
@@ -804,6 +923,8 @@ class ComposabilityTest(MultiProcessTestCase):
             )
         torch.distributed.destroy_process_group()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(ComposabilityTest)
 

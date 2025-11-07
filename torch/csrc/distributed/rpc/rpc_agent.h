@@ -24,7 +24,10 @@ constexpr auto kDefaultInitMethod = "env://";
 constexpr float kSecToMsConversion = 1000;
 constexpr auto kRpcTimeoutErrorStr =
     "RPC ran for more than set timeout ({} ms) and will now be marked with an error";
+<<<<<<< HEAD
 constexpr auto kDefaultNumWorkerThreads = 16;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 using steady_clock_time_point =
     std::chrono::time_point<std::chrono::steady_clock>;

@@ -4,9 +4,14 @@ import functools
 import types
 import typing
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import cast, Optional, TypeAlias, TypeVar, Union
 from typing_extensions import deprecated, ParamSpec
+=======
+from typing import cast, Optional, Union
+from typing_extensions import deprecated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -17,6 +22,7 @@ from torch.utils._foreach_utils import (
 )
 
 
+<<<<<<< HEAD
 __all__: list[str] = [
     "clip_grad_norm",
     "clip_grad_norm_",
@@ -25,15 +31,26 @@ __all__: list[str] = [
 
 
 _tensor_or_tensors: TypeAlias = Union[  # noqa: PYI042
+=======
+__all__: list[str] = []
+
+
+_tensor_or_tensors = Union[
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.Tensor,
     typing.Iterable[torch.Tensor],  # noqa: UP006 - needed until XLA's patch is updated
 ]
 
+<<<<<<< HEAD
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 
 
 def _no_grad(func: Callable[_P, _R]) -> Callable[_P, _R]:
+=======
+
+def _no_grad(func):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     This wrapper is needed to avoid a circular import when using @torch.no_grad on the exposed functions
     clip_grad_norm_ and clip_grad_value_ themselves.
@@ -41,11 +58,17 @@ def _no_grad(func: Callable[_P, _R]) -> Callable[_P, _R]:
 
     def _no_grad_wrapper(*args, **kwargs):
         with torch.no_grad():
+<<<<<<< HEAD
             # pyrefly: ignore [invalid-param-spec]
             return func(*args, **kwargs)
 
     functools.update_wrapper(_no_grad_wrapper, func)
     # pyrefly: ignore [bad-return]
+=======
+            return func(*args, **kwargs)
+
+    functools.update_wrapper(_no_grad_wrapper, func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _no_grad_wrapper
 
 
@@ -132,6 +155,7 @@ def _clip_grads_with_norm_(
     The gradients will be scaled by the following calculation
 
     .. math::
+<<<<<<< HEAD
         grad = grad * \min(\frac{max\_norm}{total\_norm + 1e-6}, 1)
 
     Gradients are modified in-place.
@@ -139,6 +163,12 @@ def _clip_grads_with_norm_(
     Note: The scale coefficient is clamped to a maximum of 1.0 to prevent gradient amplification.
     This ensures that gradients are only scaled down when the total norm exceeds max_norm.
 
+=======
+        grad = grad * \frac{max\_norm}{total\_norm + 1e-6}
+
+    Gradients are modified in-place.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     This function is equivalent to :func:`torch.nn.utils.clip_grad_norm_` with a pre-calculated
     total norm.
 
@@ -283,7 +313,10 @@ def clip_grad_value_(
     clip_value = float(clip_value)
 
     grads = [p.grad for p in parameters if p.grad is not None]
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grouped_grads = _group_tensors_by_device_and_dtype([grads])
 
     for (device, _), ([grads], _) in grouped_grads.items():
@@ -300,3 +333,11 @@ def clip_grad_value_(
         else:
             for grad in grads:
                 cast(Tensor, grad).clamp_(min=-clip_value, max=clip_value)
+<<<<<<< HEAD
+=======
+
+
+clip_grad_norm.__module__ = "torch.nn.utils"
+clip_grad_norm_.__module__ = "torch.nn.utils"
+clip_grad_value_.__module__ = "torch.nn.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

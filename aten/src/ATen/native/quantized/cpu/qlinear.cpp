@@ -3,7 +3,10 @@
 #include <ATen/Parallel.h>
 #include <ATen/TensorOperators.h>
 #include <ATen/core/Tensor.h>
+<<<<<<< HEAD
 #include <ATen/core/List.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mkldnn/MKLDNNCommon.h>
 #include <ATen/native/quantized/PackedParams.h>
 #include <ATen/native/quantized/cpu/ACLUtils.h>
@@ -28,6 +31,7 @@
 #include <ATen/ops/quantize_per_tensor_native.h>      // for quantize_per_te...
 #include <ATen/ops/zeros.h>
 #include <ATen/ops/_weight_int4pack_mm_for_cpu.h>
+<<<<<<< HEAD
 #include <ATen/ops/linear.h>
 #include <ATen/ops/relu.h>
 #include <ATen/ops/leaky_relu.h>
@@ -36,6 +40,8 @@
 #include <ATen/ops/hardtanh.h>
 #include <ATen/ops/hardswish.h>
 #include <ATen/ops/sigmoid.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 #include <c10/util/irange.h>
@@ -812,7 +818,11 @@ at::Tensor PackedLinearWeightsOnednn::apply_impl(
 
   auto is_input_qint8 = input.scalar_type() == c10::ScalarType::QInt8;
   auto input_contig = input.expect_contiguous();
+<<<<<<< HEAD
   auto& w = *weight_;
+=======
+  auto& w = *(weight_.get());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto K = input.size(dim - 1), M = input.numel() / K, N = w.get_dim(1);
   auto input_dims = {M, K};
   auto input_data_type = is_input_qint8 ? dnnl::memory::data_type::s8 : dnnl::memory::data_type::u8;
@@ -927,6 +937,7 @@ at::Tensor PackedLinearWeightsOnednn:: apply_tanh(
       std::move(input), output_scale, output_zero_point);
 }
 
+<<<<<<< HEAD
 static at::Tensor fp8_qlinear_onednn_ref(
     at::Tensor input,
     double input_scale,
@@ -1053,6 +1064,8 @@ static at::Tensor fp8_qlinear_onednn_ref(
   return y_f32.to(out_dtype);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static at::Tensor linear_int8_with_onednn_weight(
     at::Tensor input, // int8 CPU Tensor, not QTensor
     double input_scale,
@@ -1074,6 +1087,7 @@ static at::Tensor linear_int8_with_onednn_weight(
     std::string_view& unary_post_op_algorithm) {
   using ideep::tensor;
   const int64_t dim = input.dim();
+<<<<<<< HEAD
   TORCH_CHECK(input.scalar_type() == c10::ScalarType::Byte || input.scalar_type() == c10::ScalarType::Char || input.scalar_type() == c10::ScalarType::Float8_e4m3fn,
       "qlinear with mkldnn tensor: data type of input should be uint8, int8 or float8_e4m3fn.");
   TORCH_CHECK(onednn_weight.scalar_type() == c10::ScalarType::Char || onednn_weight.scalar_type() == c10::ScalarType::Float8_e4m3fn,
@@ -1086,6 +1100,12 @@ static at::Tensor linear_int8_with_onednn_weight(
         input.scalar_type(), " and ", onednn_weight.scalar_type());
     is_fp8 = true;
   }
+=======
+  TORCH_CHECK(input.scalar_type() == c10::ScalarType::Byte || input.scalar_type() == c10::ScalarType::Char,
+      "qlinear with mkldnn tensor: data type of input should be uint8 or int8 (unsigned char or char).");
+  TORCH_CHECK(onednn_weight.scalar_type() == c10::ScalarType::Char,
+      "qlinear with mkldnn tensor: data type of weight should be int8 (char).");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       weight_scales.scalar_type() == c10::ScalarType::Float, "weight scales should be dtype c10::ScalarType::Float.");
   TORCH_CHECK(
@@ -1119,7 +1139,11 @@ static at::Tensor linear_int8_with_onednn_weight(
       );
     }
     if (binary_post_op == "sum") {
+<<<<<<< HEAD
       auto expected_dtype = output_dtype.has_value() ? output_dtype.value() : input.scalar_type();
+=======
+      auto expected_dtype = output_dtype.has_value() ? output_dtype.value() : c10::kByte;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK(
           other.value().scalar_type() == expected_dtype,
           "onednn qlinear: the dtype of extra input for binary post op should be ", expected_dtype,
@@ -1127,6 +1151,7 @@ static at::Tensor linear_int8_with_onednn_weight(
       );
     }
   }
+<<<<<<< HEAD
 #if defined(__powerpc__)
   if (is_fp8) {
 #else
@@ -1140,6 +1165,8 @@ static at::Tensor linear_int8_with_onednn_weight(
         binary_post_op, binary_alpha, unary_post_op,
         unary_post_op_args, unary_post_op_algorithm);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // If the input has more than two dimensions, we will reshape it to a 2-dimensional form
   // for calculation and subsequently reshape the output back.
@@ -1167,13 +1194,20 @@ static at::Tensor linear_int8_with_onednn_weight(
   }
   std::vector<int64_t> src_dims = {M, K};
   std::vector<int64_t> dst_dims = {M, N};
+<<<<<<< HEAD
   auto out_dtype = output_dtype.has_value() ? output_dtype.value() : input.scalar_type();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   at::Tensor output = binary_post_op == "sum" ?
       other.value() :
       at::empty(
         dst_dims,
         at::device(c10::kCPU)
+<<<<<<< HEAD
             .dtype(out_dtype)
+=======
+            .dtype(fp32_output ? c10::kFloat : (bf16_output ? c10::kBFloat16 : c10::kByte))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       );
   if (output.numel() == 0) {
     return output;
@@ -1186,7 +1220,11 @@ static at::Tensor linear_int8_with_onednn_weight(
       empty_tensor;
 
   // Create onednn primitive
+<<<<<<< HEAD
   auto src_dtype = at::native::get_mkldnn_dtype(input.scalar_type());
+=======
+  auto src_dtype = input.scalar_type() == c10::kByte ? ideep::data_type::u8 : ideep::data_type::s8;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto src_desc = tensor::desc(src_dims, src_dtype, ideep::format_tag::any);
   auto weights_desc = packed_weight.get_desc();
   auto dst_dtype = dst.get_data_type();
@@ -1208,6 +1246,7 @@ static at::Tensor linear_int8_with_onednn_weight(
     unary_post_op_args,
     unary_post_op_algorithm
   );
+<<<<<<< HEAD
   // Avoid NaN if output dtype is fp8
   if (out_dtype == c10::kFloat8_e4m3fn) {
     // To avoid NaN, we need to clamp the intermediate results (in fp32) to [-488, 488]
@@ -1218,6 +1257,8 @@ static at::Tensor linear_int8_with_onednn_weight(
     op_attr.set_post_ops(post_ops);
     output_scale = 1.0f;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (input_scale != 1.0f) {
     op_attr.set_scales_mask(DNNL_ARG_SRC, 0);
   }
@@ -1388,7 +1429,11 @@ namespace at::native {
     TORCH_CHECK(act_scale.numel() == 1 && act_zero_point.numel() <= 1,
         "onednn int8 linear: act scale/zp size should be 1/<=1");
     static std::optional<at::Tensor> other = std::nullopt;
+<<<<<<< HEAD
     constexpr std::string_view binary_post_op = "none";
+=======
+    static const std::string_view binary_post_op = "none";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int64_t act_zp = act_zero_point.numel() == 1 ? act_zero_point.item().toLong() : 0;
     return linear_int8_with_onednn_weight(
         act, act_scale.item().toDouble(), act_zp,
@@ -1630,6 +1675,7 @@ TORCH_LIBRARY_IMPL(onednn, MkldnnCPU, m) {
       TORCH_FN(at::native::QLinearOnednn::run_pointwise_binary_tensor));
 }
 
+<<<<<<< HEAD
 TORCH_LIBRARY_IMPL(onednn, CPU, m) {
   m.impl(TORCH_SELECTIVE_NAME("onednn::qlinear_pointwise"),
       TORCH_FN(QLinearOnednn::run_pointwise));
@@ -1641,5 +1687,7 @@ TORCH_LIBRARY_IMPL(onednn, CPU, m) {
       TORCH_FN(at::native::QLinearOnednn::run_pointwise_binary_tensor));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 } // namespace at::native

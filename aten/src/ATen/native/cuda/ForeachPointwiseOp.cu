@@ -57,7 +57,11 @@ std::vector<Tensor> foreach_pointwise_op(
             scalar.to<opmath_t>());
       });
 
+<<<<<<< HEAD
   return std::move(tensor_lists[3]);
+=======
+  return tensor_lists[3];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <template <class> class Op>
@@ -160,7 +164,11 @@ std::vector<Tensor> foreach_pointwise_op(
             Op<opmath_t>());
       });
 
+<<<<<<< HEAD
   return std::move(tensor_lists[3]);
+=======
+  return tensor_lists[3];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 #define FOREACH_POINTWISE_OP_SCALAR(NAME, OP)                           \

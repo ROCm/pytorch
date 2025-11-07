@@ -169,11 +169,15 @@ std::string repro_from_args(const ConvolutionParams& params) {
   ss << "If that doesn't trigger the error, please include your original repro script when reporting this issue.\n\n";
   ss << "import torch\n";
   ss << "torch.backends.cuda.matmul.allow_tf32 = "
+<<<<<<< HEAD
      << pybool(
             at::globalContext().float32Precision(
                 at::Float32Backend::CUDA, at::Float32Op::MATMUL) ==
             at::Float32Precision::TF32)
      << "\n";
+=======
+     << pybool(at::globalContext().allowTF32CuBLAS()) << "\n";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ss << "torch.backends.cudnn.benchmark = "
      << pybool(at::globalContext().benchmarkCuDNN()) << "\n";
   ss << "torch.backends.cudnn.deterministic = " << pybool(params.deterministic)
@@ -729,7 +733,11 @@ Tensor cudnn_convolution_relu(
 
   auto& ctx = at::globalContext();
   bool benchmark = ctx.benchmarkCuDNN();
+<<<<<<< HEAD
   bool allow_tf32 = ctx.allowTF32CuDNN(at::Float32Op::CONV);
+=======
+  bool allow_tf32 = ctx.allowTF32CuDNN();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto _bias = bias_t.has_value()
       ? bias_t.value()
       : at::zeros(
@@ -787,7 +795,11 @@ Tensor cudnn_convolution_add_relu(
   }
 
   auto& ctx = at::globalContext();
+<<<<<<< HEAD
   bool allow_tf32 = ctx.allowTF32CuDNN(at::Float32Op::CONV);
+=======
+  bool allow_tf32 = ctx.allowTF32CuDNN();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool benchmark = ctx.benchmarkCuDNN();
   auto _alpha = alpha.has_value() ? alpha.value().to<float>() : 1.0;
   auto _bias = bias_t.has_value()

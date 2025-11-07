@@ -49,7 +49,11 @@ static void check_unique_names(DimnameList names) {
 }
 
 void check_names_valid_for(const TensorBase& tensor, DimnameList names) {
+<<<<<<< HEAD
   impl::check_names_valid_for(tensor.unsafeGetTensorImpl(), names);
+=======
+  return impl::check_names_valid_for(tensor.unsafeGetTensorImpl(), names);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void check_names_valid_for(size_t tensor_dim, DimnameList names) {

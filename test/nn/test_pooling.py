@@ -504,7 +504,10 @@ class TestPoolingNN(NNTestCase):
 
 
 class TestPoolingNNDeviceType(NNTestCase):
+<<<<<<< HEAD
     @expectedFailureMPS  # No double, float shape prop does not work
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.float, torch.double)
     def test_adaptive_pooling_zero_batch(self, dtype, device):
@@ -524,7 +527,10 @@ class TestPoolingNNDeviceType(NNTestCase):
     # when output_size = 0, in adaptive_{avg, max}_pool and its variants.
     # These tests are explicitly written because ErrorInputs does not support backward calls
     # Issue: https://github.com/pytorch/pytorch/issues/78868
+<<<<<<< HEAD
     @expectedFailureMPS  # No double, float shape prop does not work
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.float32, torch.float64)
     @dtypesIfCUDA(torch.float32, torch.float64, torch.bfloat16, torch.float16)
@@ -558,7 +564,10 @@ class TestPoolingNNDeviceType(NNTestCase):
             with self.assertRaisesRegex(RuntimeError, error_msg):
                 fn(input2, output_size).sum().backward()
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Error message does not match
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_adaptive_avg_pooling_backward_fails(self, device):
         grad_output = torch.randn(1, 2, 7, device=device)
@@ -585,7 +594,10 @@ class TestPoolingNNDeviceType(NNTestCase):
         with self.assertRaisesRegex(RuntimeError, "expected dimensions"):
             torch.ops.aten.adaptive_max_pool3d_backward(grad_output, input, indices)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool2d_zero_batch(self, device):
         mod = nn.FractionalMaxPool2d(3, output_ratio=(0.5, 0.5))
@@ -596,7 +608,10 @@ class TestPoolingNNDeviceType(NNTestCase):
             inp = torch.randn(1, 0, 50, 32, device=device)
             mod(inp)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool3d_zero_batch(self, device):
         mod = nn.FractionalMaxPool3d(3, output_ratio=(0.5, 0.5, 0.5)).to(device)
@@ -607,7 +622,10 @@ class TestPoolingNNDeviceType(NNTestCase):
             inp = torch.randn(1, 0, 50, 32, 32, device=device)
             mod(inp)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool2d_zero_out_size(self, device):
         mod = nn.FractionalMaxPool2d([2, 2], output_size=[0, 1])
@@ -615,7 +633,10 @@ class TestPoolingNNDeviceType(NNTestCase):
         out = mod(inp)
         self.assertEqual(out, torch.empty((16, 50, 0, 1), device=device))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool3d_zero_out_size(self, device):
         mod = nn.FractionalMaxPool3d([3, 2, 2], output_size=[0, 1, 1])
@@ -623,7 +644,10 @@ class TestPoolingNNDeviceType(NNTestCase):
         out = mod(inp)
         self.assertEqual(out, torch.empty((16, 0, 1, 1), device=device))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool2d_zero_samples(self, device):
         samples = torch.rand([0, 16, 2], device=device)
@@ -638,7 +662,10 @@ class TestPoolingNNDeviceType(NNTestCase):
         with self.assertRaisesRegex(RuntimeError, "Expect _random_samples"):
             mod(inp1)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Op not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_FractionalMaxPool3d_zero_samples(self, device):
         samples = torch.rand([0, 16, 3], device=device)
@@ -654,6 +681,7 @@ class TestPoolingNNDeviceType(NNTestCase):
             mod(inp1)
 
     @onlyNativeDeviceTypes
+<<<<<<< HEAD
     def test_FractionalMaxPool3d_errors(self, device):
         samples = torch.rand([0, 16, 3], device=device)
         with self.assertRaisesRegex(ValueError, "kernel_size must greater than 0"):
@@ -689,6 +717,8 @@ class TestPoolingNNDeviceType(NNTestCase):
             )(samples)
 
     @onlyNativeDeviceTypes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_MaxPool_zero_batch_dim(self, device):
         inp = torch.randn(0, 16, 50, device=device)
         mod = torch.nn.MaxPool1d(3, stride=2).to(device)
@@ -857,6 +887,7 @@ torch.cuda.synchronize()
             else:
                 unpool(output, indices)
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/163409
     @onlyNativeDeviceTypes
     def test_MaxUnpool_invalid_output_size(self, device):
@@ -872,6 +903,8 @@ torch.cuda.synchronize()
             unpool3d(input3d, torch.zeros_like(input3d, dtype=torch.int64))
 
     @expectedFailureMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     def test_AdaptiveMaxPool_zero_batch_dim(self, device):
         inp = torch.randn(0, 16, 50, device=device)
@@ -914,6 +947,7 @@ torch.cuda.synchronize()
             inp = torch.randn(16, 0, 20, 32, device=device)
             avgpool(inp)
 
+<<<<<<< HEAD
     @parametrize_test("kernel", ["max", "avg"])
     @parametrize_test("pooling_dims", [1, 2, 3])
     def test_pooling_shape(self, device, kernel, pooling_dims):
@@ -931,6 +965,22 @@ torch.cuda.synchronize()
                 self.assertEqual(
                     op(t, *args, **kwargs).shape, expected_out_shape[: pooling_dims + 2]
                 )
+=======
+    @expectedFailureMPS  # max_pool3d_with_indices not supported on MPS
+    def test_pooling_shape(self, device):
+        """Test the output shape calculation for pooling functions"""
+
+        # Checks output shape against expected for 1D, 2D and 3D
+        def check(expected_out_shape, sizes, *args, **kwargs):
+            for kernel in ["max", "avg"]:
+                for i in [1, 2, 3]:
+                    if hasattr(torch.nn.functional, f"{kernel}_pool{i}d"):
+                        op = getattr(torch.nn.functional, f"{kernel}_pool{i}d")
+                        t = torch.randn(sizes[: i + 2], device=device)
+                        self.assertEqual(
+                            op(t, *args, **kwargs).shape, expected_out_shape[: i + 2]
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         check(
             (1, 1, 3, 3, 4),
@@ -1011,7 +1061,10 @@ torch.cuda.synchronize()
         c = out.size(1)
         self.assertEqual(out.stride(), [c, 1, 1, 1, 1])
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Runtime Error not raised for mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @expectedFailureMeta  # Runtime Error not raised for meta
     @onlyNativeDeviceTypes
     @dtypes(torch.uint8, torch.int8, torch.short, torch.int, torch.long)
@@ -1026,7 +1079,10 @@ torch.cuda.synchronize()
                 with self.assertRaisesRegex(RuntimeError, "not implemented"):
                     module(input)
 
+<<<<<<< HEAD
     @expectedFailureMPS  # TODO: fixme
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @gcIfJetson
     @dtypes(torch.float, torch.double)
@@ -1135,7 +1191,11 @@ torch.cuda.synchronize()
         for size, kernel_size, stride, dilation, ceil_mode in itertools.product(
             sizes, kernel_sizes, strides, dilations, ceil_modes
         ):
+<<<<<<< HEAD
             padding = random.sample(range(math.floor(kernel_size / 2) + 1), 1)
+=======
+            padding = random.sample(range(0, math.floor(kernel_size / 2) + 1), 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             check(
                 torch.randn(size, device=device, dtype=dtype),
                 kernel_size,
@@ -1174,7 +1234,10 @@ torch.cuda.synchronize()
         helper(1, 100000, 32, 32, ks=4)
         helper(1, 100000, 1, 4, ks=(1, 4))  # test for max_pool1d
 
+<<<<<<< HEAD
     @expectedFailureMPS  # TODO: Fixme
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.half, torch.bfloat16, torch.float, torch.double)
     @dtypesIfCUDA(torch.half, torch.float, torch.double)
@@ -1250,7 +1313,10 @@ torch.cuda.synchronize()
             torch.channels_last,
         )
 
+<<<<<<< HEAD
     @expectedFailureMPS  # TODO: Fixme
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(torch.half, torch.bfloat16, torch.float, torch.double)
     @dtypesIfCUDA(torch.half, torch.float, torch.double)
@@ -1425,6 +1491,7 @@ torch.cuda.synchronize()
                 indices,
             )
 
+<<<<<<< HEAD
     def test_max_unpool_invalid_indices(self):
         input = torch.randn(1, 1, 2, 2)
         negative_indices = torch.tensor([[[[-1, 0], [0, 2]]]], dtype=torch.int64)
@@ -1452,6 +1519,8 @@ torch.cuda.synchronize()
         with self.assertRaisesRegex(RuntimeError, "Found an invalid max index"):
             F.max_unpool3d(input, large_indices, output_size)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyCPU
     @dtypes(torch.half, torch.bfloat16)
     def test_avg_pool2d_reduced_floating(self, device, dtype):
@@ -1742,6 +1811,10 @@ torch.cuda.synchronize()
     def test_MaxPool2d_indices(self, device, dtype):
         self._test_maxpool_indices(2, device=device, dtype=dtype)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureMPS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypesIfCUDA(*floating_types_and(torch.half, torch.bfloat16))
     @dtypes(torch.float)
     def test_MaxPool3d_indices(self, device, dtype):
@@ -1802,7 +1875,10 @@ torch.cuda.synchronize()
 
     @dtypesIfCUDA(torch.half, torch.float, torch.double)
     @dtypes(torch.float)
+<<<<<<< HEAD
     @expectedFailureMPS  # Exception not raise
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes  # TODO: Fails on XLA
     @gcIfJetson
     def test_max_pool_nan_inf(self, device, dtype):
@@ -1839,7 +1915,10 @@ torch.cuda.synchronize()
                 res2 = fn(x2, 1 if adaptive else 3)
                 self.assertTrue(math.isinf(res2.item()))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # float64
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @expectedFailureMeta  # RuntimeError: Unrecognized tensor type ID: Meta
     @onlyNativeDeviceTypes
     def test_fractional_max_pool2d(self, device):
@@ -1902,7 +1981,10 @@ torch.cuda.synchronize()
                 grad_output, input, kernel_size, output_size, indices
             )
 
+<<<<<<< HEAD
     @expectedFailureMPS  # float64
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @expectedFailureMeta  # RuntimeError: Unrecognized tensor type ID: Meta
     @onlyNativeDeviceTypes
     def test_fractional_max_pool3d(self, device):
@@ -1950,7 +2032,10 @@ torch.cuda.synchronize()
                         x, (2, 2, 2), output_size=output_size, _random_samples=samples
                     )
 
+<<<<<<< HEAD
     @expectedFailureMPS  # Not implemented
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypesIfCUDA(torch.half, torch.float, torch.double)
     @dtypes(torch.float)
     @onlyNativeDeviceTypes  # TODO: Fails on XLA
@@ -1980,7 +2065,10 @@ torch.cuda.synchronize()
             res2.backward(torch.randn_like(res2))
             self.assertTrue(math.isinf(res2.item()))
 
+<<<<<<< HEAD
     @expectedFailureMPS  # TODO: Fix me
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes  # TODO: RuntimeError message different on XLA
     def test_pooling_zero_stride(self, device):
         for op in ("max", "avg"):
@@ -2003,6 +2091,10 @@ torch.cuda.synchronize()
                 )
 
     @dtypesIfCUDA(*floating_types_and(torch.half, torch.bfloat16))
+<<<<<<< HEAD
+=======
+    @expectedFailureMPS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(torch.float)
     def test_pool_large_size(self, device, dtype):
         for op in ("max", "avg"):
@@ -2097,6 +2189,10 @@ torch.cuda.synchronize()
             prec=0.05,
         )
 
+<<<<<<< HEAD
+=======
+    @expectedFailureMPS  # max_pool3d_with_indices not supported on MPS device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_maxpool3d_non_square_backward(self, device):
         # previous CUDA routine of this backward calculates kernel launch grid size
         # with last two dimensions interchanged, so the tailing along the longer dim

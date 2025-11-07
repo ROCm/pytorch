@@ -56,6 +56,7 @@ class RAdam(Optimizer):  # noqa: D101
         if not 0.0 <= weight_decay:
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -67,6 +68,19 @@ class RAdam(Optimizer):  # noqa: D101
             "decoupled_weight_decay": decoupled_weight_decay,
             "differentiable": differentiable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            maximize=maximize,
+            foreach=foreach,
+            capturable=capturable,
+            decoupled_weight_decay=decoupled_weight_decay,
+            differentiable=differentiable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):  # noqa: D105
@@ -283,6 +297,7 @@ def _single_tensor_radam(
         # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
         if not torch.compiler.is_compiling() and capturable:
             capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
             if not (
                 param.device.type == step_t.device.type
                 and param.device.type in capturable_supported_devices
@@ -290,6 +305,14 @@ def _single_tensor_radam(
                 raise AssertionError(
                     f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
                 )
+=======
+            assert (
+                param.device.type == step_t.device.type
+                and param.device.type in capturable_supported_devices
+            ), (
+                f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if torch.is_complex(param):
             param = torch.view_as_real(param)
@@ -323,7 +346,10 @@ def _single_tensor_radam(
         rho_t = rho_inf - 2 * step * (beta2**step) / bias_correction2
 
         def _compute_rect():
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (
                 (rho_t - 4)
                 * (rho_t - 2)
@@ -338,7 +364,10 @@ def _single_tensor_radam(
             else:
                 exp_avg_sq_sqrt = exp_avg_sq_sqrt.add_(eps)
 
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (bias_correction2**0.5) / exp_avg_sq_sqrt
 
         # Compute the variance rectification term and update parameters accordingly
@@ -381,14 +410,19 @@ def _multi_tensor_radam(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
     if not torch.compiler.is_compiling() and capturable:
         capturable_supported_devices = _get_capturable_supported_devices(
             supports_xla=False
         )
+<<<<<<< HEAD
         if not all(
             p.device.type == step.device.type
             and p.device.type in capturable_supported_devices
@@ -397,6 +431,15 @@ def _multi_tensor_radam(
             raise AssertionError(
                 f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
             )
+=======
+        assert all(
+            p.device.type == step.device.type
+            and p.device.type in capturable_supported_devices
+            for p, step in zip(params, state_steps)
+        ), (
+            f"If capturable=True, params and state_steps must be on supported devices: {capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     lr = _to_scalar(lr)
 
@@ -466,7 +509,11 @@ def _multi_tensor_radam(
             if decoupled_weight_decay:
                 torch._foreach_mul_(grouped_params, 1 - lr * weight_decay)
             else:
+<<<<<<< HEAD
                 # Reuse the intermediate memory (grouped_grads) already allocated for maximize
+=======
+                # Re-use the intermediate memory (grouped_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if maximize:
                     torch._foreach_add_(
                         grouped_grads, grouped_params, alpha=weight_decay

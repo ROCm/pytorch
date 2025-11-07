@@ -1232,7 +1232,11 @@ void test_matmul(
 }
 
 TEST_F(VulkanAPITest, DISABLED_matmul_3d_weight_vulkan) {
+<<<<<<< HEAD
   // This will call at::bmm. Will crash for unknown reason.
+=======
+  // This will call at::bmm. Will crash for unknow reason.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto m1_cpu =
       at::rand({13, 23, 45}, at::device(at::kCPU).dtype(at::kFloat));
   const auto m2_cpu =
@@ -1241,7 +1245,11 @@ TEST_F(VulkanAPITest, DISABLED_matmul_3d_weight_vulkan) {
 }
 
 TEST_F(VulkanAPITest, DISABLED_matmul_3d_weight_cpu) {
+<<<<<<< HEAD
   // This will call at::bmm. Will crash for unknown reason.
+=======
+  // This will call at::bmm. Will crash for unknow reason.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const auto m1_cpu =
       at::rand({13, 23, 45}, at::device(at::kCPU).dtype(at::kFloat));
   const auto m2_cpu =
@@ -2004,7 +2012,11 @@ TEST_F(VulkanAPITest, conv2d_pw_prepack_bc_medium) {
     1);                 // groups
 }
 
+<<<<<<< HEAD
 // The following 2 tests failed on Meta's CI when all tests are executed.  Output
+=======
+// The followin 2 tests failed on Meta's CI when all tests are executed.  Output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // has lots of nan. Cause unknown.
 // When this test is run alone (with gtest_filter), it passes.
 // The test also passes with smaller planes, see "conv2d_pw_prepack_medium".
@@ -5664,7 +5676,11 @@ TEST_F(VulkanAPITest, var_2d_unbiased) {
   test_var({3, 5}, {1}, true, true);
   test_var({3, 5}, {1}, true, false);
 
+<<<<<<< HEAD
   // input.dim() == dim_list.size(), only keepdim == true is supported
+=======
+  // inpu.dim() == dim_list.size(), only keepdim == true is supported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   test_var({3, 5}, {0, 1}, true, true);
 }
 
@@ -5672,7 +5688,11 @@ TEST_F(VulkanAPITest, var_2d_biased) {
   test_var({3, 5}, {1}, false, true);
   test_var({3, 5}, {1}, false, false);
 
+<<<<<<< HEAD
   // input.dim() == dim_list.size(), only keepdim == true is supported
+=======
+  // inpu.dim() == dim_list.size(), only keepdim == true is supported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   test_var({3, 5}, {0, 1}, false, true);
 }
 
@@ -6894,7 +6914,11 @@ TEST_F(VulkanAPITest, slice_height_success) {
     {2, {2, 3, 40, 50}},  // 4D tensors with dim=height
     {1, {3, 40, 50}},     // 3D tensors with dim=height
     {0, {40, 50}},        // 2D tensors with dim=height
+<<<<<<< HEAD
                           // 1D tensors don't have height dim for test
+=======
+                          // 1D tesnors don't have height dim for test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   // Act/Assert
@@ -6906,7 +6930,11 @@ TEST_F(VulkanAPITest, slice_feature_success) {
   std::unordered_map<int64_t, std::vector<int64_t>> dim2sizes {
     {1, {2, 40, 13, 14}}, // 4D tensors with dim=feature(channel)
     {0, {40, 13, 14}},    // 3D tensors with dim=feature(channel)
+<<<<<<< HEAD
                           // 1D and 2D tensors don't have feature(channel) dim for test
+=======
+                          // 1D and 2D tesnors don't have feature(channel) dim for test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   // Act/Assert
@@ -6917,7 +6945,11 @@ TEST_F(VulkanAPITest, slice_batch_success) {
   // Arrange
   std::unordered_map<int64_t, std::vector<int64_t>> dim2sizes {
     {0, {40, 3, 13, 14}}, // 4D tensors with dim=batch
+<<<<<<< HEAD
                           // 1D, 2D and 3D tensors don't have batch dim for test
+=======
+                          // 1D, 2D and 3D tesnors don't have batch dim for test
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   };
 
   // Act/Assert
@@ -7142,12 +7174,20 @@ TEST_F(VulkanAPITest, clone_success) {
 }
 
 TEST_F(VulkanAPITest, clone_invalidinputs_exceptions) {
+<<<<<<< HEAD
   // Act: Vulkan supports Preserve and Contiguous memory formats
+=======
+  // Act: Vulkan supports Preserve and Contiguous memory foramts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   EXPECT_THROW({
     clone_test({2, 3, 5, 161}, c10::MemoryFormat::ChannelsLast);
   }, ::std::exception);
 
+<<<<<<< HEAD
   // Act: Vulkan supports Preserve and Contiguous memory formats
+=======
+  // Act: Vulkan supports Preserve and Contiguous memory foramts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   EXPECT_THROW({
     clone_test({2, 3, 5, 161}, c10::MemoryFormat::ChannelsLast3d);
   }, ::std::exception);

@@ -6,7 +6,10 @@ from torch.autograd.function import Function
 
 class SyncBatchNorm(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(
         self,
         input,
@@ -211,7 +214,10 @@ class SyncBatchNorm(Function):
 
 class CrossMapLRN2d(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, input, size, alpha=1e-4, beta=0.75, k=1):
         ctx.size = size
         ctx.alpha = alpha
@@ -267,7 +273,10 @@ class CrossMapLRN2d(Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         input, output = ctx.saved_tensors
         grad_input = grad_output.new()
@@ -309,7 +318,10 @@ class CrossMapLRN2d(Function):
 
 class BackwardHookFunction(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, *args):
         ctx.mark_non_differentiable(*[arg for arg in args if not arg.requires_grad])
         return args

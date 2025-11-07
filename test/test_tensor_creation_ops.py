@@ -689,6 +689,7 @@ class TestTensorCreation(TestCase):
         self.assertTrue(res1.is_contiguous(memory_format=torch.channels_last))
 
     @onlyCUDA
+<<<<<<< HEAD
     def test_cat_channels_last_large_inputs(self, device):
         num_tensors = 130
         inputs_cuda = [
@@ -704,6 +705,8 @@ class TestTensorCreation(TestCase):
         self.assertTrue(result.is_contiguous(memory_format=torch.channels_last))
 
     @onlyCUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cat_out_memory_format(self, device):
         inp_size = (4, 4, 4, 4)
         expected_size = (8, 4, 4, 4)
@@ -1166,6 +1169,7 @@ class TestTensorCreation(TestCase):
         z = torch.cat([x, y])
         self.assertEqual(z.size(), (21, SIZE, SIZE))
 
+<<<<<<< HEAD
     @dtypes(torch.float)
     def test_cat_size1(self, device, dtype):
         # create a tensor that has aligned stride along dim - 1 dimension
@@ -1217,6 +1221,8 @@ class TestTensorCreation(TestCase):
         ref = torch.cat([x.cpu() for x in inps])
         self.assertEqual(res, ref)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # FIXME: Create an OpInfo-based tensor creation method test that verifies this for all tensor
     #   creation methods and verify all dtypes and layouts
     @dtypes(torch.bool, torch.uint8, torch.int16, torch.int64, torch.float16, torch.float32, torch.complex64)
@@ -1597,7 +1603,11 @@ class TestTensorCreation(TestCase):
         expected = torch.empty(0, 5, dtype=a.dtype, device=device)
         self.assertEqual(c, expected)
 
+<<<<<<< HEAD
         # test empty input
+=======
+        # test empty imput
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a = torch.empty(0, device=device)
         c1 = torch.combinations(a)
         c2 = torch.combinations(a, with_replacement=True)
@@ -2031,11 +2041,14 @@ class TestTensorCreation(TestCase):
         expected = torch.tensor([[0., 0.], [0., 0.]], device=device, dtype=torch.complex32)
         self.assertEqual(complexHalfTensor, expected)
 
+<<<<<<< HEAD
     def test_zeros_bounds_checking(self, device):
         # Test negative large integer
         with self.assertRaisesRegex(RuntimeError, r"zeros: Dimension size must be non-negative."):
             torch.zeros(-6744789213055875072, device=device)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # TODO: this test should be updated
     def test_zeros_out(self, device):
         shape = (3, 4)
@@ -3505,7 +3518,11 @@ class TestRandomTensorCreation(TestCase):
                 else:
                     t.uniform_(from_, to_)
                     range_ = to_ - from_
+<<<<<<< HEAD
                     if dtype != torch.bfloat16 and not (
+=======
+                    if not (dtype == torch.bfloat16) and not (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             dtype == torch.half and device == 'cpu') and not torch.isnan(t).all():
                         delta = alpha * range_
                         double_t = t.to(torch.double)

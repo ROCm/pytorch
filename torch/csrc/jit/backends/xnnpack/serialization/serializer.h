@@ -37,7 +37,11 @@ class XNNSerializer {
 
   // Serialize add node, we are serializing the argument needed to call
   // xnn_define_add2. Serializing these values, and at run time we build
+<<<<<<< HEAD
   // the graph by re running xnn_define_add2
+=======
+  // teh graph by re running xnn_define_add2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void serializeAddNode(
       uint32_t input1_id,
       uint32_t input2_id,

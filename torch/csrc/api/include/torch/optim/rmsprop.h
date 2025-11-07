@@ -43,8 +43,13 @@ struct TORCH_API RMSpropParamState
     : public OptimizerCloneableParamState<RMSpropParamState> {
   TORCH_ARG(int64_t, step) = 0;
   TORCH_ARG(torch::Tensor, square_avg);
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, momentum_buffer);
   TORCH_ARG(torch::Tensor, grad_avg);
+=======
+  TORCH_ARG(torch::Tensor, momentum_buffer) = {};
+  TORCH_ARG(torch::Tensor, grad_avg) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   void serialize(torch::serialize::InputArchive& archive) override;

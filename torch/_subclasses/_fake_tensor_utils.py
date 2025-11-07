@@ -7,6 +7,10 @@ import torch
 from torch import SymInt
 from torch.fx.experimental.sym_node import SymNode
 from torch.types import py_sym_types, PySymType
+<<<<<<< HEAD
+=======
+from torch.utils._backport_slots import dataclass_slots
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
@@ -17,7 +21,12 @@ if TYPE_CHECKING:
     from .fake_tensor import _DispatchCacheKey, _MetadataIntLike
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DeconstructedSymNode:
     """
     Represents a SymNode without the associated ShapeEnv
@@ -33,12 +42,16 @@ class _DeconstructedSymNode:
     @staticmethod
     def from_node(node: SymNode) -> _DeconstructedSymNode:
         return _DeconstructedSymNode(
+<<<<<<< HEAD
             node._expr,
             node.pytype,
             node._hint,
             node.constant,
             # pyrefly: ignore [bad-argument-type]
             node.fx_node,
+=======
+            node._expr, node.pytype, node._hint, node.constant, node.fx_node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def extract(self, shape_env: ShapeEnv) -> SymNode:
@@ -76,7 +89,12 @@ class _DeconstructedSymNode:
         return hash((self._expr, self.pytype, self._hint, self.constant, self.fx_node))
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DeconstructedSymType:
     """
     Represents a SymInt, SymFloat, SymBool without the associated ShapeEnv
@@ -105,12 +123,22 @@ class _DeconstructedSymType:
         return NotImplemented
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _InputBackref:
     value: int
 
 
+<<<<<<< HEAD
 @dataclass(slots=True)
+=======
+@dataclass_slots
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _PySymInputStub:
     """
     Represents a SymInt in the cached key. Needed because SymInt doesn't
@@ -172,7 +200,12 @@ class _PySymInputStub:
             return self.value.node._value_hash()
 
 
+<<<<<<< HEAD
 @dataclass(slots=True)
+=======
+@dataclass_slots
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _SymIntOutputStub:
     """
     Represents a SymInt in the cached output.
@@ -206,7 +239,12 @@ class _SymIntOutputStub:
         raise NotImplementedError
 
 
+<<<<<<< HEAD
 @dataclass(slots=True)
+=======
+@dataclass_slots
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _CacheKeyState:
     """
     State used while building our cache key.

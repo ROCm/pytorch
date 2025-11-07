@@ -133,8 +133,12 @@ static PyObject* THPSize_pynew(
 static PyObject* THPSize_repr(THPSize* self) {
   HANDLE_TH_ERRORS
   std::string repr("torch.Size([");
+<<<<<<< HEAD
   for (Py_ssize_t i = 0; i < PyTuple_Size(reinterpret_cast<PyObject*>(self));
        ++i) {
+=======
+  for (Py_ssize_t i = 0; i < PyTuple_Size((PyObject*)self); ++i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (i != 0) {
       repr += ", ";
     }
@@ -157,7 +161,11 @@ static PyObject* wrap_tuple_fn(Args... args) {
     return nullptr;
   if (PyTuple_Check(result.get())) {
     return PyObject_CallFunctionObjArgs(
+<<<<<<< HEAD
         reinterpret_cast<PyObject*>(&THPSizeType), result.get(), nullptr);
+=======
+        (PyObject*)&THPSizeType, result.get(), nullptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return result.release();
 }
@@ -226,9 +234,15 @@ static PyMappingMethods THPSize_as_mapping = {
 
 static PyObject* THPSize_numel(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPSize*>(_self);
   int64_t numel = 1;
   for (Py_ssize_t i = 0; i < PyTuple_Size(_self); ++i) {
+=======
+  auto self = (THPSize*)_self;
+  int64_t numel = 1;
+  for (Py_ssize_t i = 0; i < PyTuple_Size((PyObject*)self); ++i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     numel *= THPUtils_unpackLong(PyTuple_GET_ITEM(self, i));
   }
   return THPUtils_packInt64(numel);
@@ -237,11 +251,16 @@ static PyObject* THPSize_numel(PyObject* _self, PyObject* noargs) {
 
 static PyObject* THPSize_reduce(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPSize*>(_self);
+=======
+  auto self = (THPSize*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto ret = THPObjectPtr{PyTuple_New(2)};
   if (!ret)
     throw python_error();
 
+<<<<<<< HEAD
   auto obj = reinterpret_cast<PyObject*>(&THPSizeType);
   Py_INCREF(&THPSizeType);
   PyTuple_SET_ITEM(ret.get(), 0, obj);
@@ -250,6 +269,16 @@ static PyObject* THPSize_reduce(PyObject* _self, PyObject* noargs) {
   if (!t)
     throw python_error();
   for (Py_ssize_t i = 0; i < PyTuple_Size(_self); ++i) {
+=======
+  auto obj = (PyObject*)(&THPSizeType);
+  Py_INCREF(&THPSizeType);
+  PyTuple_SET_ITEM(ret.get(), 0, obj);
+
+  THPObjectPtr t(PyTuple_New(PyTuple_Size((PyObject*)self)));
+  if (!t)
+    throw python_error();
+  for (Py_ssize_t i = 0; i < PyTuple_Size((PyObject*)self); ++i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto d = PyTuple_GET_ITEM(self, i);
     Py_INCREF(d);
     PyTuple_SET_ITEM(t.get(), i, d);
@@ -280,7 +309,11 @@ PyTypeObject THPSizeType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPSize_repr), /* tp_repr */
+=======
+    (reprfunc)THPSize_repr, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     &THPSize_as_number, /* tp_as_number */
     &THPSize_as_sequence, /* tp_as_sequence */
     &THPSize_as_mapping, /* tp_as_mapping */
@@ -316,8 +349,12 @@ void THPSize_init(PyObject* module) {
     throw python_error();
   }
   Py_INCREF(&THPSizeType);
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "Size", reinterpret_cast<PyObject*>(&THPSizeType)) < 0) {
+=======
+  if (PyModule_AddObject(module, "Size", (PyObject*)&THPSizeType) < 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

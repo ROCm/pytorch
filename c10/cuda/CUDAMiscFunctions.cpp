@@ -1,5 +1,6 @@
 #include <c10/cuda/CUDAMiscFunctions.h>
 #include <c10/util/env.h>
+<<<<<<< HEAD
 #include <cuda_runtime.h>
 #include <string>
 
@@ -24,6 +25,11 @@ std::string get_cuda_error_help(cudaError_t error) noexcept {
   return help_text;
 }
 
+=======
+
+namespace c10::cuda {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NOLINTNEXTLINE(bugprone-exception-escape,-warnings-as-errors)
 const char* get_cuda_check_suffix() noexcept {
   static auto device_blocking_flag =

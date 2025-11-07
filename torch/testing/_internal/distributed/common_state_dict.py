@@ -40,7 +40,11 @@ class VerifyStateDictMixin:
         if not options.ignore_frozen_params:
             self.assertEqual(len(msd), len(dist_msd))
         for fqn, param in msd.items():
+<<<<<<< HEAD
             dist_param = dist_msd.get(fqn)
+=======
+            dist_param = dist_msd.get(fqn, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not options.ignore_frozen_params:
                 self.assertIsNotNone(dist_param, f"{fqn=}")
                 try:
@@ -60,7 +64,11 @@ class VerifyStateDictMixin:
         dist_osd: dict[str, Any],
     ) -> None:
         params = list(chain.from_iterable(g["params"] for g in optim.param_groups))
+<<<<<<< HEAD
         param_pid_mapping = dict(zip(params, range(len(params)), strict=True))
+=======
+        param_pid_mapping = dict(zip(params, range(len(params))))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fqn_pid_mapping = {}
         for fqn, param in model.named_parameters():
             pid = param_pid_mapping[param]
@@ -90,7 +98,11 @@ class VerifyStateDictMixin:
             dist_osd[_PG] = [new_pg]
 
         self.assertEqual(len(osd[_PG]), len(dist_osd[_PG]))
+<<<<<<< HEAD
         for group, dist_group in zip(osd[_PG], dist_osd[_PG], strict=True):
+=======
+        for group, dist_group in zip(osd[_PG], dist_osd[_PG]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(len(group), len(dist_group))
             for key, value in group.items():
                 # Below doesn't work because param_groups can have None

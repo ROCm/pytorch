@@ -76,7 +76,11 @@ std::vector<StorageGroup> assignStorageToManagedTensors(
   // This set maps each Value* to its assigned storage group.
   c10::FastMap<const Value*, size_t> storage_group_mapping;
   // On each iteration, this vector stores the set of storage groups that
+<<<<<<< HEAD
   // are available for reuse.
+=======
+  // are available for re-use.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<size_t> free_storage_groups;
 
   auto makeNewStorageGroup = [&](const Value* value) {

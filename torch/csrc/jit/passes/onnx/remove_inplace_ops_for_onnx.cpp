@@ -10,6 +10,11 @@
 
 #include <c10/util/irange.h>
 
+<<<<<<< HEAD
+=======
+#include <limits>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch::jit {
 
 namespace {
@@ -191,7 +196,12 @@ std::pair<Value*, Value*> PrepareCopyForONNX(Node* node) {
   expanded_value->node()->copyMetadata(node);
 
   auto index_put = graph->insert(
+<<<<<<< HEAD
       aten::index_put_, {node->input(0), dummy_list, expanded_value});
+=======
+      aten::index_put_,
+      {node->input(0), dummy_list, expanded_value, node->input(2)});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   index_put->node()->copyMetadata(node);
   index_put->copyMetadata(node->output());
   node->output()->replaceAllUsesWith(index_put);
@@ -341,7 +351,11 @@ static void PrepareForRemoveMutations(MutationRemover& mr, Block* b) {
         auto it =
             std::find(node->inputs().begin(), node->inputs().end(), input);
         if (it != node->inputs().end()) {
+<<<<<<< HEAD
           auto index = std::distance(node->inputs().begin(), it);
+=======
+          int index = std::distance(node->inputs().begin(), it);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           TORCH_WARN(
               "ONNX Preprocess - Removing mutation from node ",
               node->kind().toQualString(),

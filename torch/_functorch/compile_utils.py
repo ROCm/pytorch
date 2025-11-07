@@ -2,7 +2,11 @@
 
 
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -179,7 +183,11 @@ def raise_getitems(gm: fx.GraphModule) -> fx.GraphModule:
     )
 
     # loop through getitem nodes in the graph and raise them to the parent node
+<<<<<<< HEAD
     # in reverse order to preserve their original relative order
+=======
+    # in reverse order to perserve their original relative order
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in reversed(getitem_nodes):
         assert len(node.all_input_nodes) == 1
         parent = node.all_input_nodes[0]

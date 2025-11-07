@@ -657,10 +657,14 @@ class Partitioner:
                 # Mark bfs level
                 get_bfs_level_partition(self.partitions)
                 find_combination, partitions = find_partition_to_combine_based_on_size(
+<<<<<<< HEAD
                     sorted_partitions,
                     available_mem_bytes,
                     # pyrefly: ignore [bad-argument-type]
                     partitions,
+=======
+                    sorted_partitions, available_mem_bytes, partitions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             return
 
@@ -705,7 +709,10 @@ class Partitioner:
                 non_embedding_partitions.append(partition)
             if new_partition:
                 partition = self.create_partition()
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 partition.left_mem_bytes = available_mem_bytes
                 return partition
             return None
@@ -1001,7 +1008,10 @@ class Partitioner:
                     node, n1, p0, p1, node_to_latency_mapping, transfer_rate_per_sec
                 )
                 if cost < min_cost:
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node_pair = [node, n1]
                     min_cost = cost
             return cost, node_pair  # type: ignore[possibly-undefined]

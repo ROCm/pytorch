@@ -102,7 +102,11 @@ class TestMetaDataPorting(QuantizationTestCase):
 
         # program capture
         m = copy.deepcopy(m_eager)
+<<<<<<< HEAD
         m = torch.export.export(m, example_inputs, strict=True).module()
+=======
+        m = torch.export.export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         m = prepare_pt2e(m, quantizer)
         # Calibrate

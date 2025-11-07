@@ -130,7 +130,11 @@ def _get_qspec_for_arg(
 ) -> Optional[QuantizationSpecBase]:
     while _is_activation_post_process_node(arg, named_modules):
         arg = arg.args[0]  # type: ignore[assignment]
+<<<<<<< HEAD
     return input_qspec_map.get(arg)
+=======
+    return input_qspec_map.get(arg, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _create_obs_or_fq_from_qspec(
@@ -166,7 +170,10 @@ def _create_obs_or_fq_from_qspec(
         }
         edge_or_nodes = quantization_spec.derived_from
         obs_or_fqs = [obs_or_fq_map[k] for k in edge_or_nodes]
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs["obs_or_fqs"] = obs_or_fqs
         return _DerivedObserverOrFakeQuantize.with_args(**kwargs)()
     elif isinstance(quantization_spec, FixedQParamsQuantizationSpec):
@@ -479,7 +486,10 @@ def _insert_obs_or_fq(
     model: torch.nn.Module,
     named_modules: dict[str, torch.nn.Module],
     graph: Graph,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Node:
     """
     Attaches `obs_or_fq` to `model`, and creates a node which calls
@@ -487,8 +497,12 @@ def _insert_obs_or_fq(
 
     obs_or_fq: an instance of Observer or FakeQuantize module
     """
+<<<<<<< HEAD
     if model_device is None:
         model_device = assert_and_get_unique_device(model)
+=======
+    model_device = assert_and_get_unique_device(model)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if model_device:
         obs_or_fq.to(model_device)
     # add obs_or_fq module as attribute
@@ -808,7 +822,10 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
     backend_config: Optional[BackendConfig] = None,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Argument:
     """
     Given a `node` and an `arg`, inserts an input observer between
@@ -831,7 +848,10 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
                 obs_or_fq_map,
                 is_qat,
                 backend_config,
+<<<<<<< HEAD
                 model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             new_arg_to_return.append(new_inner_arg)
         return type(arg)(new_arg_to_return)
@@ -939,7 +959,11 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
             if maybe_obs_node.op == "call_module":
                 maybe_obs_mod = named_modules[maybe_obs_node.target]  # type: ignore[index]
                 if (
+<<<<<<< HEAD
                     type(maybe_obs_mod) is type(arg_as_input_act_obs_or_fq)
+=======
+                    type(maybe_obs_mod) == type(arg_as_input_act_obs_or_fq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     and maybe_obs_mod.dtype == arg_as_input_target_dtype  # type: ignore[possibly-undefined]
                 ):
                     arg_as_input_act_obs_or_fq = maybe_obs_mod  # type: ignore[assignment]
@@ -950,12 +974,16 @@ def _maybe_insert_input_observer_for_arg_or_kwarg(
         obs_or_fq_map[(arg, node)] = arg_as_input_act_obs_or_fq
         if existing_obs_node is None:
             new_obs_node = _insert_obs_or_fq(
+<<<<<<< HEAD
                 arg,
                 arg_as_input_act_obs_or_fq,
                 model,
                 named_modules,
                 graph,
                 model_device,
+=======
+                arg, arg_as_input_act_obs_or_fq, model, named_modules, graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             # override this arg to be the observed arg
             new_arg = new_obs_node
@@ -976,7 +1004,10 @@ def _maybe_insert_input_observers_for_node(
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize],
     is_qat: bool,
     backend_config: Optional[BackendConfig] = None,
+<<<<<<< HEAD
     model_device: Optional[torch.device] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     If needed, inserts observers to the input args and kwargs of `node`.
@@ -1008,7 +1039,10 @@ def _maybe_insert_input_observers_for_node(
             obs_or_fq_map,
             is_qat,
             backend_config,
+<<<<<<< HEAD
             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         new_args.append(new_arg)
 
@@ -1026,7 +1060,10 @@ def _maybe_insert_input_observers_for_node(
             obs_or_fq_map,
             is_qat,
             backend_config,
+<<<<<<< HEAD
             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         new_kwargs[k] = new_kwarg
 
@@ -1055,9 +1092,13 @@ def _maybe_insert_input_equalization_observers_for_node(
         return
 
     if is_branch:
+<<<<<<< HEAD
         warnings.warn(
             f"Cannot equalize {node} because it is part of a branch.", stacklevel=2
         )
+=======
+        warnings.warn(f"Cannot equalize {node} because it is part of a branch.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     new_args = []
@@ -1122,7 +1163,11 @@ def _maybe_insert_output_observer_for_node(
         )
     target_dtype, target_is_dynamic = _get_dtype_and_is_dynamic(output_act_obs_or_fq)
     # uncomment after we support reuse_input_obs_or_fq properly by having separate
+<<<<<<< HEAD
     # implementations for this key instead of reusing the input_output_share_observers
+=======
+    # implemntations for this key instead of reusing the input_output_share_observers
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # code
     # reuse_input_obs_or_fq = node.meta["target_dtype_info"].get("reuse_input_obs_or_fq", False)
     # for now we set this to False since reuse_input_obs_or_fq for
@@ -1132,7 +1177,11 @@ def _maybe_insert_output_observer_for_node(
     reuse_input_obs_or_fq = False
 
     # Note: prev_output_dtype = torch.float and prev_output_is_dynamic=False
+<<<<<<< HEAD
     # because the prev_output is the output of an fp32 op, although technically
+=======
+    # because the prev_output is the output of an fp32 op, althought technically
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # we should get the dtype of the output from node.meta["val"] in the future
     # if we deprecate fx graph mode quantization
     needs_obs_or_fq = _needs_obs_or_fq(
@@ -1678,7 +1727,10 @@ def insert_observers_for_model(
     outputs_seen_counter = 0
     results_node = None
     obs_or_fq_map: dict[EdgeOrNode, ObserverOrFakeQuantize] = {}
+<<<<<<< HEAD
     model_device = assert_and_get_unique_device(model)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # TODO: change this to insert obs/fq by pattern instead of by node
     for node in nodes_before_observation:
@@ -1711,7 +1763,11 @@ def insert_observers_for_model(
 
             skip_inserting_observers = (
                 (qconfig is None) or not output_is_a_tensor
+<<<<<<< HEAD
             ) and (node.op != "output")
+=======
+            ) and (not node.op == "output")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # TODO: take a closer look to see if we can remove this check
             # right now it is here because of `observed_node_names`, we are using
@@ -1782,7 +1838,10 @@ def insert_observers_for_model(
                             obs_or_fq_map,
                             is_qat,
                             backend_config,
+<<<<<<< HEAD
                             model_device,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
                         # insert equalization input observers if needed
@@ -2019,7 +2078,11 @@ def prepare(
                 same as input_quantized_idxs configuration provided
                 for the standalone module
             standalone_module_output_quantized_idxs(List[Int]): a list of
+<<<<<<< HEAD
                 indices for the graph output that is quantized
+=======
+                indexs for the graph output that is quantized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 same as input_quantized_idxs configuration provided
                 for the standalone module
     """
@@ -2088,11 +2151,16 @@ def prepare(
 
     root_node_getter_mapping = get_fusion_pattern_to_root_node_getter(backend_config)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
     _update_qconfig_for_fusion(model, qconfig_mapping)
     # pyrefly: ignore [bad-argument-type]
     _update_qconfig_for_fusion(model, _equalization_config)
     # pyrefly: ignore [bad-argument-type]
+=======
+    _update_qconfig_for_fusion(model, qconfig_mapping)
+    _update_qconfig_for_fusion(model, _equalization_config)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     flattened_qconfig_dict = _get_flattened_qconfig_dict(qconfig_mapping)
     # TODO: support regex as well
     propagate_qconfig_(model, flattened_qconfig_dict, prepare_custom_config.to_dict())
@@ -2100,7 +2168,10 @@ def prepare(
     if is_qat:
         module_to_qat_module = get_module_to_qat_module(backend_config)
         _qat_swap_modules(model, module_to_qat_module)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _update_qconfig_for_qat(qconfig_mapping, backend_config)
 
     # mapping from fully qualified module name to module instance
@@ -2114,6 +2185,7 @@ def prepare(
 
     # fill node_name_to_qconfig, a map from node name to qconfig, used in _find_matches
     equalization_node_name_to_qconfig = _generate_node_name_to_qconfig(
+<<<<<<< HEAD
         model,
         named_modules,
         model.graph,
@@ -2128,6 +2200,12 @@ def prepare(
         # pyrefly: ignore [bad-argument-type]
         qconfig_mapping,
         node_name_to_scope,
+=======
+        model, named_modules, model.graph, _equalization_config, node_name_to_scope
+    )
+    node_name_to_qconfig = _generate_node_name_to_qconfig(
+        model, named_modules, model.graph, qconfig_mapping, node_name_to_scope
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     # match the patterns that will get quantized
@@ -2187,7 +2265,10 @@ def prepare(
         node_name_to_scope,
         prepare_custom_config,
         equalization_node_name_to_qconfig,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qconfig_mapping,
         is_qat,
         observed_node_names,

@@ -44,7 +44,12 @@ Your transform will take in a {class}`torch.nn.Module`, acquire a {class}`Graph`
 from it, do some modifications, and return a new
 {class}`torch.nn.Module`. You should think of the {class}`torch.nn.Module` that your FX
 transform returns as identical to a regular {class}`torch.nn.Module` -- you can pass it to another
+<<<<<<< HEAD
 FX transform, or you can run it. Ensuring that the inputs and outputs of your FX transform are a
+=======
+FX transform, you can pass it to TorchScript, or you can
+run it. Ensuring that the inputs and outputs of your FX transform are a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 {class}`torch.nn.Module` will allow for composability.
 
 ```{note}
@@ -1093,9 +1098,12 @@ The set of leaf modules can be customized by overriding
 ```{eval-rst}
 .. autofunction:: torch.fx.replace_pattern
 ```
+<<<<<<< HEAD
 ```{eval-rst}
 .. autofunction:: torch.fx.traceback.annotate
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 <!-- The experimental and passes submodules are missing docs. -->
 <!-- Adding it here for coverage but this doesn't add anything to the -->
@@ -1169,7 +1177,10 @@ The set of leaf modules can be customized by overriding
 .. py:module:: torch.fx.passes.operator_support
 .. py:module:: torch.fx.passes.param_fetch
 .. py:module:: torch.fx.passes.pass_manager
+<<<<<<< HEAD
 .. py:module:: torch.fx.passes.regional_inductor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.fx.passes.reinplace
 .. py:module:: torch.fx.passes.runtime_assert
 .. py:module:: torch.fx.passes.shape_prop

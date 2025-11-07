@@ -275,7 +275,11 @@ class TestFloat8Dtype(TestCase):
         IMO simpler to special case e8m0 here.
         """
 
+<<<<<<< HEAD
         for biased_exponent in range(256):
+=======
+        for biased_exponent in range(0, 256):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # iterate through all the possible options of guard, round, sticky bits
             # for the current exponent
             for grs in range(8):
@@ -426,6 +430,10 @@ instantiate_device_type_tests(TestFloat4Dtype, globals())
 
 
 class TestFloat8DtypeCPUOnly(TestCase):
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Test of mul implementation
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import sys
+<<<<<<< HEAD
 import warnings
 
 
@@ -13,6 +14,11 @@ def which(thefile: str) -> str | None:
         stacklevel=2,
     )
 
+=======
+
+
+def which(thefile: str) -> str | None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     path = os.environ.get("PATH", os.defpath).split(os.pathsep)
     for d in path:
         fname = os.path.join(d, thefile)

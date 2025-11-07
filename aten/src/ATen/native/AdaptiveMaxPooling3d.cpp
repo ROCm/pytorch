@@ -93,7 +93,11 @@ namespace {
 // 5d tensor B x D x T x H x W
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_max_pool3d_single_out_frame(
+=======
+static void adaptive_max_pool3d_single_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           const scalar_t *input_p,
           scalar_t *output_p,
           int64_t *ind_p,
@@ -170,7 +174,11 @@ void adaptive_max_pool3d_single_out_frame(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_max_pool3d_out_frame(
+=======
+static void adaptive_max_pool3d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           const scalar_t *input_data,
           scalar_t *output_data,
           int64_t *indices_data,
@@ -202,7 +210,11 @@ void adaptive_max_pool3d_out_frame(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_max_pool3d_backward_single_out_frame(
+=======
+static void adaptive_max_pool3d_backward_single_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           scalar_t *gradInput_p,
           const scalar_t *gradOutput_p,
           const int64_t *ind_p,
@@ -241,7 +253,11 @@ void adaptive_max_pool3d_backward_single_out_frame(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void adaptive_max_pool3d_backward_out_frame(
+=======
+static void adaptive_max_pool3d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           scalar_t *gradInput_data,
           const scalar_t *gradOutput_data,
           const int64_t *indices_data,

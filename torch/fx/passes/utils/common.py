@@ -64,7 +64,10 @@ def lift_subgraph_as_module(
 
         for name in target_name_parts[:-1]:
             if not hasattr(curr, name):
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 curr.add_module(name, HolderModule({}))
 
             curr = getattr(curr, name)

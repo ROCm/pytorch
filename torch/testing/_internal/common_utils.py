@@ -48,11 +48,19 @@ from pathlib import Path
 from statistics import mean
 from typing import (
     Any,
+<<<<<<< HEAD
+=======
+    Callable,
+    Dict,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Optional,
     TypeVar,
     Union,
 )
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from collections.abc import Iterable, Iterator
 from unittest.mock import MagicMock
 
@@ -68,6 +76,10 @@ import torch.backends.xnnpack
 import torch.cuda
 from torch import Tensor
 from torch._C import ScriptDict, ScriptList  # type: ignore[attr-defined]
+<<<<<<< HEAD
+=======
+from torch._dynamo.trace_rules import _as_posix_path
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._utils_internal import get_writable_path
 from torch._logging.scribe import open_source_signpost
 from torch.nn import (
@@ -95,19 +107,29 @@ from torch.utils._import_utils import _check_module_exists
 import torch.utils._pytree as pytree
 from torch.utils import cpp_extension
 try:
+<<<<<<< HEAD
     import pytest  # type: ignore[import-not-found]
+=======
+    import pytest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     has_pytest = True
 except ImportError:
     has_pytest = False
 
+<<<<<<< HEAD
 SEED = 1234
 MI350_ARCH = ("gfx950",)
 MI300_ARCH = ("gfx940", "gfx941", "gfx942")
 MI200_ARCH = ("gfx90a")
+=======
+
+MI300_ARCH = ("gfx940", "gfx941", "gfx942")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 NAVI_ARCH = ("gfx1030", "gfx1100", "gfx1101", "gfx1200", "gfx1201")
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
 
+<<<<<<< HEAD
 def is_arch(arch_list):
     if torch.cuda.is_available():
         prop = torch.cuda.get_device_properties(0)
@@ -142,6 +164,16 @@ UNITTEST_ARGS : list[str] = []
 USE_PYTEST = False
 
 
+=======
+def is_navi3_arch():
+    if torch.cuda.is_available():
+        prop = torch.cuda.get_device_properties(0)
+        gfx_arch = prop.gcnArchName.split(":")[0]
+        if gfx_arch in NAVI3_ARCH:
+            return True
+    return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def freeze_rng_state(*args, **kwargs):
     return torch.testing._utils.freeze_rng_state(*args, **kwargs)
 
@@ -334,7 +366,11 @@ if os.getenv("SLOW_TESTS_FILE", ""):
 if os.getenv("DISABLED_TESTS_FILE", ""):
     disabled_tests_dict = maybe_load_json(os.getenv("DISABLED_TESTS_FILE", ""))
 
+<<<<<<< HEAD
 NATIVE_DEVICES = ('cpu', 'cuda', 'xpu', 'meta', 'mps', torch._C._get_privateuse1_backend_name())
+=======
+NATIVE_DEVICES = ('cpu', 'cuda', 'xpu', 'meta', torch._C._get_privateuse1_backend_name())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # used for managing devices testing for torch profiler UTs
 # for now cpu, cuda and xpu are added for testing torch profiler UTs
@@ -366,10 +402,16 @@ def extract_test_fn() -> Optional[Callable]:
             self_val = frame.f_locals["self"]
             if isinstance(self_val, unittest.TestCase):
                 test_id = self_val.id()
+<<<<<<< HEAD
                 *_, cls_name, test_name = test_id.rsplit('.', 2)
                 if cls_name == type(self_val).__name__ and test_name.startswith("test"):
                     test_fn = getattr(self_val, test_name).__func__
                     return test_fn
+=======
+                test_name = test_id.split('.')[2]
+                test_fn = getattr(self_val, test_name).__func__
+                return test_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except Exception:
         pass
     return None
@@ -700,7 +742,11 @@ class parametrize(_TestParametrizer):
             return f"{name}{idx}"
 
     def _default_subtest_name(self, idx, values):
+<<<<<<< HEAD
         return '_'.join([self._formatted_str_repr(idx, a, v) for a, v in zip(self.arg_names, values, strict=True)])
+=======
+        return '_'.join([self._formatted_str_repr(idx, a, v) for a, v in zip(self.arg_names, values)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _get_subtest_name(self, idx, values, explicit_name=None):
         if explicit_name:
@@ -744,7 +790,11 @@ class parametrize(_TestParametrizer):
                     raise RuntimeError(f'Expected # values == # arg names, but got: {len(values)} '
                                        f'values and {len(self.arg_names)} names for test "{test.__name__}"')
 
+<<<<<<< HEAD
                 param_kwargs = dict(zip(self.arg_names, values, strict=True))
+=======
+                param_kwargs = dict(zip(self.arg_names, values))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 test_name = self._get_subtest_name(idx, values, explicit_name=maybe_name)
 
@@ -876,6 +926,14 @@ class decorateIf(_TestParametrizer):
         yield (test_wrapper, test_name, {}, decorator_fn)
 
 
+<<<<<<< HEAD
+=======
+class ProfilingMode(Enum):
+    LEGACY = 1
+    SIMPLE = 2
+    PROFILING = 3
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def cppProfilingFlagsToProfilingMode():
     old_prof_exec_state = torch._C._jit_set_profiling_executor(True)
     old_prof_mode_state = torch._C._get_graph_executor_optimize(True)
@@ -894,7 +952,10 @@ def cppProfilingFlagsToProfilingMode():
 def enable_profiling_mode_for_profiling_tests():
     old_prof_exec_state = False
     old_prof_mode_state = False
+<<<<<<< HEAD
     assert GRAPH_EXECUTOR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if GRAPH_EXECUTOR == ProfilingMode.PROFILING:
         old_prof_exec_state = torch._C._jit_set_profiling_executor(True)
         old_prof_mode_state = torch._C._get_graph_executor_optimize(True)
@@ -929,7 +990,10 @@ meth_call = torch._C.ScriptMethod.__call__
 def prof_callable(callable, *args, **kwargs):
     if 'profile_and_replay' in kwargs:
         del kwargs['profile_and_replay']
+<<<<<<< HEAD
         assert GRAPH_EXECUTOR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if GRAPH_EXECUTOR == ProfilingMode.PROFILING:
             with enable_profiling_mode_for_profiling_tests():
                 callable(*args, **kwargs)
@@ -959,6 +1023,7 @@ def _get_test_report_path():
     test_source = override if override is not None else 'python-unittest'
     return os.path.join('test-reports', test_source)
 
+<<<<<<< HEAD
 def parse_cmd_line_args():
     global CI_FUNCTORCH_ROOT
     global CI_PT_ROOT
@@ -1044,6 +1109,74 @@ def parse_cmd_line_args():
     CI_TEST_PREFIX = str(Path(os.getcwd()))
     CI_PT_ROOT = str(Path(os.getcwd()).parent)
     CI_FUNCTORCH_ROOT = str(os.path.join(Path(os.getcwd()).parent, "functorch"))
+=======
+is_running_via_run_test = "run_test.py" in getattr(__main__, "__file__", "")
+parser = argparse.ArgumentParser(add_help=not is_running_via_run_test, allow_abbrev=False)
+parser.add_argument('--subprocess', action='store_true',
+                    help='whether to run each test in a subprocess')
+parser.add_argument('--seed', type=int, default=1234)
+parser.add_argument('--accept', action='store_true')
+parser.add_argument('--jit-executor', '--jit_executor', type=str)
+parser.add_argument('--repeat', type=int, default=1)
+parser.add_argument('--test-bailouts', '--test_bailouts', action='store_true')
+parser.add_argument('--use-pytest', action='store_true')
+parser.add_argument('--save-xml', nargs='?', type=str,
+                    const=_get_test_report_path(),
+                    default=_get_test_report_path() if IS_CI else None)
+parser.add_argument('--discover-tests', action='store_true')
+parser.add_argument('--log-suffix', type=str, default="")
+parser.add_argument('--run-parallel', type=int, default=1)
+parser.add_argument('--import-slow-tests', type=str, nargs='?', const=DEFAULT_SLOW_TESTS_FILE)
+parser.add_argument('--import-disabled-tests', type=str, nargs='?', const=DEFAULT_DISABLED_TESTS_FILE)
+parser.add_argument('--rerun-disabled-tests', action='store_true')
+parser.add_argument('--pytest-single-test', type=str, nargs=1)
+parser.add_argument('--showlocals', action=argparse.BooleanOptionalAction, default=False)
+
+# Only run when -h or --help flag is active to display both unittest and parser help messages.
+def run_unittest_help(argv):
+    unittest.main(argv=argv)
+
+if '-h' in sys.argv or '--help' in sys.argv:
+    help_thread = threading.Thread(target=run_unittest_help, args=(sys.argv,))
+    help_thread.start()
+    help_thread.join()
+
+args, remaining = parser.parse_known_args()
+if args.jit_executor == 'legacy':
+    GRAPH_EXECUTOR = ProfilingMode.LEGACY
+elif args.jit_executor == 'profiling':
+    GRAPH_EXECUTOR = ProfilingMode.PROFILING
+elif args.jit_executor == 'simple':
+    GRAPH_EXECUTOR = ProfilingMode.SIMPLE
+else:
+    # infer flags based on the default settings
+    GRAPH_EXECUTOR = cppProfilingFlagsToProfilingMode()
+
+RERUN_DISABLED_TESTS = args.rerun_disabled_tests
+
+SLOW_TESTS_FILE = args.import_slow_tests
+DISABLED_TESTS_FILE = args.import_disabled_tests
+LOG_SUFFIX = args.log_suffix
+RUN_PARALLEL = args.run_parallel
+TEST_BAILOUTS = args.test_bailouts
+USE_PYTEST = args.use_pytest
+PYTEST_SINGLE_TEST = args.pytest_single_test
+TEST_DISCOVER = args.discover_tests
+TEST_IN_SUBPROCESS = args.subprocess
+TEST_SAVE_XML = args.save_xml
+REPEAT_COUNT = args.repeat
+SEED = args.seed
+SHOWLOCALS = args.showlocals
+if not getattr(expecttest, "ACCEPT", False):
+    expecttest.ACCEPT = args.accept
+UNITTEST_ARGS = [sys.argv[0]] + remaining
+torch.manual_seed(SEED)
+
+# CI Prefix path used only on CI environment
+CI_TEST_PREFIX = str(Path(os.getcwd()))
+CI_PT_ROOT = str(Path(os.getcwd()).parent)
+CI_FUNCTORCH_ROOT = str(os.path.join(Path(os.getcwd()).parent, "functorch"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def wait_for_process(p, timeout=None):
     try:
@@ -1192,9 +1325,13 @@ def lint_test_case_extension(suite):
     return succeed
 
 
+<<<<<<< HEAD
 def get_report_path(argv=None, pytest=False):
     if argv is None:
         argv = UNITTEST_ARGS
+=======
+def get_report_path(argv=UNITTEST_ARGS, pytest=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     test_filename = sanitize_test_filename(argv[0])
     test_report_path = TEST_SAVE_XML + LOG_SUFFIX
     test_report_path = os.path.join(test_report_path, test_filename)
@@ -1245,11 +1382,15 @@ def get_pytest_test_cases(argv: list[str]) -> list[str]:
     return test_collector_plugin.tests
 
 
+<<<<<<< HEAD
 def run_tests(argv=None):
     parse_cmd_line_args()
     if argv is None:
         argv = UNITTEST_ARGS
 
+=======
+def run_tests(argv=UNITTEST_ARGS):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # import test files.
     if SLOW_TESTS_FILE:
         if os.path.exists(SLOW_TESTS_FILE):
@@ -1259,7 +1400,11 @@ def run_tests(argv=None):
                 # use env vars so pytest-xdist subprocesses can still access them
                 os.environ['SLOW_TESTS_FILE'] = SLOW_TESTS_FILE
         else:
+<<<<<<< HEAD
             warnings.warn(f'slow test file provided but not found: {SLOW_TESTS_FILE}', stacklevel=2)
+=======
+            warnings.warn(f'slow test file provided but not found: {SLOW_TESTS_FILE}')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if DISABLED_TESTS_FILE:
         if os.path.exists(DISABLED_TESTS_FILE):
             with open(DISABLED_TESTS_FILE) as fp:
@@ -1267,7 +1412,11 @@ def run_tests(argv=None):
                 disabled_tests_dict = json.load(fp)
                 os.environ['DISABLED_TESTS_FILE'] = DISABLED_TESTS_FILE
         else:
+<<<<<<< HEAD
             warnings.warn(f'disabled test file provided but not found: {DISABLED_TESTS_FILE}', stacklevel=2)
+=======
+            warnings.warn(f'disabled test file provided but not found: {DISABLED_TESTS_FILE}')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Determine the test launch mechanism
     if TEST_DISCOVER:
         _print_test_names()
@@ -1479,7 +1628,11 @@ TEST_ACL = torch.backends.mkldnn.is_available() and torch.ops.mkldnn._is_mkldnn_
 TEST_MPS = torch.backends.mps.is_available()
 MACOS_VERSION = float('.'.join(platform.mac_ver()[0].split('.')[:2]) or -1)
 TEST_XPU = torch.xpu.is_available()
+<<<<<<< HEAD
 TEST_HPU = bool(hasattr(torch, "hpu") and torch.hpu.is_available())
+=======
+TEST_HPU = True if (hasattr(torch, "hpu") and torch.hpu.is_available()) else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST_CUDA = torch.cuda.is_available()
 custom_device_mod = getattr(torch, torch._C._get_privateuse1_backend_name(), None)
 TEST_PRIVATEUSE1 = is_privateuse1_backend_available()
@@ -1523,10 +1676,13 @@ TEST_WITH_ROCM: bool = TestEnvironment.def_flag(
     "TEST_WITH_ROCM",
     env_var="PYTORCH_TEST_WITH_ROCM",
 )
+<<<<<<< HEAD
 TEST_WITH_MTIA: bool = TestEnvironment.def_flag(
     "TEST_WITH_MTIA",
     env_var="PYTORCH_TEST_WITH_MTIA",
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC once ROCm officially supports NHWC in MIOpen
 # See #64427
@@ -1760,10 +1916,13 @@ def serialTest(condition=True):
     """
     Decorator for running tests serially.  Requires pytest
     """
+<<<<<<< HEAD
     # If one apply decorator directly condition will be callable
     # And test will essentially be essentially skipped, which is undesirable
     assert type(condition) is bool
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def decorator(fn):
         if has_pytest and condition:
             return pytest.mark.serial(fn)
@@ -1819,7 +1978,10 @@ def skipIfLegacyJitExecutor(msg="test doesn't currently work with legacy JIT exe
         if not isinstance(fn, type):
             @wraps(fn)
             def wrapper(*args, **kwargs):
+<<<<<<< HEAD
                 assert GRAPH_EXECUTOR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if GRAPH_EXECUTOR == ProfilingMode.LEGACY:
                     raise unittest.SkipTest(msg)
                 else:
@@ -1984,6 +2146,7 @@ def skipIfRocm(func=None, *, msg="test doesn't currently work on the ROCm stack"
         return dec_fn(func)
     return dec_fn
 
+<<<<<<< HEAD
 def getRocmArchName(device_index: int = 0):
     return torch.cuda.get_device_properties(device_index).gcnArchName
 
@@ -1991,10 +2154,13 @@ def isRocmArchAnyOf(arch: tuple[str, ...]):
     rocmArch = getRocmArchName()
     return any(x in rocmArch for x in arch)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfRocmArch(arch: tuple[str, ...]):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
+<<<<<<< HEAD
             if TEST_WITH_ROCM and isRocmArchAnyOf(arch):
                 reason = f"skipIfRocm: test skipped on {arch}"
                 raise unittest.SkipTest(reason)
@@ -2022,6 +2188,12 @@ def skipIfRocmNotEnoughMemory(required_amount):
                 if not result:
                     reason = f"skipIfRocm: Not enough free VRAM on current ROCm device. " \
                         f"Available: {free_global:.2f} GB | Required: {required_amount:.2f} GB."
+=======
+            if TEST_WITH_ROCM:
+                prop = torch.cuda.get_device_properties(0)
+                if prop.gcnArchName.split(":")[0] in arch:
+                    reason = f"skipIfRocm: test skipped on {arch}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise unittest.SkipTest(reason)
             return fn(self, *args, **kwargs)
         return wrap_fn
@@ -2040,9 +2212,17 @@ def runOnRocmArch(arch: tuple[str, ...]):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
+<<<<<<< HEAD
             if TEST_WITH_ROCM and not isRocmArchAnyOf(arch):
                 reason = f"skipIfRocm: test only runs on {arch}"
                 raise unittest.SkipTest(reason)
+=======
+            if TEST_WITH_ROCM:
+                prop = torch.cuda.get_device_properties(0)
+                if prop.gcnArchName.split(":")[0] not in arch:
+                    reason = f"skipIfRocm: test only runs on {arch}"
+                    raise unittest.SkipTest(reason)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return fn(self, *args, **kwargs)
         return wrap_fn
     return dec_fn
@@ -2050,6 +2230,7 @@ def runOnRocmArch(arch: tuple[str, ...]):
 def xfailIfS390X(func):
     return unittest.expectedFailure(func) if IS_S390X else func
 
+<<<<<<< HEAD
 def xfailIf(condition):
     def wrapper(func):
         if condition:
@@ -2058,6 +2239,8 @@ def xfailIf(condition):
             return func
     return wrapper
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfXpu(func=None, *, msg="test doesn't currently work on the XPU stack"):
     def dec_fn(fn):
         reason = f"skipIfXpu: {msg}"
@@ -2083,6 +2266,19 @@ def skipIfMPS(fn):
     return wrapper
 
 
+<<<<<<< HEAD
+=======
+def skipIfMPSOnMacOS13(fn):
+    @wraps(fn)
+    def wrapper(*args, **kwargs):
+        if TEST_MPS and int(MACOS_VERSION) == 13:
+            raise unittest.SkipTest("Test crashes MPSGraph on MacOS13")
+        else:
+            fn(*args, **kwargs)
+    return wrapper
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfHpu(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -2092,18 +2288,27 @@ def skipIfHpu(fn):
             fn(*args, **kwargs)
     return wrapper
 
+<<<<<<< HEAD
 def getRocmVersion() -> tuple[int, int]:
     from torch.testing._internal.common_cuda import _get_torch_rocm_version
     rocm_version = _get_torch_rocm_version()
     return (rocm_version[0], rocm_version[1])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Skips a test on CUDA if ROCm is available and its version is lower than requested.
 def skipIfRocmVersionLessThan(version=None):
     def dec_fn(fn):
         @wraps(fn)
         def wrap_fn(self, *args, **kwargs):
             if TEST_WITH_ROCM:
+<<<<<<< HEAD
                 rocm_version_tuple = getRocmVersion()
+=======
+                rocm_version = str(torch.version.hip)
+                rocm_version = rocm_version.split("-")[0]    # ignore git sha
+                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
                     reason = f"ROCm {rocm_version_tuple} is available but {version} required"
                     raise unittest.SkipTest(reason)
@@ -2111,6 +2316,26 @@ def skipIfRocmVersionLessThan(version=None):
         return wrap_fn
     return dec_fn
 
+<<<<<<< HEAD
+=======
+def skipIfRocmVersionAndArch(version=None, arch=None):
+    def dec_fn(fn):
+        @wraps(fn)
+        def wrap_fn(self, *args, **kwargs):
+            if TEST_WITH_ROCM:
+                rocm_version = str(torch.version.hip)
+                rocm_version = rocm_version.split("-")[0]    # ignore git sha
+                rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+                if rocm_version_tuple is None or version is None or rocm_version_tuple < tuple(version):
+                    prop = torch.cuda.get_device_properties(0)
+                    if prop.gcnArchName.split(":")[0] in arch:
+                        reason = f"ROCm {version} and {arch} combination not supported"
+                        raise unittest.SkipTest(reason)
+            return fn(self, *args, **kwargs)
+        return wrap_fn
+    return dec_fn
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skipIfNotMiopenSuggestNHWC(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
@@ -2135,6 +2360,7 @@ def skipIfWindows(func=None, *, msg="test doesn't currently work on the Windows 
         return dec_fn(func)
     return dec_fn
 
+<<<<<<< HEAD
 def skipIfWindowsXPU(func=None, *, msg="test doesn't currently work on the Windows stack"):
     def dec_fn(fn):
         reason = f"skipIfWindowsXPU: {msg}"
@@ -2170,6 +2396,8 @@ def requires_cuda_p2p_access():
         "cuda p2p access is not available",
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reverts the linalg backend back to default to make sure potential failures in one
 # test do not affect other tests
 def setLinalgBackendsToDefaultFinally(fn):
@@ -2486,9 +2714,13 @@ def get_function_arglist(func):
     return inspect.getfullargspec(func).args
 
 
+<<<<<<< HEAD
 def set_rng_seed(seed=None):
     if seed is None:
         seed = SEED
+=======
+def set_rng_seed(seed):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.manual_seed(seed)
     random.seed(seed)
     if TEST_NUMPY:
@@ -2686,18 +2918,32 @@ class CudaMemoryLeakCheck:
                 msg = ("CUDA caching allocator reports a memory leak not "  # type: ignore[possibly-undefined]
                        f"verified by the driver API in {self.name}! "
                        f"Caching allocator allocated memory was {self.caching_allocator_befores[i]} "
+<<<<<<< HEAD
                        f"and is now reported as {caching_allocator_mem_allocated} "  # type: ignore[possibly-undefined]
                        f"on device {i}. "
                        f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")  # type: ignore[possibly-undefined]
                 warnings.warn(msg, stacklevel=2)
             elif caching_allocator_discrepancy and driver_discrepancy:  # type: ignore[possibly-undefined]
+=======
+                       f"and is now reported as {caching_allocator_mem_allocated} "
+                       f"on device {i}. "
+                       f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")
+                warnings.warn(msg)
+            elif caching_allocator_discrepancy and driver_discrepancy:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # A caching allocator discrepancy validated by the driver API is a
                 #   failure (except on ROCm, see below)
                 msg = (f"CUDA driver API confirmed a leak in {self.name}! "  # type: ignore[possibly-undefined]
                        f"Caching allocator allocated memory was {self.caching_allocator_befores[i]} "
+<<<<<<< HEAD
                        f"and is now reported as {caching_allocator_mem_allocated} "  # type: ignore[possibly-undefined]
                        f"on device {i}. "
                        f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")  # type: ignore[possibly-undefined]
+=======
+                       f"and is now reported as {caching_allocator_mem_allocated} "
+                       f"on device {i}. "
+                       f"CUDA driver allocated memory was {self.driver_befores[i]} and is now {driver_mem_allocated}.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 raise RuntimeError(msg)
 
@@ -2783,7 +3029,11 @@ try:
         "pytorch_ci" if IS_CI else os.getenv('PYTORCH_HYPOTHESIS_PROFILE', 'dev')
     )
 except ImportError:
+<<<<<<< HEAD
     warnings.warn('Fail to import hypothesis in common_utils, tests are not derandomized', ImportWarning, stacklevel=2)
+=======
+    warnings.warn('Fail to import hypothesis in common_utils, tests are not derandomized', ImportWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Used in check_if_enable to see if a test method should be disabled by an issue,
 # sanitizes a test method name from appended suffixes by @dtypes parametrization.
@@ -3250,7 +3500,11 @@ class TestCase(expecttest.TestCase):
 
     def remove_empty_lines(self, input_string):
         lines = input_string.split('\n')
+<<<<<<< HEAD
         filtered_lines = [line for line in lines if line.strip() != '']
+=======
+        filtered_lines = [line for line in lines if not line.strip() == '']
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return '\n'.join(filtered_lines)
 
     # ignore comments will ignore lines that starts with # after being stripped
@@ -3427,7 +3681,11 @@ class TestCase(expecttest.TestCase):
                     def wrapper(*args, **kwargs):
                         try:
                             f(*args, **kwargs)
+<<<<<<< HEAD
                         except BaseException as e:  # noqa: B036
+=======
+                        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.skipTest(e)
                         raise RuntimeError(f"Unexpected success, please remove `{file_name}`")
                     return wrapper
@@ -3449,7 +3707,11 @@ class TestCase(expecttest.TestCase):
                     def wrapper(*args, **kwargs):
                         try:
                             f(*args, **kwargs)
+<<<<<<< HEAD
                         except BaseException as e:  # noqa: B036
+=======
+                        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             self.skipTest(e)
                         method = getattr(self, self._testMethodName)
                         if getattr(method, "__unittest_expecting_failure__", False):
@@ -3479,8 +3741,11 @@ class TestCase(expecttest.TestCase):
 
         if strict_mode or should_reset_dynamo:
             torch._dynamo.reset()
+<<<<<<< HEAD
         elif torch._dynamo.config.compiled_autograd:
             torch._dynamo.compiled_autograd.reset()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Early terminate test if necessary.  If using pytest, use the -x flag instead
         if using_unittest and self._should_stop_test_suite():
@@ -3511,7 +3776,11 @@ class TestCase(expecttest.TestCase):
 
     def setUp(self):
         check_if_enable(self)
+<<<<<<< HEAD
         set_rng_seed()
+=======
+        set_rng_seed(SEED)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Save global check sparse tensor invariants state that can be
         # restored from tearDown:
@@ -3729,7 +3998,11 @@ class TestCase(expecttest.TestCase):
             n_compressed_dims, n_plain_dims = size[-1 - dense_dims] // blocksize1, size[-2 - dense_dims] // blocksize0
         blocknnz = nnz // (blocksize0 * blocksize1)
         sparse_tensors = [random_sparse_compressed(n_compressed_dims, n_plain_dims, blocknnz) for _ in range(n_batch)]
+<<<<<<< HEAD
         sparse_tensors_it = map(list, zip(*sparse_tensors, strict=True))
+=======
+        sparse_tensors_it = map(list, zip(*sparse_tensors))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         values = torch.stack(next(sparse_tensors_it)).reshape(*batch_shape, blocknnz, *blocksize, *dense_size)
         compressed_indices = torch.stack(next(sparse_tensors_it)).reshape(*batch_shape, -1)
@@ -4291,7 +4564,11 @@ class TestCase(expecttest.TestCase):
             self.assertEqual(x, y, msg, atol=atol, rtol=rtol, **kwargs)
 
     def assertEqualTypeString(self, x, y) -> None:
+<<<<<<< HEAD
         # This API is used simulate deprecated x.type() is y.type()
+=======
+        # This API is used simulate deprecated x.type() == y.type()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(x.device, y.device)
         self.assertEqual(x.dtype, y.dtype)
         self.assertEqual(x.is_sparse, y.is_sparse)
@@ -4674,7 +4951,11 @@ def download_file(url, binary=True):
         return path
     except error.URLError as e:
         msg = f"could not download test file '{url}'"
+<<<<<<< HEAD
         warnings.warn(msg, RuntimeWarning, stacklevel=2)
+=======
+        warnings.warn(msg, RuntimeWarning)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise unittest.SkipTest(msg) from e
 
 def find_free_port():
@@ -5173,7 +5454,11 @@ def gradcheck(fn, inputs, **kwargs):
 
     for key, value in default_values.items():
         # default value override values explicitly set to None
+<<<<<<< HEAD
         k = kwargs.get(key)
+=======
+        k = kwargs.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs[key] = k if k is not None else value
 
     return torch.autograd.gradcheck(fn, inputs, **kwargs)
@@ -5193,7 +5478,11 @@ def gradgradcheck(fn, inputs, grad_outputs=None, **kwargs):
 
     for key, value in default_values.items():
         # default value override values explicitly set to None
+<<<<<<< HEAD
         k = kwargs.get(key)
+=======
+        k = kwargs.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwargs[key] = k if k is not None else value
 
     return torch.autograd.gradgradcheck(fn, inputs, grad_outputs, **kwargs)
@@ -5708,8 +5997,11 @@ class LazyVal:
 
 
 def munge_exc(e, *, suppress_suffix=True, suppress_prefix=True, file=None, skip=0):
+<<<<<<< HEAD
     from torch._dynamo.trace_rules import _as_posix_path
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if file is None:
         file = inspect.stack()[1 + skip].filename  # skip one frame
 
@@ -5770,17 +6062,29 @@ def check_leaked_tensors(limit=1, matched_type=torch.Tensor):
         num_garbage_objs = len(garbage_objs)
         if num_garbage_objs > 0:
             warnings.warn(
+<<<<<<< HEAD
                 f"{num_garbage_objs} tensors were found in the garbage. Did you introduce a reference cycle?", stacklevel=2
+=======
+                f"{num_garbage_objs} tensors were found in the garbage. Did you introduce a reference cycle?"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             try:
                 import objgraph  # type: ignore[import-not-found,import-untyped]
                 warnings.warn(
+<<<<<<< HEAD
                     f"Dumping first {limit} objgraphs of leaked {matched_type}s rendered to png", stacklevel=2
+=======
+                    f"Dumping first {limit} objgraphs of leaked {matched_type}s rendered to png"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for g in garbage_objs[:limit]:
                     objgraph.show_backrefs([g], max_depth=10)
             except ImportError:
+<<<<<<< HEAD
                 warnings.warn("`pip install objgraph` to enable memory leak debugging", stacklevel=2)
+=======
+                warnings.warn("`pip install objgraph` to enable memory leak debugging")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     finally:
         gc.set_debug(0)
@@ -5809,7 +6113,12 @@ def install_cpp_extension(extension_root):
             shutil.rmtree(d)
 
     # Build the extension
+<<<<<<< HEAD
     cmd = [sys.executable, "-m", "pip", "install", extension_root, "-v", "--no-build-isolation", "--root", install_dir]
+=======
+    setup_py_path = os.path.join(extension_root, "setup.py")
+    cmd = [sys.executable, setup_py_path, "install", "--root", install_dir]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return_code = shell(cmd, cwd=extension_root, env=os.environ)
     if return_code != 0:
         raise RuntimeError(f"build failed for cpp extension at {extension_root}")
@@ -5846,6 +6155,7 @@ def scoped_load_inline(func):
                 return cpp_extension.load_inline(*args, **kwargs)
 
         return func(*args, load_inline=load_inline, **kwargs)
+<<<<<<< HEAD
     return wrapper
 
 def recover_orig_fp32_precision(fn):
@@ -5884,6 +6194,13 @@ def skipIfPythonVersionMismatch(predicate):
 
 # Decorator to patch multiple test class members for the duration of the subtest
 def patch_test_members(updates: dict[str, Any]):
+=======
+
+    return wrapper
+
+# Decorator to patch multiple test class members for the duration of the subtest
+def patch_test_members(updates: Dict[str, Any]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def decorator(test_func):
         @wraps(test_func)
         def wrapper(self, *args, **kwargs):

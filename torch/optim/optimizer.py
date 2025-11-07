@@ -4,11 +4,19 @@
 import functools
 import warnings
 from collections import defaultdict, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Hashable, Iterable, Sequence
 from copy import deepcopy
 from itertools import chain
 from typing import Any, cast, Optional, overload, TypeAlias, TypeVar, Union
 from typing_extensions import ParamSpec, Self
+=======
+from collections.abc import Hashable, Iterable, Sequence
+from copy import deepcopy
+from itertools import chain
+from typing import Any, Callable, cast, Optional, overload, TypeVar, Union
+from typing_extensions import ParamSpec, Self, TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils.hooks as hooks
@@ -28,10 +36,16 @@ _P = ParamSpec("_P")
 Args: TypeAlias = tuple[Any, ...]
 Kwargs: TypeAlias = dict[str, Any]
 StateDict: TypeAlias = dict[str, Any]
+<<<<<<< HEAD
 DeviceDict: TypeAlias = dict[Optional[torch.device], torch.Tensor]
 DeviceDtypeDict: TypeAlias = dict[
     Optional[tuple[torch.device, torch.dtype]], torch.Tensor
 ]
+=======
+DeviceDict = dict[Optional[torch.device], torch.Tensor]
+DeviceDtypeDict = dict[Optional[tuple[torch.device, torch.dtype]], torch.Tensor]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 GlobalOptimizerPreHook: TypeAlias = Callable[
     ["Optimizer", Args, Kwargs], Optional[tuple[Args, Kwargs]]
@@ -62,7 +76,10 @@ def _use_grad_for_differentiable(func: Callable[_P, _T]) -> Callable[_P, _T]:
     def _use_grad(*args: _P.args, **kwargs: _P.kwargs) -> _T:
         import torch._dynamo
 
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self = cast(Optimizer, args[0])  # assume first positional arg is `self`
         prev_grad = torch.is_grad_enabled()
         try:
@@ -136,13 +153,19 @@ def _disable_dynamo_if_unsupported(
             if torch.compiler.is_compiling() and (
                 not kwargs.get("capturable", False)
                 and has_state_steps
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and (arg := args[state_steps_ind])
                 and isinstance(arg, Sequence)
                 and arg[0].is_cuda
                 or (
                     "state_steps" in kwargs
+<<<<<<< HEAD
                     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     and (kwarg := kwargs["state_steps"])
                     and isinstance(kwarg, Sequence)
                     and kwarg[0].is_cuda
@@ -230,7 +253,11 @@ def _get_capturable_supported_devices(supports_xla: bool = True) -> list[str]:
     return capturable_supported_devices
 
 
+<<<<<<< HEAD
 def _to_scalar(x: Union[float, torch.Tensor]):
+=======
+def _to_scalar(x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r"""This function converts a hyperparameter to a 0-dimension (scalar) tensor
     if it is a nonzero-dimensions 1-element tensor. If it is not a tensor, it is
     kept as is.
@@ -362,6 +389,7 @@ class Optimizer:
 
     _optimizer_step_pre_hooks: dict[int, OptimizerPreHook]
     _optimizer_step_post_hooks: dict[int, OptimizerPostHook]
+<<<<<<< HEAD
     # pyrefly: ignore [not-a-type]
     _optimizer_state_dict_pre_hooks: 'OrderedDict[int, Callable[["Optimizer"], None]]'
     _optimizer_state_dict_post_hooks: (
@@ -374,6 +402,16 @@ class Optimizer:
     )
     _optimizer_load_state_dict_post_hooks: (
         # pyrefly: ignore [not-a-type]
+=======
+    _optimizer_state_dict_pre_hooks: 'OrderedDict[int, Callable[["Optimizer"], None]]'
+    _optimizer_state_dict_post_hooks: (
+        'OrderedDict[int, Callable[["Optimizer", StateDict], Optional[StateDict]]]'
+    )
+    _optimizer_load_state_dict_pre_hooks: (
+        'OrderedDict[int, Callable[["Optimizer", StateDict], Optional[StateDict]]]'
+    )
+    _optimizer_load_state_dict_post_hooks: (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         'OrderedDict[int, Callable[["Optimizer"], None]]'
     )
 
@@ -483,8 +521,12 @@ class Optimizer:
                 warnings.warn(
                     "This instance was constructed with capturable=True or some of all the param_groups came with capturable=True, "
                     "but step() is running without CUDA graph capture. If you never intend to graph-capture this "
+<<<<<<< HEAD
                     "instance, capturable=True can impair performance, and you should set capturable=False.",
                     stacklevel=2,
+=======
+                    "instance, capturable=True can impair performance, and you should set capturable=False."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 self._warned_capturable_if_run_uncaptured = True
 
@@ -522,7 +564,10 @@ class Optimizer:
                                 f"{func} must return None or a tuple of (new_args, new_kwargs), but got {result}."
                             )
 
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-param-spec]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out = func(*args, **kwargs)
                 self._optimizer_step_code()
 
@@ -780,12 +825,20 @@ class Optimizer:
         # UNLESS fused or capturable, see note [special device hosting for step]
         fused = False
         capturable = False
+<<<<<<< HEAD
         if param_groups is None:
             raise AssertionError("Expected param_groups to be set")
         for pg in param_groups:
             if param_id in pg["params"]:
                 fused = pg.get("fused", False)
                 capturable = pg.get("capturable", False)
+=======
+        assert param_groups is not None
+        for pg in param_groups:
+            if param_id in pg["params"]:
+                fused = pg["fused"] if "fused" in pg else False
+                capturable = pg["capturable"] if "capturable" in pg else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 break
         if key == "step":
             if capturable or fused:
@@ -959,6 +1012,7 @@ class Optimizer:
             r"""Make a deep copy of value, casting all tensors to device of param."""
             if isinstance(value, torch.Tensor):
                 return Optimizer._process_value_according_to_param_policy(
+<<<<<<< HEAD
                     param,
                     value,
                     # pyrefly: ignore [bad-argument-type]
@@ -966,6 +1020,9 @@ class Optimizer:
                     # pyrefly: ignore [bad-argument-type]
                     param_groups,
                     key,
+=======
+                    param, value, param_id, param_groups, key
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             elif isinstance(value, dict):
                 return {
@@ -976,7 +1033,10 @@ class Optimizer:
                 }
             elif isinstance(value, Iterable):
                 return type(value)(
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-count]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     _cast(param, v, param_id=param_id, param_groups=param_groups)
                     for v in value
                 )  # type: ignore[call-arg]
@@ -1016,6 +1076,7 @@ class Optimizer:
         r"""Reset the gradients of all optimized :class:`torch.Tensor` s.
 
         Args:
+<<<<<<< HEAD
             set_to_none (bool, optional): Instead of setting to zero, set the grads to None. Default: ``True``
 
                 This will in general have lower memory footprint, and can modestly improve performance.
@@ -1028,6 +1089,18 @@ class Optimizer:
                 3. ``torch.optim`` optimizers have a different behavior if the gradient is 0 or None
                    (in one case it does the step with a gradient of 0 and in the other it skips
                    the step altogether).
+=======
+            set_to_none (bool): instead of setting to zero, set the grads to None.
+                This will in general have lower memory footprint, and can modestly improve performance.
+                However, it changes certain behaviors. For example:
+                1. When the user tries to access a gradient and perform manual ops on it,
+                a None attribute or a Tensor full of 0s will behave differently.
+                2. If the user requests ``zero_grad(set_to_none=True)`` followed by a backward pass, ``.grad``\ s
+                are guaranteed to be None for params that did not receive a gradient.
+                3. ``torch.optim`` optimizers have a different behavior if the gradient is 0 or None
+                (in one case it does the step with a gradient of 0 and in the other it skips
+                the step altogether).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         foreach = self.defaults.get("foreach", False) or self.defaults.get(
             "fused", False
@@ -1058,18 +1131,26 @@ class Optimizer:
                             if not foreach or p.grad.is_sparse:
                                 p.grad.zero_()
                             else:
+<<<<<<< HEAD
                                 if per_device_and_dtype_grads is None:
                                     raise AssertionError(
                                         "Expected per_device_and_dtype_grads to be set"
                                     )
+=======
+                                assert per_device_and_dtype_grads is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 per_device_and_dtype_grads[p.grad.device][
                                     p.grad.dtype
                                 ].append(p.grad)
             if foreach:
+<<<<<<< HEAD
                 if per_device_and_dtype_grads is None:
                     raise AssertionError(
                         "Expected per_device_and_dtype_grads to be set"
                     )
+=======
+                assert per_device_and_dtype_grads is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for per_dtype_grads in per_device_and_dtype_grads.values():
                     for grads in per_dtype_grads.values():
                         torch._foreach_zero_(grads)

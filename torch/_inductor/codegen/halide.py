@@ -54,7 +54,10 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
     from ..ops_handler import ReductionType, StoreMode
+<<<<<<< HEAD
     from ..shape_propagation import BlockShapeType
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 log = logging.getLogger(__name__)
 
@@ -557,7 +560,10 @@ class HalideOverrides(OpOverrides):
             f"hl.cast({result.name}.type(), {halide_constant(other)})",
             [],
             bounds=ValueRanges.wrap(other),
+<<<<<<< HEAD
             shape=result.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # TODO(jansel): look into removing the where in the same places triton does
         return ops.where(new_mask, result, other)
@@ -566,6 +572,7 @@ class HalideOverrides(OpOverrides):
     def frexp(x):
         raise NotImplementedError("frexp")
 
+<<<<<<< HEAD
     @staticmethod
     def device_assert_async(cond, msg):
         raise NotImplementedError("device_assert_async")
@@ -579,6 +586,8 @@ class HalideOverrides(OpOverrides):
     ) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 HalideOverrides._initialize_pointwise_overrides("halide")
 
@@ -591,9 +600,14 @@ class HalideCSEVariable(CSEVariable):
         name,
         bounds: ValueRanges[Any],
         dtype: Optional[torch.dtype] = None,
+<<<<<<< HEAD
         shape: BlockShapeType = None,
     ) -> None:
         super().__init__(name, bounds, dtype, shape=shape)
+=======
+    ) -> None:
+        super().__init__(name, bounds, dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.used_dims: Optional[list[sympy.Symbol]] = None
 
     def update_on_args(self, name, args, kwargs):
@@ -645,7 +659,10 @@ class DimensionInfo:
             return "hl.Var()"
         if replacements:
             replacements = {**replacements}
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for sym in expr.free_symbols:
                 if symbol_is_type(sym, SymT.TMP):
                     assert isinstance(sym, sympy.Symbol)
@@ -660,12 +677,21 @@ def eq(left, right):
     if V.graph.sizevars.statically_known_equals(left, right):
         return True
     try:
+<<<<<<< HEAD
         a = V.graph.sizevars.size_hint_or_throw(left)
         b = V.graph.sizevars.size_hint_or_throw(right)
     except TypeError:  # unbacked symints
         return False
     if a == b:
         V.graph.sizevars.check_equals(left, right)
+=======
+        a = V.graph.sizevars.size_hint(left)
+        b = V.graph.sizevars.size_hint(right)
+    except TypeError:  # unbacked symints
+        return False
+    if a == b:
+        V.graph.sizevars.guard_equals(left, right)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return a == b
 
 
@@ -673,15 +699,24 @@ def lt(left, right):
     if V.graph.sizevars.statically_known_lt(left, right):
         return True
     try:
+<<<<<<< HEAD
         a = V.graph.sizevars.size_hint_or_throw(left)
         b = V.graph.sizevars.size_hint_or_throw(right)
+=======
+        a = V.graph.sizevars.size_hint(left)
+        b = V.graph.sizevars.size_hint(right)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except TypeError:  # unbacked symints
         gcd = sympy.gcd(left, right)
         if gcd == left:
             return left != right
         return False
     if a < b:
+<<<<<<< HEAD
         V.graph.sizevars.check_lt(left, right)
+=======
+        V.graph.sizevars.guard_lt(left, right)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return a < b
 
 
@@ -719,11 +754,17 @@ class HalideKernel(SIMDKernel):
     def dtype_to_str(self, dtype: torch.dtype) -> str:
         return halide_type(dtype)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def create_cse_var(self, name, bounds=None, dtype=None, shape=None):
         self.body.writeline(f"{name} = hl.Func({name!r})")
         # pyrefly: ignore [bad-argument-type]
         return HalideCSEVariable(name, bounds, dtype, shape)
+=======
+    def create_cse_var(self, name, bounds=None, dtype=None):
+        self.body.writeline(f"{name} = hl.Func({name!r})")
+        return HalideCSEVariable(name, bounds, dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def finalize_indexing(self, indices: Sequence[sympy.Expr]):
         """
@@ -740,7 +781,10 @@ class HalideKernel(SIMDKernel):
             self.index_replacements or self.halide_vars or self.reduction_renames
         )
         size_hint = functools.partial(V.graph.sizevars.size_hint, fallback=inf)  # type: ignore[arg-type]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         indices = dict.fromkeys(map(super().prepare_indexing, indices))
         all_used_symbols = OrderedSet[Any]()
         sym_to_node = {
@@ -839,7 +883,10 @@ class HalideKernel(SIMDKernel):
                         handled_count = len(nodes)
                         had_fallback = True
                     sym = sympy_index_symbol(f"h{len(self.halide_vars)}")
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if tree.is_reduction:
                         self.reduction_renames[sym] = sympy_index_symbol(
                             f"hr{len(self.halide_vars)}"
@@ -1217,13 +1264,20 @@ class HalideKernel(SIMDKernel):
         assert isinstance(value, HalideCSEVariable) and value.used_dims is not None
         reduction_vars = OrderedSet(self.reduction_renames)
         result_var = self.newfunc(
+<<<<<<< HEAD
             [v for v in value.used_dims if v not in reduction_vars],
+=======
+            [v for v in value.used_dims if v not in reduction_vars]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if reduction_vars - OrderedSet(value.used_dims):
             value = self.genfunc(
                 f"{value}",
                 self.sort_used_dims(OrderedSet((*value.used_dims, *reduction_vars))),
+<<<<<<< HEAD
                 shape=value.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         value_str = value.subs_str(self.reduction_renames)
         default = ir.Reduction.default_accumulator(reduction_type, src_dtype)
@@ -1236,10 +1290,15 @@ class HalideKernel(SIMDKernel):
             parts = []
             stride = 1
             for i, sym in enumerate(self.reduction_renames):
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 parts.append(f"{index}[{i}]")
                 if stride != 1:
                     # pyrefly: ignore [unsupported-operation]
+=======
+                parts.append(f"{index}[{i}]")
+                if stride != 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     parts[-1] += f"*{stride}"
                 stride *= self.halide_vars[sym]
             self.body.writeline(f"{result_var} = {' + '.join(parts)}")
@@ -1315,9 +1374,13 @@ class HalideKernel(SIMDKernel):
             else:
                 values.append(
                     self.genfunc(
+<<<<<<< HEAD
                         f"{value}",
                         [*value.used_dims, [*self.reduction_renames][:1]],
                         shape=value.shape,
+=======
+                        f"{value}", [*value.used_dims, [*self.reduction_renames][:1]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 )
             all_used_dims.update(value.used_dims)
@@ -1381,6 +1444,7 @@ class HalideKernel(SIMDKernel):
         return tuple(unpack_vars)
 
     def genfunc(
+<<<<<<< HEAD
         self,
         line,
         used_dims,
@@ -1389,12 +1453,22 @@ class HalideKernel(SIMDKernel):
         shape: BlockShapeType = None,
     ) -> HalideCSEVariable:
         var = self.cse.generate(self.body, line, bounds=bounds, shape=shape)
+=======
+        self, line, used_dims, *, bounds=ValueRanges.unknown()
+    ) -> HalideCSEVariable:
+        var = self.cse.generate(self.body, line, bounds=bounds)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(var, HalideCSEVariable)
         var.used_dims = used_dims
         return var
 
+<<<<<<< HEAD
     def newfunc(self, used_dims, *, shape: BlockShapeType = None) -> HalideCSEVariable:
         var = self.cse.newvar(shape=shape)
+=======
+    def newfunc(self, used_dims) -> HalideCSEVariable:
+        var = self.cse.newvar()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(var, HalideCSEVariable)
         var.used_dims = used_dims
         return var
@@ -1592,7 +1666,10 @@ class HalideKernel(SIMDKernel):
                     hint = self._autoscheduler_workarounds(
                         V.graph.sizevars.size_hint(dim.size, fallback=1), dims
                     )
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     range_hints.append(f"hl.Range(0, {hint})")
                     if "out" not in arg.name:
                         code.writeline(f"{arg.name}.dim({i}).set_min(0)")
@@ -1659,7 +1736,11 @@ class HalideKernel(SIMDKernel):
             n = max(2, n)
         return n
 
+<<<<<<< HEAD
     def call_kernel(self, name: str, node=None, deallocate_ws: bool = True):
+=======
+    def call_kernel(self, name: str, node=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Codegen a call to this kernel"""
         wrapper = V.graph.wrapper_code
         call_args = [f"{n}" for n, arg in self.halide_argdefs() if arg.alias_of is None]

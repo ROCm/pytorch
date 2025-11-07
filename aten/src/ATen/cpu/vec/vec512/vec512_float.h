@@ -32,9 +32,13 @@ class Vectorized<float> {
   static constexpr size_type size() {
     return 16;
   }
+<<<<<<< HEAD
   Vectorized() {
     values = _mm512_setzero_ps();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(__m512 v) : values(v) {}
   Vectorized(float val) {
     values = _mm512_set1_ps(val);
@@ -312,6 +316,7 @@ class Vectorized<float> {
   Vectorized<float> expm1() const {
     return Vectorized<float>(Sleef_expm1f16_u10(values));
   }
+<<<<<<< HEAD
   Vectorized<float> fexp_u20() const {
     const __m512 vec_c0 = _mm512_set1_ps(0.00010703434948458272f);
     const __m512 vec_c1 = _mm512_set1_ps(0.30354260500649682f);
@@ -366,6 +371,8 @@ class Vectorized<float> {
     // final interpretation to float
     return _mm512_castsi512_ps(casted_integer);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<float> exp_u20() const {
     // A faster version of exp with ULP=20
     const __m512 vec_factorial_1 =
@@ -750,6 +757,7 @@ Vectorized<float> inline fmadd(
 }
 
 template <>
+<<<<<<< HEAD
 Vectorized<float> inline fnmadd(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -758,6 +766,8 @@ Vectorized<float> inline fnmadd(
 }
 
 template <>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<float> inline fmsub(
     const Vectorized<float>& a,
     const Vectorized<float>& b,
@@ -765,6 +775,7 @@ Vectorized<float> inline fmsub(
   return _mm512_fmsub_ps(a, b, c);
 }
 
+<<<<<<< HEAD
 template <>
 Vectorized<float> inline fnmsub(
     const Vectorized<float>& a,
@@ -773,6 +784,8 @@ Vectorized<float> inline fnmsub(
   return _mm512_fnmsub_ps(a, b, c);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // TODO: rewrite with ATEN vectorized (need to add unpack and shuffle)
 // Used by Inductor CPP codegen for micro gemm
 // Code referred to FBGEMM:

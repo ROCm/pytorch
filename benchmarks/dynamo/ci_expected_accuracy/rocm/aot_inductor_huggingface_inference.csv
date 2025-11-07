@@ -6,26 +6,84 @@ AlbertForMaskedLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+AlbertForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BartForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+BartForConditionalGeneration,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BertForMaskedLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+BertForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BlenderbotForCausalLM,pass_due_to_skip,0
 
 
 
+<<<<<<< HEAD
+=======
+BlenderbotSmallForCausalLM,pass,0
+
+
+
+BlenderbotSmallForConditionalGeneration,pass,0
+
+
+
+CamemBert,pass,0
+
+
+
+DebertaForMaskedLM,pass,0
+
+
+
+DebertaForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DebertaV2ForMaskedLM,pass_due_to_skip,0
 
 
 
+<<<<<<< HEAD
+=======
+DebertaV2ForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DistilBertForMaskedLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+DistilBertForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DistillGPT2,pass,0
 
 
@@ -34,6 +92,13 @@ ElectraForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+ElectraForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 GPT2ForSequenceClassification,pass,0
 
 
@@ -46,6 +111,13 @@ LayoutLMForMaskedLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+LayoutLMForSequenceClassification,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 M2M100ForConditionalGeneration,pass,0
 
 
@@ -54,6 +126,13 @@ MBartForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+MBartForConditionalGeneration,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MT5ForConditionalGeneration,pass,0
 
 
@@ -62,10 +141,24 @@ MegatronBertForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+MegatronBertForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MobileBertForMaskedLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+MobileBertForQuestionAnswering,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 OPTForCausalLM,pass,0
 
 
@@ -74,14 +167,39 @@ PLBartForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+PLBartForConditionalGeneration,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PegasusForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+PegasusForConditionalGeneration,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RobertaForCausalLM,pass,0
 
 
 
+<<<<<<< HEAD
+=======
+RobertaForQuestionAnswering,pass,0
+
+
+
+Speech2Text2ForCausalLM,pass,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T5ForConditionalGeneration,pass,0
 
 
@@ -103,6 +221,7 @@ XLNetLMHeadModel,pass,0
 
 
 YituTechConvBert,pass,0
+<<<<<<< HEAD
 
 
 
@@ -123,3 +242,5 @@ openai/whisper-tiny,fail_to_run,0
 
 
 Qwen/Qwen3-0.6B,fail_accuracy,0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

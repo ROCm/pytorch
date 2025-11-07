@@ -12,9 +12,14 @@ if torch.backends.mps.is_available():
 
     def mps_ops_modifier(
         ops: Sequence[OpInfo],
+<<<<<<< HEAD
         device_type: str = "mps",
         xfail_exclusion: Optional[list[str]] = None,
         sparse: bool = False,
+=======
+        device_type: Optional[str] = None,
+        xfail_exclusion: Optional[list[str]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Sequence[OpInfo]:
         if xfail_exclusion is None:
             xfail_exclusion = []
@@ -26,7 +31,10 @@ if torch.backends.mps.is_available():
             "__rsub__",
             "__getitem__",
             "_unsafe_masked_index",
+<<<<<<< HEAD
             "_unsafe_masked_index_put_accumulate",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "abs",
             "add",
             "alias_copy",
@@ -38,7 +46,10 @@ if torch.backends.mps.is_available():
             "as_strided_copy",
             "as_strided_scatter",
             "asin",
+<<<<<<< HEAD
             "asinh",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "acos",
             "atan",
             "broadcast_tensors",
@@ -76,17 +87,25 @@ if torch.backends.mps.is_available():
             "H",
             "hsplit",
             "imag",
+<<<<<<< HEAD
             "index_add",
             "index_copy",
             "index_select",
             "index_put",
+=======
+            "index_copy",
+            "index_select",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "isfinite",
             "isinf",
             "isreal",
             "item",
             "kron",
             "linalg.diagonal",
+<<<<<<< HEAD
             "linalg.householder_product",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "linalg.svd",
             "log10",
             "log1p",
@@ -184,6 +203,12 @@ if torch.backends.mps.is_available():
             "zero_",
             "zeros",
             "zeros_like",
+<<<<<<< HEAD
+=======
+        }
+
+        AFTER_MACOS_14_0_SUPPORTED_COMPLEX_OPS = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "__rdiv__",
             "__rmatmul__",
             "_chunk_cat",
@@ -277,6 +302,11 @@ if torch.backends.mps.is_available():
             "roll",
             "rot90",
             "short",
+<<<<<<< HEAD
+=======
+            "sinh",
+            "sqrt",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "square",
             "stack",
             "stft",
@@ -290,6 +320,88 @@ if torch.backends.mps.is_available():
             "where",
             "byte",
         }
+<<<<<<< HEAD
+=======
+        # Those ops worked on MacOS12, but broken on MacOS13, see https://github.com/pytorch/pytorch/issues/85758
+        MACOS_BEFORE_13_3_XFAILLIST = {
+            # Failures due to precision issues (due to fast-math). These has been fixed in MacOS 13.3+
+            "cdist": [torch.float32],
+            # CPU Error: cpu not giving nan for x/0.0
+            "atan2": [
+                torch.bool,
+                torch.int16,
+                torch.int32,
+                torch.int64,
+                torch.uint8,
+                torch.int8,
+            ],
+            # test blow pass on macOS 12 as it falls back to cpu
+            # Argsort case using duplicate indices (undefined behaviour):
+            #  - CPU output: tensor([2546, 6917, 3181,  ..., 7128, 5133,   30], device='cpu')
+            #  - MPS output: tensor([2546, 6917, 3181,  ..., 7128,   30, 5133], device='mps:0')
+            # Elements from index 30 and 5133 are both equal.
+            # Since CPU is not using argsort with stable=True, these cases result in undefined behaviour.
+            "argsort": [torch.float16, torch.int8, torch.uint8, torch.bool],
+            # Same issue as `argsort` with duplicate indices. This test checks both the sorted values and the indices.
+            # The values of the sorted tensor match the CPU,
+            # but in case of the returned indices this results in undefined behaviour.
+            "sort": [torch.int8, torch.uint8, torch.bool, torch.float16],
+            # Unsupported dtypes
+            "cumsum": [torch.int64],
+            "cumprod": [torch.int64],
+            "cumulative_trapezoid": [torch.int64],
+            "masked.cumsum": [torch.int64],
+            "masked.cumprod": [torch.int64],
+            "linalg.vander": [torch.int64],
+            # Fail with `Expected 1.0 but got nan.` for empty tensors
+            # Caused by sample input at index 23: SampleInput(
+            #     input=Tensor[size=(), device="mps:0", dtype=torch.float32],
+            #     args=(0),
+            #     kwargs={'mask': 'Tensor[size=(), device="mps:0", dtype=torch.bool]'},
+            #     broadcasts_input=False, name='')
+            "masked.softmin": [torch.float32, torch.float16],
+            "masked.softmax": [torch.float32, torch.float16],
+            "masked.log_softmax": [torch.float32, torch.float16],
+        }
+
+        MACOS_AFTER_13_1_XFAILLIST = {
+            # before macOS 13.2 it falls back to cpu and pass the forward pass
+            "grid_sampler_2d": [
+                torch.float32,
+                torch.float16,
+                torch.bfloat16,
+            ],  # Unsupported Border padding mode
+        }
+
+        MACOS_13_3_XFAILLIST = {
+            # Failure due to precision issue for fp16
+            # on both cpu and mps there are test cases that might produce inf result
+            # 'nn.functional.pairwise_distance': [torch.float16],
+            # test blow pass on macOS 12 as it falls back to cpu
+            # Argsort case using duplicate indices (undefined behaviour):
+            #  - CPU output: tensor([2546, 6917, 3181,  ..., 7128, 5133,   30], device='cpu')
+            #  - MPS output: tensor([2546, 6917, 3181,  ..., 7128,   30, 5133], device='mps:0')
+            # Elements from index 30 and 5133 are both equal.
+            # Since CPU is not using argsort with stable=True, these cases result in undefined behaviour.
+            "argsort": [
+                torch.float16,
+                torch.int8,
+                torch.uint8,
+                torch.bool,
+                torch.bfloat16,
+            ],
+            # Same issue as `argsort` with duplicate indices. This test checks both the sorted values and the indices.
+            # The values of the sorted tensor match the CPU,
+            # but in case of the returned indices this results in undefined behaviour.
+            "sort": [
+                torch.int8,
+                torch.uint8,
+                torch.bool,
+                torch.float16,
+                torch.bfloat16,
+            ],
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         MACOS_BEFORE_14_4_XFAILLIST = {
             # These ops work fine in 14.4 but fail in 14.2 or 13.x
@@ -297,7 +409,11 @@ if torch.backends.mps.is_available():
         }
 
         # Those ops are not expected to work
+<<<<<<< HEAD
         UNIMPLEMENTED_XFAILLIST: dict[str, Optional[list]] = {
+=======
+        UNIMPLEMENTED_XFAILLIST = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Failures due to lack of op implementation on MPS backend
             "logspace": None,
             "logspacetensor_overload": None,
@@ -312,17 +428,31 @@ if torch.backends.mps.is_available():
             "gcd": None,
             "geqrf": None,
             "nn.functional.grid_sample": None,  # Unsupported Border padding mode
+<<<<<<< HEAD
             "hash_tensor": None,
             "heaviside": None,
+=======
+            "heaviside": None,
+            "igamma": None,
+            "igammac": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "index_reduceprod": None,
             "index_reducemean": None,
             "index_reduceamax": None,
             "index_reduceamin": None,
+<<<<<<< HEAD
             # "kthvalue": None,
+=======
+            "kthvalue": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "lcm": None,
             "linalg.cond": None,
             "linalg.eigh": None,
             "linalg.eigvalsh": None,
+<<<<<<< HEAD
+=======
+            "linalg.householder_product": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "linalg.ldl_factor": None,
             "linalg.ldl_factor_ex": None,
             "linalg.ldl_solve": None,
@@ -336,10 +466,18 @@ if torch.backends.mps.is_available():
             "linalg.qr": None,
             "linalg.svdvals": None,
             "linalg.vecdot": None,
+<<<<<<< HEAD
+=======
+            "logcumsumexp": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "lu_solve": None,
             "masked.median": None,
             "matrix_exp": None,
             "mode": None,
+<<<<<<< HEAD
+=======
+            "native_dropout_backward": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "normnuc": None,
             "nn.functional.fractional_max_pool2d": None,
             "nn.functional.fractional_max_pool3d": None,
@@ -347,7 +485,20 @@ if torch.backends.mps.is_available():
             "nn.functional.adaptive_max_pool3d": None,
             "nn.functional.interpolatearea": None,
             "nn.functional.interpolatebicubic": [torch.uint8],
+<<<<<<< HEAD
             "nn.functional.ctc_loss": None,
+=======
+            "nn.functional.max_unpool1dgrad": None,
+            "nn.functional.max_unpool2dgrad": None,
+            "nn.functional.max_unpool3dgrad": None,
+            "nn.functional.avg_pool3d": None,
+            "nn.functional.ctc_loss": None,
+            "nn.functional.embedding_bag": None,
+            "nn.functional.max_pool3d": None,
+            "nn.functional.max_unpool1d": None,
+            "nn.functional.max_unpool2d": None,
+            "nn.functional.max_unpool3d": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "nn.functional.multi_margin_loss": None,
             "nn.functional.multilabel_margin_loss": None,
             "nn.functional.pdist": None,
@@ -376,13 +527,21 @@ if torch.backends.mps.is_available():
             "special.airy_ai": None,
             "special.erfcx": None,
             "special.laguerre_polynomial_l": None,
+<<<<<<< HEAD
             "special.legendre_polynomial_p": None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "special.log_ndtr": None,
             "special.ndtri": None,
             "svd_lowrank": None,
             "symeig": None,
             "take": None,
             "to": None,
+<<<<<<< HEAD
+=======
+            "to_sparse": None,
+            "unique": None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "vdot": None,
             "segment_reduce_": None,
             "_upsample_bilinear2d_aa": [torch.uint8],  # uint8 is for CPU only
@@ -415,7 +574,13 @@ if torch.backends.mps.is_available():
                 torch.float16,
             ],
             # Unsupported dtypes
+<<<<<<< HEAD
             "histc": [torch.float16, torch.bfloat16],
+=======
+            "dot": [torch.int64] if MACOS_VERSION < 14.0 else [],
+            "histc": [torch.float16, torch.bfloat16],
+            "index_add": [torch.int64],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # GEMM on MPS is not supported for integral types
             "nn.functional.linear": [
                 torch.int16,
@@ -424,9 +589,25 @@ if torch.backends.mps.is_available():
                 torch.uint8,
                 torch.int8,
             ],
+<<<<<<< HEAD
             "addbmm": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
             "baddbmm": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
             "mat": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
+=======
+            "addmmdecomposed": [
+                torch.int16,
+                torch.int32,
+                torch.int64,
+                torch.uint8,
+                torch.int8,
+            ],
+            "addbmm": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
+            "addmm": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
+            "baddbmm": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
+            "mat": [torch.int16, torch.int32, torch.int64, torch.uint8, torch.int8],
+            "matmul": [torch.int64] if MACOS_VERSION < 14.0 else [],
+            "__rmatmul__": [torch.int64] if MACOS_VERSION < 14.0 else [],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # returned output on CPU is float64
             "bincount": [
                 torch.int16,
@@ -435,6 +616,7 @@ if torch.backends.mps.is_available():
                 torch.uint8,
                 torch.int8,
             ],
+<<<<<<< HEAD
         }
         UNIMPLEMENTED_XFAILLIST_SPARSE: dict[str, Optional[list]] = {
             "logspace": None,
@@ -443,6 +625,56 @@ if torch.backends.mps.is_available():
             "linalg.eigvals": None,
             "put": None,
         }
+=======
+            # round not working properly for float16 and bfloat16
+            "round": [torch.float16, torch.bfloat16],
+            "rounddecimals_0": [torch.bfloat16],
+            # atomic operations not supported
+            "_unsafe_masked_index_put_accumulate": [
+                torch.int8,
+                torch.uint8,
+                torch.int16,
+                torch.int64,
+            ],
+        }
+
+        if MACOS_VERSION < 14.0:
+            # FFT and BFloat16 support was added in MacOS 14
+            UNIMPLEMENTED_XFAILLIST.update(
+                {
+                    "bfloat16": None,
+                    "fft.fft": None,
+                    "fft.fft2": None,
+                    "fft.fftn": None,
+                    "fft.hfft": None,
+                    "fft.hfft2": None,
+                    "fft.hfftn": None,
+                    "fft.ifft": None,
+                    "fft.ifft2": None,
+                    "fft.ifftn": None,
+                    "fft.ihfft": None,
+                    "fft.ihfft2": None,
+                    "fft.ihfftn": None,
+                    "fft.irfft": None,
+                    "fft.irfft2": None,
+                    "fft.irfftn": None,
+                    "fft.rfft": None,
+                    "fft.rfft2": None,
+                    "fft.rfftn": None,
+                    "stft": None,
+                    # Error in TestConsistencyCPU.test_output_match_isin_cpu fails for integers,
+                    # not reproducible in later OS. Added assert to op if used in < 14.0
+                    "isin": [
+                        torch.int64,
+                        torch.int32,
+                        torch.int16,
+                        torch.uint8,
+                        torch.int8,
+                    ],
+                    "nn.functional.max_pool2d": [torch.uint8],
+                }
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if MACOS_VERSION < 15.0:
             UNIMPLEMENTED_XFAILLIST.update(
@@ -451,10 +683,15 @@ if torch.backends.mps.is_available():
                     "nanquantile": None,
                 }
             )
+<<<<<<< HEAD
         if sparse:
             UNIMPLEMENTED_XFAILLIST.update(UNIMPLEMENTED_XFAILLIST_SPARSE)
 
         UNDEFINED_XFAILLIST: dict[str, Optional[list]] = {
+=======
+
+        UNDEFINED_XFAILLIST = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Top 60 operators
             # topk fails with duplicate indices
             "topk": [
@@ -501,6 +738,15 @@ if torch.backends.mps.is_available():
                 torch.float16,
                 torch.bfloat16,
             ],
+<<<<<<< HEAD
+=======
+            "index_put": [
+                torch.uint8,
+                torch.int8,
+                torch.int16,
+                torch.int64,
+            ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # zero to negative integer powers are undefined
             "__rpow__": [torch.int8, torch.int16, torch.int32, torch.int64],
             "resize_": [torch.float16, torch.float32, torch.bfloat16],
@@ -531,12 +777,17 @@ if torch.backends.mps.is_available():
             ],
         }
 
+<<<<<<< HEAD
         ON_MPS_XFAILLIST: dict[str, Optional[list]] = {
+=======
+        ON_MPS_XFAILLIST = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Failures due to lack of implementation of downstream functions on MPS backend
             # TODO: remove these once downstream function 'aten::_linalg_svd.U' have been implemented
             "linalg.matrix_rank": None,
             # Exception: Caused by `torch.arange(-8.001, -4.0, dtype=torch.uint8, device="mps")`
             "arange": [torch.uint8],
+<<<<<<< HEAD
             # before macOS 13.2 it falls back to cpu and pass the forward pass
             "grid_sampler_2d": [
                 torch.float32,
@@ -569,6 +820,8 @@ if torch.backends.mps.is_available():
                 torch.float16,
                 torch.bfloat16,
             ],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         EMPTY_OPS_SKIPLIST = {
@@ -590,10 +843,13 @@ if torch.backends.mps.is_available():
             # Unsupported
             # This doesn't work on M1, but is partially working on M2 with the exception of torch.float16
             "nn.functional.conv3d": None,
+<<<<<<< HEAD
             # The CPU impl of grid_sampler_3d does not use opmath_t, so it has a
             # large amount of error compared with the MPS impl for half
             # precision types. So we have to skip these for now.
             "grid_sampler_3d": [torch.float16, torch.bfloat16],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         def addDecorator(op: OpInfo, d: DecorateInfo) -> None:
@@ -604,6 +860,7 @@ if torch.backends.mps.is_available():
 
         for op in ops:
             key = op.name + op.variant_test_name
+<<<<<<< HEAD
             addDecorator(
                 op,
                 DecorateInfo(
@@ -628,6 +885,8 @@ if torch.backends.mps.is_available():
                         ],
                     ),
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if key in EMPTY_OPS_SKIPLIST:
                 addDecorator(
                     op,
@@ -664,8 +923,53 @@ if torch.backends.mps.is_available():
                     ),
                 )
 
+<<<<<<< HEAD
             # If ops is not supported for complex types, expect it to fail
             if key not in SUPPORTED_COMPLEX_OPS:
+=======
+            if (
+                key in MACOS_BEFORE_13_3_XFAILLIST
+                and key not in xfail_exclusion
+                and (torch.backends.mps.is_macos13_or_newer() and MACOS_VERSION < 13.3)
+            ):
+                addDecorator(
+                    op,
+                    DecorateInfo(
+                        unittest.expectedFailure,
+                        dtypes=MACOS_BEFORE_13_3_XFAILLIST[key],
+                    ),
+                )
+
+            if (
+                key in MACOS_AFTER_13_1_XFAILLIST
+                and key not in xfail_exclusion
+                and torch.backends.mps.is_macos13_or_newer(2)
+            ):
+                addDecorator(
+                    op,
+                    DecorateInfo(
+                        unittest.expectedFailure, dtypes=MACOS_AFTER_13_1_XFAILLIST[key]
+                    ),
+                )
+
+            if (
+                key in MACOS_13_3_XFAILLIST
+                and key not in xfail_exclusion
+                and (MACOS_VERSION >= 13.3)
+            ):
+                addDecorator(
+                    op,
+                    DecorateInfo(
+                        unittest.expectedFailure, dtypes=MACOS_13_3_XFAILLIST[key]
+                    ),
+                )
+
+            # If ops is not supported for complex types, expect it to fail
+            if key not in SUPPORTED_COMPLEX_OPS and (
+                key not in AFTER_MACOS_14_0_SUPPORTED_COMPLEX_OPS
+                or MACOS_VERSION < 14.0
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 addDecorator(
                     op,
                     DecorateInfo(
@@ -684,15 +988,22 @@ if torch.backends.mps.is_available():
             "_upsample_bilinear2d_aa": None,  # `_upsample_bilinear2d_aa_backward_out` not implemented for MPS
             "_upsample_bicubic2d_aa": None,  # `_upsample_bilinear2d_aa_backward_out` not implemented for MPS
             "sparse.mmreduce": [torch.float32],  # csr not supported
+<<<<<<< HEAD
             "linalg.householder_product": None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "unique_consecutive": [torch.float16, torch.float32],
             "scalar_tensor": [torch.float16, torch.float32],
             "cdist": [torch.float32],
             "masked.scatter": [torch.float16, torch.float32],
+<<<<<<< HEAD
             "grid_sampler_3d": None,
             "index_fill": [torch.float16, torch.float32],  # missing `aten::_unique`.
             "igamma": None,  # currently not supported for any device
             "igammac": None,  # currently not supported for any device
+=======
+            "index_fill": [torch.float16, torch.float32],  # missing `aten::_unique`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "linalg.solve": [torch.float16, torch.float32],  # missing `aten::lu_solve`.
             "linalg.solve_ex": [
                 torch.float16,
@@ -713,11 +1024,14 @@ if torch.backends.mps.is_available():
             "special.i1e": [torch.float16],  # "i1e_backward" not implemented for 'Half'
             # Correctness issues
             "atanh": [torch.float32],
+<<<<<<< HEAD
             # Same issue as `argsort` and `sort` with duplicate elements (undefined behaviour).
             # Forward pass is passing since `msort` doesn't return the indices, just the values, which match the CPU.
             # On the backward pass for `sort` both are used (values and indices), thus resulting in a issmatch between CPU and MPS.
             # Running `msort` with stable `sort` passes.
             "msort": [torch.float16],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Random output
             "exponential": [torch.float16, torch.float32],
             # CPU errors
@@ -754,12 +1068,35 @@ if torch.backends.mps.is_available():
             "signal.windows.kaiser": [torch.float32],
             "signal.windows.nuttall": [torch.float32],
             "eye": [torch.float16, torch.float32],
+<<<<<<< HEAD
             # topk fails with duplicate indices
             "topk": [torch.float16],
             # Could not run 'aten::uniform_' with arguments from the 'SparseCPU' backend
             "to_sparse": None,
             # Exception: the derivative for '_unique2' is not implemented.
             "unique": None,
+=======
+            # round not working properly for float16
+            "round": [torch.float16],
+            # topk fails with duplicate indices
+            "topk": [torch.float16],
+        }
+
+        MACOS_BEFORE_13_3_XFAILLIST_GRAD = {
+            # Failures due to precision issues (may be fast-math). These has been fixed in MacOS 14
+            "masked.softmin": [torch.float32, torch.float16],
+            "masked.softmax": [torch.float32, torch.float16],
+            "masked.log_softmax": [torch.float32, torch.float16],
+            "atanh": [torch.float16],
+            "triangular_solve": [torch.float32],
+            # Unsupported Border padding mode, forward pass success as fallback to cpu
+            "grid_sampler_2d": [torch.float32, torch.float16, torch.bfloat16],
+            # Same issue as `argsort` and `sort` with duplicate elements (undefined behaviour).
+            # Forward pass is passing since `msort` doesn't return the indices, just the values, which match the CPU.
+            # On the backward pass for `sort` both are used (values and indices), thus resulting in a issmatch between CPU and MPS.
+            # Running `msort` with stable `sort` passes.
+            "msort": [torch.float16],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         SKIPLIST_GRAD = {
@@ -773,6 +1110,17 @@ if torch.backends.mps.is_available():
             "nn.functional.conv_transpose3d": [torch.float16],
         }
 
+<<<<<<< HEAD
+=======
+        MACOS_13_3_XFAILLIST_GRAD = {
+            # Same issue as `argsort` and `sort` with duplicate elements (undefined behaviour).
+            # Forward pass is passing since `msort` doesn't return the indices, just the values, which match the CPU.
+            # On the backward pass for `sort` both are used (values and indices), thus resulting in a issmatch between CPU and MPS.
+            # Running `msort` with stable `sort` passes.
+            "msort": [torch.float16],
+        }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ON_MPS_XFAILLIST = {
             # Failures due to lack of implementation of downstream functions on MPS backend
             # TODO: remove these once downstream function 'aten::_linalg_svd.U' have been implemented
@@ -803,6 +1151,27 @@ if torch.backends.mps.is_available():
                     ),
                 )
 
+<<<<<<< HEAD
+=======
+            if key in MACOS_BEFORE_13_3_XFAILLIST_GRAD and (
+                torch.backends.mps.is_macos13_or_newer() and MACOS_VERSION < 13.3
+            ):
+                addDecorator(
+                    op,
+                    DecorateInfo(
+                        unittest.expectedFailure,
+                        dtypes=MACOS_BEFORE_13_3_XFAILLIST_GRAD[key],
+                    ),
+                )
+
+            if key in MACOS_13_3_XFAILLIST_GRAD and (MACOS_VERSION >= 13.3):
+                addDecorator(
+                    op,
+                    DecorateInfo(
+                        unittest.expectedFailure, dtypes=MACOS_13_3_XFAILLIST_GRAD[key]
+                    ),
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ops
 
     def mps_ops_error_inputs_modifier(ops: Sequence[OpInfo]) -> Sequence[OpInfo]:
@@ -812,10 +1181,19 @@ if torch.backends.mps.is_available():
             "__rmod__",
             "__rsub__",
             "__rpow__",
+<<<<<<< HEAD
+=======
+            "bernoulli",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "clamp_max",
             "clamp_min",
             "masked_scatter",
             # unsupported float64 dtype
+<<<<<<< HEAD
+=======
+            "cat",
+            "complex",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "multinomial",
             "nn.functional.conv1d",
             "nn.functional.conv2d",
@@ -827,6 +1205,13 @@ if torch.backends.mps.is_available():
             "amax",
             "amin",
             "aminmax",
+<<<<<<< HEAD
+=======
+            # memory overlapping checks
+            "index_select",
+            # unimplemented
+            "logcumsumexp",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         def addDecorator(op: OpInfo, d: DecorateInfo) -> None:
@@ -838,6 +1223,7 @@ if torch.backends.mps.is_available():
                 addDecorator(op, DecorateInfo(unittest.expectedFailure))
 
         return ops
+<<<<<<< HEAD
 else:
 
     def mps_ops_modifier(
@@ -847,3 +1233,5 @@ else:
         sparse: bool = False,
     ) -> Sequence[OpInfo]:
         return ops
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

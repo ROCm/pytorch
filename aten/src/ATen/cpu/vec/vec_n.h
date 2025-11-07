@@ -263,7 +263,10 @@ class VectorizedN {
   VECTORIZEDN_DEFINE_UNARY_OP(exp2)
   VECTORIZEDN_DEFINE_UNARY_OP(expm1)
   VECTORIZEDN_DEFINE_UNARY_OP(exp_u20)
+<<<<<<< HEAD
   VECTORIZEDN_DEFINE_UNARY_OP(fexp_u20)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   VECTORIZEDN_DEFINE_UNARY_OP(frac)
   VECTORIZEDN_DEFINE_BINARY_OP(fmod)
   VECTORIZEDN_DEFINE_UNARY_OP(log)

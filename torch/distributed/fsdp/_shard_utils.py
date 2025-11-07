@@ -68,11 +68,15 @@ def _create_chunk_sharded_tensor(
         )
         for r in range(len(chunk_sizes))
     ]
+<<<<<<< HEAD
     if len(chunk_sizes) != len(chunk_offsets) or len(chunk_sizes) != len(placements):
         raise AssertionError(
             f"Expected chunk_sizes, chunk_offsets, and placements to have the same length, "
             f"got {len(chunk_sizes)}, {len(chunk_offsets)}, {len(placements)}"
         )
+=======
+    assert len(chunk_sizes) == len(chunk_offsets) == len(placements)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     shard_metadata = [
         ShardMetadata(offset, size, placement)
         for offset, size, placement in zip(chunk_offsets, chunk_sizes, placements)
@@ -125,8 +129,14 @@ def _all_gather_dtensor(
     """
     All gather a DTensor in its sharded dimension and return the local tensor.
     """
+<<<<<<< HEAD
     if root_mesh != tensor.device_mesh:
         raise AssertionError("The device mesh of a tensor should be a root mesh.")
+=======
+    assert root_mesh == tensor.device_mesh, (
+        "The device mesh of a tensor should be a root mesh."
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     placements = list(copy.deepcopy(tensor.placements))
     # FSDP placements: [Shard(0)] -> [Replicate()]

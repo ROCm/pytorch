@@ -42,6 +42,7 @@ import torch.distributed as dist
 import torch.library
 import torch.utils._pytree as pytree
 from torch import nn
+<<<<<<< HEAD
 from torch._dynamo.backends.debugging import ExplainWithBackend
 from torch._dynamo.debug_utils import same_two_models
 from torch._dynamo.testing import (
@@ -56,10 +57,17 @@ from torch._dynamo.testing import (
 from torch._inductor.utils import fresh_cache
 from torch.nn import functional as F
 from torch.nn.attention.flex_attention import create_block_mask, flex_attention
+=======
+from torch._dynamo.debug_utils import same_two_models
+from torch._dynamo.testing import CompileCounter, rand_strided, same, skipIfPy312
+from torch._inductor.utils import fresh_cache
+from torch.nn import functional as F
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.profiler import profile, ProfilerActivity
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_FP8,
+<<<<<<< HEAD
     SM70OrLater,
     TEST_CUDA,
 )
@@ -68,6 +76,11 @@ from torch.testing._internal.common_device_type import (
     e4m3_type,
     instantiate_device_type_tests,
 )
+=======
+    TEST_CUDA,
+)
+from torch.testing._internal.common_device_type import instantiate_device_type_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
@@ -1000,6 +1013,7 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         self.exit_stack.close()
         super().tearDown()
 
+<<<<<<< HEAD
     def test_compiled_module_truthiness(self):
         # Test with empty ModuleList
         original_empty = nn.ModuleList()
@@ -1013,6 +1027,9 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         self.assertTrue(bool(compiled_filled))
 
     def guard_manager_clone_hook_fn(self, guard_manager_wrapper, f_locals, builder):
+=======
+    def guard_manager_clone_hook_fn(self, guard_manager_wrapper, f_locals):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         root = guard_manager_wrapper.root
         cloned_root = root.clone_manager(lambda x: True)
         cloned_wrapper = torch._dynamo.guards.GuardManagerWrapper(cloned_root)
@@ -2062,6 +2079,7 @@ class ReproTests(torch._dynamo.test_case.TestCase):
             ref0 = fn(x)
             ref1 = fn(x)
 
+<<<<<<< HEAD
             opt_fn = torch.compile(fn, backend="eager")
             # Especially for internal usage, there are many calls to random functions
             # on first compile, e.g., from various library initializations. Run once
@@ -2069,6 +2087,10 @@ class ReproTests(torch._dynamo.test_case.TestCase):
             opt_fn(x)
 
             random.seed(0)
+=======
+            random.seed(0)
+            opt_fn = torch.compile(fn, backend="eager")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             res0 = opt_fn(x)
             res1 = opt_fn(x)
 
@@ -3263,7 +3285,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
     def test_rewrite_assert_with_non_string_msg(self):
         def f(x):
             b = x.sin()
+<<<<<<< HEAD
             assert x[0] == 2, f"Error {x}: {x.size()}"
+=======
+            assert x[0] == 2, x.size()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return x.cos() + b
 
         torch._dynamo.utils.counters.clear()
@@ -3857,9 +3883,12 @@ class ReproTests(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(f(torch.ones(8, 4)), gm(torch.ones(8, 4)))
 
+<<<<<<< HEAD
     @skipIfWindows(
         msg="TODO: (xuhancn) fix, AssertionError: tensor([[0.1000, 0.1000, 0.1000,  ..., 0.1000, 0.1000, 0.1000],"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_optim_state_references_cleared(self):
         model = torch.nn.Linear(2048, 2048, bias=False)
         x = torch.ones(2048)
@@ -3975,7 +4004,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         opt_model(17, (12,), out2)
 
     @requires_cuda
+<<<<<<< HEAD
     @serialTest()
+=======
+    @serialTest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mem_leak_guards(self):
         def gn(x0, x):
             return x0 * x
@@ -4204,6 +4237,7 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         torch.compile(fn, backend=counter)(torch.randn([2, 2]), [])
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
     def test_get_type_hints(self):
         class Foo:
             pass
@@ -4219,6 +4253,8 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(ref, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_break_on_jit_isinstance(self):
         @torch.compile(backend="eager")
         def fn(x):
@@ -4273,7 +4309,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         @torch.compile(fullgraph=True)
         def f(x):
             y = x.item()
+<<<<<<< HEAD
             torch._check(y >= 0)
+=======
+            torch._check_is_size(y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if y >= 0:
                 return x * 2
             else:
@@ -4483,7 +4523,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
 
         compiled_fn = torch.compile(func, backend=cnt, fullgraph=True)
         requires_grad = func is not func1
+<<<<<<< HEAD
         for _ in range(5):
+=======
+        for _ in range(0, 5):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Inputs
             eager_a = torch.ones([6], requires_grad=requires_grad)
             compiled_a = torch.ones([6], requires_grad=requires_grad)
@@ -4511,6 +4555,7 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         # frame_count should stay at 1.
         self.assertEqual(cnt.frame_count, 1)
 
+<<<<<<< HEAD
     def test_tensor_set_data_mismatched_dtype(self):
         def func(x, y):
             x.data = y.to(dtype=torch.bfloat16)
@@ -4525,6 +4570,8 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(x1.data, x2.data)
         self.assertEqual(y1, y2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_user_ctor_ctx_manager(self):
         class UserCtxManager:
             def __enter__(self):
@@ -4635,7 +4682,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
         x = torch.rand([2, 2])
         self.assertEqual(opt_fn(x, counter), fn(x, counter))
         self.assertEqual(counter[0], 2)
+<<<<<<< HEAD
         for _ in range(10):
+=======
+        for _ in range(0, 10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             opt_fn(x, counter)
         self.assertEqual(counter[0], 12)
         if torch._dynamo.config.assume_static_by_default:
@@ -4796,7 +4847,11 @@ class ReproTests(torch._dynamo.test_case.TestCase):
     def test_contains_range_constprop(self):
         def fn(x):
             # dynamo should const prop to False
+<<<<<<< HEAD
             if 3 in range(10):
+=======
+            if 3 in range(0, 10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return x + 1
             else:
                 return x + 2
@@ -4837,6 +4892,7 @@ class ReproTests(torch._dynamo.test_case.TestCase):
             "encountered a mutation on a view chain of length 2, where view 1 was an as_strided",
         ):
             f_compiled(a)
+<<<<<<< HEAD
         # See https://github.com/pytorch/pytorch/issues/161010
 
     def test_preserve_stride_with_clone(self) -> None:
@@ -4898,6 +4954,8 @@ class ReproTests(torch._dynamo.test_case.TestCase):
             (1, 4),
             "Compile with inductor backend should have stride (1, 4)",
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # https://github.com/pytorch/pytorch/issues/146598
     @unittest.expectedFailure
@@ -5085,6 +5143,7 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         res = opt_fn(x_weak, weight, y)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/159258
     def test_weakref_proxy(self):
         class DummyTrainer:
@@ -5106,6 +5165,8 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         compiled_foo = torch.compile(model.foo, backend="eager", fullgraph=True)
         self.assertEqual(compiled_foo(), x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_weakref_reconstruct(self):
         def fn(x_weak, weight, y):
             y = torch.sin(y)
@@ -5167,7 +5228,10 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
     # any behavior that depends on deallocation order. We do guarantee "eventual consistency",
     # that is, after the torch.compile'd function is finished running (including any graph breaks),
     # refcount semantics will match eager's.
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) fix, AssertionError: False is not true")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_weakref_callback(self):
         called1 = False
 
@@ -5760,7 +5824,11 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         self.assertEqual(func(x, 0), opt_func(x, 0))
 
     def test_grad(self):
+<<<<<<< HEAD
         # Write to `grad` or `_grad` should reflective in reading from the other,
+=======
+        # Write to `grad` or `_grad` should reflecte in reading from the other,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # and should be codegen-ed.
         def fn(x, y):
             x._grad = y + 1
@@ -5831,6 +5899,7 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
 
         fn(torch.rand(4))
 
+<<<<<<< HEAD
     def test_export_vs_dynamo_for_multiheadattention(self):
         # More details at https://github.com/pytorch/pytorch/issues/164062
 
@@ -5856,6 +5925,8 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
             self.assertEqual(len(compile_nodes), 0)
             self.assertEqual(len(export_nodes), 0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_negative_floor_div_solve(self):
         class CompiledClass(nn.Module):
             def __init__(self) -> None:
@@ -5997,10 +6068,13 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         torch.view_as_real(out_test).sum().backward()
         self.assertEqual(x_ref.grad, x_test.grad)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not SM70OrLater,
         "Triton only supports devices of CUDA capability >= 7.0",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_add_complex_conj(self):
         def f(x):
             return x + x.conj()
@@ -6321,7 +6395,11 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         self.assertEqual(out_ref, out_test)
 
     @requires_cuda
+<<<<<<< HEAD
     # This test will fail as flip in combination with particular input lengths
+=======
+    # This test will fail as flip in combination with particular input lenghts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # produces weird results.
     # This is under investigations in
     # https://github.com/pytorch/pytorch/issues/131805
@@ -6665,7 +6743,10 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         self.assertEqual(ref, res)
 
     @skipIfPy312  # listcomp bytecode is optimized
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) fix, AssertionError: Scalars are not equal!")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_listcomp(self):
         class Module(torch.nn.Module):
             def __init__(self):
@@ -7065,8 +7146,11 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
 
         torch._dynamo.utils.clear_compilation_metrics()
 
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/156580
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dont_dce_rand(self):
         # https://github.com/pytorch/pytorch/issues/143431
         def f(image_latent):
@@ -7128,6 +7212,7 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         c = "foobar"
         self.assertEqual(f(x, c), opt_f(x, c))
 
+<<<<<<< HEAD
     def test_nn_param_freevar_codegen(self):
         class Model2(nn.Module):
             def __init__(self) -> None:
@@ -7160,6 +7245,8 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
             v2 = jit_func(input_tensor)
             self.assertEqual(v1, v2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_amp_foreach_fake_impl(self):
         inv_scale = torch.full((1,), 0.25)
         found_inf = torch.full((1,), 0.0)
@@ -7175,6 +7262,7 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         res = torch.compile(f, backend="aot_eager")()
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     def test_deleted_compile_wrapper_segfault(self):
         def fn(x):
             return x + 1
@@ -7187,6 +7275,8 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         opt_fn = torch.compile(fn, backend="eager")
         opt_fn(torch.randn(3))  # possible segfault due to first opt_fn deletion
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_delete_local_error(self):
         @torch.compile(backend="eager", fullgraph=True)
         def fn(x):
@@ -7198,6 +7288,7 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
         with self.assertRaises(torch._dynamo.exc.Unsupported):
             fn(torch.ones(3))
 
+<<<<<<< HEAD
     def test_nanmean_out(self):
         def f(x, out):
             torch.nanmean(x, out=out)
@@ -7455,6 +7546,8 @@ def forward(self, s77 : torch.SymInt, s27 : torch.SymInt, L_x_ : torch.Tensor):
             msg,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReproTestsDevice(torch._dynamo.test_case.TestCase):
     def test_sub_alpha_scalar_repro(self, device):
@@ -7707,9 +7800,15 @@ class ReproTestsDevice(torch._dynamo.test_case.TestCase):
             return a
 
         def scale(t, amax_t):
+<<<<<<< HEAD
             max_v = E4M3_MAX_POS
             scale_t = torch.clamp(amax_t.float(), min=1e-12) / max_v
             t_fp8 = mul_tiled(t, scale_t.reciprocal()).to(e4m3_type)
+=======
+            max_v = torch.finfo(torch.float8_e4m3fn).max
+            scale_t = torch.clamp(amax_t.float(), min=1e-12) / max_v
+            t_fp8 = mul_tiled(t, scale_t.reciprocal()).to(torch.float8_e4m3fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return t_fp8, scale_t
 
         def matmul(first, amax_first, second_t, amax_second_t, bias):
@@ -7832,7 +7931,11 @@ class ReproTestsDevice(torch._dynamo.test_case.TestCase):
         # *are* saved for backward, and become back inputs.
         # The easier-to-test thing I'm checking for here is that the recompute
         # on primals_2 happens in the backward. With the recompute,
+<<<<<<< HEAD
         # there are 5 _to_copy ops in the backward. Without it, there are 4
+=======
+        # there are 5 _to_copy ops in the backwrad. Without it, there are 4
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # (aka if you set torch._functorch.config.treat_parameters_as_free_to_save = False)
         self.assertEqual(mode.ops_counter[torch.ops.aten._to_copy.default], 5)
 
@@ -7945,6 +8048,7 @@ class ReproTestsDevice(torch._dynamo.test_case.TestCase):
         with mock.patch("torch.cuda.is_initialized", lambda: False):
             self.assertEqual(f(inp), inp + 2)
 
+<<<<<<< HEAD
     def test_named_tuple_vt_clone(self):
         # https://github.com/pytorch/pytorch/issues/157945
         class SVDCompressor(nn.Module):
@@ -8097,6 +8201,8 @@ class ReproTestsDevice(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(fn(torch.ones(3)), torch.ones(3) + 1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(ReproTests)
 

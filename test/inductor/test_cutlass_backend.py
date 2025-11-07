@@ -8,17 +8,27 @@ import sysconfig
 import time
 import unittest
 import unittest.mock as mock
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from pathlib import Path
 from typing import Optional
 
 from torch._dynamo.exc import BackendCompilerFailed
+=======
+from enum import Enum
+from pathlib import Path
+from typing import Callable, Optional
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.codegen.cuda.serialization import get_cutlass_operation_serializer
 from torch._inductor.utils import clear_caches
 from torch.export import Dim
 from torch.testing._internal.logging_utils import log_settings
+<<<<<<< HEAD
 from torch.utils import _pytree as pytree
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -59,12 +69,20 @@ from torch.testing._internal.inductor_utils import (
     _quantize_rowwise,
     _quantize_tensorwise,
     HAS_CPU,
+<<<<<<< HEAD
     HAS_CUDA_AND_TRITON,
+=======
+    HAS_CUDA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
 torch.set_float32_matmul_precision("high")
+<<<<<<< HEAD
 if HAS_CUDA_AND_TRITON:
+=======
+if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.cuda.memory._set_allocator_settings("expandable_segments:False")
 
 
@@ -85,10 +103,17 @@ def _check_if_instances_equal(op1, op2) -> bool:
     Utility function to check if two instances of a class are equal.
     """
     # cutlass uses list and tuple inconsistently
+<<<<<<< HEAD
     if isinstance(op1, (list | tuple)):
         return tuple(op1) == tuple(op2)
 
     if type(op1) is not type(op2):
+=======
+    if isinstance(op1, (list, tuple)):
+        return tuple(op1) == tuple(op2)
+
+    if type(op1) != type(op2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
 
     # some classes have __eq__ defined but they may be insufficient
@@ -108,15 +133,22 @@ def _check_if_instances_equal(op1, op2) -> bool:
     return True
 
 
+<<<<<<< HEAD
 un_ops_under_test = [torch.relu, torch.tanh, torch.exp, torch.sigmoid]
+=======
+un_ops_under_test = [torch.relu]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bin_ops_under_test = [torch.add, torch.mul, torch.sub, torch.div]
 
 evt_all_ops = parametrize(
     "op", un_ops_under_test + bin_ops_under_test, name_fn=lambda f: f.__name__
 )
 
+<<<<<<< HEAD
 evt_un_ops = parametrize("op", un_ops_under_test, name_fn=lambda f: f.__name__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 evt_bin_ops = parametrize("op", bin_ops_under_test, name_fn=lambda f: f.__name__)
 
 evt_all_shapes = parametrize("shape", itertools.product([512, 1024], repeat=2))
@@ -151,6 +183,7 @@ fp8_config = config.patch(
 )
 
 
+<<<<<<< HEAD
 def select_no_algorithm(*args, **kwargs):
     """
     Utility function to skip precompilation and autotuning.
@@ -163,6 +196,13 @@ class TestCutlassBackend(TestCase):
     def setUp(self):
         if not HAS_CUDA_AND_TRITON:
             self.skipTest("CUDA and triton are not available")
+=======
+@instantiate_parametrized_tests
+class TestCutlassBackend(TestCase):
+    def setUp(self):
+        if not HAS_CUDA:
+            self.skipTest("CUDA is not available")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.version.hip:
             self.skipTest("CUTLASS backend is not supported on HIP")
 
@@ -190,7 +230,11 @@ class TestCutlassBackend(TestCase):
     def run_evt_test(self, model, op, shape, num_fusions=1):
         M, N = shape
         a = torch.ones(M, N).cuda().half()
+<<<<<<< HEAD
         b = torch.ones(N, N).cuda().half().t()
+=======
+        b = torch.ones(N, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_args = gen_args(op, (M, N))
         model = model.cuda()
 
@@ -203,6 +247,7 @@ class TestCutlassBackend(TestCase):
         )
         torch.testing.assert_close(result, ref_result)
 
+<<<<<<< HEAD
     def test_check_paths(self):
         cutlass_mock_imports_path = os.path.join(
             os.path.dirname(torch.__file__),
@@ -216,6 +261,8 @@ class TestCutlassBackend(TestCase):
         self.assertTrue(os.path.exists(cutlass_mock_pydot_path))
         self.assertTrue(os.path.exists(cutlass_mock_scipy_path))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     def test_max_autotune_cutlass_threshold(self):
@@ -227,7 +274,11 @@ class TestCutlassBackend(TestCase):
             return a @ b
 
         a = torch.randn(100, 10).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(100, 10).cuda().half().t()
+=======
+        b = torch.randn(10, 100).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -238,6 +289,13 @@ class TestCutlassBackend(TestCase):
                 "cuda.cutlass_max_profiling_configs": 2,
             }
         ):
+<<<<<<< HEAD
+=======
+
+            def select_no_algorithm(*args, **kwargs):
+                raise NoValidChoicesError
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with mock.patch(
                 "torch._inductor.kernel.mm.autotune_select_algorithm",
                 wraps=select_no_algorithm,
@@ -255,7 +313,11 @@ class TestCutlassBackend(TestCase):
 
         self.assertTrue(try_import_cutlass())
 
+<<<<<<< HEAD
         import cutlass_cppgen  # type: ignore[import-not-found]  # noqa: F401
+=======
+        import cutlass  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import cutlass_library  # noqa: F401
 
     def test_cutlass_key(self):
@@ -279,7 +341,11 @@ class TestCutlassBackend(TestCase):
         M, N, K = 4096, 2048, 25728
 
         a = torch.randn(M, K).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(N, K).cuda().half().t()
+=======
+        b = torch.randn(K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -294,19 +360,34 @@ class TestCutlassBackend(TestCase):
             Y = torch.mm(a, b)
             torch.testing.assert_close(Y_compiled, Y)
 
+<<<<<<< HEAD
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     @parametrize("dtype", (torch.float16, torch.bfloat16))
     def test_cutlass_backend_subproc_addmm(self, dtype):
+=======
+    @unittest.skipIf(
+        True, "FIXME: Disabled temporarily since IMA or crashing in subprocess"
+    )
+    @unittest.skipIf(not SM90OrLater, "need sm_90")
+    @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    def test_cutlass_backend_subproc_addmm(self, shape_combo):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Test autotune_in_subproc works for addmm.
         """
 
         M, N, K = 4096, 2048, 25728
+<<<<<<< HEAD
         dtype = torch.float16
 
         a = torch.randn(M, K, dtype=dtype).cuda()
         b = torch.randn(N, K, dtype=dtype).cuda().t()
+=======
+
+        a = torch.randn(M, K).cuda().half()
+        b = torch.randn(K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x_shapes = [
             (M, N),
@@ -328,10 +409,14 @@ class TestCutlassBackend(TestCase):
             }
         ):
             for x_shape in x_shapes:
+<<<<<<< HEAD
                 torch._dynamo.reset()
                 clear_caches()
 
                 x = torch.randn(x_shape).cuda().to(dtype)
+=======
+                x = torch.randn(x_shape).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Y_compiled = torch.compile(torch.addmm)(x, a, b, alpha=alpha, beta=beta)
                 Y = torch.addmm(x, a, b, alpha=alpha, beta=beta)
                 torch.testing.assert_close(Y_compiled, Y)
@@ -346,7 +431,11 @@ class TestCutlassBackend(TestCase):
         B, M, N, K = 10, 4096, 2048, 25728
 
         a = torch.randn(B, M, K).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(B, N, K).cuda().half().permute(0, 2, 1)
+=======
+        b = torch.randn(B, K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -378,8 +467,13 @@ class TestCutlassBackend(TestCase):
 
         model = MyModel()
         a = torch.randn(128, 16).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 16).cuda().half().t()
         c = torch.randn(512, 16).cuda().half().t()
+=======
+        b = torch.randn(16, 128).cuda().half()
+        c = torch.randn(16, 512).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -420,8 +514,13 @@ class TestCutlassBackend(TestCase):
 
         model = MyModel()
         a = torch.randn(128, 16).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 16).cuda().half().t()
         c = torch.randn(512, 16).cuda().half().t()
+=======
+        b = torch.randn(16, 128).cuda().half()
+        c = torch.randn(16, 512).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -434,9 +533,13 @@ class TestCutlassBackend(TestCase):
                     2,
                     4,
                 ],  # guarantees > 1 choices
+<<<<<<< HEAD
                 "fx_graph_cache": False,
                 "fx_graph_remote_cache": False,
                 "autotune_local_cache": False,
+=======
+                "force_disable_caches": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         ):
             from torch._inductor.utils import run_and_get_code
@@ -655,7 +758,11 @@ class TestCutlassBackend(TestCase):
                 (
                     torch.randn(x_shape(M, N)).cuda().to(dtype),
                     torch.randn(M, K).cuda().to(dtype),
+<<<<<<< HEAD
                     torch.randn(N, K).cuda().to(dtype).t(),
+=======
+                    torch.randn(K, N).cuda().to(dtype),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for (M, N, K) in shapes
             ]
@@ -697,7 +804,10 @@ class TestCutlassBackend(TestCase):
     @parametrize("dynamic", (False, True))
     @parametrize("use_aoti", (False, True))
     @parametrize("dtype", (torch.float16, torch.bfloat16))
+<<<<<<< HEAD
     @parametrize("use_expand", (False, True))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     def test_max_autotune_cutlass_backend_bmm(
         self,
@@ -705,7 +815,10 @@ class TestCutlassBackend(TestCase):
         use_aoti: bool = False,
         max_autotune_gemm_backends: str = "CUTLASS",
         dtype: torch.dtype = torch.float16,
+<<<<<<< HEAD
         use_expand: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Main test for bmm.
@@ -723,6 +836,7 @@ class TestCutlassBackend(TestCase):
         ]
         shapes = shapes[0:1] if not dynamic else shapes
 
+<<<<<<< HEAD
         inputs = []
         for B, M, N, K in shapes:
             if use_expand:
@@ -734,6 +848,15 @@ class TestCutlassBackend(TestCase):
 
             B_tensor = torch.randn(B, N, K).cuda().to(dtype).permute(0, 2, 1)
             inputs.append((A, B_tensor))
+=======
+        inputs = [
+            (
+                torch.randn(B, M, K).cuda().to(dtype),
+                torch.randn(B, N, K).cuda().to(dtype).permute(0, 2, 1),
+            )
+            for B, M, N, K in shapes
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dynamic_shapes = (
             {
                 "a": {0: Dim.DYNAMIC, 1: Dim.DYNAMIC, 2: Dim.DYNAMIC},
@@ -768,7 +891,15 @@ class TestCutlassBackend(TestCase):
         Make sure autotuning mm in sub processes work without crashes.
         """
 
+<<<<<<< HEAD
         compiled_model = torch.compile(torch.mm, dynamic=dynamic)
+=======
+        def mm(a, b):
+            return a @ b
+
+        a = torch.randn(128, 16).cuda().half()
+        b = torch.randn(16, 128).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -794,13 +925,20 @@ class TestCutlassBackend(TestCase):
                 ),
             ):
                 a = torch.randn(M, K).cuda().half()
+<<<<<<< HEAD
                 b = torch.randn(N, K).cuda().half().t()
                 Y_compiled = compiled_model(a, b)
                 Y = torch.mm(a, b)
+=======
+                b = torch.randn(K, N).cuda().half()
+                Y_compiled = torch.compile(mm, dynamic=dynamic)(a, b)
+                Y = mm(a, b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # we need relaxed numerical limits due to the sheer size of the
                 # matmuls involved. Many small addition differences add up.
                 torch.testing.assert_close(Y_compiled, Y, atol=0.01, rtol=0.01)
 
+<<<<<<< HEAD
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     def test_streamk_with_dynamic(
         self,
@@ -855,6 +993,8 @@ class TestCutlassBackend(TestCase):
             ):
                 _ = compiled_model(a, b)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_max_autotune_cutlass_backend_epilogue_fusion(
         self,
         dynamic: bool = False,
@@ -871,10 +1011,17 @@ class TestCutlassBackend(TestCase):
         # that allows fusions
         if batch_size is None:
             a = torch.randn(256, 32).cuda()
+<<<<<<< HEAD
             b = torch.randn(256, 32).cuda().t()
         else:
             a = torch.randn(batch_size, 256, 32).cuda()
             b = torch.randn(batch_size, 256, 32).cuda().permute(0, 2, 1)
+=======
+            b = torch.randn(32, 256).cuda()
+        else:
+            a = torch.randn(batch_size, 256, 32).cuda()
+            b = torch.randn(batch_size, 32, 256).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if fp16:
             a = a.half()
             b = b.half()
@@ -1013,7 +1160,11 @@ class TestCutlassBackend(TestCase):
             }
 
             x = torch.randn(M, K).cuda().half()
+<<<<<<< HEAD
             w = torch.randn(N, K).cuda().half().t()
+=======
+            w = torch.randn(K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             actual = AOTIRunnerUtil.run(
                 model,
@@ -1051,7 +1202,11 @@ class TestCutlassBackend(TestCase):
             }
 
             x = torch.randn(M, K).cuda().half()
+<<<<<<< HEAD
             w = torch.randn(N, K).cuda().half().t()
+=======
+            w = torch.randn(K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             actual = AOTIRunnerUtil.run(
                 model,
@@ -1081,7 +1236,11 @@ class TestCutlassBackend(TestCase):
             M, N, K = 200, 5216, 10_432
 
             x = torch.randn(M, K).cuda().half()
+<<<<<<< HEAD
             w = torch.randn(N, K).cuda().half().t()
+=======
+            w = torch.randn(K, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             actual = AOTIRunnerUtil.run(
                 model,
@@ -1150,7 +1309,14 @@ class TestCutlassBackend(TestCase):
 
         x = torch.randn((128, 128)).cuda().half()
         a = torch.randn(128, 128).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 128).cuda().half().t()
+=======
+        b = torch.randn(128, 128).cuda().half()
+
+        def select_no_algorithm(*args, **kwargs):
+            raise NoValidChoicesError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with fresh_cache():
             with config.patch(
@@ -1195,7 +1361,14 @@ class TestCutlassBackend(TestCase):
 
         x = torch.randn((128, 128)).cuda().half()
         a = torch.randn(128, 128).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 128).cuda().half().t()
+=======
+        b = torch.randn(128, 128).cuda().half()
+
+        def select_no_algorithm(*args, **kwargs):
+            raise NoValidChoicesError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with fresh_cache():
             with config.patch(
@@ -1267,6 +1440,12 @@ class TestCutlassBackend(TestCase):
 
         linear_compiled = torch.compile(linear, backend="inductor")
 
+<<<<<<< HEAD
+=======
+        def select_no_algorithm(*args, **kwargs):
+            raise NoValidChoicesError
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def run_test(use_fast_accum):
             with fresh_cache():
                 with config.patch(
@@ -1344,6 +1523,12 @@ class TestCutlassBackend(TestCase):
             ),
         ]
 
+<<<<<<< HEAD
+=======
+        def select_no_algorithm(*args, **kwargs):
+            raise NoValidChoicesError
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with (
             fresh_cache(),
             config.patch(
@@ -1388,6 +1573,67 @@ class TestCutlassBackend(TestCase):
                     f"M={M}, N={N}, K={K}",
                 )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not SM90OrLater, "need sm_90")
+    @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+    @parametrize("presets", ("", "0", "0,999"))
+    def test_cutlass_presets(
+        self,
+        presets: str,
+    ):
+        """
+        Test if some configs can be generated with presets.
+        """
+
+        M, N, K = (128, 128, 16)
+        A = torch.randn(M, K).cuda().half()
+        B = torch.randn(K, N).cuda().half()
+
+        def select_no_algorithm(*args, **kwargs):
+            raise NoValidChoicesError
+
+        with (
+            fresh_cache(),
+            config.patch(
+                {
+                    "max_autotune": True,
+                    "max_autotune_gemm_backends": "CUTLASS",
+                    "cuda.cutlass_max_profiling_configs": 2,
+                    "cuda.cutlass_presets": presets,
+                }
+            ),
+            mock.patch(
+                "torch._inductor.kernel.mm.autotune_select_algorithm",
+                wraps=select_no_algorithm,
+            ) as sa,
+        ):
+            with self.assertRaisesRegex(InductorError, r".*NoValidChoicesError.*"):
+                torch.compile(torch.mm)(A, B)
+
+            self.assertTrue(
+                sa.called,
+                f"autotune_select_algorithm was not called with shape M={M}, N={N}, K={K}",
+            )
+            args, _ = sa.call_args
+            op_name, choices, _, __ = args
+            assert op_name == "mm"
+            cuda_template_count = 0
+            for choice in choices:
+                if isinstance(choice, CUDATemplateCaller):
+                    choice_info = choice.info_dict()
+                    op_conf_name = choice_info.get("op_conf_name", "")
+                    assert isinstance(op_conf_name, str)
+                    cuda_template_count += 1
+
+            self.assertGreater(
+                cuda_template_count,
+                0,
+                "No CUDATemplateCaller choices found for matmul with shape "
+                f"M={M}, N={N}, K={K}",
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not SM80OrLater, "need sm_80")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     def test_get_max_alignment(self):
@@ -1455,7 +1701,11 @@ class TestCutlassBackend(TestCase):
         max_autotune_gemm_backends = "CUTLASS"
 
         a = torch.randn(128, 16).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 16).cuda().half().t()
+=======
+        b = torch.randn(16, 128).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -1538,7 +1788,11 @@ class TestCutlassBackend(TestCase):
             return a @ b
 
         a = torch.randn(128, 16).cuda().half()
+<<<<<<< HEAD
         b = torch.randn(128, 16).cuda().half().t()
+=======
+        b = torch.randn(16, 128).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
@@ -1546,8 +1800,12 @@ class TestCutlassBackend(TestCase):
                 "max_autotune_gemm_backends": "ATEN,TRITON,CUTLASS",
                 "cuda.cutlass_max_profiling_configs": 2,
                 # needed for log searching
+<<<<<<< HEAD
                 "fx_graph_cache": False,
                 "fx_graph_remote_cache": False,
+=======
+                "force_disable_caches": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         ):
             with (
@@ -1570,6 +1828,7 @@ class TestCutlassBackend(TestCase):
             self.assertTrue(num_ops > 0, "The number of ops should be greater than 0")
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
+<<<<<<< HEAD
     def test_maybe_append_choice_caching(self):
         """
         Test if maybe_append_choice's caching leads to correct results and
@@ -1741,6 +2000,8 @@ class TestCutlassBackend(TestCase):
         self.assertEqual(render_call_count, num_matmuls + num_matmuls * 2)
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     def test_cutlass_backend_matmul_same_tensor(self):
         max_autotune_gemm_backends = "CUTLASS"
@@ -1761,6 +2022,7 @@ class TestCutlassBackend(TestCase):
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+<<<<<<< HEAD
     def test_cutlass_backend_matmul_nonzero_offset(self):
         max_autotune_gemm_backends = "CUTLASS"
 
@@ -1781,11 +2043,17 @@ class TestCutlassBackend(TestCase):
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_flexible_layout(self):
         class TestModel(torch.nn.Module):
             def forward(self, B):
                 A = torch.zeros_like(B)
+<<<<<<< HEAD
                 return A @ B.t()
+=======
+                return A @ B
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         M = 1024
         B = torch.randn(M, M).cuda().half()
@@ -1807,7 +2075,11 @@ class TestCutlassBackend(TestCase):
         class TestModel(torch.nn.Module):
             def forward(self, B):
                 A = torch.zeros_like(B)
+<<<<<<< HEAD
                 return (A @ B.t()).relu()
+=======
+                return (A @ B).relu()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         M = 1024
         B = torch.randn(M, M).cuda().half()
@@ -1833,7 +2105,11 @@ class TestCutlassBackend(TestCase):
             def forward(self, B):
                 A = torch.zeros_like(B)
                 for _ in range(100):
+<<<<<<< HEAD
                     A = A @ B.t()
+=======
+                    A = A @ B
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return A
 
         M = 1024
@@ -1853,6 +2129,7 @@ class TestCutlassBackend(TestCase):
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
+<<<<<<< HEAD
     @parametrize("use_aoti", (False, True))
     def test_compilation_time(self, use_aoti):
         M = 1024
@@ -1865,6 +2142,12 @@ class TestCutlassBackend(TestCase):
 
         model = MyModel().cuda()
         expected = model(A, B)
+=======
+    def test_compilation_time(self):
+        M = 1024
+        A = torch.randn(M, M).cuda().half()
+        B = torch.randn(M, M).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         start_time = time.time()
         with config.patch(
@@ -1874,6 +2157,7 @@ class TestCutlassBackend(TestCase):
                 "cuda.cutlass_max_profiling_configs": 1,
             }
         ):
+<<<<<<< HEAD
             if use_aoti:
                 actual = AOTIRunnerUtil.run(
                     model,
@@ -1883,6 +2167,9 @@ class TestCutlassBackend(TestCase):
                 actual = torch.compile(model, fullgraph=True)(A, B)
 
             torch.testing.assert_close(actual, expected)
+=======
+            _ = torch.compile(torch.mm)(A, B)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(time.time() - start_time < 50)
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
@@ -1909,6 +2196,7 @@ class TestCutlassBackend(TestCase):
         M = 1024
         N = 512
         a = torch.ones(M, N).cuda().half()
+<<<<<<< HEAD
         b = torch.ones(N, N).cuda().half().t()
         extra_args = gen_args(op, (M, N))
         model = TestModel().cuda()
@@ -1934,6 +2222,9 @@ class TestCutlassBackend(TestCase):
         N = 512
         a = torch.ones(M, N).cuda().half()
         b = torch.ones(N, N).cuda().half().t()
+=======
+        b = torch.ones(N, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_args = gen_args(op, (M, N))
         model = TestModel().cuda()
 
@@ -1963,7 +2254,11 @@ class TestCutlassBackend(TestCase):
 
         model = TestModel().cuda()
         a = torch.ones(M, N).cuda().half()
+<<<<<<< HEAD
         b = torch.ones(N, N).cuda().half().t()
+=======
+        b = torch.ones(N, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_args = gen_args(op, (M, N), dtype=torch.float16)
 
         # baseline is cutlass kernel + triton
@@ -2028,7 +2323,11 @@ class TestCutlassBackend(TestCase):
         for i, shape in enumerate(shapes):
             M, N = shape
             a = torch.ones(M, N).cuda().half()
+<<<<<<< HEAD
             b = torch.ones(N, N).cuda().half().t()
+=======
+            b = torch.ones(N, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             extra_args = gen_args(op, (M, N))
             model = TestModel().cuda()
 
@@ -2056,7 +2355,11 @@ class TestCutlassBackend(TestCase):
         M = 1024
         N = 512
         a = torch.ones(M, N).cuda().half()
+<<<<<<< HEAD
         b = torch.ones(N, N).cuda().half().t()
+=======
+        b = torch.ones(N, N).cuda().half()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_args = gen_args(op, (M, N))
         model = TestModel().cuda()
 
@@ -2070,13 +2373,18 @@ class TestCutlassBackend(TestCase):
 
     @mock.patch.dict(os.environ, {"PATH": _get_path_without_sccache()})
     @parametrize("arch", ("90", "100"))
+<<<<<<< HEAD
     @parametrize("cuda_version", ("12.4", "12.8"))
+=======
+    @parametrize("cuda_version", ("12.4", "12.6", "12.8"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_gemm_operation_serialization(self, arch: str, cuda_version: str):
         """
         Testing serialization for GEMM operations generated by CUTLASS.
         This should cover GroupedGemmOperation as well.
         """
         full_ops = _gen_ops_cached(arch, cuda_version)
+<<<<<<< HEAD
         ops = pytree.tree_flatten(full_ops)[0]
 
         # sanity check
@@ -2085,16 +2393,32 @@ class TestCutlassBackend(TestCase):
         # test if configuration name is unique
         op_config_names = [op.configuration_name() for op in ops]
         self.assertEqual(len(op_config_names), len(set(op_config_names)))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         serializer = get_cutlass_operation_serializer()
         self.assertIsNotNone(serializer)
 
+<<<<<<< HEAD
         serialized_ops = [serializer.serialize(op) for op in ops]
         deserialized_ops = [
             serializer.deserialize(serialized_op) for serialized_op in serialized_ops
         ]
         for op, deserialized_op in zip(ops, deserialized_ops, strict=False):
             self.assertTrue(_check_if_instances_equal(op, deserialized_op))
+=======
+        count = 0
+        for ops in full_ops.values():
+            for op_dict in ops.values():
+                for op_list in op_dict.values():
+                    for op in op_list:
+                        count += 1
+                        serialized = serializer.serialize(op)
+                        deserialized = serializer.deserialize(serialized)
+                        self.assertTrue(_check_if_instances_equal(op, deserialized))
+
+        self.assertGreater(count, 1000, "Too few ops generated")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 is only supported on H100+")
     @unittest.skipIf(not SM90OrLater, "need sm_90")
@@ -2111,25 +2435,40 @@ class TestCutlassBackend(TestCase):
         ),
     )
     @parametrize("has_bias", (False, True))
+<<<<<<< HEAD
     @parametrize("use_fast_accum", (False, True))
     @parametrize("input_dtype", (torch.bfloat16, torch.float16))
+=======
+    @parametrize("use_fast_accum", (False,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fp8_rowwise_scaling(
         self,
         float8_dtype: torch.dtype,
         shape: tuple[int, int, int],
         has_bias: bool,
         use_fast_accum: bool,
+<<<<<<< HEAD
         input_dtype: torch.dtype,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         # Only bf16 output type is supported for row-wise scaling, not fp32
         output_dtype: torch.dtype = torch.bfloat16
         device = "cuda"
         M, K, N = shape  # Matmul Y = X [M, K] x W [N, K]
+<<<<<<< HEAD
         x = torch.randn(M, K, dtype=input_dtype, device=device)
         w = torch.randn(N, K, dtype=input_dtype, device=device)
         bias = None
         if has_bias:
             bias = torch.randn(N, device=device, dtype=input_dtype).to(torch.bfloat16)
+=======
+        x = torch.randn(M, K, dtype=output_dtype, device=device)
+        w = torch.randn(N, K, dtype=output_dtype, device=device)
+        bias = None
+        if has_bias:
+            bias = torch.randn(N, device=device, dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # quantize weight (prior to inference)
         w_fp8, w_inverse_scale = _quantize_rowwise(w, float8_dtype)
@@ -2179,6 +2518,7 @@ class TestCutlassBackend(TestCase):
         (
             (
                 512,
+<<<<<<< HEAD
                 1024,
             ),
         ),
@@ -2273,6 +2613,8 @@ class TestCutlassBackend(TestCase):
         (
             (
                 512,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 128,
                 64,
             ),
@@ -2280,25 +2622,40 @@ class TestCutlassBackend(TestCase):
     )
     @parametrize("has_bias", (False, True))
     @parametrize("use_fast_accum", (False,))
+<<<<<<< HEAD
     @parametrize("input_dtype", (torch.bfloat16, torch.float16))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fp8_tensorwise_scaling(
         self,
         float8_dtype: torch.dtype,
         shape: tuple[int, int, int],
         has_bias: bool,
         use_fast_accum: bool,
+<<<<<<< HEAD
         input_dtype: torch.dtype,
     ):
         device = "cuda"
         M, K, N = shape  # Matmul Y = X [M, K] x W [N, K]
         output_dtype = input_dtype
+=======
+    ):
+        device = "cuda"
+        M, K, N = shape  # Matmul Y = X [M, K] x W [N, K]
+        input_dtype = torch.bfloat16
+        output_dtype = torch.bfloat16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # input and output dtypes of _scaled_mm do not need to be the same, but
         # typically in a model they are
         x = torch.randn(M, K, dtype=input_dtype, device=device)
         w = torch.randn(N, K, dtype=input_dtype, device=device)
         bias = None
         if has_bias:
+<<<<<<< HEAD
             bias = torch.randn(N, device=device, dtype=input_dtype)
+=======
+            bias = torch.randn(N, device=device, dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # quantize weight (prior to inference)
         w_fp8, w_inverse_scale = _quantize_tensorwise(w, float8_dtype)
@@ -2342,6 +2699,7 @@ class TestCutlassBackend(TestCase):
         # setting a small absolute tolerance in these tests
         torch.testing.assert_close(y_eager, y_compiled, rtol=1e-2, atol=0.05)
 
+<<<<<<< HEAD
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     def test_config_number_post_filtering(self) -> None:
         """
@@ -2392,10 +2750,16 @@ class TestCutlassBackend(TestCase):
             f"Got counts: {config_counts}",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.utils import is_big_gpu
 
     # Set env to make it work in CI.
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON and HAS_CPU and is_big_gpu():
+=======
+    if HAS_CUDA and HAS_CPU and is_big_gpu():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

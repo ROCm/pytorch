@@ -9,6 +9,7 @@ Each should also handle single rank scenario.
 
 from __future__ import annotations
 
+<<<<<<< HEAD
 import importlib
 import logging
 from collections import defaultdict
@@ -32,6 +33,14 @@ __all__: list[str] = [
 
 logger = logging.getLogger(__name__)
 
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, cast, Generic, Optional, TypeVar, Union
+
+import torch.distributed as dist
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T = TypeVar("T")
 
 
@@ -114,7 +123,10 @@ def broadcast(
             error_msg += f": stage {sync_obj.stage_name}"
         if sync_obj.exception is not None:
             error_msg += f": exception {sync_obj.exception}"
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise RuntimeError(error_msg) from sync_obj.exception
 
     return cast(T, sync_obj.payload)
@@ -184,16 +196,23 @@ def all_gather(
 
         if len(exception_list) > 0:
             raise RuntimeError(  # type: ignore[misc]
+<<<<<<< HEAD
                 error_msg,
                 exception_list,
                 # pyrefly: ignore [invalid-inheritance]
+=======
+                error_msg, exception_list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ) from exception_list[0]
         return ret_list
     else:
         if not sync_obj.success:
             raise RuntimeError(
                 f"all_gather failed with exception {sync_obj.exception}",
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ) from sync_obj.exception
         return [sync_obj.payload]  # type: ignore[list-item]
 
@@ -208,7 +227,11 @@ def all_gather_object_enforce_type(
     # pyre-fixme[2]: Parameter must have a type other than `Any`
     obj: Any,
     # pyre-fixme[2]: Parameter must have a type that does not contain `Any`
+<<<<<<< HEAD
     type_checker: Callable[[Any, Any], bool] = lambda x, y: type(x) is type(y),
+=======
+    type_checker: Callable[[Any, Any], bool] = lambda x, y: type(x) == type(y),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Similar to plain all_gather_object but with additional type checking
@@ -236,6 +259,7 @@ def all_gather_object_enforce_type(
                 f"Object type at index {i} is {type(object_list[i])}, "
                 f"while first object type is {type(first_obj)}"
             )
+<<<<<<< HEAD
 
 
 def _summarize_ranks(ranks: Iterable[int]) -> str:
@@ -348,3 +372,5 @@ def _check_rng_sync(
         log_str = f"Generator desync detected:\n{_desync_table_str(value_header, value_ranks)}"
         logger.error(log_str)
     return log_str
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

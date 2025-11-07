@@ -80,7 +80,10 @@ if TYPE_CHECKING:
     from torch._inductor.codegen.cpp_utils import LocalBufferContext
     from torch._inductor.debug import DebugContext
     from torch._inductor.graph import GraphLowering
+<<<<<<< HEAD
     from torch._inductor.ir import ExternKernelNode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.loop_body import InterpreterShim
     from torch._subclasses import FakeTensorMode
 
@@ -184,9 +187,12 @@ _ops: Virtualized[OpsHandler[Any]] = Virtualized(
     "ops", cast(type[OpsHandler[Any]], MockHandler)
 )
 _graph: Virtualized[GraphLowering] = Virtualized("graph", NullHandler)
+<<<<<<< HEAD
 _extern_kernel_nodes: Virtualized[list[ExternKernelNode]] = Virtualized(
     "extern_kernel_nodes", NullHandler
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _real_inputs: Virtualized[list[torch.Tensor]] = Virtualized("real_inputs", NullHandler)
 _fake_mode: Virtualized[FakeTensorMode] = Virtualized("fake_mode", NullHandler)
 _kernel: Virtualized[NullKernelHandler] = Virtualized(
@@ -347,9 +353,12 @@ class _V:
     )
     get_ops_handler: Callable[[], OpsHandler[Any]] = _ops._get_handler
     set_graph_handler: Callable[[GraphLowering], Any] = _graph._set_handler
+<<<<<<< HEAD
     set_extern_kernel_nodes: Callable[[list[ExternKernelNode]], Any] = (
         _extern_kernel_nodes._set_handler
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_real_inputs: Callable[[Any], Any] = _real_inputs._set_handler
     get_real_inputs: Callable[[], Any] = _real_inputs._get_handler
     set_fake_mode: Callable[[Any], Any] = _fake_mode._set_handler
@@ -376,6 +385,7 @@ class _V:
         return _graph._get_handler()
 
     @property
+<<<<<<< HEAD
     def extern_kernel_nodes(self) -> list[ExternKernelNode]:
         """
         The extern_kernel_nodes needed for the entire graph, including the
@@ -385,6 +395,8 @@ class _V:
         return _extern_kernel_nodes._get_handler()
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def real_inputs(self):
         """non-fake example inputs"""
         return _real_inputs._get_handler()

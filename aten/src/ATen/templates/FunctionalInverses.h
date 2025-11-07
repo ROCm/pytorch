@@ -2,12 +2,29 @@
 
 // ${generated_comment}
 
+<<<<<<< HEAD
 #include <ATen/FunctionalStorageImpl.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/Tensor.h>
 
 namespace at {
 namespace functionalization {
 
+<<<<<<< HEAD
+=======
+enum class InverseReturnMode {
+  /// Specifies that functional inverses should always return a view.
+  AlwaysView,
+  /// Specifies that functional inverses should always return a non-view / copy.
+  NeverView,
+  /// Specifies that functional inverses should return a view unless a (copying) scatter
+  /// inverse exists, in which case that will be used instead.
+  /// This avoids as_strided() calls that can be difficult for subclasses to handle.
+  ViewOrScatterInverse,
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct FunctionalInverses {
 
 ${view_inverse_declarations}

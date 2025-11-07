@@ -116,8 +116,11 @@ class MetalShaderLibrary {
   std::vector<std::string> getFunctionNames();
   std::shared_ptr<MetalKernelFunction> getKernelFunction(
       const std::string& name);
+<<<<<<< HEAD
   // Returns a raw pointer to the kernel function for use in C APIs
   MetalKernelFunction* getCachedKernelFunctionPtr(const std::string& name);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   inline MTLComputePipelineState_t getPipelineStateForFunc(
       const std::string& fname) {
     return getLibraryPipelineState(getLibrary(), fname).first;
@@ -166,9 +169,12 @@ class MetalShaderLibrary {
       std::string,
       std::pair<MTLComputePipelineState_t, MTLFunction_t>>
       cplMap;
+<<<<<<< HEAD
   // Cache for kernel functions returned by getCachedKernelFunctionPtr
   std::unordered_map<std::string, std::unique_ptr<MetalKernelFunction>>
       kernelCache;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 class DynamicMetalShaderLibrary : public MetalShaderLibrary {

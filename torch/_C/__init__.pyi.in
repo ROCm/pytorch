@@ -26,12 +26,18 @@ import numpy
 import torch
 from torch import inf, SymInt, Tensor
 from torch._C import (
+<<<<<<< HEAD
     _acc,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _aoti,
     _cpu,
     _dynamo,
     _export,
+<<<<<<< HEAD
     _functionalization,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _functorch,
     _lazy,
     _lazy_ts_backend,
@@ -42,8 +48,11 @@ from torch._C import (
 )
 from torch._prims_common import DeviceLikeType
 from torch.autograd.graph import Node as _Node
+<<<<<<< HEAD
 from torch.cuda import _POOL_HANDLE
 from torch.distributed.tensor._op_schema import OpSchema
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.node import Node as FxNode
 from torch.package import PackageExporter
 from torch.storage import TypedStorage, UntypedStorage
@@ -954,7 +963,10 @@ class FunctionSchema:
         is_vararg: _bool,
         is_varret: _bool,
     ) -> None: ...
+<<<<<<< HEAD
     def _is_view_op(self) -> _bool: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _UpgraderEntry:
     bumped_at_version: _int
@@ -1217,8 +1229,11 @@ def _get_mkldnn_enabled() -> _bool: ...  # THPModule_userEnabledMkldnn
 def _set_mkldnn_enabled(arg: _bool) -> None: ...  # THPModule_setUserEnabledMkldnn
 def _get_cudnn_benchmark() -> _bool: ...  # THPModule_benchmarkCuDNN
 def _set_cudnn_benchmark(arg: _bool) -> None: ...  # THPModule_setBenchmarkCuDNN
+<<<<<<< HEAD
 def _get_miopen_immediate() -> _bool: ...  # THPModule_userImmediateMiopen
 def _set_miopen_immediate(arg: _bool) -> None: ...  # THPModule_setUserImmediateMiopen
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_cudnn_deterministic() -> _bool: ...  # THPModule_deterministicCuDNN
 def _set_cudnn_deterministic(arg: _bool) -> None: ...  # THPModule_setDeterministicCuDNN
 def _get_mkldnn_deterministic() -> _bool: ...  # THPModule_deterministicMkldnn
@@ -1254,6 +1269,7 @@ def _get_float32_matmul_precision() -> str: ...  # THPModule_float32MatmulPrecis
 def _set_float32_matmul_precision(
     arg: str,
 ) -> None: ...  # THPModule_setFloat32MatmulPrecision
+<<<<<<< HEAD
 def _get_cublas_allow_fp16_reduced_precision_reduction() -> tuple[
     _bool, _bool
 ]: ...  # THPModule_allowFP16ReductionCuBLAS
@@ -1267,6 +1283,19 @@ def _get_cublas_allow_bf16_reduced_precision_reduction() -> tuple[
 def _set_cublas_allow_bf16_reduced_precision_reduction(
     arg: _bool,
     allow_splitk: _bool = ...,
+=======
+def _get_cublas_allow_fp16_reduced_precision_reduction() -> (
+    _bool
+): ...  # THPModule_allowFP16ReductionCuBLAS
+def _set_cublas_allow_fp16_reduced_precision_reduction(
+    arg: _bool,
+) -> None: ...  # THPModule_setAllowFP16ReductionCuBLAS
+def _get_cublas_allow_bf16_reduced_precision_reduction() -> (
+    _bool
+): ...  # THPModule_allowBF16ReductionCuBLAS
+def _set_cublas_allow_bf16_reduced_precision_reduction(
+    arg: _bool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None: ...  # THPModule_setAllowBF16ReductionCuBLAS
 def _get_cublas_allow_fp16_accumulation() -> (
     _bool
@@ -1279,7 +1308,10 @@ def _set_sm_carveout_experimental(arg: _int | None) -> None: ...
 def _set_conj(x: Tensor, conj: _bool) -> None: ...
 def _set_neg(x: Tensor, neg: _bool) -> None: ...
 def _set_meta_in_tls_dispatch_include(meta_in_tls: _bool) -> None: ...
+<<<<<<< HEAD
 def _autocast_supported_devices() -> list[str]: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _meta_in_tls_dispatch_include() -> _bool: ...
 def _stash_obj_in_tls(key: str, arg: Any) -> None: ...
 def _get_obj_in_tls(key: str) -> Any: ...
@@ -1305,6 +1337,7 @@ def _group_tensors_by_device_and_dtype(
     tuple[torch.device, torch.dtype],
     tuple[list[list[Tensor | None]], list[_int]],
 ]: ...
+<<<<<<< HEAD
 def _initCrashHandler() -> None: ...
 
 # NB: There is no Capsule type in typing, see
@@ -1323,6 +1356,13 @@ def _from_dlpack(data: Any) -> Tensor: ...  # THPModule_fromDLPack
 def _torchDeviceToDLDevice(
     device: torch.device,
 ) -> tuple[_int, _int]: ...  # THPModule_torchDeviceToDLDevice
+=======
+
+# NB: There is no Capsule type in typing, see
+# https://github.com/python/cpython/issues/109562
+def _to_dlpack(data: Tensor) -> Any: ...  # THPModule_toDLPack
+def _from_dlpack(data: Any) -> Tensor: ...  # THPModule_fromDLPack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _get_cpp_backtrace(
     frames_to_skip: _int,
     maximum_number_of_frames: _int,
@@ -1382,9 +1422,12 @@ def _disabled_torch_dispatch_impl(
 ) -> Any: ...  # THPModule_disable_dispatch_function
 def _get_linalg_preferred_backend() -> _LinalgBackend: ...
 def _set_linalg_preferred_backend(arg: _LinalgBackend): ...
+<<<<<<< HEAD
 def _get_fp32_precision_getter(backend: str, op: str) -> str: ...
 def _set_fp32_precision_setter(backend: str, op: str, value: str) -> str: ...
 def _ensureCUDADeviceGuardSet() -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _LinalgBackend:
     Default: _LinalgBackend
@@ -1442,7 +1485,10 @@ _has_cuda: _bool
 _has_magma: _bool
 _has_xpu: _bool
 _has_mkldnn: _bool
+<<<<<<< HEAD
 _has_mkldnn_acl: _bool
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _has_cudnn: _bool
 _has_cusparselt: _bool
 has_spectral: _bool
@@ -1625,11 +1671,14 @@ def _jit_pass_cse(Graph) -> _bool: ...
 def _jit_pass_dce(Graph) -> None: ...
 def _jit_pass_dce_graph(Graph) -> None: ...
 def _jit_pass_lint(Graph) -> None: ...
+<<<<<<< HEAD
 def _make_opaque_object(payload: Any) -> ScriptObject: ...
 def _get_opaque_object_payload(obj: ScriptObject) -> Any: ...
 def _set_opaque_object_payload(obj: ScriptObject, payload: Any) -> None: ...
 def _register_opaque_type(type_name: str) -> None: ...
 def _is_opaque_type_registered(type_name: str) -> _bool: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Defined in torch/csrc/jit/python/python_custom_class.cpp
 def _get_custom_class_python_wrapper(name: str, attr: str) -> Any: ...
@@ -1856,9 +1905,12 @@ class _SetExcludeDispatchKeyGuard:
     def __enter__(self): ...
     def __exit__(self, *exc_info: object) -> None: ...
 
+<<<<<<< HEAD
 def _get_dtensor_allow_implicit_replication() -> _bool: ...
 def _set_dtensor_allow_implicit_replication(value: _bool) -> None: ...
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Defined in torch/csrc/utils/schema_info.h
 
 class _SchemaInfo:
@@ -1913,7 +1965,10 @@ class TensorBase(metaclass=_TensorMeta):
     names: list[str]
     device: _device
     dtype: _dtype
+<<<<<<< HEAD
     grad_dtype: _dtype | None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     layout: _layout
     real: Tensor
     imag: Tensor
@@ -1945,9 +2000,12 @@ class TensorBase(metaclass=_TensorMeta):
 
 _TensorBase = TensorBase
 
+<<<<<<< HEAD
 def _DTensor_OpSchema_post_init(self: OpSchema) -> None: ...
 def _DTensor_OpSchema_recompute_comparison_key(self: OpSchema) -> None: ...
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Defined in torch/csrc/multiprocessing/init.cpp
 def _multiprocessing_init() -> None: ...
 def _set_thread_name(name: str) -> None: ...
@@ -1968,10 +2026,15 @@ def _mtia_isBuilt() -> _bool: ...
 def _mtia_isInBadFork() -> _bool: ...
 def _mtia_deviceSynchronize() -> None: ...
 def _mtia_getCurrentStream(device: _int) -> Stream: ...
+<<<<<<< HEAD
 def _mtia_getCurrentRawStream(device: _int) -> _int: ...
 def _mtia_setCurrentStream(stream: Stream) -> None: ...
 def _mtia_getDefaultStream(device: _int) -> Stream: ...
 def _mtia_setStream(stream_id: _int, device_index: _int, device_type: _int) -> None: ...
+=======
+def _mtia_setCurrentStream(stream: Stream) -> None: ...
+def _mtia_getDefaultStream(device: _int) -> Stream: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _mtia_memoryStats(device: _int) -> dict[str, Any]: ...
 def _mtia_getDeviceCapability(device: _int) -> tuple[_int, _int]: ...
 def _mtia_getDeviceProperties(device: _int) -> dict[str, Any]: ...
@@ -1990,9 +2053,13 @@ def _mtia_resetPeakMemoryStats(device: _int) -> None: ...
 
 # Defined in torch/csrc/mps/Module.cpp
 def _mps_deviceSynchronize() -> None: ...
+<<<<<<< HEAD
 def _mps_get_core_count() -> _int: ...
 def _mps_get_default_generator() -> Generator: ...
 def _mps_get_name() -> _str: ...
+=======
+def _mps_get_default_generator() -> Generator: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _mps_emptyCache() -> None: ...
 def _mps_setMemoryFraction(fraction: _float) -> None: ...
 def _mps_currentAllocatedMemory() -> _int: ...
@@ -2039,6 +2106,10 @@ def _cuda_cudaHostAllocator() -> _int: ...
 def _cuda_cudaCachingAllocator_raw_alloc(size: _int, cuda_stream: _int) -> _int: ...
 def _cuda_cudaCachingAllocator_raw_delete(ptr: _int) -> None: ...
 def _cuda_cudaCachingAllocator_enable(val: _bool) -> None: ...
+<<<<<<< HEAD
+=======
+def _cuda_cudaCachingAllocator_set_allocator_settings(env: str) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _cuda_beginAllocateToPool(device: _int, mempool_id: tuple[_int, _int]) -> None: ...
 def _cuda_beginAllocateCurrentThreadToPool(
     device: _int,
@@ -2071,8 +2142,11 @@ def _cuda_hostMemoryStats() -> dict[str, Any]: ...
 def _cuda_resetAccumulatedHostMemoryStats() -> None: ...
 def _cuda_resetPeakHostMemoryStats() -> None: ...
 def _cuda_memorySnapshot(mempool_id: tuple[_int, _int] | None) -> dict[str, Any]: ...
+<<<<<<< HEAD
 def _cuda_setMemoryMetadata(metadata: str) -> None: ...
 def _cuda_getMemoryMetadata() -> str: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _cuda_record_memory_history_legacy(
     enabled: _bool,
     record_context: _bool,
@@ -2081,7 +2155,10 @@ def _cuda_record_memory_history_legacy(
     alloc_trace_record_context: _bool,
     clear_history: _bool,
     compile_context: _bool,
+<<<<<<< HEAD
     global_record_annotations: _bool,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None: ...
 def _cuda_record_memory_history(
     enabled: str | None,
@@ -2090,7 +2167,10 @@ def _cuda_record_memory_history(
     max_entries: _int,
     clear_history: _bool,
     compile_context: _bool,
+<<<<<<< HEAD
     global_record_annotations: _bool,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None: ...
 def _cuda_isHistoryEnabled() -> _bool: ...
 def _cuda_getAllocatorBackend() -> str: ...
@@ -2190,14 +2270,23 @@ def _cuda_tunableop_set_filename(
     insert_device_ordinal: _bool | None,
 ) -> None: ...
 def _cuda_tunableop_get_filename() -> str: ...
+<<<<<<< HEAD
 def _cuda_tunableop_read_file(filename: str | None) -> _bool: ...
+=======
+def _cuda_tunableop_write_file(filename: str | None) -> _bool: ...
+def _cuda_tunableop_read_file(filename: str | None) -> _bool: ...
+def _cuda_tunableop_write_file_on_exit(val: _bool) -> None: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _cuda_tunableop_get_results() -> tuple[str, str, str, _float]: ...
 def _cuda_tunableop_get_validators() -> tuple[str, str]: ...
 def _cuda_tunableop_set_rotating_buffer_size(buffer_size: _int) -> None: ...
 def _cuda_tunableop_get_rotation_buffer_size() -> _int: ...
+<<<<<<< HEAD
 def _cuda_tunableop_set_numerical_check_tolerances(
     enabled: _bool, atol: _float = 1e-5, rtol: _float = 1e-5
 ) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _CudaDeviceProperties:
     name: str
@@ -2212,9 +2301,12 @@ class _CudaDeviceProperties:
     warp_size: _int
     uuid: str
     L2_cache_size: _int
+<<<<<<< HEAD
     clock_rate: _int
     memory_clock_rate: _int
     memory_bus_width: _int
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Functions related to SDPA
 class _SDPAParams:
@@ -2242,7 +2334,10 @@ class _SDPBackend(Enum):
     FLASH_ATTENTION = 1
     EFFICIENT_ATTENTION = 2
     CUDNN_ATTENTION = 3
+<<<<<<< HEAD
     OVERRIDEABLE = 4
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def _is_flash_attention_available() -> _bool: ...
 def _can_use_cudnn_attention(params: _SDPAParams, debug: _bool) -> _bool: ...
@@ -2332,7 +2427,11 @@ class _CUDAGraph:
     def __new__(cls, keep_graph: _bool = ...) -> Self: ...
     def capture_begin(
         self,
+<<<<<<< HEAD
         pool: _POOL_HANDLE | None = ...,
+=======
+        pool: tuple[_int, _int] | None = ...,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         capture_error_mode: str = "global",
     ) -> None: ...
     def capture_end(self) -> None: ...
@@ -2340,11 +2439,18 @@ class _CUDAGraph:
     def register_generator_state(self, Generator) -> None: ...
     def replay(self) -> None: ...
     def reset(self) -> None: ...
+<<<<<<< HEAD
     def pool(self) -> _POOL_HANDLE: ...
     def enable_debug_mode(self) -> None: ...
     def debug_dump(self, debug_path: str) -> None: ...
     def raw_cuda_graph(self) -> _int: ...
     def raw_cuda_graph_exec(self) -> _int: ...
+=======
+    def pool(self) -> tuple[_int, _int]: ...
+    def enable_debug_mode(self) -> None: ...
+    def debug_dump(self, debug_path: str) -> None: ...
+    def raw_cuda_graph(self) -> _int: ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Defined in torch/csrc/cuda/MemPool.cpp
 class _MemPool:
@@ -2353,10 +2459,19 @@ class _MemPool:
         allocator: _cuda_CUDAAllocator | None = None,
         is_user_created: _bool = True,
         use_on_oom: _bool = False,
+<<<<<<< HEAD
+=======
+        symmetric: _bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None: ...
     @property
     def id(self) -> tuple[_int, _int]: ...
     @property
+<<<<<<< HEAD
+=======
+    def is_symmetric(self) -> _bool: ...
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def allocator(self) -> _cuda_CUDAAllocator | None: ...
     def use_count(self) -> _int: ...
 
@@ -2381,14 +2496,20 @@ def _xpu_memoryStats(device: _int) -> dict[str, Any]: ...
 def _xpu_resetAccumulatedMemoryStats(device: _int) -> None: ...
 def _xpu_resetPeakMemoryStats(device: _int) -> None: ...
 def _xpu_getMemoryInfo(device: _int) -> tuple[_int, _int]: ...
+<<<<<<< HEAD
 def _xpu_canDeviceAccessPeer(device: _int, peer: _int) -> _bool: ...
 def _xpu_setMemoryFraction(fraction: _float, device: _int) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _XpuDeviceProperties:
     name: str
     platform_name: str
     vendor: str
+<<<<<<< HEAD
     device_id: _int
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     driver_version: str
     version: str
     max_compute_units: _int
@@ -2407,7 +2528,10 @@ class _XpuDeviceProperties:
     gpu_subslice_count: _int
     architecture: _int
     type: str
+<<<<<<< HEAD
     uuid: Any
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Defined in torch/csrc/xpu/Stream.cpp
 class _XpuStreamBase(Stream):
@@ -2463,12 +2587,15 @@ def _accelerator_getStream(device_index: _int) -> Stream: ...
 def _accelerator_synchronizeDevice(device_index: _int) -> None: ...
 def _accelerator_exchangeDevice(device_index: _int) -> _int: ...
 def _accelerator_maybeExchangeDevice(device_index: _int) -> _int: ...
+<<<<<<< HEAD
 def _accelerator_isAllocatorInitialized() -> _bool: ...
 def _accelerator_emptyCache() -> None: ...
 def _accelerator_getDeviceStats(device_index: _int) -> dict[str, Any]: ...
 def _accelerator_resetAccumulatedStats(device_index: _int) -> None: ...
 def _accelerator_resetPeakStats(device_index: _int) -> None: ...
 def _accelerator_setAllocatorSettings(env: str) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Defined in torch/csrc/jit/python/python_tracer.cpp
 class TracingState:
@@ -2750,6 +2877,7 @@ class _NodeBase:
         return_type: Any,
     ) -> None: ...
     def _update_args_kwargs(self, args: tuple[Any, ...], kwargs: dict[str, Any]): ...
+<<<<<<< HEAD
     def _prepend(self, n: FxNode) -> None: ...
     def _replace_input_with(self, old_input: FxNode, new_input: FxNode) -> None: ...
     def _remove_from_list(self) -> None: ...
@@ -2757,6 +2885,8 @@ class _NodeBase:
     def __gt__(self, n: Self) -> _bool: ...
     def __le__(self, n: Self) -> _bool: ...
     def __ge__(self, n: Self) -> _bool: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class _NodeIter(Iterator[FxNode]):
     def __init__(self, root: FxNode, reversed: _bool) -> None: ...
@@ -2784,6 +2914,7 @@ class _StaticCudaLauncher:
         args: tuple[Any, ...],
         stream: _int,
     ) -> None: ...
+<<<<<<< HEAD
 
 # Defined in torch/csrc/cuda/GreenContext.cpp
 class GreenContext:
@@ -2798,3 +2929,5 @@ class GreenContext:
     def pop_context(
         self,
     ) -> None: ...
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

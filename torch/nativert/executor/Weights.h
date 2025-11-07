@@ -1,8 +1,17 @@
 #pragma once
 
+<<<<<<< HEAD
 #include <c10/util/FbcodeMaps.h>
 #include <c10/util/Logging.h>
 #include <caffe2/serialize/inline_container.h>
+=======
+#include <unordered_map>
+
+#include <c10/util/FbcodeMaps.h>
+#include <c10/util/Logging.h>
+#include <caffe2/serialize/inline_container.h>
+#include <torch/nativert/executor/Placement.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <torch/nativert/graph/Graph.h>
 
@@ -20,12 +29,20 @@ using WeightVersion = int;
  */
 class Weights {
  public:
+<<<<<<< HEAD
   Weights(
       const Graph* graph,
       const std::optional<std::unordered_map<std::string, c10::IValue>>&
           stateDict = std::nullopt,
       const std::optional<std::unordered_map<std::string, c10::IValue>>&
           constants = std::nullopt);
+=======
+  explicit Weights(
+      const Graph* graph,
+      const std::optional<std::unordered_map<std::string, c10::IValue>>&
+          stateDict = std::nullopt,
+      Placement placement = Placement());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Arguments
   // - pytorchStreamReader: the reader for the model archive
@@ -36,6 +53,11 @@ class Weights {
   // - constantPaths: a map from constant name to file path in the archive
   // - constantPathPrefix: a prefix that will be prepended to paths in
   // constantPathPrefix
+<<<<<<< HEAD
+=======
+  // - placement: the device placement of the weights, default to follow the
+  //   original device in the weight's metadata
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   explicit Weights(
       const Graph* graph,
       std::shared_ptr<caffe2::serialize::PyTorchStreamReader>
@@ -44,6 +66,10 @@ class Weights {
       std::string_view stateDictPathPrefix,
       const std::unordered_map<std::string, std::string>& constantPaths,
       std::string_view constantPathPrefix,
+<<<<<<< HEAD
+=======
+      Placement placement = Placement(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::function<bool(const std::string&)> skipSizeCheck = {},
       std::function<bool(const std::string&)> skipDtypeCheck = {});
 
@@ -66,10 +92,13 @@ class Weights {
    * Replace the value stored at the weight with name "name".
    */
   void setValue(const std::string& name, const at::Tensor& newValue);
+<<<<<<< HEAD
   void setValue(
       const std::string& name,
       const at::Tensor& newValue,
       bool skipDeviceCheck);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /*
    * Update the value stored at the weight with name "name".
@@ -81,10 +110,13 @@ class Weights {
       const std::unordered_map<std::string, at::Tensor>& newValues);
 
   void validateValue(const std::string& name, const at::Tensor& newValue) const;
+<<<<<<< HEAD
   void validateValue(
       const std::string& name,
       const at::Tensor& newValue,
       bool skipDeviceCheck) const;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void validateAllWeightsLoaded();
 
@@ -112,13 +144,21 @@ class Weights {
  private:
   const Graph* graph_;
   const std::unordered_map<std::string, TensorMeta>& weightsMeta_;
+<<<<<<< HEAD
+=======
+  Placement placement_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // keys are parameter/buffer/constant names, not graph input names!
   std::unordered_map<std::string, at::Tensor> allValues_;
 
   std::unordered_map<std::string, c10::IValue> customObjs_;
 
+<<<<<<< HEAD
   // contains CustomClassHolder map from a file name to an arbitrary
+=======
+  // contains CustomClassHolder map from a file name to an arbitray
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // key in customObjs_ that hold the loaded content of the file.
   // This is used in AOTIDelegateExecutor.
   std::unordered_map<std::string, std::string> customObjsPaths_;

@@ -672,7 +672,11 @@ Tensor bmm_sparse_cuda(const SparseTensor& self, const Tensor& mat2) {
   return bmm_out_sparse_cuda(self, mat2, result);
 }
 
+<<<<<<< HEAD
 #if defined(USE_ROCM) || defined(CUSPARSE_VERSION)
+=======
+#if defined(USE_ROCM) || !(defined(_MSC_VER) && CUSPARSE_VERSION < 11000)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __global__ void search_end_matrix_indices_cuda_kernel(
   int64_t* mat_el_end_indices,
   int64_t num_matrices,
@@ -745,6 +749,13 @@ cudaDataType getTensorCudaDataType(Tensor self) {
 #endif
 
 Tensor& bmm_out_sparse_cuda(const SparseTensor& self, const Tensor& mat2, Tensor& result) {
+<<<<<<< HEAD
+=======
+#if defined(_MSC_VER) && (CUSPARSE_VERSION < 11000)
+  TORCH_CHECK(false, "bmm sparse-dense CUDA is not supported on Windows with cuda before 11.0");
+#elif defined(USE_ROCM) || (defined(CUDART_VERSION) && (CUDART_VERSION >= 10010))  // linux cuda >= 10.1 or windows cuda >= 11.0
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(!mat2.is_sparse(), "bmm_sparse: Tensor 'mat2' must be dense");
   TORCH_CHECK(self.dense_dim() == 0, "bmm_sparse: Tensor 'self' must have 0 dense dims, but has ", self.dense_dim());
   TORCH_CHECK(self.sparse_dim() == 3, "bmm_sparse: Tensor 'self' must have 3 sparse dims, but has ", self.sparse_dim());
@@ -796,7 +807,11 @@ Tensor& bmm_out_sparse_cuda(const SparseTensor& self, const Tensor& mat2, Tensor
   Tensor indices_dim1 = indices[1].to(ScalarType::Int);
   Tensor indices_dim2 = indices[2].to(ScalarType::Int);
 
+<<<<<<< HEAD
   std::vector<int64_t> mat_el_end_indices_host(num_matrices);
+=======
+  std::unique_ptr<int64_t[]> mat_el_end_indices_host(new int64_t[num_matrices]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   {
     auto& allocator = *::c10::cuda::CUDACachingAllocator::get();
@@ -805,14 +820,22 @@ Tensor& bmm_out_sparse_cuda(const SparseTensor& self, const Tensor& mat2, Tensor
 
     search_end_matrix_indices(mat_el_end_indices_device, num_matrices, indices_dim0);
     AT_CUDA_CHECK(cudaMemcpy(
+<<<<<<< HEAD
       mat_el_end_indices_host.data(),
+=======
+      mat_el_end_indices_host.get(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       mat_el_end_indices_device,
       num_matrices*sizeof(int64_t),
       cudaMemcpyDeviceToHost
     ));
   }
   // Need a pointer to an array to access within a lambda
+<<<<<<< HEAD
   int64_t* mat_el_end_indices = mat_el_end_indices_host.data();
+=======
+  int64_t* mat_el_end_indices = &mat_el_end_indices_host[0];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Scalar beta = 0;
   Scalar alpha = 1;
@@ -940,6 +963,13 @@ Tensor& bmm_out_sparse_cuda(const SparseTensor& self, const Tensor& mat2, Tensor
   // them in column-major order in memory
   result.transpose_(1,2);
 
+<<<<<<< HEAD
+=======
+#else
+  TORCH_CHECK(false, "bmm sparse-dense requires CUDA 10.1 or greater");
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return result;
 }
 

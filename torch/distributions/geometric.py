@@ -44,7 +44,10 @@ class Geometric(Distribution):
         logits (Number, Tensor): the log-odds of sampling `1`.
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
     support = constraints.nonnegative_integer
 
@@ -59,11 +62,17 @@ class Geometric(Distribution):
                 "Either `probs` or `logits` must be specified, but not both."
             )
         if probs is not None:
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
             (self.probs,) = broadcast_all(probs)
         else:
             assert logits is not None  # helps mypy
             # pyrefly: ignore [read-only]
+=======
+            (self.probs,) = broadcast_all(probs)
+        else:
+            assert logits is not None  # helps mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.logits,) = broadcast_all(logits)
         probs_or_logits = probs if probs is not None else logits
         if isinstance(probs_or_logits, _Number):

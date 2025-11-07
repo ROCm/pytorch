@@ -30,7 +30,11 @@ void PyAnomalyMetadata::store_stack() {
 void PyAnomalyMetadata::print_stack(const std::string& current_node_name) {
   pybind11::gil_scoped_acquire gil;
   if (!PyDict_Check(dict())) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Anomaly metadata is not a python dictionary.");
+=======
+    throw std::runtime_error("Anomaly metadata is not a python dictionary.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   PyObject* trace_stack = nullptr;
   if (PyDict_GetItemStringRef(dict(), ANOMALY_TRACE_KEY, &trace_stack) < 0) {

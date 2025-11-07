@@ -101,6 +101,7 @@ void THCPGraph_init(PyObject* module) {
             // compile error.
             return reinterpret_cast<uintptr_t>(graph);
           },
+<<<<<<< HEAD
           py::call_guard<py::gil_scoped_release>())
       .def(
           "raw_cuda_graph_exec",
@@ -112,5 +113,7 @@ void THCPGraph_init(PyObject* module) {
             // compile error.
             return reinterpret_cast<uintptr_t>(graph_exec);
           },
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           py::call_guard<py::gil_scoped_release>());
 }

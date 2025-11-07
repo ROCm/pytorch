@@ -13,6 +13,7 @@ import sys
 import time
 
 
+<<<<<<< HEAD
 def run_command(
     args: list[str],
     env: dict[str, str] | None = None,
@@ -21,12 +22,23 @@ def run_command(
     start_time = time.monotonic()
     try:
         return subprocess.run(args, env=env, text=True, encoding="utf-8", check=True)
+=======
+def run_command(args: list[str]) -> subprocess.CompletedProcess[bytes]:
+    logging.debug("$ %s", " ".join(args))
+    start_time = time.monotonic()
+    try:
+        return subprocess.run(args, check=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     finally:
         end_time = time.monotonic()
         logging.debug("took %dms", (end_time - start_time) * 1000)
 
 
+<<<<<<< HEAD
 def main() -> None:
+=======
+if __name__ == "__main__":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parser = argparse.ArgumentParser(description="pip initializer")
     parser.add_argument(
         "packages",
@@ -41,6 +53,14 @@ def main() -> None:
     parser.add_argument(
         "--dry-run", help="do not install anything, just print what would be done."
     )
+<<<<<<< HEAD
+=======
+    parser.add_argument(
+        "--no-black-binary",
+        help="do not use pre-compiled binaries from pip for black.",
+        action="store_true",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     args = parser.parse_args()
 
@@ -50,6 +70,7 @@ def main() -> None:
         stream=sys.stderr,
     )
 
+<<<<<<< HEAD
     env: dict[str, str] = {
         **os.environ,
         "UV_PYTHON": sys.executable,
@@ -60,6 +81,19 @@ def main() -> None:
     uv_index = env.get("UV_INDEX", env.get("PIP_EXTRA_INDEX_URL"))
     if uv_index:
         env["UV_INDEX"] = uv_index
+=======
+    uv_available = (
+        any(prefix in sys.base_prefix for prefix in ["uv/python", "uv\\python"])
+        and shutil.which("uv") is not None
+    )
+
+    if uv_available:
+        pip_args = ["uv", "pip", "install"]
+    elif sys.executable:
+        pip_args = [sys.executable, "-mpip", "install"]
+    else:
+        pip_args = ["pip3", "install"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If we are in a global install, use `--user` to install so that you do not
     # need root access in order to initialize linters.
@@ -67,6 +101,7 @@ def main() -> None:
     # However, `pip install --user` interacts poorly with virtualenvs (see:
     # https://bit.ly/3vD4kvl) and conda (see: https://bit.ly/3KG7ZfU). So in
     # these cases perform a regular installation.
+<<<<<<< HEAD
     in_conda = env.get("CONDA_PREFIX") is not None
     in_virtualenv = env.get("VIRTUAL_ENV") is not None
     need_user_flag = not in_conda and not in_virtualenv
@@ -81,6 +116,11 @@ def main() -> None:
         pip_args = ["pip3", "install"]
 
     if need_user_flag:
+=======
+    in_conda = os.environ.get("CONDA_PREFIX") is not None
+    in_virtualenv = os.environ.get("VIRTUAL_ENV") is not None
+    if not in_conda and not in_virtualenv:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pip_args.append("--user")
 
     pip_args.extend(args.packages)
@@ -89,17 +129,29 @@ def main() -> None:
         package_name, _, version = package.partition("=")
         if version == "":
             raise RuntimeError(
+<<<<<<< HEAD
                 f"Package {package_name} did not have a version specified. "
                 "Please specify a version to produce a consistent linting experience."
             )
+=======
+                "Package {package_name} did not have a version specified. "
+                "Please specify a version to produce a consistent linting experience."
+            )
+        if args.no_black_binary and "black" in package_name:
+            pip_args.append(f"--no-binary={package_name}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     dry_run = args.dry_run == "1"
     if dry_run:
         print(f"Would have run: {pip_args}")
         sys.exit(0)
 
+<<<<<<< HEAD
     run_command(pip_args, env=env)
 
 
 if __name__ == "__main__":
     main()
+=======
+    run_command(pip_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

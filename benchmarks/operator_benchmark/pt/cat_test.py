@@ -125,7 +125,11 @@ class CatBenchmark(op_bench.TorchBenchmarkBase):
         random.seed(42)
         inputs = []
         gen_sizes = []
+<<<<<<< HEAD
         if type(sizes) is list and N == -1:
+=======
+        if type(sizes) == list and N == -1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             gen_sizes = sizes
         else:
             for i in range(N):

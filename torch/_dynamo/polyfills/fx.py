@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._C import _fx_map_aggregate, _fx_map_arg
 from torch.fx.immutable_collections import immutable_dict, immutable_list

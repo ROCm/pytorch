@@ -900,7 +900,11 @@ class TestScalarIndexing(TestCase):
 
         assert_raises(IndexError, subscript, a, (np.newaxis, 0))
 
+<<<<<<< HEAD
         # this assertion fails because 50 > NPY_MAXDIMS = 32
+=======
+        # this assersion fails because 50 > NPY_MAXDIMS = 32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # assert_raises(IndexError, subscript, a, (np.newaxis,)*50)
 
     @xfail  # (reason="pytorch disallows overlapping assignments")
@@ -2702,7 +2706,11 @@ class TestMethods(TestCase):
         a = np.zeros((100, 100))
         if HAS_REFCOUNT:
             assert_(sys.getrefcount(a) < 50)
+<<<<<<< HEAD
         for _ in range(100):
+=======
+        for i in range(100):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a.diagonal()
         if HAS_REFCOUNT:
             assert_(sys.getrefcount(a) < 50)
@@ -3283,7 +3291,11 @@ class TestArgmax(TestCase):
                     ([np.nan, 0, 1, 2, 3], 0),
                     ([np.nan, 0, np.nan, 2, 3], 0),
                     # To hit the tail of SIMD multi-level(x4, x1) inner loops
+<<<<<<< HEAD
                     # on variant SIMD widths
+=======
+                    # on variant SIMD widthes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ([1] * (2 * 5 - 1) + [np.nan], 2 * 5 - 1),
                     ([1] * (4 * 5 - 1) + [np.nan], 4 * 5 - 1),
                     ([1] * (8 * 5 - 1) + [np.nan], 8 * 5 - 1),
@@ -3392,7 +3404,11 @@ class TestArgmin(TestCase):
                     ([np.nan, 0, 1, 2, 3], 0),
                     ([np.nan, 0, np.nan, 2, 3], 0),
                     # To hit the tail of SIMD multi-level(x4, x1) inner loops
+<<<<<<< HEAD
                     # on variant SIMD widths
+=======
+                    # on variant SIMD widthes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ([1] * (2 * 5 - 1) + [np.nan], 2 * 5 - 1),
                     ([1] * (4 * 5 - 1) + [np.nan], 4 * 5 - 1),
                     ([1] * (8 * 5 - 1) + [np.nan], 8 * 5 - 1),
@@ -4104,7 +4120,10 @@ class TestIO(TestCase):
             def test_decimal_period_separator():
                 pass
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             def test_decimal_comma_separator():
                 with CommaDecimalPointLocale():
                     pass
@@ -4457,7 +4476,11 @@ class TestResize(TestCase):
 
     def test_0d_shape(self):
         # to it multiple times to test it does not break alloc cache gh-9216
+<<<<<<< HEAD
         for _ in range(10):
+=======
+        for i in range(10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x = np.empty((1,))
             x.resize(())
             assert_equal(x.shape, ())
@@ -5081,7 +5104,11 @@ class TestDot(TestCase):
         v = np.random.random_sample((16, 32))
 
         r = np.empty((1024, 32))
+<<<<<<< HEAD
         for _ in range(12):
+=======
+        for i in range(12):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dot(f, v, r)
         if HAS_REFCOUNT:
             assert_equal(sys.getrefcount(r), 2)
@@ -6678,7 +6705,11 @@ class TestWhere(TestCase):
         np.random.seed(2)
         array = np.random.rand(*shape)
 
+<<<<<<< HEAD
         for _ in range(10):
+=======
+        for i in range(10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             benchmark = array.nonzero()
             result = array.nonzero()
             assert_array_equal(benchmark, result)
@@ -6787,10 +6818,14 @@ class TestWritebackIfCopy(TestCase):
 class TestArange(TestCase):
     def test_infinite(self):
         assert_raises(
+<<<<<<< HEAD
             (RuntimeError, ValueError),
             np.arange,
             0,
             np.inf,  # "unsupported range",
+=======
+            (RuntimeError, ValueError), np.arange, 0, np.inf  # "unsupported range",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_nan_step(self):

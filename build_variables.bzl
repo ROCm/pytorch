@@ -68,8 +68,11 @@ jit_core_sources = [
 # list for the shared files.
 
 core_sources_common = [
+<<<<<<< HEAD
     # This needs to belong here because it defines the first non-inline virtual
     # function, which matters for AutogradMetaInterface's vtable.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/autograd/autograd_meta.cpp",
     "torch/csrc/autograd/forward_grad.cpp",
     "torch/csrc/jit/frontend/edit_distance.cpp",
@@ -91,7 +94,10 @@ core_sources_common = [
 
 torch_unpickler_common = [
     "torch/csrc/jit/serialization/import_read.cpp",
+<<<<<<< HEAD
     "torch/csrc/jit/serialization/pickler_helper.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/jit/serialization/unpickler.cpp",
 ]
 
@@ -482,7 +488,10 @@ inductor_core_resources = [
     "torch/csrc/inductor/aoti_torch/oss_proxy_executor.cpp",
     "torch/csrc/inductor/inductor_ops.cpp",
     "torch/csrc/jit/serialization/pickle.cpp",
+<<<<<<< HEAD
     "torch/csrc/shim_common.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 libtorch_core_sources = sorted(
@@ -515,14 +524,20 @@ libtorch_distributed_base_sources = [
     "torch/csrc/distributed/c10d/TCPStore.cpp",
     "torch/csrc/distributed/c10d/TCPStoreBackend.cpp",
     "torch/csrc/distributed/c10d/TCPStoreLibUvBackend.cpp",
+<<<<<<< HEAD
     "torch/csrc/distributed/c10d/Types.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/distributed/c10d/Utils.cpp",
     "torch/csrc/distributed/c10d/Work.cpp",
     "torch/csrc/distributed/c10d/comm.cpp",
     "torch/csrc/distributed/c10d/control_collectives/StoreCollectives.cpp",
     "torch/csrc/distributed/c10d/control_plane/Handlers.cpp",
     "torch/csrc/distributed/c10d/control_plane/WorkerServer.cpp",
+<<<<<<< HEAD
     "torch/csrc/distributed/c10d/cuda/StreamBlock.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/distributed/c10d/debug.cpp",
     "torch/csrc/distributed/c10d/default_comm_hooks.cpp",
     "torch/csrc/distributed/c10d/logger.cpp",
@@ -597,20 +612,30 @@ libtorch_core_jit_sources = sorted(jit_sources_full)
 
 
 libtorch_nativert_sources = [
+<<<<<<< HEAD
     "torch/nativert/ModelRunner.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/nativert/graph/Graph.cpp",
     "torch/nativert/graph/GraphPasses.cpp",
     "torch/nativert/graph/GraphSignature.cpp",
     "torch/nativert/graph/Serialization.cpp",
     "torch/nativert/graph/TensorMeta.cpp",
+<<<<<<< HEAD
     "torch/nativert/graph/GraphUtils.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/nativert/executor/DelegateExecutor.cpp",
     "torch/nativert/executor/Placement.cpp",
     "torch/nativert/executor/ExecutionPlanner.cpp",
     "torch/nativert/executor/ExecutionFrame.cpp",
+<<<<<<< HEAD
     "torch/nativert/executor/Executor.cpp",
     "torch/nativert/executor/GraphExecutorBase.cpp",
     "torch/nativert/executor/ConstantFolder.cpp",
+=======
+    "torch/nativert/executor/GraphExecutorBase.cpp",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/nativert/executor/OpKernel.cpp",
     "torch/nativert/executor/PlacementUtils.cpp",
     "torch/nativert/executor/SerialGraphExecutor.cpp",
@@ -623,6 +648,7 @@ libtorch_nativert_sources = [
     "torch/nativert/kernels/HigherOrderKernel.cpp",
     "torch/nativert/executor/memory/GreedyBySize.cpp",
     "torch/nativert/executor/memory/Bump.cpp",
+<<<<<<< HEAD
     "torch/nativert/executor/ParallelGraphExecutor.cpp",
     "torch/nativert/kernels/CallTorchBindKernel.cpp",
     "torch/nativert/kernels/KernelFactory.cpp",
@@ -648,6 +674,8 @@ libtorch_nativert_sources = [
 libtorch_nativert_cuda_sources = [
     "torch/nativert/executor/triton/CudaTritonKernelManager.cpp",
     "torch/nativert/executor/AOTInductorModelContainerCudaShim.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 torch_mobile_tracer_sources = [
@@ -670,7 +698,10 @@ libtorch_lite_eager_symbolication = [
     # Later we can split serialization and deserialization logic
     # to have better separation within build and only build relevant parts.
     "torch/csrc/jit/serialization/pickle.cpp",
+<<<<<<< HEAD
     "torch/csrc/jit/serialization/pickler_helper.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/jit/serialization/pickler.cpp",
     "torch/csrc/jit/serialization/unpickler.cpp",
 ]
@@ -757,9 +788,13 @@ libtorch_cuda_distributed_extra_sources = [
     "torch/csrc/distributed/c10d/UCCTracing.cpp",
     "torch/csrc/distributed/c10d/UCCUtils.cpp",
     "torch/csrc/distributed/c10d/cuda/AsyncMM.cu",
+<<<<<<< HEAD
     "torch/csrc/distributed/c10d/cuda/CUDAEventCache.cpp",
     "torch/csrc/distributed/c10d/cuda/utils.cpp",
     "torch/csrc/distributed/c10d/cuda/StreamBlock.cu",
+=======
+    "torch/csrc/distributed/c10d/cuda/utils.cpp",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/distributed/c10d/quantization/quantization_gpu.cu",
     "torch/csrc/distributed/c10d/symm_mem/CUDASymmetricMemory.cu",
     "torch/csrc/distributed/c10d/symm_mem/CUDASymmetricMemoryOps.cu",
@@ -768,6 +803,7 @@ libtorch_cuda_distributed_extra_sources = [
     "torch/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.cu",
     "torch/csrc/distributed/c10d/symm_mem/intra_node_comm.cpp",
     "torch/csrc/distributed/c10d/symm_mem/intra_node_comm.cu",
+<<<<<<< HEAD
     "torch/csrc/distributed/c10d/symm_mem/cuda_mem_pool.cpp",
     "torch/csrc/distributed/rpc/tensorpipe_cuda.cpp",
 ]
@@ -779,11 +815,20 @@ libtorch_nvshmem_sources = [
     "torch/csrc/distributed/c10d/symm_mem/NVSHMEMSymmetricMemory.cu",
 ]
 
+=======
+    "torch/csrc/distributed/rpc/tensorpipe_cuda.cpp",
+]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 libtorch_cuda_distributed_sources = libtorch_cuda_distributed_base_sources + libtorch_cuda_distributed_extra_sources
 
 libtorch_cuda_sources = libtorch_cuda_core_sources + libtorch_cuda_distributed_sources + [
     "torch/csrc/cuda/nccl.cpp",
+<<<<<<< HEAD
 ] + libtorch_nativert_cuda_sources
+=======
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 torch_cpp_srcs = [
     "torch/csrc/api/src/cuda.cpp",  # this just forwards stuff, no real CUDA
@@ -856,7 +901,10 @@ libtorch_python_cuda_core_sources = [
     "torch/csrc/cuda/Stream.cpp",
     "torch/csrc/cuda/Graph.cpp",
     "torch/csrc/cuda/MemPool.cpp",
+<<<<<<< HEAD
     "torch/csrc/cuda/GreenContext.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/cuda/shared/cudart.cpp",
     "torch/csrc/cuda/shared/nvtx.cpp",
     "torch/csrc/cuda/utils.cpp",
@@ -892,7 +940,10 @@ libtorch_python_core_sources = [
     "torch/csrc/QScheme.cpp",
     "torch/csrc/Module.cpp",
     "torch/csrc/PyInterpreter.cpp",
+<<<<<<< HEAD
     "torch/csrc/PyInterpreterHooks.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/python_dimname.cpp",
     "torch/csrc/Size.cpp",
     "torch/csrc/Storage.cpp",
@@ -901,7 +952,10 @@ libtorch_python_core_sources = [
     "torch/csrc/Stream.cpp",
     "torch/csrc/Event.cpp",
     "torch/csrc/TypeInfo.cpp",
+<<<<<<< HEAD
     "torch/csrc/acc/Module.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/api/src/python/init.cpp",
     "torch/csrc/autograd/functions/init.cpp",
     "torch/csrc/autograd/init.cpp",
@@ -917,7 +971,10 @@ libtorch_python_core_sources = [
     "torch/csrc/autograd/python_torch_functions_manual.cpp",
     "torch/csrc/autograd/python_variable.cpp",
     "torch/csrc/autograd/python_variable_indexing.cpp",
+<<<<<<< HEAD
     "torch/csrc/distributed/python_placement.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/dynamo/python_compiled_autograd.cpp",
     "torch/csrc/dynamo/cache_entry.cpp",
     "torch/csrc/dynamo/cpp_shim.cpp",
@@ -934,8 +991,11 @@ libtorch_python_core_sources = [
     "torch/csrc/mps/Module.cpp",
     "torch/csrc/mtia/Module.cpp",
     "torch/csrc/export/pybind.cpp",
+<<<<<<< HEAD
     "torch/csrc/export/upgrader.cpp",
     "torch/csrc/export/example_upgraders.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "torch/csrc/inductor/aoti_package/pybind.cpp",
     "torch/csrc/inductor/aoti_runner/pybind.cpp",
     "torch/csrc/inductor/aoti_eager/kernel_holder.cpp",
@@ -1016,9 +1076,13 @@ libtorch_python_core_sources = [
     "torch/csrc/utils/disable_torch_function.cpp",
     "torch/csrc/utils/verbose.cpp",
     "torch/csrc/cpu/Module.cpp",
+<<<<<<< HEAD
     "torch/csrc/functionalization/Module.cpp",
     "torch/csrc/instruction_counter/Module.cpp",
     "torch/nativert/python/Bindings.cpp",
+=======
+    "torch/csrc/instruction_counter/Module.cpp",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ] + lazy_tensor_core_python_sources
 
 libtorch_python_distributed_core_sources = [
@@ -1059,7 +1123,10 @@ def glob_libtorch_python_sources(gencode_pattern = ":generate-code[{}]"):
         "torch/csrc/autograd/generated/python_torch_functions_1.cpp",
         "torch/csrc/autograd/generated/python_torch_functions_2.cpp",
         "torch/csrc/autograd/generated/python_variable_methods.cpp",
+<<<<<<< HEAD
         "torch/csrc/functionalization/generated/ViewMetaClassesPythonBinding.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]]
 
     _libtorch_python_sources.extend(libtorch_python_core_sources)
@@ -1075,7 +1142,10 @@ aten_cpu_non_globed_sources = [
     "aten/src/ATen/detail/MPSHooksInterface.cpp",
     "aten/src/ATen/detail/MAIAHooksInterface.cpp",
     "aten/src/ATen/detail/PrivateUse1HooksInterface.cpp",
+<<<<<<< HEAD
     "aten/src/ATen/detail/XLAHooksInterface.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "aten/src/ATen/detail/XPUHooksInterface.cpp",
     "aten/src/ATen/detail/MTIAHooksInterface.cpp",
     "aten/src/ATen/detail/IPUHooksInterface.cpp",
@@ -1094,7 +1164,10 @@ aten_cpu_non_globed_headers = [
     "aten/src/ATen/detail/HPUHooksInterface.h",
     "aten/src/ATen/detail/MAIAHooksInterface.h",
     "aten/src/ATen/detail/PrivateUse1HooksInterface.h",
+<<<<<<< HEAD
     "aten/src/ATen/detail/XLAHooksInterface.h",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "aten/src/ATen/detail/XPUHooksInterface.h",
     "aten/src/ATen/detail/MTIAHooksInterface.h",
     "aten/src/ATen/detail/IPUHooksInterface.h",
@@ -1107,7 +1180,10 @@ aten_cpu_source_non_codegen_list = [
     "aten/src/ATen/DeviceAccelerator.cpp",
     "aten/src/ATen/Context.cpp",
     "aten/src/ATen/DLConvertor.cpp",
+<<<<<<< HEAD
     "aten/src/ATen/DTensorState.cpp",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "aten/src/ATen/EmptyTensor.cpp",
     "aten/src/ATen/ExpandUtils.cpp",
     "aten/src/ATen/CachedTensorUtils.cpp",

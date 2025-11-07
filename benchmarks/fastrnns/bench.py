@@ -127,7 +127,11 @@ def trainbench(
         bwd_time = bwd_start_event.elapsed_time(bwd_end_event)
         return fwd_time, bwd_time
 
+<<<<<<< HEAD
     creator_args = {
+=======
+    creator_args = creator_args = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "seqLength": seqLength,
         "numLayers": numLayers,
         "inputSize": inputSize,

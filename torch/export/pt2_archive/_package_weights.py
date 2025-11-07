@@ -1,8 +1,13 @@
 import collections
+<<<<<<< HEAD
 import warnings
 
 import torch
 from torch._subclasses.fake_tensor import FakeTensor
+=======
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._ordered_set import OrderedSet
 
 
@@ -16,6 +21,7 @@ def _end_ptr(tensor: torch.Tensor) -> int:
 
 class TensorProperties:
     def __init__(self, tensor: torch.Tensor):
+<<<<<<< HEAD
         self.is_fake = isinstance(tensor, FakeTensor)
         self.is_contiguous = tensor.is_contiguous()
         self.storage_ptr = None
@@ -35,12 +41,18 @@ class TensorProperties:
                 self.start = tensor.data_ptr()
                 # pyrefly: ignore [bad-assignment]
                 self.end = _end_ptr(tensor)
+=======
+        # info about underlying storage
+        self.storage_ptr = tensor.untyped_storage().data_ptr()
+        self.storage_size = tensor.untyped_storage().nbytes()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # info to recover tensor
         self.shape = tensor.shape
         self.stride = tensor.stride()
         self.offset = tensor.storage_offset()
 
+<<<<<<< HEAD
     def is_complete(self) -> bool:
         """
         Whether the tensor completely overlaps with its underlying storage
@@ -56,6 +68,15 @@ class TensorProperties:
         assert self.storage_size is not None
         assert self.start is not None
         assert self.end is not None
+=======
+        self.start = tensor.data_ptr()
+        self.end = _end_ptr(tensor)
+
+    def is_complete(self) -> bool:
+        """
+        Whehter the tensor completely overlaps with its underlying storage
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             self.start == self.storage_ptr
             and self.end == self.storage_ptr + self.storage_size
@@ -65,7 +86,11 @@ class TensorProperties:
 class Weights(dict):
     """
     A dictionary mapping from weight name to a tuple of (tensor, TensorProperties).
+<<<<<<< HEAD
     tensor represents the actual initial value of the weight.
+=======
+    tensor represents the actual intial value of the weight.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorProperties represents the properties of the weight that are needed to recover the weight.
 
     We use two separate entries because `tensor` could be a clone of the original weight tensor,
@@ -106,6 +131,7 @@ def get_complete(
         if tensor_property.is_complete():
             return name_tuple
 
+<<<<<<< HEAD
     warnings.warn(
         "No complete tensor found in the group! Returning the first one. "
         "This may cause issues when your weights are not on CPU.",
@@ -113,6 +139,9 @@ def get_complete(
     )
     assert len(group) > 0
     return next(iter(group))
+=======
+    raise RuntimeError("No complete tensor found in the group!")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def group_weights(all_weights: dict[str, Weights]) -> list[OrderedSet[tuple[str, str]]]:
@@ -122,6 +151,7 @@ def group_weights(all_weights: dict[str, Weights]) -> list[OrderedSet[tuple[str,
     Returns a list of sets, each set contains a tuple of (model_name, weight_name).
     """
 
+<<<<<<< HEAD
     weights_dict: dict[tuple[int, torch.dtype], OrderedSet[tuple[str, str]]] = (
         collections.defaultdict(OrderedSet)
     )  # (storage_key, dtype) -> set(weight)
@@ -131,5 +161,14 @@ def group_weights(all_weights: dict[str, Weights]) -> list[OrderedSet[tuple[str,
             weights_dict[(properties.storage_ptr, tensor.dtype)].add(
                 (model_name, weight_name)
             )
+=======
+    weights_dict: dict[int, OrderedSet[tuple[str, str]]] = collections.defaultdict(
+        OrderedSet
+    )  # storage_key -> set(weight)
+
+    for model_name, weights in all_weights.items():
+        for weight_name, (_, properties) in weights.items():
+            weights_dict[properties.storage_ptr].add((model_name, weight_name))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return list(weights_dict.values())

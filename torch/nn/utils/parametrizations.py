@@ -98,7 +98,10 @@ class _Orthogonal(Module):
                 )
             # Q is now orthogonal (or unitary) of size (..., n, n)
             if n != k:
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 Q = Q[..., :k]
             # Q is now the size of the X (albeit perhaps transposed)
         else:
@@ -111,10 +114,15 @@ class _Orthogonal(Module):
             Q = Q * X.diagonal(dim1=-2, dim2=-1).int().unsqueeze(-2)
 
         if hasattr(self, "base"):
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
             Q = self.base @ Q
         if transposed:
             # pyrefly: ignore [unbound-name]
+=======
+            Q = self.base @ Q
+        if transposed:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Q = Q.mT
         return Q  # type: ignore[possibly-undefined]
 

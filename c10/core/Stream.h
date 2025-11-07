@@ -82,15 +82,23 @@ class C10_API Stream final {
   /// should use the provided APIs to get a stream.  In particular,
   /// we don't require backends to give any guarantees about non-zero
   /// StreamIds; they are welcome to allocate in whatever way they like.
+<<<<<<< HEAD
   explicit Stream(Unsafe /*unused*/, Device device, StreamId id)
+=======
+  explicit Stream(Unsafe, Device device, StreamId id)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : device_(device), id_(id) {}
 
   /// Construct the default stream of a Device.  The default stream is
   /// NOT the same as the current stream; default stream is a fixed stream
   /// that never changes, whereas the current stream may be changed by
   /// StreamGuard.
+<<<<<<< HEAD
   explicit Stream(Default /*unused*/, Device device)
       : device_(device), id_(0) {}
+=======
+  explicit Stream(Default, Device device) : device_(device), id_(0) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool operator==(const Stream& other) const noexcept {
     return this->device_ == other.device_ && this->id_ == other.id_;

@@ -27,7 +27,11 @@ def get_approximate_basis(
     .. note:: For an adequate approximation of a k-rank matrix
               :math:`A`, where k is not known in advance but could be
               estimated, the number of :math:`Q` columns, q, can be
+<<<<<<< HEAD
               chosen according to the following criteria: in general,
+=======
+              choosen according to the following criteria: in general,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               :math:`k <= q <= min(2*k, m, n)`. For large low-rank
               matrices, take :math:`q = k + 5..10`.  If k is
               relatively small compared to :math:`min(m, n)`, choosing
@@ -100,7 +104,11 @@ def svd_lowrank(
     .. note:: For an adequate approximation of a k-rank matrix
               :math:`A`, where k is not known in advance but could be
               estimated, the number of :math:`Q` columns, q, can be
+<<<<<<< HEAD
               chosen according to the following criteria: in general,
+=======
+              choosen according to the following criteria: in general,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               :math:`k <= q <= min(2*k, m, n)`. For large low-rank
               matrices, take :math:`q = k + 5..10`.  If k is
               relatively small compared to :math:`min(m, n)`, choosing

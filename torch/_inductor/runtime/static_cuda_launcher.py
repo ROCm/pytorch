@@ -1,10 +1,17 @@
 import functools
 import os
+<<<<<<< HEAD
 from typing import Any
 from typing_extensions import Unpack
 
 from .triton_compat import ASTSource, CompiledKernel, knobs as triton_knobs
 from .triton_helpers import get_constexprs
+=======
+from typing import Any, Optional
+from typing_extensions import Unpack
+
+from .triton_compat import ASTSource, CompiledKernel, knobs as triton_knobs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class StaticallyLaunchedCudaKernel:
@@ -35,6 +42,7 @@ class StaticallyLaunchedCudaKernel:
     """
 
     def __init__(self, kernel: CompiledKernel) -> None:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         self.name = kernel.src.fn.__name__
         # pyrefly: ignore [missing-attribute]
@@ -44,10 +52,18 @@ class StaticallyLaunchedCudaKernel:
 
         # Used by torch.compile to filter constants in older triton versions
         # pyrefly: ignore [missing-attribute]
+=======
+        self.name = kernel.src.fn.__name__
+        self.cubin_raw = kernel.asm.get("cubin", None)
+        self.cubin_path = kernel._cubin_path
+
+        # Used by torch.compile to filter constants in older triton versions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.arg_names = kernel.src.fn.arg_names
 
         # Const exprs that are declared by the triton kernel directly
         # Used to generate the kernel launcher's def args
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         self.declared_constexprs = get_constexprs(kernel.src.fn)
 
@@ -58,11 +74,20 @@ class StaticallyLaunchedCudaKernel:
             # pyrefly: ignore [missing-attribute]
             launch_enter = kernel.__class__.launch_enter_hook
             # pyrefly: ignore [missing-attribute]
+=======
+        self.declared_constexprs = kernel.src.fn.constexprs
+
+        self.hash = kernel.hash
+
+        if triton_knobs is None:
+            launch_enter = kernel.__class__.launch_enter_hook
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             launch_exit = kernel.__class__.launch_exit_hook
         else:
             launch_enter = triton_knobs.runtime.launch_enter_hook
             launch_exit = triton_knobs.runtime.launch_exit_hook
 
+<<<<<<< HEAD
         def hook_is_empty(hook: Any) -> bool:
             if hook is None:
                 return True
@@ -106,6 +131,32 @@ class StaticallyLaunchedCudaKernel:
         # pyrefly: ignore [missing-attribute]
         self.arg_tys = self.arg_ty_from_signature(kernel.src)
         self.function: int | None = None  # Loaded by load_kernel(on the parent process)
+=======
+        if launch_enter is not None or launch_exit is not None:
+            raise NotImplementedError(
+                "We don't support launch enter or launch exit hooks"
+            )
+        self.num_warps = kernel.metadata.num_warps
+        self.shared = (
+            kernel.shared if hasattr(kernel, "shared") else kernel.metadata.shared
+        )
+
+        # Newer triton versions pass an extra global scratch parameter to the compiled cuda kernel.
+        # Inductor never uses this field or enables it, but we still have to pass
+        # an extra None into the set of params if its enabled
+        if hasattr(kernel.metadata, "global_scratch_size"):
+            if kernel.metadata.global_scratch_size > 0:
+                raise NotImplementedError("Global scratch not yet supported")
+            else:
+                self.has_global_scratch = True
+        else:
+            self.has_global_scratch = False
+
+        self.arg_tys = self.arg_ty_from_signature(kernel.src)
+        self.function: Optional[int] = (
+            None  # Loaded by load_kernel(on the parent process)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         num_ctas = 1
         if hasattr(kernel, "num_ctas"):
             num_ctas = kernel.num_ctas
@@ -183,7 +234,10 @@ class StaticallyLaunchedCudaKernel:
     def arg_ty_from_signature(self, src: ASTSource) -> str:
         def index_key(i: Any) -> int:
             if isinstance(i, str):
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return src.fn.arg_names.index(i)
             elif isinstance(i, tuple):
                 # In triton 3.3, src.fn.constants has tuples as a key
@@ -191,7 +245,10 @@ class StaticallyLaunchedCudaKernel:
             else:
                 return i
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         signature = {index_key(key): value for key, value in src.signature.items()}
         # Triton uses these as the main way to filter out constants passed to their cubin
         constants = [index_key(key) for key in getattr(src, "constants", dict())]
@@ -213,7 +270,10 @@ class StaticallyLaunchedCudaKernel:
             if ty == "constexpr" or i in constants:
                 pass
             else:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 params.append(self.extract_type(ty))
         return "".join(params)
 
@@ -245,6 +305,7 @@ class StaticallyLaunchedCudaKernel:
         # thing, it should always match.
         # Get rid of constants before passing to cubin launcher
 
+<<<<<<< HEAD
         # Add a None if triton wants extra parameters for scratch spaces
         arg_tys = self.arg_tys
         for has_scratch in [self.has_global_scratch, self.has_profile_scratch]:
@@ -252,6 +313,14 @@ class StaticallyLaunchedCudaKernel:
                 arg_tys = arg_tys + "O"
                 args = (*args, None)
         # pyrefly: ignore [bad-argument-type]
+=======
+        # Add a None if triton wants an extra parameter to the cubin
+        if self.has_global_scratch:
+            arg_tys = self.arg_tys + "O"
+            args = (*args, None)
+        else:
+            arg_tys = self.arg_tys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(args) == len(arg_tys)
 
         # TODO: can handle grid functions here or in C++, so
@@ -264,7 +333,10 @@ class StaticallyLaunchedCudaKernel:
             self.num_warps,
             self.shared,
             arg_tys,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             args,
             stream,
         )

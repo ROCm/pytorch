@@ -20,14 +20,23 @@ class FakeScriptObject:
         try:
             with _disable_current_modes():
                 self.real_obj = copy.deepcopy(x)
+<<<<<<< HEAD
         except RuntimeError as e:
             log.warning(  # noqa: G200
                 "Unable to deepcopy the custom object %s due to %s. "
+=======
+        except RuntimeError:
+            log.warning(
+                "Unable to deepcopy the custom object %s. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "Defaulting to the user given object. This might be "
                 "dangerous as side effects may be directly applied "
                 "to the object.",
                 script_class_name,
+<<<<<<< HEAD
                 str(e),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.real_obj = x
 
@@ -135,6 +144,7 @@ def maybe_to_fake_obj(
     if tracing_with_real(x):
         return x
 
+<<<<<<< HEAD
     from torch._library.opaque_object import FakeOpaqueObject, OpaqueTypeStr
 
     if str(x._type()) == OpaqueTypeStr:
@@ -193,6 +203,24 @@ def maybe_to_fake_obj(
             )
 
         fake_x = _find_fake_class_for_script_object(x).__obj_unflatten__(fake_flattened)
+=======
+    # x.__obj_flatten__() could be calling some tensor operations inside but we don't
+    # want to call these ops in surrounding dispatch modes when executing it.
+    # Otherwise, for example, the fake tensor modes will error out when the tensors inside
+    # script obeject execute some operations like clone if allow_non_fake_input flag is set.
+    with _disable_current_modes():
+        flat_x = x.__obj_flatten__()  # type: ignore[attr-defined]
+
+    _check_valid_flat_script_obj(flat_x)
+
+    fake_flattened = pytree.tree_map_only(
+        torch.Tensor,
+        lambda t: fake_mode.from_tensor(t),
+        flat_x,
+    )
+
+    fake_x = _find_fake_class_for_script_object(x).__obj_unflatten__(fake_flattened)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     fake_x_wrapped = FakeScriptObject(fake_x, x._type().qualified_name(), x)  # type: ignore[attr-defined]
 
@@ -215,7 +243,11 @@ def maybe_to_fake_obj(
                 FakeScriptMethod(fake_x_wrapped, name, method_schema),
             )
         else:
+<<<<<<< HEAD
             override_skip_list = {"__obj_flatten__", "__getstate__", "__setstate__"}
+=======
+            override_skip_list = {"__obj_flatten__", "__get_state__", "__set_state__"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if name not in override_skip_list:
                 log.warning("fake object of %s doesn't implement method %s.", x, name)
     return fake_x_wrapped
@@ -281,8 +313,13 @@ def register_fake_class(qualname, fake_class: Optional[HasStaticMethodFromReal] 
             def size(self):
                 return len(self.queue)
 
+<<<<<<< HEAD
     In this example, the original TensorQeue need to add a __obj_flatten__ method
     to the class TensorQueue and the flattened result is passed into FakeTensorQueue's
+=======
+    In this example, the original TensorQeue need to addd a __obj_flatten__ method
+    to the class TensorQueue and the flattend result is passed into FakeTensorQueue's
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __obj_unflatten__ as inputs to create a fake class. This protocol allows pytorch to look
     at the contents of the script object and properly handle them in the subsystems
     like dynamo, aot_aotugrad or more.
@@ -291,7 +328,11 @@ def register_fake_class(qualname, fake_class: Optional[HasStaticMethodFromReal] 
     def inner(fake_class: HasStaticMethodFromReal):
         ns, name = parse_namespace(qualname)
 
+<<<<<<< HEAD
         # This also checks whether the referred torch::class_ exists.
+=======
+        # This also checks whether the refered torch::class_ exists.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._C._get_custom_class_python_wrapper(ns, name)
 
         from_method = getattr(fake_class, _CONVERT_FROM_REAL_NAME, None)

@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 from collections.abc import (
+<<<<<<< HEAD
     Hashable,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Iterable,
     Iterator,
     MutableSet,
@@ -11,8 +14,13 @@ from collections.abc import (
 from typing import Any, cast, Optional, TypeVar
 
 
+<<<<<<< HEAD
 T = TypeVar("T", bound=Hashable)
 T_co = TypeVar("T_co", bound=Hashable, covariant=True)
+=======
+T = TypeVar("T")
+T_co = TypeVar("T_co", covariant=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = ["OrderedSet"]
 
@@ -77,7 +85,10 @@ class OrderedSet(MutableSet[T], Reversible[T]):
     def pop(self) -> T:
         if not self:
             raise KeyError("pop from an empty set")
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._dict.popitem()[0]
 
     def copy(self) -> OrderedSet[T]:
@@ -159,7 +170,10 @@ class OrderedSet(MutableSet[T], Reversible[T]):
     def __and__(self, other: AbstractSet[T_co]) -> OrderedSet[T]:
         # MutableSet impl will iterate over other, iter over smaller of two sets
         if isinstance(other, OrderedSet) and len(self) < len(other):
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation, bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return other & self
         return cast(OrderedSet[T], super().__and__(other))
 

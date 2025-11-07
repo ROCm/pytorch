@@ -23,7 +23,10 @@
 #include <ATen/ops/linspace.h>
 #endif
 
+<<<<<<< HEAD
 #include <cmath>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <numeric>
 #include <tuple>
 #include <vector>
@@ -203,6 +206,7 @@ select_outer_bin_edges(const Tensor& input, std::optional<c10::ArrayRef<double>>
     return std::make_pair(leftmost_edges, rightmost_edges);
 }
 
+<<<<<<< HEAD
 
 /* Bin edges correction based on the precision representation.
  * To maintain the backward compatibility we take max(std::nextafter<>, +1)
@@ -243,6 +247,8 @@ void bins_edges_correction(const ScalarType& t, double &leftmost_edge, double &r
 #undef UPDATE_WITH_LIMIT
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /* histc's version of the logic for outermost bin edges.
  */
 std::pair<double, double> histc_select_outer_bin_edges(const Tensor& input,
@@ -257,7 +263,12 @@ std::pair<double, double> histc_select_outer_bin_edges(const Tensor& input,
     }
 
     if (leftmost_edge == rightmost_edge) {
+<<<<<<< HEAD
         bins_edges_correction(input.dtype().toScalarType(), leftmost_edge, rightmost_edge);
+=======
+        leftmost_edge -= 1;
+        rightmost_edge += 1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     TORCH_CHECK(!(std::isinf(leftmost_edge) || std::isinf(rightmost_edge) ||

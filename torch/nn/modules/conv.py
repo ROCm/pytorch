@@ -1,6 +1,10 @@
 # mypy: allow-untyped-defs
 import math
+<<<<<<< HEAD
 from typing import Literal, Optional, Union
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -80,7 +84,11 @@ class _ConvNd(Module):
     transposed: bool
     output_padding: tuple[int, ...]
     groups: int
+<<<<<<< HEAD
     padding_mode: Literal["zeros", "reflect", "replicate", "circular"]
+=======
+    padding_mode: str
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     weight: Tensor
     bias: Optional[Tensor]
 
@@ -96,7 +104,11 @@ class _ConvNd(Module):
         output_padding: tuple[int, ...],
         groups: int,
         bias: bool,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"],
+=======
+        padding_mode: str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -324,7 +336,11 @@ class Conv1d(_ConvNd):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",  # TODO: refine this type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -363,7 +379,10 @@ class Conv1d(_ConvNd):
                 self.dilation,
                 self.groups,
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.conv1d(
             input, weight, bias, self.stride, self.padding, self.dilation, self.groups
         )
@@ -504,7 +523,11 @@ class Conv2d(_ConvNd):
         dilation: _size_2_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",  # TODO: refine this type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -541,7 +564,10 @@ class Conv2d(_ConvNd):
                 self.dilation,
                 self.groups,
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.conv2d(
             input, weight, bias, self.stride, self.padding, self.dilation, self.groups
         )
@@ -674,7 +700,11 @@ class Conv3d(_ConvNd):
         dilation: _size_3_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -711,7 +741,10 @@ class Conv3d(_ConvNd):
                 self.dilation,
                 self.groups,
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.conv3d(
             input, weight, bias, self.stride, self.padding, self.dilation, self.groups
         )
@@ -901,6 +934,7 @@ class ConvTranspose1d(_ConvTransposeNd):
                          sampled from :math:`\mathcal{U}(-\sqrt{k}, \sqrt{k})` where
                          :math:`k = \frac{groups}{C_\text{out} * \text{kernel\_size}}`
 
+<<<<<<< HEAD
     Examples::
 
         >>> # With square kernels and equal stride
@@ -918,6 +952,8 @@ class ConvTranspose1d(_ConvTransposeNd):
         >>> output.size()
         torch.Size([1, 16, 12])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     .. _`here`:
         https://github.com/vdumoulin/conv_arithmetic/blob/master/README.md
 
@@ -937,7 +973,11 @@ class ConvTranspose1d(_ConvTransposeNd):
         groups: int = 1,
         bias: bool = True,
         dilation: _size_1_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -1125,7 +1165,11 @@ class ConvTranspose2d(_ConvTransposeNd):
         groups: int = 1,
         bias: bool = True,
         dilation: _size_2_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -1316,7 +1360,11 @@ class ConvTranspose3d(_ConvTransposeNd):
         groups: int = 1,
         bias: bool = True,
         dilation: _size_3_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
@@ -1394,7 +1442,11 @@ class _ConvTransposeMixin(_ConvTransposeNd):
         "Please consider using public APIs.",
         category=FutureWarning,
     )
+<<<<<<< HEAD
     def __init__(self, *args, **kwargs) -> None:
+=======
+    def __init__(self, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(*args, **kwargs)
 
 
@@ -1509,12 +1561,19 @@ class LazyConv1d(_LazyConvXdMixin, Conv1d):  # type: ignore[misc]
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1529,11 +1588,17 @@ class LazyConv1d(_LazyConvXdMixin, Conv1d):  # type: ignore[misc]
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:
@@ -1581,12 +1646,19 @@ class LazyConv2d(_LazyConvXdMixin, Conv2d):  # type: ignore[misc]
         dilation: _size_2_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",  # TODO: refine this type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1601,11 +1673,17 @@ class LazyConv2d(_LazyConvXdMixin, Conv2d):  # type: ignore[misc]
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:
@@ -1654,12 +1732,19 @@ class LazyConv3d(_LazyConvXdMixin, Conv3d):  # type: ignore[misc]
         dilation: _size_3_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1674,11 +1759,17 @@ class LazyConv3d(_LazyConvXdMixin, Conv3d):  # type: ignore[misc]
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:
@@ -1725,12 +1816,19 @@ class LazyConvTranspose1d(_LazyConvXdMixin, ConvTranspose1d):  # type: ignore[mi
         groups: int = 1,
         bias: bool = True,
         dilation: _size_1_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1746,11 +1844,17 @@ class LazyConvTranspose1d(_LazyConvXdMixin, ConvTranspose1d):  # type: ignore[mi
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:
@@ -1797,12 +1901,19 @@ class LazyConvTranspose2d(_LazyConvXdMixin, ConvTranspose2d):  # type: ignore[mi
         groups: int = 1,
         bias: bool = True,
         dilation: int = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1818,11 +1929,17 @@ class LazyConvTranspose2d(_LazyConvXdMixin, ConvTranspose2d):  # type: ignore[mi
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:
@@ -1869,12 +1986,19 @@ class LazyConvTranspose3d(_LazyConvXdMixin, ConvTranspose3d):  # type: ignore[mi
         groups: int = 1,
         bias: bool = True,
         dilation: _size_3_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             0,
             0,
@@ -1890,11 +2014,17 @@ class LazyConvTranspose3d(_LazyConvXdMixin, ConvTranspose3d):  # type: ignore[mi
             padding_mode,
             **factory_kwargs,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override, bad-argument-type]
         self.weight = UninitializedParameter(**factory_kwargs)
         self.out_channels = out_channels
         if bias:
             # pyrefly: ignore [bad-override, bad-argument-type]
+=======
+        self.weight = UninitializedParameter(**factory_kwargs)
+        self.out_channels = out_channels
+        if bias:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.bias = UninitializedParameter(**factory_kwargs)
 
     def _get_num_spatial_dims(self) -> int:

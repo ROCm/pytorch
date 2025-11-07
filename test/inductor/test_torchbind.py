@@ -1,5 +1,9 @@
 # Owner(s): ["module: functorch"]
 import json
+<<<<<<< HEAD
+=======
+import tempfile
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import zipfile
 from pathlib import Path
 
@@ -10,10 +14,15 @@ import torch._inductor
 import torch._inductor.decomposition
 from torch._higher_order_ops.torchbind import CallTorchBind, enable_torchbind_tracing
 from torch._inductor import aot_compile, ir
+<<<<<<< HEAD
 from torch._inductor.codecache import WritableTempFile
 from torch._inductor.package import package_aoti
 from torch._inductor.test_case import run_tests, TestCase
 from torch.testing._internal.common_utils import skipIfWindows
+=======
+from torch._inductor.package import package_aoti
+from torch._inductor.test_case import run_tests, TestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, requires_gpu
 from torch.testing._internal.torchbind_impls import (
     _empty_tensor_queue,
@@ -159,7 +168,10 @@ class TestTorchbind(TestCase):
             "call_torchbind(__torch__.torch.classes._TorchScriptTesting._TensorQueue _0, str method, Tensor _1) -> NoneType _0",
         )
 
+<<<<<<< HEAD
     @skipIfWindows(msg="AOTI is not fully support on Windows")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torchbind_aot_compile(self):
         ep, inputs, _, _ = self.get_exported_model()
         aoti_files = aot_compile(
@@ -174,7 +186,11 @@ class TestTorchbind(TestCase):
                 custom_objs_config = file
             elif file.endswith("/custom_obj_0"):
                 custom_obj_0 = file
+<<<<<<< HEAD
             elif file.endswith("wrapper.json") and "metadata" not in file:
+=======
+            elif file.endswith(".json") and "metadata" not in file:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 extern_json = file
 
         self.assertIsNotNone(custom_objs_config)
@@ -282,7 +298,11 @@ class TestTorchbind(TestCase):
             )
 
         # Test that the files are packaged
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(f.name, aoti_files)
 
             with zipfile.ZipFile(package_path, "r") as zip_ref:
@@ -304,7 +324,10 @@ class TestTorchbind(TestCase):
         self.assertEqual(result, orig_res)
 
     @torch._inductor.config.patch("aot_inductor.use_runtime_constant_folding", True)
+<<<<<<< HEAD
     @skipIfWindows(msg="AOTI is not fully support on Windows")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torchbind_aot_compile_constant_folding(self):
         ep, inputs, orig_res, _ = self.get_exported_model()
         pt2_path = torch._inductor.aoti_compile_and_package(ep)
@@ -413,6 +436,7 @@ class TestTorchbind(TestCase):
         ):
             aot_compile(ep.module(), inputs, options={"aot_inductor.package": True})
 
+<<<<<<< HEAD
     def test_aoti_torchbind_name_collision(self):
         class M(torch.nn.Module):
             def __init__(self) -> None:
@@ -437,6 +461,8 @@ class TestTorchbind(TestCase):
         result = optimized(*inputs)
         self.assertEqual(result, orig_res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

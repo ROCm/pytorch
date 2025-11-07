@@ -250,7 +250,11 @@ struct TORCH_API TensorIteratorBase : public impl::MetaBase {
   using PtrVector = SmallVector<char*, 4>;
   using StrideVector = SmallVector<int64_t, 6>;
 
+<<<<<<< HEAD
   void build(TensorIteratorConfig& /*config*/);
+=======
+  void build(TensorIteratorConfig&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // The inner-loop function operates on the fastest moving dimension. It
   // implements element-wise operations in terms of 1-d strided tensors.
@@ -388,7 +392,11 @@ struct TORCH_API TensorIteratorBase : public impl::MetaBase {
 
   /// Return scalar value from original_tensor_base if it is defined. When
   /// common_dtype is Half, casting scalar input to common_dtype might overflow.
+<<<<<<< HEAD
   /// If the scalar is already given in the type of Half, then return scalar
+=======
+  /// If the scalar is aleady given in the type of Half, then return scalar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// value from tensor_base.
   template <typename T>
   T original_scalar_value(int64_t arg) {
@@ -502,7 +510,11 @@ struct TORCH_API TensorIteratorBase : public impl::MetaBase {
   /// kernels
   bool can_use_32bit_indexing() const;
 
+<<<<<<< HEAD
   /// An "iterable" object that recursively splits this iterator into
+=======
+  /// An "iteratable" object that recursively splits this iterator into
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// sub-iterators that can use 32-bit indexing.
   SplitUntil32Bit with_32bit_indexing() const;
 
@@ -618,6 +630,7 @@ struct TORCH_API TensorIteratorBase : public impl::MetaBase {
 #undef TORCH_DISALLOW_TEMPORARIES
  protected:
   // Mutable reference as it moves tensors out of TensorIteratorConfig
+<<<<<<< HEAD
   void populate_operands(TensorIteratorConfig& /*config*/);
   void mark_outputs();
   void mark_resize_outputs(const TensorIteratorConfig& /*config*/);
@@ -632,6 +645,22 @@ struct TORCH_API TensorIteratorBase : public impl::MetaBase {
   bool fast_set_up(const TensorIteratorConfig& /*config*/);
   FastSetupType compute_fast_setup_type(const TensorIteratorConfig& /*config*/);
   void compute_names(const TensorIteratorConfig& /*config*/);
+=======
+  void populate_operands(TensorIteratorConfig&);
+  void mark_outputs();
+  void mark_resize_outputs(const TensorIteratorConfig&);
+  void compute_mem_overlaps(const TensorIteratorConfig&);
+  void compute_shape(const TensorIteratorConfig&);
+  void compute_strides(const TensorIteratorConfig&);
+  void reorder_dimensions();
+  void permute_dimensions(IntArrayRef perm);
+  void compute_types(const TensorIteratorConfig&);
+  ScalarType compute_common_dtype();
+  void allocate_or_resize_outputs();
+  bool fast_set_up(const TensorIteratorConfig&);
+  FastSetupType compute_fast_setup_type(const TensorIteratorConfig&);
+  void compute_names(const TensorIteratorConfig&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void propagate_names_to_outputs();
   void coalesce_dimensions();
 
@@ -878,7 +907,11 @@ class TORCH_API TensorIteratorConfig final {
 
   // Sets the enforce_linear_iteration_ flag, which is false by default.
   // If true, iteration goes in the same order as a C-contiguous tensor
+<<<<<<< HEAD
   // is laid out in memory. i.e. last dimension iterates fastest.
+=======
+  // is layed out in memory. i.e. last dimension iterates fastest.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //
   // This iteration order can be less efficient and may even prevent
   // vectorization. So only use if the correctness of your kernel depends on it.

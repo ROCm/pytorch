@@ -4,7 +4,11 @@ import os
 from typing import Optional
 
 from torch._inductor import config
+<<<<<<< HEAD
 from torch._inductor.utils import is_linux, try_import_ck_lib
+=======
+from torch._inductor.utils import is_linux
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -18,23 +22,34 @@ def _rocm_include_paths(dst_file_ext: str) -> list[str]:
         if config.rocm.rocm_home
         else cpp_extension._join_rocm_home("include")
     )
+<<<<<<< HEAD
+=======
+    if not config.rocm.ck_dir:
+        log.warning("Unspecified Composable Kernel include dir")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if config.is_fbcode():
         from libfb.py import parutil
 
         ck_path = parutil.get_dir_path("composable-kernel-headers")
     else:
+<<<<<<< HEAD
         if not config.rocm.ck_dir:
             ck_dir, _, _, _ = try_import_ck_lib()
             if not ck_dir:
                 log.warning("Unspecified Composable Kernel directory")
             config.rocm.ck_dir = ck_dir
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ck_path = config.rocm.ck_dir or cpp_extension._join_rocm_home(
             "composable_kernel"
         )
 
+<<<<<<< HEAD
     log.debug("Using ck path %s", ck_path)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ck_include = os.path.join(ck_path, "include")
     ck_library_include = os.path.join(ck_path, "library", "include")
 

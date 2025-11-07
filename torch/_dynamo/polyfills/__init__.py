@@ -9,11 +9,17 @@ Python polyfills for common builtins.
 # mypy: allow-untyped-defs
 
 import types
+<<<<<<< HEAD
 from collections import OrderedDict
 from collections.abc import Callable, Hashable, Iterable, MutableMapping, Sequence
 from itertools import repeat as _repeat
 from operator import eq, ne
 from typing import Any, TYPE_CHECKING
+=======
+from collections.abc import Iterable, MutableMapping, Sequence
+from itertools import repeat as _repeat
+from typing import Any, Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -25,14 +31,20 @@ if TYPE_CHECKING:
     # See also the POLYFILLED_MODULE_NAMES in torch/_dynamo/polyfills/loader.py
     # Put the submodules here to avoid circular imports
     from . import (
+<<<<<<< HEAD
         _collections as _collections,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         builtins as builtins,
         functools as functools,
         itertools as itertools,
         operator as operator,
         os as os,
         pytree as pytree,
+<<<<<<< HEAD
         struct as struct,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sys as sys,
     )
 
@@ -78,6 +90,7 @@ def radians(x):
     return math.pi / 180.0 * x
 
 
+<<<<<<< HEAD
 def impl_CONTAINS_OP_fallback(a, b):
     # performs fallback "a in b"
     if hasattr(b, "__iter__"):
@@ -89,6 +102,8 @@ def impl_CONTAINS_OP_fallback(a, b):
     raise TypeError(f"argument of type {type(b)} is not iterable")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def accumulate_grad(x, new_grad):
     # polyfills according to the Gradient Layout Contract
     if new_grad is None:
@@ -107,6 +122,7 @@ def accumulate_grad(x, new_grad):
 # https://github.com/python/cpython/blob/a1c52d1265c65bcf0d9edf87e143843ad54f9b8f/Objects/listobject.c#L3352-L3413
 def list_cmp(op: Callable[[Any, Any], bool], left: Sequence[Any], right: Sequence[Any]):
     """emulate `(1,2,3) > (1,2)` etc"""
+<<<<<<< HEAD
 
     # Optimization: For equality, short-circuit if lengths differ
     # This avoids iterating through elements and triggering guards on SymInts
@@ -118,12 +134,15 @@ def list_cmp(op: Callable[[Any, Any], bool], left: Sequence[Any], right: Sequenc
     if op is ne and left_len != right_len:
         return True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Apply `op` to the first pair that differ
     for a, b in zip(left, right):
         if a != b:
             return op(a, b)
 
     # No more pairs to compare, so compare sizes.
+<<<<<<< HEAD
     return op(left_len, right_len)
 
 
@@ -139,6 +158,9 @@ def dict___eq__(d, other):
             return False
 
     return True
+=======
+    return op(len(left), len(right))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def set_symmetric_difference(set1, set2):
@@ -159,6 +181,7 @@ def set_symmetric_difference_update(set1, set2):
 
 
 def set_isdisjoint(set1, set2):
+<<<<<<< HEAD
     if not isinstance(set2, Iterable):
         raise TypeError(f"'{type(set2)}' object is not iterable")
 
@@ -168,6 +191,11 @@ def set_isdisjoint(set1, set2):
                 raise TypeError(f"unhashable type: '{type(y)}'")
             if x == y:
                 return False
+=======
+    for x in set1:
+        if x in set2:
+            return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return True
 
 
@@ -175,6 +203,7 @@ def set_intersection(set1, *others):
     if len(others) == 0:
         return set1.copy()
 
+<<<<<<< HEAD
     if not all(isinstance(s, Iterable) for s in others):
         raise TypeError(f"set.difference expected an iterable, got {type(others)}")
 
@@ -187,6 +216,12 @@ def set_intersection(set1, *others):
     for x in set1:
         for set2 in others:
             if not any(x == y for y in set2):
+=======
+    intersection_set = set()
+    for x in set1:
+        for set2 in others:
+            if x not in set2:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 break
         else:
             intersection_set.add(x)
@@ -201,6 +236,7 @@ def set_intersection_update(set1, *others):
 
 def set_union(set1, *others):
     # frozenset also uses this function
+<<<<<<< HEAD
     if len(others) == 0:
         return set1.copy()
 
@@ -216,6 +252,11 @@ def set_union(set1, *others):
         set_update(union_set, set2)
 
     # frozenset also uses this function
+=======
+    union_set = set(set1.copy())
+    for set2 in others:
+        set_update(union_set, set2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return type(set1)(union_set)
 
 
@@ -236,10 +277,13 @@ def set_difference(set1, *others):
     if not all(isinstance(s, Iterable) for s in others):
         raise TypeError(f"set.difference expected an iterable, got {type(others)}")
 
+<<<<<<< HEAD
     for s in others:
         if any(not isinstance(x, Hashable) for x in s):
             raise TypeError("unhashable type")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     difference_set = set()
     for x in set1:
         for set2 in others:
@@ -256,6 +300,7 @@ def set_difference_update(set1, *others):
     set1.update(result)
 
 
+<<<<<<< HEAD
 def assert_dict_equal(self_, d1, d2, msg=None):
     self_.assertTrue(d1 == d2, msg)
 
@@ -269,6 +314,8 @@ def assert_sequence_equal(self_, seq1, seq2, msg=None, seq_type=None):
     return self_.assertTrue(seq1 == seq2, msg)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def getattr_and_trace(*args, **kwargs):
     wrapper_obj = args[0]
     attr_name = args[1]
@@ -300,9 +347,12 @@ def construct_dict(cls, /, *args, **kwargs):
     if args:
         src = args[0]
 
+<<<<<<< HEAD
         if not isinstance(src, Iterable):
             raise TypeError(f"{type(src)} object is not iterable")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Ensure that the overridden __iter__ method is invoked
         if isinstance(src, (dict, MutableMapping, types.MappingProxyType)):
             for key in src:

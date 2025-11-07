@@ -149,9 +149,13 @@ size_t Function::num_inputs() const {
   return schema_->arguments().size();
 }
 
+<<<<<<< HEAD
 bool Function::call(
     Stack& /*unused*/,
     c10::function_ref<void(const mobile::Code&)> f) {
+=======
+bool Function::call(Stack&, c10::function_ref<void(const mobile::Code&)> f) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   initialize_operators(true);
   f(code_);
   return true;

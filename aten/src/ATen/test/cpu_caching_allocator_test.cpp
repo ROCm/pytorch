@@ -5,9 +5,12 @@
 
 #include <c10/mobile/CPUCachingAllocator.h>
 
+<<<<<<< HEAD
 // At the moment caching allocator is only exposed to mobile cpu allocator.
 #ifdef C10_MOBILE
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(CPUCachingAllocatorTest, check_alloc_free) {
   c10::CPUCachingAllocator caching_allocator;
   c10::WithCPUCachingAllocatorGuard cachine_allocator_guard(
@@ -44,9 +47,19 @@ TEST(CPUCachingAllocatorTest, check_alloc_inside_free_outside) {
 }
 
 int main(int argc, char* argv[]) {
+<<<<<<< HEAD
   ::testing::InitGoogleTest(&argc, argv);
   at::manual_seed(42);
   return RUN_ALL_TESTS();
 }
 
 #endif /* C10_Mobile */
+=======
+// At the moment caching allocator is only exposed to mobile cpu allocator.
+#ifdef C10_MOBILE
+  ::testing::InitGoogleTest(&argc, argv);
+  at::manual_seed(42);
+  return RUN_ALL_TESTS();
+#endif /* C10_Mobile */
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

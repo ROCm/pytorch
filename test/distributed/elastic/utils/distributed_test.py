@@ -116,6 +116,10 @@ class DistributedUtilTest(TestCase):
                 timeout=1,
             )
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_create_store_timeout_on_worker(self):
         with self.assertRaises(DistNetworkError):
             # use any available port (port 0) since timeout is expected

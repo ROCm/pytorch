@@ -39,12 +39,20 @@ class SimpleProfiler:
     @classmethod
     @contextmanager
     def profile(cls, profile_type: str) -> Iterator[None]:
+<<<<<<< HEAD
         if profile_type in cls.profiling:
             raise AssertionError(
                 f"{profile_type} is already being profiled. "
                 "SimpleProfiler does not support profiling multiple instances at "
                 "the same time. "
             )
+=======
+        assert profile_type not in cls.profiling, (
+            f"{profile_type} is already being profiled. "
+            "SimpleProfiler does not support profiling multiple instances at "
+            "the same time. "
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cls.profiling.add(profile_type)
         begin = time.monotonic()
@@ -130,8 +138,12 @@ def _get_sharded_module_tree_with_module_name_to_fqns(
 
         if handle:
             param = handle.flat_param
+<<<<<<< HEAD
             if not isinstance(param, flat_param_file.FlatParameter):
                 raise AssertionError(f"Expected FlatParameter, got {type(param)}")
+=======
+            assert isinstance(param, flat_param_file.FlatParameter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             global_fqns = [
                 clean_tensor_name(prefix + name) for name in param._fqns
             ]  # prefixed from the top level `model` (i.e. including `prefix`)

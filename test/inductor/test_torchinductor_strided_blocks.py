@@ -5,12 +5,19 @@ import dataclasses
 import importlib
 import math
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
 
 import torch
 import torch.utils._pytree as pytree
 from torch._dynamo.debug_utils import InputReader
+=======
+from typing import Any, Callable, Optional, Union
+
+import torch
+import torch.utils._pytree as pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor import config
 from torch._inductor.choices import InductorChoices
 from torch._inductor.codegen.triton import FixedTritonConfig
@@ -20,7 +27,10 @@ from torch._inductor.test_case import TestCase as InductorTestCase
 from torch._inductor.utils import run_and_get_code
 from torch._inductor.virtualized import V
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     decorateIf,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instantiate_parametrized_tests,
     parametrize,
     skipIfXpu,
@@ -28,7 +38,10 @@ from torch.testing._internal.common_utils import (
 )
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
+<<<<<<< HEAD
     HAS_CUDA_AND_TRITON,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HAS_GPU,
     requires_gpu,
     skip_windows_ci,
@@ -55,6 +68,7 @@ tiled_reduction_config = {
 }
 
 
+<<<<<<< HEAD
 # These xfails are due to the current restrictions with the TMA descriptor API.
 # see Note: TMA API Restrictions. In some cases TMA descriptors cannot be generated, and so tests
 # that assert on the expected number of descriptors (= equivalent block ptrs) will fail
@@ -90,6 +104,58 @@ TMA_TEST_XFAIL = dict.fromkeys(
 class BlockDescriptorTestBase(InductorTestCase):
     block_descriptor_constructor_str = "tl.make_block_ptr"
 
+=======
+def run_and_compare(
+    self: InductorTestCase,
+    func: Callable[..., Any],
+    *args,
+    compile_kwargs: Optional[dict] = None,
+    expected_num_block_pointers: Optional[int] = None,
+    expected_num_programs: int = 1,
+    expected_num_triton_kernels: int = 1,
+    config_patches: Optional[dict] = None,
+    rtol: Optional[float] = None,
+    atol: Optional[float] = None,
+):
+    """
+    Runs the module through Inductor, comparing to eager reference.
+    """
+    if compile_kwargs is None:
+        compile_kwargs = {}
+    if config_patches is None:
+        config_patches = {}
+
+    def flatten_tensors(tensors):
+        flat, spec = pytree.tree_flatten(tensors)
+        return flat
+
+    with config.patch(config_patches):
+        compiled = torch.compile(func, backend="inductor", **compile_kwargs)
+        result, code = run_and_get_code(compiled, *args)
+
+    # Check numerical accuracy
+    ref_tensors = flatten_tensors(func(*args))
+    actual_tensors = flatten_tensors(result)
+    for ref, actual in zip(ref_tensors, actual_tensors):
+        # Don't clobber the default tolerance values
+        tol = {t: v for t, v in {"rtol": rtol, "atol": atol}.items() if v is not None}
+        self.assertTrue(torch.allclose(ref, actual, **tol))
+
+    def count_code(substr: str, expected: Optional[int]):
+        count = sum(prog.count(substr) for prog in code)
+        if expected is not None:
+            self.assertEqual(count, expected)
+
+    # Check the code
+    self.assertEqual(len(code), expected_num_programs)
+    count_code("@triton.jit", expected_num_triton_kernels)
+    count_code("tl.make_block_ptr", expected_num_block_pointers)
+
+    return result, code
+
+
+class BlockPointerTestBase(InductorTestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _discontiguous_tensor(
         self, view_size: tuple[int, ...], device: Union[torch.device, str]
     ) -> torch.Tensor:
@@ -121,6 +187,7 @@ class BlockDescriptorTestBase(InductorTestCase):
     def _get_lines_containing_substr(self, code: str, substr: str) -> str:
         return "\n".join(line for line in code.split("\n") if substr in line)
 
+<<<<<<< HEAD
     def _run_and_compare(
         self: InductorTestCase,
         func: Callable[..., Any],
@@ -173,6 +240,8 @@ class BlockDescriptorTestBase(InductorTestCase):
 
         return result, code
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @instantiate_parametrized_tests
 class CommonTemplate:
@@ -199,7 +268,12 @@ class CommonTemplate:
         # Expect failure for bad inputs
         with self.assertRaises(AssertionError) if raises else contextlib.nullcontext():
             # Expect 3 block pointers: 2 inputs 1 output
+<<<<<<< HEAD
             self._run_and_compare(
+=======
+            run_and_compare(
+                self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 foo,
                 *inputs,
                 expected_num_block_pointers=expected_num_block_pointers,
@@ -274,7 +348,12 @@ class CommonTemplate:
         args = [get_input() for arg_idx in range(2)]
 
         # Expect 3 block pointers: 2 inputs 1 output
+<<<<<<< HEAD
         self._run_and_compare(
+=======
+        run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.add,
             *args,
             expected_num_block_pointers=3 if require_block_ptr else None,
@@ -322,7 +401,12 @@ class CommonTemplate:
         self.assertIn(1, all_dims)
 
         # Expect 3 block pointers: 2 inputs one output
+<<<<<<< HEAD
         self._run_and_compare(
+=======
+        run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             x,
             y,
@@ -330,6 +414,7 @@ class CommonTemplate:
             config_patches={"triton.prefer_nd_tiling": prefer_nd_tiling},
         )
 
+<<<<<<< HEAD
     def test_broadcast_with_singleton_dims(self):
         # This tests the case when the input / output contains both zero strides
         # and singleton dimensions. In this case the broadcasting dimensions
@@ -399,6 +484,8 @@ class CommonTemplate:
             rtol=rtol,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "x_size,y_size",
         [
@@ -441,9 +528,14 @@ class CommonTemplate:
             if i != 1:
                 self.assertEqual(i, j)
 
+<<<<<<< HEAD
         result, (triton_code,) = self._run_and_compare(foo, x, y)
 
     @xfail_if_use_tensor_descriptor
+=======
+        result, (triton_code,) = run_and_compare(self, foo, x, y)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("prefer_nd_tiling", [False, True])
     @config.patch("triton.skip_l1_cache", False)
     def test_pointwise_broadcast_nonzero_strides(self, prefer_nd_tiling: bool):
@@ -458,7 +550,12 @@ class CommonTemplate:
         col = torch.as_strided(full, col_shape, full.stride())
 
         # Expect 3 block pointers: 2 inputs one output
+<<<<<<< HEAD
         result, (triton_code,) = self._run_and_compare(
+=======
+        result, (triton_code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.add,
             full,
             col,
@@ -554,7 +651,12 @@ class CommonTemplate:
 
         # Expect at least 1 block pointer for the input.
         # Add 2 more if we generate 2 kernels.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sum,
             view,
             expected_num_block_pointers=num_block_pointers,
@@ -588,14 +690,22 @@ class CommonTemplate:
         ]
 
         # Expect 2 block pointers: inputs
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             *inputs,
             expected_num_block_pointers=num_block_pointers,
             expected_num_triton_kernels=num_triton_kernels,
         )
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multiple_max_block_non_power_of_2(self):
         """
         Check that we support dims of size n * MAX_BLOCK, where n is any positive integer, not
@@ -620,14 +730,22 @@ class CommonTemplate:
         self.assertTrue(len(nontrivial_dims) > 1)
 
         # Expect 2 block pointers: input and output
+<<<<<<< HEAD
         self._run_and_compare(foo, view, expected_num_block_pointers=2)
+=======
+        run_and_compare(self, foo, view, expected_num_block_pointers=2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @parametrize(
         "nd_tiling,num_block_pointers",
         [
+<<<<<<< HEAD
             subtest(
                 (True, 2), decorators=[xfail_if_use_tensor_descriptor]
             ),  # With tiling, the index is affine.
+=======
+            (True, 2),  # With tiling, the index is affine.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (False, 1),  # We can't infer that the load is a power of 2.
         ],
     )
@@ -639,7 +757,12 @@ class CommonTemplate:
         view_size = (4, 4)
         view = self._discontiguous_tensor(view_size, self.device)
 
+<<<<<<< HEAD
         self._run_and_compare(
+=======
+        run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.div,
             view,
             view,
@@ -651,9 +774,13 @@ class CommonTemplate:
     @parametrize(
         "with_tiling,num_block_pointers",
         [
+<<<<<<< HEAD
             subtest(
                 (True, 1), decorators=[xfail_if_use_tensor_descriptor]
             ),  # With tiling, the index is affine.
+=======
+            (True, 1),  # With tiling, the index is affine.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (False, 0),  # We can't infer that the load is a power of 2.
         ],
     )
@@ -666,7 +793,12 @@ class CommonTemplate:
         view_size = (4, 4)
         view = self._discontiguous_tensor(view_size, self.device)
 
+<<<<<<< HEAD
         self._run_and_compare(
+=======
+        run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.prod,
             view,
             expected_num_block_pointers=num_block_pointers,
@@ -696,6 +828,7 @@ class CommonTemplate:
         x = torch.randn(x_size).to(device)
 
         # Expect 2 block pointers: input and output
+<<<<<<< HEAD
         self._run_and_compare(
             x, compile_kwargs={"dynamic": True}, expected_num_block_pointers=2
         )
@@ -706,6 +839,12 @@ class CommonTemplate:
             param_kwargs["num_block_pointers"] == 3 and param_kwargs["num_tiles"] == 1
         ),
     )
+=======
+        run_and_compare(
+            self, x, compile_kwargs={"dynamic": True}, expected_num_block_pointers=2
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "full_size,view_size,num_block_pointers,num_tiles",
         [
@@ -763,7 +902,12 @@ class CommonTemplate:
         args = [get_input() for arg_idx in range(2)]
 
         # Expect up to 3 block pointers: 2 inputs 1 output.
+<<<<<<< HEAD
         result, code = self._run_and_compare(
+=======
+        result, code = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.add,
             *args,
             expected_num_block_pointers=num_block_pointers,
@@ -782,7 +926,10 @@ class CommonTemplate:
                 else:
                     self.assertNotIn(tile_name, program)
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "view_size,num_block_pointers,num_triton_kernels,reduction_op",
         [
@@ -808,7 +955,12 @@ class CommonTemplate:
 
         # Expect at least 1 block pointer for the input.
         # Add 2 more if we generate 2 kernels.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             reduction_op,
             view,
             expected_num_block_pointers=num_block_pointers,
@@ -819,13 +971,21 @@ class CommonTemplate:
         # Check the code for multiple Rn_BLOCK's
         self._assert_reduction_ndims(code, 2)
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize(
         "size,expected_num_block_pointers,expected_num_triton_kernels,expect_fallback",
         [
             ((8, 8), 1, 1, True),  # Persistent Welford fallback
+<<<<<<< HEAD
             subtest(
                 ((128, 128), 7, 2, False), decorators=[xfail_if_use_tensor_descriptor]
             ),  # Looped Welford reduction
+=======
+            ((128, 128), 9, 2, False),  # Looped Welford reduction
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
     )
     def test_2d_welford_reduction(
@@ -846,7 +1006,12 @@ class CommonTemplate:
         view = self._discontiguous_tensor(size, self.device)
 
         # We expect many block pointers for this one.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.var_mean,
             view,
             expected_num_block_pointers=expected_num_block_pointers,
@@ -873,7 +1038,12 @@ class CommonTemplate:
         view = self._discontiguous_tensor((259, 311), self.device)
 
         # We expect many block pointers for this one.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.var_mean,
             view,
             expected_num_block_pointers=6,
@@ -895,7 +1065,12 @@ class CommonTemplate:
         # Use odd shapes to frustrate block pointer analysis.
         view = self._discontiguous_tensor((3, 7, 11), self.device)
 
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sum,
             view,
             expected_num_block_pointers=0,
@@ -906,7 +1081,10 @@ class CommonTemplate:
         # Check for 2 reduction dimensions.
         self._assert_reduction_ndims(code, 2)
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor  # Cannot use TMA API for store with no x dimension.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @test_torchinductor.skip_if_triton_cpu  # Illegal instruction  File; cannot xfail because it crashes process
     def test_2d_reduction_multi_kernel(self):
         """
@@ -921,10 +1099,18 @@ class CommonTemplate:
             x = x.reshape(x.shape[0], -1)
             return torch.softmax(x, -1)
 
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
             foo,
             view,
             expected_num_block_pointers=5,
+=======
+        result, (code,) = run_and_compare(
+            self,
+            foo,
+            view,
+            expected_num_block_pointers=6,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected_num_triton_kernels=2,
             config_patches={
                 "triton.multi_kernel": True,
@@ -938,7 +1124,10 @@ class CommonTemplate:
         # Check for 2 reduction dimensions.
         self._assert_reduction_ndims(code, 2)
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fused_2d_reduction(
         self,
     ):
@@ -953,7 +1142,12 @@ class CommonTemplate:
         view = self._discontiguous_tensor(view_size, self.device)
 
         # Expect at least 1 block pointer for the input.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             view,
             expected_num_block_pointers=1,
@@ -982,7 +1176,12 @@ class CommonTemplate:
         arg1 = torch.empty(view_size)
 
         # No guarantees on the number of kernels or pointers.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             arg0,
             arg1,
@@ -994,7 +1193,11 @@ class CommonTemplate:
 
     @parametrize(
         "tile_reductions",
+<<<<<<< HEAD
         [False, subtest(True, decorators=[xfail_if_use_tensor_descriptor])],
+=======
+        [False, True],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_enable_tiled_reductions(self, tile_reductions: bool):
         """
@@ -1003,7 +1206,12 @@ class CommonTemplate:
         view = self._discontiguous_tensor((9, 11), self.device)
 
         # If tiled, we expect 1 block pointer for the input.
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.sum,
             view,
             expected_num_block_pointers=1 if tile_reductions else 0,
@@ -1017,7 +1225,10 @@ class CommonTemplate:
         # Check the code for multiple Rn_BLOCK's
         self._assert_reduction_ndims(code, 2 if tile_reductions else 1)
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_complex_reshape_block_ptr(self):
         def func(x, y):
             add_ = x + y
@@ -1031,7 +1242,12 @@ class CommonTemplate:
             return clone_0, clone_1
 
         inps = (torch.rand((8, 2048), device=self.device, dtype=torch.float32),) * 2
+<<<<<<< HEAD
         result, code = self._run_and_compare(
+=======
+        result, code = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             func,
             *inps,
             expected_num_triton_kernels=2,
@@ -1039,7 +1255,10 @@ class CommonTemplate:
         )
         self.assertTrue("Min" not in code[0])
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gpu()  # FIXME this test failed on Triton-CPU
     def test_3d_permute_tiling(self):
         """
@@ -1053,7 +1272,12 @@ class CommonTemplate:
             return a + b
 
         inps = (torch.rand((51, 51, 51), device=self.device, dtype=torch.float32),) * 3
+<<<<<<< HEAD
         result, (code,) = self._run_and_compare(
+=======
+        result, (code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             *inps,
             expected_num_triton_kernels=1,
@@ -1075,6 +1299,10 @@ class CommonTemplate:
 
         def foo(x, length):
             unbacked = length.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(unbacked)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             repeated = x.repeat(1, unbacked, NUM_REPEAT)
             # permute creates split in middle with unbacked symint is the first range
@@ -1088,7 +1316,12 @@ class CommonTemplate:
         )
 
         with torch._dynamo.config.patch({"capture_scalar_outputs": True}):
+<<<<<<< HEAD
             self._run_and_compare(
+=======
+            run_and_compare(
+                self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 foo,
                 *inps,
                 expected_num_triton_kernels=1,
@@ -1106,8 +1339,11 @@ class CommonTemplate:
     # bernoulli operation
     # TODO: fails for triton CPU "Failed to convert to LLVM IR"
     @test_torchinductor.xfail_if_triton_cpu
+<<<<<<< HEAD
     # Disable split_reductions on this test for now due to the interaction with LOAF
     @config.patch(split_reductions=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_removed_buffers(self):
         from torch.ops import aten
 
@@ -1115,16 +1351,28 @@ class CommonTemplate:
             return aten.bernoulli(a).sum() / torch.prod(torch.tensor(a.size()))
 
         p = 0.3
+<<<<<<< HEAD
         result, code = self._run_and_compare(
             fn,
             *[torch.ones(200, 200, device=self.device) * p],
             expected_num_triton_kernels=1,
             expected_num_block_pointers=1,
+=======
+        result, code = run_and_compare(
+            self,
+            fn,
+            *[torch.ones(200, 200, device=self.device) * p],
+            expected_num_triton_kernels=2,
+            expected_num_block_pointers=3,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             atol=p * 0.06,
             rtol=0.06,
         )
 
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pointwise_index_order(self):
         """
         Test the order of indices in pointwise kernels. Expect Z to be the leading dim,
@@ -1135,7 +1383,12 @@ class CommonTemplate:
             self._discontiguous_tensor((5, 5, 5), device=self.device) for _ in range(2)
         ]
 
+<<<<<<< HEAD
         result, (triton_code,) = self._run_and_compare(
+=======
+        result, (triton_code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.add,
             *inps,
             expected_num_triton_kernels=1,
@@ -1183,7 +1436,12 @@ class CommonTemplate:
             return x.expand(*expanded_size).clone()
 
         inps = [torch.randn(base_size, device=self.device)]
+<<<<<<< HEAD
         result, (triton_code,) = self._run_and_compare(
+=======
+        result, (triton_code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             *inps,
             expected_num_triton_kernels=1,
@@ -1212,7 +1470,12 @@ class CommonTemplate:
             torch.randn((128,), device=self.device),
             torch.randn((8, 11, 128), device=self.device),
         ]
+<<<<<<< HEAD
         result, (triton_code,) = self._run_and_compare(
+=======
+        result, (triton_code,) = run_and_compare(
+            self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             foo,
             *inps,
             expected_num_triton_kernels=1,
@@ -1227,6 +1490,7 @@ class CommonTemplate:
         # Singleton splits should be discarded.
         self._assert_pointwise_ndims(triton_code, 2)
 
+<<<<<<< HEAD
     # Integration test to ensure that matched dims & strides from match_mod_div_expr
     # are unsigned and signed integers respectively. This test case has the following
     # index:=(ModularIndexing(xindex, 4, 4)) + 4*(ModularIndexing(xindex, 32, 2))
@@ -1288,6 +1552,8 @@ class CommonTemplate:
             expected_num_block_pointers=3,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("triton.prefer_nd_tiling", True)
     @config.patch("triton.max_tiles", 3)
     @parametrize(
@@ -1305,7 +1571,10 @@ class CommonTemplate:
             ),
         ],
     )
+<<<<<<< HEAD
     @xfail_if_use_tensor_descriptor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_boundary_check(self, block_multiple, ynumel_exceed_ygrid_size, include_z):
         @dataclasses.dataclass
         class InputShape:
@@ -1345,7 +1614,12 @@ class CommonTemplate:
             return a + b
 
         with V.set_choices_handler(FixedBlockSizeChoices()):
+<<<<<<< HEAD
             result, code = self._run_and_compare(
+=======
+            result, code = run_and_compare(
+                self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 func,
                 a,
                 b,
@@ -1376,7 +1650,11 @@ class CommonTemplate:
 @unittest.skipIf(not TRITON_HAS_CPU, "requires triton CPU backend")
 @config.patch(cpu_backend="triton")
 @config.patch("triton.use_block_ptr", True)
+<<<<<<< HEAD
 class TritonBlockPointerTestCPU(BlockDescriptorTestBase):
+=======
+class TritonBlockPointerTestCPU(BlockPointerTestBase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     device = "cpu"
 
 
@@ -1390,12 +1668,17 @@ test_torchinductor.copy_tests(
 
 @unittest.skipIf(not HAS_GPU, "requires triton GPU backend")
 @config.patch("triton.use_block_ptr", True)
+<<<<<<< HEAD
 class TritonBlockPointerTestGPU(BlockDescriptorTestBase):
+=======
+class TritonBlockPointerTestGPU(BlockPointerTestBase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     device = GPU_TYPE
 
 
 test_torchinductor.copy_tests(CommonTemplate, TritonBlockPointerTestGPU, GPU_TYPE)
 
+<<<<<<< HEAD
 
 @unittest.skipIf(
     not (
@@ -1419,6 +1702,8 @@ test_torchinductor.copy_tests(
     test_failures=TMA_TEST_XFAIL,
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 

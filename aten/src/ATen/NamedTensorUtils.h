@@ -167,14 +167,22 @@ TORCH_API TensorImpl* propagate_names(
 
 TORCH_API void propagate_names(TensorImpl* result, /*const */ TensorImpl* src);
 
+<<<<<<< HEAD
 inline void propagate_names(
+=======
+TORCH_API inline void propagate_names(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const TensorBase& result,
     DimnameList names,
     bool validate_names = false) {
   propagate_names(result.unsafeGetTensorImpl(), names, validate_names);
 }
 
+<<<<<<< HEAD
 inline void propagate_names_if_nonempty(
+=======
+TORCH_API inline void propagate_names_if_nonempty(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const TensorBase& result,
     DimnameList names,
     bool validate_names = false) {
@@ -182,7 +190,13 @@ inline void propagate_names_if_nonempty(
       result.unsafeGetTensorImpl(), names, validate_names);
 }
 
+<<<<<<< HEAD
 inline void propagate_names(const TensorBase& result, const TensorBase& src) {
+=======
+TORCH_API inline void propagate_names(
+    const TensorBase& result,
+    const TensorBase& src) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   propagate_names(result.unsafeGetTensorImpl(), src.unsafeGetTensorImpl());
 }
 

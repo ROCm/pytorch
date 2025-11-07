@@ -1,15 +1,25 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
 
 from torchgen.api import cpp, dispatcher, functionalization
+=======
+from typing import Callable, TYPE_CHECKING
+
+from torchgen.api import cpp, dispatcher
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torchgen.api.translate import translate
 from torchgen.api.types import (
     BaseCType,
     Binding,
     CType,
     DispatcherSignature,
+<<<<<<< HEAD
+=======
+    FunctionalizationLambda,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     iTensorListRefT,
     NativeSignature,
     OptionalCType,
@@ -47,12 +57,19 @@ from torchgen.native_function_generation import (
     MUTABLE_OPS_THAT_CANNOT_GET_AN_OUT_VARIANT,
     OUT_OPS_THAT_DONT_GET_GROUPED_PROPERLY,
 )
+<<<<<<< HEAD
 from torchgen.utils import concatMap, dataclass_repr, FileManager
 
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+=======
+from torchgen.utils import dataclass_repr
+
+
+if TYPE_CHECKING:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torchgen.selective_build.selector import SelectiveBuilder
 
 
@@ -366,8 +383,11 @@ def emit_view_functionalization_body(
     with native_function_manager(f):
         call_sig = DispatcherSignature.from_schema(g.view_copy.func)
 
+<<<<<<< HEAD
         spec = ViewMetaSpecialization(g, f=f)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # the "view_copy" op name that the functionalization kernels need to call
         api_name = g.view_copy.func.name.unambiguous_name()
         # Sometimes the functionalization pass needs to no-op (e.g. if it was passed non-functional tensors)
@@ -388,6 +408,12 @@ def emit_view_functionalization_body(
             for e in translate(unwrapped_args_ctx, call_sig.arguments(), method=False)
         ]
 
+<<<<<<< HEAD
+=======
+        forward_lambda = FunctionalizationLambda.from_func(g, is_reverse=False)
+        reverse_lambda = FunctionalizationLambda.from_func(g, is_reverse=True)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # The meta API call should use the same arguments, but convert all tensors to meta tensors first.
         meta_conversion_str, meta_call_ctx = convert_to_meta_tensors(dispatcher_sig)
         meta_call_args = [
@@ -415,7 +441,23 @@ def emit_view_functionalization_body(
             : at::functionalization::InverseReturnMode::NeverView
       );
       {symbolic_inputs_check}
+<<<<<<< HEAD
       auto view_meta = {spec.new()};
+=======
+      at::functionalization::ViewMeta view_meta = at::functionalization::ViewMeta(
+        {forward_lambda.decl()} {{
+          if (reapply_views) {{
+            return {forward_lambda.inner_call(reapply_views=True)}
+          }} else {{
+            return {forward_lambda.inner_call(reapply_views=False)}
+          }}
+        }},
+        {reverse_lambda.decl()} {{
+          return {reverse_lambda.inner_call()}
+        }},
+        /*has_symbolic_inputs=*/{symbolic_inputs_varname}
+      );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto compute_reference_meta =
         {view_tensor_name}.key_set().has_backend(c10::BackendComponent::XLABit) ||
         {view_tensor_name}.key_set().has_backend(c10::BackendComponent::LazyBit);
@@ -443,6 +485,10 @@ def emit_view_functionalization_body(
 """
 
         else:
+<<<<<<< HEAD
+=======
+            is_multi_output_view = isinstance(f.func.returns[0].type, ListType)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return f"""
     {dispatcher_sig.defn(name=wrapper_name(f.func), is_redispatching_fn=True)} {{
       {unwrap_tensor_args_str}
@@ -476,7 +522,25 @@ def emit_view_functionalization_body(
         }}
       }}
       {symbolic_inputs_check}
+<<<<<<< HEAD
       auto view_meta = {spec.new()};
+=======
+      at::functionalization::ViewMeta view_meta = at::functionalization::ViewMeta(
+        {forward_lambda.decl()} {{
+          if (reapply_views) {{
+            return {forward_lambda.inner_call(reapply_views=True)}
+          }} else {{
+            return {forward_lambda.inner_call(reapply_views=False)}
+          }}
+        }},
+        {reverse_lambda.decl()} {{
+          return {reverse_lambda.inner_call()}
+        }},
+        /*has_symbolic_inputs=*/{symbolic_inputs_varname},
+        /*is_multi_output=*/{str(is_multi_output_view).lower()},
+        /*is_as_strided=*/{str(str(f.func.name) == "as_strided").lower()}
+      );
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       auto out = at::functionalization::impl::create_functional_tensor_with_view_meta(tmp_output, {view_tensor_name}, view_meta);
       // See  Note [Propagating strides in the functionalization pass]
       if (compute_reference_meta && !disable_meta_reference()) {{
@@ -654,6 +718,31 @@ def emit_inplace_functionalization_body(
         for e in translate(unwrapped_args_ctx, functional_sig.arguments(), method=False)
     ]
 
+<<<<<<< HEAD
+=======
+    if f.func.is_out_fn():
+        mutable_input_post_processing = "\n".join(
+            [
+                f"""
+      at::functionalization::impl::replace_(
+        {a.name}, {"std::get<" + str(i) + ">(tmp_output)" if len(f.func.returns) > 1 else "tmp_output"});
+      at::functionalization::impl::commit_update({a.name});"""
+                for (i, a) in enumerate(f.func.arguments.out)
+                if a.annotation and a.annotation.is_write and a.type.is_tensor_like()
+            ]
+        )
+    else:
+        mutable_input_post_processing = "\n".join(  # noqa: F841
+            [
+                f"""
+      at::functionalization::impl::replace_({a.name}, tmp_output);
+      at::functionalization::impl::commit_update({a.name});"""
+                for a in f.func.arguments.flat_all
+                if a.annotation and a.annotation.is_write and a.type.is_tensor_like()
+            ]
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     meta_conversion_str, meta_call_ctx = convert_to_meta_tensors(dispatcher_sig)
     # We don't want to run the inplace meta func for ops like .set_(), because:
     # (1) they're unnecessary: inplace meta checks are only useful for ops like add_(),
@@ -722,6 +811,7 @@ def gen_functionalization_view_inverse_declaration(
     return emit_decl_helper(g)
 
 
+<<<<<<< HEAD
 # Helper class for generating `ViewMeta` specializations.
 @dataclass
 class ViewMetaSpecialization:
@@ -1017,6 +1107,8 @@ def gen_functionalization_view_meta_classes(
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def gen_functionalization_registration(
     selector: SelectiveBuilder,
     g: NativeFunction | NativeFunctionsGroup | NativeFunctionsViewGroup,

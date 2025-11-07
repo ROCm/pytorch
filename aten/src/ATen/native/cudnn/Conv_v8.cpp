@@ -252,7 +252,11 @@ struct CacheKeyFusedWrapper : ParamsWrapper<CacheKeyFused> {
   }
 };
 
+<<<<<<< HEAD
 int getLRUCacheLimit() {
+=======
+static int getLRUCacheLimit() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   constexpr int DEFAULT_LIMIT =
       10000; // roughly corresponds to 2GiB assuming 200KiB per ExecutionPlan
   // 0 is used to indicate no limit
@@ -337,7 +341,12 @@ struct BenchmarkCache {
             engine_cache_order.begin(), engine_cache_order, it->second.second);
       }
     } else {
+<<<<<<< HEAD
       engine_cache.insert_or_assign(
+=======
+      engine_cache.erase(key);
+      engine_cache.emplace(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           key,
           std::make_pair(results, engine_cache_order.end())); // dummy iterator
     }

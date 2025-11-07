@@ -17,6 +17,7 @@ class BlockPatternMatcher:
     Matches block indexing expressions.
     """
 
+<<<<<<< HEAD
     _indexing_wild_signed_int = functools.partial(
         sympy.Wild, properties=[lambda x: x.is_integer]
     )
@@ -24,6 +25,8 @@ class BlockPatternMatcher:
         sympy.Wild, properties=[lambda x: x.is_integer and x.is_nonnegative]
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @classmethod
     def get_subexpr_involving_symbol(cls, expr: Expr, symbol: Symbol) -> Expr:
         """
@@ -70,6 +73,7 @@ class BlockPatternMatcher:
         index = cls._preprocess(index)
 
         # Pattern match to find the strides and offset.
+<<<<<<< HEAD
         wild_unsigned_int = functools.partial(
             cls._indexing_wild_unsigned_int, exclude=[index_var]
         )
@@ -82,6 +86,11 @@ class BlockPatternMatcher:
         strides: list[Expr] = [
             wild_signed_int(f"stride_mod{idx}") for idx in range(num_dims)
         ]
+=======
+        wild = functools.partial(sympy.Wild, exclude=[index_var])
+        dims: list[Expr] = [wild(f"dim_mod{idx}") for idx in range(num_dims)]
+        strides: list[Expr] = [wild(f"stride_mod{idx}") for idx in range(num_dims)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # The first dimension's index is computed by division.
         # The remaining are computed by modulo.
@@ -99,8 +108,12 @@ class BlockPatternMatcher:
         # for more details. In short, here we check that each subexpression in sympy.Add contains
         # only FloorDiv or ModularIndexing expressions.
         if num_dims >= 5:
+<<<<<<< HEAD
             stride = sympy.symbols("stride", cls=wild_signed_int)
             denom, other = sympy.symbols("denominator other", cls=wild_unsigned_int)
+=======
+            stride, denom, other = sympy.symbols("stride denominator other", cls=wild)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mod_div_pattern = stride * ModularIndexing(index_var, denom, other)
             floor_div_pattern = stride * FloorDiv(index_var, denom)
             first_dim_floor_div_matched = False
@@ -184,7 +197,11 @@ class BlockPatternMatcher:
         stride.
         """
         index = cls._preprocess(index)
+<<<<<<< HEAD
         stride = cls._indexing_wild_signed_int(name="stride", exclude=[index_var])
+=======
+        stride = sympy.Wild("stride", exclude=[index_var])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = index.match(index_var * stride)
         if m is None:
             return None

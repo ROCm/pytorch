@@ -59,7 +59,11 @@ class SourceTests(torch._dynamo.test_case.TestCase):
             def forward(self):
                 if (
                     torch.utils._pytree.SUPPORTED_NODES[CausalLMOutputWithPast].type
+<<<<<<< HEAD
                     is int
+=======
+                    == int
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     x = torch.sin(self.x)
                 else:

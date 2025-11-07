@@ -18,6 +18,7 @@ REM Check for optional components
 set USE_CUDA=
 set CMAKE_GENERATOR=Visual Studio 15 2017 Win64
 
+<<<<<<< HEAD
 IF "%NVTOOLSEXT_PATH%"=="" (
     IF EXIST "C:\Program Files\NVIDIA Corporation\NvToolsExt\lib\x64\nvToolsExt64_1.lib"  (
         set NVTOOLSEXT_PATH=C:\Program Files\NVIDIA Corporation\NvToolsExt
@@ -27,6 +28,8 @@ IF "%NVTOOLSEXT_PATH%"=="" (
     )
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 IF "%CUDA_PATH_V129%"=="" (
     IF EXIST "C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9\bin\nvcc.exe" (
         set "CUDA_PATH_V129=C:\Program Files\NVIDIA GPU Computing Toolkit\CUDA\v12.9"

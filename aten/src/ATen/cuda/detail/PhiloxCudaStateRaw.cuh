@@ -19,7 +19,11 @@ struct PhiloxCudaState {
   // Called if graph capture is underway
   PhiloxCudaState(int64_t* seed,
                   int64_t* offset_extragraph,
+<<<<<<< HEAD
                   uint64_t offset_intragraph) {
+=======
+                  uint32_t offset_intragraph) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     seed_.ptr = seed;
     offset_.ptr = offset_extragraph;
     offset_intragraph_ = offset_intragraph;
@@ -36,7 +40,11 @@ struct PhiloxCudaState {
 
   Payload seed_{};
   Payload offset_{};
+<<<<<<< HEAD
   uint64_t offset_intragraph_ = 0;
+=======
+  uint32_t offset_intragraph_ = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool captured_ = false;
 };
 

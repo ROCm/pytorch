@@ -115,6 +115,7 @@ class TestSplitCatFxPasses(TestCase):
             )
             counters.clear()
 
+<<<<<<< HEAD
     @torch._inductor.config.patch(
         pre_grad_fusion_options={
             "normalization_pass": {},
@@ -142,6 +143,8 @@ class TestSplitCatFxPasses(TestCase):
             )
             counters.clear()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch
     def test_consecutive_split_merge(self):
         def multi_split(x):

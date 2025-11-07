@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import reduce
 from typing import Optional, Union
+=======
+from functools import reduce
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F
@@ -95,8 +100,12 @@ class WeightNormSparsifier(BaseSparsifier):
     ):
         r"""Creates patches of size `block_shape` after scattering the indices."""
         if mask is None:
+<<<<<<< HEAD
             if input_shape is None:
                 raise AssertionError("input_shape must be provided when mask is None")
+=======
+            assert input_shape is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mask = torch.ones(input_shape, device=device)
         mask.scatter_(dim=dim, index=indices, value=0)
         mask.data = F.fold(
@@ -144,7 +153,11 @@ class WeightNormSparsifier(BaseSparsifier):
 
         data = data.repeat(1, values_per_block, 1)
 
+<<<<<<< HEAD
         threshold_idx = round(sparsity_level * num_blocks)
+=======
+        threshold_idx = int(round(sparsity_level * num_blocks))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         threshold_idx = max(0, min(num_blocks - 1, threshold_idx))  # Sanity check
         _, sorted_idx = torch.topk(data, k=threshold_idx, dim=2, largest=False)
 
@@ -236,7 +249,10 @@ class WeightNormSparsifier(BaseSparsifier):
             ww = self.norm_fn(getattr(module, tensor_name))
             tensor_mask = self._make_tensor_mask(
                 data=ww,
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 input_shape=ww.shape,
                 sparsity_level=sparsity_level,
                 sparse_block_shape=sparse_block_shape,

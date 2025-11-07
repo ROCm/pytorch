@@ -346,7 +346,11 @@ class TestAutocastMPS(TestCase):
     def test_mps_autocast_error_message(self):
         with self.assertWarnsRegex(
             UserWarning,
+<<<<<<< HEAD
             "MPS Autocast only supports dtypes of torch.bfloat16, torch.float16 currently.",
+=======
+            "MPS Autocast only supports dtype of torch.bfloat16 and torch.float16 currently.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             with torch.autocast(device_type="mps", dtype=torch.float32):
                 _ = torch.ones(10)

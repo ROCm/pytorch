@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_dict.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -71,9 +74,14 @@ from test.support import import_helper, get_c_recursion_limit
 class DictTest(__TestCase):
 
     def test_invalid_keyword_arguments(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Custom(dict):
                 pass
+=======
+        class Custom(dict):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for invalid in {1 : 2}, Custom({1 : 2}):
             with self.assertRaises(TypeError):
                 dict(**invalid)
@@ -166,9 +174,14 @@ class DictTest(__TestCase):
 
     def test_views_mapping(self):
         mappingproxy = type(type.__dict__)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Dict(dict):
                 pass
+=======
+        class Dict(dict):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for cls in [dict, Dict]:
             d = cls()
             m1 = d.keys().mapping
@@ -216,17 +229,26 @@ class DictTest(__TestCase):
 
         self.assertRaises(TypeError, d.__getitem__)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class BadEq(object):
                 def __eq__(self, other):
                     raise Exc()
                 def __hash__(self):
                     return 24
+=======
+        class BadEq(object):
+            def __eq__(self, other):
+                raise Exc()
+            def __hash__(self):
+                return 24
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {}
         d[BadEq()] = 42
         self.assertRaises(KeyError, d.__getitem__, 23)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -237,6 +259,17 @@ class DictTest(__TestCase):
                         raise Exc()
                     else:
                         return 42
+=======
+        class Exc(Exception): pass
+
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = BadHash()
         d[x] = 42
@@ -262,6 +295,7 @@ class DictTest(__TestCase):
 
         self.assertRaises((TypeError, AttributeError), d.update, None)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class SimpleUserDict:
                 def __init__(self):
@@ -270,10 +304,20 @@ class DictTest(__TestCase):
                     return self.d.keys()
                 def __getitem__(self, i):
                     return self.d[i]
+=======
+        class SimpleUserDict:
+            def __init__(self):
+                self.d = {1:1, 2:2, 3:3}
+            def keys(self):
+                return self.d.keys()
+            def __getitem__(self, i):
+                return self.d[i]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d.clear()
         d.update(SimpleUserDict())
         self.assertEqual(d, {1:1, 2:2, 3:3})
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -329,6 +373,56 @@ class DictTest(__TestCase):
                     return self
                 def __next__(self):
                     raise Exc()
+=======
+        class Exc(Exception): pass
+
+        d.clear()
+        class FailingUserDict:
+            def keys(self):
+                raise Exc
+        self.assertRaises(Exc, d.update, FailingUserDict())
+
+        class FailingUserDict:
+            def keys(self):
+                class BogonIter:
+                    def __init__(self):
+                        self.i = 1
+                    def __iter__(self):
+                        return self
+                    def __next__(self):
+                        if self.i:
+                            self.i = 0
+                            return 'a'
+                        raise Exc
+                return BogonIter()
+            def __getitem__(self, key):
+                return key
+        self.assertRaises(Exc, d.update, FailingUserDict())
+
+        class FailingUserDict:
+            def keys(self):
+                class BogonIter:
+                    def __init__(self):
+                        self.i = ord('a')
+                    def __iter__(self):
+                        return self
+                    def __next__(self):
+                        if self.i <= ord('z'):
+                            rtn = chr(self.i)
+                            self.i += 1
+                            return rtn
+                        raise StopIteration
+                return BogonIter()
+            def __getitem__(self, key):
+                raise Exc
+        self.assertRaises(Exc, d.update, FailingUserDict())
+
+        class badseq(object):
+            def __iter__(self):
+                return self
+            def __next__(self):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(Exc, {}.update, badseq())
 
@@ -346,21 +440,32 @@ class DictTest(__TestCase):
             yield 1
         self.assertEqual(d.fromkeys(g()), {1:None})
         self.assertRaises(TypeError, {}.fromkeys, 3)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class dictlike(dict): pass
+=======
+        class dictlike(dict): pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(dictlike.fromkeys('a'), {'a':None})
         self.assertEqual(dictlike().fromkeys('a'), {'a':None})
         self.assertIsInstance(dictlike.fromkeys('a'), dictlike)
         self.assertIsInstance(dictlike().fromkeys('a'), dictlike)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class mydict(dict):
                 def __new__(cls):
                     return collections.UserDict()
+=======
+        class mydict(dict):
+            def __new__(cls):
+                return collections.UserDict()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ud = mydict.fromkeys('ab')
         self.assertEqual(ud, {'a':None, 'b':None})
         self.assertIsInstance(ud, collections.UserDict)
         self.assertRaises(TypeError, dict.fromkeys)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -383,6 +488,27 @@ class DictTest(__TestCase):
             class baddict2(dict):
                 def __setitem__(self, key, value):
                     raise Exc()
+=======
+        class Exc(Exception): pass
+
+        class baddict1(dict):
+            def __init__(self):
+                raise Exc()
+
+        self.assertRaises(Exc, baddict1.fromkeys, [1])
+
+        class BadSeq(object):
+            def __iter__(self):
+                return self
+            def __next__(self):
+                raise Exc()
+
+        self.assertRaises(Exc, dict.fromkeys, BadSeq())
+
+        class baddict2(dict):
+            def __setitem__(self, key, value):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertRaises(Exc, baddict2.fromkeys, [1])
 
@@ -398,20 +524,32 @@ class DictTest(__TestCase):
         self.assertEqual(dict.fromkeys(d, 0), res)
 
         # test fast path when object's constructor returns large non-empty dict
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class baddict3(dict):
                 def __new__(cls):
                     return d
+=======
+        class baddict3(dict):
+            def __new__(cls):
+                return d
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d = {i : i for i in range(1000)}
         res = d.copy()
         res.update(a=None, b=None, c=None)
         self.assertEqual(baddict3.fromkeys({"a", "b", "c"}), res)
 
         # test slow path when object is a proper subclass of dict
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class baddict4(dict):
                 def __init__(self):
                     dict.__init__(self, d)
+=======
+        class baddict4(dict):
+            def __init__(self):
+                dict.__init__(self, d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d = {i : i for i in range(1000)}
         res = d.copy()
         res.update(a=None, b=None, c=None)
@@ -447,9 +585,14 @@ class DictTest(__TestCase):
                 self.assertEqual(len(d2), len(d) + 1)
 
     def test_copy_maintains_tracking(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class A:
                 pass
+=======
+        class A:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         key = A()
 
@@ -494,6 +637,7 @@ class DictTest(__TestCase):
         self.assertEqual(len(d['key']), 2)
         self.assertRaises(TypeError, d.setdefault)
 
+<<<<<<< HEAD
 
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
@@ -505,6 +649,17 @@ class DictTest(__TestCase):
                         raise Exc()
                     else:
                         return 42
+=======
+        class Exc(Exception): pass
+
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = BadHash()
         d[x] = 42
@@ -513,6 +668,7 @@ class DictTest(__TestCase):
 
     def test_setdefault_atomic(self):
         # Issue #13521: setdefault() calls __hash__ and __eq__ only once.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Hashed(object):
                 def __init__(self):
@@ -524,6 +680,18 @@ class DictTest(__TestCase):
                 def __eq__(self, other):
                     self.eq_count += 1
                     return id(self) == id(other)
+=======
+        class Hashed(object):
+            def __init__(self):
+                self.hash_count = 0
+                self.eq_count = 0
+            def __hash__(self):
+                self.hash_count += 1
+                return 42
+            def __eq__(self, other):
+                self.eq_count += 1
+                return id(self) == id(other)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hashed1 = Hashed()
         y = {hashed1: 5}
         hashed2 = Hashed()
@@ -533,6 +701,7 @@ class DictTest(__TestCase):
         self.assertEqual(hashed1.eq_count + hashed2.eq_count, 1)
 
     def test_setitem_atomic_at_resize(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Hashed(object):
                 def __init__(self):
@@ -544,6 +713,18 @@ class DictTest(__TestCase):
                 def __eq__(self, other):
                     self.eq_count += 1
                     return id(self) == id(other)
+=======
+        class Hashed(object):
+            def __init__(self):
+                self.hash_count = 0
+                self.eq_count = 0
+            def __hash__(self):
+                self.hash_count += 1
+                return 42
+            def __eq__(self, other):
+                self.eq_count += 1
+                return id(self) == id(other)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         hashed1 = Hashed()
         # 5 items
         y = {hashed1: 5, 0: 0, 1: 1, 2: 2, 3: 3}
@@ -599,6 +780,7 @@ class DictTest(__TestCase):
 
         self.assertRaises(TypeError, d.pop)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -609,6 +791,17 @@ class DictTest(__TestCase):
                         raise Exc()
                     else:
                         return 42
+=======
+        class Exc(Exception): pass
+
+        class BadHash(object):
+            fail = False
+            def __hash__(self):
+                if self.fail:
+                    raise Exc()
+                else:
+                    return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = BadHash()
         d[x] = 42
@@ -652,6 +845,7 @@ class DictTest(__TestCase):
 
     def test_mutating_lookup(self):
         # changing dict during a lookup (issue #14417)
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class NastyKey:
                 mutate_dict = None
@@ -669,6 +863,24 @@ class DictTest(__TestCase):
                         NastyKey.mutate_dict = None
                         del mydict[key]
                     return self.value == other.value
+=======
+        class NastyKey:
+            mutate_dict = None
+
+            def __init__(self, value):
+                self.value = value
+
+            def __hash__(self):
+                # hash collision!
+                return 1
+
+            def __eq__(self, other):
+                if NastyKey.mutate_dict:
+                    mydict, key = NastyKey.mutate_dict
+                    NastyKey.mutate_dict = None
+                    del mydict[key]
+                return self.value == other.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         key1 = NastyKey(1)
         key2 = NastyKey(2)
@@ -686,12 +898,20 @@ class DictTest(__TestCase):
         d[1] = d
         self.assertEqual(repr(d), '{1: {...}}')
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
             class BadRepr(object):
                 def __repr__(self):
                     raise Exc()
+=======
+        class Exc(Exception): pass
+
+        class BadRepr(object):
+            def __repr__(self):
+                raise Exc()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {1: BadRepr()}
         self.assertRaises(Exc, repr, d)
@@ -706,6 +926,7 @@ class DictTest(__TestCase):
         self.assertEqual({}, {})
         self.assertEqual({1: 2}, {1: 2})
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
 
@@ -714,6 +935,15 @@ class DictTest(__TestCase):
                     raise Exc()
                 def __hash__(self):
                     return 1
+=======
+        class Exc(Exception): pass
+
+        class BadCmp(object):
+            def __eq__(self, other):
+                raise Exc()
+            def __hash__(self):
+                return 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d1 = {BadCmp(): 1}
         d2 = {1: 1}
@@ -770,10 +1000,16 @@ class DictTest(__TestCase):
         self.assertFalse(larger == larger3)
 
     def test_errors_in_view_containment_check(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C:
                 def __eq__(self, other):
                     raise RuntimeError
+=======
+        class C:
+            def __eq__(self, other):
+                raise RuntimeError
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d1 = {1: C()}
         d2 = {1: C()}
@@ -853,10 +1089,16 @@ class DictTest(__TestCase):
         # (E) subclass defines __missing__ method raising RuntimeError
         # (F) subclass sets __missing__ instance variable (no effect)
         # (G) subclass doesn't define __missing__ at all
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class D(dict):
                 def __missing__(self, key):
                     return 42
+=======
+        class D(dict):
+            def __missing__(self, key):
+                return 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d = D({1: 2, 3: 4})
         self.assertEqual(d[1], 2)
         self.assertEqual(d[3], 4)
@@ -864,28 +1106,46 @@ class DictTest(__TestCase):
         self.assertNotIn(2, d.keys())
         self.assertEqual(d[2], 42)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class E(dict):
                 def __missing__(self, key):
                     raise RuntimeError(key)
+=======
+        class E(dict):
+            def __missing__(self, key):
+                raise RuntimeError(key)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         e = E()
         with self.assertRaises(RuntimeError) as c:
             e[42]
         self.assertEqual(c.exception.args, (42,))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class F(dict):
                 def __init__(self):
                     # An instance variable __missing__ should have no effect
                     self.__missing__ = lambda key: None
+=======
+        class F(dict):
+            def __init__(self):
+                # An instance variable __missing__ should have no effect
+                self.__missing__ = lambda key: None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f = F()
         with self.assertRaises(KeyError) as c:
             f[42]
         self.assertEqual(c.exception.args, (42,))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class G(dict):
                 pass
+=======
+        class G(dict):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         g = G()
         with self.assertRaises(KeyError) as c:
             g[42]
@@ -900,6 +1160,7 @@ class DictTest(__TestCase):
 
     def test_bad_key(self):
         # Dictionary lookups should fail if __eq__() raises an exception.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class CustomException(Exception):
                 pass
@@ -912,6 +1173,19 @@ class DictTest(__TestCase):
                     if isinstance(other, self.__class__):
                         raise CustomException
                     return other
+=======
+        class CustomException(Exception):
+            pass
+
+        class BadDictKey:
+            def __hash__(self):
+                return hash(self.__class__)
+
+            def __eq__(self, other):
+                if isinstance(other, self.__class__):
+                    raise CustomException
+                return other
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {}
         x1 = BadDictKey()
@@ -947,6 +1221,7 @@ class DictTest(__TestCase):
         # Another dict resizing bug (SF bug #1456209).
         # This caused Segmentation faults or Illegal instructions.
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X(object):
                 def __hash__(self):
@@ -955,6 +1230,15 @@ class DictTest(__TestCase):
                     if resizing:
                         d.clear()
                     return False
+=======
+        class X(object):
+            def __hash__(self):
+                return 5
+            def __eq__(self, other):
+                if resizing:
+                    d.clear()
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         d = {}
         resizing = False
         d[X()] = 1
@@ -977,9 +1261,14 @@ class DictTest(__TestCase):
     def test_container_iterator(self):
         # Bug #3680: tp_traverse was not implemented for dictiter and
         # dictview objects.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C(object):
                 pass
+=======
+        class C(object):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         views = (dict.items, dict.values, dict.keys)
         for v in views:
             obj = C()
@@ -1032,10 +1321,15 @@ class DictTest(__TestCase):
     @support.cpython_only
     def test_track_dynamic(self):
         # Test GC-optimization of dynamically-created dicts
+<<<<<<< HEAD
 
         with torch._dynamo.error_on_graph_break(False):
             class MyObject(object):
                 pass
+=======
+        class MyObject(object):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x, y, z, w, o = 1.5, "a", (1, object()), [], MyObject()
 
         d = dict()
@@ -1103,9 +1397,14 @@ class DictTest(__TestCase):
         self._tracked(MyDict())
 
     def make_shared_key_dict(self, n):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C:
                 pass
+=======
+        class C:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dicts = []
         for i in range(n):
@@ -1194,6 +1493,7 @@ class DictTest(__TestCase):
     @support.cpython_only
     def test_splittable_update(self):
         """dict.update(other) must preserve order in other."""
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C:
                 def __init__(self, order):
@@ -1201,6 +1501,14 @@ class DictTest(__TestCase):
                         self.a, self.b, self.c = 1, 2, 3
                     else:
                         self.c, self.b, self.a = 1, 2, 3
+=======
+        class C:
+            def __init__(self, order):
+                if order:
+                    self.a, self.b, self.c = 1, 2, 3
+                else:
+                    self.c, self.b, self.a = 1, 2, 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         o = C(True)
         o = C(False)  # o.__dict__ has reversed order.
         self.assertEqual(list(o.__dict__), ["c", "b", "a"])
@@ -1212,9 +1520,14 @@ class DictTest(__TestCase):
     @support.cpython_only
     def test_splittable_to_generic_combinedtable(self):
         """split table must be correctly resized and converted to generic combined table"""
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C:
                 pass
+=======
+        class C:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         a = C()
         a.x = 1
@@ -1336,6 +1649,7 @@ class DictTest(__TestCase):
             self.assertEqual(sorted(values), sorted(data.values()))
 
     def test_instance_dict_getattr_str_subclass(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Foo:
                 def __init__(self, msg):
@@ -1344,12 +1658,24 @@ class DictTest(__TestCase):
         with torch._dynamo.error_on_graph_break(False):
             class _str(str):
                 pass
+=======
+        class Foo:
+            def __init__(self, msg):
+                self.msg = msg
+        f = Foo('123')
+        class _str(str):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(f.msg, getattr(f, _str('msg')))
         self.assertEqual(f.msg, f.__dict__[_str('msg')])
 
     def test_object_set_item_single_instance_non_str_key(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Foo: pass
+=======
+        class Foo: pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f = Foo()
         f.__dict__[1] = 1
         f.a = 'a'
@@ -1359,10 +1685,16 @@ class DictTest(__TestCase):
         # This object will trigger mutation of the dict when replaced
         # by another value.  Note this relies on refcounting: the test
         # won't achieve its purpose on fully-GCed Python implementations.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Mutating:
                 def __del__(self):
                     mutate(d)
+=======
+        class Mutating:
+            def __del__(self):
+                mutate(d)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {k: Mutating() for k in 'abcdefghijklmnopqr'}
         for k in list(d):
@@ -1385,6 +1717,7 @@ class DictTest(__TestCase):
         self.check_reentrant_insertion(mutate)
 
     def test_merge_and_mutate(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __hash__(self):
@@ -1393,6 +1726,15 @@ class DictTest(__TestCase):
                 def __eq__(self, o):
                     other.clear()
                     return False
+=======
+        class X:
+            def __hash__(self):
+                return 0
+
+            def __eq__(self, o):
+                other.clear()
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         l = [(i,0) for i in range(1, 1337)]
         other = dict(l)
@@ -1408,6 +1750,7 @@ class DictTest(__TestCase):
 
     def test_equal_operator_modifying_operand(self):
         # test fix for seg fault reported in bpo-27945 part 3.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X():
                 def __del__(self):
@@ -1419,17 +1762,36 @@ class DictTest(__TestCase):
 
                 def __hash__(self):
                     return 13
+=======
+        class X():
+            def __del__(self):
+                dict_b.clear()
+
+            def __eq__(self, other):
+                dict_a.clear()
+                return True
+
+            def __hash__(self):
+                return 13
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dict_a = {X(): 0}
         dict_b = {X(): X()}
         self.assertTrue(dict_a == dict_b)
 
         # test fix for seg fault reported in bpo-38588 part 1.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Y:
                 def __eq__(self, other):
                     dict_d.clear()
                     return True
+=======
+        class Y:
+            def __eq__(self, other):
+                dict_d.clear()
+                return True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dict_c = {0: Y()}
         dict_d = {0: set()}
@@ -1437,6 +1799,7 @@ class DictTest(__TestCase):
 
     def test_fromkeys_operator_modifying_dict_operand(self):
         # test fix for seg fault reported in issue 27945 part 4a.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X(int):
                 def __hash__(self):
@@ -1446,6 +1809,16 @@ class DictTest(__TestCase):
                     if len(d) > 1:
                         d.clear()
                     return False
+=======
+        class X(int):
+            def __hash__(self):
+                return 13
+
+            def __eq__(self, other):
+                if len(d) > 1:
+                    d.clear()
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {}  # this is required to exist so that d can be constructed!
         d = {X(1): 1, X(2): 2}
@@ -1456,6 +1829,7 @@ class DictTest(__TestCase):
 
     def test_fromkeys_operator_modifying_set_operand(self):
         # test fix for seg fault reported in issue 27945 part 4b.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X(int):
                 def __hash__(self):
@@ -1465,6 +1839,16 @@ class DictTest(__TestCase):
                     if len(d) > 1:
                         d.clear()
                     return False
+=======
+        class X(int):
+            def __hash__(self):
+                return 13
+
+            def __eq__(self, other):
+                if len(d) > 1:
+                    d.clear()
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {}  # this is required to exist so that d can be constructed!
         d = {X(1), X(2)}
@@ -1474,17 +1858,25 @@ class DictTest(__TestCase):
             pass
 
     def test_dictitems_contains_use_after_free(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __eq__(self, other):
                     d.clear()
                     return NotImplemented
+=======
+        class X:
+            def __eq__(self, other):
+                d.clear()
+                return NotImplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {0: set()}
         (0, X()) in d.items()
 
     def test_dict_contain_use_after_free(self):
         # bpo-40489
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class S(str):
                 def __eq__(self, other):
@@ -1493,25 +1885,47 @@ class DictTest(__TestCase):
 
                 def __hash__(self):
                     return hash('test')
+=======
+        class S(str):
+            def __eq__(self, other):
+                d.clear()
+                return NotImplemented
+
+            def __hash__(self):
+                return hash('test')
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {S(): 'value'}
         self.assertFalse('test' in d)
 
     def test_init_use_after_free(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X:
                 def __hash__(self):
                     pair[:] = []
                     return 13
+=======
+        class X:
+            def __hash__(self):
+                pair[:] = []
+                return 13
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         pair = [X(), 123]
         dict([pair])
 
     def test_oob_indexing_dictiter_iternextitem(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class X(int):
                 def __del__(self):
                     d.clear()
+=======
+        class X(int):
+            def __del__(self):
+                d.clear()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = {i: X(i) for i in range(8)}
 
@@ -1545,11 +1959,18 @@ class DictTest(__TestCase):
         self.assertEqual(list(reversed(dict().keys())), [])
 
     def test_reverse_iterator_for_shared_shared_dicts(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class A:
                 def __init__(self, x, y):
                     if x: self.x = x
                     if y: self.y = y
+=======
+        class A:
+            def __init__(self, x, y):
+                if x: self.x = x
+                if y: self.y = y
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(list(reversed(A(1, 2).__dict__)), ['y', 'x'])
         self.assertEqual(list(reversed(A(1, 0).__dict__)), ['x'])
@@ -1565,15 +1986,21 @@ class DictTest(__TestCase):
         self.assertEqual(list(copy.items()), expected)
 
         # dict subclass doesn't override __iter__
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class CustomDict(dict):
                 pass
+=======
+        class CustomDict(dict):
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         pairs = [('a', 1), ('b', 2), ('c', 3)]
 
         d = CustomDict(pairs)
         self.assertEqual(pairs, list(dict(d).items()))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class CustomReversedDict(dict):
                 def keys(self):
@@ -1583,6 +2010,16 @@ class DictTest(__TestCase):
 
                 def items(self):
                     return reversed(dict.items(self))
+=======
+        class CustomReversedDict(dict):
+            def keys(self):
+                return reversed(list(dict.keys(self)))
+
+            __iter__ = keys
+
+            def items(self):
+                return reversed(dict.items(self))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         d = CustomReversedDict(pairs)
         self.assertEqual(pairs[::-1], list(dict(d).items()))
@@ -1607,6 +2044,7 @@ class DictTest(__TestCase):
         self.assertTrue(gc.is_tracked(next(it)))
 
     def test_store_evilattr(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class EvilAttr:
                 def __init__(self, d):
@@ -1619,6 +2057,19 @@ class DictTest(__TestCase):
 
             class Obj:
                 pass
+=======
+        class EvilAttr:
+            def __init__(self, d):
+                self.d = d
+
+            def __del__(self):
+                if 'attr' in self.d:
+                    del self.d['attr']
+                gc.collect()
+
+        class Obj:
+            pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         obj = Obj()
         obj.__dict__ = {}
@@ -1630,6 +2081,7 @@ class DictTest(__TestCase):
         # `str` keys. Make sure the unoptimized path is used when a non-`str`
         # key appears.
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class StrSub(str):
                 pass
@@ -1647,6 +2099,23 @@ class DictTest(__TestCase):
                         eq_count += 1
                         return True
                     return False
+=======
+        class StrSub(str):
+            pass
+
+        eq_count = 0
+        # This class compares equal to the string 'key3'
+        class Key3:
+            def __hash__(self):
+                return hash('key3')
+
+            def __eq__(self, other):
+                nonlocal eq_count
+                if isinstance(other, Key3) or isinstance(other, str) and other == 'key3':
+                    eq_count += 1
+                    return True
+                return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         key3_1 = StrSub('key3')
         key3_2 = Key3()
@@ -1746,6 +2215,7 @@ class CAPITest(__TestCase):
         # key does not exist
         self.assertRaises(KeyError, dict_getitem_knownhash, {}, 1, hash(1))
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Exc(Exception): pass
             class BadEq:
@@ -1753,6 +2223,14 @@ class CAPITest(__TestCase):
                     raise Exc
                 def __hash__(self):
                     return 7
+=======
+        class Exc(Exception): pass
+        class BadEq:
+            def __eq__(self, other):
+                raise Exc
+            def __hash__(self):
+                return 7
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         k1, k2 = BadEq(), BadEq()
         d = {k1: 1}

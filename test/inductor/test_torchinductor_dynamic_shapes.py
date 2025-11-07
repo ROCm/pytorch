@@ -12,7 +12,10 @@ import torch
 import torch.library
 from torch._dynamo.testing import CompileCounterWithBackend, make_test_cls_with_patches
 from torch._inductor import metrics
+<<<<<<< HEAD
 from torch._inductor.choices import InductorChoices
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.codegen.wrapper import PythonWrapperCodegen
 from torch._inductor.test_case import TestCase
 from torch._inductor.utils import run_and_get_code
@@ -32,13 +35,19 @@ from torch.testing._internal.common_utils import (
     TEST_CUDA_MEM_LEAK_CHECK,
     TEST_WITH_ASAN,
     TEST_WITH_ROCM,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CPU,
     HAS_GPU,
+<<<<<<< HEAD
     HAS_MPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     patch_inductor_backend,
 )
 
@@ -62,6 +71,7 @@ test_failures = {
     "test_kwargs_dynamic_shapes": TestFailure(("cpu",)),
     # calling div on only symint args
     "test_AllenaiLongformerBase_repro_dynamic_shapes": TestFailure(
+<<<<<<< HEAD
         ("cpu", "cuda", "xpu", "mps")
     ),
     "test_argmax_argmin_with_duplicates_dynamic_shapes": TestFailure(("mps",)),
@@ -89,6 +99,11 @@ test_failures = {
     ),
 }
 
+=======
+        ("cpu", "cuda", "xpu")
+    ),
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if not torch._inductor.config.cpp_wrapper:
     test_failures["test_conv_inference_heuristics_dynamic_shapes"] = TestFailure(
         ("cuda",)
@@ -105,6 +120,7 @@ if TEST_WITH_ROCM:
     test_failures["test_unbacked_reduction"] = TestFailure(("cpu"), is_skip=True)
 
 
+<<<<<<< HEAD
 if any(os.getenv("BUILD_ENVIRONMENT", "").endswith(x) for x in ("-debug", "-asan")):
     # Fails with TORCH_INTERNAL_ASSERT(!is_heap_allocated()), see https://github.com/pytorch/pytorch/issues/130073
     # After https://github.com/pytorch/pytorch/pull/161586, starts failing UBSAN so we can't even xfail.
@@ -116,6 +132,12 @@ if any(os.getenv("BUILD_ENVIRONMENT", "").endswith(x) for x in ("-debug", "-asan
     test_failures["test_resize_dynamic_shapes"] = TestFailure(
         ("cpu", "cuda"), is_skip=True
     )
+=======
+if os.getenv("BUILD_ENVIRONMENT", "").endswith("-debug"):
+    # Fails with TORCH_INTERNAL_ASSERT(!is_heap_allocated()), see https://github.com/pytorch/pytorch/issues/130073
+    test_failures["test_resize_as_dynamic_shapes"] = TestFailure(("cpu", "cuda"))
+    test_failures["test_resize_dynamic_shapes"] = TestFailure(("cpu", "cuda"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def make_dynamic_cls(cls, xfail_prop="_expected_failure_dynamic"):
@@ -140,7 +162,11 @@ if HAS_CPU:
     copy_tests(DynamicShapesCommonTemplate, DynamicShapesCpuTests, "cpu", test_failures)
 
 
+<<<<<<< HEAD
 if (HAS_GPU or HAS_MPS) and not TEST_WITH_ASAN:
+=======
+if HAS_GPU and not TEST_WITH_ASAN:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class DynamicShapesGPUTests(TestCase):
         common = check_model_gpu
@@ -155,7 +181,11 @@ class TestInductorDynamic(TestCase):
     compile_fn = partial(torch.compile, dynamic=True)
 
     def setUp(self):
+<<<<<<< HEAD
         # HAS_CUDA_AND_TRITON also checks compute capability to skip tests
+=======
+        # HAS_CUDA also checks compute capability to skip tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # on older devices
         if not HAS_GPU:
             self.skipTest("Triton not available")
@@ -282,11 +312,18 @@ class TestInductorDynamic(TestCase):
         self.assertEqual(r, opt_r)
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+<<<<<<< HEAD
     @skipIfRocm(msg="TODO: temp skip on ROCm 6.2")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_unwrap_storage_didnt_work_repro(self, device):
         def f():
             full = torch.full((), 11)
             i0 = full.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(i0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return torch.full((i0,), 0)
 
         opt_f = torch.compile(f, fullgraph=True)
@@ -451,6 +488,11 @@ class TestInductorDynamic(TestCase):
     def test_return_unbacked_view_split(self, device):
         def f(values, length_per_key):
             u0, u1 = length_per_key.tolist()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             v1, v2 = torch.functional.split(values, [u0, u1])
             return v1, v2
 
@@ -482,6 +524,10 @@ class TestInductorDynamic(TestCase):
 
         @torch.library.register_fake("_test::_cat")
         def _cat_fake(t: torch.Tensor, ds: list[int]) -> torch.Tensor:
+<<<<<<< HEAD
+=======
+            [torch._check_is_size(d) for d in ds]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return t.new_empty([sum(ds)])
 
         def _cat_setup_context(ctx, inputs, output):
@@ -981,6 +1027,10 @@ class TestInductorDynamic(TestCase):
         @torch.compile(fullgraph=True, dynamic=True)
         def f(x):
             a = x.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(a)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._check(a >= 1)
             torch._check(a <= 10)
             return torch.ones(a, a)
@@ -992,6 +1042,11 @@ class TestInductorDynamic(TestCase):
         @torch.compile()
         def f(xt):
             xs = xt.tolist()
+<<<<<<< HEAD
+=======
+            for x in xs:
+                torch._check_is_size(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             y = sum(xs)
             return torch.zeros(y, device=device)
 
@@ -1080,6 +1135,7 @@ class TestInductorDynamic(TestCase):
         self.assertEqual(fn(x, 4.0), fn_opt(x, 4.0))
         self.assertEqual(cnt.frame_count, 2)
 
+<<<<<<< HEAD
     @onlyOn(GPU_TYPE)
     def test_dynamic_rblock_bounds(self):
         class ForcePersistent(InductorChoices):
@@ -1144,6 +1200,8 @@ class TestInductorDynamic(TestCase):
 
         assert torch.allclose(result, expected, atol=1e-3, rtol=1e-3)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_unspecialized_float_dynamic(self):
         def fn(x, y):
             return x * y
@@ -1225,5 +1283,9 @@ if __name__ == "__main__":
     from torch._inductor.test_case import run_tests
 
     # Slow on ASAN after https://github.com/pytorch/pytorch/pull/94068
+<<<<<<< HEAD
     if (HAS_CPU or HAS_GPU or HAS_MPS) and not TEST_WITH_ASAN:
+=======
+    if (HAS_CPU or HAS_GPU) and not TEST_WITH_ASAN:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

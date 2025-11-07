@@ -7,7 +7,11 @@ from typing import NamedTuple
 import torch
 from torch._inductor import config
 from torch._inductor.test_case import TestCase as InductorTestCase
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TEST_WITH_ROCM, slowTest
+=======
+from torch.testing._internal.common_utils import slowTest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, RUN_GPU
 
 
@@ -62,6 +66,7 @@ class TestGpuWrapper(InductorTestCase):
         )(test_fn)
         comp()
 
+<<<<<<< HEAD
     def test_non_tensor_args_wrapped_on_cpu(self):
         if not RUN_GPU:
             self.skipTest("GPU not available")
@@ -75,6 +80,8 @@ class TestGpuWrapper(InductorTestCase):
             _, code = test_torchinductor.run_and_get_cpp_code(compiled, x, 3)
         self.assertIn("torch.tensor(arg, device='cpu')", code)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DynamicShapesGpuWrapperGpuTests(InductorTestCase):
     device = GPU_TYPE
@@ -138,7 +145,11 @@ def make_test_case(
     assert callable(func), "not a callable"
     func = slowTest(func) if slow else func
 
+<<<<<<< HEAD
     @config.patch(cpp_wrapper=True)
+=======
+    @config.patch(cpp_wrapper=True, search_autotune_cache=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def fn(self):
         tests.setUpClass()
         tests.setUp()
@@ -185,7 +196,16 @@ if RUN_GPU:
 
     # XPU Not implemented yet
     XPU_BASE_TEST_SKIP = [
+<<<<<<< HEAD
         "test_dynamic_shapes_persistent_reduction_mixed_x_dim",
+=======
+        "test_foreach_cpp_wrapper",
+        "test_enable_dynamic_shapes_cpp_wrapper",
+        "test_dynamic_shapes_persistent_reduction_mixed_x_dim",
+        "test_cat_slice_cat",
+        "test_fft_real_input",
+        "test_fft_real_input_real_output",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 
     # Maintain two separate test lists for cuda and cpp for now
@@ -317,6 +337,7 @@ if RUN_GPU:
                 test_torchinductor.TestFailure(("gpu_wrapper",), is_skip=True)
             )
 
+<<<<<<< HEAD
     if TEST_WITH_ROCM:
         prop = torch.cuda.get_device_properties(0)
         gcnArchName = prop.gcnArchName.split(":")[0]
@@ -327,6 +348,8 @@ if RUN_GPU:
                     f"{test_name}"
                 ] = test_torchinductor.TestFailure(("gpu_wrapper",), is_skip=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     test_torchinductor.copy_tests(
         GpuWrapperTemplate, TestGpuWrapper, "gpu_wrapper", test_failures_gpu_wrapper
     )

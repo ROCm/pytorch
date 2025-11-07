@@ -79,7 +79,11 @@ C10_API void UpdateLoggingLevelsFromFlags();
     const char* msg,
     const void* caller = nullptr);
 
+<<<<<<< HEAD
 [[noreturn]] inline void ThrowEnforceNotMet(
+=======
+[[noreturn]] C10_API inline void ThrowEnforceNotMet(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const char* file,
     const int line,
     const char* condition,
@@ -102,7 +106,11 @@ C10_API void UpdateLoggingLevelsFromFlags();
     const char* msg,
     const void* caller = nullptr);
 
+<<<<<<< HEAD
 [[noreturn]] inline void ThrowEnforceFiniteNotMet(
+=======
+[[noreturn]] C10_API inline void ThrowEnforceFiniteNotMet(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const char* file,
     const int line,
     const char* condition,
@@ -307,11 +315,18 @@ class C10_API EventSampledHandler {
 
 // Must be called in the main thread before any other threads are spawned.
 C10_API void InitEventSampledHandlers(
+<<<<<<< HEAD
     std::vector<std::pair<
         std::string_view,
         std::unique_ptr<EventSampledHandler>>> /*handlers*/);
 C10_API const std::unique_ptr<EventSampledHandler>& GetEventSampledHandler(
     std::string_view /*event*/);
+=======
+    std::vector<
+        std::pair<std::string_view, std::unique_ptr<EventSampledHandler>>>);
+C10_API const std::unique_ptr<EventSampledHandler>& GetEventSampledHandler(
+    std::string_view);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /**
  * Very lightweight logging for the first time API usage. It's beneficial for

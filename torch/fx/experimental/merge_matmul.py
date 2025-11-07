@@ -30,7 +30,10 @@ def split_result_tensors(
     else:
         splits = [x.shape[0] for x in inputs]
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch.split(result, splits)
 
 

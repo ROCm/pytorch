@@ -1,7 +1,10 @@
 #pragma once
 
 #include <torch/csrc/distributed/c10d/Backend.hpp>
+<<<<<<< HEAD
 #include <torch/csrc/utils.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10d {
 
@@ -21,6 +24,7 @@ class FakeWork : public Work {
 
 class FakeProcessGroup : public Backend {
  public:
+<<<<<<< HEAD
   struct Options : Backend::Options {
     explicit Options() : Backend::Options("fake") {}
 
@@ -44,25 +48,37 @@ class FakeProcessGroup : public Backend {
   c10::intrusive_ptr<Backend::Options> getBackendOptions() override {
     return c10::static_intrusive_pointer_cast<Backend::Options>(options_);
   }
+=======
+  FakeProcessGroup(int rank, int size) : Backend(rank, size) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   c10::intrusive_ptr<Work> broadcast(
       std::vector<at::Tensor>& /* tensors */,
       const BroadcastOptions& /* opts */ = BroadcastOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
   c10::intrusive_ptr<Work> allreduce(
       std::vector<at::Tensor>& /* tensors */,
       const AllreduceOptions& /* opts */ = AllreduceOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
   c10::intrusive_ptr<Work> allreduce_sparse(
       std::vector<at::Tensor>& /* tensors */,
       const AllreduceOptions& /* opts */ = AllreduceOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -70,14 +86,20 @@ class FakeProcessGroup : public Backend {
       std::vector<at::Tensor>& /* tensors */,
       const AllreduceCoalescedOptions& /* opts */ =
           AllreduceCoalescedOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
   c10::intrusive_ptr<Work> reduce(
       std::vector<at::Tensor>& /* tensors */,
       const ReduceOptions& /* opts */ = ReduceOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -95,7 +117,10 @@ class FakeProcessGroup : public Backend {
       std::vector<std::vector<at::Tensor>>& outputTensors,
       std::vector<at::Tensor>& inputTensors,
       const AllgatherOptions& /* opts */ = AllgatherOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto& tensor : outputTensors[0]) {
       tensor.copy_(inputTensors[0]);
     }
@@ -106,7 +131,10 @@ class FakeProcessGroup : public Backend {
       at::Tensor& outputBuffer,
       at::Tensor& inputBuffer,
       const AllgatherOptions& /* opts */ = AllgatherOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto chunks = outputBuffer.chunk(size_);
     for (auto& tensor : chunks) {
       tensor.copy_(inputBuffer);
@@ -118,7 +146,10 @@ class FakeProcessGroup : public Backend {
       std::vector<std::vector<at::Tensor>>& /* outputTensorLists */,
       std::vector<at::Tensor>& /* inputTensors */,
       const AllgatherOptions& /* opts */ = AllgatherOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -126,7 +157,10 @@ class FakeProcessGroup : public Backend {
       std::vector<at::Tensor>& outputs,
       std::vector<at::Tensor>& inputs,
       const AllgatherOptions& /* opts */ = AllgatherOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (size_t i = 0; i < outputs.size(); ++i) {
       auto chunks = outputs[i].chunk(size_);
       for (auto& chunk : chunks) {
@@ -140,7 +174,10 @@ class FakeProcessGroup : public Backend {
       std::vector<std::vector<at::Tensor>>& /* outputTensors */,
       std::vector<at::Tensor>& /* inputTensors */,
       const GatherOptions& /* opts */ = GatherOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -148,7 +185,10 @@ class FakeProcessGroup : public Backend {
       std::vector<at::Tensor>& /* outputTensors */,
       std::vector<std::vector<at::Tensor>>& /* inputTensors */,
       const ScatterOptions& /* opts */ = ScatterOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -157,7 +197,10 @@ class FakeProcessGroup : public Backend {
       std::vector<std::vector<at::Tensor>>& /* inputTensors */,
       const ReduceScatterOptions& /* opts */ =
           ReduceScatterOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -166,7 +209,10 @@ class FakeProcessGroup : public Backend {
       at::Tensor& /* inputBuffer */,
       const ReduceScatterOptions& /* opts */ =
           ReduceScatterOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -175,7 +221,10 @@ class FakeProcessGroup : public Backend {
       std::vector<at::Tensor>& /* inputs */,
       const ReduceScatterOptions& /* opts */ =
           ReduceScatterOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -185,7 +234,10 @@ class FakeProcessGroup : public Backend {
       std::vector<int64_t>& /* outputSplitSizes */,
       std::vector<int64_t>& /* inputSplitSizes */,
       const AllToAllOptions& /* opts */ = AllToAllOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -193,7 +245,10 @@ class FakeProcessGroup : public Backend {
       std::vector<at::Tensor>& /* outputTensors */,
       std::vector<at::Tensor>& /* inputTensors */,
       const AllToAllOptions& opts = AllToAllOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
@@ -222,17 +277,24 @@ class FakeProcessGroup : public Backend {
   }
 
   c10::intrusive_ptr<Work> endCoalescing(OpType /* optype */) {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
   c10::intrusive_ptr<Work> endCoalescing() override {
+<<<<<<< HEAD
     checkCollectiveError();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return c10::make_intrusive<FakeWork>();
   }
 
   c10::intrusive_ptr<Work> barrier(
       const BarrierOptions& /* opts */ = BarrierOptions()) override {
+<<<<<<< HEAD
     checkCollectiveError();
     return c10::make_intrusive<FakeWork>();
   }
@@ -248,6 +310,10 @@ class FakeProcessGroup : public Backend {
         !options_ || !options_->error_on_collective,
         "FakeProcessGroup collective operation error (error_on_collective=true)");
   }
+=======
+    return c10::make_intrusive<FakeWork>();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace c10d

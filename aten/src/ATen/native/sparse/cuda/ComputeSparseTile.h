@@ -112,7 +112,11 @@ struct LargestValuesGreedy {
   }
 };
 
+<<<<<<< HEAD
 // We consider each rows independently in order
+=======
+// We consider each rows independantly in order
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // This is to ensure that a row's sparsity pattern is only determined
 // by its values and the rows before (but never the rows after)
 // This enforces causality strictly

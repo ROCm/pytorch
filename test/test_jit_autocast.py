@@ -5,6 +5,7 @@ from torch.cuda.amp import autocast
 from typing import Optional
 
 import unittest
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import TEST_CUDA
 from torch.testing._internal.common_utils import parse_cmd_line_args, run_tests, skipIfTorchDynamo
 from torch.testing import FileCheck
@@ -16,6 +17,14 @@ if __name__ == '__main__':
     parse_cmd_line_args()
 
 from test_jit import JitTestCase
+=======
+from test_jit import JitTestCase
+from torch.testing._internal.common_cuda import TEST_CUDA
+from torch.testing._internal.common_utils import run_tests, skipIfTorchDynamo
+from torch.testing import FileCheck
+from jit.test_models import MnistNet
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST_BFLOAT16 = TEST_CUDA and torch.cuda.is_bf16_supported()
 
 @skipIfTorchDynamo("Not a TorchDynamo suitable test")
@@ -111,7 +120,11 @@ class TestAutocast(JitTestCase):
     def test_runtime_autocast_state_expr(self):
         @torch.jit.script
         def fn(a, b):
+<<<<<<< HEAD
             with autocast(enabled=bool((a[0][0] > 0.5).item())):
+=======
+            with autocast(enabled=True if a[0][0] > 0.5 else False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.mm(a, b)
         # runtime values for autocast enable argument are not supported
         with self.assertRaises(RuntimeError):
@@ -324,7 +337,11 @@ class TestAutocast(JitTestCase):
 
     # TODO: fix and enable this test?
     #   (we could technically fix this, but is it really worth it?)
+<<<<<<< HEAD
     @unittest.skipIf(True, "unsupported autocast syntax")
+=======
+    @unittest.skipIf(True, "unsuported autocast syntax")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reused_autocast_expr(self):
         @torch.jit.script
         def fn(a, b, c, d):

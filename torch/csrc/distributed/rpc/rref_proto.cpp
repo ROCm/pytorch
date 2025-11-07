@@ -15,7 +15,11 @@ c10::ivalue::TupleElements toIValues(const Message& message, MessageType type) {
       type,
       ", but got ",
       message.type());
+<<<<<<< HEAD
   auto payload = message.payload().data();
+=======
+  auto payload = static_cast<const char*>(message.payload().data());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto payload_size = message.payload().size();
 
   auto value = jit::unpickle(
@@ -87,7 +91,11 @@ std::unique_ptr<ScriptRRefFetchCall> ScriptRRefFetchCall::fromMessage(
           id <= std::numeric_limits<worker_id_t>::max(),
       "ScriptRRefFetchCall fromWorkerId exceeds worker_id_t limit.")
   return std::make_unique<ScriptRRefFetchCall>(
+<<<<<<< HEAD
       static_cast<worker_id_t>(id), RRefId::fromIValue(values[0]));
+=======
+      worker_id_t(id), RRefId::fromIValue(values[0]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<Message> PythonRRefFetchCall::toMessageImpl() && {
@@ -109,7 +117,11 @@ std::unique_ptr<PythonRRefFetchCall> PythonRRefFetchCall::fromMessage(
           id <= std::numeric_limits<worker_id_t>::max(),
       "PythonRRefFetchCall fromWorkerId exceeds worker_id_t limit.")
   return std::make_unique<PythonRRefFetchCall>(
+<<<<<<< HEAD
       static_cast<worker_id_t>(id), RRefId::fromIValue(values[0]));
+=======
+      worker_id_t(id), RRefId::fromIValue(values[0]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 const std::vector<at::IValue>& RRefFetchRet::values() {

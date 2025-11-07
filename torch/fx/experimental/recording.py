@@ -3,9 +3,14 @@ import functools
 import inspect
 import itertools
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, Optional, Union
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree

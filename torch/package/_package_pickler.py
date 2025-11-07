@@ -1,5 +1,8 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 # pyrefly: ignore [missing-module-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pickle import (  # type: ignore[attr-defined]
     _compat_pickle,
     _extension_registry,

@@ -10,6 +10,7 @@ using namespace at::native::memory;
 
 constexpr int buffer_size = 1024;
 
+<<<<<<< HEAD
 #if defined(CUDA_VERSION) && CUDA_VERSION < 13000
 __managed__ double4 buffer1[buffer_size];
 __managed__ double4 buffer2[buffer_size];
@@ -17,6 +18,10 @@ __managed__ double4 buffer2[buffer_size];
 __managed__ double4_16a buffer1[buffer_size];
 __managed__ double4_16a buffer2[buffer_size];
 #endif
+=======
+__managed__ double4 buffer1[buffer_size];
+__managed__ double4 buffer2[buffer_size];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 void reset_buffers() {
   for (int i = 0; i < buffer_size; i++) {
@@ -32,6 +37,26 @@ void reset_buffers() {
   }
 }
 
+<<<<<<< HEAD
+=======
+#if defined(USE_ROCM) && !defined(_WIN32)
+TEST(TestLoops, HasSameArgTypes) {
+  // This is a compile-time unit test. If this file compiles without error,
+  // then the test passes and during runtime, we just need to return.
+  using namespace at::native::modern::detail;
+  using func1_t = int (*)(float, float);
+  using func2_t = int (*)(bool, float, float);
+  using func3_t = int (*)(float);
+  using func4_t = int (*)();
+  static_assert(has_same_arg_types<func1_t>::value, "func1_t has the same argument types");
+  static_assert(!has_same_arg_types<func2_t>::value, "func2_t does not have the same argument types");
+  static_assert(has_same_arg_types<func3_t>::value, "func3_t has the same argument types");
+  static_assert(has_same_arg_types<func4_t>::value, "func4_t has the same argument types");
+  return;
+}
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TEST(TestVectorizedMemoryAccess, CanVectorizeUpTo) {
   char *ptr = reinterpret_cast<char *>(buffer1);
 

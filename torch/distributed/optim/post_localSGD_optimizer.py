@@ -92,8 +92,12 @@ class PostLocalSGDOptimizer(torch.optim.Optimizer):
         else:
             warnings.warn(
                 "Loaded state dict does not contain a step counter for an averager. "
+<<<<<<< HEAD
                 "Setting step counter to 0.",
                 stacklevel=2,
+=======
+                "Setting step counter to 0."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.averager.step = 0
 

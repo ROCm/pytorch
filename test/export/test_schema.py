@@ -404,6 +404,7 @@ Example(s):
         next_version, _ = check(commit)
         self.assertEqual(next_version, [4, 1])
 
+<<<<<<< HEAD
     def test_schema_comparison(self):
         import torch._export.serde.schema as schema
 
@@ -460,6 +461,8 @@ Example(s):
         self.assertEqual(sig, sig_same)
         self.assertNotEqual(sig, sig_diff)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

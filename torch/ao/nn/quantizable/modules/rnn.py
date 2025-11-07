@@ -203,7 +203,11 @@ class LSTMCell(torch.nn.Module):
 
     @classmethod
     def from_float(cls, other, use_precomputed_fake_quant=False, split_gates=False):
+<<<<<<< HEAD
         assert type(other) is cls._FLOAT_MODULE
+=======
+        assert type(other) == cls._FLOAT_MODULE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert hasattr(other, "qconfig"), "The float module must have 'qconfig'"
         observed = cls.from_params(
             other.weight_ih,
@@ -376,7 +380,10 @@ class _LSTMLayer(torch.nn.Module):
             bidirectional,
             split_gates=split_gates,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         layer.qconfig = getattr(other, "qconfig", qconfig)
         wi = getattr(other, f"weight_ih_l{layer_idx}")
         wh = getattr(other, f"weight_hh_l{layer_idx}")
@@ -455,7 +462,10 @@ class LSTM(torch.nn.Module):
 
         if (
             not isinstance(dropout, numbers.Number)
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             or not 0 <= dropout <= 1
             or isinstance(dropout, bool)
         ):
@@ -464,21 +474,32 @@ class LSTM(torch.nn.Module):
                 "representing the probability of an element being "
                 "zeroed"
             )
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if dropout > 0:
             warnings.warn(
                 "dropout option for quantizable LSTM is ignored. "
                 "If you are training, please, use nn.LSTM version "
+<<<<<<< HEAD
                 "followed by `prepare` step.",
                 stacklevel=2,
+=======
+                "followed by `prepare` step."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             if num_layers == 1:
                 warnings.warn(
                     "dropout option adds dropout after all but last "
                     "recurrent layer, so non-zero dropout expects "
                     f"num_layers greater than 1, but got dropout={dropout} "
+<<<<<<< HEAD
                     f"and num_layers={num_layers}",
                     stacklevel=2,
+=======
+                    f"and num_layers={num_layers}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         layers = [
@@ -578,7 +599,10 @@ class LSTM(torch.nn.Module):
             other.bidirectional,
             split_gates=split_gates,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         observed.qconfig = getattr(other, "qconfig", qconfig)
         for idx in range(other.num_layers):
             observed.layers[idx] = _LSTMLayer.from_float(

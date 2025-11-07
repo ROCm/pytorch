@@ -9,7 +9,10 @@ from sympy.core.parameters import global_parameters
 from sympy.core.singleton import S, Singleton
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class IntInfinity(Number, metaclass=Singleton):
     r"""Positive integer infinite quantity.
 
@@ -204,7 +207,10 @@ class IntInfinity(Number, metaclass=Singleton):
 int_oo = S.IntInfinity
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class NegativeIntInfinity(Number, metaclass=Singleton):
     """Negative integer infinite quantity.
 

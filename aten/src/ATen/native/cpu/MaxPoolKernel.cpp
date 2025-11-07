@@ -30,7 +30,11 @@ vec::Vectorized<scalar_t> is_nan_vec(vec::Vectorized<scalar_t> vec) {
   return vec.isnan();
 }
 
+<<<<<<< HEAD
 // TODO: use is_integral/is_same to check the scalar_t and simplify the implementation
+=======
+// TODO: use is_integeral/is_same to check the scalar_t and simplify the implementation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // currently it does not work
 template <>
 vec::Vectorized<unsigned char> is_nan_vec<unsigned char>(vec::Vectorized<unsigned char> vec) {

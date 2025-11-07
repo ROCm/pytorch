@@ -17,7 +17,11 @@ TORCH_CUDA_CPP_API void set_magma_init_fn(void (*magma_init_fn)());
 
 // The real implementation of CUDAHooksInterface
 struct CUDAHooks : public at::CUDAHooksInterface {
+<<<<<<< HEAD
   CUDAHooks(at::CUDAHooksArgs /*unused*/) {}
+=======
+  CUDAHooks(at::CUDAHooksArgs) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void init() const override;
   Device getDeviceFromPtr(void* data) const override;
   bool isPinnedPtr(const void* data) const override;
@@ -31,8 +35,11 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   bool hasCuSOLVER() const override;
   bool hasCuBLASLt() const override;
   bool hasROCM() const override;
+<<<<<<< HEAD
   bool hasCKSDPA() const override;
   bool hasCKGEMM() const override;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const at::cuda::NVRTC& nvrtc() const override;
   DeviceIndex current_device() const override;
   bool isBuilt() const override {return true;}
@@ -45,7 +52,10 @@ struct CUDAHooks : public at::CUDAHooksInterface {
   bool supportsDilatedConvolutionWithCuDNN() const override;
   bool supportsDepthwiseConvolutionWithCuDNN() const override;
   bool supportsBFloat16ConvolutionWithCuDNNv8() const override;
+<<<<<<< HEAD
   bool supportsBFloat16RNNWithCuDNN() const override;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool hasCUDART() const override;
   long versionCUDART() const override;
   long versionCuDNN() const override;

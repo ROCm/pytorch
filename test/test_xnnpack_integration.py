@@ -1316,7 +1316,11 @@ class TestXNNPACKConv1dTransformPass(TestCase):
         groups_list = range(1, 3)
         kernel_list = range(1, 4)
         stride_list = range(1, 3)
+<<<<<<< HEAD
         padding_list = range(3)
+=======
+        padding_list = range(0, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dilation_list = range(1, 3)
 
         for hparams in itertools.product(
@@ -1401,7 +1405,11 @@ class TestXNNPACKConv1dTransformPass(TestCase):
         groups_list = range(1, 3)
         kernel_list = range(1, 4)
         stride_list = range(1, 3)
+<<<<<<< HEAD
         padding_list = range(3)
+=======
+        padding_list = range(0, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dilation_list = range(1, 3)
         output_features_list = range(1, 3)
 

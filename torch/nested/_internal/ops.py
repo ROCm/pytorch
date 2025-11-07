@@ -18,6 +18,7 @@ __all__: list[Any] = []
 JAGGED_OPS_TABLE: Dict[Any, Any] = {}
 
 
+<<<<<<< HEAD
 def _get_padding_value(dtype, padding_type):
     if dtype.is_floating_point:
         return (
@@ -35,6 +36,8 @@ def _get_padding_value(dtype, padding_type):
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _outer_to_inner_dim(ndim, dim, ragged_dim, canonicalize=False):
     from torch._prims_common import canonicalize_dims
 
@@ -46,6 +49,7 @@ def _outer_to_inner_dim(ndim, dim, ragged_dim, canonicalize=False):
     if canonicalize:
         dim = canonicalize_dims(ndim, dim)
 
+<<<<<<< HEAD
     assert dim >= 0 and dim < ndim  # pyrefly: ignore [unsupported-operation]
 
     # Map dim=0 (AKA batch dim) -> packed dim i.e. outer ragged dim - 1.
@@ -54,6 +58,13 @@ def _outer_to_inner_dim(ndim, dim, ragged_dim, canonicalize=False):
         # pyrefly: ignore [unsupported-operation]
         ragged_dim - 1 if dim == 0 else dim - 1
     )
+=======
+    assert dim >= 0 and dim < ndim
+
+    # Map dim=0 (AKA batch dim) -> packed dim i.e. outer ragged dim - 1.
+    # For other dims, subtract 1 to convert to inner space.
+    return ragged_dim - 1 if dim == 0 else dim - 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _wrap_jagged_dim(
@@ -433,6 +444,7 @@ def jagged_torch_function(func, *args, **kwargs):
 
         return inp.reshape(*new_shape)
 
+<<<<<<< HEAD
     # Handle NestedTensor share_memory_.
     if func.__name__ == "share_memory_":
         nt = args[0]
@@ -463,6 +475,8 @@ def jagged_torch_function(func, *args, **kwargs):
             for name in names
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Handle nested-specific input validation for CompositeImplicit rms_norm
     if func.__name__ == "rms_norm":
 
@@ -567,6 +581,7 @@ register_jagged_func(
 
 
 @register_jagged_func(
+<<<<<<< HEAD
     torch.ops.aten.sym_is_contiguous.default, "self: jt_all, memory_format: any?"
 )
 def sym_is_contiguous_general(func, *args, **kwargs):
@@ -590,6 +605,8 @@ def sym_is_contiguous_general(func, *args, **kwargs):
 
 
 @register_jagged_func(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten.clone.default, "input: jt_all, memory_format: any?"
 )
 def clone_default(func, *args, **kwargs):
@@ -915,6 +932,7 @@ def _softmax_default(func, *args, **kwargs):
 
 
 @register_jagged_func(
+<<<<<<< HEAD
     torch.ops.aten._log_softmax.default, "self: jt_all, dim: any, half_to_float: any"
 )
 def _log_softmax_default(func, *args, **kwargs):
@@ -955,6 +973,8 @@ def _log_softmax_default(func, *args, **kwargs):
 
 
 @register_jagged_func(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.ops.aten._softmax_backward_data.default,
     "grad_output: jt, output: jt, dim: any, input_dtype: any",
 )
@@ -1112,7 +1132,11 @@ def chunk_default(func, *args, **kwargs):
         # the input number; it can be counter-intuitive, but it matches dense behavior.
         return [
             NestedTensor(values=chunk_values[i], **(nested_kwargs[i]))
+<<<<<<< HEAD
             for i in range(len(chunk_values))
+=======
+            for i in range(0, len(chunk_values))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     else:
         return [
@@ -1139,7 +1163,11 @@ def unbind_int(func, *args, **kwargs):
     ragged_idx = inp._ragged_idx
 
     def _torch_check(_lengths: list[int], _offsets: Optional[list[int]] = None):
+<<<<<<< HEAD
         # This torch._check are needed for torch.compile
+=======
+        # This torch._check and torch._check_is_size are needed for torch.compile
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # symbolic shapes processing.
         # offsets and lengths are symbolic variables during compilation,
         # we guarantee the correct offsets/lengths correspondence:
@@ -1151,7 +1179,11 @@ def unbind_int(func, *args, **kwargs):
         lengths_sum = 0
         ragged_dim_size = values.shape[ragged_idx - 1]
         for i in range(len(_lengths)):
+<<<<<<< HEAD
             torch._check(_lengths[i] >= 0)
+=======
+            torch._check_is_size(_lengths[i])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._check(_lengths[i] <= ragged_dim_size)
 
             lengths_sum += _lengths[i]
@@ -1164,7 +1196,11 @@ def unbind_int(func, *args, **kwargs):
 
         if _offsets is not None:
             for i in range(len(_offsets)):
+<<<<<<< HEAD
                 torch._check(_offsets[i] >= 0)
+=======
+                torch._check_is_size(_offsets[i])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(_offsets[i] <= ragged_dim_size)
 
     if lengths is None:
@@ -1232,7 +1268,11 @@ def unsqueeze_default(func, *args, **kwargs):
     return NestedTensor(func(values, **new_kwargs), **output_kwargs)
 
 
+<<<<<<< HEAD
 @register_jagged_func(torch.ops.aten.cat.default, "tensors: any, dim: any?")
+=======
+@register_jagged_func(torch.ops.aten.cat.default, "tensors: any, dim: any")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def cat_default(func, *args, **kwargs):
     _, new_kwargs = normalize_function(  # type: ignore[misc]
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
@@ -2008,7 +2048,10 @@ def index_put_(func, *args, **kwargs):
     else:
         lengths = inp.lengths()
     torch._assert_async(
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.all(indices[inp._ragged_idx] < lengths),
         "Some indices in the ragged dimension are out of bounds!",
     )
@@ -2152,6 +2195,7 @@ def all_any_max_min_default(func, *args, **kwargs):
     return func(inp._values, **new_kwargs)
 
 
+<<<<<<< HEAD
 @register_jagged_func(
     [torch.ops.aten._is_all_true.default, torch.ops.aten._is_any_true.default],
     "self: jt_all",
@@ -2165,14 +2209,20 @@ def _is_true_default(func, *args, **kwargs):
     return func(inp._values)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_jagged_func(torch.ops.aten.min.dim, "self: jt_all, dim: any, keepdim: any?")
 def min_dim(func, *args, **kwargs):
     _, new_kwargs = normalize_function(  # type: ignore[misc]
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_max = _get_padding_value(dtype, "max")
+=======
+    dtype_max = torch.finfo(new_kwargs["input"].dtype).max
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "min", dtype_max, *args, **kwargs)
 
 
@@ -2182,8 +2232,12 @@ def max_dim(func, *args, **kwargs):
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_min = _get_padding_value(dtype, "min")
+=======
+    dtype_min = torch.finfo(new_kwargs["input"].dtype).min
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "max", dtype_min, *args, **kwargs)
 
 
@@ -2195,8 +2249,12 @@ def amin_default(func, *args, **kwargs):
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_max = _get_padding_value(dtype, "max")
+=======
+    dtype_max = torch.finfo(new_kwargs["input"].dtype).max
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "amin", dtype_max, *args, **kwargs)
 
 
@@ -2208,8 +2266,12 @@ def amax_default(func, *args, **kwargs):
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_min = _get_padding_value(dtype, "min")
+=======
+    dtype_min = torch.finfo(new_kwargs["input"].dtype).min
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "amax", dtype_min, *args, **kwargs)
 
 
@@ -2221,8 +2283,12 @@ def argmin_default(func, *args, **kwargs):
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_max = _get_padding_value(dtype, "max")
+=======
+    dtype_max = torch.finfo(new_kwargs["input"].dtype).max
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "argmin", dtype_max, *args, **kwargs)
 
 
@@ -2234,8 +2300,12 @@ def argmax_default(func, *args, **kwargs):
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
     )
 
+<<<<<<< HEAD
     dtype = new_kwargs["input"].dtype
     dtype_min = _get_padding_value(dtype, "min")
+=======
+    dtype_min = torch.finfo(new_kwargs["input"].dtype).min
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _apply_reduction(func, "argmax", dtype_min, *args, **kwargs)
 
 
@@ -2275,7 +2345,11 @@ def value_selecting_reduction_backward_default(func, *args, **kwargs):
     return NestedTensor(func(**new_kwargs), **output_kwargs)
 
 
+<<<<<<< HEAD
 @register_jagged_func(torch.ops.aten.stack.default, "tensors: any, dim: any?")
+=======
+@register_jagged_func(torch.ops.aten.stack.default, "tensors: any, dim: any")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def stack_default(func, *args, **kwargs):
     _, new_kwargs = normalize_function(  # type: ignore[misc]
         func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True
@@ -2735,6 +2809,136 @@ def matmul_backward_default(func, *args, **kwargs):
     return (grad_self, grad_other)
 
 
+<<<<<<< HEAD
+=======
+from torch._higher_order_ops.flex_attention import (
+    flex_attention as flex_attention_hop,
+    flex_attention_backward as flex_attention_backward_hop,
+)
+from torch.fx.graph_module import GraphModule
+
+
+@flex_attention_hop.py_impl(NestedTensor)  # type: ignore[misc]
+def flex_njt(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    score_mod: Callable,
+    block_mask: Tuple,
+    scale: float,
+    kernel_options: Dict[str, Any],
+    score_mod_other_buffers: Tuple = (),
+    mask_mod_other_buffers: Tuple = (),
+) -> Tuple[torch.Tensor, torch.Tensor]:
+    assert query.dim() == 4 and key.dim() == 4 and value.dim() == 4
+
+    # TODO: Support this if needed; determine if NJT buffers need be unwrapped as dense.
+    if any(
+        isinstance(buf, torch.Tensor) and buf.is_nested
+        for buf in score_mod_other_buffers + mask_mod_other_buffers
+    ):
+        raise RuntimeError(
+            "flex_attention(): Nested tensor score_mod / mask_mod buffers are not "
+            "currently supported. Please file an issue if this is important to you."
+        )
+
+    # need to pass dense tensor of shape (B, n_heads, sum(seq_len), D)
+    output = flex_attention_hop(
+        query.values().unsqueeze(0),
+        key.values().unsqueeze(0),
+        value.values().unsqueeze(0),
+        score_mod=score_mod,
+        block_mask=block_mask,
+        scale=scale,
+        kernel_options=kernel_options,
+        score_mod_other_buffers=score_mod_other_buffers,
+        mask_mod_other_buffers=mask_mod_other_buffers,
+    )
+
+    # wrap outputs as NJT
+    output_njt = torch.nested.nested_tensor_from_jagged(
+        output[0].transpose(1, 2).squeeze(0),
+        query._offsets,  # type: ignore[attr-defined]
+        query._lengths,  # type: ignore[attr-defined]
+        min_seqlen=query._maybe_min_seqlen,  # type: ignore[attr-defined]
+        max_seqlen=query._maybe_max_seqlen,  # type: ignore[attr-defined]
+    ).transpose(1, 2)
+
+    logsumexp_njt = torch.nested.nested_tensor_from_jagged(
+        output[1].transpose(1, 2).squeeze(0),
+        query._offsets,  # type: ignore[attr-defined]
+        query._lengths,  # type: ignore[attr-defined]
+        min_seqlen=query._maybe_min_seqlen,  # type: ignore[attr-defined]
+        max_seqlen=query._maybe_max_seqlen,  # type: ignore[attr-defined]
+    ).transpose(1, 2)
+
+    return (output_njt, logsumexp_njt)
+
+
+@flex_attention_backward_hop.py_impl(NestedTensor)  # type: ignore[misc]
+def flex_njt_backward(
+    query: torch.Tensor,
+    key: torch.Tensor,
+    value: torch.Tensor,
+    out: torch.Tensor,
+    logsumexp: torch.Tensor,
+    grad_out: torch.Tensor,
+    grad_logsumexp: torch.Tensor,
+    fw_graph: Union[Callable, GraphModule],
+    joint_graph: GraphModule,
+    block_mask: Tuple,
+    scale: float,
+    kernel_options: Dict[str, Any],
+    score_mod_other_buffers: Tuple = (),
+    mask_mod_other_buffers: Tuple = (),
+) -> Tuple[
+    torch.Tensor, torch.Tensor, torch.Tensor, Tuple[Optional[torch.Tensor], ...]
+]:
+    output = flex_attention_backward_hop(
+        query.values().unsqueeze(0),
+        key.values().unsqueeze(0),
+        value.values().unsqueeze(0),
+        out=out.values().unsqueeze(0),
+        logsumexp=logsumexp.values().unsqueeze(0),
+        grad_out=grad_out.values().unsqueeze(0),
+        grad_logsumexp=grad_logsumexp.values().unsqueeze(0),
+        fw_graph=fw_graph,
+        joint_graph=joint_graph,
+        block_mask=block_mask,
+        scale=scale,
+        kernel_options=kernel_options,
+        score_mod_other_buffers=score_mod_other_buffers,
+        mask_mod_other_buffers=mask_mod_other_buffers,
+    )
+
+    # wrap grads as NJTs
+    dense_q_grad, dense_k_grad, dense_v_grad, score_mod_other_buffer_grads = output
+    njt_q_grad = torch.nested.nested_tensor_from_jagged(
+        dense_q_grad.transpose(1, 2).squeeze(0),
+        query._offsets,  # type: ignore[attr-defined]
+        query._lengths,  # type: ignore[attr-defined]
+        min_seqlen=query._maybe_min_seqlen,  # type: ignore[attr-defined]
+        max_seqlen=query._maybe_max_seqlen,  # type: ignore[attr-defined]
+    ).transpose(1, 2)
+    njt_k_grad = torch.nested.nested_tensor_from_jagged(
+        dense_k_grad.transpose(1, 2).squeeze(0),
+        key._offsets,  # type: ignore[attr-defined]
+        key._lengths,  # type: ignore[attr-defined]
+        min_seqlen=key._maybe_min_seqlen,  # type: ignore[attr-defined]
+        max_seqlen=key._maybe_max_seqlen,  # type: ignore[attr-defined]
+    ).transpose(1, 2)
+    njt_v_grad = torch.nested.nested_tensor_from_jagged(
+        dense_v_grad.transpose(1, 2).squeeze(0),
+        value._offsets,  # type: ignore[attr-defined]
+        value._lengths,  # type: ignore[attr-defined]
+        min_seqlen=value._maybe_min_seqlen,  # type: ignore[attr-defined]
+        max_seqlen=value._maybe_max_seqlen,  # type: ignore[attr-defined]
+    ).transpose(1, 2)
+
+    return (njt_q_grad, njt_k_grad, njt_v_grad, score_mod_other_buffer_grads)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Make the dummy available on the C++ side.
 @register_jagged_func(torch.ops.aten._nested_get_jagged_dummy.default, "self: any")
 def _nested_get_jagged_dummy(func, *args, **kwargs):

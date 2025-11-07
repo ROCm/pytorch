@@ -91,7 +91,11 @@ C10_CUDA_API void c10_cuda_check_implementation(
     const int32_t err,
     const char* filename,
     const char* function_name,
+<<<<<<< HEAD
     const uint32_t line_number,
+=======
+    const int line_number,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool include_device_assertions);
 
 } // namespace c10::cuda

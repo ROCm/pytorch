@@ -2,9 +2,13 @@
 #include <gtest/gtest.h>
 #include <atomic>
 #include <condition_variable>
+<<<<<<< HEAD
 #include <cstdlib>
 #include <filesystem>
 #include <fstream>
+=======
+#include <filesystem>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <functional>
 #include <mutex>
 #include <queue>
@@ -30,6 +34,7 @@
 
 namespace {
 
+<<<<<<< HEAD
 // Function to check if test data files exist and are valid
 bool testDataFilesExist() {
   std::string bindir = STRINGIZE(CMAKE_CURRENT_BINARY_DIR);
@@ -88,6 +93,8 @@ void ensureTestDataGenerated() {
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const std::unordered_map<std::string, at::Tensor> derefTensorConstantMap(
     torch::inductor::TensorConstantMap tensor_constant_map) {
   std::unordered_map<std::string, at::Tensor> ret;
@@ -204,8 +211,11 @@ void test_aoti_package_loader_multi_gpu(
     const std::string& device,
     bool use_runtime_constant_folding) {
   torch::NoGradGuard no_grad;
+<<<<<<< HEAD
   // Ensure that this test will reset the default CUDA device on exit.
   torch::DeviceGuard device_guard(c10::Device("cuda"));
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::string data_path =
       (std::filesystem::path(STRINGIZE(CMAKE_CURRENT_BINARY_DIR)) / "data.pt")
@@ -915,6 +925,7 @@ void test_aoti_free_buffer(bool use_runtime_constant_folding) {
   }
 }
 
+<<<<<<< HEAD
 void test_cuda_alloc_test() {
   torch::NoGradGuard no_grad;
 
@@ -956,6 +967,8 @@ void test_cuda_alloc_test() {
 }
 
 #ifdef USE_CUDA
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ThreadPool {
  private:
   struct Task {
@@ -1096,12 +1109,17 @@ void test_multi_cuda_streams(const std::string& device) {
     ASSERT_TRUE(torch::allclose(ref_output_tensors[0], all_outputs[i][0]));
   }
 }
+<<<<<<< HEAD
 #endif // USE_CUDA
 #endif // USE_CUDA || USE_ROCM
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 namespace torch::aot_inductor {
 
+<<<<<<< HEAD
 // Test fixture that ensures test data is generated once for all tests
 class AotInductorTest : public ::testing::Test {
  public:
@@ -1124,15 +1142,35 @@ TEST_F(AotInductorTest, BasicPackageLoaderTestCpu) {
 }
 
 TEST_F(AotInductorTest, ExtractConstantsMapCpu) {
+=======
+TEST(AotInductorTest, BasicTestCpu) {
+  test_aoti("cpu", false);
+}
+
+TEST(AotInductorTest, BasicScriptTestCpu) {
+  test_aoti_script("cpu");
+}
+
+TEST(AotInductorTest, BasicPackageLoaderTestCpu) {
+  test_aoti_package_loader("cpu", false);
+}
+
+TEST(AotInductorTest, ExtractConstantsMapCpu) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   test_aoti_extract_constants_map("cpu");
 }
 
 #ifdef USE_CUDA
+<<<<<<< HEAD
 TEST_F(AotInductorTest, BasicTestCuda) {
+=======
+TEST(AotInductorTest, BasicTestCuda) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   test_aoti("cuda", true);
   test_aoti("cuda", false);
 }
 
+<<<<<<< HEAD
 TEST_F(AotInductorTest, BasicScriptTestCuda) {
   test_aoti_script("cuda");
 }
@@ -1188,6 +1226,59 @@ TEST_F(AotInductorTest, MultiStreamTestCuda) {
 TEST_F(AotInductorTest, CudaAllocTestCuda) {
   test_cuda_alloc_test();
 }
+=======
+TEST(AotInductorTest, BasicScriptTestCuda) {
+  test_aoti_script("cuda");
+}
+
+TEST(AotInductorTest, BasicPackageLoaderTestCuda) {
+  test_aoti_package_loader("cuda", false);
+}
+
+TEST(AotInductorTest, BasicPackageLoaderTestMultiGpuCuda) {
+  test_aoti_package_loader_multi_gpu("cuda", false);
+}
+
+TEST(AotInductorTest, UpdateUserManagedConstantsCuda) {
+  test_aoti_user_managed_buffer();
+}
+
+TEST(AotInductorTest, RuntimeUpdateConstantsCuda) {
+  test_aoti_constants_update("cuda", true);
+}
+
+TEST(AotInductorTest, UpdateConstantsCuda) {
+  test_aoti_constants_update("cuda", false);
+}
+
+TEST(AotInductorTest, ExtractConstantsMapCuda) {
+  test_aoti_extract_constants_map("cuda");
+}
+
+TEST(AotInductorTest, RuntimeUpdateInactiveConstantsCuda) {
+  test_aoti_double_buffering("cuda", true);
+}
+
+TEST(AotInductorTest, UpdateInactiveConstantsCuda) {
+  test_aoti_double_buffering("cuda", false);
+}
+
+TEST(AotInductorTest, UpdateInactiveConstantsWithTensorConstantsCuda) {
+  test_aoti_double_buffering_with_tensor_constants();
+}
+
+TEST(AotInductorTest, FreeInactiveConstantBufferCuda) {
+  test_aoti_free_buffer(false);
+}
+
+TEST(AotInductorTest, FreeInactiveConstantBufferRuntimeConstantFoldingCuda) {
+  test_aoti_free_buffer(true);
+}
+
+TEST(AotInductorTest, MultiStreamTestCuda) {
+  test_multi_cuda_streams("cuda");
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
 } // namespace torch::aot_inductor

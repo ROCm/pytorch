@@ -182,7 +182,10 @@ def format_trace_inputs(f: NativeFunction) -> str:
             ADD_TRACE_INPUT.substitute(
                 name=f.func.arguments.out[i].name, input=f.func.arguments.out[i].name
             )
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(num_out_args)
         ]
 

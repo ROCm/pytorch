@@ -191,17 +191,23 @@ class C10_API Scalar {
   isIntegral() const {
     return Tag::HAS_i == tag || Tag::HAS_si == tag || Tag::HAS_u == tag;
   }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isIntegral(bool includeBool) const {
     return Tag::HAS_i == tag || Tag::HAS_si == tag || Tag::HAS_u == tag ||
         (includeBool && isBoolean());
   }
 
+<<<<<<< HEAD
   // See Note [Meaning of HAS_u]
   bool isUnsigned() const {
     return Tag::HAS_u == tag || (Tag::HAS_i == tag && v.i >= 0);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isComplex() const {
     return Tag::HAS_z == tag;
   }
@@ -336,7 +342,11 @@ class C10_API Scalar {
     } else if (isBoolean()) {
       return ScalarType::Bool;
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unknown scalar type.");
+=======
+      throw std::runtime_error("Unknown scalar type.");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -428,7 +438,11 @@ class C10_API Scalar {
       typename std::enable_if_t<
           std::is_integral_v<T> && !std::is_same_v<T, bool>,
           bool>* = nullptr>
+<<<<<<< HEAD
   Scalar(T vv, bool /*unused*/) : tag(Tag::HAS_i) {
+=======
+  Scalar(T vv, bool) : tag(Tag::HAS_i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     v.i = convert<decltype(v.i), T>(vv);
   }
 
@@ -437,14 +451,22 @@ class C10_API Scalar {
       typename std::enable_if_t<
           !std::is_integral_v<T> && !c10::is_complex<T>::value,
           bool>* = nullptr>
+<<<<<<< HEAD
   Scalar(T vv, bool /*unused*/) : tag(Tag::HAS_d) {
+=======
+  Scalar(T vv, bool) : tag(Tag::HAS_d) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     v.d = convert<decltype(v.d), T>(vv);
   }
 
   template <
       typename T,
       typename std::enable_if_t<c10::is_complex<T>::value, bool>* = nullptr>
+<<<<<<< HEAD
   Scalar(T vv, bool /*unused*/) : tag(Tag::HAS_z) {
+=======
+  Scalar(T vv, bool) : tag(Tag::HAS_z) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     v.z = convert<decltype(v.z), T>(vv);
   }
 };

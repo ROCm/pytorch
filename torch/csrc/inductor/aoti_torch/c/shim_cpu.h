@@ -245,6 +245,7 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_cpu__weight_int4pack_mm_cpu_tensor(
     AtenTensorHandle qScaleAndZeros,
     AtenTensorHandle* ret0);
 
+<<<<<<< HEAD
 AOTI_TORCH_EXPORT AOTITorchError aoti_torch_cpu__c10d_functional_all_reduce_(
     AtenTensorHandle inp,
     const char* reduce_op,
@@ -261,6 +262,8 @@ AOTI_TORCH_EXPORT AOTITorchError aoti_torch_cpu__c10d_functional_wait_tensor(
     AtenTensorHandle inp,
     AtenTensorHandle* ret0);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef __cplusplus
 } // extern "C"
 #endif

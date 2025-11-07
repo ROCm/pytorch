@@ -11,9 +11,14 @@ on:
 jobs:
   lint-urls:
     if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'skip-url-lint') }}
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
     with:
       job-name: lint-urls
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+    with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       timeout: 120
       runner: ${{ inputs.runner }}linux.2xlarge
       docker-image: ci-image:pytorch-linux-jammy-linter
@@ -37,9 +42,14 @@ jobs:
 
   lint-xrefs:
     if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'skip-xref-lint') }}
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
     with:
       job-name: lint-xrefs
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+    with:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       timeout: 60
       runner: ${{ inputs.runner }}linux.2xlarge
       docker-image: ci-image:pytorch-linux-jammy-linter

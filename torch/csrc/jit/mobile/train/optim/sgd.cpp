@@ -84,7 +84,11 @@ Tensor SGD::step(const LossClosure& closure) {
     loss = closure();
   }
   for (auto& group : param_groups_) {
+<<<<<<< HEAD
     auto& options = group.options();
+=======
+    auto& options = static_cast<SGDOptions&>(group.options());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto weight_decay = options.weight_decay();
     auto momentum = options.momentum();
     auto dampening = options.dampening();
@@ -102,7 +106,11 @@ Tensor SGD::step(const LossClosure& closure) {
         Tensor buf;
         auto param_state = state_.find(p.unsafeGetTensorImpl());
         if (param_state == state_.end()) {
+<<<<<<< HEAD
           buf = d_p.detach().clone();
+=======
+          buf = torch::clone(d_p).detach();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           auto state = std::make_unique<SGDParamState>();
           state->momentum_buffer(buf);
           state_[p.unsafeGetTensorImpl()] = std::move(state);

@@ -10,11 +10,17 @@ from torch._dynamo.utils import counters, get_metrics_context
 from torch._inductor.utils import GraphPartitionMap, InputType
 from torch.utils._ordered_set import OrderedSet
 
+<<<<<<< HEAD
 from .utils import is_using_cudagraph_partition
 
 
 if TYPE_CHECKING:
     from collections.abc import Sequence, Set as AbstractSet
+=======
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 perf_hint_log = torch._logging.getArtifactLogger(__name__, "perf_hints")
@@ -110,8 +116,12 @@ def format_default_skip_message(reason: str) -> str:
 
 
 def get_mutation_stack_trace(
+<<<<<<< HEAD
     placeholders: Sequence[PlaceholderInfo],
     mutation_indices: Union[AbstractSet[int], Sequence[int]],
+=======
+    placeholders: Sequence[PlaceholderInfo], mutation_indices: Sequence[int]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> str:
     stack_trace: Optional[str] = ""
 
@@ -173,8 +183,12 @@ def check_multiple_devices_or_any_cpu_nodes(
     # meta tensors are supported since there is no compute
     device_node_mapping.pop(torch.device("meta"), None)
 
+<<<<<<< HEAD
     # dynamo cudagraph does not support graph partition
     if is_using_cudagraph_partition():
+=======
+    if torch._inductor.config.graph_partition:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # graph partition supports splitting on cpu op. So we can ignore cpu nodes.
         device_node_mapping.pop(torch.device("cpu"), None)
 
@@ -204,10 +218,13 @@ def check_lowering_disable_cudagraph(
 def log_cudagraph_skip_and_bump_counter(msg: str) -> None:
     perf_hint_log.warning(msg)
     counters["inductor"]["cudagraph_skips"] += 1
+<<<<<<< HEAD
 
     if torch._inductor.config.triton.cudagraph_or_error:
         raise RuntimeError(msg)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     metrics_context = get_metrics_context()
     if metrics_context.in_progress():
         metrics_context.set("cudagraph_skip_reason", msg, overwrite=True)

@@ -63,7 +63,10 @@ def generate_coo_data(size, sparse_dim, nnz, dtype, device):
     indices = torch.rand(sparse_dim, nnz, device=device)
     indices.mul_(torch.tensor(size[:sparse_dim]).unsqueeze(1).to(indices))
     indices = indices.to(torch.long)
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     values = torch.rand([nnz, ], dtype=dtype, device=device)
     return indices, values
 

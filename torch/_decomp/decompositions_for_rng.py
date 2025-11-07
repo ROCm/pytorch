@@ -2,7 +2,11 @@
 # mypy: allow-untyped-defs
 import functools
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._decomp as decomp

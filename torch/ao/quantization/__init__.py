@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 
+<<<<<<< HEAD
 import sys
 from collections.abc import Callable
 from typing import Optional, Union
+=======
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -24,8 +28,11 @@ from .pt2e.export_utils import (
     _move_exported_model_to_eval as move_exported_model_to_eval,
     _move_exported_model_to_train as move_exported_model_to_train,
 )
+<<<<<<< HEAD
 
 # pyrefly: ignore [deprecated]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .qconfig import *  # noqa: F403
 from .qconfig_mapping import *  # noqa: F403
 from .quant_type import *  # noqa: F403
@@ -36,6 +43,7 @@ from .stubs import *  # noqa: F403
 
 
 # ensure __module__ is set correctly for public APIs
+<<<<<<< HEAD
 if sys.version_info < (3, 12):
     ObserverOrFakeQuantize = Union[ObserverBase, FakeQuantizeBase]
     ObserverOrFakeQuantize.__module__ = "torch.ao.quantization"
@@ -46,6 +54,10 @@ else:
         "ObserverOrFakeQuantize", Union[ObserverBase, FakeQuantizeBase]
     )
 
+=======
+ObserverOrFakeQuantize = Union[ObserverBase, FakeQuantizeBase]
+ObserverOrFakeQuantize.__module__ = "torch.ao.quantization"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 for _f in [
     compare_results,
     extract_results_from_loggers,

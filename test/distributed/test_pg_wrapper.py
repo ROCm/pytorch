@@ -376,7 +376,11 @@ if not TEST_WITH_DEV_DBG_ASAN:
             ):
                 self._create_wrapper_pg(with_new_group=True)
                 # nothing to assert, isinstance(pg, _ProcessGroupWrapper)
+<<<<<<< HEAD
                 # should never be invoked since it is proceeded by
+=======
+                # should never be invoked since it is preceeded by
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # _GLOO_AVAILABLE check, this test will fail on
                 # an unexpected NameError if not.
 

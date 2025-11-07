@@ -7,7 +7,10 @@
 #include <algorithm>
 #include <iterator>
 #include <numeric>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <ATen/Dispatch.h>
 #include <ATen/Parallel.h>
@@ -17,6 +20,10 @@
 #include <ATen/cpu/vec/functional.h>
 #include <ATen/cpu/vec/vec.h>
 #include <c10/util/irange.h>
+<<<<<<< HEAD
+=======
+#include <ATen/OpMathType.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // [Note AVX-SSE transitions] In general we avoid calls into cmath for code
 // compiled with AVX/AVX2 This is because of SSE-AVX transitions and a bug in
@@ -647,10 +654,17 @@ _vec_softmax(
   parallel_for(
       0, outer_size * inner_size, 0, [&](int64_t begin, int64_t end) {
         int64_t idx = begin;
+<<<<<<< HEAD
         std::vector<float> temp_vec_input(dim_size * vectorized_step);
         std::vector<float> temp_vec_output(dim_size * vectorized_step);
         float* temp_vec_input_data = temp_vec_input.data();
         float* temp_vec_output_data = temp_vec_output.data();
+=======
+        std::unique_ptr<float[]> temp_vec_input(new float[dim_size*vectorized_step]());
+        std::unique_ptr<float[]> temp_vec_output(new float[dim_size*vectorized_step]());
+        float* temp_vec_input_data = temp_vec_input.get();
+        float* temp_vec_output_data = temp_vec_output.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while (idx < end) {
           int64_t outer_idx = idx / inner_size;
           int64_t inner_idx = idx % inner_size;
@@ -968,7 +982,11 @@ struct vec_host_softmax_backward {
   }
 };
 
+<<<<<<< HEAD
 void softmax_lastdim_kernel_impl(
+=======
+static void softmax_lastdim_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& result,
     const Tensor& self) {
   AT_DISPATCH_FLOATING_TYPES_AND2(
@@ -977,13 +995,21 @@ void softmax_lastdim_kernel_impl(
       [&] { vec_host_softmax_lastdim<scalar_t, false>::apply(result, self); });
 }
 
+<<<<<<< HEAD
 void softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_t dim) {
+=======
+static void softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::BFloat16, at::ScalarType::Half, self.scalar_type(),
     "softmax_kernel_impl",
     [&] { vec_softmax<scalar_t, false>::apply(result, self, dim); });
 }
 
+<<<<<<< HEAD
 void log_softmax_lastdim_kernel_impl(
+=======
+static void log_softmax_lastdim_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& result,
     const Tensor& self) {
   AT_DISPATCH_FLOATING_TYPES_AND2(
@@ -992,13 +1018,21 @@ void log_softmax_lastdim_kernel_impl(
       [&] { vec_host_softmax_lastdim<scalar_t, true>::apply(result, self); });
 }
 
+<<<<<<< HEAD
 void log_softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_t dim) {
+=======
+static void log_softmax_kernel_impl(const Tensor& result, const Tensor& self, int64_t dim) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::BFloat16, at::ScalarType::Half, self.scalar_type(),
     "softmax_kernel_impl",
     [&] { vec_softmax<scalar_t, true>::apply(result, self, dim); });
 }
 
+<<<<<<< HEAD
 void softmax_backward_lastdim_kernel_impl(
+=======
+static void softmax_backward_lastdim_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output) {
@@ -1010,7 +1044,11 @@ void softmax_backward_lastdim_kernel_impl(
       });
 }
 
+<<<<<<< HEAD
 void log_softmax_backward_lastdim_kernel_impl(
+=======
+static void log_softmax_backward_lastdim_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output) {
@@ -1022,7 +1060,11 @@ void log_softmax_backward_lastdim_kernel_impl(
       });
 }
 
+<<<<<<< HEAD
 void softmax_backward_kernel_impl(
+=======
+static void softmax_backward_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output,
@@ -1038,7 +1080,11 @@ void softmax_backward_kernel_impl(
       });
 }
 
+<<<<<<< HEAD
 void log_softmax_backward_kernel_impl(
+=======
+static void log_softmax_backward_kernel_impl(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_input,
     const Tensor& grad,
     const Tensor& output,

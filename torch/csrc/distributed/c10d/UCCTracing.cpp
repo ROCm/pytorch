@@ -1,6 +1,9 @@
 #ifdef USE_C10D_UCC
 
+<<<<<<< HEAD
 #include <c10/util/FileSystem.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/env.h>
 #include <torch/csrc/distributed/c10d/UCCTracing.hpp>
 #include <torch/csrc/distributed/c10d/UCCUtils.hpp>
@@ -11,6 +14,10 @@
 #include <sys/stat.h>
 #include <cstdlib>
 #include <ctime>
+<<<<<<< HEAD
+=======
+#include <filesystem>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <fstream>
 
 namespace c10d {
@@ -34,15 +41,26 @@ void ProcessGroupUCCLogger::flushComms(int rank, int world_size) {
         "_", (1 + ltm->tm_mon), "_", ltm->tm_mday, "_", (1900 + ltm->tm_year));
   }
 
+<<<<<<< HEAD
   c10::filesystem::path fullpath = c10::filesystem::path("/tmp") / dirname;
+=======
+  std::filesystem::path fullpath = std::filesystem::path("/tmp") / dirname;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto user_path = c10::utils::get_env("TORCH_UCC_COMMS_TRACE_OUTPUT_DIR");
   if (user_path.has_value()) {
     fullpath = std::move(user_path.value());
   }
+<<<<<<< HEAD
   c10::filesystem::path trace_filename =
       fullpath / fmt::format("rank{}.json", rank);
   std::error_code ec{};
   if (!c10::filesystem::create_directories(fullpath, ec)) {
+=======
+  std::filesystem::path trace_filename =
+      fullpath / fmt::format("rank{}.json", rank);
+  std::error_code ec{};
+  if (!std::filesystem::create_directories(fullpath, ec)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(INFO) << getLogPrefix() << "[INFO] failed to mkdir " << fullpath
               << " with error " << ec.message();
     return;

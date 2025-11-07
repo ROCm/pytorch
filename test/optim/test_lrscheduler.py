@@ -43,7 +43,11 @@ from torch.testing._internal.common_utils import (
 
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
+=======
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestLRScheduler(TestCase):
@@ -77,7 +81,11 @@ class TestLRScheduler(TestCase):
         self.opt = SGD(
             [
                 {"params": self.net.conv1.parameters()},
+<<<<<<< HEAD
                 {"params": self.net.conv2.parameters(), "lr": torch.tensor(0.5)},
+=======
+                {"params": self.net.conv2.parameters(), "lr": 0.5},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ],
             lr=0.05,
         )
@@ -369,6 +377,7 @@ class TestLRScheduler(TestCase):
         scheduler = MultiStepLR(self.opt, gamma=0.1, milestones=[2, 5, 9])
         self._test_get_last_lr(scheduler, targets, epochs)
 
+<<<<<<< HEAD
     def test_raise_error_when_last_epoch_is_greater_than_0_and_initial_lr_is_not_specified(
         self,
     ):
@@ -379,6 +388,8 @@ class TestLRScheduler(TestCase):
         ):
             StepLR(optimizer, step_size=3, gamma=0.1, last_epoch=1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multi_step_lr(self):
         # lr = 0.05     if epoch < 2
         # lr = 0.005    if 2 <= epoch < 5
@@ -710,6 +721,7 @@ class TestLRScheduler(TestCase):
             scheduler.get_last_lr(), [0.5 for param_group in self.opt.param_groups]
         )
 
+<<<<<<< HEAD
     def test_reduce_lr_on_plateau_preserves_lr_type(self):
         # Ensures that tensor lrs are preserved, preventing recompilations.
         types = [type(group["lr"]) for group in self.opt.param_groups]
@@ -719,6 +731,8 @@ class TestLRScheduler(TestCase):
         for group, type_ in zip(self.opt.param_groups, types):
             self.assertEqual(type(group["lr"]), type_)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sequentiallr1(self):
         epochs = 19
         schedulers = [None] * 2
@@ -803,6 +817,7 @@ class TestLRScheduler(TestCase):
         scheduler = SequentialLR(self.opt, schedulers=schedulers, milestones=milestones)
         self._test(scheduler, targets, epochs)
 
+<<<<<<< HEAD
     def test_sequentiallr_no_warnings(self):
         scheduler1 = LinearLR(self.opt, start_factor=0.5, end_factor=0.1, total_iters=5)
         scheduler2 = ExponentialLR(self.opt, gamma=0.9)
@@ -816,6 +831,8 @@ class TestLRScheduler(TestCase):
                 scheduler.step()
                 self.assertTrue(len(ws) == 0, "No warning should be raised")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_get_last_lr_sequentiallr(self):
         epochs = 12
         milestones = [3, 6]
@@ -831,6 +848,7 @@ class TestLRScheduler(TestCase):
         targets = [single_targets, [x * 10 for x in single_targets]]
         self._test_get_last_lr(scheduler, targets, epochs)
 
+<<<<<<< HEAD
     def test_sequentiallr_does_not_alias_lr_and_initial_lr(self):
         # The TestLRScheduler object uses self.opt to avoid instantiating a new optimizer for each test.
         # self.opt has a float lr, and we need to use a Tensor lr to ensure that a former SequentialLR bug is fixed.
@@ -852,6 +870,8 @@ class TestLRScheduler(TestCase):
         self._test(scheduler, targets, epochs)
         self.opt = old_opt
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_chained_lr2_get_last_lr_before_step(self):
         schedulers = [
             LinearLR(self.opt, start_factor=0.4, total_iters=3),
@@ -1509,7 +1529,11 @@ class TestLRScheduler(TestCase):
             14.0 / 3,
             29.0 / 6,
         ]
+<<<<<<< HEAD
         deltas = [2 * i for i in range(2)]
+=======
+        deltas = [2 * i for i in range(0, 2)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         base_lrs = [1 + delta for delta in deltas]
         max_lrs = [5 + delta for delta in deltas]
         lr_targets = [[x + delta for x in lr_base_target] for delta in deltas]
@@ -2442,7 +2466,10 @@ class TestLRScheduler(TestCase):
             partial(CyclicLR, base_lr=0.01, max_lr=0.1),
             partial(OneCycleLR, max_lr=0.01, total_steps=10, anneal_strategy="linear"),
             partial(CosineAnnealingWarmRestarts, T_0=20),
+<<<<<<< HEAD
             partial(SWALR, swa_lr=0.01),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
     )
     @parametrize("weights_only", [True, False])
@@ -2530,7 +2557,11 @@ class TestLRScheduler(TestCase):
         ],
     )
     def test_constant_initial_lr(self, LRClass):
+<<<<<<< HEAD
         # Test that the initial learning rate is constant and that it does not alias base_lrs
+=======
+        # Test that the initial learning rate is constant
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lr = torch.as_tensor(0.1)
         opt = SGD([torch.nn.Parameter(torch.randn(1))], lr=lr)
         sch = LRClass(opt)
@@ -2544,7 +2575,10 @@ class TestLRScheduler(TestCase):
             for group, ori_group in zip(opt.param_groups, ori_param_groups):
                 self.assertEqual(group["initial_lr"], ori_group["initial_lr"])
                 self.assertEqual(sch.base_lrs, [0.1])
+<<<<<<< HEAD
                 self.assertIsNot(sch.base_lrs[0], group["initial_lr"])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_constant_initial_params_cyclelr(self):
         # Test that the initial learning rate is constant

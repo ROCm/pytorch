@@ -69,7 +69,10 @@ from torch.testing._internal.common_utils import (
     load_tests,
     MI300_ARCH,
     parametrize,
+<<<<<<< HEAD
     recover_orig_fp32_precision,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run_tests,
     serialTest,
     setBlasBackendsToDefaultFinally,
@@ -98,7 +101,11 @@ requiresCppContext = unittest.skipUnless(
 
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
+=======
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 try:
     import torchvision.models  # noqa: F401
@@ -174,7 +181,11 @@ class TestCuda(TestCase):
         for thread in threads:
             thread.join()
 
+<<<<<<< HEAD
     @serialTest()
+=======
+    @serialTest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_host_memory_stats(self):
         # Helper functions
         def empty_stats():
@@ -183,14 +194,22 @@ class TestCuda(TestCase):
                 "allocated_bytes.current": 0,
                 "allocated_bytes.freed": 0,
                 "allocated_bytes.peak": 0,
+<<<<<<< HEAD
                 "allocations.allocated": 0,
                 "allocations.current": 0,
                 "allocations.freed": 0,
                 "allocations.peak": 0,
+=======
+                "allocation.allocated": 0,
+                "allocation.current": 0,
+                "allocation.freed": 0,
+                "allocation.peak": 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "host_alloc_time.count": 0,
                 "host_free_time.count": 0,
                 "num_host_alloc": 0,
                 "num_host_free": 0,
+<<<<<<< HEAD
                 "active_bytes.allocated": 0,
                 "active_bytes.current": 0,
                 "active_bytes.freed": 0,
@@ -199,13 +218,26 @@ class TestCuda(TestCase):
                 "active_requests.current": 0,
                 "active_requests.freed": 0,
                 "active_requests.peak": 0,
+=======
+                "reserved_bytes.allocated": 0,
+                "reserved_bytes.current": 0,
+                "reserved_bytes.freed": 0,
+                "reserved_bytes.peak": 0,
+                "segment.allocated": 0,
+                "segment.current": 0,
+                "segment.freed": 0,
+                "segment.peak": 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
 
         def check_stats(expected):
             stats = torch.cuda.host_memory_stats()
             for k, v in expected.items():
+<<<<<<< HEAD
                 if v != stats[k]:
                     print(f"key: {k}, expected: {v}, stats: {stats[k]}")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(v, stats[k])
 
         # Setup the test cleanly
@@ -225,12 +257,20 @@ class TestCuda(TestCase):
         # Make first allocation and check stats
         t1 = torch.ones(alloc1 * 1024, pin_memory=True)
         self.assertTrue(t1.is_pinned())
+<<<<<<< HEAD
         for prefix in ["active_requests", "allocations"]:
+=======
+        for prefix in ["segment", "allocation"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for suffix in ["allocated", "current", "peak"]:
                 expected[prefix + "." + suffix] += 1
 
         allocation_size1 = alloc1_aligned * 1024 * 4
+<<<<<<< HEAD
         for prefix in ["allocated_bytes", "active_bytes"]:
+=======
+        for prefix in ["allocated_bytes", "reserved_bytes"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for suffix in ["allocated", "current", "peak"]:
                 expected[prefix + "." + suffix] += allocation_size1
 
@@ -239,15 +279,48 @@ class TestCuda(TestCase):
 
         check_stats(expected)
 
+<<<<<<< HEAD
         # Make second allocation and check stats
         t2 = torch.ones(alloc2 * 1024, pin_memory=True)
         self.assertTrue(t2.is_pinned())
         for prefix in ["active_requests", "allocations"]:
+=======
+        # Remove first allocation and check stats
+        del t1
+
+        expected["allocation.current"] -= 1
+        expected["allocation.freed"] += 1
+        expected["allocated_bytes.current"] -= allocation_size1
+        expected["allocated_bytes.freed"] += allocation_size1
+
+        check_stats(expected)
+
+        # Make first allocation again and check reuse
+        t1 = torch.ones(alloc1 * 1024, pin_memory=True)
+        self.assertTrue(t1.is_pinned())
+        for suffix in ["allocated", "current"]:
+            expected["allocation" + "." + suffix] += 1
+
+        allocation_size1 = alloc1_aligned * 1024 * 4
+        for suffix in ["allocated", "current"]:
+            expected["allocated_bytes" + "." + suffix] += allocation_size1
+
+        check_stats(expected)
+
+        # Make second allocation and check stats
+        t2 = torch.ones(alloc2 * 1024, pin_memory=True)
+        self.assertTrue(t2.is_pinned())
+        for prefix in ["segment", "allocation"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for suffix in ["allocated", "current", "peak"]:
                 expected[prefix + "." + suffix] += 1
 
         allocation_size2 = alloc2_aligned * 1024 * 4
+<<<<<<< HEAD
         for prefix in ["allocated_bytes", "active_bytes"]:
+=======
+        for prefix in ["allocated_bytes", "reserved_bytes"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for suffix in ["allocated", "current", "peak"]:
                 expected[prefix + "." + suffix] += allocation_size2
 
@@ -256,8 +329,39 @@ class TestCuda(TestCase):
 
         check_stats(expected)
 
+<<<<<<< HEAD
         # Empty cache and check stats
         torch._C._host_emptyCache()
+=======
+        # Remove first allocation and check stats
+        del t1
+
+        expected["allocation.current"] -= 1
+        expected["allocation.freed"] += 1
+        expected["allocated_bytes.current"] -= allocation_size1
+        expected["allocated_bytes.freed"] += allocation_size1
+
+        check_stats(expected)
+
+        # Remove second allocation and check stats
+        del t2
+
+        expected["allocation.current"] -= 1
+        expected["allocation.freed"] += 1
+        expected["allocated_bytes.current"] -= allocation_size2
+        expected["allocated_bytes.freed"] += allocation_size2
+
+        check_stats(expected)
+
+        # Empty cache and check stats
+        torch._C._host_emptyCache()
+        expected["segment.freed"] += expected["segment.current"]
+        expected["segment.current"] = 0
+        expected["reserved_bytes.freed"] += expected["reserved_bytes.current"]
+        expected["reserved_bytes.current"] = 0
+        expected["num_host_free"] = expected["num_host_alloc"]
+        expected["host_free_time.count"] += expected["host_alloc_time.count"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         check_stats(expected)
 
@@ -267,6 +371,11 @@ class TestCuda(TestCase):
 
         expected = empty_stats()
 
+<<<<<<< HEAD
+=======
+        check_stats(expected)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pinned_memory_empty_cache(self):
         try:
             for alloc_settings in (True, False):
@@ -325,6 +434,7 @@ print(t.is_pinned())
                 torch.cuda.caching_allocator_delete(mem)
                 self.assertEqual(torch.cuda.memory_allocated(), prev)
 
+<<<<<<< HEAD
     def test_memory_stats(self):
         gc.collect()
         torch.cuda.empty_cache()
@@ -361,6 +471,8 @@ print(t.is_pinned())
         self.assertEqual(torch.accelerator.max_memory_allocated(), prev_max_allocated)
         self.assertEqual(torch.accelerator.max_memory_reserved(), prev_max_reserved)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_check_error(self):
         # Assert this call doesn't raise.
         torch.cuda.check_error(0)
@@ -580,7 +692,11 @@ print(t.is_pinned())
             src = torch.randn(
                 1000000,
                 device="cuda" if dst == "cpu" else "cpu",
+<<<<<<< HEAD
                 pin_memory=dst == "cuda",
+=======
+                pin_memory=True if dst == "cuda" else False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             _test_to_non_blocking(src, try_non_blocking, dst)
 
@@ -714,7 +830,57 @@ print(t.is_pinned())
 
         torch._C._cuda_clearCublasWorkspaces()
 
+<<<<<<< HEAD
     def test_cublas_allow_tf32_get_set(self):
+=======
+    @contextlib.contextmanager
+    def _hip_allow_tf32(self):
+        # for HIP/AMDGPU, tf32 is behind a flag because the TF32 support is new
+        # and only for MI300+
+        hip_allow_tf32 = os.environ.get("HIPBLASLT_ALLOW_TF32", None)
+        os.environ["HIPBLASLT_ALLOW_TF32"] = "1"
+
+        try:
+            yield
+        finally:
+            if hip_allow_tf32 is not None:
+                os.environ["HIPBLASLT_ALLOW_TF32"] = hip_allow_tf32
+            else:
+                del os.environ["HIPBLASLT_ALLOW_TF32"]
+
+    @unittest.skipIf(not TEST_WITH_ROCM, "not relevant for CUDA testing")
+    def test_hipblaslt_allow_tf32(self):
+        tf32_ctx = self._hip_allow_tf32
+        with tf32_ctx():
+            os.environ["HIPBLASLT_ALLOW_TF32"] = "0"
+            # Save original value of allow_tf32
+            orig = torch.backends.cuda.matmul.allow_tf32
+            # If allow_tf32 variable is declared as static in aten/src/ATen/Context.cpp
+            # then matmul.allow_tf32 will return False after this point even if
+            # HIP_BLASLT_ALLOW_TF32 is set to 1 and matmul.allow_tf32 is changed.
+            os.environ["HIPBLASLT_ALLOW_TF32"] = "1"
+            # Toggle torch.backends.cuda.matmul.allow_tf32 couple of times.
+            torch.backends.cuda.matmul.allow_tf32 = not orig
+            test1 = torch.backends.cuda.matmul.allow_tf32
+            torch.backends.cuda.matmul.allow_tf32 = orig
+            test2 = torch.backends.cuda.matmul.allow_tf32
+            self.assertNotEqual(test1, test2)
+            # Restore original value of allow_tf32
+            torch.backends.cuda.matmul.allow_tf32 = orig
+
+    def test_cublas_allow_tf32_get_set(self):
+        """
+        We only turn on TF32 for MI300 with a special env var. This is because TF32
+        is only available in MI300+ and is in experimental mode (hipblaslt support
+        is current WIP)
+        """
+        tf32_ctx = self._hip_allow_tf32 if torch.version.hip else contextlib.nullcontext
+
+        with tf32_ctx():
+            self._test_cublas_allow_tf32_get_set_inner()
+
+    def _test_cublas_allow_tf32_get_set_inner(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         skip_tf32_cublas = "TORCH_ALLOW_TF32_CUBLAS_OVERRIDE" in os.environ and int(
             os.environ["TORCH_ALLOW_TF32_CUBLAS_OVERRIDE"]
         )
@@ -729,12 +895,25 @@ print(t.is_pinned())
         torch.backends.cuda.matmul.allow_tf32 = orig
 
     def test_float32_matmul_precision_get_set(self):
+<<<<<<< HEAD
+=======
+        tf32_ctx = self._hip_allow_tf32 if torch.version.hip else contextlib.nullcontext
+
+        with tf32_ctx():
+            self._test_float32_matmul_precision_get_set_inner()
+
+    def _test_float32_matmul_precision_get_set_inner(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         orig = torch.get_float32_matmul_precision()
         skip_tf32_cublas = "TORCH_ALLOW_TF32_CUBLAS_OVERRIDE" in os.environ and int(
             os.environ["TORCH_ALLOW_TF32_CUBLAS_OVERRIDE"]
         )
         # this is really just checking that the environment variable is respected during testing
+<<<<<<< HEAD
         # and not overwritten by another function that doesn't revert it to the initial value
+=======
+        # and not overwritten by another function that doesn't revert it to the intitial value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not skip_tf32_cublas:
             self.assertFalse(torch.backends.cuda.matmul.allow_tf32)
             self.assertEqual(torch.get_float32_matmul_precision(), "highest")
@@ -752,6 +931,7 @@ print(t.is_pinned())
 
     def test_cublas_allow_fp16_reduced_precision_reduction_get_set(self):
         orig = torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction
+<<<<<<< HEAD
         orig_splitk = (
             torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction_split_k
         )
@@ -813,6 +993,27 @@ print(t.is_pinned())
             orig,
             orig_splitk,
         )
+=======
+        self.assertEqual(
+            torch._C._get_cublas_allow_fp16_reduced_precision_reduction(), orig
+        )
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = not orig
+        self.assertEqual(
+            torch._C._get_cublas_allow_fp16_reduced_precision_reduction(), not orig
+        )
+        torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction = orig
+
+    def test_cublas_allow_bf16_reduced_precision_reduction_get_set(self):
+        orig = torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction
+        self.assertEqual(
+            torch._C._get_cublas_allow_bf16_reduced_precision_reduction(), orig
+        )
+        torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = not orig
+        self.assertEqual(
+            torch._C._get_cublas_allow_bf16_reduced_precision_reduction(), not orig
+        )
+        torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction = orig
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_cublas_allow_fp16_accumulation_get_set(self):
         orig = torch.backends.cuda.matmul.allow_fp16_accumulation
@@ -831,6 +1032,7 @@ print(t.is_pinned())
         ):
             self.assertTrue(torch.backends.cudnn.allow_tf32)
 
+<<<<<<< HEAD
     @recover_orig_fp32_precision
     def test_fp32_precision_with_tf32(self):
         with torch.backends.cudnn.flags(
@@ -880,6 +1082,8 @@ print(t.is_pinned())
             with self.assertRaisesRegex(RuntimeError, "mix of the legacy and new APIs"):
                 print(torch.backends.cuda.matmul.allow_tf32)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_type_conversions(self):
         x = torch.randn(5, 5)
         self.assertIsInstance(x.float(), torch.FloatTensor)
@@ -1004,6 +1208,7 @@ print(t.is_pinned())
         s.record_event(e)
         self.assertTrue("torch.cuda.Event" in e.__repr__())
 
+<<<<<<< HEAD
     def test_cuda_stream_protocol(self):
         stream = torch.cuda.Stream()
 
@@ -1022,6 +1227,8 @@ print(t.is_pinned())
         self.assertEqual(external_result[0], 0)
         self.assertEqual(external_result[1], external_stream.cuda_stream)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_events(self):
         stream = torch.cuda.current_stream()
         event = torch.cuda.Event(enable_timing=True)
@@ -1142,7 +1349,11 @@ print(t.is_pinned())
             tmp2 = torch.cuda.FloatTensor(t.size())
             tmp2.zero_()
             self.assertNotEqual(
+<<<<<<< HEAD
                 tmp2.data_ptr(), ptr[0], msg="allocation reused to soon"
+=======
+                tmp2.data_ptr(), ptr[0], msg="allocation re-used to soon"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         self.assertEqual(result.tolist(), [1, 2, 3, 4])
@@ -1153,7 +1364,11 @@ print(t.is_pinned())
             torch.cuda.current_stream().synchronize()
             with torch.cuda.stream(stream):
                 tmp3 = torch.cuda.FloatTensor(t.size())
+<<<<<<< HEAD
                 self.assertEqual(tmp3.data_ptr(), ptr[0], msg="allocation not reused")
+=======
+                self.assertEqual(tmp3.data_ptr(), ptr[0], msg="allocation not re-used")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_record_stream_on_shifted_view(self):
         # See issue #27366
@@ -1234,20 +1449,32 @@ print(t.is_pinned())
     def test_caching_pinned_memory(self):
         cycles_per_ms = get_cycles_per_ms()
 
+<<<<<<< HEAD
         # check that allocations are reused after deletion
+=======
+        # check that allocations are re-used after deletion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t = torch.FloatTensor([1]).pin_memory()
         ptr = t.data_ptr()
         del t
         t = torch.FloatTensor([1]).pin_memory()
         self.assertEqual(t.data_ptr(), ptr, msg="allocation not reused")
 
+<<<<<<< HEAD
         # check that the allocation is not reused if it's in-use by a copy
+=======
+        # check that the allocation is not re-used if it's in-use by a copy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gpu_tensor = torch.cuda.FloatTensor([0])
         torch.cuda._sleep(int(1000 * cycles_per_ms))  # delay the copy by 1s
         gpu_tensor.copy_(t, non_blocking=True)
         del t
         t = torch.FloatTensor([1]).pin_memory()
+<<<<<<< HEAD
         self.assertNotEqual(t.data_ptr(), ptr, msg="allocation reused too soon")
+=======
+        self.assertNotEqual(t.data_ptr(), ptr, msg="allocation re-used too soon")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(list(gpu_tensor), [1])
 
     def test_caching_allocator_record_stream_oom(self):
@@ -1262,7 +1489,11 @@ print(t.is_pinned())
             x = torch.empty(40 * 1024 * 1024, device="cuda")
             with torch.cuda.stream(stream):
                 y += x
+<<<<<<< HEAD
             # delays reuse of `x` until after all operations in `stream`
+=======
+            # delays re-use of `x` until after all operations in `stream`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x.record_stream(stream)
             del x
 
@@ -1476,6 +1707,7 @@ except RuntimeError as e:
         res_cpu = src.cpu()[idx.cpu()]
         self.assertEqual(res.cpu(), res_cpu)
 
+<<<<<<< HEAD
     def test_fast_index_overflow(self):
         src = torch.randint(0, 20, (4, 87, 1056, 736), device="cuda")
         indices = torch.tensor([True, False, False, True], device="cuda")
@@ -1483,6 +1715,8 @@ except RuntimeError as e:
         res_cpu = src.cpu()[indices.cpu()]
         self.assertEqual(res.cpu(), res_cpu)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_randint_randomness_for_large_range(self) -> None:
         # For large ranges, randint generation is slightly different. This lead to a subtle bug where some Philox
         # offsets were not calculated correctly, resulting in reused random states.
@@ -1509,7 +1743,10 @@ except RuntimeError as e:
         )
 
     @largeTensorTest("20GB", "cuda")
+<<<<<<< HEAD
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_randint_generation_for_large_numel(self) -> None:
         numel = 2**31 + 1
         s = torch.randint(2, (numel,), device="cuda", dtype=torch.int8).sum()
@@ -1682,6 +1919,11 @@ except RuntimeError as e:
             self.assertEqual(x.grad, torch.ones_like(x) * 3)
             self.assertEqual(torch.cuda.current_stream(), bwd_ambient_stream)
 
+<<<<<<< HEAD
+=======
+    # Skip the test for ROCm as per https://github.com/pytorch/pytorch/issues/53190
+    @skipIfRocm(msg="flakey on ROCm https://github.com/pytorch/pytorch/issues/53190")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_streaming_backwards_multiple_streams(self):
         MultiplyInStream = self._make_multiply_in_stream()
 
@@ -2401,8 +2643,14 @@ exit(2)
             with torch.cuda.graph(torch.cuda.CUDAGraph()):
                 torch.zeros(2**40, device="cuda")
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs")
     @skipIfRocm(msg="TODO: temp skip on ROCm 6.2")
+=======
+    @unittest.skipIf(
+        not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @serialTest()
     @setBlasBackendsToDefaultFinally
     def test_repeat_graph_capture_cublas_workspace_memory(self):
@@ -2974,7 +3222,11 @@ exit(2)
                     current = postcapture_stats[stat] - precapture_stats[stat]
 
                     # There will only ever be one expandable segment in each of the small and large pools. The way the
+<<<<<<< HEAD
                     # bookkeeping is done in the allocator means that we never increment the number of segments.
+=======
+                    # bookeeping is done in the allocator means that we never increment the number of segments.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if self.expandable_segments and "segment" in stat:
                         expected = 0
                     # These two cases hit an edge case where the PyTorch allocator won't immediately unmap part of an
@@ -3015,7 +3267,11 @@ exit(2)
                 current = postdel_stats[stat] - precapture_stats[stat]
 
                 # There will only ever be one expandable segment in each of the small and large pools. The way the
+<<<<<<< HEAD
                 # bookkeeping is done in the allocator means that we never increment the number of segments.
+=======
+                # bookeeping is done in the allocator means that we never increment the number of segments.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if self.expandable_segments and "segment" in stat:
                     expected = 0
                 # These two cases hit an edge case where the PyTorch allocator won't immediately unmap part of an
@@ -3124,6 +3380,7 @@ exit(2)
 
         model(x)
 
+<<<<<<< HEAD
     @skipIfRocm
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
@@ -3172,12 +3429,19 @@ exit(2)
             with torch.cuda.graph(g):
                 torch.cuda.manual_seed(1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
     @parametrize(
         "with_amp,cache_enabled,allow_unused_input",
         [
+<<<<<<< HEAD
+=======
+            subtest((False, False, True), decorators=[skipIfRocm]),
+            subtest((True, False, True), decorators=[skipIfRocm]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             subtest((True, True, True), decorators=[unittest.expectedFailure]),
             subtest((False, False, False), decorators=[unittest.expectedFailure]),
         ],
@@ -3327,10 +3591,17 @@ exit(2)
     @parametrize(
         "with_amp,cache_enabled,allow_unused_input",
         [
+<<<<<<< HEAD
             subtest((False, False, True)),
             subtest((True, False, True)),
             subtest((True, True, True), decorators=[unittest.expectedFailure]),
             subtest((False, False, False)),
+=======
+            subtest((False, False, True), decorators=[skipIfRocm]),
+            subtest((True, False, True), decorators=[skipIfRocm]),
+            subtest((True, True, True), decorators=[unittest.expectedFailure]),
+            subtest((False, False, False), decorators=[skipIfRocm]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ],
         name_fn=lambda x, y, z: "{}{}{}".format(
             {True: "with_amp", False: "without_amp"}[x],
@@ -3405,7 +3676,10 @@ exit(2)
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
+<<<<<<< HEAD
     @skipIfRocm(msg="TODO: temp skip on ROCm 6.2")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_graph_make_graphed_callables_same_pool(self):
         torch.manual_seed(5)
         torch.cuda.manual_seed(5)
@@ -3589,14 +3863,22 @@ exit(2)
             try:
                 with torch.cuda.stream(stream):
                     mem = torch.cuda.caching_allocator_alloc(1024)
+<<<<<<< HEAD
             except BaseException:  # noqa: B036
+=======
+            except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if mem is None:
                     return
             try:
                 torch.cuda.caching_allocator_delete(mem)
                 mem = None
                 return None
+<<<<<<< HEAD
             except BaseException:  # noqa: B036
+=======
+            except BaseException:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 pass
 
         def throws_on_cuda_event(capture_error_mode):
@@ -3681,6 +3963,7 @@ exit(2)
         graph.replay()
 
     @unittest.skipIf(
+<<<<<<< HEAD
         not TEST_CUDA_GRAPH or not TEST_CUDA_PYTHON_BINDINGS,
         "CUDA >= 11.0 or ROCM >= 5.3 required for graphs, cuda-bindings must be installed",
     )
@@ -3710,6 +3993,8 @@ exit(2)
         graph.replay()
 
     @unittest.skipIf(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
     def test_cuda_graph_raw_graph_reset_and_recapture(self):
@@ -3728,7 +4013,11 @@ exit(2)
         graph.replay()
         self.assertTrue(torch.all(x == 3.0))
 
+<<<<<<< HEAD
         # Check that graph capture can succeed after resetting.
+=======
+        # Check that graph capture can succeed after reseting.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph.reset()
 
         # Don't do x[:] = 0.0 because we want to capture a new address
@@ -3778,6 +4067,7 @@ exit(2)
         self.assertEqual(len(x), 2)
         self.assertEqual(x[0], x[1])
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
@@ -3811,6 +4101,8 @@ with torch.cuda.graph(g):
                 .strip()
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_batch_norm_gather_stats(self):
         input = torch.randn(1, 3, 3, 3, device="cuda")
         mean, invstd = torch.batch_norm_gather_stats(
@@ -3952,6 +4244,7 @@ print(f"{torch.cuda.device_count()}")
             {"CUDA_VISIBLE_DEVICES": "0", "HIP_VISIBLE_DEVICES": None},
             {"CUDA_VISIBLE_DEVICES": None, "HIP_VISIBLE_DEVICES": "0"},
             {"CUDA_VISIBLE_DEVICES": "0,1,2,3", "HIP_VISIBLE_DEVICES": "0"},
+<<<<<<< HEAD
             {"ROCR_VISIBLE_DEVICES": "0,1,2,3", "HIP_VISIBLE_DEVICES": "0"},
             {"ROCR_VISIBLE_DEVICES": "0", "HIP_VISIBLE_DEVICES": None},
         ]
@@ -3963,6 +4256,12 @@ print(f"{torch.cuda.device_count()}")
                 ]
             )
 
+=======
+            {"ROCR_VISIBLE_DEVICES": "1,2,3", "HIP_VISIBLE_DEVICES": "0"},
+            {"ROCR_VISIBLE_DEVICES": "0", "HIP_VISIBLE_DEVICES": None},
+        ]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for env_config in custom_envs:
             env = os.environ.copy()
             for key, value in env_config.items():
@@ -4226,7 +4525,10 @@ class TestCudaMallocAsync(TestCase):
                 ss = torch.cuda.memory._snapshot()
 
                 trace_plot(ss)
+<<<<<<< HEAD
                 trace_plot(ss, filter_freed=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 segment_plot(ss)
                 text = json.dumps(ss)
 
@@ -4269,7 +4571,10 @@ class TestCudaMallocAsync(TestCase):
     )
     @unittest.skipIf(not has_triton(), "test needs triton")
     @requiresCppContext
+<<<<<<< HEAD
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_memory_compile_regions(self):
         expected_allocation_sequence = [
             "Torch-Compiled Region: 0/0",
@@ -4371,7 +4676,10 @@ class TestCudaMallocAsync(TestCase):
     def test_memory_plots_free_segment_stack(self):
         for context in ["alloc", "all", "state"]:
             try:
+<<<<<<< HEAD
                 torch._C._cuda_clearCublasWorkspaces()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch.cuda.memory.empty_cache()
                 torch.cuda.memory._record_memory_history(context=context)
                 x = torch.rand(3, 4, device="cuda")
@@ -4386,6 +4694,7 @@ class TestCudaMallocAsync(TestCase):
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC, "setContextRecorder not supported by CUDAMallocAsync"
     )
+<<<<<<< HEAD
     @requiresCppContext
     def test_memory_plots_metadata(self):
         for context in ["alloc", "all", "state"]:
@@ -4411,6 +4720,10 @@ class TestCudaMallocAsync(TestCase):
     def test_memory_snapshot_script(self):
         try:
             torch._C._cuda_clearCublasWorkspaces()
+=======
+    def test_memory_snapshot_script(self):
+        try:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.cuda.memory.empty_cache()
             torch.cuda.memory._record_memory_history("state", stacks="python")
 
@@ -4432,17 +4745,28 @@ class TestCudaMallocAsync(TestCase):
         finally:
             torch.cuda.memory._record_memory_history(None)
 
+<<<<<<< HEAD
     @serialTest()
     def test_max_split_expandable(self):
         try:
             orig = torch.cuda.get_per_process_memory_fraction()
+=======
+    @serialTest
+    def test_max_split_expandable(self):
+        try:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.cuda.memory.empty_cache()
             mb = 1024 * 1024
             _, all_memory = torch.cuda.memory.mem_get_info()
             pre_reserved = torch.cuda.memory_reserved()
             total_allowed = 120 * mb + pre_reserved
             fraction_allowed = total_allowed / all_memory
+<<<<<<< HEAD
             self.assertEqual(int(round(fraction_allowed * all_memory)), total_allowed)
+=======
+            self.assertEqual(int(fraction_allowed * all_memory), total_allowed)
+            orig = torch.cuda.get_per_process_memory_fraction()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.cuda.memory.set_per_process_memory_fraction(fraction_allowed)
 
             def alloc(n):
@@ -4468,10 +4792,16 @@ class TestCudaMallocAsync(TestCase):
         finally:
             torch.cuda.memory.set_per_process_memory_fraction(orig)
 
+<<<<<<< HEAD
     @serialTest()
     def test_garbage_collect_expandable(self):
         try:
             orig = torch.cuda.get_per_process_memory_fraction(0)
+=======
+    @serialTest
+    def test_garbage_collect_expandable(self):
+        try:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.cuda.memory.empty_cache()
             mb = 1024 * 1024
             _, all_memory = torch.cuda.memory.mem_get_info()
@@ -4479,6 +4809,10 @@ class TestCudaMallocAsync(TestCase):
             total_allowed = 120 * mb + pre_reserved
             fraction_allowed = total_allowed / all_memory
             self.assertEqual((fraction_allowed * all_memory), total_allowed)
+<<<<<<< HEAD
+=======
+            orig = torch.cuda.get_per_process_memory_fraction(0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.cuda.memory.set_per_process_memory_fraction(fraction_allowed)
 
             def alloc(n):
@@ -4587,6 +4921,7 @@ class TestCudaMallocAsync(TestCase):
         reg_mem = torch.cuda.memory_stats()[key_allocated]
         self.assertEqual(reg_mem - start_mem, nbytes)
 
+<<<<<<< HEAD
         with self.assertRaises(ValueError):
             torch._C._accelerator_setAllocatorSettings("foo:1,bar:2")
 
@@ -4636,6 +4971,37 @@ print(torch.cuda.get_allocator_backend())
         rc = check_output(test_script)
         self.assertEqual(rc, "cudaMallocAsync")
 
+=======
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings("foo:1,bar:2")
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings(
+                "garbage_collection_threshold:1.2"
+            )
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings("max_split_size_mb:2")
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings("release_lock_on_cudamalloc:none")
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings(
+                "pinned_use_cuda_host_register:none"
+            )
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings(
+                "pinned_num_register_threads:none"
+            )
+
+        with self.assertRaises(RuntimeError):
+            torch.cuda.memory._set_allocator_settings(
+                "pinned_num_register_threads:1024"
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cachingAllocator_raw_alloc(self):
         # Test that raw_alloc respects the setting that
         # activates/deactivates the caching allocator
@@ -5458,7 +5824,10 @@ class TestMemPool(TestCase):
         segments = torch.cuda.memory._snapshot()["segments"]
         self.assertTrue(len(segments) > 0, "expected more than one segment")
 
+<<<<<<< HEAD
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mempool_empty_cache_inactive(self):
         torch.cuda.empty_cache()
         allocator, dummy_allocator = self.get_dummy_allocator(check_vars=True)
@@ -5543,7 +5912,11 @@ class TestMemPool(TestCase):
             out_2 = torch.randn(nelem_1mb, device="cuda")
 
             # pool now should have 2 segments since the CUDACachingAllocator had
+<<<<<<< HEAD
             # to make a new 2 MB buffer to accommodate out_2
+=======
+            # to make a new 2 MB buffer to accomodate out_2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(len(pool.snapshot()), 2)
 
         self.assertEqual(len(pool.snapshot()), 2)
@@ -5674,6 +6047,7 @@ class TestMemPool(TestCase):
             s = p.snapshot()
             self.assertEqual(len(s), 1, "Expected to have a single segment")
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
@@ -5817,6 +6191,8 @@ class TestMemPool(TestCase):
             "graph_capture_record_stream_reuse:False"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfRocm(msg="expandable_segments mode is not supported on ROCm")
     @unittest.skipIf(IS_FBCODE or IS_SANDCASTLE, "Load_inline doesn't work in fbcode")
     def test_mempool_expandable(self):
@@ -5831,7 +6207,10 @@ class TestMemPool(TestCase):
                 out_0 = torch.randn(nelem_1mb, device="cuda")
         torch.cuda.memory._set_allocator_settings("expandable_segments:False")
 
+<<<<<<< HEAD
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mempool_ctx_multithread(self):
         torch.cuda.empty_cache()
         segments = torch.cuda.memory._snapshot()["segments"]
@@ -6751,7 +7130,10 @@ class TestCudaAutocast(TestAutocast):
                 for grad, grad_control in zip(grads, grads_control):
                     self.assertEqual(grad.half(), grad_control)
 
+<<<<<<< HEAD
     @serialTest()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_autocast_cache_leak(self):
         # Reported at https://github.com/pytorch/pytorch/issues/48049
         # Test is used to check, if autocast recaches the same parameters
@@ -6766,7 +7148,11 @@ class TestCudaAutocast(TestAutocast):
                 first_iter_mem = torch.cuda.memory_allocated()
                 for _ in range(3):
                     out = linear(data)
+<<<<<<< HEAD
                 self.assertEqual(first_iter_mem, torch.cuda.memory_allocated())
+=======
+                self.assertTrue(first_iter_mem == torch.cuda.memory_allocated())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_autocast_checkpointing(self):
         model = torch.nn.Sequential(
@@ -6790,11 +7176,22 @@ class TestCudaAutocast(TestAutocast):
             with torch.cuda.amp.autocast():
                 _ = torch.ones(10)
 
+<<<<<<< HEAD
 
 @unittest.skipIf(
     os.environ.get("USE_LEGACY_DRIVER", None) == "1", "Doesn't work with older driver"
 )
 class TestCompileKernel(TestCase):
+=======
+    def test_cuda_module_loading_env(self):
+        torch.cuda.init()
+        val = os.environ.get("CUDA_MODULE_LOADING", "")
+        self.assertEqual(val, "LAZY")
+
+
+class TestCompileKernel(TestCase):
+    @unittest.skipIf(TEST_WITH_ROCM, "ROCM does not support nvrtc")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel(self):
         # Simple vector addition kernel
@@ -6861,13 +7258,23 @@ class TestCompileKernel(TestCase):
         self.assertEqual(c_int, expected_int)
 
         # Test with header code
+<<<<<<< HEAD
         scale_kernel_source = """
+=======
+        header_code = """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #define SCALE_FACTOR 2.0f
 
         __device__ float scale_value(float val) {
             return val * SCALE_FACTOR;
         }
+<<<<<<< HEAD
 
+=======
+        """
+
+        scale_kernel_source = """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         __global__ void scale_tensors(const float* input, float* output, int n) {
             int i = threadIdx.x + blockIdx.x * blockDim.x;
             if (i < n)
@@ -6875,7 +7282,13 @@ class TestCompileKernel(TestCase):
         }
         """
 
+<<<<<<< HEAD
         scale_kernel = _compile_kernel(scale_kernel_source, "scale_tensors")
+=======
+        scale_kernel = _compile_kernel(
+            scale_kernel_source, "scale_tensors", header_code=header_code
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         input_tensor = torch.rand(N, device="cuda")
         output_tensor = torch.empty_like(input_tensor)
@@ -6900,6 +7313,7 @@ class TestCompileKernel(TestCase):
         with self.assertRaises(RuntimeError):
             _compile_kernel(invalid_kernel_source, "invalid_kernel")
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel_large_shared_memory(self):
         kernel_source = """
@@ -6971,6 +7385,10 @@ class TestCompileKernel(TestCase):
             kernel.set_shared_memory_config(excessive_shared_mem)
 
     @tf32_on_and_off(0.05 if TEST_WITH_ROCM else 0.005)
+=======
+    @tf32_on_and_off(0.005)
+    @unittest.skipIf(TEST_WITH_ROCM, "ROCM does not support nvrtc")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel_advanced(self):
         # Test matrix multiplication
@@ -7021,10 +7439,14 @@ class TestCompileKernel(TestCase):
 
         # Test with different compute capability if specified
         device_props = torch.cuda.get_device_properties(torch.cuda.current_device())
+<<<<<<< HEAD
         if not torch.version.hip:
             compute_cap = f"{device_props.major}{device_props.minor}"
         else:
             compute_cap = f"{device_props.gcnArchName}"
+=======
+        compute_cap = f"{device_props.major}{device_props.minor}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Recompile with explicit compute capability
         matmul_kernel_explicit = _compile_kernel(
@@ -7043,6 +7465,10 @@ class TestCompileKernel(TestCase):
         # Verify results
         self.assertEqual(C_explicit, expected)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(TEST_WITH_ROCM, "ROCM does not support nvrtc")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel_as_custom_op(self):
         # Define a simple vector addition kernel
@@ -7102,10 +7528,18 @@ class TestCompileKernel(TestCase):
         expected = a + b
         torch.testing.assert_close(result, expected, rtol=1e-5, atol=1e-5)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel_custom_op_validation(self):
         kernel_source = """
         __global__ void add_scalar(const float* input, float* output, double scalar, int n) {
+=======
+    @unittest.skipIf(TEST_WITH_ROCM, "ROCM does not support nvrtc")
+    @unittest.skipIf(not TEST_CUDA, "No CUDA")
+    def test_compile_kernel_custom_op_validation(self):
+        kernel_source = """
+        __global__ void add_scalar(const float* input, float* output, float scalar, int n) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             int idx = blockIdx.x * blockDim.x + threadIdx.x;
             if (idx < n) {
                 output[idx] = input[idx] + scalar;
@@ -7149,6 +7583,7 @@ class TestCompileKernel(TestCase):
         expected = input_data + scalar_val
         torch.testing.assert_close(result, expected, rtol=1e-5, atol=1e-5)
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel_double_precision(self):
         """Test that Python floats are correctly handled as doubles in kernels."""
@@ -7314,6 +7749,8 @@ class TestCompileKernel(TestCase):
         a_dlpack[0] = 42.0
         self.assertEqual(a[0].item(), 42.0, "DLPack tensors should share memory")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
 class TestCudaDeviceParametrized(TestCase):
@@ -7336,7 +7773,13 @@ class TestCudaDeviceParametrized(TestCase):
         """
         from torch.cuda import _compile_kernel
 
+<<<<<<< HEAD
         spin_wait_kernel = _compile_kernel(kernel_source, "wait_for_cpu")
+=======
+        spin_wait_kernel = _compile_kernel(
+            kernel_source, "wait_for_cpu", compute_capability="70"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.ones(4, device="cuda")
         x_cpu = torch.zeros(x.shape, device="cpu").pin_memory()
@@ -7396,7 +7839,11 @@ class TestCudaDeviceParametrized(TestCase):
 
             # This writes allows wait_for_cpu to proceed
             # This is an atomic store at system scope according to this rule:
+<<<<<<< HEAD
             # "the scope is thread_scope_system and it is a load or store that affects a naturally-aligned object of sizes 1, 2, 4, 8, or 16 bytes on mapped memory"  # noqa: B950
+=======
+            # "the scope is thread_scope_system and and it is a load or store that affects a naturally-aligned object of sizes 1, 2, 4, 8, or 16 bytes on mapped memory"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # https://nvidia.github.io/cccl/libcudacxx/extended_api/memory_model.html#atomicity
 
             # Note that every CPU store is implicitly system scope,

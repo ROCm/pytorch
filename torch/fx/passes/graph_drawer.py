@@ -437,14 +437,21 @@ if HAS_PYDOT:
                         )
                     current_graph = buf_name_to_subgraph.get(buf_name)  # type: ignore[assignment]
 
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 current_graph.add_node(dot_node)
 
                 def get_module_params_or_buffers():
                     for pname, ptensor in chain(
+<<<<<<< HEAD
                         leaf_module.named_parameters(),
                         # pyrefly: ignore [bad-argument-type]
                         leaf_module.named_buffers(),
+=======
+                        leaf_module.named_parameters(), leaf_module.named_buffers()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         pname1 = node.name + "." + pname
                         label1 = (

@@ -16,11 +16,14 @@ from typing import NamedTuple
 
 
 IS_WINDOWS: bool = os.name == "nt"
+<<<<<<< HEAD
 MAX_FILE_SIZE: int = 1024 * 1024 * 1024  # 1GB in bytes
 MAX_MATCHES_PER_FILE: int = 100  # Maximum number of matches to report per file
 MAX_ORIGINAL_SIZE: int = (
     512 * 1024
 )  # 512KB - don't compute replacement if original is larger
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LintSeverity(str, Enum):
@@ -30,10 +33,13 @@ class LintSeverity(str, Enum):
     DISABLED = "disabled"
 
 
+<<<<<<< HEAD
 LINTER_NAME: str = ""
 ERROR_DESCRIPTION: str | None = None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LintMessage(NamedTuple):
     path: str | None
     line: int | None
@@ -65,6 +71,7 @@ def run_command(
         logging.debug("took %dms", (end_time - start_time) * 1000)
 
 
+<<<<<<< HEAD
 def print_lint_message(
     name: str,
     severity: LintSeverity = LintSeverity.ERROR,
@@ -202,6 +209,34 @@ def lint_file(
         except Exception as err:
             print_lint_message(
                 name="command-failed",
+=======
+def lint_file(
+    matching_line: str,
+    allowlist_pattern: str,
+    replace_pattern: str,
+    linter_name: str,
+    error_name: str,
+    error_description: str,
+) -> LintMessage | None:
+    # matching_line looks like:
+    #   tools/linter/clangtidy_linter.py:13:import foo.bar.baz
+    split = matching_line.split(":")
+    filename = split[0]
+
+    if allowlist_pattern:
+        try:
+            proc = run_command(["grep", "-nEHI", allowlist_pattern, filename])
+        except Exception as err:
+            return LintMessage(
+                path=None,
+                line=None,
+                char=None,
+                code=linter_name,
+                severity=LintSeverity.ERROR,
+                name="command-failed",
+                original=None,
+                replacement=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 description=(
                     f"Failed due to {err.__class__.__name__}:\n{err}"
                     if not isinstance(err, subprocess.CalledProcessError)
@@ -218,6 +253,7 @@ def lint_file(
                     )
                 ),
             )
+<<<<<<< HEAD
             return
 
         print_lint_message(
@@ -248,6 +284,60 @@ def lint_file(
                 name="too-many-matches",
                 description=f"File has {total_matches} matches, only showing first {MAX_MATCHES_PER_FILE}",
             )
+=======
+
+        # allowlist pattern was found, abort lint
+        if proc.returncode == 0:
+            return None
+
+    original = None
+    replacement = None
+    if replace_pattern:
+        with open(filename) as f:
+            original = f.read()
+
+        try:
+            proc = run_command(["sed", "-r", replace_pattern, filename])
+            replacement = proc.stdout.decode("utf-8")
+        except Exception as err:
+            return LintMessage(
+                path=None,
+                line=None,
+                char=None,
+                code=linter_name,
+                severity=LintSeverity.ERROR,
+                name="command-failed",
+                original=None,
+                replacement=None,
+                description=(
+                    f"Failed due to {err.__class__.__name__}:\n{err}"
+                    if not isinstance(err, subprocess.CalledProcessError)
+                    else (
+                        "COMMAND (exit code {returncode})\n"
+                        "{command}\n\n"
+                        "STDERR\n{stderr}\n\n"
+                        "STDOUT\n{stdout}"
+                    ).format(
+                        returncode=err.returncode,
+                        command=" ".join(as_posix(x) for x in err.cmd),
+                        stderr=err.stderr.decode("utf-8").strip() or "(empty)",
+                        stdout=err.stdout.decode("utf-8").strip() or "(empty)",
+                    )
+                ),
+            )
+
+    return LintMessage(
+        path=split[0],
+        line=int(split[1]) if len(split) > 1 else None,
+        char=None,
+        code=linter_name,
+        severity=LintSeverity.ERROR,
+        name=error_name,
+        original=original,
+        replacement=replacement,
+        description=error_description,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def main() -> None:
@@ -301,6 +391,7 @@ def main() -> None:
         nargs="+",
         help="paths to lint",
     )
+<<<<<<< HEAD
 
     # Check for duplicate arguments before parsing
     seen_args = set()
@@ -319,6 +410,10 @@ def main() -> None:
     LINTER_NAME = args.linter_name
     ERROR_DESCRIPTION = args.error_description
 
+=======
+    args = parser.parse_args()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     logging.basicConfig(
         format="<%(threadName)s:%(levelname)s> %(message)s",
         level=logging.NOTSET
@@ -329,6 +424,7 @@ def main() -> None:
         stream=sys.stderr,
     )
 
+<<<<<<< HEAD
     # Filter out files that are too large before running grep
     filtered_filenames = []
     for filename in args.filenames:
@@ -354,6 +450,8 @@ def main() -> None:
     if not filtered_filenames:
         return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     files_with_matches = []
     if args.match_first_only:
         files_with_matches = ["--files-with-matches"]
@@ -362,23 +460,46 @@ def main() -> None:
     try:
         # Split the grep command into multiple batches to avoid hitting the
         # command line length limit of ~1M on my machine
+<<<<<<< HEAD
         arg_length = sum(len(x) for x in filtered_filenames)
         batches = arg_length // 750000 + 1
         batch_size = len(filtered_filenames) // batches
         for i in range(0, len(filtered_filenames), batch_size):
+=======
+        arg_length = sum(len(x) for x in args.filenames)
+        batches = arg_length // 750000 + 1
+        batch_size = len(args.filenames) // batches
+        for i in range(0, len(args.filenames), batch_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             proc = run_command(
                 [
                     "grep",
                     "-nEHI",
                     *files_with_matches,
                     args.pattern,
+<<<<<<< HEAD
                     *filtered_filenames[i : i + batch_size],
+=======
+                    *args.filenames[i : i + batch_size],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
             )
             lines.extend(proc.stdout.decode().splitlines())
     except Exception as err:
+<<<<<<< HEAD
         print_lint_message(
             name="command-failed",
+=======
+        err_msg = LintMessage(
+            path=None,
+            line=None,
+            char=None,
+            code=args.linter_name,
+            severity=LintSeverity.ERROR,
+            name="command-failed",
+            original=None,
+            replacement=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             description=(
                 f"Failed due to {err.__class__.__name__}:\n{err}"
                 if not isinstance(err, subprocess.CalledProcessError)
@@ -395,6 +516,7 @@ def main() -> None:
                 )
             ),
         )
+<<<<<<< HEAD
         sys.exit(0)
 
     # Group lines by file to call lint_file once per file
@@ -408,6 +530,22 @@ def main() -> None:
             args.replace_pattern,
             args.error_name,
         )
+=======
+        print(json.dumps(err_msg._asdict()), flush=True)
+        sys.exit(0)
+
+    for line in lines:
+        lint_message = lint_file(
+            line,
+            args.allowlist_pattern,
+            args.replace_pattern,
+            args.linter_name,
+            args.error_name,
+            args.error_description,
+        )
+        if lint_message is not None:
+            print(json.dumps(lint_message._asdict()), flush=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":

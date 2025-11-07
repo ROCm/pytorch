@@ -52,7 +52,11 @@ class Interval:
 
 
 class EventKey:
+<<<<<<< HEAD
     def __init__(self, event) -> None:
+=======
+    def __init__(self, event):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.event = event
 
     def __hash__(self):
@@ -61,7 +65,11 @@ class EventKey:
     def __eq__(self, other):
         return self.event.id == other.event.id
 
+<<<<<<< HEAD
     def __repr__(self) -> str:
+=======
+    def __repr__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return f"{self.event.name}"
 
     def intervals_overlap(self, intervals: list[Interval]):
@@ -98,7 +106,11 @@ class EventKey:
 
 
 class BasicEvaluation:
+<<<<<<< HEAD
     def __init__(self, prof: profile) -> None:
+=======
+    def __init__(self, prof: profile):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.profile = prof
         self.metrics: dict[EventKey, EventMetrics] = {}
         self.compute_self_time()
@@ -110,7 +122,11 @@ class BasicEvaluation:
         self.queue_depth_list = self.compute_queue_depth()
         self.compute_idle_time()
 
+<<<<<<< HEAD
     def compute_self_time(self) -> None:
+=======
+    def compute_self_time(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Computes event's self time(total time - time in child ops).
         """
@@ -124,9 +140,15 @@ class BasicEvaluation:
             for child_event in curr_event.children:
                 self_time -= child_event.duration_time_ns
                 stack.append(child_event)
+<<<<<<< HEAD
             assert EventKey(curr_event) not in self.metrics, (
                 f"Duplicate id: {curr_event.id}, {curr_event.name}"
             )
+=======
+            assert (
+                EventKey(curr_event) not in self.metrics
+            ), f"Duplicate id: {curr_event.id}, {curr_event.name}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.metrics[EventKey(curr_event)] = EventMetrics(self_time_ns=self_time)
             self.metrics[
                 EventKey(curr_event)
@@ -142,6 +164,7 @@ class BasicEvaluation:
         cuda_event_list = self.profile.kineto_results.events()
 
         def is_cuda_launch_kernel(e):
+<<<<<<< HEAD
             """Check if the event is a CUDA launch kernel."""
             launch_patterns = {
                 "cudaLaunchKernel",  # Standard CUDA
@@ -165,6 +188,14 @@ class BasicEvaluation:
             exclude_patterns = {"mem", "cpy", "alloc", "free"}
 
             return not any(pattern in name for pattern in exclude_patterns)
+=======
+            # TODO: find a better way to identify cudaLaunchKernel
+            return e.name == "cudaLaunchKernel"
+
+        def is_cuda_kernel(e):
+            # TODO: find a better way to identify CUDA Kernel
+            return e.device_type() == DeviceType.CUDA and "mem" not in e.name.lower()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cuda_launch_events = sorted(
             (e for e in cuda_event_list if is_cuda_launch_kernel(e)),
@@ -211,7 +242,10 @@ class BasicEvaluation:
             # Find latest cuda kernel event
             if hasattr(event, "start_us"):
                 start_time = event.start_us() * 1000
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 end_time = (event.start_us() + event.duration_us()) * 1000
                 # Find current spawned cuda kernel event
                 if event in kernel_mapping and kernel_mapping[event] is not None:
@@ -228,7 +262,12 @@ class BasicEvaluation:
 
             while (
                 current_kernel_index < len(cuda_kernel_events)
+<<<<<<< HEAD
                 and (cuda_kernel_events[current_kernel_index].start_ns()) <= start_time  # type: ignore[possibly-undefined]
+=======
+                and (cuda_kernel_events[current_kernel_index].start_ns())
+                <= start_time  # type: ignore[possibly-undefined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 current_kernel_index += 1
             current_queue_depth = spawned_kernel_index - current_kernel_index + 1
@@ -243,7 +282,11 @@ class BasicEvaluation:
 
         return queue_depth_list
 
+<<<<<<< HEAD
     def compute_idle_time(self) -> None:
+=======
+    def compute_idle_time(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Computes idle time of the profile.
         """
@@ -352,11 +395,19 @@ class BasicEvaluation:
 
         output += "\n".join(
             [
+<<<<<<< HEAD
                 f"""{"-" * 80}
 Event:                {event}
 Source code location: {source_code_location(event.event)}
 Percentage idle time: {self.metrics[event].fraction_idle_time * 100:.2f}%
 {"-" * 80}"""
+=======
+                f"""{'-' * 80}
+Event:                {event}
+Source code location: {source_code_location(event.event)}
+Percentage idle time: {self.metrics[event].fraction_idle_time * 100:.2f}%
+{'-' * 80}"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for event in event_list
             ]
         )
@@ -395,7 +446,11 @@ def source_code_location(event):
 # https://github.com/pytorch/pytorch/issues/75504
 # TODO(dberard) - deprecate / remove workaround for CUDA >= 12, when
 # we stop supporting older CUDA versions.
+<<<<<<< HEAD
 def _init_for_cuda_graphs() -> None:
+=======
+def _init_for_cuda_graphs():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.autograd.profiler import profile
 
     with profile():

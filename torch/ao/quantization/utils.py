@@ -4,12 +4,19 @@ Utils shared by different modes of quantization (eager/graph)
 """
 
 import functools
+<<<<<<< HEAD
 import sys
 import warnings
 from collections import OrderedDict
 from collections.abc import Callable
 from inspect import getfullargspec, signature
 from typing import Any, Optional, Union
+=======
+import warnings
+from collections import OrderedDict
+from inspect import getfullargspec, signature
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.ao.quantization.quant_type import QuantType
@@ -17,6 +24,7 @@ from torch.fx import Node
 from torch.nn.utils.parametrize import is_parametrized
 
 
+<<<<<<< HEAD
 if sys.version_info < (3, 12):
     NodePattern = Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
     NodePattern.__module__ = "torch.ao.quantization.utils"
@@ -27,6 +35,10 @@ else:
         "NodePattern", Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
     )
 
+=======
+NodePattern = Union[tuple[Node, Node], tuple[Node, tuple[Node, Node]], Any]
+NodePattern.__module__ = "torch.ao.quantization.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # This is the Quantizer class instance from torch/quantization/fx/quantize.py.
 # Define separately to prevent circular imports.
@@ -38,6 +50,7 @@ QuantizerCls = Any
 # Type for fusion patterns, it can be more complicated than the following actually,
 # see pattern.md for docs
 # TODO: not sure if typing supports recursive data types
+<<<<<<< HEAD
 
 if sys.version_info < (3, 12):
     Pattern = Union[
@@ -59,6 +72,12 @@ else:
             Any,
         ],
     )
+=======
+Pattern = Union[
+    Callable, tuple[Callable, Callable], tuple[Callable, tuple[Callable, Callable]], Any
+]
+Pattern.__module__ = "torch.ao.quantization.utils"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: maybe rename this to MatchInputNode
@@ -427,8 +446,12 @@ def check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
     if min_val.numel() == 0 or max_val.numel() == 0:
         warnings.warn(
             "must run observer before calling calculate_qparams. "
+<<<<<<< HEAD
             + "Returning default values.",
             stacklevel=2,
+=======
+            + "Returning default values."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return False
 
@@ -436,8 +459,12 @@ def check_min_max_valid(min_val: torch.Tensor, max_val: torch.Tensor) -> bool:
         if min_val == float("inf") and max_val == float("-inf"):
             warnings.warn(
                 "must run observer before calling calculate_qparams. "
+<<<<<<< HEAD
                 + "Returning default values.",
                 stacklevel=2,
+=======
+                + "Returning default values."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             return False
@@ -504,9 +531,15 @@ def calculate_qmin_qmax(
                 quant_min, quant_max = 0, 255
         elif dtype in [torch.qint32, torch.int32]:
             quant_min, quant_max = -1 * (2**31), (2**31) - 1
+<<<<<<< HEAD
         elif dtype == torch.uint16:
             quant_min, quant_max = 0, 2**16 - 1
         elif dtype == torch.int16:
+=======
+        elif dtype in [torch.uint16]:
+            quant_min, quant_max = 0, 2**16 - 1
+        elif dtype in [torch.int16]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             quant_min, quant_max = -(2**15), 2**15 - 1
         else:
             quant_min, quant_max = 0, 15
@@ -645,7 +678,11 @@ def validate_qmin_qmax(quant_min: int, quant_max: int) -> None:
 
 # Functionally equivalent to '_calculate_qparams' in observer.py. Observers must be torchscriptable however and qscheme
 # as far as I can tell is not allowed to passed as a parameter in torchscript functions. This makes refactoring observer
+<<<<<<< HEAD
 # to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code seems unlikely to change
+=======
+# to use this utility a massive pain and very gross. For now Im opting just to duplicate as this code seems unlikey to change
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # (last update over 1 year ago) and when torchscript is fully deprecated we can refactor. TODO(jakeszwe, jerryzh168)
 def determine_qparams(
     min_val: torch.Tensor,
@@ -808,8 +845,12 @@ def _assert_and_get_unique_device(module: torch.nn.Module) -> Any:
     """
     if {torch.device("cpu"), torch.device("meta")} == devices:
         warnings.warn(
+<<<<<<< HEAD
             "Both 'meta' and 'cpu' are present in the list of devices. Module can have one device. We Select 'cpu'.",
             stacklevel=2,
+=======
+            "Both 'meta' and 'cpu' are present in the list of devices. Module can have one device. We Select 'cpu'."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         devices = {torch.device("cpu")}
     ""

@@ -104,6 +104,7 @@ Tensor empty_strided_unknown_quantized(
 
 // Provide better error message if dtype is wrong
 Tensor empty_affine_quantized_other_backends_stub(
+<<<<<<< HEAD
     IntArrayRef /*unused*/,
     std::optional<ScalarType> /*unused*/,
     std::optional<Layout> /*unused*/,
@@ -112,10 +113,21 @@ Tensor empty_affine_quantized_other_backends_stub(
     double /*unused*/,
     int64_t /*unused*/,
     std::optional<c10::MemoryFormat> /*unused*/) {
+=======
+    IntArrayRef,
+    std::optional<ScalarType>,
+    std::optional<Layout>,
+    std::optional<Device>,
+    std::optional<bool>,
+    double,
+    int64_t,
+    std::optional<c10::MemoryFormat>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "Creation of quantized tensor requires quantized dtype like torch.quint8");
 }
 
 Tensor empty_per_channel_affine_quantized_other_backends_stub(
+<<<<<<< HEAD
     IntArrayRef /*unused*/,
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
@@ -125,6 +137,17 @@ Tensor empty_per_channel_affine_quantized_other_backends_stub(
     std::optional<Device> /*unused*/,
     std::optional<bool> /*unused*/,
     std::optional<c10::MemoryFormat> /*unused*/) {
+=======
+    IntArrayRef,
+    const Tensor&,
+    const Tensor&,
+    int64_t,
+    std::optional<ScalarType>,
+    std::optional<Layout>,
+    std::optional<Device>,
+    std::optional<bool>,
+    std::optional<c10::MemoryFormat>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "Creation of quantized tensor requires quantized dtype like torch.quint8");
 }
 

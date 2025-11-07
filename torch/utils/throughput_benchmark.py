@@ -5,8 +5,12 @@ import torch._C
 
 def format_time(time_us=None, time_ms=None, time_s=None):
     """Define time formatting."""
+<<<<<<< HEAD
     if sum([time_us is not None, time_ms is not None, time_s is not None]) != 1:
         raise AssertionError("Expected only one of time_us, time_ms, time_s is given.")
+=======
+    assert sum([time_us is not None, time_ms is not None, time_s is not None]) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     US_IN_SECOND = 1e6
     US_IN_MS = 1e3

@@ -3,7 +3,10 @@
 #include <ATen/Config.h>
 #include <ATen/Parallel.h>
 #include <ATen/TensorOperators.h>
+<<<<<<< HEAD
 #include <ATen/native/CanUse32BitIndexMath.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/ConvolutionMM3d.h>
 #include <ATen/native/ConvUtils.h>
 #include <ATen/native/Pool.h>
@@ -14,7 +17,10 @@
 #include <c10/util/accumulate.h>
 #include <c10/util/irange.h>
 #include <c10/macros/Macros.h>
+<<<<<<< HEAD
 #include <algorithm>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <limits>
 #include <utility>
 
@@ -32,6 +38,13 @@
 #include <ATen/native/mkldnn/Utils.h>
 #endif
 
+<<<<<<< HEAD
+=======
+#ifdef USE_MPS
+#include <ATen/mps/MPSDevice.h>
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
 #include <ATen/NativeFunctions.h>
@@ -297,6 +310,7 @@ struct ConvParams {
   bool allow_tf32{};
 
   bool is_strided() const {
+<<<<<<< HEAD
     return std::any_of(
       stride.cbegin(), stride.cend(), [](const T& s) { return s != 1; });
   }
@@ -341,6 +355,69 @@ struct ConvParams {
   bool is_stride_nonpos() const {
     return std::any_of(
       stride.cbegin(), stride.cend(), [](const T& s) { return s <= 0; });
+=======
+    bool is_strided = false;
+    for (const auto& s : stride) {
+      is_strided |= (s != 1);
+    }
+    return is_strided;
+  }
+
+  bool is_dilated() const {
+    bool is_dilated = false;
+    for (const auto& d : dilation) {
+      is_dilated |= (d != 1);
+    }
+    return is_dilated;
+  }
+
+  bool is_padded() const {
+    bool is_padded = false;
+    for (auto p : padding) {
+      is_padded |= (p != 0);
+    }
+    return is_padded;
+  }
+
+  bool is_output_padding_neg() const {
+    bool is_non_neg = false;
+    for (const auto& p : output_padding) {
+      is_non_neg |= (p < 0);
+    }
+    return is_non_neg;
+  }
+
+  bool is_output_padding_big() const {
+    bool is_big = false;
+    for (auto i: c10::irange(output_padding.size())) {
+      is_big |= (output_padding[i] >= stride[i]);
+    }
+    return is_big;
+  }
+
+  bool is_padding_neg() const {
+    bool is_non_neg = false;
+    for (const auto& p : padding) {
+      is_non_neg |= (p < 0);
+    }
+    return is_non_neg;
+  }
+
+  bool is_dilation_neg() const {
+    bool is_non_neg = false;
+    for (const auto& p : dilation) {
+      is_non_neg |= (p < 0);
+    }
+    return is_non_neg;
+  }
+
+  bool is_stride_nonpos() const {
+    bool is_nonpos = false;
+    for (const auto& s : stride) {
+      is_nonpos |= (s <= 0);
+    }
+    return is_nonpos;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void view1d_as_2d() {
@@ -406,6 +483,7 @@ struct ConvParams {
   // cudnn and miopen are guaranteed not to be on mobile, and T102591915 / T110194934 suggest
   // that maybe the compiledWithCuDNN() check sometimes segfaults (though I can't imagine how)
 #if !defined(C10_MOBILE)
+<<<<<<< HEAD
     if (!detail::getCUDAHooks().compiledWithCuDNN() || !input.is_cuda() || !cudnn_enabled) {
       return false;
     }
@@ -423,6 +501,13 @@ struct ConvParams {
       }
     }
     if (needs_64bit_indexing_no_split(input, weight)) {
+=======
+    if (!detail::getCUDAHooks().compiledWithCuDNN()) {
+      return false;
+    }
+    if (needs_64bit_indexing_no_split(input, weight)) {
+      static long cudnn_version = detail::getCUDAHooks().versionCuDNN();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!(cudnn_version >= 90300 && at::native::cudnnv8_enabled_check_debug())) {
         TORCH_WARN_ONCE("cuDNN cannot be used for large non-batch-splittable convolutions"
                         " if the V8 API is not enabled or before cuDNN version 9.3+."
@@ -430,6 +515,12 @@ struct ConvParams {
         return false;
       }
     }
+<<<<<<< HEAD
+=======
+    if (!input.is_cuda() || !cudnn_enabled) {
+      return false;
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (input.scalar_type() == at::kBFloat16 || weight.scalar_type() == at::kBFloat16) {
       if (!(detail::getCUDAHooks().supportsBFloat16ConvolutionWithCuDNNv8() && at::native::cudnnv8_enabled_check_debug())) {
         return false;
@@ -448,6 +539,7 @@ struct ConvParams {
 
   // Use cudnn for FP16 depthwise convolutions
   bool use_cudnn_depthwise(const at::Tensor& input, const at::Tensor& weight) const  {
+<<<<<<< HEAD
     if (!cudnn_enabled || !detail::getCUDAHooks().compiledWithCuDNN() || !input.is_cuda()) {
       return false;
     }
@@ -461,6 +553,18 @@ struct ConvParams {
         }
       }
 
+=======
+    if (!detail::getCUDAHooks().compiledWithCuDNN()) {
+      return false;
+    }
+    if (cudnn_conv_suggest_memory_format(input, weight) != at::MemoryFormat::Contiguous && use_cudnn(input, weight)) {
+      // always use cudnn_depthwise for channels_last format
+      return true;
+    }
+    // native kernel doesn't support 64-bit non-splittable case
+    if (cudnn_enabled && needs_64bit_indexing_no_split(input, weight)) {
+      static long cudnn_version = detail::getCUDAHooks().compiledWithCuDNN() ? detail::getCUDAHooks().versionCuDNN() : -1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!(cudnn_version >= 90300 && at::native::cudnnv8_enabled_check_debug())) {
         TORCH_WARN_ONCE("cuDNN cannot be used for large non-batch-splittable convolutions"
                         " if the V8 API is not enabled or before cuDNN version 9.3+."
@@ -470,10 +574,13 @@ struct ConvParams {
         return true;
       }
     }
+<<<<<<< HEAD
     if (cudnn_conv_suggest_memory_format(input, weight) != at::MemoryFormat::Contiguous) {
       // always use cudnn_depthwise for channels_last format
       return true;
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (detail::getCUDAHooks().supportsDepthwiseConvolutionWithCuDNN()) {
       bool kernel_cond =  (use_cudnn(input, weight) &&
                            input.scalar_type() == kHalf && // only for FP16
@@ -658,7 +765,10 @@ static void check_shape_forward(const at::Tensor& input,
   TORCH_CHECK(!params.is_output_padding_neg(), "negative output_padding is not supported");
   TORCH_CHECK(!params.is_stride_nonpos(), "non-positive stride is not supported");
   TORCH_CHECK(!params.is_dilation_neg(), "dilation should be greater than zero");
+<<<<<<< HEAD
   TORCH_CHECK(groups > 0, "expected groups to be greater than 0, but got groups=", groups);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TORCH_CHECK(weight_dim == k,
            "Expected ", weight_dim, "-dimensional input for ", weight_dim,
@@ -689,10 +799,13 @@ static void check_shape_forward(const at::Tensor& input,
              ", but got bias of size ", at::symint::sizes<T>(bias), " instead");
 
     for (const auto i : c10::irange(2, k)) {
+<<<<<<< HEAD
       // T could be int64_t or SymInt, Specialized numeric_limts<SymInt> in c10/core/SymInt.h
       TORCH_CHECK(padding[i-2] <= (std::numeric_limits<T>::max() - padding[i-2]),
                   "Given padding=", padding[i-2], " at dimension ", i-2, " , expected padding to be at most ",
                   (std::numeric_limits<T>::max() / 2));
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       input_shape.push_back(at::symint::size<T>(input, i) + 2 * padding[i-2]);
       // log new kernel size considering dilation
       kernel_shape.push_back(dilation[i-2] * (weight_sizes[i]-1) + 1);
@@ -707,7 +820,11 @@ static void check_shape_forward(const at::Tensor& input,
       // If kernel size is incorrect
       std::ostringstream input_ss;
       std::ostringstream kernel_ss;
+<<<<<<< HEAD
       std::string separator;
+=======
+      std::string separator = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       for (int i = 0, len = input_shape.size(); i < len; ++i) {
         input_ss << separator << input_shape[i];
@@ -719,11 +836,14 @@ static void check_shape_forward(const at::Tensor& input,
                "Kernel size: (", kernel_ss.str(), "). Kernel size can't be greater than actual input size");
     }
   } else { // transposed
+<<<<<<< HEAD
     for (const auto i : c10::irange(2, k)) {
       TORCH_CHECK(padding[i-2] <= (std::numeric_limits<T>::max() - padding[i-2]),
                   "Given padding=", padding[i-2], " at dimension ", i-2, " , expected padding to be at most ",
                   (std::numeric_limits<T>::max() / 2));
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(at::symint::size<T>(input, 1) == weight_sizes[0],
              "Given transposed=", transposed, ", weight of size ", weight_sizes,
              ", expected input", at::symint::sizes<T>(input), " to have ", weight_sizes[0],
@@ -1029,7 +1149,11 @@ static Tensor convolution_same(
 
   if (symmetric_padding) {
     // All backends handle symmetric padding natively
+<<<<<<< HEAD
     SymDimVector output_padding(dim);
+=======
+    SymDimVector output_padding(static_cast<size_t>(dim));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return at::convolution_symint(input, weight, bias, stride, padding_l, dilation,
                                false, output_padding, groups);
   }
@@ -1049,7 +1173,11 @@ static Tensor convolution_same(
     }
   }
   auto padded_input = at::constant_pad_nd_symint(input, pad_nd, 0);
+<<<<<<< HEAD
   SymDimVector output_padding(dim);
+=======
+  SymDimVector output_padding(static_cast<size_t>(dim));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return at::convolution_symint(padded_input, weight, bias, stride, padding_l,
                                 dilation, false, output_padding, groups);
 }
@@ -1184,7 +1312,11 @@ at::Tensor convolution(
   bool deterministic = ctx.deterministicCuDNN() || ctx.deterministicAlgorithms();
   return at::_convolution(input, weight, bias, stride, padding, dilation,
                           transposed, output_padding, groups,
+<<<<<<< HEAD
                           ctx.benchmarkCuDNN(), deterministic, ctx.userEnabledCuDNN(), ctx.allowTF32CuDNN(at::Float32Op::CONV));
+=======
+                          ctx.benchmarkCuDNN(), deterministic, ctx.userEnabledCuDNN(), ctx.allowTF32CuDNN());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 at::Tensor convolution_overrideable(
@@ -1329,7 +1461,11 @@ ConvBackend select_conv_backend(
   params.benchmark = ctx.benchmarkCuDNN();
   params.deterministic = ctx.deterministicCuDNN() || ctx.deterministicAlgorithms();
   params.cudnn_enabled = ctx.userEnabledCuDNN();
+<<<<<<< HEAD
   params.allow_tf32 = ctx.allowTF32CuDNN(at::Float32Op::CONV);
+=======
+  params.allow_tf32 = ctx.allowTF32CuDNN();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto input = input_r;
   auto weight = weight_r;
@@ -1451,8 +1587,17 @@ static inline at::MemoryFormat determine_backend_memory_format(
       }
       break;
     case ConvBackend::Mps:
+<<<<<<< HEAD
     case ConvBackend::MpsTranspose:
       if (mps_conv_use_channels_last(input, weight)) {
+=======
+      if (mps_conv_use_channels_last(input, weight)) {
+#ifdef USE_MPS
+        if (!mps::is_macos_13_or_newer(mps::MacOSVersion::MACOS_VER_15_0_PLUS)) {
+          break;
+        }
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         backend_memory_format = (k == 5) ? MemoryFormat::ChannelsLast3d : MemoryFormat::ChannelsLast;
       }
       break;
@@ -1709,7 +1854,11 @@ at::Tensor _convolution(
   c10::MaybeOwned<Tensor> bias_r_maybe_owned = at::borrow_from_optional_tensor(bias_r_opt);
   const Tensor& bias_r = *bias_r_maybe_owned;
 
+<<<<<<< HEAD
   return at::_convolution(input_r, weight_r, bias_r, stride_, padding_, dilation_, transposed_, output_padding_, groups_, benchmark, deterministic, cudnn_enabled, at::globalContext().allowTF32CuDNN(at::Float32Op::CONV));
+=======
+  return at::_convolution(input_r, weight_r, bias_r, stride_, padding_, dilation_, transposed_, output_padding_, groups_, benchmark, deterministic, cudnn_enabled, at::globalContext().allowTF32CuDNN());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::tuple<Tensor, Tensor, Tensor> convolution_backward_overrideable(
@@ -2007,7 +2156,11 @@ std::tuple<Tensor, Tensor, Tensor> convolution_backward(
   params.benchmark = ctx.benchmarkCuDNN();
   params.deterministic = ctx.deterministicCuDNN() || ctx.deterministicAlgorithms();
   params.cudnn_enabled = ctx.userEnabledCuDNN();
+<<<<<<< HEAD
   params.allow_tf32 = ctx.allowTF32CuDNN(at::Float32Op::CONV);
+=======
+  params.allow_tf32 = ctx.allowTF32CuDNN();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Validate inputs.
   check_shape_backward(input, weight.sizes(), params);

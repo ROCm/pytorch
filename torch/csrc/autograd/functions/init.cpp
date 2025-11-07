@@ -49,7 +49,11 @@ struct UndefinedGradCtor {
 
 struct NoCtor {
   Node* operator()(PyObject* args) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Cannot construct");
+=======
+    throw std::runtime_error("Cannot construct");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 

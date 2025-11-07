@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """Testing utilities for Dynamo, providing a specialized TestCase class and test running functionality.
 
 This module extends PyTorch's testing framework with Dynamo-specific testing capabilities.
@@ -16,12 +21,19 @@ import os
 import re
 import sys
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Union
 
 import torch
 import torch.testing
 from torch._dynamo import polyfills
+=======
+from typing import Union
+
+import torch
+import torch.testing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging._internal import trace_log
 from torch.testing._internal.common_utils import (  # type: ignore[attr-defined]
     IS_WINDOWS,
@@ -102,6 +114,7 @@ class TestCase(TorchTestCase):
             log.warning("Running test changed grad mode")
             torch.set_grad_enabled(self._prior_is_grad_enabled)
 
+<<<<<<< HEAD
     def assertEqual(self, x: Any, y: Any, *args: Any, **kwargs: Any) -> None:  # type: ignore[override]
         if (
             config.debug_disable_compile_counter
@@ -127,6 +140,8 @@ class TestCaseWithNestedGraphBreaks(TestCase):
         # pyrefly: ignore [bad-assignment]
         torch._dynamo.config.nested_graph_breaks = self.prev_nested_graph_breaks
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CPythonTestCase(TestCase):
     """
@@ -161,6 +176,7 @@ class CPythonTestCase(TestCase):
     assertRegex = unittest.TestCase.assertRegex
     assertNotRegex = unittest.TestCase.assertNotRegex
     assertCountEqual = unittest.TestCase.assertCountEqual
+<<<<<<< HEAD
     assertMultiLineEqual = polyfills.assert_multi_line_equal
     assertSequenceEqual = polyfills.assert_sequence_equal
     assertListEqual = unittest.TestCase.assertListEqual
@@ -170,6 +186,15 @@ class CPythonTestCase(TestCase):
     # pyrefly: ignore [bad-override]
     assertRaises = unittest.TestCase.assertRaises
     # pyrefly: ignore [bad-override]
+=======
+    assertMultiLineEqual = unittest.TestCase.assertMultiLineEqual
+    assertSequenceEqual = unittest.TestCase.assertSequenceEqual
+    assertListEqual = unittest.TestCase.assertListEqual
+    assertTupleEqual = unittest.TestCase.assertTupleEqual
+    assertSetEqual = unittest.TestCase.assertSetEqual
+    assertDictEqual = unittest.TestCase.assertDictEqual
+    assertRaises = unittest.TestCase.assertRaises
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assertRaisesRegex = unittest.TestCase.assertRaisesRegex
     assertWarns = unittest.TestCase.assertWarns
     assertWarnsRegex = unittest.TestCase.assertWarnsRegex
@@ -177,6 +202,7 @@ class CPythonTestCase(TestCase):
     fail = unittest.TestCase.fail
     failureException = unittest.TestCase.failureException
 
+<<<<<<< HEAD
     def compile_fn(
         self,
         fn: Callable[..., Any],
@@ -193,6 +219,17 @@ class CPythonTestCase(TestCase):
         return fn
 
     def _dynamo_test_key(self) -> str:
+=======
+    def compile_fn(self, fn, backend, nopython):
+        # We want to compile only the test function, excluding any setup code
+        # from unittest
+        method = getattr(self, self._testMethodName)
+        method = torch._dynamo.optimize(backend, nopython=nopython)(method)
+        setattr(self, self._testMethodName, method)
+        return fn
+
+    def _dynamo_test_key(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         suffix = super()._dynamo_test_key()
         test_cls = self.__class__
         test_file = inspect.getfile(test_cls).split(os.sep)[-1].split(".")[0]

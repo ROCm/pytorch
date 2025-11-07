@@ -64,7 +64,11 @@ class TestMetricsContext(TestCase):
 
     def test_update_disallow_overwrite(self):
         """
+<<<<<<< HEAD
         Validate update won't overwrite.
+=======
+        Validate update won't overwite.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         with MetricsContext(self._on_exit) as context:
             context.update({"m1": 1, "m2": 2})
@@ -73,7 +77,11 @@ class TestMetricsContext(TestCase):
 
     def test_update_allow_overwrite(self):
         """
+<<<<<<< HEAD
         Validate update will overwrite when given param.
+=======
+        Validate update will overwite when given param.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         with MetricsContext(self._on_exit) as context:
             context.update({"m1": 1, "m2": 2})

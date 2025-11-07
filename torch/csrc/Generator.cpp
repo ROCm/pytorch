@@ -21,7 +21,11 @@ using namespace torch;
 PyObject* THPGeneratorClass = nullptr;
 
 PyObject* THPGenerator_initDefaultGenerator(const at::Generator& cdata) {
+<<<<<<< HEAD
   auto type = reinterpret_cast<PyTypeObject*>(THPGeneratorClass);
+=======
+  auto type = (PyTypeObject*)THPGeneratorClass;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{type->tp_alloc(type, 0)};
   if (!self)
     throw python_error();
@@ -49,8 +53,12 @@ static PyObject* THPGenerator_pynew(
   auto r = parser.parse(args, kwargs, parsed_args);
   auto device = r.deviceWithDefault(0, at::Device(at::kCPU));
 
+<<<<<<< HEAD
   THPGeneratorPtr self(
       reinterpret_cast<THPGenerator*>(type->tp_alloc(type, 0)));
+=======
+  THPGeneratorPtr self((THPGenerator*)type->tp_alloc(type, 0));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   c10::DeviceType device_type = device.type();
   if (device_type == at::kCPU) {
@@ -61,14 +69,22 @@ static PyObject* THPGenerator_pynew(
                       .getNewGenerator(device.index());
   }
 
+<<<<<<< HEAD
   return reinterpret_cast<PyObject*>(self.release());
+=======
+  return (PyObject*)self.release();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPGenerator_getState(PyObject* _self, PyObject* noargs) {
   using namespace torch::autograd;
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto& gen = (reinterpret_cast<THPGenerator*>(_self))->cdata;
+=======
+  auto& gen = ((THPGenerator*)_self)->cdata;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // See Note [Acquire lock when using random generators]
   std::scoped_lock<std::mutex> lock(gen.mutex());
@@ -83,6 +99,7 @@ static PyObject* THPGenerator_setState(PyObject* _self, PyObject* _new_state) {
 
   HANDLE_TH_ERRORS
   if (!THPVariable_Check(_new_state)) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
@@ -90,6 +107,13 @@ static PyObject* THPGenerator_setState(PyObject* _self, PyObject* _new_state) {
             Py_TYPE(_new_state)->tp_name));
   }
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+    throw torch::TypeError(
+        "expected a torch.ByteTensor, but got %s",
+        Py_TYPE(_new_state)->tp_name);
+  }
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& gen = self->cdata;
   const auto& new_state_tensor = THPVariable_Unpack(_new_state);
 
@@ -98,7 +122,11 @@ static PyObject* THPGenerator_setState(PyObject* _self, PyObject* _new_state) {
   gen.set_state(new_state_tensor);
 
   Py_INCREF(self);
+<<<<<<< HEAD
   return reinterpret_cast<PyObject*>(self);
+=======
+  return (PyObject*)self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -126,7 +154,11 @@ static PyObject* THPGenerator_graphSafeGetState(
     PyObject* _self,
     PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto& gen = (reinterpret_cast<THPGenerator*>(_self))->cdata;
+=======
+  auto& gen = ((THPGenerator*)_self)->cdata;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // See Note [Acquire lock when using random generators]
   std::scoped_lock<std::mutex> lock(gen.mutex());
@@ -139,7 +171,11 @@ static PyObject* THPGenerator_graphSafeSetState(
     PyObject* _self,
     PyObject* _state) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& gen = self->cdata;
 
   // See Note [Acquire lock when using random generators]
@@ -147,13 +183,21 @@ static PyObject* THPGenerator_graphSafeSetState(
   gen.graphsafe_set_state(THPGenerator_Unwrap(_state));
 
   Py_INCREF(self);
+<<<<<<< HEAD
   return reinterpret_cast<PyObject*>(self);
+=======
+  return (PyObject*)self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPGenerator_cloneState(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto& gen = (reinterpret_cast<THPGenerator*>(_self))->cdata;
+=======
+  auto& gen = ((THPGenerator*)_self)->cdata;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // See Note [Acquire lock when using random generators]
   std::scoped_lock<std::mutex> lock(gen.mutex());
@@ -164,7 +208,11 @@ static PyObject* THPGenerator_cloneState(PyObject* _self, PyObject* noargs) {
 
 static PyObject* THPGenerator_manualSeed(PyObject* _self, PyObject* seed) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto generator = self->cdata;
   TORCH_CHECK(
       THPUtils_checkLong(seed),
@@ -176,13 +224,21 @@ static PyObject* THPGenerator_manualSeed(PyObject* _self, PyObject* seed) {
   std::scoped_lock<std::mutex> lock(generator.mutex());
   generator.set_current_seed(unsigned_seed);
   Py_INCREF(self);
+<<<<<<< HEAD
   return reinterpret_cast<PyObject*>(self);
+=======
+  return (PyObject*)self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPGenerator_setOffset(PyObject* _self, PyObject* offset) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto generator = self->cdata;
   TORCH_CHECK(
       THPUtils_checkLong(offset),
@@ -194,14 +250,22 @@ static PyObject* THPGenerator_setOffset(PyObject* _self, PyObject* offset) {
   std::scoped_lock<std::mutex> lock(generator.mutex());
   generator.set_offset(unsigned_offset);
   Py_INCREF(self);
+<<<<<<< HEAD
   return reinterpret_cast<PyObject*>(self);
+=======
+  return (PyObject*)self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPGenerator_seed(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
   // See Note [Acquire lock when using random generators]
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::scoped_lock<std::mutex> lock(self->cdata.mutex());
   uint64_t seed_val = self->cdata.seed();
   return THPUtils_packUInt64(seed_val);
@@ -210,14 +274,22 @@ static PyObject* THPGenerator_seed(PyObject* _self, PyObject* noargs) {
 
 static PyObject* THPGenerator_initialSeed(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_packUInt64(self->cdata.current_seed());
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPGenerator_getOffset(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_packUInt64(self->cdata.get_offset());
   END_HANDLE_TH_ERRORS
 }
@@ -230,7 +302,11 @@ static PyObject* THPGenerator_get_device(THPGenerator* self, void* unused) {
 
 static PyObject* THPGenerator_reduce(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPGenerator*>(_self);
+=======
+  auto self = (THPGenerator*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& gen = self->cdata;
 
   auto ret = THPObjectPtr{PyTuple_New(3)};
@@ -280,11 +356,15 @@ static PyObject* THPGenerator_pickleSetState(PyObject* _self, PyObject* state) {
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
 static struct PyGetSetDef THPGenerator_properties[] = {
+<<<<<<< HEAD
     {"device",
      reinterpret_cast<getter>(THPGenerator_get_device),
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"device", (getter)THPGenerator_get_device, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays,cppcoreguidelines-avoid-non-const-global-variables)
@@ -354,12 +434,20 @@ static PyTypeObject THPGeneratorType = {
 };
 
 bool THPGenerator_init(PyObject* module) {
+<<<<<<< HEAD
   THPGeneratorClass = reinterpret_cast<PyObject*>(&THPGeneratorType);
   if (PyType_Ready(&THPGeneratorType) < 0)
     return false;
   Py_INCREF(&THPGeneratorType);
   PyModule_AddObject(
       module, "Generator", reinterpret_cast<PyObject*>(&THPGeneratorType));
+=======
+  THPGeneratorClass = (PyObject*)&THPGeneratorType;
+  if (PyType_Ready(&THPGeneratorType) < 0)
+    return false;
+  Py_INCREF(&THPGeneratorType);
+  PyModule_AddObject(module, "Generator", (PyObject*)&THPGeneratorType);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return true;
 }
 
@@ -383,16 +471,25 @@ PyObject* THPGenerator_Wrap(const Generator& gen) {
     return obj;
   }
 
+<<<<<<< HEAD
   return THPGenerator_NewWithVar(
       reinterpret_cast<PyTypeObject*>(THPGeneratorClass), gen);
+=======
+  return THPGenerator_NewWithVar((PyTypeObject*)THPGeneratorClass, gen);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 at::Generator THPGenerator_Unwrap(PyObject* state) {
   if (!Py_IS_TYPE(state, &THPGeneratorType)) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
             "expected a Generator, but got {}", Py_TYPE(state)->tp_name));
+=======
+    throw torch::TypeError(
+        "expected a Generator, but got %s", Py_TYPE(state)->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return reinterpret_cast<THPGenerator*>(state)->cdata;
 }
@@ -402,7 +499,11 @@ at::Generator THPGenerator_Unwrap(PyObject* state) {
 PyObject* THPGenerator_NewWithVar(PyTypeObject* type, Generator gen) {
   PyObject* obj = type->tp_alloc(type, 0);
   if (obj) {
+<<<<<<< HEAD
     auto g = reinterpret_cast<THPGenerator*>(obj);
+=======
+    auto g = (THPGenerator*)obj;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new (&g->cdata) Generator(std::move(gen));
     set_pyobj(g->cdata, obj);
   }

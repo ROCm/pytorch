@@ -2,6 +2,7 @@
 
 # ruff: noqa: TRY002
 
+<<<<<<< HEAD
 import enum
 import itertools
 import operator
@@ -9,6 +10,13 @@ import types
 import unittest
 import weakref
 from collections import defaultdict, namedtuple, OrderedDict, UserDict
+=======
+import itertools
+import types
+import unittest
+import weakref
+from collections import defaultdict, namedtuple, OrderedDict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import Any
 
 import torch
@@ -19,6 +27,7 @@ import torch.nn
 import torch.utils.checkpoint
 from torch._dynamo.testing import same
 from torch._dynamo.utils import dict_items
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     make_dynamo_test,
@@ -26,16 +35,21 @@ from torch.testing._internal.common_utils import (
     parametrize,
 )
 from torch.testing._internal.logging_utils import LoggingTestCase, make_logging_test
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SimpleDict(dict):
     pass
 
 
+<<<<<<< HEAD
 class DummyUserDict(UserDict):
     pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DictTests(torch._dynamo.test_case.TestCase):
     def test_dict_subclass_instantiation(self):
         def fn(x):
@@ -57,6 +71,7 @@ class DictTests(torch._dynamo.test_case.TestCase):
         opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
         self.assertEqual(fn(x), opt_fn(x))
 
+<<<<<<< HEAD
     def test_dict_contains_enum(self):
         class TensorDim(str, enum.Enum):
             DDP = "ddp"
@@ -81,6 +96,8 @@ class DictTests(torch._dynamo.test_case.TestCase):
         opt_f = torch.compile(mod)
         self.assertEqual(mod(inp), opt_f(inp))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dict_subclass_local_with_non_dict_method(self):
         # Checks that add_1 method is inlined
         class MethodDict(dict):
@@ -817,6 +834,7 @@ class DictTests(torch._dynamo.test_case.TestCase):
         x = torch.randn(4)
         self.assertEqual(fn(x), opt_fn(x))
 
+<<<<<<< HEAD
     def test_construct_user_dict_and_return(self):
         def fn(x):
             return DummyUserDict({"a": x + 1})
@@ -828,6 +846,8 @@ class DictTests(torch._dynamo.test_case.TestCase):
         opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
         self.assertEqual(res["a"], opt_fn(x)["a"])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fn_id(self):
         def fn(x, f):
             d = {id(f): 3}
@@ -947,7 +967,11 @@ class DictTests(torch._dynamo.test_case.TestCase):
 
         def fn(x):
             # Dynamo should not cause a graph break here because it knows that
+<<<<<<< HEAD
             # the existing proxy can't point to this new dict
+=======
+            # the existing proxy cant point to this new dict
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             other_dict = {}
             other_dict["d"] = 4
             y = torch.sin(x * mp["c"])
@@ -971,6 +995,7 @@ class DictTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(["b", "c", "a"], list(opt_fn(x).keys()))
         self.assertEqual(fn(x), opt_fn(x))
 
+<<<<<<< HEAD
     def test_mapping_proxy_ban_muation_on_dict_realization(self):
         def fn(x):
             class Foo:
@@ -990,6 +1015,8 @@ class DictTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(ref, res)
         self.assertEqual(foo1.bar, foo2.bar)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_overridden_get_item(self):
         class MyDict(dict):
             def __init__(self, *args, **kwargs):
@@ -1039,10 +1066,19 @@ class DictTests(torch._dynamo.test_case.TestCase):
             a = {"one": torch.ones(1)}
             return a | b
 
+<<<<<<< HEAD
         from torch._dynamo.exc import Unsupported
 
         for arg in args:
             with self.assertRaisesRegex(Unsupported, "Observed exception"):
+=======
+        from torch._dynamo.exc import InternalTorchDynamoError
+
+        for arg in args:
+            with self.assertRaisesRegex(
+                InternalTorchDynamoError, "unsupported operand type"
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _ = fn(arg)
 
     def test_builtin_or_with_diff_keys(self):
@@ -1076,9 +1112,13 @@ class DictTests(torch._dynamo.test_case.TestCase):
     def test_newly_constructed_default_dict(self):
         def f(x):
             d = defaultdict(list)
+<<<<<<< HEAD
             d[0] = [
                 42,
             ]
+=======
+            d[0] = 42
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return x + 1, d
 
         x = torch.ones(2)
@@ -1087,6 +1127,7 @@ class DictTests(torch._dynamo.test_case.TestCase):
 
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     @unittest.expectedFailure
     def test_newly_constructed_default_dict_with_dict(self):
         def f(x):
@@ -1728,6 +1769,8 @@ class OrderedDictSubclassOverload(torch._dynamo.test_case.TestCase):
         p.move_to_end("a")
         self.assertEqual(list(p.keys()), list("bc"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

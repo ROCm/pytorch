@@ -183,14 +183,20 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
         )
         self.act_mapping = act_mapping
         self.gemm_grouped_num = gemm_grouped_num
+<<<<<<< HEAD
         # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.output_node: list[ir.Buffer] = [
             ir.Buffer(name="buf_out" + str(idx), layout=layout)
             for idx in range(gemm_grouped_num)
         ]
 
     @classmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def add_choices(
         cls,
         choices: list[ChoiceCaller],
@@ -233,7 +239,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
                 if isinstance(inputs[idx], torch.Tensor):
                     W = inputs[idx]
                     assert isinstance(W, torch.Tensor), "W must be a torch.Tensor"
+<<<<<<< HEAD
                     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     new_inputs[idx] = W.to_dense() if W.is_mkldnn else W
             return new_inputs, layout_or_out
 
@@ -249,10 +258,15 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
                 new_input = new_inputs[wgt_idx]
                 new_inputs[wgt_idx] = transpose_w(new_input, trans_w)
             for bias_idx in range(bias_start_idx, len(new_inputs)):
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 new_bias = expand_bias(new_inputs[bias_idx], X)
                 assert new_bias is not None
                 # pyrefly: ignore [unsupported-operation]
+=======
+                new_bias = expand_bias(new_inputs[bias_idx], X)
+                assert new_bias is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_inputs[bias_idx] = new_bias
             return new_inputs, layout_or_out
 
@@ -313,7 +327,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
                 W_tensor = []
                 for W_node in W_nodes:
                     assert W_node.get_name() in V.graph.constants
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     W_tensor.append(V.graph.constants[W_node.get_name()])
                 new_input_nodes[wgt_start_idx : wgt_start_idx + gemm_grouped_num] = (
                     W_tensor  # type: ignore[assignment]
@@ -330,7 +347,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
                     template_buffer.inputs[idx] = (
                         ir.InputsKernel.unwrap_storage_for_input(W_packed_constant)
                     )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return output
 
         template = DataProcessorTemplateWrapper(
@@ -369,7 +389,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
         cur_idx = bias_start_idx
         for inp_idx in range(self.gemm_grouped_num):
             inp = None
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if self.has_bias[inp_idx]:
                 inp = self.input_nodes[cur_idx]
                 cur_idx += 1
@@ -398,7 +421,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
             self.n,
             self.k,
             input_dtype=X_list[0].get_dtype(),
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             input2_dtype=W_list[0].get_dtype(),
             output_dtype=output_dtype,
             compute_dtype=compute_dtype,
@@ -436,7 +462,10 @@ class CppGroupedGemmTemplate(CppGemmTemplate):
         for x_idx in range(wgt_start_idx):
             kernel_args["X" + str(x_idx)] = act_deduplicated[x_idx]
         for w_idx in range(self.gemm_grouped_num):
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             kernel_args["W" + str(w_idx)] = W_list[w_idx]
         for inp_idx in range(self.gemm_grouped_num):
             kernel_args["inp" + str(inp_idx)] = inp_list[inp_idx]

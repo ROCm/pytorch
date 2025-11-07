@@ -76,7 +76,11 @@ class CudaTimer : public Timer {
     if (milliseconds < 0) {
       return std::nullopt;
     }
+<<<<<<< HEAD
     return static_cast<int64_t>(milliseconds * kMilliSecondToNanosSecond);
+=======
+    return int64_t(milliseconds * kMilliSecondToNanosSecond);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 

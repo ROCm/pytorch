@@ -112,7 +112,10 @@ class FileLinter:
         first_results = None
         original = replacement = pf.contents
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         while True:
             try:
                 results = sorted(self._lint(pf), key=LintResult.sort_key)

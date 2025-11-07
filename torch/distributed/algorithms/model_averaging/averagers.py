@@ -101,8 +101,12 @@ class PeriodicModelAverager(ModelAverager):
                 "When period is 1, no need to use model averaging because the communication cost "
                 "of all-reducing parameters will be no less than the cost of all-reducing gradients "
                 "by DistributedDataParallel in the backward pass. Therefore, only "
+<<<<<<< HEAD
                 "DistributedDataParallel should be used for this case.",
                 stacklevel=2,
+=======
+                "DistributedDataParallel should be used for this case."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         self.period = period
 

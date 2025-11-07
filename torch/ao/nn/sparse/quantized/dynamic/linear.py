@@ -140,7 +140,11 @@ class Linear(torch.nn.Module):
 
         We only care about the convert at this stage, no need for observers just yet.
         """
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             " nnq."
             + cls.__name__
             + ".from_float only works for "
@@ -149,11 +153,17 @@ class Linear(torch.nn.Module):
         # TODO: Need to add options to qconfig to avoid the calibration.
         # TODO: Add calibration for the sparsity
         assert hasattr(mod, "qconfig"), "Input float module must have qconfig defined"
+<<<<<<< HEAD
         if type(mod) is nni.LinearReLU:
             mod = mod[0]
         # pyrefly: ignore [missing-attribute]
         if mod.qconfig is not None and mod.qconfig.weight is not None:
             # pyrefly: ignore [not-callable]
+=======
+        if type(mod) == nni.LinearReLU:
+            mod = mod[0]
+        if mod.qconfig is not None and mod.qconfig.weight is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             weight_observer = mod.qconfig.weight()
         else:
             # We have the circular import issues if we import the qconfig in the beginning of this file:
@@ -187,6 +197,9 @@ class Linear(torch.nn.Module):
             col_block_size,
             dtype=dtype,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         qlinear.set_weight_bias(qweight, mod.bias, row_block_size, col_block_size)
         return qlinear

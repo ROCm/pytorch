@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["module: sparse"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import itertools
 import re
@@ -291,7 +295,11 @@ class TestWeightNormSparsifier(TestCase):
             assert hasattr(module.parametrizations["weight"][0], "mask")
             # Check parametrization exists and is correct
             assert is_parametrized(module, "weight")
+<<<<<<< HEAD
             assert type(module.parametrizations.weight[0]) is FakeSparsity
+=======
+            assert type(module.parametrizations.weight[0]) == FakeSparsity
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_mask_squash(self):
         model = SimpleLinear()
@@ -415,7 +423,11 @@ class TestNearlyDiagonalSparsifier(TestCase):
             assert hasattr(module.parametrizations["weight"][0], "mask")
             # Check parametrization exists and is correct
             assert is_parametrized(module, "weight")
+<<<<<<< HEAD
             assert type(module.parametrizations.weight[0]) is FakeSparsity
+=======
+            assert type(module.parametrizations.weight[0]) == FakeSparsity
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_mask_squash(self):
         model = SimpleLinear()
@@ -472,8 +484,13 @@ class TestNearlyDiagonalSparsifier(TestCase):
         else:
             height, width = mask.shape
             dist_to_diagonal = nearliness // 2
+<<<<<<< HEAD
             for row in range(height):
                 for col in range(width):
+=======
+            for row in range(0, height):
+                for col in range(0, width):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if abs(row - col) <= dist_to_diagonal:
                         assert mask[row, col] == 1
                     else:

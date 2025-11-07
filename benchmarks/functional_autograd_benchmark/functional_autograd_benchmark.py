@@ -1,8 +1,12 @@
 import time
 from argparse import ArgumentParser
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, NamedTuple
+=======
+from typing import Any, Callable, NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.autograd import functional

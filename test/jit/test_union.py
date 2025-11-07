@@ -396,7 +396,13 @@ class TestUnion(JitTestCase):
 
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "only int, float, complex, Tensor, device and string keys are supported",
+=======
+            "only int, float, "
+            "complex, Tensor, device and string keys "
+            "are supported",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             torch.jit.script(fn)
 
@@ -600,7 +606,13 @@ class TestUnion(JitTestCase):
 
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "y is set to type str in the true branch and type int in the false branch",
+=======
+            "y is set to type str"
+            " in the true branch and type int "
+            "in the false branch",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             torch.jit.script(fn)
 
@@ -618,7 +630,13 @@ class TestUnion(JitTestCase):
 
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "previously had type str but is now being assigned to a value of type int",
+=======
+            "previously had type "
+            "str but is now being assigned to a"
+            " value of type int",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             torch.jit.script(fn)
 
@@ -723,7 +741,12 @@ class TestUnion(JitTestCase):
             template,
             "Union[List[str], List[torch.Tensor]]",
             lhs["list_literal_empty"],
+<<<<<<< HEAD
             "there are multiple possible List type candidates in the Union annotation",
+=======
+            "there are multiple possible List type "
+            "candidates in the Union annotation",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self._assert_passes(
@@ -895,7 +918,12 @@ class TestUnion(JitTestCase):
             template,
             "Union[Dict[str, torch.Tensor], Dict[str, int]]",
             lhs["dict_literal_of_mixed"],
+<<<<<<< HEAD
             "none of those dict types can hold the types of the given keys and values",
+=======
+            "none of those dict types can hold the "
+            "types of the given keys and values",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # TODO: String frontend does not support tuple unpacking

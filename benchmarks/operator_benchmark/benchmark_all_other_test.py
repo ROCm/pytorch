@@ -7,7 +7,10 @@ from pt import (  # noqa: F401
     binary_inplace_test,
     binary_test,
     bmm_test,
+<<<<<<< HEAD
     boolean_test,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cat_test,
     channel_shuffle_test,
     chunk_test,

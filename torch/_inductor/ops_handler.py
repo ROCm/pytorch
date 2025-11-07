@@ -19,7 +19,11 @@ from .utils import IndentedBuffer, reduction_num_outputs, sympy_index_symbol, sy
 
 
 T = TypeVar("T")
+<<<<<<< HEAD
 StoreMode = Optional[Literal["atomic_add", "tma"]]
+=======
+StoreMode = Optional[Literal["atomic_add"]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ReductionType = Literal[
     "argmax",
     "argmin",
@@ -30,9 +34,13 @@ ReductionType = Literal[
     "min",
     "prod",
     "sum",
+<<<<<<< HEAD
     "dot",
     "xor_sum",
     "online_softmax_reduce",
+=======
+    "xor_sum",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -288,6 +296,7 @@ class OpsHandler(Generic[T]):
         # See [Note: Inductor bucketize op]
         raise NotImplementedError
 
+<<<<<<< HEAD
     def partial_accumulate(
         self,
         name: str,
@@ -296,6 +305,8 @@ class OpsHandler(Generic[T]):
     ) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     # The following ops have semantics that correspond exactly to the torch
     # operation with the same corresponding name.
@@ -696,10 +707,13 @@ class OpsHandler(Generic[T]):
         raise NotImplementedError
 
     # triton-only
+<<<<<<< HEAD
     def dot(self, x: T, y: T) -> T:
         raise NotImplementedError
 
     # triton-only
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def inline_asm_elementwise(
         self,
         *inputs: T,
@@ -719,9 +733,12 @@ class OpsHandler(Generic[T]):
         """This is a fake op used in analysis but not codegen"""
         raise NotImplementedError
 
+<<<<<<< HEAD
     def device_assert_async(self, cond: T, msg: str) -> T:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _ignore_op_re = re.compile(r"_.*|paren").fullmatch
 
@@ -1162,8 +1179,11 @@ class SimpleCSEHandler(WrapperHandler):
         val = getattr(self._inner, name)(*args, **kwargs)
         self.cse_cache[key] = val
         return val
+<<<<<<< HEAD
 
     def device_assert_async(self, *args, **kwargs) -> None:
         raise NotImplementedError(
             f"{type(self).__name__}: device_assert_async should be handled by CSEProxy"
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -9,15 +9,22 @@ ops = get_schedule_ops("InterleavedZeroBubble", 4, 8)
 visualize_schedule(ops, "test.png")
 """
 
+<<<<<<< HEAD
 import collections
 from typing import NamedTuple, Optional, Union
+=======
+from typing import Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest import mock
 
 from torch.distributed.pipelining.schedules import (
     _Action,
     _ComputationType,
     _PipelineSchedule,
+<<<<<<< HEAD
     _PipelineScheduleRuntime,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_schedule_class,
     PipelineScheduleMulti,
     PipelineScheduleSingle,
@@ -25,6 +32,7 @@ from torch.distributed.pipelining.schedules import (
 from torch.distributed.pipelining.stage import PipelineStage
 
 
+<<<<<<< HEAD
 class OpKey(NamedTuple):
     stage_index: int
     computation_type: _ComputationType
@@ -38,6 +46,13 @@ def get_schedule_ops(
     num_stages_per_rank: Optional[int] = None,
     add_spacing: bool = False,
     with_comms: bool = False,
+=======
+def get_schedule_ops(
+    schedule: Union[str, _PipelineSchedule],
+    pp_degree: int,
+    num_microbatches: int,
+    num_stages_per_rank: Optional[int] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[list[Optional[_Action]]]:
     """
     Get all actions for a given schedule, pp_degree, and num_microbatches. The actions are returned in a list of lists
@@ -45,12 +60,19 @@ def get_schedule_ops(
 
     The schedule can be specified as a string which is passed into get_schedule_class() or a _PipelineSchedule instance.
     """
+<<<<<<< HEAD
     if add_spacing and with_comms:
         raise ValueError("Cannot add spacing and view comms at the same time")
 
     if isinstance(schedule, str):
         schedule_class = get_schedule_class(schedule)
     elif issubclass(schedule, _PipelineSchedule):
+=======
+
+    if isinstance(schedule, str):
+        schedule_class = get_schedule_class(schedule)
+    elif type(schedule) == _PipelineSchedule:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         schedule_class = schedule
     else:
         raise ValueError(f"Invalid schedule: {schedule}")
@@ -81,6 +103,7 @@ def get_schedule_ops(
         raise ValueError(f"Invalid schedule: {schedule_class}")
 
     # Instantiate the schedule class
+<<<<<<< HEAD
     # pyrefly: ignore [bad-instantiation, bad-argument-type]
     schedule_instance = schedule_class(stages, num_microbatches)
     assert schedule_instance.pipeline_order is not None
@@ -104,12 +127,24 @@ def get_schedule_ops(
             [action for action in rank if action is not None] for rank in all_actions
         ]
         all_actions = add_schedule_op_spacing(all_actions)
+=======
+    schedule_instance = schedule_class(stages, num_microbatches)
+
+    # Convert to List[List[_Action]]
+    all_actions = []
+    for rank in range(pp_degree):
+        all_actions.append(schedule_instance.pipeline_order[rank])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Return the pipeline order
     return all_actions
 
 
+<<<<<<< HEAD
 class _ComputationTypeVisual:
+=======
+class _ComputationTypeColor:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         color: str,
@@ -121,6 +156,7 @@ class _ComputationTypeVisual:
         self.text = text
 
 
+<<<<<<< HEAD
 # Update the mapping to use _ComputationTypeVisual instances
 action_type_to_color_mapping = {
     _ComputationType.FORWARD: _ComputationTypeVisual("blue", "Forward"),
@@ -333,18 +369,34 @@ def add_schedule_op_spacing(
 def visualize_schedule(
     schedule: list[list[Optional[_Action]]],
     filename: Optional[str] = None,
+=======
+# Update the mapping to use _ComputationTypeColor instances
+action_type_to_color_mapping = {
+    _ComputationType.FORWARD: _ComputationTypeColor("blue", "Forward"),
+    _ComputationType.BACKWARD_INPUT: _ComputationTypeColor("teal", "Backward Input"),
+    _ComputationType.BACKWARD_WEIGHT: _ComputationTypeColor("green", "Backward Weight"),
+    _ComputationType.FULL_BACKWARD: _ComputationTypeColor("orange", "Full Backward", 2),
+}
+
+
+def visualize_schedule(
+    schedule: list[list[Optional[_Action]]], filename: Optional[str] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     """
     Visualize the schedule using matplotlib.
     The schedule is a list of lists where each inner list represents a rank and each element in the inner list represents an action.
     The actions are represented as rectangles with different colors based on their computation type.
     The filename is optional and if provided, the plot will be saved to that file.
+<<<<<<< HEAD
 
     Args:
         schedule: The schedule to visualize.
         filename: The filename to save the plot to. If not provided, the plot will be displayed.
         add_schedule_spacing: If True, add spacing to the schedule based on dependencies between ranks.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     import matplotlib.pyplot as plt
@@ -367,11 +419,16 @@ def visualize_schedule(
         for action in actions:
             if action is not None:
                 comp_type_color = action_type_to_color_mapping.get(
+<<<<<<< HEAD
                     action.computation_type, _ComputationTypeVisual("black")
+=======
+                    action.computation_type, _ComputationTypeColor("black")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 used_computation.add(action.computation_type)
                 color = comp_type_color.color
                 width = comp_type_color.width
+<<<<<<< HEAD
 
                 # Check if action has sub_actions to determine styling
                 if action.sub_actions is not None:
@@ -381,6 +438,8 @@ def visualize_schedule(
                     linewidth = 1  # Default linewidth for regular actions
                     text_weight = "normal"  # Default text weight
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Draw the rectangle to represent the action duration
                 rect = Rectangle(
                     (draw_position, num_ranks - rank_idx - 1),
@@ -388,10 +447,15 @@ def visualize_schedule(
                     1,
                     facecolor=color,
                     edgecolor="black",
+<<<<<<< HEAD
                     linewidth=linewidth,
                 )
                 ax.add_patch(rect)
 
+=======
+                )
+                ax.add_patch(rect)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Draw the text centered within the rectangle
                 ax.text(
                     draw_position + width / 2,
@@ -401,9 +465,14 @@ def visualize_schedule(
                     va="center",
                     fontsize=font_size,
                     color="white",
+<<<<<<< HEAD
                     weight=text_weight,
                 )
 
+=======
+                )
+                # Increment the drawing position by the width of the current action
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 draw_position += width
             else:
                 draw_position += 1  # Move to the next

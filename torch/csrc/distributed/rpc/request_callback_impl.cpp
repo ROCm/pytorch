@@ -1,6 +1,9 @@
 #include <torch/csrc/distributed/rpc/request_callback_impl.h>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/profiler.h>
 #include <torch/csrc/distributed/autograd/context/container.h>
 #include <torch/csrc/distributed/autograd/context/context.h>
@@ -97,7 +100,11 @@ SerializedPyObj serializePyObject(IValue value) {
     std::string err_msg = e.what();
     e.restore();
     PyErr_Clear();
+<<<<<<< HEAD
     TORCH_CHECK(false, err_msg);
+=======
+    throw std::runtime_error(err_msg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

@@ -241,7 +241,11 @@ def wait_for_connection(addr, port, timeout=15, attempt_cnt=5):
         try:
             with socket.create_connection((addr, port), timeout=timeout):
                 return
+<<<<<<< HEAD
         except (ConnectionRefusedError, TimeoutError):  # noqa: PERF203
+=======
+        except (ConnectionRefusedError, socket.timeout):  # noqa: PERF203
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if i == attempt_cnt - 1:
                 raise
             time.sleep(timeout)
@@ -299,6 +303,43 @@ def install_condaforge_python(host: RemoteHost, python_version="3.8") -> None:
         )
 
 
+<<<<<<< HEAD
+=======
+def build_OpenBLAS(host: RemoteHost, git_clone_flags: str = "") -> None:
+    print("Building OpenBLAS")
+    host.run_cmd(
+        f"git clone https://github.com/xianyi/OpenBLAS -b v0.3.28 {git_clone_flags}"
+    )
+    make_flags = "NUM_THREADS=64 USE_OPENMP=1 NO_SHARED=1 DYNAMIC_ARCH=1 TARGET=ARMV8"
+    host.run_cmd(
+        f"pushd OpenBLAS && make {make_flags} -j8 && sudo make {make_flags} install && popd && rm -rf OpenBLAS"
+    )
+
+
+def build_ArmComputeLibrary(host: RemoteHost, git_clone_flags: str = "") -> None:
+    print("Building Arm Compute Library")
+    acl_build_flags = " ".join(
+        [
+            "debug=0",
+            "neon=1",
+            "opencl=0",
+            "os=linux",
+            "openmp=1",
+            "cppthreads=0",
+            "arch=armv8a",
+            "multi_isa=1",
+            "fixed_format_kernels=1",
+            "build=native",
+        ]
+    )
+    host.run_cmd(
+        f"git clone https://github.com/ARM-software/ComputeLibrary.git -b v25.02 {git_clone_flags}"
+    )
+
+    host.run_cmd(f"cd ComputeLibrary && scons Werror=1 -j8 {acl_build_flags}")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def embed_libgomp(host: RemoteHost, use_conda, wheel_name) -> None:
     host.run_cmd("pip3 install auditwheel")
     host.run_cmd(
@@ -404,11 +445,21 @@ def build_torchvision(
         )
         build_vars += f"BUILD_VERSION={version}.dev{build_date}"
     elif build_version is not None:
+<<<<<<< HEAD
         build_vars += f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-', maxsplit=1)[0]}"
     if host.using_docker():
         build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
 
     host.run_cmd(f"cd vision && {build_vars} python3 -m build --wheel --no-isolation")
+=======
+        build_vars += (
+            f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-')[0]}"
+        )
+    if host.using_docker():
+        build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
+
+    host.run_cmd(f"cd vision && {build_vars} python3 setup.py bdist_wheel")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     vision_wheel_name = host.list_dir("vision/dist")[0]
     embed_libgomp(host, use_conda, os.path.join("vision", "dist", vision_wheel_name))
 
@@ -459,11 +510,21 @@ def build_torchdata(
         )
         build_vars += f"BUILD_VERSION={version}.dev{build_date}"
     elif build_version is not None:
+<<<<<<< HEAD
         build_vars += f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-', maxsplit=1)[0]}"
     if host.using_docker():
         build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
 
     host.run_cmd(f"cd data && {build_vars} python3 -m build --wheel --no-isolation")
+=======
+        build_vars += (
+            f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-')[0]}"
+        )
+    if host.using_docker():
+        build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
+
+    host.run_cmd(f"cd data && {build_vars} python3 setup.py bdist_wheel")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wheel_name = host.list_dir("data/dist")[0]
     embed_libgomp(host, use_conda, os.path.join("data", "dist", wheel_name))
 
@@ -515,11 +576,21 @@ def build_torchtext(
         )
         build_vars += f"BUILD_VERSION={version}.dev{build_date}"
     elif build_version is not None:
+<<<<<<< HEAD
         build_vars += f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-', maxsplit=1)[0]}"
     if host.using_docker():
         build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
 
     host.run_cmd(f"cd text && {build_vars} python3 -m build --wheel --no-isolation")
+=======
+        build_vars += (
+            f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-')[0]}"
+        )
+    if host.using_docker():
+        build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
+
+    host.run_cmd(f"cd text && {build_vars} python3 setup.py bdist_wheel")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wheel_name = host.list_dir("text/dist")[0]
     embed_libgomp(host, use_conda, os.path.join("text", "dist", wheel_name))
 
@@ -573,14 +644,24 @@ def build_torchaudio(
         )
         build_vars += f"BUILD_VERSION={version}.dev{build_date}"
     elif build_version is not None:
+<<<<<<< HEAD
         build_vars += f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-', maxsplit=1)[0]}"
+=======
+        build_vars += (
+            f"BUILD_VERSION={build_version} PYTORCH_VERSION={branch[1:].split('-')[0]}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if host.using_docker():
         build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
 
     host.run_cmd(
         f"cd audio && export FFMPEG_ROOT=$(pwd)/third_party/ffmpeg && export USE_FFMPEG=1 \
         && ./packaging/ffmpeg/build.sh \
+<<<<<<< HEAD
         && {build_vars} python3 -m build --wheel --no-isolation"
+=======
+        && {build_vars} python3 setup.py bdist_wheel"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     wheel_name = host.list_dir("audio/dist")[0]
@@ -666,6 +747,10 @@ def start_build(
     configure_system(
         host, compiler=compiler, use_conda=use_conda, python_version=python_version
     )
+<<<<<<< HEAD
+=======
+    build_OpenBLAS(host, git_clone_flags)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if host.using_docker():
         print("Move libgfortant.a into a standard location")
@@ -688,12 +773,19 @@ def start_build(
         f"git clone --recurse-submodules -b {branch} https://github.com/pytorch/pytorch {git_clone_flags}"
     )
 
+<<<<<<< HEAD
     host.run_cmd("pytorch/.ci/docker/common/install_openblas.sh")
 
     print("Building PyTorch wheel")
     build_opts = ""
     if pytorch_build_number is not None:
         build_opts += f" -C--build-option=--build-number={pytorch_build_number}"
+=======
+    print("Building PyTorch wheel")
+    build_opts = ""
+    if pytorch_build_number is not None:
+        build_opts += f" --build-number {pytorch_build_number}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Breakpad build fails on aarch64
     build_vars = "USE_BREAKPAD=0 "
     if branch == "nightly":
@@ -710,6 +802,7 @@ def start_build(
     if host.using_docker():
         build_vars += " CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000"
     if enable_mkldnn:
+<<<<<<< HEAD
         host.run_cmd("pytorch/.ci/docker/common/install_acl.sh")
         print("build pytorch with mkldnn+acl backend")
         build_vars += " USE_MKLDNN=ON USE_MKLDNN_ACL=ON"
@@ -722,6 +815,17 @@ def start_build(
         print("Repair the wheel")
         pytorch_wheel_name = host.list_dir("pytorch/dist")[0]
         ld_library_path = "/acl/build:$HOME/pytorch/build/lib"
+=======
+        build_ArmComputeLibrary(host, git_clone_flags)
+        print("build pytorch with mkldnn+acl backend")
+        build_vars += " USE_MKLDNN=ON USE_MKLDNN_ACL=ON"
+        host.run_cmd(
+            f"cd $HOME/pytorch && export ACL_ROOT_DIR=$HOME/ComputeLibrary && {build_vars} python3 setup.py bdist_wheel{build_opts}"
+        )
+        print("Repair the wheel")
+        pytorch_wheel_name = host.list_dir("pytorch/dist")[0]
+        ld_library_path = "$HOME/acl/build:$HOME/pytorch/build/lib"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         host.run_cmd(
             f"export LD_LIBRARY_PATH={ld_library_path} && auditwheel repair $HOME/pytorch/dist/{pytorch_wheel_name}"
         )
@@ -733,7 +837,11 @@ def start_build(
     else:
         print("build pytorch without mkldnn backend")
         host.run_cmd(
+<<<<<<< HEAD
             f"cd pytorch && {build_vars} python3 -m build --wheel --no-isolation{build_opts}"
+=======
+            f"cd pytorch && {build_vars} python3 setup.py bdist_wheel{build_opts}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     print("Deleting build folder")
@@ -877,7 +985,11 @@ def terminate_instances(instance_type: str) -> None:
 def parse_arguments():
     from argparse import ArgumentParser
 
+<<<<<<< HEAD
     parser = ArgumentParser("Build and test AARCH64 wheels using EC2")
+=======
+    parser = ArgumentParser("Builid and test AARCH64 wheels using EC2")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     parser.add_argument("--key-name", type=str)
     parser.add_argument("--debug", action="store_true")
     parser.add_argument("--build-only", action="store_true")
@@ -974,7 +1086,11 @@ if __name__ == "__main__":
         install_condaforge_python(host, args.python_version)
         sys.exit(0)
 
+<<<<<<< HEAD
     python_version = args.python_version if args.python_version is not None else "3.10"
+=======
+    python_version = args.python_version if args.python_version is not None else "3.9"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if args.use_torch_from_pypi:
         configure_system(host, compiler=args.compiler, python_version=python_version)

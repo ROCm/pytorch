@@ -10,16 +10,26 @@ import random
 import re
 import tempfile
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
 from unittest import mock
+=======
+from typing import Callable, Optional
+from unittest import mock
+from unittest.mock import MagicMock
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import multiprocessing as mp, nn
 from torch._dynamo import reset
 from torch._dynamo.exc import BackendCompilerFailed
 from torch._dynamo.testing import rand_strided, reset_rng_state
+<<<<<<< HEAD
 from torch._dynamo.utils import counters, same
+=======
+from torch._dynamo.utils import same
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor import config
 from torch._inductor.autotune_process import (
     _TestBenchmarkRequest,
@@ -28,6 +38,7 @@ from torch._inductor.autotune_process import (
     TuningProcessPool,
 )
 from torch._inductor.graph import GraphLowering
+<<<<<<< HEAD
 from torch._inductor.ir import Buffer, ChoiceCaller, FixedLayout, FlexibleLayout
 from torch._inductor.kernel.mm_plus_mm import aten_mm_plus_mm
 from torch._inductor.select_algorithm import (
@@ -61,11 +72,35 @@ from torch.utils._triton import (
     has_triton_stable_tma_api,
     has_triton_tma_device,
 )
+=======
+from torch._inductor.ir import Buffer, ChoiceCaller, FixedLayout
+from torch._inductor.kernel.mm_plus_mm import aten_mm_plus_mm
+from torch._inductor.select_algorithm import (
+    AlgorithmSelectorCache,
+    TritonTemplate,
+    TritonTemplateCaller,
+)
+from torch._inductor.template_heuristics import CUDAConfigHeuristic, GemmConfig
+from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8
+from torch.testing._internal.common_device_type import largeTensorTest
+from torch.testing._internal.common_utils import (
+    instantiate_parametrized_tests,
+    IS_WINDOWS,
+    parametrize,
+    TEST_WITH_ROCM,
+    MI300_ARCH,
+    runOnRocmArch,
+    skipIfXpu,
+)
+from torch.testing._internal.logging_utils import multiple_logs_to_string
+from torch.utils._triton import has_triton_tma_device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 aten = torch.ops.aten
 from torch._inductor.mock_cache import global_stats, PatchCaches, Stats
 from torch._inductor.test_case import run_tests, TestCase
+<<<<<<< HEAD
 from torch._inductor.utils import (
     fresh_cache,
     get_k_splits,
@@ -76,18 +111,32 @@ from torch._inductor.virtualized import V
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.testing import FileCheck
 from torch.testing._internal.common_utils import MI300_ARCH, runOnRocmArch, skipIfXpu
+=======
+from torch._inductor.utils import fresh_cache, run_and_get_code
+from torch._inductor.virtualized import V
+from torch.fx.experimental.proxy_tensor import make_fx
+from torch.testing import FileCheck
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import (
     get_func_call,
     get_kernel_launch,
     GPU_TYPE,
     HAS_CPU,
+<<<<<<< HEAD
     HAS_CUDA_AND_TRITON,
+=======
+    HAS_CUDA,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     HAS_GPU,
 )
 
 
 torch.set_float32_matmul_precision("high")
+<<<<<<< HEAD
 if HAS_CUDA_AND_TRITON:
+=======
+if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.cuda.memory._set_allocator_settings("expandable_segments:False")
 
 
@@ -111,8 +160,12 @@ class FailChoiceCaller(ChoiceCaller):
 @instantiate_parametrized_tests
 class TestMaxAutotune(TestCase):
     @parametrize("dynamic", (False, True))
+<<<<<<< HEAD
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     def test_max_autotune_mm_plus_mm_zero_size_input(self, dynamic, search_space):
+=======
+    def test_max_autotune_mm_plus_mm_zero_size_input(self, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Make sure autotuning mm_plus_mm with zero-size input works without crashes.
         """
@@ -126,9 +179,13 @@ class TestMaxAutotune(TestCase):
         c = torch.randn(m, k).to(GPU_TYPE)
         d = torch.randn(k, n).to(GPU_TYPE)
 
+<<<<<<< HEAD
         with config.patch(
             {"max_autotune": True, "max_autotune_gemm_search_space": search_space}
         ):
+=======
+        with config.patch({"max_autotune": True}):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.compile(mm_plus_mm, dynamic=dynamic)(a, b, c, d)
 
     @unittest.skipIf(
@@ -137,13 +194,19 @@ class TestMaxAutotune(TestCase):
     @parametrize("a_transposed", (False, True))
     @parametrize("b_transposed", (False, True))
     @parametrize("dynamic", (False, True))
+<<<<<<< HEAD
     @parametrize("tma_store", (False, True))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_max_autotune_regular_mm_persistent_tma(
         self,
         a_transposed: bool,
         b_transposed: bool,
         dynamic: bool,
+<<<<<<< HEAD
         tma_store: bool,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def mm(a, b):
             # TMA requires 16-byte alignment: here we repeat the dims
@@ -160,6 +223,7 @@ class TestMaxAutotune(TestCase):
             return torch.mm(a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = (
             torch.randn(*((K, M) if a_transposed else (M, K)))
             .to(torch.float16)
@@ -170,11 +234,16 @@ class TestMaxAutotune(TestCase):
             .to(torch.float16)
             .to(GPU_TYPE)
         )
+=======
+        a = torch.randn(*((K, M) if a_transposed else (M, K))).to(torch.float16).cuda()
+        b = torch.randn(*((N, K) if b_transposed else (K, N))).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
                 "max_autotune": True,
                 "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                 "triton.native_matmul": False,
                 "triton.enable_template_tma_store": tma_store,
                 "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
@@ -205,11 +274,20 @@ class TestMaxAutotune(TestCase):
             read_api
         ).check(write_api).run(code[0])
 
+=======
+                "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
+            }
+        ):
+            c_actual = torch.compile(mm, dynamic=dynamic)(a, b)
+            c_expected = mm(a, b)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.testing.assert_close(c_actual, c_expected, atol=1e-2, rtol=1e-2)
 
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
+<<<<<<< HEAD
     @parametrize("a_transposed", (False, True))
     @parametrize("b_transposed", (False, True))
     @parametrize("dynamic", (False, True))
@@ -342,14 +420,21 @@ class TestMaxAutotune(TestCase):
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
     @skipIfXpu(msg="TMA path on Intel GPU not require this check")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("dynamic", (False, True))
     def test_max_autotune_regular_mm_persistent_tma_illegal_alignment(self, dynamic):
         def mm(a, b):
             return torch.mm(a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = torch.randn(M, K).to(torch.float16).to(GPU_TYPE)
         b = torch.randn(K, N).to(torch.float16).to(GPU_TYPE)
+=======
+        a = torch.randn(M, K).to(torch.float16).cuda()
+        b = torch.randn(K, N).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with (
             self.assertRaises(BackendCompilerFailed) as context,
@@ -357,7 +442,10 @@ class TestMaxAutotune(TestCase):
                 {
                     "max_autotune": True,
                     "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                     "triton.native_matmul": False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
                 }
             ),
@@ -372,6 +460,7 @@ class TestMaxAutotune(TestCase):
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
+<<<<<<< HEAD
     @parametrize("dynamic", (False, True))
     def test_max_autotune_regular_mm_persistent_tma_illegal_output_alignment(
         self, dynamic
@@ -409,13 +498,20 @@ class TestMaxAutotune(TestCase):
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_max_autotune_regular_mm_tma_dynamic_outer_dim(self):
         def mm(a, b):
             return torch.mm(a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = torch.randn(M, K).to(torch.float16).to(GPU_TYPE)
         b = torch.randn(K, N).to(torch.float16).to(GPU_TYPE)
+=======
+        a = torch.randn(M, K).to(torch.float16).cuda()
+        b = torch.randn(K, N).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TMA requires 16-byte alignment: here we repeat the dims
         # by the factor of 8, as float16 is 2-byte. All dims are
@@ -429,7 +525,10 @@ class TestMaxAutotune(TestCase):
             {
                 "max_autotune": True,
                 "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                 "triton.native_matmul": False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
             }
         ):
@@ -454,6 +553,7 @@ class TestMaxAutotune(TestCase):
         with config.patch({"max_autotune": True}):
             torch.compile(mm, dynamic=dynamic)(a, b)
 
+<<<<<<< HEAD
     # NOTE: the current Inductor template verifies that the scaling mode is either per-tensor or per-row
     # TODO: support additional scaling modes for Blackwell
     @unittest.skipIf(
@@ -580,19 +680,27 @@ class TestMaxAutotune(TestCase):
             "triton.language.make_tensor_descriptor"
         ).check("tl.load_tensor_descriptor").check(write_api).run(code[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
     @parametrize("a_transposed", (False, True))
     @parametrize("b_transposed", (False, True))
     @parametrize("dynamic", (False, True))
+<<<<<<< HEAD
     @parametrize("tma_store", (False, True))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_max_autotune_addmm_persistent_tma(
         self,
         a_transposed: bool,
         b_transposed: bool,
         dynamic: bool,
+<<<<<<< HEAD
         tma_store: bool,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         def addmm(x, a, b):
             # TMA requires 16-byte alignment: here we repeat the dims
@@ -610,6 +718,7 @@ class TestMaxAutotune(TestCase):
             return torch.addmm(x, a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = (
             torch.randn(*((K, M) if a_transposed else (M, K)))
             .to(torch.float16)
@@ -621,11 +730,17 @@ class TestMaxAutotune(TestCase):
             .to(GPU_TYPE)
         )
         x = torch.randn(N).to(torch.float16).to(GPU_TYPE)
+=======
+        a = torch.randn(*((K, M) if a_transposed else (M, K))).to(torch.float16).cuda()
+        b = torch.randn(*((N, K) if b_transposed else (K, N))).to(torch.float16).cuda()
+        x = torch.randn(N).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with config.patch(
             {
                 "max_autotune": True,
                 "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                 "triton.native_matmul": False,
                 "triton.enable_template_tma_store": tma_store,
                 "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
@@ -735,21 +850,38 @@ class TestMaxAutotune(TestCase):
             read_api
         ).check_count(write_api, write_count).run(code[0])
 
+=======
+                "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
+            }
+        ):
+            c_actual = torch.compile(addmm, dynamic=dynamic)(x, a, b)
+            c_expected = addmm(x, a, b)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.testing.assert_close(c_actual, c_expected, atol=1e-2, rtol=1e-2)
 
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
+<<<<<<< HEAD
     @skipIfXpu(msg="TMA path on Intel GPU not require this check")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("dynamic", (False, True))
     def test_max_autotune_addmm_persistent_tma_illegal_alignment(self, dynamic):
         def addmm(x, a, b):
             return torch.addmm(x, a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = torch.randn(M, K).to(torch.float16).to(GPU_TYPE)
         b = torch.randn(K, N).to(torch.float16).to(GPU_TYPE)
         x = torch.randn(N).to(torch.float16).to(GPU_TYPE)
+=======
+        a = torch.randn(M, K).to(torch.float16).cuda()
+        b = torch.randn(K, N).to(torch.float16).cuda()
+        x = torch.randn(N).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with (
             self.assertRaises(BackendCompilerFailed) as context,
@@ -757,7 +889,10 @@ class TestMaxAutotune(TestCase):
                 {
                     "max_autotune": True,
                     "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                     "triton.native_matmul": False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
                 }
             ),
@@ -777,9 +912,15 @@ class TestMaxAutotune(TestCase):
             return torch.addmm(x, a, b)
 
         M, N, K = 21, 31, 11
+<<<<<<< HEAD
         a = torch.randn(M, K).to(torch.float16).to(GPU_TYPE)
         b = torch.randn(K, N).to(torch.float16).to(GPU_TYPE)
         x = torch.randn(N).to(torch.float16).to(GPU_TYPE)
+=======
+        a = torch.randn(M, K).to(torch.float16).cuda()
+        b = torch.randn(K, N).to(torch.float16).cuda()
+        x = torch.randn(N).to(torch.float16).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TMA requires 16-byte alignment: here we repeat the dims
         # by the factor of 8, as float16 is 2-byte. All dims are
@@ -794,7 +935,10 @@ class TestMaxAutotune(TestCase):
             {
                 "max_autotune": True,
                 "triton.enable_persistent_tma_matmul": "1",
+<<<<<<< HEAD
                 "triton.native_matmul": False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "test_configs.autotune_choice_name_regex": "mm_persistent_tma",
             }
         ):
@@ -804,15 +948,21 @@ class TestMaxAutotune(TestCase):
         torch.testing.assert_close(c_actual, c_expected, atol=1e-2, rtol=1e-2)
 
     @fresh_cache()
+<<<<<<< HEAD
     @skipIfXpu(msg="XPU doesn't support sm carveout")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(TEST_WITH_ROCM, "ROCm doesn't support sm carveout")
     @unittest.skipIf(IS_WINDOWS, "Windows doesn't support persistent TMA")
     @unittest.skipIf(
         not has_triton_tma_device(), "Need device-side TMA support in Triton"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         has_datacenter_blackwell_tma_device(), "B200 doesn't support sm carveout"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("carveout", (None, 0, 27))
     @parametrize("op", ("mm", "scaled_mm"))
     def test_honor_sm_carveout_with_triton_tma(self, carveout, op: str):
@@ -829,15 +979,26 @@ class TestMaxAutotune(TestCase):
 
         # Create large matrices to ensure we use all possible sms
         size = 2560
+<<<<<<< HEAD
         a = torch.randn(size, size, device=GPU_TYPE, dtype=torch.bfloat16)
         b = (
             torch.randn(size, size, device=GPU_TYPE, dtype=torch.bfloat16)
+=======
+        a = torch.randn(size, size, device="cuda", dtype=torch.bfloat16)
+        b = (
+            torch.randn(size, size, device="cuda", dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .transpose(0, 1)
             .contiguous()
             .transpose(0, 1)
         )
+<<<<<<< HEAD
         scale_a = torch.tensor(1, dtype=torch.float32, device=GPU_TYPE)
         scale_b = torch.tensor(1, dtype=torch.float32, device=GPU_TYPE)
+=======
+        scale_a = torch.tensor(1, dtype=torch.float32, device="cuda")
+        scale_b = torch.tensor(1, dtype=torch.float32, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         args = (
             (a.to(torch.float8_e4m3fn), b.to(torch.float8_e4m3fn), scale_a, scale_b)
@@ -857,7 +1018,10 @@ class TestMaxAutotune(TestCase):
             {
                 "max_autotune": True,
                 "triton.enable_persistent_tma_matmul": True,
+<<<<<<< HEAD
                 "triton.native_matmul": False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "max_autotune_gemm_backends": "TRITON",
                 "test_configs.autotune_choice_name_regex": "tma",
             }
@@ -923,8 +1087,12 @@ class TestMaxAutotune(TestCase):
         with config.patch({"max_autotune": True}):
             torch.compile(addmm, dynamic=dynamic)(x, a, b)
 
+<<<<<<< HEAD
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     def test_autotune_conv1x1(self, search_space):
+=======
+    def test_autotune_conv1x1(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Assuming input has 3 channels and we want to produce 16 channels as output
         conv1x1 = (
             torch.nn.Conv2d(in_channels=3, out_channels=16, kernel_size=1)
@@ -941,11 +1109,15 @@ class TestMaxAutotune(TestCase):
         )
 
         with config.patch(
+<<<<<<< HEAD
             {
                 "max_autotune": True,
                 "max_autotune_gemm_backends": "TRITON",
                 "max_autotune_gemm_search_space": search_space,
             }
+=======
+            {"max_autotune": True, "max_autotune_gemm_backends": "TRITON"}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
 
             @torch.compile()
@@ -1057,9 +1229,13 @@ class TestMaxAutotune(TestCase):
         self.assertTrue(torch.allclose(act, ref, atol=4 * 1e-3, rtol=4 * 1e-3))
 
     @config.patch(max_autotune=True)
+<<<<<<< HEAD
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     @parametrize("kernel_size", (1, 3))
     def test_empty_conv_input(self, search_space, kernel_size):
+=======
+    def test_empty_conv_input(self, kernel_size=3):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(0, 256, 14, 14, device=GPU_TYPE)
         weight = torch.randn(256, 256, kernel_size, kernel_size, device=GPU_TYPE)
 
@@ -1076,6 +1252,7 @@ class TestMaxAutotune(TestCase):
                 groups=1,
             )
 
+<<<<<<< HEAD
         with config.patch({"max_autotune_gemm_search_space": search_space}):
             opt_f = torch.compile(f)
             ref = f(x, weight)
@@ -1088,6 +1265,19 @@ class TestMaxAutotune(TestCase):
     @config.patch(max_autotune_gemm_backends="TRITON")
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     def test_baddmm(self, search_space):
+=======
+        opt_f = torch.compile(f)
+        ref = f(x, weight)
+        act = opt_f(x, weight)
+        self.assertTrue(torch.allclose(ref, act, atol=4 * 1e-3, rtol=4 * 1e-3))
+
+    @config.patch(max_autotune=True)
+    def test_empty_conv_input_with_1x1_kernel(self):
+        self.test_empty_conv_input(kernel_size=1)
+
+    @config.patch(max_autotune_gemm_backends="TRITON")
+    def test_baddmm(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -1106,6 +1296,7 @@ class TestMaxAutotune(TestCase):
         )
         mod = M().to(GPU_TYPE)
 
+<<<<<<< HEAD
         with config.patch({"max_autotune_gemm_search_space": search_space}):
             m_c = torch.compile(mode="max-autotune")(mod)
             out, code = run_and_get_code(m_c, x)
@@ -1113,6 +1304,13 @@ class TestMaxAutotune(TestCase):
 
             if not config.triton.native_matmul:
                 FileCheck().check("triton_tem_fused_baddbmm").run(code[0])
+=======
+        m_c = torch.compile(mode="max-autotune")(mod)
+        out, code = run_and_get_code(m_c, x)
+        self.assertEqual(out, mod(x), atol=2e-3, rtol=1e-3)
+
+        FileCheck().check("triton_tem_fused_baddbmm").run(code[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @config.patch(max_autotune=True)
     def test_conv1x1_with_free_symbols(self):
@@ -1154,7 +1352,11 @@ class TestMaxAutotune(TestCase):
         self.assertEqual(f_c(*inps), f(*inps), atol=0.03, rtol=0.25)
 
         # mm kernel, and cos kernel
+<<<<<<< HEAD
         count = 2 if (using_triton_mm or config.triton.native_matmul) else 1
+=======
+        count = 2 if using_triton_mm else 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         FileCheck().check(get_func_call()).check_count(
             get_kernel_launch(), count, exactly=True
         ).run(code[0])
@@ -1182,7 +1384,10 @@ class TestMaxAutotune(TestCase):
 
     @config.patch("trace.enabled", True)
     @config.patch({"test_configs.force_extern_kernel_in_multi_template": True})
+<<<<<<< HEAD
     @config.patch("triton.native_matmul", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mutation_rename(self):
         torch._logging.set_logs(ir_post_fusion=True)
 
@@ -1197,7 +1402,10 @@ class TestMaxAutotune(TestCase):
         t = functools.partial(torch.randn, device=GPU_TYPE)
         inps = (t(3, 3), t(3, 3), t(3, 3), t(3))
         fn = torch.compile(f, mode="max-autotune-no-cudagraphs")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             (
                 pre_fusion_tream,
@@ -1238,6 +1446,7 @@ class TestMaxAutotune(TestCase):
         self._test_cat_max_autotune_impl(using_triton_mm=False)
 
     @skipIfXpu(
+<<<<<<< HEAD
         msg="The fusion not happened because it do not speedup on XPU, see issue #146568"
     )
     @config.patch(
@@ -1251,6 +1460,15 @@ class TestMaxAutotune(TestCase):
 
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     def test_conv_cat(self, search_space):
+=======
+        msg="The fusion not happend because it do not speedup on XPU, see issue #146568"
+    )
+    @config.patch(max_autotune_gemm_backends="TRITON")
+    def test_cat_max_autotune_triton(self):
+        self._test_cat_max_autotune_impl(using_triton_mm=True)
+
+    def test_conv_cat(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class ToyModel(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -1262,6 +1480,7 @@ class TestMaxAutotune(TestCase):
                 x = self.conv(x)
                 return torch.cat((x, x + 1))
 
+<<<<<<< HEAD
         with config.patch({"max_autotune_gemm_search_space": search_space}):
             with torch.no_grad():
                 m = ToyModel().to(device=GPU_TYPE)
@@ -1277,13 +1496,32 @@ class TestMaxAutotune(TestCase):
 
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     def test_conv3d(self, search_space):
+=======
+        with torch.no_grad():
+            m = ToyModel().to(device=GPU_TYPE)
+            input_tensor = torch.randn(32, 3, 64, 64).to(device=GPU_TYPE)
+
+            # convolution is not currently plannable
+            m = torch.compile(m, mode="max-autotune-no-cudagraphs")
+            out, code = run_and_get_code(m, input_tensor)
+            self.assertEqual(out, m(input_tensor))
+
+            if not TEST_WITH_ROCM:
+                FileCheck().check("triton_poi_fused_cat_2.run").run(code[0])
+
+    def test_conv3d(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fn = torch.nn.functional.conv3d
         image = torch.randn([1, 3, 8, 16, 32])
         filt = torch.randn([3, 3, 7, 7, 7])
 
+<<<<<<< HEAD
         with config.patch(
             {"max_autotune": True, "max_autotune_gemm_search_space": search_space}
         ):
+=======
+        with config.patch({"max_autotune": True}):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected = fn(image, filt)
             actual = torch.compile(fn)(image, filt)
             torch.testing.assert_close(actual, expected, atol=6e-5, rtol=0.001)
@@ -1302,16 +1540,27 @@ class TestMaxAutotune(TestCase):
 
         self.assertIn("NoValidChoicesError", str(context.exception))
 
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)
+=======
+    # Some ROCm GPUs don't have enough VRAM to run all autotune configurations and padding benchmarks
+    @largeTensorTest("30 GB", device=GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_non_contiguous_input_mm(self):
         """
         Make sure the triton template can work with non-contiguous inputs without crash.
         Check https://github.com/pytorch/pytorch/issues/125437 for more details.
         """
         x = rand_strided(
+<<<<<<< HEAD
             (50257, 2048), (1, 50304), dtype=torch.bfloat16, device=GPU_TYPE
         )
         y = rand_strided((2048, 768), (768, 1), dtype=torch.bfloat16, device=GPU_TYPE)
+=======
+            (50257, 32768), (1, 50304), dtype=torch.bfloat16, device=GPU_TYPE
+        )
+        y = rand_strided((32768, 768), (768, 1), dtype=torch.bfloat16, device=GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile(mode="max-autotune")
         def f(x, y):
@@ -1321,6 +1570,7 @@ class TestMaxAutotune(TestCase):
         act = f(x, y)
         torch.testing.assert_close(act, ref, atol=2e-2, rtol=1e-2)
 
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)
     def test_non_contiguous_input_addmm(self):
         b = torch.randn((768), dtype=torch.bfloat16, device=GPU_TYPE)
@@ -1328,6 +1578,14 @@ class TestMaxAutotune(TestCase):
             (50257, 2048), (1, 50304), dtype=torch.bfloat16, device=GPU_TYPE
         )
         y = rand_strided((2048, 768), (768, 1), dtype=torch.bfloat16, device=GPU_TYPE)
+=======
+    def test_non_contiguous_input_addmm(self):
+        b = torch.randn((768), dtype=torch.bfloat16, device=GPU_TYPE)
+        x = rand_strided(
+            (50257, 32768), (1, 50304), dtype=torch.bfloat16, device=GPU_TYPE
+        )
+        y = rand_strided((32768, 768), (768, 1), dtype=torch.bfloat16, device=GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile(mode="max-autotune")
         def f(x, y):
@@ -1337,6 +1595,7 @@ class TestMaxAutotune(TestCase):
         act = f(x, y)
         torch.testing.assert_close(act, ref, atol=2e-2, rtol=1e-2)
 
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)
     def test_non_contiguous_input_bmm(self):
         x = rand_strided(
@@ -1344,6 +1603,14 @@ class TestMaxAutotune(TestCase):
         )
         y = rand_strided(
             (1, 2048, 768), (0, 768, 1), dtype=torch.bfloat16, device=GPU_TYPE
+=======
+    def test_non_contiguous_input_bmm(self):
+        x = rand_strided(
+            (1, 50257, 32768), (0, 1, 50304), dtype=torch.bfloat16, device=GPU_TYPE
+        )
+        y = rand_strided(
+            (1, 32768, 768), (0, 768, 1), dtype=torch.bfloat16, device=GPU_TYPE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         @torch.compile(mode="max-autotune")
@@ -1357,6 +1624,7 @@ class TestMaxAutotune(TestCase):
     # TODO: fix accuracy failure of the triton template on XPU.
     # and enable this test case.
     @skipIfXpu
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "native matmul and Triton template both have accuracy fail (2.2%)",
@@ -1367,6 +1635,16 @@ class TestMaxAutotune(TestCase):
 
         x2 = rand_strided((50257, 2048), (1, 50304), device=GPU_TYPE)
         y2 = rand_strided((2048, 768), (768, 1), device=GPU_TYPE)
+=======
+    # Some ROCm GPUs don't have enough VRAM to run all autotune configurations and padding benchmarks
+    @largeTensorTest("30 GB", device=GPU_TYPE)
+    def test_non_contiguous_input_mm_plus_mm(self):
+        x1 = rand_strided((50257, 32768), (1, 50304), device=GPU_TYPE)
+        y1 = rand_strided((32768, 768), (768, 1), device=GPU_TYPE)
+
+        x2 = rand_strided((50257, 32768), (1, 50304), device=GPU_TYPE)
+        y2 = rand_strided((32768, 768), (768, 1), device=GPU_TYPE)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @torch.compile(mode="max-autotune")
         def f(x1, y1, x2, y2):
@@ -1374,15 +1652,22 @@ class TestMaxAutotune(TestCase):
 
         ref = x1 @ y1 + x2 @ y2
         act = f(x1, y1, x2, y2)
+<<<<<<< HEAD
         torch.testing.assert_close(act, ref, atol=1e-1, rtol=1e-2)
+=======
+        torch.testing.assert_close(act, ref, atol=1e-2, rtol=1e-2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="",
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul, "native matmul generates when size >=2"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_no_valid_choices(self):
         a = torch.zeros([2, 2], device=GPU_TYPE)
         b = torch.zeros([2, 2], device=GPU_TYPE)
@@ -1390,9 +1675,12 @@ class TestMaxAutotune(TestCase):
             torch.compile(lambda a, b: a.matmul(b))(a, b)
         self.assertIn("NoValidChoicesError", str(context.exception))
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul, "Only test when template is being called"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("multi_template", (True, False))
     @config.patch(
         max_autotune=True,
@@ -1447,9 +1735,15 @@ class TestMaxAutotune(TestCase):
             loss.backward()
             return loss
 
+<<<<<<< HEAD
         x = torch.randn(B * T, C, requires_grad=True).to(GPU_TYPE).bfloat16()
         x.retain_grad()
         y = torch.randint(0, V, (B * T,)).to(GPU_TYPE)
+=======
+        x = torch.randn(B * T, C, requires_grad=True).cuda().bfloat16()
+        x.retain_grad()
+        y = torch.randint(0, V, (B * T,)).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         import torch._inductor.utils as inductor_utils
 
@@ -1461,6 +1755,7 @@ class TestMaxAutotune(TestCase):
             assert same(expect, actual, tol=1e-2), f"ref:\n{expect}\nact:\n{actual}"
 
     @skipIfXpu
+<<<<<<< HEAD
     @unittest.skipIf(
         config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
     )
@@ -1468,14 +1763,23 @@ class TestMaxAutotune(TestCase):
         config.triton.native_matmul,
         "ignore decompose_k when native matmul codegen",
     )
+=======
+    @unittest.skipIf(TEST_WITH_ROCM, "decompose_k not supported on ROCm")
+    @unittest.skipIf(
+        config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("dynamic", (True, False))
     @parametrize("dtype", (torch.float16, torch.bfloat16))
     @parametrize("sizes", ((32, 32, 32768), (64, 128, 200000), (64, 64, 177147)))
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
+<<<<<<< HEAD
         comprehensive_padding=False,
         shape_padding=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_max_autotune_decompose_k(self, sizes, dtype, dynamic):
         fp16_red_setting = (
@@ -1489,8 +1793,13 @@ class TestMaxAutotune(TestCase):
 
         M, N, K = sizes
 
+<<<<<<< HEAD
         a = torch.randn(M, K, dtype=dtype, device=GPU_TYPE, requires_grad=True)
         b = torch.randn(K, N, dtype=dtype, device=GPU_TYPE, requires_grad=True)
+=======
+        a = torch.randn(M, K, dtype=dtype, device="cuda", requires_grad=True)
+        b = torch.randn(K, N, dtype=dtype, device="cuda", requires_grad=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         possible_splits = range(2, min(K // M, K // N) + 1)
 
@@ -1514,7 +1823,11 @@ class TestMaxAutotune(TestCase):
         # We assume with the large k dim relative to m, n, decompose_k will be most performant
         out, code = run_and_get_code(compiled_func, a, b)
 
+<<<<<<< HEAD
         if dynamic or torch.version.hip:
+=======
+        if dynamic:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             FileCheck().check_not("extern_kernels.bmm_dtype").check_not(
                 "decompose_k"
             ).run(code[0])
@@ -1528,13 +1841,21 @@ class TestMaxAutotune(TestCase):
         # Test adding epilogue also equivalent to eager
         compiled_func = torch.compile(lambda a, b: (a @ b).relu(), dynamic=dynamic)
         out, code = run_and_get_code(compiled_func, a, b)
+<<<<<<< HEAD
         if dynamic or torch.version.hip:
+=======
+        if dynamic:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             FileCheck().check_not("extern_kernels.bmm_dtype").check_not(
                 "decompose_k"
             ).run(code[0])
         else:
             FileCheck().check("extern_kernels.bmm_dtype").check_regex(
+<<<<<<< HEAD
                 "triton_.*_fused_mm_0.run"
+=======
+                "triton_.*_fused_0.run"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).check("decompose_k").run(code[0])
             check_divisors(code)
             torch.testing.assert_close(
@@ -1547,15 +1868,23 @@ class TestMaxAutotune(TestCase):
             lambda a, b: (a.transpose(0, 1) @ b).relu(), dynamic=dynamic
         )
         out, code = run_and_get_code(compiled_func, a, b)
+<<<<<<< HEAD
 
         # DecomposeK is not enabled for AMD yet
         if dynamic or torch.version.hip:
+=======
+        if dynamic:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             FileCheck().check_not("extern_kernels.bmm_dtype").check_not(
                 "decompose_k"
             ).run(code[0])
         else:
             FileCheck().check("extern_kernels.bmm_dtype").check_regex(
+<<<<<<< HEAD
                 "triton_.*_fused_.*_0.run"
+=======
+                "triton_.*_fused_0.run"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).check("decompose_k").run(code[0])
             check_divisors(code)
             torch.testing.assert_close(
@@ -1577,10 +1906,13 @@ class TestMaxAutotune(TestCase):
     @unittest.skipIf(
         config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "ignore decompose_k when native matmul codegen",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
@@ -1591,10 +1923,17 @@ class TestMaxAutotune(TestCase):
             return (a_in @ b).relu()
 
         a = torch.randn(
+<<<<<<< HEAD
             32, 32768, dtype=torch.bfloat16, device=GPU_TYPE, requires_grad=True
         )
         b = torch.randn(
             32768, 64, dtype=torch.bfloat16, device=GPU_TYPE, requires_grad=True
+=======
+            32, 32768, dtype=torch.bfloat16, device="cuda", requires_grad=True
+        )
+        b = torch.randn(
+            32768, 64, dtype=torch.bfloat16, device="cuda", requires_grad=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         torch._dynamo.reset()
@@ -1604,6 +1943,7 @@ class TestMaxAutotune(TestCase):
         with mock.patch(
             "torch._inductor.kernel.mm.use_decompose_k_choice"
         ) as decomp_mock:
+<<<<<<< HEAD
             decomp_mock.side_effect = (
                 lambda *args, **kwargs: kwargs.get("threshold_multiple", 1) == 1
             )
@@ -1611,6 +1951,13 @@ class TestMaxAutotune(TestCase):
             out, code = run_and_get_code(compiled_func, a, b)
             FileCheck().check("extern_kernels.bmm_dtype").check_regex(
                 "triton_.*_fused_.*.run"
+=======
+            decomp_mock.return_value = True
+
+            out, code = run_and_get_code(compiled_func, a, b)
+            FileCheck().check("extern_kernels.bmm_dtype").check_regex(
+                "triton_.*_fused_0.run"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).check("decompose_k").check_regex(r"s[0-9]+ = s[0-9]+").check_regex(
                 r"2\*s[0-9]+"
             ).check_regex("s[0-9]+ = 32").run(code[0])
@@ -1626,10 +1973,13 @@ class TestMaxAutotune(TestCase):
     @unittest.skipIf(
         config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "ignore decompose_k when native matmul codegen",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
@@ -1640,11 +1990,17 @@ class TestMaxAutotune(TestCase):
             a_in = torch.cat([a for _ in range(256)], dim=0)
             return (a_in @ b).relu().sum()
 
+<<<<<<< HEAD
         a = torch.randn(
             8, 64, dtype=torch.bfloat16, device=GPU_TYPE, requires_grad=True
         )
         b = torch.randn(
             64, 32768, dtype=torch.bfloat16, device=GPU_TYPE, requires_grad=True
+=======
+        a = torch.randn(8, 64, dtype=torch.bfloat16, device="cuda", requires_grad=True)
+        b = torch.randn(
+            64, 32768, dtype=torch.bfloat16, device="cuda", requires_grad=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         torch._dynamo.reset()
@@ -1656,9 +2012,13 @@ class TestMaxAutotune(TestCase):
         with mock.patch(
             "torch._inductor.kernel.mm.use_decompose_k_choice"
         ) as decomp_mock:
+<<<<<<< HEAD
             decomp_mock.side_effect = (
                 lambda *args, **kwargs: kwargs.get("threshold_multiple", 1) == 1
             )
+=======
+            decomp_mock.return_value = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             out, code = run_and_get_code(compiled_func, a, b)
             out.backward()
@@ -1677,10 +2037,13 @@ class TestMaxAutotune(TestCase):
     @unittest.skipIf(
         config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "ignore decompose_k when native matmul codegen",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
@@ -1690,21 +2053,38 @@ class TestMaxAutotune(TestCase):
             a = a.transpose(0, 1)
             return a @ b
 
+<<<<<<< HEAD
         a = torch.randn((32768, 256), device=GPU_TYPE, dtype=torch.bfloat16)
         b = torch.randn((32768, 1152), device=GPU_TYPE, dtype=torch.bfloat16)
+=======
+        a = torch.randn((32768, 256), device="cuda", dtype=torch.bfloat16)
+        b = torch.randn((32768, 1152), device="cuda", dtype=torch.bfloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         b = b[:, :1096]
 
         # Force only decomposeK choice
         with (
+<<<<<<< HEAD
             override_template_heuristics(
                 device_type=GPU_TYPE,
                 template_op_pairs=[(torch._inductor.kernel.mm.mm_template.name, "mm")],
             ),
+=======
+            mock.patch(
+                "torch._inductor.kernel.mm.V.choices.get_base_mm_configs"
+            ) as base_mm_mock,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mock.patch(
                 "torch._inductor.kernel.mm.use_decompose_k_choice"
             ) as decompose_mock,
         ):
+<<<<<<< HEAD
+=======
+            mm_configs_mock = MagicMock()
+            mm_configs_mock.return_value = []
+            base_mm_mock.return_value = mm_configs_mock
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             decompose_mock.return_value = True
             compiled_f = torch.compile(f)
             out, code = run_and_get_code(compiled_f, a, b)
@@ -1719,6 +2099,7 @@ class TestMaxAutotune(TestCase):
                 code[0]
             )
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.version.hip, "ROCM only")
     @parametrize("dtype", (torch.float16, torch.bfloat16, torch.float32))
     @parametrize("sizes", ((64, 128, 256), (128, 256, 512), (256, 512, 1024)))
@@ -1914,6 +2295,8 @@ class TestMaxAutotune(TestCase):
             # Check that contiguous transform was used
             FileCheck().check("contiguous_mm").run(code[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_template_generated_code_cache_key(self):
         generate_and_load_args = len(
             inspect.signature(
@@ -1929,7 +2312,11 @@ class TestMaxAutotune(TestCase):
         # Make sure all args of generate_and_load_args are passed to make_key_args (Except generate_with_caching)
         # update this function each time new arg added to generate_and_load and make sure arg is added to make_key
         self.assertEqual(generate_and_load_args - 1, make_key_args)
+<<<<<<< HEAD
         self.assertEqual(generate_and_load_args, 18)
+=======
+        self.assertEqual(generate_and_load_args, 16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @fresh_cache()
     @config.patch(
@@ -1939,7 +2326,10 @@ class TestMaxAutotune(TestCase):
             "max_autotune_gemm_backends": "TRITON",
         }
     )
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "only test on template-based matmul")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_template_generated_code_cache_strategy(self):
         def func_test1(x, y, z, m):
             a = torch.matmul(x, y)
@@ -1966,7 +2356,10 @@ class TestMaxAutotune(TestCase):
             "max_autotune_gemm_backends": "TRITON",
         }
     )
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "only test on template-based matmul")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_template_generated_code_caching(self):
         def reset_counters():
             torch._dynamo.utils.counters.clear()
@@ -2017,9 +2410,15 @@ class TestMaxAutotune(TestCase):
                             "[[22,30],[30,1],torch.float32,device(type='cuda',index=0),0]"],
                         'num_stages':1,'num_warps':2,'prefix_args':0,'suffix_args':0,'call_sizes':[10,30],
                         'layout':"[[10,30],[30,1],torch.float32,device(type='cuda',index=0),0]",
+<<<<<<< HEAD
                         'num_consumer_groups':0,'num_buffers_warp_spec':0,'epilogue_fn_hash':'identity','tma_store':False,
                         'kwargs':{'EVEN_K':False,'USE_FAST_ACCUM':False,'ACC_TYPE':'tl.float32',
                         'BLOCK_M':16,'BLOCK_N':32,'BLOCK_K':16,'GROUP_M':8,'ALLOW_TF32':True},'hint_override':None}"""
+=======
+                        'num_consumer_groups':0,'num_buffers_warp_spec':0,'epilogue_fn_hash':'identity',
+                        'kwargs':{'EVEN_K':False,'ALLOW_TF32':True,'USE_FAST_ACCUM':False,'ACC_TYPE':'tl.float32',
+                        'BLOCK_M':16,'BLOCK_N':32,'BLOCK_K':16,'GROUP_M':8}}"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 expected = expected.replace("cuda", GPU_TYPE)
                 self.assertExpectedInline(
@@ -2053,12 +2452,21 @@ class TestMaxAutotune(TestCase):
             if not TEST_WITH_ROCM:
                 expected = """{
                     'input_nodes':[
+<<<<<<< HEAD
                         "[[s77,s27],[s27,1],torch.float32,device(type='cuda',index=0),0]",
                         "[[s27,s94],[s94,1],torch.float32,device(type='cuda',index=0),0]"],
                     'num_stages':1,'num_warps':2,'prefix_args':0,'suffix_args':0,'call_sizes':[s77,s94],
                     'layout':"[[s77,s94],[s94,1],torch.float32,device(type='cuda',index=0),0]",'num_consumer_groups':0,
                     'num_buffers_warp_spec':0,'epilogue_fn_hash':'identity','tma_store':False,'kwargs':{'EVEN_K':False,'USE_FAST_ACCUM':False,
                     'ACC_TYPE':'tl.float32','BLOCK_M':16,'BLOCK_N':32,'BLOCK_K':16,'GROUP_M':8,'ALLOW_TF32':True},'hint_override':None}"""
+=======
+                        "[[s77,s17],[s17,1],torch.float32,device(type='cuda',index=0),0]",
+                        "[[s17,s94],[s94,1],torch.float32,device(type='cuda',index=0),0]"],
+                    'num_stages':1,'num_warps':2,'prefix_args':0,'suffix_args':0,'call_sizes':[s77,s94],
+                    'layout':"[[s77,s94],[s94,1],torch.float32,device(type='cuda',index=0),0]",'num_consumer_groups':0,
+                    'num_buffers_warp_spec':0,'epilogue_fn_hash':'identity','kwargs':{'EVEN_K':False,'ALLOW_TF32':True,
+                    'USE_FAST_ACCUM':False,'ACC_TYPE':'tl.float32','BLOCK_M':16,'BLOCK_N':32,'BLOCK_K':16,'GROUP_M':8}}"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 expected = expected.replace("cuda", GPU_TYPE)
                 self.assertExpectedInline(
                     remove_white_space(cache_key),
@@ -2096,7 +2504,11 @@ class TestMaxAutotune(TestCase):
 
         # Test loop.
         def test_func2(x):
+<<<<<<< HEAD
             for i in range(10):
+=======
+            for i in range(0, 10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 x = torch.matmul(x, x)
             return x
 
@@ -2151,7 +2563,10 @@ class TestMaxAutotune(TestCase):
             "max_autotune_gemm_backends": "TRITON",
         }
     )
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "only test on template-based matmul")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_template_generated_code_caching_bmm(self):
         def func_test1(x, y, z, m):
             a = torch.bmm(x, y)
@@ -2187,7 +2602,10 @@ class TestMaxAutotune(TestCase):
             "max_autotune_gemm_backends": "ATEN, TRITON",
         }
     )
+<<<<<<< HEAD
     @unittest.skipIf(config.triton.native_matmul, "only test on template-based matmul")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_template_generated_code_caching_mm_plus_mm(self):
         def func_test1(x, y, z, m):
             a = torch.mm(x, y)
@@ -2221,20 +2639,27 @@ class TestMaxAutotune(TestCase):
             self.assertEqual(hits(), 4)
             self.assertEqual(misses(), 4)
 
+<<<<<<< HEAD
     @fresh_cache()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfXpu
     @unittest.skipIf(TEST_WITH_ROCM, "decompose_k not supported on ROCm")
     @unittest.skipIf(
         config.cpp_wrapper, "decompose_k not supported for cpp_wrapper yet"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "ignore decompose_k when native matmul codegen",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch(
         max_autotune=True,
         max_autotune_gemm_backends="TRITON",
         autotune_fallback_to_aten=False,
+<<<<<<< HEAD
     )
     @parametrize("num_decompose_k_splits", (0, 5, 20))
     @parametrize("decompose_k_threshold", (8, 16))
@@ -2271,15 +2696,33 @@ class TestMaxAutotune(TestCase):
                 else:
                     self.assertTrue(decompose_count > 0)
                     self.assertTrue(decompose_count <= num_decompose_k_splits)
+=======
+        disable_decompose_k=True,
+    )
+    def test_max_autotune_disable_decompose_K(self):
+        M, N, K = (32, 32, 32768)
+
+        a = torch.randn(M, K, dtype=torch.float16, device="cuda", requires_grad=True)
+        b = torch.randn(K, N, dtype=torch.float16, device="cuda", requires_grad=True)
+
+        compiled_func = torch.compile(lambda a, b: a @ b)
+        out, code = run_and_get_code(compiled_func, a, b)
+
+        for codegen in code:
+            FileCheck().check_not("decompose_k").run(codegen)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfXpu
     @unittest.skipIf(
         TEST_WITH_ROCM, "exhaustive currently only thoroughly tested on NVIDIA"
     )
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "native matmul takes different tuning configs",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch(max_autotune=True, max_autotune_gemm_search_space="EXHAUSTIVE")
     def test_max_autotune_exhaustive(self):
         def f(a, b):
@@ -2287,6 +2730,7 @@ class TestMaxAutotune(TestCase):
 
         M, N, K = (1024, 1024, 1024)
 
+<<<<<<< HEAD
         a = torch.randn(M, K, dtype=torch.float16, device=GPU_TYPE, requires_grad=True)
         b = torch.randn(K, N, dtype=torch.float16, device=GPU_TYPE, requires_grad=True)
 
@@ -2294,6 +2738,15 @@ class TestMaxAutotune(TestCase):
             "torch._inductor.template_heuristics.registry.get_template_heuristic"
         ) as config_mock:
             config_heuristics = CUDAMMTemplateConfigHeuristic()
+=======
+        a = torch.randn(M, K, dtype=torch.float16, device="cuda", requires_grad=True)
+        b = torch.randn(K, N, dtype=torch.float16, device="cuda", requires_grad=True)
+
+        with mock.patch(
+            "torch._inductor.kernel.mm.V.choices.get_config_heuristics"
+        ) as config_mock:
+            config_heuristics = CUDAConfigHeuristic()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Traditionally, this would be set of all possible configs
             # We mock out the code path for the sake of the unit test
@@ -2311,6 +2764,7 @@ class TestMaxAutotune(TestCase):
                 if "benchmark_gpu" in counter:
                     self.assertEqual(counters["inductor"][counter], 2)
 
+<<<<<<< HEAD
     @config.patch(
         {
             "max_autotune": True,
@@ -2460,6 +2914,8 @@ class TestMaxAutotune(TestCase):
         finally:
             clear_preprocessing_fns(clear_defaults=False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestMaxAutotunePrecompile(TestCase):
     def test_precompilation_threads(self):
@@ -2495,7 +2951,10 @@ class TestMaxAutotunePrecompile(TestCase):
             op: str,
             inputs: str,
             benchmark: Callable[[Any], dict[ChoiceCaller, float]],
+<<<<<<< HEAD
             hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) -> Optional[dict[ChoiceCaller, float]]:
             if benchmark is not None:
                 return benchmark(choices)
@@ -2549,9 +3008,29 @@ class TestMaxAutotunePrecompile(TestCase):
         fn_c = torch.compile(mode="max-autotune-no-cudagraphs")(fn)
         self.assertEqual(counters["inductor"]["select_algorithm_precompile"], 0)
 
+<<<<<<< HEAD
     @config.patch(autotune_local_cache=False, autotune_remote_cache=False)
     @runOnRocmArch(MI300_ARCH)
     @unittest.skipIf(config.triton.native_matmul, "native matmul has counter 0")
+=======
+    @fresh_cache()
+    @config.patch(search_autotune_cache=True)
+    def test_search_autotune_cache(self):
+        def fn(a, b, c):
+            a = (a @ b) @ c
+            a, b, c = (t.to(torch.float16) for t in [a, b, c])
+            return (a @ b) @ c
+
+        fn_c = torch.compile()(fn)
+        inputs = [torch.rand([256, 256], device=GPU_TYPE) for _ in range(3)]
+        from torch._dynamo.utils import counters
+
+        self.assertEqual(fn(*inputs), fn_c(*inputs), atol=1e-2, rtol=1e-2)
+        self.assertEqual(counters["inductor"]["select_algorithm_precompile"], 0)
+
+    @config.patch(autotune_local_cache=False, autotune_remote_cache=False)
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_precompilations(self):
         def fn(a, b, c):
             a = (a @ b) @ c
@@ -2586,7 +3065,11 @@ class TestMaxAutotuneSubproc(TestCase):
         )()  # a dummy graph to construct the GraphLowering
         graph = GraphLowering(gm)
 
+<<<<<<< HEAD
         # the graph handler is needed to create benchmark example value below
+=======
+        # the graph handler is neede to create benchmark example value below
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with V.set_graph_handler(graph):
             buf1 = self._create_buffer("mat1", (2, 3))
             buf2 = self._create_buffer("mat2", (3, 2))
@@ -2626,7 +3109,11 @@ class TestMaxAutotuneSubproc(TestCase):
         )()  # a dummy graph to construct the GraphLowering
         graph = GraphLowering(gm)
 
+<<<<<<< HEAD
         # the graph handler is needed to create benchmark example value below
+=======
+        # the graph handler is neede to create benchmark example value below
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with V.set_graph_handler(graph):
             buf1 = self._create_buffer("mat1", (2, 3))
             buf2 = self._create_buffer("mat2", (3, 2))
@@ -2698,9 +3185,14 @@ class TestMaxAutotuneSubproc(TestCase):
         with config.patch({"max_autotune": True, "autotune_in_subproc": True}):
             torch.compile(mm, dynamic=dynamic)(a, b)
 
+<<<<<<< HEAD
     @parametrize("search_space", ("DEFAULT", "EXHAUSTIVE"))
     @parametrize("dynamic", (False, True))
     def test_max_autotune_addmm(self, search_space, dynamic=False):
+=======
+    @parametrize("dynamic", (False, True))
+    def test_max_autotune_addmm(self, dynamic=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Make sure autotuning addmm in sub processes work without crashes.
         """
@@ -2713,6 +3205,7 @@ class TestMaxAutotuneSubproc(TestCase):
         x = torch.randn(100).to(GPU_TYPE)
         a = torch.randn(100, 10).to(GPU_TYPE)
         b = torch.randn(10, 100).to(GPU_TYPE)
+<<<<<<< HEAD
         with config.patch(
             {
                 "max_autotune": True,
@@ -2720,6 +3213,9 @@ class TestMaxAutotuneSubproc(TestCase):
                 "max_autotune_gemm_search_space": search_space,
             }
         ):
+=======
+        with config.patch({"max_autotune": True, "autotune_in_subproc": True}):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Y_compiled = torch.compile(addmm, dynamic=dynamic)(x, a, b)
             Y = addmm(x, a, b)
             torch.testing.assert_close(Y_compiled, Y, atol=1e-2, rtol=1e-2)
@@ -2981,6 +3477,7 @@ class TestTuningProcessPool(TestCase):
 
         tuning_pool.shutdown()
 
+<<<<<<< HEAD
     def test_add_feedback_saver(self):
         """Test that add_feedback_saver correctly adds feedback functions."""
         from torch._inductor.select_algorithm import get_algorithm_selector_cache
@@ -3097,6 +3594,8 @@ class TestTuningProcessPool(TestCase):
         # Clean up
         clear_feedback_savers()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @instantiate_parametrized_tests
 class TestPrologueFusion(TestCase):
@@ -3136,9 +3635,12 @@ class TestPrologueFusion(TestCase):
                 "del", num_deallocs, exactly=True
             ).run(code_str)
 
+<<<<<<< HEAD
     @skipIfXpu(
         msg="Triton issue exposed by new driver, will be resolved after next triton update."
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("sizes", ((64, 128, 256), (128, 128, 128), (63, 120, 250)))
     def test_upcast(self, sizes):
         M, K, N = sizes
@@ -3152,12 +3654,17 @@ class TestPrologueFusion(TestCase):
         out, code = run_and_get_code(torch.compile(foo), x, y)
         self.assertEqual(out, foo(x, y), atol=0.05, rtol=0.05)
         self.check_code(code[0], num_kernels=1, num_allocs=1, num_deallocs=2)
+<<<<<<< HEAD
         if config.triton.native_matmul:
             # native matmul preserves zero mask - need to optimize; see codegen/triton.py
             FileCheck().check("a =").check("tl.where").check("tl.dot").run(code[0])
         else:
             # upcast preserves zero mask
             FileCheck().check("a =").check_not("tl.where").check("tl.dot").run(code[0])
+=======
+        # upcast preserves zero mask
+        FileCheck().check("a =").check_not("tl.where").check("tl.dot").run(code[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skip("Triton bug in compilation")
     def test_gather_fusion(self):
@@ -3188,7 +3695,10 @@ class TestPrologueFusion(TestCase):
         not PLATFORM_SUPPORTS_FP8,
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
+<<<<<<< HEAD
     @config.patch({"triton.native_matmul": False})
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_low_precision(self):
         M = K = N = 128
 
@@ -3220,10 +3730,13 @@ class TestPrologueFusion(TestCase):
         # should not be done in low precision, two kernels
         self.check_code(code[0], num_kernels=2, num_allocs=2, num_deallocs=3)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_downcast(self):
         # per heuristics, dont fuse a downcast into a mm because it would lead to more reads inside kernel
         M, K, N = (64, 128, 256)
@@ -3238,10 +3751,13 @@ class TestPrologueFusion(TestCase):
         self.check_code(code[0], num_kernels=2, num_allocs=2, num_deallocs=3)
 
     @parametrize("sizes", ((64, 128, 256), (64, 64, 64), (64, 120, 64)))
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multiple_fusions(self, sizes):
         M, K, N = sizes
 
@@ -3268,7 +3784,11 @@ class TestPrologueFusion(TestCase):
         }
     )
     @skipIfXpu(
+<<<<<<< HEAD
         msg="The fusion not happened because it do not speedup on XPU, see issue #146568"
+=======
+        msg="The fusion not happend because it do not speedup on XPU, see issue #146568"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_pending_fusions_multiple(self):
         def multi_use(x, y):
@@ -3302,7 +3822,11 @@ class TestPrologueFusion(TestCase):
         }
     )
     @skipIfXpu(
+<<<<<<< HEAD
         msg="The fusion not happened because it do not speedup on XPU, see issue #146568"
+=======
+        msg="The fusion not happend because it do not speedup on XPU, see issue #146568"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     def test_pending_fusion_pro_and_epi(self):
         def test_multiple_fusions(x):
@@ -3316,9 +3840,12 @@ class TestPrologueFusion(TestCase):
         ).run(code[0])
         self.assertEqual(out, test_multiple_fusions(x), atol=0.05, rtol=0.05)
 
+<<<<<<< HEAD
     @skipIfXpu(
         msg="Triton issue exposed by new driver, will be resolved after next triton update."
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("sizes", ((64, 128, 256), (128, 128, 128), (63, 120, 250)))
     def test_multiple_inputs(self, sizes):
         M, K, N = sizes
@@ -3347,10 +3874,13 @@ class TestPrologueFusion(TestCase):
 
     @config.patch(realize_reads_threshold=1, realize_opcount_threshold=1)
     @parametrize("sizes", ((64, 128, 256), (128, 128, 128), (63, 120, 250)))
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_prologue_multiple_nodes(self, sizes):
         M, K, N = sizes
 
@@ -3390,10 +3920,13 @@ class TestPrologueFusion(TestCase):
         self.assertEqual(out, foo(x, y), atol=0.05, rtol=0.05)
         self.check_code(code[0], num_kernels=1, num_allocs=1, num_deallocs=2)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_preserves_zero_analysis(self):
         fns = (
             (lambda x: x.relu(), False),  # preserves zero
@@ -3446,10 +3979,13 @@ class TestPrologueFusion(TestCase):
 
     @config.patch(realize_reads_threshold=1, realize_opcount_threshold=1)
     @config.patch(allow_buffer_reuse=False)
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mismatched_prologue_group(self):
         def foo(x, y, z):
             a = (x + 2) * 2
@@ -3462,8 +3998,13 @@ class TestPrologueFusion(TestCase):
 
         out, code = run_and_get_code(torch.compile(foo), x, y, z)
         self.assertEqual(out, foo(x, y, z), atol=0.05, rtol=0.05)
+<<<<<<< HEAD
         # there's one more dealloc than there should be because of a buffer reuse. TODO:
         # not sure why disabling buffer reuse doesn't stop
+=======
+        # theres one more dealloc than there should be because of a buffer reuse. TODO:
+        # not sure why disabling buffer reuse doesnt stop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.check_code(code[0], num_kernels=2, num_allocs=2, num_deallocs=4)
 
     # XPU have not enabled pad_mm in fx_passes, so there is always one kernel.
@@ -3471,10 +4012,13 @@ class TestPrologueFusion(TestCase):
     @config.patch(shape_padding=True)
     @config.patch(force_shape_pad=True)
     @parametrize("sizes", ((250, 245, 128), (250, 256, 128), (256, 128, 62)))
+<<<<<<< HEAD
     @unittest.skipIf(
         config.triton.native_matmul,
         "generated code is different in native matmul",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_prologue_masked_load(self, sizes):
         M, K, N = sizes
 

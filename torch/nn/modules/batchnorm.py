@@ -72,7 +72,10 @@ class _NormBase(Module):
                 torch.tensor(
                     0,
                     dtype=torch.long,
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     **{k: v for k, v in factory_kwargs.items() if k != "dtype"},
                 ),
             )
@@ -115,7 +118,11 @@ class _NormBase(Module):
         missing_keys,
         unexpected_keys,
         error_msgs,
+<<<<<<< HEAD
     ) -> None:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         version = local_metadata.get("version", None)
 
         if (version is None or version < 2) and self.track_running_stats:
@@ -194,11 +201,17 @@ class _BatchNorm(_NormBase):
         return F.batch_norm(
             input,
             # If buffers are not to be tracked, ensure that they won't be updated
+<<<<<<< HEAD
             (
                 self.running_mean
                 if not self.training or self.track_running_stats
                 else None
             ),
+=======
+            self.running_mean
+            if not self.training or self.track_running_stats
+            else None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.running_var if not self.training or self.track_running_stats else None,
             self.weight,
             self.bias,
@@ -222,7 +235,10 @@ class _LazyNormBase(LazyModuleMixin, _NormBase):
         dtype=None,
     ) -> None:
         factory_kwargs = {"device": device, "dtype": dtype}
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             # affine and track_running_stats are hardcoded to False to
             # avoid creating tensors that will soon be overwritten.
@@ -236,6 +252,7 @@ class _LazyNormBase(LazyModuleMixin, _NormBase):
         self.affine = affine
         self.track_running_stats = track_running_stats
         if self.affine:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             self.weight = UninitializedParameter(**factory_kwargs)
             # pyrefly: ignore [bad-argument-type]
@@ -244,21 +261,36 @@ class _LazyNormBase(LazyModuleMixin, _NormBase):
             # pyrefly: ignore [bad-argument-type]
             self.running_mean = UninitializedBuffer(**factory_kwargs)
             # pyrefly: ignore [bad-argument-type]
+=======
+            self.weight = UninitializedParameter(**factory_kwargs)
+            self.bias = UninitializedParameter(**factory_kwargs)
+        if self.track_running_stats:
+            self.running_mean = UninitializedBuffer(**factory_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.running_var = UninitializedBuffer(**factory_kwargs)
             self.num_batches_tracked = torch.tensor(
                 0,
                 dtype=torch.long,
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 **{k: v for k, v in factory_kwargs.items() if k != "dtype"},
             )
 
     def reset_parameters(self) -> None:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.has_uninitialized_params() and self.num_features != 0:
             super().reset_parameters()
 
     def initialize_parameters(self, input) -> None:  # type: ignore[override]
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.has_uninitialized_params():
             self.num_features = input.shape[1]
             if self.affine:
@@ -347,12 +379,19 @@ class BatchNorm1d(_BatchNorm):
         >>> output = m(input)
     """
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 2 and input.dim() != 3:
             raise ValueError(f"expected 2D or 3D input (got {input.dim()}D input)")
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LazyBatchNorm1d(_LazyNormBase, _BatchNorm):
     r"""A :class:`torch.nn.BatchNorm1d` module with lazy initialization.
 
@@ -382,7 +421,11 @@ class LazyBatchNorm1d(_LazyNormBase, _BatchNorm):
 
     cls_to_become = BatchNorm1d  # type: ignore[assignment]
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 2 and input.dim() != 3:
             raise ValueError(f"expected 2D or 3D input (got {input.dim()}D input)")
 
@@ -459,12 +502,19 @@ class BatchNorm2d(_BatchNorm):
         >>> output = m(input)
     """
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 4:
             raise ValueError(f"expected 4D input (got {input.dim()}D input)")
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LazyBatchNorm2d(_LazyNormBase, _BatchNorm):
     r"""A :class:`torch.nn.BatchNorm2d` module with lazy initialization.
 
@@ -494,7 +544,11 @@ class LazyBatchNorm2d(_LazyNormBase, _BatchNorm):
 
     cls_to_become = BatchNorm2d  # type: ignore[assignment]
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 4:
             raise ValueError(f"expected 4D input (got {input.dim()}D input)")
 
@@ -571,12 +625,19 @@ class BatchNorm3d(_BatchNorm):
         >>> output = m(input)
     """
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 5:
             raise ValueError(f"expected 5D input (got {input.dim()}D input)")
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class LazyBatchNorm3d(_LazyNormBase, _BatchNorm):
     r"""A :class:`torch.nn.BatchNorm3d` module with lazy initialization.
 
@@ -606,7 +667,11 @@ class LazyBatchNorm3d(_LazyNormBase, _BatchNorm):
 
     cls_to_become = BatchNorm3d  # type: ignore[assignment]
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.dim() != 5:
             raise ValueError(f"expected 5D input (got {input.dim()}D input)")
 
@@ -731,20 +796,31 @@ class SyncBatchNorm(_BatchNorm):
         )
         self.process_group = process_group
 
+<<<<<<< HEAD
     def _check_input_dim(self, input) -> None:
         if input.dim() < 2:
             raise ValueError(f"expected at least 2D input (got {input.dim()}D input)")
 
     def _check_non_zero_input_channels(self, input) -> None:
+=======
+    def _check_input_dim(self, input):
+        if input.dim() < 2:
+            raise ValueError(f"expected at least 2D input (got {input.dim()}D input)")
+
+    def _check_non_zero_input_channels(self, input):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input.size(1) == 0:
             raise ValueError(
                 "SyncBatchNorm number of input channels should be non-zero"
             )
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._check_input_dim(input)
         self._check_non_zero_input_channels(input)
 
@@ -797,7 +873,10 @@ class SyncBatchNorm(_BatchNorm):
             # currently only GPU/PrivateUse1 input is supported
             if input.device.type not in [
                 "cuda",
+<<<<<<< HEAD
                 "hpu",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "xpu",
                 torch._C._get_privateuse1_backend_name(),
             ]:

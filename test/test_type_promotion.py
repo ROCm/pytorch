@@ -22,7 +22,11 @@ import operator
 
 # load_tests from torch.testing._internal.common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
+=======
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Not thread-safe decorator that runs the decorated test once with
 # the default dtype being torch.float and again with the default dtype
@@ -968,7 +972,11 @@ class TestTypePromotion(TestCase):
                 except Exception as e:
                     expected = e
 
+<<<<<<< HEAD
                 same_result = (type(expected) is type(actual)) and expected == actual
+=======
+                same_result = (type(expected) == type(actual)) and expected == actual
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # Note: An "undesired failure," as opposed to an "expected failure"
                 # is both expected (we know the test will fail) and
@@ -1046,13 +1054,21 @@ class TestTypePromotion(TestCase):
                     and not (out_dtype.is_floating_point or out_dtype.is_complex))
                     or ((x_dtype.is_complex or y_dtype.is_complex) and not out_dtype.is_complex)):
                 # This combinations do not support type conversion to a different class out type
+<<<<<<< HEAD
                 with self.assertRaises(TypeError):
+=======
+                with self.assertRaises(RuntimeError):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch.cat([x, y], out=out)
             else:
                 torch.cat([x, y], out=out)
                 self.assertEqual(out, expected_out, exact_dtype=True)
 
+<<<<<<< HEAD
     # Verifies that unary ops require matching out types
+=======
+    # Verfies that unary ops require matching out types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypes
     @dtypes(*itertools.product((torch.int64,
                                 torch.float32, torch.float64,
@@ -1128,7 +1144,11 @@ class TestTypePromotion(TestCase):
         maxs = (max_t, max_t[0], max_t[0].item())
         inp = make_tensor((S,), dtype0)
         for min_v, max_v in itertools.product(mins, maxs):
+<<<<<<< HEAD
             if type(max_v) is not type(min_v):
+=======
+            if type(max_v) != type(min_v):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             if isinstance(min_v, torch.Tensor) and min_v.ndim == 0 and max_v.ndim == 0:
                 continue  # 0d tensors go to scalar overload, and it's tested separately

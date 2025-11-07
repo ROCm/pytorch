@@ -38,7 +38,11 @@ struct TORCH_API AdamWParamState
   TORCH_ARG(int64_t, step) = 0;
   TORCH_ARG(torch::Tensor, exp_avg);
   TORCH_ARG(torch::Tensor, exp_avg_sq);
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, max_exp_avg_sq);
+=======
+  TORCH_ARG(torch::Tensor, max_exp_avg_sq) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   void serialize(torch::serialize::InputArchive& archive) override;

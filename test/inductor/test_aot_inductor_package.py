@@ -9,12 +9,18 @@ import sys
 import tempfile
 import unittest
 import zipfile
+<<<<<<< HEAD
 from collections.abc import Callable
 from pathlib import Path
+=======
+from pathlib import Path
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from parameterized import parameterized_class
 
 import torch
+<<<<<<< HEAD
 import torch._inductor.config
 from torch._inductor.codecache import get_kernel_bin_format, WritableTempFile
 from torch._inductor.package import load_package, package_aoti
@@ -29,6 +35,20 @@ from torch.export.pt2_archive._package import (
 )
 from torch.testing._internal.common_cuda import _get_torch_cuda_version
 from torch.testing._internal.common_utils import IS_FBCODE, skipIfRocm, skipIfXpu
+=======
+from torch._inductor.codecache import get_kernel_bin_format
+from torch._inductor.package import AOTICompiledModel, load_package, package_aoti
+from torch._inductor.test_case import TestCase
+from torch._inductor.utils import fresh_cache
+from torch.export import Dim
+from torch.export.pt2_archive._package import load_pt2, load_weights_to_pt2_contents
+from torch.testing._internal.common_utils import (
+    IS_FBCODE,
+    skipIfRocm,
+    skipIfXpu,
+    TEST_CUDA,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 
 
@@ -114,7 +134,11 @@ class TestAOTInductorPackage(TestCase):
             inductor_configs["aot_inductor.package_cpp_only"] = self.package_cpp_only
 
             torch.manual_seed(0)
+<<<<<<< HEAD
             with WritableTempFile(suffix=".pt2") as f:
+=======
+            with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 compiled_model = compile(
                     model,
                     example_inputs,
@@ -128,6 +152,7 @@ class TestAOTInductorPackage(TestCase):
         self.assertEqual(actual, expected, atol=atol, rtol=rtol)
         return compiled_model
 
+<<<<<<< HEAD
     def check_package_cpp_only(self: TestCase) -> None:
         """
         Check if cmake and make are available.
@@ -205,6 +230,8 @@ class TestAOTInductorPackage(TestCase):
             subprocess.run(["make"], cwd=build_path, check=True)
         return build_path, tmp_path
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_add(self):
         class Model(torch.nn.Module):
             def forward(self, x, y):
@@ -219,7 +246,11 @@ class TestAOTInductorPackage(TestCase):
     def test_remove_intermediate_files(self):
         # For CUDA, generated cpp files contain absolute path to the generated cubin files.
         # With the package artifact, that cubin path should be overridden at the run time,
+<<<<<<< HEAD
         # so removing those intermediate files in this test to verify that.
+=======
+        # so removing those intermeidate files in this test to verify that.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Model(torch.nn.Module):
             def forward(self, x, y):
                 return x + y
@@ -237,7 +268,11 @@ class TestAOTInductorPackage(TestCase):
             expected = ref_model(*ref_inputs)
 
             torch.manual_seed(0)
+<<<<<<< HEAD
             with WritableTempFile(suffix=".pt2") as f:
+=======
+            with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ep = torch.export.export(model, example_inputs, strict=True)
                 with fresh_cache():
                     # cubin files are removed when exiting this context
@@ -266,12 +301,23 @@ class TestAOTInductorPackage(TestCase):
         self.check_model(Model(), example_inputs)
 
     @unittest.skipIf(IS_FBCODE, "cmake won't work in fbcode")
+<<<<<<< HEAD
     @unittest.skipIf(
         _get_torch_cuda_version() < (12, 6), "Test is only supported on CUDA 12.6+"
     )
     @skipIfXpu  # build system may be different
     def test_compile_after_package(self):
         self.check_package_cpp_only()
+=======
+    @skipIfXpu  # build system may be different
+    def test_compile_after_package(self):
+        if not self.package_cpp_only:
+            raise unittest.SkipTest("Only meant to test cpp package")
+        if shutil.which("cmake") is None:
+            raise unittest.SkipTest("cmake is not available")
+        if shutil.which("make") is None:
+            raise unittest.SkipTest("make is not available")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -294,6 +340,7 @@ class TestAOTInductorPackage(TestCase):
                 # Require kernels to be compiled into .o files
                 "aot_inductor.embed_kernel_binary": True,
             }
+<<<<<<< HEAD
             with (
                 tempfile.TemporaryDirectory() as tmp_dir,
             ):
@@ -301,12 +348,44 @@ class TestAOTInductorPackage(TestCase):
                     model, example_inputs, options, tmp_dir
                 )
 
+=======
+            ep = torch.export.export(model, example_inputs, strict=True)
+            package_path = torch._inductor.aoti_compile_and_package(
+                ep, inductor_configs=options
+            )
+            with (
+                tempfile.TemporaryDirectory() as tmp_dir,
+                zipfile.ZipFile(package_path, "r") as zip_ref,
+            ):
+                filenames = zip_ref.namelist()
+                prefix = filenames[0].split("/")[0]
+                zip_ref.extractall(tmp_dir)
+                tmp_path = Path(tmp_dir) / prefix / "data" / "aotinductor" / "model"
+                self.assertTrue(tmp_path.exists())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if self.device == GPU_TYPE:
                     kernel_bin = get_kernel_bin_format(self.device)
                     self.assertTrue(not list(tmp_path.glob(f"*.{kernel_bin}")))
                     # Check if .cubin.o files exist and use unique kernel names
                     self.assertTrue(list(tmp_path.glob(f"triton_*.{kernel_bin}.o")))
 
+<<<<<<< HEAD
+=======
+                build_path = tmp_path / "build"
+                self.assertTrue(not build_path.exists())
+
+                # Create a build directory to run cmake
+                build_path.mkdir()
+                custom_env = os.environ.copy()
+                custom_env["CMAKE_PREFIX_PATH"] = str(Path(torch.__file__).parent)
+                subprocess.run(
+                    ["cmake", ".."],
+                    cwd=build_path,
+                    env=custom_env,
+                )
+                subprocess.run(["make"], cwd=build_path)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Check if the .so file was build successfully
                 so_path = build_path / "libaoti_model.so"
                 self.assertTrue(so_path.exists())
@@ -314,16 +393,28 @@ class TestAOTInductorPackage(TestCase):
                 actual = optimized(*example_inputs)
                 self.assertTrue(torch.allclose(actual, expected))
 
+<<<<<<< HEAD
     @unittest.skipIf(
         _get_torch_cuda_version() < (12, 6), "Test is only supported on CUDA 12.6+"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(IS_FBCODE, "cmake won't work in fbcode")
     @skipIfRocm  # doesn't support multi-arch binary
     @skipIfXpu  # doesn't support multi-arch binary
     def test_compile_after_package_multi_arch(self):
         if self.device != GPU_TYPE:
             raise unittest.SkipTest("Only meant to test GPU_TYPE")
+<<<<<<< HEAD
         self.check_package_cpp_only()
+=======
+        if not self.package_cpp_only:
+            raise unittest.SkipTest("Only meant to test cpp package")
+        if shutil.which("cmake") is None:
+            raise unittest.SkipTest("cmake is not available")
+        if shutil.which("make") is None:
+            raise unittest.SkipTest("make is not available")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -343,17 +434,49 @@ class TestAOTInductorPackage(TestCase):
 
             options = {
                 "aot_inductor.package_cpp_only": self.package_cpp_only,
+<<<<<<< HEAD
                 # Expect kernel to be embedded in the final binary.
+=======
+                # Expect kernel to be embeded in the final binary.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # We will make it the default behavior for the standalone mode.
                 "aot_inductor.emit_multi_arch_kernel": True,
                 "aot_inductor.embed_kernel_binary": True,
             }
+<<<<<<< HEAD
             with (
                 tempfile.TemporaryDirectory() as tmp_dir,
             ):
                 build_path, _ = self.cmake_compile(
                     model, example_inputs, options, tmp_dir
                 )
+=======
+            ep = torch.export.export(model, example_inputs)
+            package_path = torch._inductor.aoti_compile_and_package(
+                ep, inductor_configs=options
+            )
+            with (
+                tempfile.TemporaryDirectory() as tmp_dir,
+                zipfile.ZipFile(package_path, "r") as zip_ref,
+            ):
+                filenames = zip_ref.namelist()
+                prefix = filenames[0].split("/")[0]
+                zip_ref.extractall(tmp_dir)
+                tmp_path = Path(tmp_dir) / prefix / "data" / "aotinductor" / "model"
+                self.assertTrue(tmp_path.exists())
+                # Create a build directory to run cmake
+                build_path = tmp_path / "build"
+                build_path.mkdir()
+                custom_env = os.environ.copy()
+                custom_env["CMAKE_PREFIX_PATH"] = str(Path(torch.__file__).parent)
+                subprocess.run(
+                    ["cmake", ".."],
+                    cwd=build_path,
+                    env=custom_env,
+                )
+                subprocess.run(["make"], cwd=build_path)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Check if the .so file was build successfully
                 so_path = build_path / "libaoti_model.so"
                 self.assertTrue(so_path.exists())
@@ -361,6 +484,7 @@ class TestAOTInductorPackage(TestCase):
                 actual = optimized(*example_inputs)
                 self.assertTrue(torch.allclose(actual, expected))
 
+<<<<<<< HEAD
     @unittest.skipIf(
         _get_torch_cuda_version() < (12, 6), "Test is only supported on CUDA 12.6+"
     )
@@ -560,6 +684,8 @@ class TestAOTInductorPackage(TestCase):
             true_res = next(iter(tensor_model.parameters()))
             self.assertEqual(expected_res, true_res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_metadata(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -574,6 +700,7 @@ class TestAOTInductorPackage(TestCase):
             torch.randn(10, 10, device=self.device),
         )
         metadata = {"dummy": "moo"}
+<<<<<<< HEAD
 
         with torch.no_grad():
             torch.manual_seed(0)
@@ -616,6 +743,16 @@ class TestAOTInductorPackage(TestCase):
             self.assertEqual(actual, expected)
 
         loaded_metadata = compiled_model.get_metadata()  # type: ignore[attr-defined]
+=======
+        compiled_model = self.check_model(
+            Model(),
+            example_inputs,
+            inductor_configs={"aot_inductor.metadata": metadata},
+        )
+
+        loaded_metadata = compiled_model.get_metadata()  # type: ignore[attr-defined]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(loaded_metadata.get("dummy"), "moo")
 
     def test_bool_input(self):
@@ -673,7 +810,11 @@ class TestAOTInductorPackage(TestCase):
             ep2.module(), example_inputs2, options=options
         )
 
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(
                 f.name, {"model1": aoti_files1, "model2": aoti_files2}
             )
@@ -683,13 +824,21 @@ class TestAOTInductorPackage(TestCase):
         self.assertEqual(loaded1(*example_inputs1), ep1.module()(*example_inputs1))
         self.assertEqual(loaded2(*example_inputs2), ep2.module()(*example_inputs2))
 
+<<<<<<< HEAD
     @unittest.skipIf(not HAS_GPU, "requires gpu")
+=======
+    @unittest.skipIf(not TEST_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_duplicate_calls(self):
         options = {
             "aot_inductor.package": True,
         }
 
+<<<<<<< HEAD
         device = GPU_TYPE
+=======
+        device = "cuda"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         class Model1(torch.nn.Module):
             def __init__(self) -> None:
@@ -725,7 +874,11 @@ class TestAOTInductorPackage(TestCase):
             ep2.module(), example_inputs2, options=options
         )
 
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(
                 f.name, {"model1": aoti_files1, "model2": aoti_files2}
             )
@@ -761,7 +914,11 @@ class TestAOTInductorPackage(TestCase):
                 "aot_inductor.package_cpp_only": self.package_cpp_only,
             },
         )
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(f.name, {"model1": aoti_files})
             loaded = load_package(package_path, "model1")
         self.assertTrue(
@@ -945,7 +1102,11 @@ class TestAOTInductorPackage(TestCase):
             "aot_inductor.package_cpp_only": self.package_cpp_only,
             "always_keep_tensor_constants": True,
             "aot_inductor.package_constants_in_so": False,
+<<<<<<< HEAD
             "aot_inductor.package_constants_on_disk_format": "pickle_weights",
+=======
+            "aot_inductor.package_constants_on_disk": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         class Bar(torch.nn.Module):
@@ -981,7 +1142,11 @@ class TestAOTInductorPackage(TestCase):
         aoti_files1 = torch._inductor.aot_compile(ep1.module(), (), options=options)
         aoti_files2 = torch._inductor.aot_compile(ep2.module(), (), options=options)
 
+<<<<<<< HEAD
         with WritableTempFile(suffix=".pt2") as f:
+=======
+        with tempfile.NamedTemporaryFile(suffix=".pt2") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             package_path = package_aoti(
                 f.name,
                 {"model1": aoti_files1, "model2": aoti_files2},
@@ -1029,7 +1194,11 @@ class TestAOTInductorPackage(TestCase):
             "aot_inductor.package_cpp_only": self.package_cpp_only,
             "always_keep_tensor_constants": True,
             "aot_inductor.package_constants_in_so": False,
+<<<<<<< HEAD
             "aot_inductor.package_constants_on_disk_format": "pickle_weights",
+=======
+            "aot_inductor.package_constants_on_disk": True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         # linear.weight's node name is linear_weight.
@@ -1053,6 +1222,7 @@ class TestAOTInductorPackage(TestCase):
         loaded1 = pt2_contents.aoti_runners["model"]
         self.assertEqual(loaded1(x), bar1(x))
 
+<<<<<<< HEAD
     def test_loading_wrong_model(self):
         class Model(torch.nn.Module):
             def forward(self, x):
@@ -1069,6 +1239,8 @@ class TestAOTInductorPackage(TestCase):
         ):
             load_package(package_path, model_name="forward")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

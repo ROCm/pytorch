@@ -1,6 +1,10 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
 
+<<<<<<< HEAD
+=======
+import os
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import pathlib
 import tempfile
 import unittest
@@ -20,11 +24,15 @@ from torch.distributed.tensor import (
     Shard,
 )
 from torch.distributed.tensor._api import _shard_tensor
+<<<<<<< HEAD
 from torch.distributed.tensor._dtensor_spec import (
     DTensorSpec,
     ShardOrderEntry,
     TensorMeta,
 )
+=======
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.distributed.tensor.experimental import implicit_replication
 from torch.distributed.tensor.parallel import (
@@ -32,6 +40,7 @@ from torch.distributed.tensor.parallel import (
     parallelize_module,
     RowwiseParallel,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor.placement_types import _StridedShard
 from torch.testing import make_tensor
 from torch.testing._internal.common_utils import IS_FBCODE, run_tests, skipIfHpu
@@ -41,6 +50,14 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
     map_local_tensor_for_rank,
     with_comms,
 )
+=======
+from torch.testing._internal.common_utils import IS_FBCODE, run_tests, skipIfHpu
+from torch.testing._internal.distributed._tensor.common_dtensor import (
+    DTensorTestBase,
+    with_comms,
+)
+from torch.testing._internal.logging_utils import LoggingTestCase
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 c10d_functional = torch.ops.c10d_functional
@@ -67,7 +84,11 @@ class DummyMLP(torch.nn.Module):
 class DTensorTest(DTensorTestBase):
     @with_comms
     def test_dtensor_constructor(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
         local_tensor = torch.randn(3, 3, requires_grad=True)
 
@@ -155,7 +176,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_stride(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard0_spec = [Shard(0)]
         local_tensor = torch.randn(4, 8)
         dist_tensor = DTensor.from_local(local_tensor, device_mesh, shard0_spec)
@@ -178,10 +203,17 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_from_local(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
         shard_spec = [Shard(0)]
         local_tensor = torch.randn(3, 3)
         sharded_tensor = DTensor.from_local(local_tensor, device_mesh, shard_spec)
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+        placements = [Shard(0)]
+        local_tensor = torch.randn(3, 3)
+        sharded_tensor = DTensor.from_local(local_tensor, device_mesh, placements)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(sharded_tensor.size(), torch.Size([self.world_size * 3, 3]))
 
         replica_spec = [Replicate()]
@@ -198,14 +230,22 @@ class DTensorTest(DTensorTestBase):
         local_tensor_temp = local_tensor_with_grad * 3
         # create the dist tensor with non leaf local tensor, dist tensor created
         # should also be non leaf node
+<<<<<<< HEAD
         dist_tensor = DTensor.from_local(local_tensor_temp, device_mesh, shard_spec)
+=======
+        dist_tensor = DTensor.from_local(local_tensor_temp, device_mesh, placements)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertFalse(dist_tensor.is_leaf)
         # do some random operations on dist tensor
         output = dist_tensor * 3
         self.assertIsInstance(output, DTensor)
         # trigger .backward() on dist tensor directly
         local_grad = torch.ones(3, 3)
+<<<<<<< HEAD
         grad_output = DTensor.from_local(local_grad, device_mesh, shard_spec)
+=======
+        grad_output = DTensor.from_local(local_grad, device_mesh, placements)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # run backward directly on dist tensor
         output.backward(grad_output)
         # check it gradients flow back to original torch.Tensor
@@ -213,6 +253,7 @@ class DTensorTest(DTensorTestBase):
         expected_grad = torch.ones(3, 3) * 9
         self.assertEqual(local_tensor_with_grad.grad, expected_grad)
 
+<<<<<<< HEAD
         # DTensor.from_local should raise error if the `local_tensor`
         # argument is a DTensor
         local_tensor = torch.ones(2, 2)
@@ -226,6 +267,12 @@ class DTensorTest(DTensorTestBase):
     @with_comms
     def test_from_local_uneven_sharding(self):
         device_mesh = self.build_device_mesh()
+=======
+    @with_comms
+    def test_from_local_uneven_sharding(self):
+        mesh_shape = (self.world_size,)
+        device_mesh = init_device_mesh(self.device_type, mesh_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         uneven_dim0_size = self.world_size + 1
         global_tensor = torch.randn(uneven_dim0_size, 2)
@@ -238,7 +285,11 @@ class DTensorTest(DTensorTestBase):
         )
 
         dtensor = DTensor.from_local(
+<<<<<<< HEAD
             map_local_tensor_for_rank(tensor_list, self.rank, lambda tl, r: tl[r]),
+=======
+            tensor_list[self.rank],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_mesh,
             (Shard(0),),
             shape=global_tensor.size(),
@@ -250,7 +301,12 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_from_local_uneven_sharding_raise_error(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        mesh_shape = (self.world_size,)
+        device_mesh = init_device_mesh(self.device_type, mesh_shape)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         uneven_dim0_size = self.world_size + 1
         global_tensor = torch.randn(uneven_dim0_size, 2)
@@ -266,7 +322,11 @@ class DTensorTest(DTensorTestBase):
             RuntimeError, "Please pass both shape and stride at the same time."
         ):
             DTensor.from_local(
+<<<<<<< HEAD
                 map_local_tensor_for_rank(tensor_list, self.rank, lambda tl, r: tl[r]),
+=======
+                tensor_list[self.rank],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 device_mesh,
                 (Shard(0),),
                 shape=global_tensor.size(),
@@ -276,7 +336,11 @@ class DTensorTest(DTensorTestBase):
             RuntimeError, "Please pass both shape and stride at the same time."
         ):
             DTensor.from_local(
+<<<<<<< HEAD
                 map_local_tensor_for_rank(tensor_list, self.rank, lambda tl, r: tl[r]),
+=======
+                tensor_list[self.rank],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 device_mesh,
                 (Shard(0),),
                 stride=global_tensor.stride(),
@@ -284,7 +348,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_from_local_negative_dim(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(-1)]
         local_tensor = torch.randn(3, 3)
         sharded_tensor = DTensor.from_local(local_tensor, device_mesh, placements)
@@ -292,7 +360,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_to_local(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = (Shard(0),)
         local_tensor_with_grad = torch.randn(
             3, 3, device=self.device_type, requires_grad=True
@@ -352,7 +424,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_to_local_grad_hint(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = (Shard(0),)
         global_tensor = torch.ones(8, 3, requires_grad=True)
 
@@ -377,7 +453,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_full_tensor_sync(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = (Shard(0),)
         global_tensor = torch.ones(8, 3, requires_grad=True)
 
@@ -388,7 +468,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_full_tensor_grad_hint(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = (Shard(0),)
         global_tensor = torch.ones(8, 3, requires_grad=True)
 
@@ -401,7 +485,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_new_empty_strided(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_tensor = torch.randn(8, 8, requires_grad=True, device=self.device_type)
         my_dtensor = distribute_tensor(local_tensor, device_mesh, [Shard(0)])
         new_strided_dtensor = my_dtensor.new_empty_strided(
@@ -427,7 +515,11 @@ class DTensorTest(DTensorTestBase):
         # Tests that if the output of some dtensor operations  isn't used in any compute,
         # the output should be an AsyncCollectiveTensor (representing the fact that
         # we haven't synced the collective yet).
+<<<<<<< HEAD
         mesh = self.build_device_mesh()
+=======
+        mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def fn(dt):
             dt_out_redistribute = dt.redistribute(mesh, [Replicate()], async_op=True)
@@ -452,7 +544,11 @@ class DTensorTest(DTensorTestBase):
         self.assertEqual(type(out_view), AsyncCollectiveTensor)
         self.assertFalse(out.completed)
 
+<<<<<<< HEAD
         # Use the data, requiring a sync
+=======
+        # Use the daa, requiring a sync
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = torch.ones((4, 2), device=self.device_type) + 1
         ref = ref.view(-1)
         out_data = out_view + 1
@@ -467,7 +563,11 @@ class DTensorTest(DTensorTestBase):
     @with_comms
     def test_from_local_then_to_local(self):
         # this test ensure end to end from torch.Tensor -> dist tensor -> torch.Tensor works
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
 
         # step 1. construct from construct local tensor
@@ -499,7 +599,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_spec_read_only_after_set(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
         local_tensor = torch.randn(3, 3)
         sharded_tensor = DTensor.from_local(local_tensor, device_mesh, placements)
@@ -511,7 +615,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_spec_hash(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
         local_tensor = torch.randn(3, 3)
         local_tensor2 = torch.randn(3, 3)
@@ -531,7 +639,11 @@ class DTensorTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_properties(self):
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
         local_tensor = torch.randn(3, 3)
         sharded_tensor = DTensor.from_local(local_tensor, device_mesh, placements)
@@ -585,7 +697,11 @@ class DTensorTest(DTensorTestBase):
     @with_comms
     def test_shard_tensor(self):
         ws = self.world_size
+<<<<<<< HEAD
         device_mesh = self.build_device_mesh()
+=======
+        device_mesh = DeviceMesh(self.device_type, list(range(ws)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         full_tensor = torch.arange(ws * ws).reshape(ws, ws)
 
         # Shard by row
@@ -594,12 +710,16 @@ class DTensorTest(DTensorTestBase):
         self.assertEqual(sharded_tensor.size(), torch.Size([ws, ws]))
         self.assertEqual(sharded_tensor.placements, placements)
         local_tensor = sharded_tensor.to_local()
+<<<<<<< HEAD
         self.assertEqual(
             local_tensor,
             map_local_tensor_for_rank(
                 full_tensor, self.rank, lambda ft, r: ft[range(r, r + 1), :]
             ),
         )
+=======
+        self.assertEqual(local_tensor, full_tensor[range(self.rank, self.rank + 1), :])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Shard by column
         placements = [Shard(1)]
@@ -607,12 +727,16 @@ class DTensorTest(DTensorTestBase):
         self.assertEqual(sharded_tensor.size(), torch.Size([ws, ws]))
         self.assertEqual(sharded_tensor.placements, placements)
         local_tensor = sharded_tensor.to_local()
+<<<<<<< HEAD
         self.assertEqual(
             local_tensor,
             map_local_tensor_for_rank(
                 full_tensor, self.rank, lambda ft, r: ft[:, range(r, r + 1)]
             ),
         )
+=======
+        self.assertEqual(local_tensor, full_tensor[:, range(self.rank, self.rank + 1)])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # assert full tensor is not changed
         self.assertEqual(full_tensor, torch.arange(ws * ws).reshape(ws, ws))
@@ -632,6 +756,7 @@ class DTensorTest(DTensorTestBase):
         self.assertEqual(local_tensor.item(), self.rank)
 
 
+<<<<<<< HEAD
 DTensorTestWithLocalTensor = create_local_tensor_test_class(
     DTensorTest,
     skipped_tests=[
@@ -645,6 +770,8 @@ DTensorTestWithLocalTensor = create_local_tensor_test_class(
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DTensorMeshTest(DTensorTestBase):
     @property
     def world_size(self):
@@ -659,7 +786,11 @@ class DTensorMeshTest(DTensorTestBase):
     @with_comms
     def test_dtensor_device_mesh_device_conversion(self):
         # construct a cuda device mesh
+<<<<<<< HEAD
         mesh = self.build_device_mesh()
+=======
+        mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # construct from a cpu local tensor with cuda device mesh
         # should automatically convert the dist tensor to cuda
@@ -671,14 +802,22 @@ class DTensorMeshTest(DTensorTestBase):
 
     @with_comms
     def test_dtensor_api_device_mesh_context_manager(self):
+<<<<<<< HEAD
         with self.build_device_mesh() as mesh:
+=======
+        with DeviceMesh(self.device_type, list(range(self.world_size))) as mesh:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             placements = [Shard(0)]
             local_tensor = torch.randn(3, 3)
             sharded_tensor = DTensor.from_local(
                 local_tensor, device_mesh=mesh, placements=placements
             )
 
+<<<<<<< HEAD
         with self.build_device_mesh():
+=======
+        with DeviceMesh(self.device_type, list(range(self.world_size))):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             placements = [Shard(0)]
             local_tensor = torch.randn(3, 3)
             sharded_tensor = DTensor.from_local(local_tensor, placements=placements)
@@ -688,7 +827,11 @@ class DTensorMeshTest(DTensorTestBase):
                 replica_tensor.size(), torch.Size([3 * self.world_size, 3])
             )
 
+<<<<<<< HEAD
         with self.build_device_mesh():
+=======
+        with DeviceMesh(self.device_type, torch.arange(self.world_size)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             placements = [Shard(0)]
             global_shape = torch.Size([3 * self.world_size, 3])
             global_tensor = torch.randn(global_shape)
@@ -874,7 +1017,11 @@ class DTensorMeshTest(DTensorTestBase):
 
     @with_comms
     def test_implicit_replication(self):
+<<<<<<< HEAD
         mesh = self.build_device_mesh()
+=======
+        mesh = init_device_mesh(self.device_type, (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_tensor1 = torch.ones(4, 3)
         sharded_dtensor = DTensor.from_local(local_tensor1, mesh, [Shard(0)])
 
@@ -889,6 +1036,7 @@ class DTensorMeshTest(DTensorTestBase):
             self.assertEqual(local_shard, torch.ones(4, 3) + torch.ones(3))
 
     @with_comms
+<<<<<<< HEAD
     def test_vmap_embedding(self):
         mesh = self.build_device_mesh()
         batch_size, seq_len = 2, 6
@@ -928,6 +1076,10 @@ class DTensorMeshTest(DTensorTestBase):
     @with_comms
     def test_auto_implicit_replication(self):
         mesh = self.build_device_mesh()
+=======
+    def test_auto_implicit_replication(self):
+        mesh = init_device_mesh(self.device_type, (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         local_tensor = torch.ones(self.world_size, 3, device=self.device_type)
         sharded_dtensor = DTensor.from_local(local_tensor, mesh, [Shard(0)])
@@ -951,6 +1103,7 @@ class DTensorMeshTest(DTensorTestBase):
             (numel_1_tensor + sharded_dtensor).to_local(), numel_1_tensor + local_tensor
         )
 
+<<<<<<< HEAD
     @unittest.expectedFailure
     @with_comms
     def test_dtensor_cond(self):
@@ -975,6 +1128,11 @@ class DTensorMeshTest(DTensorTestBase):
     @with_comms
     def test_metadata_consistency_check(self):
         device_mesh = self.build_device_mesh()
+=======
+    @with_comms
+    def test_metadata_consistency_check(self):
+        device_mesh = DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         placements = [Shard(0)]
 
         # Create a local tensor with specific metadata and check dtype change
@@ -1020,6 +1178,7 @@ class DTensorMeshTest(DTensorTestBase):
             self.fail("Unexpected ValueError raised with run_check=False")
 
 
+<<<<<<< HEAD
 DTensorMeshTestWithLocalTensor = create_local_tensor_test_class(
     DTensorMeshTest,
     skipped_tests=[
@@ -1033,6 +1192,8 @@ DTensorMeshTestWithLocalTensor = create_local_tensor_test_class(
 )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestDTensorPlacementTypes(DTensorTestBase):
     @property
     def world_size(self):
@@ -1049,7 +1210,11 @@ class TestDTensorPlacementTypes(DTensorTestBase):
 
     @with_comms
     def test_split_tensor_1D(self) -> None:
+<<<<<<< HEAD
         mesh = self.build_device_mesh()
+=======
+        mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_placement = Shard(0)
 
         for size in range(8):
@@ -1066,7 +1231,11 @@ class TestDTensorPlacementTypes(DTensorTestBase):
                 assert_array_equal(expected_pad_sizes, pad_sizes)
 
                 is_tensor_empty = [
+<<<<<<< HEAD
                     not splitted_tensor.numel() > 0
+=======
+                    False if splitted_tensor.numel() > 0 else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for splitted_tensor in splitted_tensor_list
                 ]
                 expected_is_tensor_empty = [True] * self.world_size
@@ -1089,14 +1258,24 @@ class TestDTensorPlacementTypes(DTensorTestBase):
                     for i, tensor in enumerate(splitted_tensor_list)
                 ]
                 expected_is_tensor_empty = [
+<<<<<<< HEAD
                     not idx < size for idx, _ in enumerate(range(self.world_size))
                 ]
                 is_tensor_empty = [
                     not unpadded_tensor.numel() > 0 for unpadded_tensor in unpadded_list
+=======
+                    False if idx < size else True
+                    for idx, _ in enumerate(range(self.world_size))
+                ]
+                is_tensor_empty = [
+                    False if unpadded_tensor.numel() > 0 else True
+                    for unpadded_tensor in unpadded_list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
                 assert_array_equal(expected_is_tensor_empty, is_tensor_empty)
 
 
+<<<<<<< HEAD
 TestDTensorPlacementTypesWithLocalTensor = create_local_tensor_test_class(
     TestDTensorPlacementTypes,
 )
@@ -1284,6 +1463,38 @@ class TestDTensorSpec(DTensorTestBase):
 TestDTensorSpecWithLocalTensor = create_local_tensor_test_class(
     TestDTensorSpec,
 )
+=======
+class DTensorLogTest(LoggingTestCase):
+    def test_dtensor_log(self):
+        if not torch.distributed.is_available() or not torch.cuda.is_available():
+            return
+
+        env = dict(os.environ)
+        env["TORCH_LOGS"] = "+dtensor"
+        env["RANK"] = "0"
+        env["WORLD_SIZE"] = "1"
+        env["MASTER_PORT"] = "12345"
+        env["MASTER_ADDR"] = "localhost"
+
+        _, stderr = self.run_process_no_exception(
+            """\
+import logging
+import torch
+from torch.distributed.device_mesh import init_device_mesh
+from torch.distributed.tensor import distribute_tensor, Shard
+
+mesh = init_device_mesh("cuda", (1,), mesh_dim_names=("dp",))
+placements = [Shard(0)]
+tensor = torch.randn(12, 8, 8)
+dtensor = distribute_tensor(tensor, mesh, placements)
+dtensor.max()
+""",
+            env=env,
+        )
+        self.assertIn("_dispatch.py", stderr.decode("utf-8"))
+        self.assertIn("redistribute=False", stderr.decode("utf-8"))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

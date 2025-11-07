@@ -11,16 +11,26 @@ from torch.testing import make_tensor
 from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfMPS,
+<<<<<<< HEAD
     expectedFailureMPS,
     instantiate_device_type_tests,
     onlyCPU,
     onlyNativeDeviceTypes,
+=======
+    instantiate_device_type_tests,
+    onlyCPU,
+    onlyNativeDeviceTypes,
+    onlyNativeDeviceTypesAnd,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skipLazy,
     skipMeta,
     skipXLA,
 )
 from torch.testing._internal.common_dtype import (
+<<<<<<< HEAD
     all_mps_types_and,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_types_and,
     all_types_and_complex_and,
     complex_types,
@@ -158,11 +168,16 @@ class TestViewOps(TestCase):
     @skipIfTorchDynamo("TorchDynamo fails with unknown reason")
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*integral_types_and(torch.cfloat, torch.float, torch.half, torch.bool))
     def test_view_dtype_new(self, device, dtype):
         dtypes = {value: key for (key, value) in numpy_to_torch_dtype_dict.items()}
         if device.startswith("mps"):
             del dtypes[torch.float64]
+=======
+    def test_view_dtype_new(self, device, dtype):
+        dtypes = {value: key for (key, value) in numpy_to_torch_dtype_dict.items()}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         del dtypes[torch.bool]
 
         def generate_inputs():
@@ -275,7 +290,10 @@ class TestViewOps(TestCase):
     # has a greater element size than the original dtype
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_dtype_upsize_errors(self, device, dtype):
         dtype_size = torch._utils._element_size(dtype)
 
@@ -377,7 +395,10 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*complex_types(), torch.complex32)
+<<<<<<< HEAD
     @dtypesIfMPS(torch.cfloat, torch.chalf)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_as_real(self, device, dtype):
         def fn(contiguous_input=True):
             t = torch.randn(3, 4, dtype=dtype, device=device)
@@ -404,7 +425,13 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.bool))
+=======
+    @dtypesIfMPS(
+        *integral_types_and(torch.half, torch.bfloat16, torch.bool, torch.float32)
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_tensor_split(self, device, dtype):
         a = make_tensor((40, 30), dtype=dtype, device=device, low=-9, high=9)
         a_split_dim0 = a.tensor_split(7, 0)
@@ -416,7 +443,10 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.cfloat, torch.bool))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_tensor_hsplit(self, device, dtype):
         t = make_tensor((4, 4, 4), dtype=dtype, device=device, low=-9, high=9)
         t_hsplit = torch.hsplit(t, 2)
@@ -427,7 +457,10 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.cfloat, torch.bool))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_tensor_vsplit(self, device, dtype):
         t = make_tensor((4, 4, 4), dtype=dtype, device=device, low=-9, high=9)
         t_vsplit = torch.vsplit(t, 2)
@@ -438,7 +471,10 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool))
+<<<<<<< HEAD
     @dtypesIfMPS(*all_mps_types_and(torch.cfloat, torch.bool))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_view_tensor_dsplit(self, device, dtype):
         t = make_tensor((4, 4, 4), dtype=dtype, device=device, low=-9, high=9)
         t_dsplit = torch.dsplit(t, 2)
@@ -447,9 +483,15 @@ class TestViewOps(TestCase):
         t[2, 2, 2] = 7
         self.assertEqual(t_dsplit[1][2, 2, 0], t[2, 2, 2])
 
+<<<<<<< HEAD
     @onlyNativeDeviceTypes
     @dtypes(*all_types_and(torch.half, torch.bfloat16))
     @dtypesIfMPS(*all_mps_types_and(torch.bool))
+=======
+    @onlyNativeDeviceTypesAnd("mps")
+    @dtypes(*all_types_and(torch.half, torch.bfloat16))
+    @dtypesIfMPS(*integral_types_and(torch.half, torch.bool, torch.float32))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_imag_noncomplex(self, device, dtype):
         t = torch.ones((5, 5), dtype=dtype, device=device)
 
@@ -458,7 +500,10 @@ class TestViewOps(TestCase):
 
     @onlyNativeDeviceTypes
     @dtypes(*complex_types())
+<<<<<<< HEAD
     @dtypesIfMPS(torch.cfloat)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_real_imag_view(self, device, dtype):
         def compare_with_numpy(contiguous_input=True):
             t = torch.randn(3, 3, dtype=dtype, device=device)
@@ -489,7 +534,10 @@ class TestViewOps(TestCase):
         self.assertEqual(a[5:].imag, a.imag[5:])
 
     @onlyNativeDeviceTypes
+<<<<<<< HEAD
     @expectedFailureMPS
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(*complex_types())
     def test_conj_imag_view(self, device, dtype) -> None:
         t = _make_tensor((4, 5), dtype, device)
@@ -521,12 +569,15 @@ class TestViewOps(TestCase):
             all_types_and_complex_and(torch.half, torch.bfloat16, torch.bool),
         )
     )
+<<<<<<< HEAD
     @dtypesIfMPS(
         *product(
             [torch.cfloat, torch.chalf],
             all_mps_types_and(torch.cfloat, torch.chalf, torch.bool),
         )
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @suppress_warnings
     def test_set_real_imag(self, device, dtypes):
         x = torch.randn(10, dtype=dtypes[0], device=device)
@@ -916,7 +967,11 @@ class TestViewOps(TestCase):
         assert_is_nonview(t, nv)
 
         # flatten returns the original object if start_dim=end_dim
+<<<<<<< HEAD
         t = torch.ones(2, 2, device=device)
+=======
+        t = t = torch.ones(2, 2, device=device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nv = t.flatten(1, 1)
         self.assertTrue(t is nv)
 
@@ -1559,7 +1614,11 @@ class TestOldViewOps(TestCase):
             self.compare_with_numpy(torch_fn, np_fn, x, device=None, dtype=None)
 
     def _test_atleast_dim(self, torch_fn, np_fn, device, dtype):
+<<<<<<< HEAD
         for ndims in range(5):
+=======
+        for ndims in range(0, 5):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shape = _rand_shape(ndims, min_size=5, max_size=10)
             for _ in range(ndims + 1):
                 for with_extremal in [False, True]:
@@ -1656,7 +1715,11 @@ class TestOldViewOps(TestCase):
         inputs_with_neg_vals = [[1, 1, -12], [-1, 1], [-11]]
         for integral_inputs_with_neg_vals in inputs_with_neg_vals:
             with self.assertRaisesRegex(
+<<<<<<< HEAD
                 ValueError, "Attempting to broadcast a dimension with negative length!"
+=======
+                RuntimeError, "Trying to create tensor with negative dimension"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.broadcast_shapes(*integral_inputs_with_neg_vals)
 
@@ -1664,21 +1727,33 @@ class TestOldViewOps(TestCase):
         for error_input in integral_inputs_error_case:
             with self.assertRaisesRegex(
                 RuntimeError,
+<<<<<<< HEAD
                 ".*expected shape should be broadcastable to*",
+=======
+                "Shape mismatch: objects cannot be broadcast to a single shape",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.broadcast_shapes(*error_input)
 
         negative_inputs = [(-1,), (1, -12), (4, -11), (-4, 1), (1, 1, -2)]
         for s0 in negative_inputs:
             with self.assertRaisesRegex(
+<<<<<<< HEAD
                 ValueError, "Attempting to broadcast a dimension with negative length!"
+=======
+                RuntimeError, "Trying to create tensor with negative dimension"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 torch.broadcast_shapes(s0)
 
             for s1 in negative_inputs:
                 with self.assertRaisesRegex(
+<<<<<<< HEAD
                     ValueError,
                     "Attempting to broadcast a dimension with negative length!",
+=======
+                    RuntimeError, "Trying to create tensor with negative dimension"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     torch.broadcast_shapes(s0, s1)
 
@@ -1971,7 +2046,11 @@ class TestOldViewOps(TestCase):
             with self.assertRaises(numpy_err, msg=msg):
                 np.array_split(a.cpu().numpy(), sections_or_indices, dim)
 
+<<<<<<< HEAD
         # additional tests for tensor_split with tensor_indices_or_sections
+=======
+        # addtional tests for tensor_split with tensor_indices_or_sections
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(
             RuntimeError,
             r"tensor_split expected tensor_indices_or_sections to have dtype of long, but got Float",

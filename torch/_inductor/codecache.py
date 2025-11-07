@@ -14,7 +14,10 @@ import logging
 import os
 import pickle
 import pkgutil
+<<<<<<< HEAD
 import platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import shlex
 import shutil
@@ -31,15 +34,32 @@ from ctypes import c_void_p, CDLL, cdll
 from datetime import timedelta
 from functools import lru_cache, partial
 from pathlib import Path
+<<<<<<< HEAD
 from tempfile import _TemporaryFileWrapper
 from time import time, time_ns
 from types import ModuleType
 from typing import Any, Callable, cast, Generic, NoReturn, TYPE_CHECKING, TypeVar, Union
+=======
+from time import time, time_ns
+from types import ModuleType
+from typing import (
+    Any,
+    Callable,
+    cast,
+    Generic,
+    NoReturn,
+    Optional,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import override, Self
 
 import torch
 import torch.distributed as dist
 from torch import SymInt, Tensor
+<<<<<<< HEAD
 from torch._dynamo.device_interface import get_interface_for_device
 from torch._dynamo.exc import SkipFrame
 from torch._dynamo.utils import (
@@ -51,6 +71,12 @@ from torch._dynamo.utils import (
 from torch._inductor import config, exc, metrics
 from torch._inductor.codegen.common import (
     custom_backend_codegen_configs,
+=======
+from torch._dynamo.exc import SkipFrame
+from torch._dynamo.utils import CompileEventLogger, counters, dynamo_timed
+from torch._inductor import config, exc, metrics
+from torch._inductor.codegen.common import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     custom_backend_passes,
     init_backend_registration,
 )
@@ -73,15 +99,21 @@ from torch._inductor.cpp_builder import (
     get_ld_and_objcopy,
     get_name_and_dir_from_output_file_path,
     normalize_path_separator,
+<<<<<<< HEAD
     run_asm_build_object,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._inductor.cpu_vec_isa import pick_vec_isa
 from torch._inductor.custom_graph_pass import (
     CustomGraphModulePass,
     CustomGraphPass,
     CustomGraphPassType,
+<<<<<<< HEAD
     CustomPartitionerFn,
     CustomPartitionerFnType,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._inductor.freezing_utils import has_frozen_params, is_frozen_param
 from torch._inductor.runtime.compile_tasks import _reload_python_module
@@ -89,7 +121,10 @@ from torch._inductor.runtime.runtime_utils import cache_dir, default_cache_dir
 from torch._inductor.utils import (
     ALIGN_BYTES,
     clear_on_fresh_cache,
+<<<<<<< HEAD
     determine_aoti_mmap_flags,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_linux,
     is_windows,
 )
@@ -122,6 +157,29 @@ from .virtualized import V
 if config.is_fbcode():
     from triton.fb.build import build_paths
 
+<<<<<<< HEAD
+=======
+    from torch._inductor.fb.utils import (
+        log_global_cache_errors,
+        log_global_cache_stats,
+        log_global_cache_vals,
+        use_global_cache,
+    )
+else:
+
+    def log_global_cache_errors(*args: Any, **kwargs: Any) -> None:
+        pass
+
+    def log_global_cache_stats(*args: Any, **kwargs: Any) -> None:
+        pass
+
+    def log_global_cache_vals(*args: Any, **kwargs: Any) -> None:
+        pass
+
+    def use_global_cache() -> bool:
+        return False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 T = TypeVar("T")
 
@@ -141,10 +199,16 @@ if TYPE_CHECKING:
 
 
 _IS_WINDOWS = sys.platform == "win32"
+<<<<<<< HEAD
 LOCK_TIMEOUT = config.file_lock_timeout
 
 output_code_log = torch._logging.getArtifactLogger(__name__, "output_code")
 autotuning_log = torch._logging.getArtifactLogger(__name__, "autotuning")
+=======
+LOCK_TIMEOUT = 600
+
+output_code_log = torch._logging.getArtifactLogger(__name__, "output_code")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 
 
@@ -172,6 +236,7 @@ def get_kernel_bin_format(device: str) -> str:
         return ""
 
 
+<<<<<<< HEAD
 def get_device_information(device_type: str) -> dict[str, str]:
     """
     Gets all the current device information used to compile the .so.
@@ -185,12 +250,22 @@ def get_device_information(device_type: str) -> dict[str, str]:
         ),
     }
     return metadata
+=======
+@functools.cache
+def get_global_cache_path_impl(global_cache_dir: str) -> Optional[Path]:
+    return (
+        Path(os.path.join(global_cache_dir, CacheBase.get_system()["hash"]))
+        if global_cache_dir is not None
+        else None
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CacheBase:
     @staticmethod
     @functools.cache
     def get_system() -> dict[str, Any]:
+<<<<<<< HEAD
         from torch._inductor.runtime.triton_compat import HAS_TRITON, triton_key
 
         if HAS_TRITON:
@@ -198,6 +273,15 @@ class CacheBase:
             # is not updated with each code change
             triton_version = triton_key()
         else:
+=======
+        try:
+            from triton.compiler.compiler import triton_key
+
+            # Use triton_key instead of triton.__version__ as the version
+            # is not updated with each code change
+            triton_version = triton_key()
+        except ModuleNotFoundError:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             triton_version = None
 
         try:
@@ -232,6 +316,13 @@ class CacheBase:
     def get_local_cache_path() -> Path:
         return Path(os.path.join(cache_dir(), "cache", CacheBase.get_system()["hash"]))
 
+<<<<<<< HEAD
+=======
+    @staticmethod
+    def get_global_cache_path() -> Optional[Path]:
+        return get_global_cache_path_impl(config.global_cache_dir)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self) -> None:
         self.system = CacheBase.get_system()
 
@@ -253,7 +344,11 @@ class CacheBase:
 
 
 class LocalCache(CacheBase):
+<<<<<<< HEAD
     def lookup(self, *keys: str) -> dict[str, Any] | None:
+=======
+    def lookup(self, *keys: str) -> Optional[dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cache = self.get_local_cache()
 
         sub_cache = cache
@@ -278,43 +373,84 @@ class LocalCache(CacheBase):
 
 
 class PersistentCache(CacheBase):
+<<<<<<< HEAD
+=======
+    @functools.cache  # noqa: B019
+    def get_global_cache(self) -> dict[str, Any]:
+        global_cache_path = self.get_global_cache_path()
+        if global_cache_path is None or not global_cache_path.is_file():
+            return {}
+        with open(global_cache_path) as global_cache_fp:
+            global_cache = json.load(global_cache_fp)
+        return global_cache["cache"]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def lookup(
         self,
         choices: list[ChoiceCaller],
         op: str,
         inputs: str,
+<<<<<<< HEAD
         benchmark: Callable[[Any], dict[ChoiceCaller, float]] | None,
         hint_override: int | None = None,
+=======
+        benchmark: Optional[Callable[[Any], dict[ChoiceCaller, float]]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> dict[ChoiceCaller, float]:
         """
         Check to see if we have benchmarked the given choice callers. For each
         choice caller:
 
+<<<<<<< HEAD
             1. Check local_cache[op][inputs][choice][precision], return benchmark if cached.
             2. If benchmark is not None:
+=======
+            1. Check global_cache[op][inputs][choice][precision], return benchmark if cached.
+            2. Check local_cache[op][inputs][choice][precision], return benchmark if cached.
+            3. If benchmark is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 a. `max_autotune_gemm=True`: benchmark the choice, update
                     local_cache[op][inputs][choice], and return the benchmark.
                 b. `max_autotune_gemm=False`: don't benchmark the choice, return nothing.
         """
         precision = torch.get_float32_matmul_precision()
+<<<<<<< HEAD
         cache_key = f"{inputs}_{hint_override}" if hint_override is not None else inputs
 
         timings = {}
 
         def check_cache(cache: dict[str, Any]) -> bool:
+=======
+
+        log_stats = partial(log_global_cache_stats, self.system, op, inputs, precision)
+        log_vals = partial(log_global_cache_vals, self.system, op, inputs, precision)
+        log_errors = partial(
+            log_global_cache_errors, self.system, op, inputs, precision
+        )
+        timings = {}
+
+        def check_cache(cache: dict[str, Any], callback: Any = None) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """Check if `cache` contains data for all the choices"""
             hit = True
             for choice in choices:
                 choice_hash = choice.hash_key()
+<<<<<<< HEAD
                 if choice_hash in cache.get(op, {}).get(cache_key, {}).get(
                     precision, {}
                 ):
                     # cache hit
                     timings[choice] = cache[op][cache_key][precision][choice_hash]
+=======
+                if choice_hash in cache.get(op, {}).get(inputs, {}).get(precision, {}):
+                    # cache hit
+                    timings[choice] = cache[op][inputs][precision][choice_hash]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     # cache miss
                     hit = False
                     break
+<<<<<<< HEAD
             return hit
 
         local_cache = self.get_local_cache() if config.autotune_local_cache else {}
@@ -328,6 +464,46 @@ class PersistentCache(CacheBase):
                 local_cache[op][cache_key][precision][choice.hash_key()] = timing
 
             self.update_local_cache(local_cache)
+=======
+            if callback:
+                callback(cached=hit)
+            return hit
+
+        if config.max_autotune or config.max_autotune_gemm:
+            local_cache = self.get_local_cache() if config.autotune_local_cache else {}
+            # check local cache first since it is data specific to the current machine
+            if (
+                not check_cache(local_cache)
+                and not (
+                    use_global_cache()
+                    and check_cache(self.get_global_cache(), callback=log_stats)
+                )
+                and benchmark is not None
+            ):
+                try:
+                    # re-benchmark everything to try to get consistent numbers from the same machine
+                    timings = benchmark(choices)
+                    assert all(choice in timings for choice in choices)
+                    local_cache.setdefault(op, {})
+                    local_cache[op].setdefault(inputs, {}).setdefault(precision, {})
+                    for choice, timing in timings.items():
+                        local_cache[op][inputs][precision][choice.hash_key()] = timing
+                except RuntimeError as e:
+                    # catch and log autotuning failures
+                    log_errors(e)
+                    raise e
+
+                self.update_local_cache(local_cache)
+
+                timings_to_log = {
+                    choice.hash_key(): timings[choice] for choice in choices
+                }
+                log_vals(timings_to_log)
+        elif use_global_cache():
+            # only check global cache, not local one
+            check_cache(self.get_global_cache(), callback=log_stats)
+            # may have a partial cache hit, where not everything is benchmarked
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return timings
 
@@ -344,7 +520,11 @@ def sha256_hash(data: bytes) -> str:
     return base64.b32encode(hashlib.sha256(data).digest())[:51].decode("utf-8").lower()
 
 
+<<<<<<< HEAD
 def code_hash(code: str | bytes, extra: str | bytes = "") -> str:
+=======
+def code_hash(code: Union[str, bytes], extra: Union[str, bytes] = "") -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     hashing_str = code if isinstance(code, bytes) else code.encode("utf-8")
     if extra:
         extra_b = extra if isinstance(extra, bytes) else extra.encode("utf-8")
@@ -366,7 +546,13 @@ def get_path(
     return basename, subdir, path
 
 
+<<<<<<< HEAD
 def get_hash(content: str | bytes, extra: str = "", hash_type: str = "code") -> str:
+=======
+def get_hash(
+    content: Union[str, bytes], extra: str = "", hash_type: str = "code"
+) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if hash_type in {"amdgcn", "code", "ptx", "spv"}:
         return code_hash(content, extra)
     if hash_type in {"cubin", "hsaco", "spv"}:
@@ -374,6 +560,7 @@ def get_hash(content: str | bytes, extra: str = "", hash_type: str = "code") -> 
     raise AssertionError(f"Unknown hash type {hash_type}")
 
 
+<<<<<<< HEAD
 class WritableTempFile:
     """
     Avoid "Permission denied error" on Windows:
@@ -413,11 +600,19 @@ class WritableTempFile:
 
 def write(
     content: str | bytes,
+=======
+def write(
+    content: Union[str, bytes],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     extension: str,
     extra: str = "",
     hash_type: str = "code",
     specified_dir: str = "",
+<<<<<<< HEAD
     key: str | None = None,
+=======
+    key: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[str, str]:
     if key is None:
         # use striped content to compute hash so we don't end up with different
@@ -439,7 +634,11 @@ def write_text(text: str) -> str:
 
 def write_atomic(
     path_: str,
+<<<<<<< HEAD
     content: str | bytes,
+=======
+    content: Union[str, bytes],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     make_dirs: bool = False,
     encode_utf_8: bool = False,
 ) -> None:
@@ -550,7 +749,11 @@ class FxGraphCachePickler(pickle.Pickler):
 
     def _reduce_tensor(
         self, t: Tensor
+<<<<<<< HEAD
     ) -> tuple[Callable[[T], T], tuple[TensorMetadata | TensorMetadataAndValues]]:
+=======
+    ) -> tuple[Callable[[T], T], tuple[Union[TensorMetadata, TensorMetadataAndValues]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Custom reducer to pickle Tensors.  If we see tensors, we know they're constants
         stored as attributes on the GraphModule.
@@ -651,8 +854,12 @@ class FxGraphCachePickler(pickle.Pickler):
             if isinstance(obj, torch.Tensor):
                 return str(extract_tensor_metadata_for_cache_key(obj))
             elif isinstance(obj, bytes):
+<<<<<<< HEAD
                 val = obj.decode("utf-8", errors="replace")
                 return val if len(val) <= 1024 else val[:1024] + "..."
+=======
+                return "<bytes>"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif type(obj) in self.dispatch_table:
                 # Run the reducer on the object
                 return str(self.dispatch_table[type(obj)](obj)[1])
@@ -872,7 +1079,11 @@ class FxGraphHashDetails:
 
         # Global settings affecting matmul codegen.
         self.cuda_matmul_settings = (
+<<<<<<< HEAD
             torch.backends.cuda.matmul.fp32_precision,
+=======
+            torch.backends.cuda.matmul.allow_tf32,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.backends.cuda.matmul.allow_fp16_reduced_precision_reduction,
             torch.backends.cuda.matmul.allow_bf16_reduced_precision_reduction,
         )
@@ -885,6 +1096,7 @@ class FxGraphHashDetails:
         self.post_grad_custom_pre_pass = self._get_custom_pass_detail(
             config.post_grad_custom_pre_pass
         )
+<<<<<<< HEAD
         # TODO: change to more holistic config rather than bundled_autograd_cache
         self.precompile_enabled = torch._functorch.config.bundled_autograd_cache
         self.post_grad_custom_post_pass = self._get_custom_pass_detail(
@@ -896,6 +1108,11 @@ class FxGraphHashDetails:
         self.joint_custom_post_pass = self._get_custom_pass_detail(
             config.joint_custom_post_pass
         )
+=======
+        self.post_grad_custom_post_pass = self._get_custom_pass_detail(
+            config.post_grad_custom_post_pass
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._pre_fusion_custom_pass = self._get_custom_pass_detail_unsafe(
             config._pre_fusion_custom_pass
         )
@@ -909,6 +1126,7 @@ class FxGraphHashDetails:
             map(self._get_custom_pass_detail, custom_backend_passes.values())
         )
 
+<<<<<<< HEAD
         # Save custom inductor codegen configs
         self.custom_backend_codegen_configs = {
             device: custom_config.save_config_portable(ignore_private_configs=False)
@@ -921,6 +1139,8 @@ class FxGraphHashDetails:
             config.custom_partitioner_fn
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This is mainly added to handle these two inductor configs, which are (unfortunately)
     # sometimes cache safe:
     # - _pre_fusion_custom_pass
@@ -930,7 +1150,11 @@ class FxGraphHashDetails:
     # - if any of them are set to custom callables, we will need to cache miss
     # Future work is for someone to find any places where these functions are used
     # and force them to be of type CustomGraphPass, so we can guarantee serialization.
+<<<<<<< HEAD
     def _get_custom_pass_detail_unsafe(self, custom_pass: Any) -> Any | None:
+=======
+    def _get_custom_pass_detail_unsafe(self, custom_pass: Any) -> Optional[Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not custom_pass:
             return None
         if isinstance(custom_pass, list):
@@ -946,13 +1170,19 @@ class FxGraphHashDetails:
         raise AssertionError(f"unknown config type: {str(type(custom_pass))}")
 
     def _get_custom_pass_detail(
+<<<<<<< HEAD
         self, custom_pass: CustomGraphPassType | CustomGraphModulePass
     ) -> Any | None:
+=======
+        self, custom_pass: Union[CustomGraphPassType, CustomGraphModulePass]
+    ) -> Optional[Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not custom_pass:
             return None
         assert isinstance(custom_pass, (CustomGraphPass, CustomGraphModulePass))
         return custom_pass.uuid()
 
+<<<<<<< HEAD
     def _get_custom_partitioner_fn_detail(
         self, custom_partitioner_fn: CustomPartitionerFnType
     ) -> Any | None:
@@ -961,6 +1191,8 @@ class FxGraphHashDetails:
         assert isinstance(custom_partitioner_fn, CustomPartitionerFn)
         return custom_partitioner_fn.uuid()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def compiled_fx_graph_hash(
     gm: torch.fx.GraphModule,
@@ -1025,7 +1257,11 @@ class GuardedCache(Generic[T]):
     def iterate_over_candidates(
         cls: type[GuardedCache[T]],
         local: bool,
+<<<<<<< HEAD
         remote_cache: RemoteCache[JsonDataTy] | None,
+=======
+        remote_cache: Optional[RemoteCache[JsonDataTy]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         key: str,
     ) -> Generator[tuple[T, bytes], None, None]:
         if local:
@@ -1060,10 +1296,17 @@ class GuardedCache(Generic[T]):
         cls: type[GuardedCache[T]],
         key: str,
         local: bool,
+<<<<<<< HEAD
         remote_cache: RemoteCache[JsonDataTy] | None,
         evaluate_guards: Callable[[str, list[int] | list[torch.SymInt]], bool],
         hints: list[int],
     ) -> tuple[T | None, bytes | None, dict[str, str]]:
+=======
+        remote_cache: Optional[RemoteCache[JsonDataTy]],
+        evaluate_guards: Callable[[str, Union[list[int], list[torch.SymInt]]], bool],
+        hints: list[int],
+    ) -> tuple[Optional[T], Optional[bytes], dict[str, str]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Find the first cache entry in iterate_over_candidates that passes `evaluate_guards`.
 
@@ -1127,12 +1370,20 @@ class GuardedCache(Generic[T]):
         return [s for s in inputs if isinstance(s, torch.SymInt) and has_hint(s)]
 
     @classmethod
+<<<<<<< HEAD
     def _get_shape_env(cls: type[GuardedCache[T]]) -> ShapeEnv | None:
+=======
+    def _get_shape_env(cls: type[GuardedCache[T]]) -> Optional[ShapeEnv]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Helper to get the shape env from the tracing context.
         """
         ctx = torch._guards.TracingContext.try_get()
+<<<<<<< HEAD
         if not ctx or not ctx.fake_mode:
+=======
+        if not ctx:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         return ctx.fake_mode.shape_env
 
@@ -1198,7 +1449,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         graph: CompiledFxGraph,
         cache_info: dict[str, Any],
         constants: CompiledFxGraphConstants,
+<<<<<<< HEAD
     ) -> tuple[CompiledFxGraph | None, dict[str, Any]]:
+=======
+    ) -> tuple[Optional[CompiledFxGraph], dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Cache specific post compile steps that need to run if we find a graph in the cache
         This includes putting bundled triton artifacts in the right place,
@@ -1264,6 +1519,7 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         )
         trace_structured(
             "inductor_output_code",
+<<<<<<< HEAD
             lambda: {
                 "filename": artifact_path,
                 "file_path": os.path.abspath(artifact_path),
@@ -1293,6 +1549,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
             get_metrics_context().add_to_set(
                 "inductor_provenance", graph.inductor_provenance_stack_traces_str
             )
+=======
+            lambda: {"filename": artifact_path},
+            payload_fn=lambda: code,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return graph, cache_info
 
     @staticmethod
@@ -1300,11 +1561,20 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         key: str,
         example_inputs: Sequence[InputType],
         local: bool,
+<<<<<<< HEAD
         remote_cache: RemoteCache[JsonDataTy] | None,
         constants: CompiledFxGraphConstants,
         evaluate_guards: Callable[[str, list[int] | list[torch.SymInt]], bool]
         | None = None,
     ) -> tuple[CompiledFxGraph | None, dict[str, Any]]:
+=======
+        remote_cache: Optional[RemoteCache[JsonDataTy]],
+        constants: CompiledFxGraphConstants,
+        evaluate_guards: Optional[
+            Callable[[str, Union[list[int], list[torch.SymInt]]], bool]
+        ] = None,
+    ) -> tuple[Optional[CompiledFxGraph], dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Lookup a compiled graph in the cache by key. On a hit, return the
         deserialized CompiledFxGraph object. On a miss, return None.
@@ -1372,7 +1642,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         compiled_graph: OutputCode,
         example_inputs: Sequence[InputType],
         local: bool,
+<<<<<<< HEAD
         remote_cache: RemoteCache[JsonDataTy] | None,
+=======
+        remote_cache: Optional[RemoteCache[JsonDataTy]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         """
         Store a serialized CompiledFxGraph on disk.
@@ -1454,10 +1728,13 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         for p in (config.post_grad_custom_pre_pass, config.post_grad_custom_post_pass):
             if p and (not isinstance(p, CustomGraphPass) or not p.uuid()):
                 raise BypassFxGraphCache("Unsupported post grad custom pass")
+<<<<<<< HEAD
         # Same with the joint custom passes
         for p in (config.joint_custom_pre_pass, config.joint_custom_post_pass):
             if p and (not isinstance(p, CustomGraphPass) or not p.uuid()):
                 raise BypassFxGraphCache("Unsupported joint custom pass")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We should find any users of _pre_fusion_custom_pass and _fuse_ddp_communication_passes
         # and ensure they are not passing us raw callables
         if config._pre_fusion_custom_pass is not None:
@@ -1501,7 +1778,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         fx_kwargs: _CompileFxKwargs,
         inputs_to_check: Sequence[int],
         remote: bool,
+<<<<<<< HEAD
     ) -> tuple[tuple[str, list[str]] | None, dict[str, Any]]:
+=======
+    ) -> tuple[Optional[tuple[str, list[str]]], dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Checks that the inductor input is cacheable, then computes
         and returns the cache key for the input.
@@ -1519,7 +1800,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
             )
         except BypassFxGraphCache as e:
             counters["inductor"]["fxgraph_cache_bypass"] += 1
+<<<<<<< HEAD
             log.info("Bypassing FX Graph Cache because '%s'", e)  # noqa: G200
+=======
+            log.info("Bypassing FX Graph Cache because '%s'", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if remote:
                 log_cache_bypass("bypass_fx_graph", str(e))
             cache_info = {
@@ -1532,7 +1817,11 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         return (key, debug_lines), {}
 
     @staticmethod
+<<<<<<< HEAD
     def get_remote_cache() -> RemoteCache[JsonDataTy] | None:
+=======
+    def get_remote_cache() -> Optional[RemoteCache[JsonDataTy]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Attempts to load the remote cache, returns None on error.
         """
@@ -1550,12 +1839,22 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
         debug_lines: list[str],
         example_inputs: Sequence[InputType],
         local: bool,
+<<<<<<< HEAD
         remote_cache: RemoteCache[JsonDataTy] | None,
         is_backward: bool,
         constants: CompiledFxGraphConstants,
         evaluate_guards: Callable[[str, list[int] | list[torch.SymInt]], bool]
         | None = None,
     ) -> tuple[CompiledFxGraph | None, dict[str, Any]]:
+=======
+        remote_cache: Optional[RemoteCache[JsonDataTy]],
+        is_backward: bool,
+        constants: CompiledFxGraphConstants,
+        evaluate_guards: Optional[
+            Callable[[str, Union[list[int], list[torch.SymInt]]], bool]
+        ] = None,
+    ) -> tuple[Optional[CompiledFxGraph], dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Lookup the graph with the given key, and return results and metadata.
         Doesn't do any logging on its own, because AOTAutograd handles a cache miss
@@ -1629,6 +1928,7 @@ class FxGraphCache(GuardedCache[CompiledFxGraph]):
 
 @functools.cache
 def split_aot_inductor_output_path(path: str) -> tuple[str, str]:
+<<<<<<< HEAD
     def get_module_ext_type() -> str:
         if _IS_WINDOWS:
             return ".pyd"
@@ -1637,6 +1937,10 @@ def split_aot_inductor_output_path(path: str) -> tuple[str, str]:
 
     """Returns the path where the AOT Inductor compiled kernels are stored."""
     if path.endswith(get_module_ext_type()):
+=======
+    """Returns the path where the AOT Inductor compiled kernels are stored."""
+    if path.endswith(".so"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return os.path.split(path)
     elif path.endswith(".pt2"):
         return os.path.split(path)
@@ -1653,11 +1957,19 @@ class CudaKernelParamCache:
     def set(
         cls,
         key: str,
+<<<<<<< HEAD
         params: dict[str, str | None],
         cubin: str,
         bin_type: str,
         asm: str | None = None,
         asm_type: str | None = None,
+=======
+        params: dict[str, Optional[str]],
+        cubin: str,
+        bin_type: str,
+        asm: Optional[str] = None,
+        asm_type: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         basename = None
         if config.aot_inductor.package_cpp_only:
@@ -1710,7 +2022,11 @@ class CudaKernelParamCache:
         cls.cache[key] = params
 
     @classmethod
+<<<<<<< HEAD
     def get(cls, key: str) -> dict[str, Any] | None:
+=======
+    def get(cls, key: str) -> Optional[dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls.cache.get(key, None)
 
     @classmethod
@@ -1729,16 +2045,31 @@ class AotCodeCompiler:
         graph: GraphLowering,
         wrapper_code: str,
         kernel_code: str,
+<<<<<<< HEAD
         serialized_extern_kernel_nodes: str | None,
         *,
         device_type: str,
         additional_files: list[str],
     ) -> list[Union[str, Weights]] | str:
+=======
+        serialized_extern_kernel_nodes: Optional[str],
+        *,
+        device_type: str,
+        additional_files: list[str],
+    ) -> Union[list[Union[str, Weights]], str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns the .so path, or returns a list of files that were generated if
         config.aot_inductor.package=True.
         """
+<<<<<<< HEAD
         generated_files: list[str | Weights] = additional_files  # type: ignore[assignment]
+=======
+        generated_files: list[Union[str, Weights]] = additional_files  # type: ignore[assignment]
+
+        if sys.platform == "win32":
+            raise RuntimeError("AotCodeCompiler not yet supported for inductor")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         _set_gpu_runtime_env()  # cpp_extension consults the env
 
@@ -1795,6 +2126,7 @@ class AotCodeCompiler:
             key=config.aot_inductor.model_name_for_generated_files,
         )
 
+<<<<<<< HEAD
         header_code = ""
         header_path = ""
         if not config.aot_inductor.dynamic_linkage:
@@ -1839,6 +2171,10 @@ class AotCodeCompiler:
                 with WritableTempFile("w", suffix=".gv") as temp_file:
                     tree.to_dotfile(temp_file.name)
             """
+=======
+        # Log the AOTInductor wrapper and kernel code, if needed.
+        with tempfile.NamedTemporaryFile("w+") as t:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             t.writelines((wrapper_code, "\n", kernel_code, "\n"))
             t.flush()
             V.debug.output_code(t.name, extension="cpp")
@@ -1847,8 +2183,11 @@ class AotCodeCompiler:
             generated_files.append(wrapper_path)
             if not config.aot_inductor.package_cpp_only:
                 generated_files.append(kernel_path)
+<<<<<<< HEAD
             if not config.aot_inductor.dynamic_linkage:
                 generated_files.append(header_path)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         output_code_log.info("Wrapper code written to: %s", wrapper_path)
         output_code_log.info("Kernel code written to: %s", kernel_path)
@@ -1870,6 +2209,7 @@ class AotCodeCompiler:
             },
             payload_fn=lambda: kernel_code,
         )
+<<<<<<< HEAD
         if not config.aot_inductor.dynamic_linkage:
             output_code_log.info("Header code written to: %s", header_path)
             trace_structured(
@@ -1881,6 +2221,8 @@ class AotCodeCompiler:
                 },
                 payload_fn=lambda: header_code,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # We use a file lock below to protect FS operations. The lock file
         # is scoped to the 'key', so make sure the consts_s is protected
@@ -1893,9 +2235,12 @@ class AotCodeCompiler:
         cmake_path = str(Path(specified_sub_dir) / "CMakeLists.txt")
 
         def _compile_consts(consts: bytes, platform: str) -> str:
+<<<<<<< HEAD
             # Load from aot_inductor, and update the value on demand.
             use_asm_build: bool = config.aot_inductor.use_consts_asm_build
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if platform == "linux":
                 if graph.mutated_buffers & OrderedSet(graph.constants.keys()):
                     # .data section is between .text and .bss. When the size of .data is large,
@@ -1912,6 +2257,7 @@ class AotCodeCompiler:
             elif platform == "darwin":
                 section_attr = "__DATA,__data"
                 symbol_prefix = "_"
+<<<<<<< HEAD
             elif platform == "win32":
                 symbol_prefix = ""
                 # ASM build is not supported on Windows, force use CPP build.
@@ -2045,6 +2391,38 @@ end
             consts_s = Path(consts_s)
             object_build_options = CppTorchDeviceOptions(
                 device_type=device_type,
+=======
+            else:
+                raise RuntimeError(f"Unsupported platform: {platform}")
+
+            is_large_consts = len(consts) > 1024
+            consts_asm = f"\t.section\t{section_attr}\n"
+            consts_asm += f"\t.balign {ALIGN_BYTES}\n"
+            consts_asm += f"\t.globl\t{symbol_prefix}_binary_constants_bin_start\n"
+            consts_asm += f"{symbol_prefix}_binary_constants_bin_start:\n"
+            if not is_large_consts:
+                for c in consts:
+                    consts_asm += f"\t.byte {c}\n"
+                # Add one element even if constants are empty
+                # Otherwise assembler will not put them in data section
+                if not consts:
+                    consts_asm += "\t.space 1\n"
+            else:
+                consts_asm += "\t.quad 0x1234567899abcdef\n"
+                consts_asm += f"\t.space {len(consts) - 8}\n"
+            consts_asm += f".globl\t{symbol_prefix}_binary_constants_bin_end\n"
+            consts_asm += f"{symbol_prefix}_binary_constants_bin_end:\n"
+            _, consts_s = write(
+                consts_asm,
+                "S",
+                specified_dir=str(specified_sub_dir),
+            )
+            consts_s = Path(consts_s)
+            object_build_options = CppTorchDeviceOptions(
+                # Intel compiler failed to compile this manually constructed assembly file.
+                # it is ok to use gcc to compile the .S to a .o and linked with Intel compiler .
+                device_type=device_type if device_type != "xpu" else "cpu",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 aot_mode=graph.aot_mode,
                 compile_only=True,
                 use_relative_path=use_relative_path,
@@ -2056,21 +2434,31 @@ end
                 BuildOption=object_build_options,
             )
             consts_o = object_builder.get_target_file_path()
+<<<<<<< HEAD
             if use_asm_build is False and is_zero_size_consts:
                 run_asm_build_object(str(consts_s), consts_o, str(consts_s.parent))
             else:
                 object_builder.build()
 
             if is_large_consts and use_asm_build:
+=======
+            object_builder.build()
+
+            if is_large_consts:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with open(consts_o, "r+b") as f:
                     f.seek(0)
                     hdr = f.read(1024)
                     # Search for magic number and write the actual data over it
+<<<<<<< HEAD
                     start_idx = (
                         hdr.find(b"\xef\xcd\xab\x99\x78\x56\x34\x12")
                         if sys.byteorder == "little"
                         else hdr.find(b"\x12\x34\x56\x78\x99\xab\xcd\xef")
                     )
+=======
+                    start_idx = hdr.find(b"\xef\xcd\xab\x99\x78\x56\x34\x12")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     assert start_idx != -1
                     f.seek(start_idx)
                     pos = 0
@@ -2103,9 +2491,12 @@ end
             metadata = config.aot_inductor.metadata
             metadata["AOTI_DEVICE_KEY"] = device_type
 
+<<<<<<< HEAD
             # Add environment information to ensure .so compatibility
             metadata.update(get_device_information(device_type))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Save user provided metadata
             meta_json = str(
                 wrapper_path_operator.with_name(
@@ -2170,6 +2561,7 @@ end
                     data_ptr,
                     ctypes.POINTER(ctypes.c_ubyte * nbytes),
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
                 raw_bytes = bytes(raw_array.contents)
                 return raw_bytes if all_cuda else _pad_to_alignment(raw_bytes)
@@ -2178,6 +2570,12 @@ end
                 config.aot_inductor.package_constants_in_so
                 or config.aot_inductor.package_constants_on_disk_format == "binary_blob"
             ):
+=======
+                raw_bytes = bytes(raw_array.contents)
+                return raw_bytes if all_cuda else _pad_to_alignment(raw_bytes)
+
+            if config.aot_inductor.package_constants_in_so:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 serialized_weights = b"".join(
                     _to_bytes(graph.get_original_value_of_constant(name), all_cuda)
                     for name in graph.constants.keys()
@@ -2186,7 +2584,11 @@ end
             else:
                 serialized_weights = b""
 
+<<<<<<< HEAD
             if config.aot_inductor.package_constants_on_disk_format == "pickle_weights":
+=======
+            if config.aot_inductor.package_constants_on_disk:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # We need to return a storage key here because the original value tensor might be a clone
                 weights_dict = Weights(
                     {
@@ -2202,6 +2604,7 @@ end
 
             consts_size = len(serialized_weights)
 
+<<<<<<< HEAD
             use_external_weights, use_mmap_weights = determine_aoti_mmap_flags(
                 consts_size
             )
@@ -2217,12 +2620,21 @@ end
                 external_weights_path = str(
                     wrapper_path_operator.with_name(external_weights_filename)
                 )
+=======
+            # TODO: Fix mmap weights with cuda
+            use_mmap_weights = not config.is_fbcode() and consts_size > 2_000_000_000
+            if config.aot_inductor.force_mmap_weights:
+                use_mmap_weights = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             compile_command: dict[str, Any] = {
                 "aot_mode": graph.aot_mode,
                 "device_type": device_type,
                 "use_mmap_weights": use_mmap_weights,
+<<<<<<< HEAD
                 "use_mmap_weights_external": use_external_weights,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "use_relative_path": use_relative_path,
                 "vec_isa": picked_vec_isa,
             }
@@ -2301,6 +2713,7 @@ end
             if not use_mmap_weights:
                 aot_constants = serialized_weights
                 magic_number = 0
+<<<<<<< HEAD
                 if use_external_weights:
                     aot_constants = struct.pack("q", consts_size)
                     assert external_weights_path is not None
@@ -2310,6 +2723,9 @@ end
                     generated_files.append(external_weights_path)
             else:
                 # we'll append weights binary to the end of .so file and mmap it when loading
+=======
+            else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 magic_number = cast(
                     int, torch.randint(0, torch.iinfo(torch.int64).max, (1,)).item()
                 )
@@ -2352,7 +2768,11 @@ end
                     f.write(json.dumps(qual_name_to_id))
                 generated_files.append(constants_config_json)
 
+<<<<<<< HEAD
             gpu_codecache: ROCmCodeCache | CUDACodeCache = (
+=======
+            gpu_codecache: Union[ROCmCodeCache, CUDACodeCache] = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ROCmCodeCache() if torch.version.hip else CUDACodeCache()
             )
             gpu_kernels_o = gpu_codecache.aot_kernels_o.copy()
@@ -2366,6 +2786,7 @@ end
 
             cubins_o = []
             asm_files = []
+<<<<<<< HEAD
             if not _IS_WINDOWS:
                 ld, objcopy = get_ld_and_objcopy(use_relative_path)
                 kernels = getattr(V.graph.wrapper_code, "_kernel_name_to_body", {})
@@ -2411,6 +2832,32 @@ end
                         cubins_o.append(
                             convert_cubin_to_obj(cubin_file, kernel_name, ld, objcopy)
                         )
+=======
+            ld, objcopy = get_ld_and_objcopy(use_relative_path)
+            for kernel_name, value in CudaKernelParamCache.cache.items():
+                if asm_file := value["asm"]:
+                    asm_files.append(asm_file)
+
+                cubin_file = value[get_cpp_wrapper_cubin_path_name()]
+                if config.aot_inductor.emit_multi_arch_kernel and device_type == "cuda":
+                    current_arch = _nvcc_arch_as_compile_option()
+                    cmd = (
+                        f"{_cuda_compiler()} -fatbin {asm_file} -o {cubin_file} "
+                        # Triton only allows generating PTX version as same as the current arch
+                        f"-gencode arch=compute_{current_arch},code=compute_{current_arch} "
+                        # Include SASS for the current specific arch
+                        f"-gencode arch=compute_{current_arch},code=sm_{current_arch} "
+                    )
+                    subprocess.run(
+                        cmd.split(), capture_output=True, text=True, check=True
+                    )
+
+                if config.aot_inductor.embed_kernel_binary:
+                    # Embed cubin files into model.so using objcopy
+                    cubins_o.append(
+                        convert_cubin_to_obj(cubin_file, kernel_name, ld, objcopy)
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             output_name, output_dir = get_name_and_dir_from_output_file_path(output_so)
             so_build_options = CppTorchDeviceOptions(
@@ -2490,6 +2937,7 @@ end
                     os.remove(o_file)
 
                 if use_mmap_weights:
+<<<<<<< HEAD
                     if config.aot_inductor.cross_target_platform == "windows":
                         raise RuntimeError(
                             "when cross_target_platform is windows, use_mmap_weights should not be true."
@@ -2532,6 +2980,11 @@ end
                         return sys_page_size
 
                     page_size_ = get_page_size()
+=======
+                    import resource
+
+                    page_size_ = resource.getpagesize()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     page_size = max(16384, page_size_)
 
                     with open(output_so, "a+b") as f_so:
@@ -2544,6 +2997,7 @@ end
                 if config.aot_inductor.package:
                     generated_files.append(output_so)
 
+<<<<<<< HEAD
         if config.trace.provenance_tracking_level != 0:
             kernel_info = torch._inductor.debug.create_kernel_information_json()
             kernel_info_json = os.path.join(
@@ -2553,6 +3007,8 @@ end
                 f.write(json.dumps(kernel_info, indent=4))
             generated_files.append(kernel_info_json)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config.aot_inductor.package:
             # We want to return the directory that contains all the AOTI
             # generated files, not just the so
@@ -2562,10 +3018,17 @@ end
         return output_so
 
 
+<<<<<<< HEAD
 _libgomp: CDLL | None = None
 
 
 def custom_op_wrapper(op: str, *args: Any) -> list[c_void_p] | c_void_p | None:
+=======
+_libgomp: Optional[CDLL] = None
+
+
+def custom_op_wrapper(op: str, *args: Any) -> Union[list[c_void_p], c_void_p, None]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # This function will be called from generated cpp wrapper code in the JIT mode.
     # Because tensors will be passed in as AtenTensorHandle, we need to explicitly convert them.
     def convert_arg(arg: Any) -> Any:
@@ -2592,7 +3055,10 @@ def custom_op_wrapper(op: str, *args: Any) -> list[c_void_p] | c_void_p | None:
 
     # convert any kwarg-only arguments to kwargs
     kwargs = dict()
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for func_arg, conv_arg in zip(func._schema.arguments, converted_args):
         if func_arg.kwarg_only:
             kwargs[func_arg.name] = conv_arg
@@ -2685,7 +3151,11 @@ def _precompile_header(
     return header_full_path
 
 
+<<<<<<< HEAD
 def _get_cpp_prefix_header(device: str) -> str | None:
+=======
+def _get_cpp_prefix_header(device: str) -> Optional[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if device.startswith("cpu"):
         return "torch/csrc/inductor/cpp_prefix.h"
     return None
@@ -2694,7 +3164,11 @@ def _get_cpp_prefix_header(device: str) -> str | None:
 def _get_cpp_wrapper_header(device: str, aot_mode: bool = False) -> str:
     """Given a device type (and optionally whether we're in AOT Inductor mode), returns
     the path to the cpp_wrapper header file to be precompiled."""
+<<<<<<< HEAD
     base_device = device.split(":", maxsplit=1)[0]
+=======
+    base_device = device.split(":")[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_array_ref = config.aot_inductor.allow_stack_allocation and base_device == "cpu"
     return (
         "torch/csrc/inductor/"
@@ -2708,16 +3182,28 @@ class CppCodeCache:
     """Compiles and caches C++ libraries.  Users of this class supply the source code to
     be compiled, while compilation flags are set by CppBuilder."""
 
+<<<<<<< HEAD
     cache: dict[str, Callable[[], CDLL | ModuleType]] = {}
+=======
+    cache: dict[str, Callable[[], Union[CDLL, ModuleType]]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cache_clear = staticmethod(cache.clear)
     cpp_compile_command_flags: dict[str, Any] = {}
 
     @staticmethod
+<<<<<<< HEAD
     def _load_library_inner(path: str, key: str) -> CDLL | ModuleType:
         return cdll.LoadLibrary(path)
 
     @classmethod
     def _load_library(cls, path: str, key: str) -> CDLL | ModuleType:
+=======
+    def _load_library_inner(path: str, key: str) -> Union[CDLL, ModuleType]:
+        return cdll.LoadLibrary(path)
+
+    @classmethod
+    def _load_library(cls, path: str, key: str) -> Union[CDLL, ModuleType]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             result = cls._load_library_inner(path, key)
             result.key = key  # type: ignore[union-attr]
@@ -2753,7 +3239,11 @@ class CppCodeCache:
         device_type: str = "cpu",
         submit_fn: Any = None,
         extra_flags: Sequence[str] = (),
+<<<<<<< HEAD
         optimized_code: str | None = None,
+=======
+        optimized_code: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Any:
         """Compile and load a C++ library.  Returns a callable that returns the loaded
         library."""
@@ -2774,6 +3264,7 @@ class CppCodeCache:
         main_build_option = CppTorchDeviceOptions(
             compile_only=bool(optimized_code),
             min_optimize=optimized_code is not None,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             **compile_command,
         )
@@ -2782,6 +3273,12 @@ class CppCodeCache:
             compile_only=True,
             # pyrefly: ignore [bad-argument-type]
             **compile_command,
+=======
+            **compile_command,
+        )
+        optimized_build_option = CppTorchDeviceOptions(
+            compile_only=True, **compile_command
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         def get_hashable_command_line(build_option: BuildOptionsBase) -> str:
@@ -2812,7 +3309,11 @@ class CppCodeCache:
             from torch.utils._filelock import FileLock
 
             lock_path = os.path.join(get_lock_dir(), key + ".lock")
+<<<<<<< HEAD
             future: Future[Any] | None = None
+=======
+            future: Optional[Future[Any]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             lib = None
 
             # if requested, pre-compile any headers
@@ -2830,7 +3331,10 @@ class CppCodeCache:
                 # decision if that ever changes.
                 if optimized_code and (header := _get_cpp_prefix_header(device_type)):
                     optimized_build_option.precompiled_header = _precompile_header(
+<<<<<<< HEAD
                         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         header,
                         optimized_cmd_line,
                         **compile_command,
@@ -2861,7 +3365,10 @@ class CppCodeCache:
                         main_builder.get_target_file_path(),
                         optimized_builder.get_target_file_path(),
                     ],
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     BuildOption=CppTorchDeviceOptions(**compile_command),
                     output_dir=output_dir,
                 )
@@ -2920,7 +3427,11 @@ def _worker_compile_cpp(
 # Customized Python binding for cpp kernels
 @clear_on_fresh_cache
 class CppPythonBindingsCodeCache(CppCodeCache):
+<<<<<<< HEAD
     cache: dict[str, Callable[[], CDLL | ModuleType]] = {}
+=======
+    cache: dict[str, Callable[[], Union[CDLL, ModuleType]]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cache_clear = staticmethod(cache.clear)
     cpp_compile_command_flags = {
         # kernels have no dependency on libtorch
@@ -3020,7 +3531,10 @@ class CppPythonBindingsCodeCache(CppCodeCache):
     )
 
     @classmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _load_library_inner(cls, path: str, key: str) -> ModuleType:
         os.environ["_TORCHINDUCTOR_PYOBJECT_TENSOR_DATA_PTR"] = str(
             torch._C._dynamo.guards._torchinductor_pyobject_tensor_data_ptr  # type: ignore[attr-defined]
@@ -3051,7 +3565,11 @@ class CppPythonBindingsCodeCache(CppCodeCache):
         num_outputs: int = -1,
         submit_fn: Any = None,
         extra_flags: Sequence[str] = (),
+<<<<<<< HEAD
         kernel_code: str | None = None,
+=======
+        kernel_code: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Any:
         """
         Wrap a C++ function in fast Python bindings.
@@ -3102,7 +3620,11 @@ class CppPythonBindingsCodeCache(CppCodeCache):
 
 @clear_on_fresh_cache
 class CppWrapperCodeCache(CppPythonBindingsCodeCache):
+<<<<<<< HEAD
     cache: dict[str, Callable[[], CDLL | ModuleType]] = {}
+=======
+    cache: dict[str, Callable[[], Union[CDLL, ModuleType]]] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cache_clear = staticmethod(cache.clear)
     cpp_compile_command_flags = {
         "include_pytorch": True,
@@ -3171,9 +3693,15 @@ class CppWrapperCodeCache(CppPythonBindingsCodeCache):
 
 @clear_on_fresh_cache
 class HalideCodeCache(CppPythonBindingsCodeCache):
+<<<<<<< HEAD
     cache: dict[str, Callable[[], ModuleType | CDLL]] = {}
     cache_clear = staticmethod(cache.clear)
     _standalone_runtime_path: str | None = None
+=======
+    cache: dict[str, Callable[[], Union[ModuleType, CDLL]]] = {}
+    cache_clear = staticmethod(cache.clear)
+    _standalone_runtime_path: Optional[str] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     prefix = textwrap.dedent(
         """
         #include "{halideruntime_h}"
@@ -3270,9 +3798,13 @@ class HalideCodeCache(CppPythonBindingsCodeCache):
 
         return [
             f"halide_buffer_t {name};",
+<<<<<<< HEAD
             f"halide_dimension_t {name}_dims[] = {{{', '.join(dims)}}};"
             if len(dims) > 0
             else f"halide_dimension_t * {name}_dims = nullptr;",
+=======
+            f"halide_dimension_t {name}_dims[] = {{{', '.join(dims)}}};",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"{name}.device = {device};",
             f"{name}.device_interface = {device_interface};",
             f"{name}.host = {host};",
@@ -3292,12 +3824,18 @@ class HalideCodeCache(CppPythonBindingsCodeCache):
         buffer_names = []
         for i, arg in enumerate(meta.argtypes):
             if arg.is_buffer():
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 buffer_names.append(f"&hl_buf_{i}")
                 buffers.extend(cls._codegen_buffer(f"hl_buf_{i}", arg, is_cuda))
             else:
                 assert "*" not in arg.ctype
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 buffer_names.append(arg.name)
         buffers = "\n".join([f"    {line}" for line in buffers]).lstrip()
 
@@ -3552,7 +4090,10 @@ def _worker_task_halide(lockfile: str, jobs: list[partial[Any]]) -> None:
 
                 ci = cmd.index("-o")
                 assert isinstance(ci, int)
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cmd[ci + 1] = Out()
                 repl = textwrap.indent(
                     textwrap.dedent(
@@ -3604,8 +4145,13 @@ class PyCodeCache:
         cls,
         key: str,
         path: str,
+<<<<<<< HEAD
         linemap: list[tuple[int, str]] | None = None,
         attrs: dict[str, Any] | None = None,
+=======
+        linemap: Optional[list[tuple[int, str]]] = None,
+        attrs: Optional[dict[str, Any]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> ModuleType:
         if linemap is None:
             linemap = []
@@ -3653,7 +4199,11 @@ class PyCodeCache:
     @functools.cache
     def stack_frames_for_code(
         cls, path: str, lineno: int
+<<<<<<< HEAD
     ) -> list[dict[str, Any]] | None:
+=======
+    ) -> Optional[list[dict[str, Any]]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if path not in cls.linemaps:
             return None
         if len(cls.linemaps[path]) == 0:
@@ -3686,7 +4236,11 @@ def _load_triton_kernel_from_source(
     return getattr(PyCodeCache.load(source_code), kernel_name)
 
 
+<<<<<<< HEAD
 def _cuda_compiler() -> str | None:
+=======
+def _cuda_compiler() -> Optional[str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if cuda_env.nvcc_exist(config.cuda.cuda_cxx):
         return config.cuda.cuda_cxx
     if config.is_fbcode():
@@ -3702,7 +4256,11 @@ def _cutlass_path() -> str:
     if config.is_fbcode():
         from libfb.py import parutil
 
+<<<<<<< HEAD
         return parutil.get_dir_path("cutlass-4-headers")
+=======
+        return parutil.get_dir_path("cutlass-3-headers")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return config.cuda.cutlass_dir
 
@@ -3743,9 +4301,13 @@ def cutlass_key() -> bytes:
     Note: OSS and fbcode will have different keys.
     """
     if config.is_fbcode():
+<<<<<<< HEAD
         with importlib.resources.path(
             "cutlass_library", "src_hash.txt"
         ) as resource_path:
+=======
+        with importlib.resources.path("cutlass", "src_hash.txt") as resource_path:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with open(resource_path) as resource_file:
                 return resource_file.read().encode()
 
@@ -3774,12 +4336,18 @@ def _cuda_lib_options() -> list[str]:
             if "torch/lib" in path:
                 # don't want to depend on pytorch
                 continue
+<<<<<<< HEAD
             extra_ldflags.append(f"-L{path}")
             # -rpath ensures the DLL can find its dependencies when loaded, even
             # if the library path is non-standard.
             # But do not add the stubs folder to rpath as the driver is expected to be found at runtime
             if os.path.basename(path) != "stubs":
                 extra_ldflags.extend(["-Xlinker", f"-rpath={path}"])
+=======
+            # -rpath ensures the DLL can find its dependencies when loaded, even
+            # if the library path is non-standard.
+            extra_ldflags.extend([f"-L{path}", "-Xlinker", f"-rpath={path}"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extra_ldflags.append("-lcuda")
         extra_ldflags.append("-lcudart")
     else:
@@ -3853,7 +4421,11 @@ def cuda_compile_command(
     src_files: list[str],
     dst_file: str,
     dst_file_ext: str,
+<<<<<<< HEAD
     extra_args: list[str] | None = None,
+=======
+    extra_args: Optional[list[str]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> str:
     if extra_args is None:
         extra_args = []
@@ -3888,10 +4460,14 @@ def cuda_compile_command(
         res = f"{_cuda_compiler()} {' '.join(options)} -o {dst_file} {src_file}"
     else:
         raise NotImplementedError(f"Unsupported output file suffix {dst_file_ext}!")
+<<<<<<< HEAD
     if log.isEnabledFor(logging.DEBUG):
         log.debug("CUDA command: %s", res)
     else:
         autotuning_log.debug("CUDA command: %s", res)
+=======
+    log.debug("CUDA command: %s", res)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return res
 
 
@@ -3991,7 +4567,11 @@ class CUDACodeCache:
     class CacheEntry:
         input_path: str
         output_path: str
+<<<<<<< HEAD
         error_json: str | None = None
+=======
+        error_json: Optional[str] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     cache: dict[str, CacheEntry] = {}
     aot_kernels_o: list[str] = []
@@ -4006,7 +4586,11 @@ class CUDACodeCache:
     @lru_cache(maxsize=4)
     def get_kernel_binary_remote_cache(
         caching_enabled: bool, caching_available: bool
+<<<<<<< HEAD
     ) -> Any | None:
+=======
+    ) -> Optional[Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Get or create the class instance of the CUTLASSKernelBinaryRemoteCache.
 
@@ -4036,7 +4620,10 @@ class CUDACodeCache:
             return None
 
     @classmethod
+<<<<<<< HEAD
     @lru_cache(None)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def write(cls, source_code: str, dst_file_ext: str) -> tuple[str, str]:
         """
         Writes source code into a file with dst_file_ext as the file extension.
@@ -4061,12 +4648,19 @@ class CUDACodeCache:
                     cutlass_key(),
                     # hack to deal with AOTI .o compilation
                 ]
+<<<<<<< HEAD
+=======
+                + [dst_file_ext]
+                if dst_file_ext == "o"
+                else []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         key, input_path = write(source_code, cls._SOURCE_CODE_SUFFIX, extra=extra)
         return key, input_path
 
     @classmethod
     def compile(
+<<<<<<< HEAD
         cls, source_code: str, dst_file_ext: str, extra_args: list[str] | None = None
     ) -> tuple[str, str, str]:
         """
@@ -4086,6 +4680,16 @@ class CUDACodeCache:
 
         key_with_ext = key + dst_file_ext
         if key_with_ext not in cls.cache:
+=======
+        cls, source_code: str, dst_file_ext: str, extra_args: Optional[list[str]] = None
+    ) -> tuple[str, str, str]:
+        """
+        Compiles CUDA source_code into a file with dst_file_ext extension.
+        Returns a tuple of dst_file_path, hash_key, source_code_path
+        """
+        key, input_path = cls.write(source_code, dst_file_ext)
+        if key not in cls.cache:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.utils._filelock import FileLock
 
             lock_dir = get_lock_dir()
@@ -4117,12 +4721,17 @@ class CUDACodeCache:
                         binary_remote_cache.put(
                             error_path, config.cuda.binary_remote_cache_force_write
                         )
+<<<<<<< HEAD
                     cls.cache[key_with_ext] = CUDACodeCache.CacheEntry(
+=======
+                    cls.cache[key] = CUDACodeCache.CacheEntry(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         input_path, output_path, error_json
                     )
                     raise exc.CUDACompileError(cmd_parts, error_output)
                 if not os.path.exists(output_path):
                     cmd = cuda_compile_command(
+<<<<<<< HEAD
                         src_files, output_path, dst_file_ext, extra_args
                     )
                     with open(input_path, "a") as f:
@@ -4130,6 +4739,15 @@ class CUDACodeCache:
                         f.write(f"// CUDA {operation_name} cmd\n// {cmd}\n")
                     start_time = time()
                     log.debug("CUDA %s: %s", operation_name, cmd)
+=======
+                        [input_path], output_path, dst_file_ext, extra_args
+                    )
+                    with open(input_path, "a") as f:
+                        f.write("\n")
+                        f.write(f"// CUDA Compile cmd\n// {cmd}\n")
+                    start_time = time()
+                    log.debug("CUDA Compilation: %s", cmd)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     cmd_parts = cmd.split(" ")
                     try:
                         if use_re_build():
@@ -4147,7 +4765,11 @@ class CUDACodeCache:
                     except subprocess.CalledProcessError as error:
                         cls._record_cuda_compile_error(
                             error.output.decode("utf-8"),
+<<<<<<< HEAD
                             key_with_ext,
+=======
+                            key,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             cmd_parts,
                             input_path,
                             output_path,
@@ -4158,7 +4780,11 @@ class CUDACodeCache:
                         if "COMPILE FAILED WITH" in str(error):
                             cls._record_cuda_compile_error(
                                 str(error),
+<<<<<<< HEAD
                                 key_with_ext,
+=======
+                                key,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 cmd_parts,
                                 input_path,
                                 output_path,
@@ -4167,14 +4793,23 @@ class CUDACodeCache:
                             raise exc.CUDACompileError(cmd_parts, str(error)) from error
                         raise error
                     end_time = time()
+<<<<<<< HEAD
                     log_duration_msg = f"CUDA {operation_name} took {end_time - start_time} seconds. Command: {cmd}"
+=======
+                    log_duration_msg = f"CUDA Compilation took {end_time - start_time} seconds. Compile command: {cmd}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     log.info(log_duration_msg)
 
                 else:
                     log.debug(
+<<<<<<< HEAD
                         "CUDA %s skipped: %s since output already exists",
                         operation_name,
                         output_path,
+=======
+                        "CUDA Compilation skipped: %s since output already exists",
+                        input_path,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 # Upload to remote cache if enabled
                 if (
@@ -4185,16 +4820,25 @@ class CUDACodeCache:
                     binary_remote_cache.put(
                         output_path, config.cuda.binary_remote_cache_force_write
                     )
+<<<<<<< HEAD
                 cls.cache[key_with_ext] = CUDACodeCache.CacheEntry(
                     input_path, output_path, None
                 )
 
         cache_entry: CUDACodeCache.CacheEntry = cls.cache[key_with_ext]
+=======
+                cls.cache[key] = CUDACodeCache.CacheEntry(input_path, output_path, None)
+        cache_entry: CUDACodeCache.CacheEntry = cls.cache[key]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if cache_entry.error_json is not None:
             # Restore cached Exception and raise it as if we had compiled
             cmd_parts, error_output = json.loads(cache_entry.error_json)
             raise exc.CUDACompileError(cmd_parts, error_output.encode("utf-8"))
+<<<<<<< HEAD
         return (cls.cache[key_with_ext].output_path, key, input_path)
+=======
+        return (cls.cache[key].output_path, key, input_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @classmethod
     def load(cls, source_code: str, dst_file_ext: str) -> tuple[DLLWrapper, str, str]:
@@ -4217,7 +4861,11 @@ class CUDACodeCache:
     def _record_cuda_compile_error(
         cls,
         error_str: str,
+<<<<<<< HEAD
         key_with_ext: str,
+=======
+        key: str,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cmd_parts: list[str],
         input_path: str,
         output_path: str,
@@ -4226,9 +4874,13 @@ class CUDACodeCache:
         binary_remote_cache: Any = None,
     ) -> None:
         error_json = json.dumps([cmd_parts, error_str])
+<<<<<<< HEAD
         cls.cache[key_with_ext] = CUDACodeCache.CacheEntry(
             input_path, output_path, error_json
         )
+=======
+        cls.cache[key] = CUDACodeCache.CacheEntry(input_path, output_path, error_json)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         error_path = binary_error_path(output_path)
         with open(error_path, "w", encoding="utf-8") as fh:
             fh.write(error_json)
@@ -4277,7 +4929,11 @@ class ROCmCodeCache:
 
     @classmethod
     def compile(
+<<<<<<< HEAD
         cls, source_code: str, dst_file_ext: str, extra_args: list[str] | None = None
+=======
+        cls, source_code: str, dst_file_ext: str, extra_args: Optional[list[str]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[str, str, str]:
         """
         Compiles source_code into a file with dst_file_ext extension,
@@ -4350,7 +5006,11 @@ class CodeCacheFuture:
 
 class LambdaFuture(CodeCacheFuture):
     def __init__(
+<<<<<<< HEAD
         self, result_fn: Callable[..., Any], future: Future[Any] | None = None
+=======
+        self, result_fn: Callable[..., Any], future: Optional[Future[Any]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         self.result_fn = result_fn
         self.future = future
@@ -4371,7 +5031,11 @@ class StaticAutotunerFuture(CodeCacheFuture):
         # we need to reload the CachingAutotuner from its source code
         # We don't store the source code on the CachingAutotuner itself
         # since it can be very large.
+<<<<<<< HEAD
         self.reload_kernel_from_src: Callable[[], Any] | None = None
+=======
+        self.reload_kernel_from_src: Optional[Callable[[], Any]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def result(self) -> CachingAutotuner:
         assert self.reload_kernel_from_src is not None

@@ -240,7 +240,11 @@ _PS256_CONST(coscof_p2,  4.166664568298827E-002);
 _PS256_CONST(cephes_FOPI, 1.27323954473516); // 4 / M_PI
 
 
+<<<<<<< HEAD
 /* evaluation of 8 sines at once using AVX intrinsics
+=======
+/* evaluation of 8 sines at onces using AVX intrinsics
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
    The code is the exact rewriting of the cephes sinf function.
    Precision is excellent as long as x < 8192 (I did not bother to

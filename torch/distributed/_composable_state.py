@@ -31,7 +31,10 @@ def _get_module_state(module: nn.Module) -> Optional[_State]:
     """
     global _module_state_mapping
     if isinstance(module, _State):
+<<<<<<< HEAD
         # pyrefly: ignore [redundant-cast]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cast(_State, module)
     else:
         # https://github.com/pytorch/pytorch/issues/107054

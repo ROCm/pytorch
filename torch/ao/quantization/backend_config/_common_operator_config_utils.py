@@ -2,8 +2,12 @@
 import copy
 import operator
 from collections import namedtuple
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Union
+=======
+from typing import Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.intrinsic as nni

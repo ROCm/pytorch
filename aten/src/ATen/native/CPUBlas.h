@@ -206,6 +206,7 @@ void copy(int64_t n, const c10::complex<float> *x, int64_t incx, c10::complex<fl
 // B Base pointer to a tensor B.
 // C Pointer to a tensor C (accumulation buffer).
 // Note only batch size 1 is used currently
+<<<<<<< HEAD
 
 // Define macros for available brgemm APIs
 // so that callers can determine which APIs are available
@@ -216,6 +217,8 @@ void copy(int64_t n, const c10::complex<float> *x, int64_t incx, c10::complex<fl
 #define CPUBLAS_BRGEMM_U8I8I32 // unsigned char * signed char -> int32
 #define CPUBLAS_BRGEMM_I8I8I32 // signed char * signed char -> int32
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_API void brgemm(
     int64_t M,
     int64_t N,

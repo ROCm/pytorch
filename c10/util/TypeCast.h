@@ -52,7 +52,11 @@ struct maybe_bool {
 template <typename src_t>
 struct maybe_bool<true, src_t> {
   C10_HOST_DEVICE static inline decltype(auto) apply(src_t src) {
+<<<<<<< HEAD
     // Don't use bool operator so as to also compile for ComplexHalf.
+=======
+    // Don't use bool operator so as to to also compile for ComplexHalf.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return src.real() || src.imag();
   }
 };

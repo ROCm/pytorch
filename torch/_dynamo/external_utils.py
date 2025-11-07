@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# This module contains functions that *will be allowed* by dynamo
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module contains utility functions that are explicitly allowed to be called during
 TorchDynamo compilation. These functions are carefully vetted to ensure they work
@@ -22,8 +27,12 @@ Key functionality groups:
 
 import functools
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated, ParamSpec
 
 import torch
@@ -97,9 +106,13 @@ def wrap_numpy(f: Callable[_P, _R]) -> Callable[_P, _R]:
         args, kwargs = pytree.tree_map_only(
             torch.Tensor, lambda x: x.numpy(), (args, kwargs)
         )
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-param-spec]
         out = f(*args, **kwargs)
         # pyrefly: ignore [missing-attribute]
+=======
+        out = f(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return pytree.tree_map_only(np.ndarray, lambda x: torch.as_tensor(x), out)
 
     return wrap
@@ -201,12 +214,19 @@ def get_nonrecursive_disable_wrapper(fn: Callable[_P, _R]) -> Callable[_P, _R]:
     return nonrecursive_disable_wrapper
 
 
+<<<<<<< HEAD
 def wrap_dunder_call_ctx_manager(self: Any, func: Callable[_P, _R]) -> Callable[_P, _R]:
     """
     Apply self as a ctx manager around a call to func
     """
 
     # NOTE: do not functools.wraps(func) because we don't ever want this frame to be skipped!
+=======
+def _dynamo_config_patch_proxy_dunder_call(
+    self: Any, func: Callable[_P, _R]
+) -> Callable[_P, _R]:
+    @functools.wraps(func)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def inner(*args: _P.args, **kwargs: _P.kwargs) -> _R:
         with self:
             return func(*args, **kwargs)
@@ -230,6 +250,7 @@ def call_accumulate_grad(
         [grad], variable, variable.grad, has_post_hooks
     )
     variable.grad = updated_grad[0]
+<<<<<<< HEAD
 
 
 def wrap_inline_with_error_on_graph_break(
@@ -281,3 +302,5 @@ def insert_const_values_with_mask(
             out.append(tup[idx])
             idx += 1
     return tuple(out)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

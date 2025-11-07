@@ -15,7 +15,10 @@
 #endif
 #include <c10/core/SymNodeImpl.h>
 #include <torch/csrc/jit/frontend/ir_emitter.h>
+<<<<<<< HEAD
 #include <torch/csrc/jit/frontend/schema_type_parser.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/frontend/tracer.h>
 #include <torch/csrc/jit/ir/irparser.h>
 #include <torch/csrc/jit/jit_log.h>
@@ -79,7 +82,10 @@
 #include <torch/csrc/jit/passes/vulkan_rewrite.h>
 #include <torch/csrc/jit/passes/xnnpack_rewrite.h>
 #include <torch/csrc/jit/python/init.h>
+<<<<<<< HEAD
 #include <torch/csrc/jit/python/opaque_obj.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/jit/python/python_arg_flatten.h>
 #include <torch/csrc/jit/python/python_custom_class.h>
@@ -1256,6 +1262,14 @@ void initJITBindings(PyObject* module) {
             return a->expect_true(file, line);
           })
       .def(
+<<<<<<< HEAD
+=======
+          "expect_size",
+          [](const c10::SymNode& a, const char* file, int64_t line) {
+            return a->expect_size(file, line);
+          })
+      .def(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "guard_size_oblivious",
           [](const c10::SymNode& a, const char* file, int64_t line) {
             return a->guard_size_oblivious(file, line);
@@ -1693,7 +1707,11 @@ void initJITBindings(PyObject* module) {
       [](const std::string& op_name, const std::string& overload_name) {
         try {
           auto symbol = Symbol::fromQualString(op_name);
+<<<<<<< HEAD
           const auto& operations = getAllOperatorsFor(symbol);
+=======
+          auto operations = getAllOperatorsFor(symbol);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           for (const auto& op : operations) {
             if (op->schema().overload_name() == overload_name) {
               return op->schema();
@@ -1714,7 +1732,11 @@ void initJITBindings(PyObject* module) {
          const std::string& overload_name) -> std::optional<py::tuple> {
         try {
           auto symbol = Symbol::fromQualString(op_name);
+<<<<<<< HEAD
           const auto& operations = getAllOperatorsFor(symbol);
+=======
+          auto operations = getAllOperatorsFor(symbol);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           bool allow_numbers_as_tensors = opAllowsNumbersAsTensors(symbol);
           for (const auto& op : operations) {
             if (op->schema().overload_name() == overload_name) {
@@ -1723,7 +1745,11 @@ void initJITBindings(PyObject* module) {
                       const py::args& args, const py::kwargs& kwargs) {
                     ToIValueAllowNumbersAsTensors g(allow_numbers_as_tensors);
                     return _get_operation_for_overload_or_packet(
+<<<<<<< HEAD
                         op, symbol, args, kwargs, /*is_overload*/ true);
+=======
+                        {op}, symbol, args, kwargs, /*is_overload*/ true);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   });
               auto func_dk =
                   py::cpp_function([op, symbol, allow_numbers_as_tensors](
@@ -1732,12 +1758,19 @@ void initJITBindings(PyObject* module) {
                                        const py::kwargs& kwargs) {
                     ToIValueAllowNumbersAsTensors g(allow_numbers_as_tensors);
                     return _get_operation_for_overload_or_packet(
+<<<<<<< HEAD
                         op, symbol, args, kwargs, /*is_overload*/ true, dk_);
                   });
               return py::make_tuple(
                   std::move(func),
                   std::move(func_dk),
                   py::cast(op->getTags().vec()));
+=======
+                        {op}, symbol, args, kwargs, /*is_overload*/ true, dk_);
+                  });
+              return py::make_tuple(
+                  func, func_dk, py::cast(op->getTags().vec()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
           }
           return std::nullopt;
@@ -1862,6 +1895,7 @@ void initJITBindings(PyObject* module) {
       &parseSchema,
       py::arg("schema"),
       py::arg("allow_typevars") = true);
+<<<<<<< HEAD
   m.def(
       "_make_opaque_object",
       [](py::object payload) {
@@ -1903,6 +1937,8 @@ void initJITBindings(PyObject* module) {
         return torch::jit::isRegisteredOpaqueType(type_name);
       },
       R"doc(Checks if a type name is registered as an opaque type.)doc");
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("unify_type_list", [](const std::vector<TypePtr>& types) {
     std::ostringstream s;
     auto type = unifyTypeList(types, s);
@@ -1998,6 +2034,7 @@ void initJITBindings(PyObject* module) {
            std::vector<Argument>,
            bool,
            bool>())
+<<<<<<< HEAD
       .def_property_readonly("name", &FunctionSchema::name)
       .def_property_readonly("overload_name", &FunctionSchema::overload_name)
       .def_property_readonly("arguments", &FunctionSchema::arguments)
@@ -2017,6 +2054,19 @@ void initJITBindings(PyObject* module) {
           // FunctionSchema::isBackwardCompatibleWith has an extra
           // defaulted argument, so we can't just use a
           // pointer-to-member here.
+=======
+      .def_property_readonly(
+          "name", [](FunctionSchema& self) { return self.name(); })
+      .def_property_readonly(
+          "overload_name",
+          [](FunctionSchema& self) { return self.overload_name(); })
+      .def_property_readonly(
+          "arguments", [](FunctionSchema& self) { return self.arguments(); })
+      .def_property_readonly(
+          "returns", [](FunctionSchema& self) { return self.returns(); })
+      .def(
+          "is_backward_compatible_with",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           [](const FunctionSchema& self, const FunctionSchema& old_schema) {
             return self.isBackwardCompatibleWith(old_schema);
           })
@@ -2039,14 +2089,22 @@ void initJITBindings(PyObject* module) {
           })
       .def(
           "__str__",
+<<<<<<< HEAD
           [](const FunctionSchema& self) {
+=======
+          [](FunctionSchema& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             std::stringstream ss;
             ss << self;
             return ss.str();
           })
       .def(
           "__repr__",
+<<<<<<< HEAD
           [](const FunctionSchema& self) {
+=======
+          [](FunctionSchema& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             std::stringstream ss;
             ss << self;
             return ss.str();
@@ -2060,9 +2118,14 @@ void initJITBindings(PyObject* module) {
           [](const py::str& schema) { // __setstate__, note: no `self` argument
             return parseSchema(schema);
           }))
+<<<<<<< HEAD
       .def_property_readonly("is_mutable", [](const FunctionSchema& self) {
         return self.is_mutable();
       });
+=======
+      .def_property_readonly(
+          "is_mutable", [](FunctionSchema& self) { return self.is_mutable(); });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::class_<Argument>(m, "Argument")
       .def(py::init<
            std::string,
@@ -2071,17 +2134,31 @@ void initJITBindings(PyObject* module) {
            std::optional<IValue>,
            bool,
            std::optional<AliasInfo>>())
+<<<<<<< HEAD
       .def_property_readonly("name", &Argument::name)
       .def_property_readonly("type", &Argument::type)
       .def_property_readonly("real_type", &Argument::real_type)
       .def_property_readonly(
           "N",
           [](const Argument& self) -> py::object {
+=======
+      .def_property_readonly("name", [](Argument& self) { return self.name(); })
+      .def_property_readonly("type", [](Argument& self) { return self.type(); })
+      .def_property_readonly(
+          "real_type", [](Argument& self) { return self.real_type(); })
+      .def_property_readonly(
+          "N",
+          [](Argument& self) -> py::object {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (self.N()) ? py::cast(*self.N()) : py::none();
           })
       .def_property_readonly(
           "default_value",
+<<<<<<< HEAD
           [](const Argument& self) -> py::object {
+=======
+          [](Argument& self) -> py::object {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (!self.default_value()) {
               return py::none();
             }
@@ -2090,6 +2167,7 @@ void initJITBindings(PyObject* module) {
           })
       .def(
           "has_default_value",
+<<<<<<< HEAD
           [](const Argument& self) -> py::bool_ {
             return self.default_value().has_value();
           })
@@ -2098,30 +2176,56 @@ void initJITBindings(PyObject* module) {
       .def_property_readonly(
           "is_write",
           [](const Argument& self) {
+=======
+          [](Argument& self) -> py::bool_ {
+            return self.default_value().has_value();
+          })
+      .def_property_readonly(
+          "alias_info", [](Argument& self) { return self.alias_info(); })
+      .def_property_readonly(
+          "is_write",
+          [](Argument& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (self.alias_info() == nullptr) {
               return false;
             }
             return self.alias_info()->isWrite();
           })
       .def_property_readonly(
+<<<<<<< HEAD
           "is_out", [](const Argument& self) { return self.is_out(); })
       .def_property_readonly("kwarg_only", [](const Argument& self) -> bool {
+=======
+          "is_out", [](Argument& self) { return self.is_out(); })
+      .def_property_readonly("kwarg_only", [](Argument& self) -> bool {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.kwarg_only();
       });
   py::class_<AliasInfo>(m, "_AliasInfo")
       .def(py::init<bool, std::set<std::string>, std::set<std::string>>())
       .def_property_readonly(
+<<<<<<< HEAD
           "is_write", [](const AliasInfo& self) { return self.isWrite(); })
       .def_property_readonly(
           "before_set",
           [](const AliasInfo& self) {
+=======
+          "is_write", [](AliasInfo& self) { return self.isWrite(); })
+      .def_property_readonly(
+          "before_set",
+          [](AliasInfo& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             std::set<py::str> before_set_python;
             for (const auto& set : self.beforeSets()) {
               before_set_python.insert(py::str(set.toUnqualString()));
             }
             return before_set_python;
           })
+<<<<<<< HEAD
       .def_property_readonly("after_set", [](const AliasInfo& self) {
+=======
+      .def_property_readonly("after_set", [](AliasInfo& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::set<py::str> after_set_python;
         for (const auto& set : self.afterSets()) {
           after_set_python.insert(py::str(set.toUnqualString()));
@@ -2364,7 +2468,11 @@ void initJITBindings(PyObject* module) {
               // Throw errors when calling wait() on the returned Future if
               // any of the original futures would throw.
               // NB: PythonFutureWrapper takes an unwrap_func which serves as a
+<<<<<<< HEAD
               // callback to evaluate the value in the Future. RPC uses this
+=======
+              // callback to evalute the value in the Future. RPC uses this
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
               // unwrap_func to check whether the returned py::object is a
               // RemoteException object, and re-throw the exception if it is.
               // By extracting the c10::ivalue::Future from PythonFutureWrapper

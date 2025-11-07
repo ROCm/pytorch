@@ -1,9 +1,14 @@
 # mypy: allow-untyped-defs
 import itertools
 import typing
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import NamedTuple, Optional
+=======
+from dataclasses import dataclass
+from typing import Callable, NamedTuple, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F
@@ -376,11 +381,17 @@ def _do_annotate_conv_relu(
             input_qspec_map[bias] = get_bias_qspec(quantization_config)
             partition.append(bias)
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         if _is_annotated(partition):
             continue
 
         # pyrefly: ignore [bad-argument-type]
+=======
+        if _is_annotated(partition):
+            continue
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if filter_fn and any(not filter_fn(n) for n in partition):
             continue
 
@@ -391,7 +402,10 @@ def _do_annotate_conv_relu(
             output_qspec=get_output_act_qspec(quantization_config),  # type: ignore[arg-type]
             _annotated=True,
         )
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _mark_nodes_as_annotated(partition)
         annotated_partitions.append(partition)
     return annotated_partitions
@@ -426,7 +440,11 @@ def _annotate_conv_bn(
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
     """
+<<<<<<< HEAD
     Find conv + batchnorm partitions
+=======
+    Find conv + batchnorm parititions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Note: This is only used for QAT. In PTQ, batchnorm should already be fused into the conv.
     """
     return _do_annotate_conv_bn(gm, quantization_config, filter_fn, has_relu=False)
@@ -439,7 +457,11 @@ def _annotate_conv_bn_relu(
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
     """
+<<<<<<< HEAD
     Find conv + batchnorm + relu partitions
+=======
+    Find conv + batchnorm + relu parititions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Note: This is only used for QAT. In PTQ, batchnorm should already be fused into the conv.
     """
     return _do_annotate_conv_bn(gm, quantization_config, filter_fn, has_relu=True)
@@ -452,7 +474,11 @@ def _annotate_conv_transpose_bn(
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
     """
+<<<<<<< HEAD
     Find conv_transpose + batchnorm partitions
+=======
+    Find conv_transpose + batchnorm parititions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Note: This is only used for QAT. In PTQ, batchnorm should already be fused into the conv.
     """
     return _do_annotate_conv_bn(
@@ -467,7 +493,11 @@ def _annotate_conv_transpose_bn_relu(
     filter_fn: Optional[Callable[[Node], bool]] = None,
 ) -> Optional[list[list[Node]]]:
     """
+<<<<<<< HEAD
     Find conv_transpose + batchnorm + relu partitions
+=======
+    Find conv_transpose + batchnorm + relu parititions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Note: This is only used for QAT. In PTQ, batchnorm should already be fused into the conv.
     """
     return _do_annotate_conv_bn(

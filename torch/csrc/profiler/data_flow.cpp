@@ -50,7 +50,11 @@ struct RawTensors {
   }
 
   template <typename T>
+<<<<<<< HEAD
   void operator()(T& /*unused*/) {}
+=======
+  void operator()(T&) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::vector<RawTensorInfo> tensors_;
 };

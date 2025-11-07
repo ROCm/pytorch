@@ -16,6 +16,13 @@
 #include <unordered_set>
 #include <vector>
 
+<<<<<<< HEAD
+=======
+namespace c10 {
+TypePtr parseType(const std::string& pythonStr);
+} // namespace c10
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch::jit {
 
 using caffe2::serialize::FileAdapter;
@@ -63,7 +70,12 @@ std::vector<IValue> get_bytecode_ivalues(PyTorchStreamReader& reader) {
 /********************** Bytecode **********************/
 
 // Forward declare
+<<<<<<< HEAD
 
+=======
+uint64_t _get_model_bytecode_version(
+    const std::vector<IValue>& bytecode_ivalues);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static uint64_t _get_model_bytecode_version_from_bytes(char* data, size_t size);
 
 uint64_t _get_model_bytecode_version(std::istream& in) {
@@ -245,6 +257,11 @@ std::unordered_map<std::string, OperatorInfo> _get_model_ops_and_info(
 /********************** Get Type Table **********************/
 
 // Forward declare
+<<<<<<< HEAD
+=======
+std::unordered_set<std::string> _get_mobile_model_contained_types(
+    const std::vector<IValue>& bytecode_ivalues);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 std::unordered_set<std::string> _get_mobile_model_contained_types(
     std::istream& in) {
@@ -386,7 +403,11 @@ ModelCompatCheckResult is_compatible(
       OperatorInfo runtime_op_info = runtime_info.operator_info.at(op_name);
 
       // If the runtime op has no schema information its a false alarm and isn't
+<<<<<<< HEAD
       // actually usable
+=======
+      // actually useable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!runtime_op_info.num_schema_args.has_value()) {
         result.status = ModelCompatibilityStatus::ERROR;
         std::ostringstream s;

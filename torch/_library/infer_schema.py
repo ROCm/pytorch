@@ -9,8 +9,11 @@ import torch
 from torch import device, dtype, Tensor, types
 from torch.utils._exposed_in import exposed_in
 
+<<<<<<< HEAD
 from .opaque_object import _OPAQUE_TYPES, is_opaque_type, OpaqueType, OpaqueTypeStr
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # This is used as a negative test for
 # test_custom_ops.py::TestTypeConversion::test_type_eval.
@@ -125,6 +128,7 @@ def infer_schema(
         # we convert it to the actual type.
         annotation_type, _ = unstringify_type(param.annotation)
 
+<<<<<<< HEAD
         schema_type = None
         if annotation_type not in SUPPORTED_PARAM_TYPES:
             if is_opaque_type(annotation_type):
@@ -139,6 +143,10 @@ def infer_schema(
                 hasattr(annotation_type, "__origin__")
                 and annotation_type.__origin__ is tuple
             ):
+=======
+        if annotation_type not in SUPPORTED_PARAM_TYPES:
+            if annotation_type.__origin__ is tuple:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 list_type = tuple_to_list(annotation_type)
                 example_type_str = "\n\n"
                 # Only suggest the list type if this type is supported.
@@ -155,28 +163,44 @@ def infer_schema(
                     f"Parameter {name} has unsupported type {param.annotation}. "
                     f"The valid types are: {SUPPORTED_PARAM_TYPES.keys()}."
                 )
+<<<<<<< HEAD
         else:
             schema_type = SUPPORTED_PARAM_TYPES[annotation_type]
 
         assert schema_type is not None
 
         if type(mutates_args) is str:
+=======
+
+        schema_type = SUPPORTED_PARAM_TYPES[annotation_type]
+        if type(mutates_args) == str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if mutates_args != UNKNOWN_MUTATES:
                 raise ValueError(
                     "mutates_args must either be a sequence of the names of "
                     "the arguments that are mutated or the string 'unknown'. "
                 )
             if schema_type.startswith("Tensor"):
+<<<<<<< HEAD
                 schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor') :]}"
+=======
+                schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor'):]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif name in mutates_args:
             if not schema_type.startswith("Tensor"):
                 error_fn(
                     f"Parameter {name} is in mutable_args but only Tensors or collections of Tensors can be mutated"
                 )
+<<<<<<< HEAD
             schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor') :]}"
         seen_args.add(name)
         if param.default is inspect.Parameter.empty:
             # pyrefly: ignore [bad-argument-type]
+=======
+            schema_type = f"Tensor(a{idx}!){schema_type[len('Tensor'):]}"
+        seen_args.add(name)
+        if param.default is inspect.Parameter.empty:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             params.append(f"{schema_type} {name}")
         else:
             default_repr = None
@@ -194,7 +218,10 @@ def infer_schema(
                     f"Parameter {name} has an unsupported default value type {type(param.default)}. "
                     f"Please file an issue on GitHub so we can prioritize this."
                 )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             params.append(f"{schema_type} {name}={default_repr}")
     if mutates_args != UNKNOWN_MUTATES:
         mutates_args_not_seen = set(mutates_args) - seen_args
@@ -221,7 +248,10 @@ def derived_types(
 ):
     result: list[tuple[Union[type, typing._SpecialForm, GenericAlias], str]] = [
         (base_type, cpp_type),
+<<<<<<< HEAD
         # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (typing.Optional[base_type], f"{cpp_type}?"),
     ]
 
@@ -240,7 +270,10 @@ def derived_types(
     if optional_base_list:
         result.extend(
             (seq_typ, f"{cpp_type}?[]")
+<<<<<<< HEAD
             # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for seq_typ in derived_seq_types(typing.Optional[base_type])
         )
     if optional_list_base:
@@ -252,7 +285,10 @@ def derived_types(
 
 
 def get_supported_param_types():
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     data: list[tuple[Union[type, typing._SpecialForm], str, bool, bool, bool]] = [
         # (python type, schema type, type[] variant, type?[] variant, type[]? variant
         (Tensor, "Tensor", True, True, False),
@@ -263,7 +299,10 @@ def get_supported_param_types():
         (types.Number, "Scalar", True, False, False),
         (dtype, "ScalarType", False, False, False),
         (device, "Device", False, False, False),
+<<<<<<< HEAD
         (OpaqueType, OpaqueTypeStr, False, False, False),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
     result = []
     for line in data:
@@ -296,7 +335,10 @@ def parse_return(annotation, error_fn):
                 f"Return has unsupported type {annotation}. "
                 f"The valid types are: {SUPPORTED_RETURN_TYPES}."
             )
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return SUPPORTED_RETURN_TYPES[annotation]
 
     args = typing.get_args(annotation)

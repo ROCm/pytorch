@@ -31,6 +31,7 @@ def random_op_strategy(op_schema: OpSchema) -> StrategyType:
         if is_tensor_partial(arg_spec):
             # TODO: figure out how inplace random op should behave when it's partial
             raise RuntimeError(f"{op_schema.op} with Partial is not supported yet!")
+<<<<<<< HEAD
         random_strategy.strategies.append(
             OpSpec(
                 output_specs=arg_spec,
@@ -38,5 +39,8 @@ def random_op_strategy(op_schema: OpSchema) -> StrategyType:
                 redistribute_cost=[[0.0] * len(self_strategy.strategies)],
             )
         )
+=======
+        random_strategy.strategies.append(OpSpec(output_specs=arg_spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return random_strategy

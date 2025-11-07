@@ -65,6 +65,7 @@ __global__ void gatherKthValue(
       &kValue);
 
   // Find the index of the k-th highest element
+<<<<<<< HEAD
   __shared__ int32_t minIndexFound;
 
   if (threadIdx.x == 0) {
@@ -93,6 +94,27 @@ __global__ void gatherKthValue(
   if (threadIdx.x == 0) {
       indicesSliceStart[0] = static_cast<index_t>(minIndexFound);
       kthValueSliceStart[0] = kValue;
+=======
+  index_t kValueIndex = 0;
+  bool foundKValue = false;
+
+  for (index_t i = threadIdx.x; i < inputSliceSize; i += blockDim.x) {
+    bool inRange = (i < inputSliceSize);
+    scalar_t v = inRange ? doLdg(&inputSliceStart[i * inputWithinSliceStride])
+                         : static_cast<scalar_t>(0);
+    bool isKValue = inRange &&
+        ((v == kValue) || (at::_isnan(v) && at::_isnan(kValue)));
+    if (isKValue) {
+      kValueIndex = i;
+      foundKValue = true;
+      break;
+    }
+  }
+
+  if (foundKValue) {
+    kthValueSliceStart[0] = kValue;
+    indicesSliceStart[0] = kValueIndex;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

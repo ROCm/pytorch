@@ -31,24 +31,39 @@ import sys
 import threading
 import traceback
 from collections import Counter, defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Generator, Iterator, Mapping, Sequence
+=======
+from collections.abc import Generator, Iterator, Mapping, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import _GeneratorContextManager, contextmanager
 from dataclasses import asdict, dataclass, field
 from enum import Enum
 from typing import (
     Any,
+<<<<<<< HEAD
+=======
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cast,
     Generic,
     NamedTuple,
     NoReturn,
     Optional,
     TYPE_CHECKING,
+<<<<<<< HEAD
     TypeAlias,
     TypeGuard,
     TypeVar,
     Union,
 )
 from typing_extensions import deprecated, ParamSpec
+=======
+    TypeVar,
+    Union,
+)
+from typing_extensions import deprecated, ParamSpec, TypeAlias, TypeGuard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx
@@ -57,7 +72,10 @@ import torch.utils._pytree as pytree
 
 # NB: The sym_* functions are used via getattr() and must be imported here.
 from torch import SymBool, SymFloat, SymInt
+<<<<<<< HEAD
 from torch._C._functorch import get_unwrapped, is_batchedtensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._guards import ShapeGuard, SLoc, Source, TracingContext
 from torch._logging import dtrace_structured, LazyString, structured, trace_structured
 from torch._subclasses.meta_utils import is_sparse_any
@@ -83,6 +101,10 @@ from torch.utils._sympy.functions import (
     IntTrueDiv,
     IsNonOverlappingAndDenseIndicator,
     Max,
+<<<<<<< HEAD
+=======
+    Min,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Mod,
     PythonMod,
     TruncToInt,
@@ -213,7 +235,11 @@ _SympyT = TypeVar("_SympyT", sympy.Expr, SympyBoolean, sympy.Basic)
 class SymIntEqByExpr:
     """
     This is a wrapper around SymInt which has alternative semantics for
+<<<<<<< HEAD
     equality and pickling.  Specifically, instead of erroring or guarding, we
+=======
+    equality.  Specifically, instead of erroring or guarding, we
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     instead will hash/compare equality based on the underlying sympy
     expression; e.g., s0 and s1 will always compare as False.
 
@@ -222,6 +248,7 @@ class SymIntEqByExpr:
     canonicalize to the same expression via regular simplification.
     """
 
+<<<<<<< HEAD
     @staticmethod
     def _extract(val: Union[torch.SymInt, int]) -> sympy.Expr:
         if isinstance(val, torch.SymInt):
@@ -231,16 +258,42 @@ class SymIntEqByExpr:
 
     def __init__(self, val: Union[torch.SymInt, int]) -> None:
         self.val: sympy.Expr = SymIntEqByExpr._extract(val)
+=======
+    val: Union[torch.SymInt, int]
+
+    def __init__(self, val: Union[torch.SymInt, int]) -> None:
+        self.val = val
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self) -> str:
         return repr(self.val)
 
+<<<<<<< HEAD
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, SymIntEqByExpr)
         return self.val == other.val
 
     def __hash__(self) -> int:
         return hash(self.val)
+=======
+    def _extract(self) -> sympy.Expr:
+        if isinstance(self.val, torch.SymInt):
+            return self.val.node.expr
+        else:
+            return sympy.Integer(self.val)
+
+    def __eq__(self, other: object) -> bool:
+        assert isinstance(other, SymIntEqByExpr)
+
+        # int equality fastpath
+        if type(self.val) is int and type(other.val) is int:
+            return self.val == other.val
+
+        return self._extract() == other._extract()
+
+    def __hash__(self) -> int:
+        return hash(self._extract())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _nested_int_aware_sort(
@@ -306,6 +359,7 @@ def uninteresting_files() -> set[str]:
     import torch._logging
     import torch._subclasses.fake_tensor
     import torch._subclasses.meta_utils
+<<<<<<< HEAD
     import torch.export._trace
 
     mods = [
@@ -315,6 +369,14 @@ def uninteresting_files() -> set[str]:
         torch.fx.experimental.sym_node,
         torch.fx.interpreter,
         torch.fx._symbolic_trace,
+=======
+
+    mods = [
+        sys.modules[__name__],
+        torch.fx.experimental.recording,
+        torch.fx.experimental.sym_node,
+        torch.fx.interpreter,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch,
         torch._compile,
         torch._dynamo.eval_frame,
@@ -588,7 +650,11 @@ def rebind_unbacked(
             # exist in the ShapeEnv but are never bound anywhere.  You might
             # like an invariant that unbacked symbols never get lost.  But
             # we do not have this invariant, so do not try to enforce it.
+<<<<<<< HEAD
             if isinstance(u1, (int, float)):
+=======
+            if isinstance(u1, int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 log.info(
                     "rebind_unbacked: discard %s %s %s -> %s",
                     n.target,
@@ -626,7 +692,10 @@ def rebind_unbacked(
                 assert repacked == raw_u1, f"{repacked} != {raw_u1}"
                 # Cancel the to_int(to_bool(x)). This is sound because x in
                 # [0, 1]
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raw_u1 = new_raw_u1
 
             if not isinstance(raw_u1, sympy.Symbol):
@@ -841,7 +910,10 @@ def _reduce_to_lowest_terms(expr: sympy.Expr) -> sympy.Expr:
         factor = functools.reduce(math.gcd, map(integer_coefficient, atoms))
         if factor == 1:
             return expr
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         atoms = [div_by_factor(x, factor) for x in atoms]
         return _sympy_from_args(
             sympy.Add, atoms, sort=True, is_commutative=expr.is_commutative
@@ -882,16 +954,22 @@ def _iterate_exprs(val: IterateExprs) -> Iterator[sympy.Basic]:
     Raises:
         AssertionError: If the value is of an unsupported type.
     """
+<<<<<<< HEAD
     # This is almost close enough to implement in terms of _iterate_nodes()
     # except that it needs to handle `list[sympy.Basic]` which _iterate_nodes()
     # can't handle.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(val, SymTypes):
         # This allow applies to the jagged layout NestedTensor case as
         # nested ints are not symbolic
         if is_symbolic(val):
             yield val.node.expr
+<<<<<<< HEAD
     elif isinstance(val, SymNode):
         yield val.expr
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(val, sympy.Basic):
         yield val
     elif isinstance(val, (int, float, bool)):
@@ -914,6 +992,7 @@ def _iterate_exprs(val: IterateExprs) -> Iterator[sympy.Basic]:
         raise AssertionError(f"cannot extract sympy expressions from {val} {type(val)}")
 
 
+<<<<<<< HEAD
 def _iterate_nodes(val: Any) -> Iterator[SymNode]:
     """
     Recursively iterate through a value and yield all SymNodes contained
@@ -936,6 +1015,8 @@ def _iterate_nodes(val: Any) -> Iterator[SymNode]:
             yield from _iterate_nodes(val.storage_offset())
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def free_symbols(val: IterateExprs) -> OrderedSet[sympy.Symbol]:
     """
     Recursively collect all free symbols from a value.
@@ -996,6 +1077,7 @@ def free_unbacked_symbols(x: IterateExprs) -> OrderedSet[sympy.Symbol]:
     )
 
 
+<<<<<<< HEAD
 def _free_non_source_unbacked_symbols(
     x: IterateExprs, unbacked_inputs: OrderedSet[sympy.Symbol]
 ) -> OrderedSet[sympy.Symbol]:
@@ -1006,6 +1088,8 @@ def _free_non_source_unbacked_symbols(
     return non_source_symbols
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # WARNING: Don't use this on Dynamo produced graphs, they don't have meta
 # setup!
 def is_symbol_binding_fx_node(node: torch.fx.Node) -> Optional[sympy.Symbol]:
@@ -1180,10 +1264,14 @@ def _free_unbacked_symbols_with_path(
         for attr in attrs:
             sub = getattr(a, attr)
             r.update(go(sub, path + (InnerTensorKey(attr),)))
+<<<<<<< HEAD
     elif isinstance(a, torch.Tensor) and is_batchedtensor(a):
         unwrapped_tensor = get_unwrapped(a)
         r.update(go(unwrapped_tensor, path))
     elif isinstance(a, torch.Tensor) and not is_batchedtensor(a):
+=======
+    elif isinstance(a, torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._subclasses.fake_tensor import FakeTensor
 
         assert isinstance(a, FakeTensor)
@@ -1227,9 +1315,13 @@ def _free_unbacked_symbols_with_path(
         r[s] = path
         if shape_env and real is not None:
             assert isinstance(real, (int, float))
+<<<<<<< HEAD
 
             shape_env.set_unbacked_var_to_val(s, real)
 
+=======
+            shape_env.set_unbacked_var_to_val(s, real)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pending.remove(s)
     # When an unbacked SymInt is perfectly divisible by an integer
     # constant, we replace it with the integer constant to improve
@@ -1266,7 +1358,10 @@ def _free_unbacked_symbols_with_path(
             else _symint_wrap(coeff)
         )
         # TODO: DivideByKey needs to test divisibility at runtime!
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r[unbacked] = path + (DivideByKey(divisor),)
         if real is not None:
             assert isinstance(real, int)
@@ -1294,7 +1389,10 @@ def _free_unbacked_symbols_with_path(
             assert type(real) is bool
             if shape_env:
                 shape_env.set_unbacked_var_to_val(s, int(real))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pending.remove(s.lhs)
 
     return r
@@ -1323,7 +1421,10 @@ def compute_unbacked_bindings(
         return None
 
     fs = shape_env.pending_fresh_unbacked_symbols
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pending = set(fs)
     if not pending:
         return None
@@ -1372,6 +1473,7 @@ def compute_unbacked_bindings(
                     isinstance(old_sym, SymTypes)
                     and (old_s := old_sym.node.expr) != new_s
                 ):
+<<<<<<< HEAD
                     # If old_s is not an unbacked_symbol,
                     # we assume that the original unbacked symbol is replaced
                     # by a backed symbol (old_s). This can happen
@@ -1381,6 +1483,9 @@ def compute_unbacked_bindings(
                     # because we know the value is the same.
 
                     if isinstance(old_s, sympy.Symbol) and free_unbacked_symbols(old_s):
+=======
+                    if isinstance(old_s, sympy.Symbol):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         shape_env._rename_unbacked_to(new_s, old_s)
                     else:
                         shape_env._eliminate_unbacked(new_s, old_s)
@@ -1506,6 +1611,10 @@ def statically_known_true(x: BoolLikeType) -> bool:
     if not isinstance(x, SymBool):
         assert isinstance(x, bool)
         return x
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     result = _static_eval_sym_bool(x)
     if result is None:
         return False
@@ -1682,7 +1791,11 @@ def constrain_range(
     if max < min:
         raise ValueError(
             "Maximum value to constrain_as_size can't be less than the specified min value, "
+<<<<<<< HEAD
             f"received min={min} and max={max}"
+=======
+            "received min={min} and max={max}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if isinstance(a, int):
@@ -1794,14 +1907,20 @@ def fx_placeholder_targets(gm: torch.fx.GraphModule) -> list[str]:
 def eval_guards(
     gm: torch.fx.GraphModule, *args: Tensor, ignore_static: bool = True
 ) -> bool:
+<<<<<<< HEAD
     assert gm.shape_env is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return gm.shape_env.evaluate_guards_for_args(  # type: ignore[operator, union-attr]
         fx_placeholder_vals(gm), args, ignore_static=ignore_static
     )
 
 
 def bind_symbols(gm: torch.fx.GraphModule, *args: Tensor) -> dict[sympy.Symbol, int]:
+<<<<<<< HEAD
     assert gm.shape_env is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return gm.shape_env.bind_symbols(fx_placeholder_vals(gm), args)  # type: ignore[operator, union-attr]
 
 
@@ -1983,7 +2102,11 @@ class EqualityConstraint(Constraint):
         for source, root, fn in self.derived_equalities:
             # preprocess into a transitively-closed map
             # NOTE(avik): we reuse the union-find forest for canonicalizing input sources
+<<<<<<< HEAD
             if isinstance(root, (sympy.Symbol, sympy.Integer)):
+=======
+            if isinstance(root, sympy.Symbol):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._defs[self._find(source)] = fn(root)
             else:
                 self._defs[self._find(source)] = fn(self._rewrite(root))
@@ -2092,7 +2215,11 @@ _T1 = TypeVar("_T1")
 
 
 @dataclass(frozen=True)
+<<<<<<< HEAD
 class StatelessSymbolicContext(SymbolicContext, Generic[_P1, _T1]):
+=======
+class StatelessSymbolicContext(Generic[_P1, _T1], SymbolicContext):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Create symbols in ``create_symbolic_sizes_strides_storage_offset`` via
     a symbolic_context determination as given by ``DimDynamic`` and ``DimConstraint``.
@@ -2207,7 +2334,10 @@ class SubclassSymbolicContext(StatefulSymbolicContext):
     def __post_init__(self) -> None:
         super().__post_init__()
         if self.inner_contexts is None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.inner_contexts = {}
 
 
@@ -2296,12 +2426,18 @@ def _fast_expand(expr: _SympyT) -> _SympyT:
     # only re-create the objects if any of the args changed to avoid expensive
     # checks when re-creating objects.
     new_args = [_fast_expand(arg) for arg in expr.args]  # type: ignore[arg-type]
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
     if any(arg is not new_arg for arg, new_arg in zip(expr.args, new_args)):
         # pyrefly: ignore [missing-attribute]
         return _fast_expand(expr.func(*new_args))
 
     # pyrefly: ignore [missing-attribute]
+=======
+    if any(arg is not new_arg for arg, new_arg in zip(expr.args, new_args)):
+        return _fast_expand(expr.func(*new_args))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if expr.is_Pow:
         base: sympy.Expr
         exp: sympy.Expr
@@ -2311,11 +2447,17 @@ def _fast_expand(expr: _SympyT) -> _SympyT:
                 return sympy.expand_multinomial(expr, deep=False)
             elif exp < 0:
                 return S.One / sympy.expand_multinomial(S.One / expr, deep=False)
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
     elif expr.is_Mul:
         num: list[sympy.Expr] = []
         den: list[sympy.Expr] = []
         # pyrefly: ignore [missing-attribute]
+=======
+    elif expr.is_Mul:
+        num: list[sympy.Expr] = []
+        den: list[sympy.Expr] = []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for arg in expr.args:
             if arg.is_Pow and arg.args[1] == -1:
                 den.append(S.One / arg)  # type: ignore[operator, arg-type]
@@ -2425,7 +2567,11 @@ def _maybe_evaluate_static_worker(
 
         # Note:
         #   Offset might be a fraction(e.g. aten.split.Tensor), but shapes are always integers.
+<<<<<<< HEAD
         #   Sympy might give unexpected results when comparing an integer with a non-integer
+=======
+        #   Sympy might give unexepected results when comparing an integer with a non-integer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #   Therefore, we cast offset to int here.
         #   For example:
         #       shape_0 = sympy.Symbol("shape_0", positive=True, integer=True)
@@ -2437,7 +2583,10 @@ def _maybe_evaluate_static_worker(
 
     # TODO: remove this try catch (esp for unbacked_only)
     try:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_expr = expr.xreplace(new_shape_env)
     except RecursionError:
         log.warning("RecursionError in sympy.xreplace(%s, %s)", expr, new_shape_env)
@@ -2975,6 +3124,7 @@ class DimConstraints:
             # is_integer tests though haha
             return (base - mod_reduced) / divisor
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         if expr.has(Mod):
             # pyrefly: ignore [missing-attribute]
@@ -2988,6 +3138,15 @@ class DimConstraints:
         # pyrefly: ignore [missing-attribute]
         if expr.has(FloorDiv):
             # pyrefly: ignore [missing-attribute]
+=======
+        if expr.has(Mod):
+            expr = expr.replace(Mod, mod_handler)
+        # 7 // -3 is -3, 7 % -3 is -2, and 7 - (-2) / -3 is -3.0 so negative
+        # arguments should be OK.
+        if expr.has(PythonMod):
+            expr = expr.replace(PythonMod, mod_handler)
+        if expr.has(FloorDiv):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expr = expr.replace(FloorDiv, floor_div_handler)
         return expr
 
@@ -3193,8 +3352,13 @@ class DimConstraints:
                         self._dynamic_results.add(self._dcp.doprint(arg))
                 else:
                     self._dynamic_results.add(self._dcp.doprint(solution))
+<<<<<<< HEAD
             except (NotImplementedError, AssertionError):
                 log.warning("Failed to reduce inequalities", exc_info=True)
+=======
+            except (NotImplementedError, AssertionError) as e:
+                log.warning("Failed to reduce inequalities: %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for expr2 in exprs:
                     self._dynamic_results.add(self._dcp.doprint(expr2))
 
@@ -3349,7 +3513,10 @@ class DimConstraints:
                     and str(symbol := next(iter(c["eq"].free_symbols))) == old_root
                 ):  # derived dim with root = old_root
                     new_root_expr = results[str(old_root)]["eq"]  # dx=3*_dx+1
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     new_expr = c["eq"].subs({symbol: new_root_expr})  # dy=(3*_dx+1)+1
                     c["eq"] = new_expr
 
@@ -3441,7 +3608,11 @@ class DimConstraints:
         constraint_violation_error: object,
         forced_specializations: dict[str, str],
     ) -> str:
+<<<<<<< HEAD
         """Format a message for constraint violation errors"""
+=======
+        """Format a message for constraint violation erros"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.export.dynamic_shapes import _get_dim_name_mapping
 
         if not self._dcp.source_name_to_debug_name:
@@ -3590,6 +3761,10 @@ class ShapeEnvSettings:
     specialize_zero_one: bool
     duck_shape: bool
     prefer_deferred_runtime_asserts_over_guards: bool
+<<<<<<< HEAD
+=======
+    allow_complex_guards_as_runtime_asserts: bool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     trace_asserts: bool
 
 
@@ -3727,6 +3902,13 @@ class ShapeEnv:
         # in guards is helpful, since these guards in some sense are overly
         # pedantic.  See also https://github.com/pytorch/pytorch/issues/121749
         prefer_deferred_runtime_asserts_over_guards: bool = False,
+<<<<<<< HEAD
+=======
+        # When True, does not emit or raise constraint violation errors on
+        # implicit guards generated by ops, and defers to runtime assertions
+        # in the graph instead. For export.
+        allow_complex_guards_as_runtime_asserts: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # XXX Add any new settings that could affect FakeTensor evaluation
         # to: torch._subclasses.fake_tensor._ShapeEnvSettings
         trace_asserts: bool = False,
@@ -3743,6 +3925,10 @@ class ShapeEnv:
             specialize_zero_one=specialize_zero_one,
             duck_shape=duck_shape,
             prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+<<<<<<< HEAD
+=======
+            allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             trace_asserts=trace_asserts,
         )
 
@@ -3771,10 +3957,14 @@ class ShapeEnv:
         self.var_to_range_sloc: dict[sympy.Symbol, ValueRangesSLoc] = {}
         self.source_name_to_debug_name: dict[str, str] = {}
         self.var_to_sources: dict[sympy.Symbol, list[Source]] = {}
+<<<<<<< HEAD
         # A set of unbacked symbols that are inputs (i.e: not data dependent).
         self.unbacked_inputs: OrderedSet[sympy.Symbol] = OrderedSet()
         self.var_to_stack: dict[sympy.Symbol, CapturedTraceback] = {}
         self.var_to_hint_override: dict[sympy.Symbol, int] = {}
+=======
+        self.var_to_stack: dict[sympy.Symbol, CapturedTraceback] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Maps a source to the *original* symbol that was assigned to it
         self.source_to_var: dict[str, sympy.Symbol] = {}
         # Maps from sympy ints to expressions representing them
@@ -3791,8 +3981,13 @@ class ShapeEnv:
         # Duck-shaping says that if two input tensors have the same size,
         # they get assigned the same symbolic variable
         self.val_to_var: dict[int, sympy.Symbol] = {}
+<<<<<<< HEAD
         self.unbacked_symfloat_counter = 0
         self.unbacked_symint_counter = 0
+=======
+        self.unbacked_symfloat_counter = itertools.count()
+        self.unbacked_symint_counter = itertools.count()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Similar to guards, but these MUST evaluate to true and can
         # only be evaluated at runtime midway through (i.e., they always
         # involve unbacked symints)
@@ -3904,7 +4099,12 @@ class ShapeEnv:
         # with something like effect token tracking.
         self.unbacked_alloc_order: dict[sympy.Symbol, int] = {}
 
+<<<<<<< HEAD
         self.specialization_stacks: dict[Source, traceback.StackSummary] = {}
+=======
+        self.user_specialization_stacks: dict[Source, traceback.StackSummary] = {}
+        self.framework_specialization_stacks: dict[Source, traceback.StackSummary] = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.trace_asserts = trace_asserts
 
@@ -3957,6 +4157,13 @@ class ShapeEnv:
     def prefer_deferred_runtime_asserts_over_guards(self) -> bool:
         return self.settings.prefer_deferred_runtime_asserts_over_guards
 
+<<<<<<< HEAD
+=======
+    @property
+    def allow_complex_guards_as_runtime_asserts(self) -> bool:
+        return self.settings.allow_complex_guards_as_runtime_asserts
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @contextmanager
     def patch_source_specialization(
         self, source: Source, check_fn: Callable[[sympy.Symbol], sympy.Expr]
@@ -3991,7 +4198,11 @@ class ShapeEnv:
                 added_replacements[axiom.lhs] = axiom.rhs
         self.axioms.update(new_axioms)
 
+<<<<<<< HEAD
         # We need to freeze the ShapeEnv because any additional modification of
+=======
+        # We need to freeze the ShapeEnv becuase any additional modification of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # the ShapeEnv will cause unsoundness for subsequent specialization calls.
         self.frozen = True
         try:
@@ -4031,7 +4242,12 @@ class ShapeEnv:
             "replacements_slocs",
             "_resimplify_floor_div_axioms",
             "_expr_sym_node_id",
+<<<<<<< HEAD
             "specialization_stacks",
+=======
+            "user_specialization_stacks",
+            "framework_specialization_stacks",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Mapping of the value of each to-be-compared field into the values that
@@ -4042,7 +4258,18 @@ class ShapeEnv:
         # and the stack when it was added to the set of guards. In order to compare
         # it, we throw away the stack information.
         def map_value(key: str, value: Any) -> Any:
+<<<<<<< HEAD
             if key == "guards":
+=======
+            if key in ("unbacked_symfloat_counter", "unbacked_symint_counter"):
+                from copy import copy
+
+                # For itertools.count(), we compare the next integer returned
+                # by the count iterators. Not that we need to copy the iterator
+                # first. Otherwise we are mutating the object.
+                return next(copy(value))
+            elif key == "guards":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Transform the list of ShapeGuard into a list of expressions.
                 return [g.expr for g in value]
             elif key == "deferred_runtime_asserts":
@@ -4136,7 +4363,11 @@ class ShapeEnv:
         if max < min:
             raise ValueError(
                 "Maximum value to constrain_as_size can't be less than the specified min value, "
+<<<<<<< HEAD
                 f"received min={min} and max={max}"
+=======
+                "received min={min} and max={max}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         self.constrain_symbol_range(
@@ -4410,23 +4641,33 @@ class ShapeEnv:
         tensor_size: Sequence[IntLikeType],
         source: Source,
         symbolic_context: SymbolicContext,
+<<<<<<< HEAD
         hint_overrides: Optional[dict[int, int]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> list[sympy.Expr]:
         assert all(not is_symbolic(val) for val in tensor_size), (
             f"Expect size to be a plain tuple of ints but got {tensor_size}"
         )
         from torch._dynamo.source import TensorProperty, TensorPropertySource
 
+<<<<<<< HEAD
         if not hint_overrides:
             hint_overrides = {}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _assert_symbol_context(symbolic_context)
         dynamic_dims = symbolic_context.dynamic_sizes  # type: ignore[attr-defined]
         constraint_dims = symbolic_context.constraint_sizes  # type: ignore[attr-defined]
         size = []
         for i, val in enumerate(tensor_size):
             sym = self.create_symbol(
+<<<<<<< HEAD
                 hint_overrides.get(i, val),
+=======
+                val,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 TensorPropertySource(source, TensorProperty.SIZE, i),
                 dynamic_dims[i],
                 constraint_dims[i],
@@ -4522,7 +4763,11 @@ class ShapeEnv:
 
     # The order of checking the guards matters. In this specific example:
     # If True branch guard check precedes False branch and for True branch, y.size(0) check precedes x == True,
+<<<<<<< HEAD
     # we may have an unnecessary shape speciliazation for y.
+=======
+    # we may have an unnessary shape speciliazation for y.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _maybe_specialize_sym_int_with_hint(
         self, maybe_sym: IntLikeType
     ) -> IntLikeType:
@@ -4546,7 +4791,10 @@ class ShapeEnv:
         source: Source,
         *,
         symbolic_context: Optional[SymbolicContext] = None,
+<<<<<<< HEAD
         hint_overrides: Optional[dict[int, int]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> tuple[
         tuple[IntLikeType, ...],
         tuple[IntLikeType, ...],
@@ -4554,9 +4802,12 @@ class ShapeEnv:
     ]:
         dim = len(ex_size)
 
+<<<<<<< HEAD
         if not hint_overrides:
             hint_overrides = {}
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Reimplement the legacy behavior
         if symbolic_context is None:
             constraint_sizes: list[DimConstraint] = [None] * dim
@@ -4611,7 +4862,11 @@ class ShapeEnv:
         from torch._dynamo.source import TensorProperty, TensorPropertySource
 
         size: list[sympy.Expr] = self._produce_dyn_sizes_from_int_tuple(
+<<<<<<< HEAD
             ex_size, source, symbolic_context, hint_overrides=hint_overrides
+=======
+            ex_size, source, symbolic_context
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         stride = self._compute_symbolic_stride(
             source,
@@ -4627,16 +4882,23 @@ class ShapeEnv:
         sym_sizes = [
             self.create_symintnode(
                 sym,
+<<<<<<< HEAD
                 hint=hint_overrides.get(i, hint),
+=======
+                hint=hint,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 source=TensorPropertySource(source, TensorProperty.SIZE, i),
             )
             for i, (sym, hint) in enumerate(zip(size, ex_size))
         ]
+<<<<<<< HEAD
 
         for i, sym in enumerate(sym_sizes):
             if isinstance(sym, torch.SymInt) and i in hint_overrides:
                 self.var_to_hint_override[sym.node.expr] = hint_overrides[i]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sym_stride = []
         for i, stride_expr in enumerate(stride):
             # NB: Don't duck size the stride; instead use the expression
@@ -4769,7 +5031,11 @@ class ShapeEnv:
         self,
         sym: sympy.Expr,
         *,
+<<<<<<< HEAD
         hint: Optional[int | float | bool],
+=======
+        hint: Optional[int],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         source: Optional[Source] = None,
     ) -> FloatLikeType:
         """Create a SymFloat value from a symbolic expression"""
@@ -4863,9 +5129,14 @@ class ShapeEnv:
     def create_unbacked_symfloat(self) -> SymFloat:
         """Create a symbolic float without a hint value"""
         symbol: sympy.Symbol = make_symbol(
+<<<<<<< HEAD
             SymT.UNBACKED_FLOAT, self.unbacked_symfloat_counter
         )
         self.unbacked_symfloat_counter += 1
+=======
+            SymT.UNBACKED_FLOAT, next(self.unbacked_symfloat_counter)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.counter["create_unbacked_symbol"] += 1
         if not self._ignore_fresh_unbacked_symbols_tls():
             self.pending_fresh_unbacked_symbols.append(symbol)
@@ -4889,9 +5160,14 @@ class ShapeEnv:
     def create_unbacked_symint(self, source: Optional[Source] = None) -> SymInt:
         """Create a symbolic integer without a hint value"""
         symbol: sympy.Symbol = make_symbol(
+<<<<<<< HEAD
             SymT.UNBACKED_INT, self.unbacked_symint_counter, integer=True
         )
         self.unbacked_symint_counter += 1
+=======
+            SymT.UNBACKED_INT, next(self.unbacked_symint_counter), integer=True
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self._ignore_fresh_unbacked_symbols_tls():
             self.pending_fresh_unbacked_symbols.append(symbol)
         self.counter["create_unbacked_symbol"] += 1
@@ -4908,6 +5184,10 @@ class ShapeEnv:
         self._log_create_unbacked_symbol(
             "create_unbacked_symint", symbol, vr, source, sym_node=sym_node
         )
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return SymInt(sym_node)
 
     def is_unbacked_symint(self, symbol: sympy.Symbol) -> bool:
@@ -4918,9 +5198,14 @@ class ShapeEnv:
     def create_unbacked_symbool(self) -> SymBool:
         """Create a symbolic boolean without a hint value"""
         symbol: sympy.Symbol = make_symbol(
+<<<<<<< HEAD
             SymT.UNBACKED_INT, self.unbacked_symint_counter, integer=True
         )
         self.unbacked_symint_counter += 1
+=======
+            SymT.UNBACKED_INT, next(self.unbacked_symint_counter), integer=True
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self._ignore_fresh_unbacked_symbols_tls():
             self.pending_fresh_unbacked_symbols.append(symbol)
         self.counter["create_unbacked_symbol"] += 1
@@ -5026,9 +5311,12 @@ class ShapeEnv:
         if dynamic_dim in (DimDynamic.SIZE_LIKE_UNBACKED, DimDynamic.OBLIVIOUS_SIZE):
             out = self.create_unbacked_symint(source).node.expr
             self._constrain_range_for_size(out)
+<<<<<<< HEAD
 
             self.unbacked_inputs.add(out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(symbolic_context, StatefulSymbolicContext) and source_name:
                 symbolic_context.shape_env_to_source_to_symbol_cache[id(self)][
                     source_name
@@ -5106,7 +5394,10 @@ class ShapeEnv:
 
             if duck:
                 # Make sure to reuse this symbol for subsequent duck shaping
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.val_to_var[val] = sympy_expr
 
             if isinstance(val, int):
@@ -5122,7 +5413,11 @@ class ShapeEnv:
                         self._get_sloc(
                             "user code shown is first use of this value--the guard itself is not "
                             "due user code but due to 0/1 specialization in the framework; to "
+<<<<<<< HEAD
                             "avoid specialization try torch._dynamo.decorators.mark_unbacked(tensor, dim)"
+=======
+                            "avoid specialization try torch._dynamo.mark_unbacked(tensor, dim)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if self.specialize_zero_one
                             else None
                         ),
@@ -5313,7 +5608,11 @@ class ShapeEnv:
         # calls on this new instance. Finally, it will check whether this new instance
         # has equal state.
         #
+<<<<<<< HEAD
         # It's important that we do it in the beginning of this function, since it modifies
+=======
+        # It's important that we do it in the begining of this function, since it modifies
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # self.dim_constraints through its execution. Changes that happen in this method
         # aren't interesting, since this is the function call we wish to reproduce at the
         # end. If we wish to simply reproduce ShapeEnv instances even after this call,
@@ -5338,19 +5637,29 @@ class ShapeEnv:
 
         # Expand optional inputs, or verify invariants are upheld
         if input_contexts is None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
             input_contexts = [
                 # pyrefly: ignore [bad-argument-type]
+=======
+            input_contexts = [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _create_no_constraints_context(t) if isinstance(t, Tensorlike) else None
                 for t in placeholders
             ]
         else:
             assert len(input_contexts) == len(placeholders)
+<<<<<<< HEAD
 
             for i, (t, context) in enumerate(zip(placeholders, input_contexts)):
                 if isinstance(t, Tensorlike):
                     if context is None:
                         # pyrefly: ignore [bad-argument-type]
+=======
+            for i, (t, context) in enumerate(zip(placeholders, input_contexts)):
+                if isinstance(t, Tensorlike):
+                    if context is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         input_contexts[i] = _create_no_constraints_context(t)
                 else:
                     assert isinstance(t, (SymInt, int, SymFloat, float))
@@ -5492,12 +5801,20 @@ class ShapeEnv:
             for srcEq, root, fn in equalities_inputs.derived_equalities:
                 expr1 = get_expression(srcEq)
                 # recall that root is either a phantom symbol or an input source
+<<<<<<< HEAD
                 if isinstance(root, sympy.Symbol):
                     expr2, debug_name = root, self.var_to_sources[root][0].name()
                 elif isinstance(root, sympy.Integer):
                     expr2, debug_name = root, str(root)
                 else:
                     expr2, debug_name = get_expression(root), self._debug_name(root)
+=======
+                expr2, debug_name = (
+                    (root, self.var_to_sources[root][0].name())
+                    if isinstance(root, sympy.Symbol)
+                    else (get_expression(root), self._debug_name(root))
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 expr2_ = fn(expr2)
                 # Check whether given input shape values satisfy a specified equation s = fn(s').
                 # - Raise when the equation was violated by the given input shape values.
@@ -5512,11 +5829,18 @@ class ShapeEnv:
                     )
 
             for phantom_symbol in equalities_inputs.phantom_symbols:
+<<<<<<< HEAD
                 if isinstance(phantom_symbol, sympy.Symbol):
                     # we created additional phantom symbols that are not input shape dimensions
                     symbol_to_source[phantom_symbol].extend(
                         self.var_to_sources[phantom_symbol]
                     )
+=======
+                # we created additional phantom symbols that are not input shape dimensions
+                symbol_to_source[phantom_symbol].extend(
+                    self.var_to_sources[phantom_symbol]
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # How do we know what the value of s0 is?  Fresh variables can only be
         # bound by inputs, so there MUST be some other input which binds the
@@ -5604,13 +5928,28 @@ class ShapeEnv:
                     var_with_range = self._render_range_for_constraint_violation(
                         source, constraint
                     )
+<<<<<<< HEAD
                     user_stack = self.specialization_stacks.get(source, None)
+=======
+                    user_stack = self.user_specialization_stacks.get(source, None)
+                    framework_stack = self.framework_specialization_stacks.get(
+                        source, None
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     msg = (
                         f"You marked {self._debug_name(source)} as dynamic but your code "
                         f"specialized it to be a constant ({val}). If you're using mark_dynamic, "
                         f"either remove it or use maybe_mark_dynamic. If you're using Dim.DYNAMIC, "
                         f"replace it with either Dim.STATIC or Dim.AUTO."
                         + (
+<<<<<<< HEAD
+=======
+                            "\n\nFramework stack:\n" + "".join(framework_stack.format())
+                            if framework_stack
+                            else ""
+                        )
+                        + (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             "\n\nUser stack:\n" + "".join(user_stack.format())
                             if user_stack
                             else ""
@@ -5636,7 +5975,10 @@ class ShapeEnv:
                 s = sympy.Float(val)
                 input_guards.append((source, s))
 
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for t, source, context in zip(placeholders, sources, input_contexts):
             if isinstance(source, str):
                 from torch._dynamo.source import LocalSource
@@ -5701,7 +6043,10 @@ class ShapeEnv:
                             src, TensorProperty.SIZE, i
                         )
                         track_symint(property_source, ss, constraint_size[i])
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for i, ss in enumerate(curr_t.stride()):
                         property_source = TensorPropertySource(
                             src, TensorProperty.STRIDE, i
@@ -5717,7 +6062,10 @@ class ShapeEnv:
         #    if we have an input (2, 3), we must show s0*2 == 2 and s1 == 3.
         #    This does a lot of work: it covers duck sizing and equality guards.
         all_exprs: list[list[str]] = [[] for _ in langs]
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.dim_constraints = DimConstraints(
             symbol_to_source,
             self.var_to_val,
@@ -5894,7 +6242,10 @@ class ShapeEnv:
                 is not None
             ):
                 continue
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             issue_guard(guard)
 
         # Because there are guards that export's constraint solver can suggest good fixes for, that we may have
@@ -5906,7 +6257,10 @@ class ShapeEnv:
             if self._maybe_evaluate_static(ra.expr, axioms=()) is not None:
                 continue
             expr = self.simplify(ra.expr)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.dim_constraints.add(expr)
 
         # 3. Every symbol must be within its value range (this handles 0/1
@@ -5999,7 +6353,10 @@ class ShapeEnv:
                 else:
                     str_msg = f"  - {msg_cb()}"
                     error_msgs.append(str_msg)
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     debug_names.add(debug_name)
             if len(error_msgs) > 0:
                 debug_names_str = ", ".join(sorted(debug_names))
@@ -6133,7 +6490,10 @@ class ShapeEnv:
         Get a list of guards, but pruned so it only provides guards that
         reference symints from the passed in input
         """
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         symints = {
             s.node.expr for s in symints if isinstance(s.node.expr, sympy.Symbol)
         }
@@ -6323,7 +6683,11 @@ class ShapeEnv:
 
         Use compute_hint == True if you are trying to compute a non-binding
         hint for the particular hint values of backed and unbacked SymInts,
+<<<<<<< HEAD
         e.g., if s0 happens to be 3 this run, compute_hint will substitute s0 with 3.
+=======
+        e.g., if s0 happens to be 3 this run, compute_hint will subsitute s0 with 3.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         # axioms with compute hint NYE
@@ -6340,11 +6704,19 @@ class ShapeEnv:
                 return
             self._resimplify_floor_div_axioms = False
             new_items = {}
+<<<<<<< HEAD
             for k, v in list(axioms.items()):
                 # A FloorDiv in implications could have became CleanDiv at this point, due to new facts
                 # to the shapeEnv. This handles such issue but its not ideal. This is the only expression
                 # simplification that depends on the global state of shape env.
                 # TODO try to get rid of CleanDiv since it breaks the invariant that's simplifications of sympy
+=======
+            for k, v in axioms.items():
+                # A FloorDiv in implications could have became CleanDiv at this point, due to new facts
+                # to the shapeEnv. This handles such issue but its not ideal. This is the only expression
+                # simplification that depends on the global state of shape env.
+                # TODO try to get rid of CleanDiv since it breaks the invariant thats simplifications of sympy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # expressions only depend on the expression itself.
                 if k.has(FloorDiv):
                     new_items.update({self.simplify(k): v})
@@ -6396,7 +6768,10 @@ class ShapeEnv:
         Apply symbol replacements to any symbols in the given expression.
         """
         replacements = {}
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for s in expr.free_symbols:
             r = self._find(s)
 
@@ -6406,7 +6781,10 @@ class ShapeEnv:
             if not r.is_Symbol or r != s:
                 replacements[s] = r
         if replacements:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return safe_expand(expr.xreplace(replacements))
         else:
             return expr
@@ -6428,21 +6806,36 @@ class ShapeEnv:
         expr = safe_expand(expr)
         expr = self.replace(expr)
 
+<<<<<<< HEAD
         # Simplify max(0/1, x) to x when x >= 0/1. max(1, x) is a commonly introduced
         # expression when creating contiguous strides.
         if not size_oblivious:
             min_max_replacements = {}
             for atom in expr.atoms(Max):  # type: ignore[has-type]
+=======
+        if size_oblivious and (expr.has(Max) or expr.has(Min)):  # type: ignore[has-type]
+            min_max_replacements = {}
+            for atom in (*expr.atoms(Max), *expr.atoms(Min)):  # type: ignore[has-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if len(atom.args) > 2:
                     continue
                 a, b = atom.args
                 if b == 1 or b == 0:
                     a, b = b, a
+<<<<<<< HEAD
 
                 if a == 1 and self._maybe_evaluate_static(sympy.Ge(b, 1)):
                     min_max_replacements[atom] = b
                 if a == 0 and self._maybe_evaluate_static(sympy.Ge(b, 0)):
                     min_max_replacements[atom] = b
+=======
+                if a == 1 or a == 0:
+                    vr = self.bound_sympy(b, size_oblivious=True)
+                    if vr.lower >= a:
+                        min_max_replacements[atom] = b if atom.func is Max else a
+                    elif vr.upper <= a:
+                        min_max_replacements[atom] = a if atom.func is Max else b
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if min_max_replacements:
                 expr = expr.xreplace(min_max_replacements)
 
@@ -6452,10 +6845,14 @@ class ShapeEnv:
                 if isinstance(atom.args[0], IntTrueDiv):
                     base, divisor = atom.args[0].args
                     if base % divisor == 0:
+<<<<<<< HEAD
                         trunc_replacements[atom] = CleanDiv(base, divisor)
                     else:
                         # TruncToInt(IntTrueDiv(a,b)) == FloorDiv(a, b)
                         trunc_replacements[atom] = FloorDiv(base, divisor)
+=======
+                        trunc_replacements[atom] = base // divisor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if trunc_replacements:
                 expr = expr.xreplace(trunc_replacements)
 
@@ -6590,6 +6987,10 @@ class ShapeEnv:
         expr: sympy.Basic,
         unhinted_expr: sympy.Basic,
         *,
+<<<<<<< HEAD
+=======
+        size_oblivious_result: Optional[sympy.Basic] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expr_sym_node_id: Optional[int] = None,
     ) -> GuardOnDataDependentSymNode:
         # TODO: in a Dynamo context, having user code, and having the
@@ -6603,6 +7004,14 @@ class ShapeEnv:
             if s in self.size_like:
                 size_like_symbols.append(s)
         size_oblivious_result_msg = ""
+<<<<<<< HEAD
+=======
+        if size_oblivious_result is not None:
+            size_oblivious_result_msg = (
+                f"ATTENTION: guard_size_oblivious would fix the error, evaluating expression to {size_oblivious_result}.\n"
+                "Maybe you need to add guard_size_oblivious to framework code, see doc below for more guidance.\n\n"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sloc, maybe_extra_debug = self._get_stack_summary(True)
         if expr.is_integer:  # type: ignore[attr-defined]
             desc = (
@@ -6610,6 +7019,7 @@ class ShapeEnv:
             )
         else:
             desc = "Could not guard on data-dependent expression"
+<<<<<<< HEAD
             size_oblivious_result_msg = (
                 "consider using data-dependent friendly APIs such as "
                 "guard_or_false, guard_or_true and statically_known_true."
@@ -6619,6 +7029,12 @@ class ShapeEnv:
             f"{desc} {expr} (unhinted: {unhinted_expr}).  "
             f"(Size-like symbols: {', '.join(map(str, size_like_symbols)) or 'none'})\n\n"
             f"{size_oblivious_result_msg}\n"
+=======
+        msg = (
+            f"{desc} {expr} (unhinted: {unhinted_expr}).  "
+            f"(Size-like symbols: {', '.join(map(str, size_like_symbols)) or 'none'})\n\n"
+            f"{size_oblivious_result_msg}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"Caused by: {sloc}\n"
             'For more information, run with TORCH_LOGS="dynamic"\n'
             "For extended logs when we create symbols, also add "
@@ -6700,7 +7116,10 @@ class ShapeEnv:
         Adds or updates a replacement for a symbol.
         Use this instead of `self.replacements[a] = tgt`.
         """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if tgt == self.replacements.get(a, None):
             return
 
@@ -6711,7 +7130,11 @@ class ShapeEnv:
         assert isinstance(a, sympy.Symbol)
 
         if (
+<<<<<<< HEAD
             self.prefer_deferred_runtime_asserts_over_guards
+=======
+            self.allow_complex_guards_as_runtime_asserts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and not _is_supported_equivalence(tgt)
         ):
             return  # continuing leads to placeholder shapes having complex expressions that we can't resolve
@@ -6845,7 +7268,14 @@ class ShapeEnv:
 
             for source in self.var_to_sources.get(a, []):
                 if user_tb:
+<<<<<<< HEAD
                     self.specialization_stacks[source] = user_tb
+=======
+                    self.user_specialization_stacks[source] = user_tb
+                self.framework_specialization_stacks[source] = (
+                    CapturedTraceback.extract(cpp=True)
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if config.print_specializations:
                 self.log.warning(
@@ -6958,10 +7388,14 @@ class ShapeEnv:
                 ):
                     raise NotImplementedError
 
+<<<<<<< HEAD
                 # Never replace unbacked symbols with other unbacked symbols that are
                 # not function arguments. (ex:mark_unbacked symbols are fine to replace
                 # other unbacked, but not those coming from .item() calls).
 
+=======
+                # Never replace unbacked symbols with other unbacked symbols.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # This is error prone because you can cause references to
                 # unbacked symbols to time travel backwards.  E.g.,
                 #
@@ -6977,10 +7411,15 @@ class ShapeEnv:
                 # dependencies for substitutions, so ban it entirely.
                 def trivial_solve(lhs: sympy.Expr, rhs: sympy.Expr) -> bool:
                     if isinstance(lhs, sympy.Symbol):
+<<<<<<< HEAD
                         if free_unbacked_symbols(
                             lhs
                         ) and not _free_non_source_unbacked_symbols(
                             rhs, self.unbacked_inputs
+=======
+                        if free_unbacked_symbols(lhs) and not free_unbacked_symbols(
+                            rhs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ):
                             return True
                         if symbol_is_type(lhs, SymT.FLOAT):
@@ -7098,7 +7537,11 @@ class ShapeEnv:
                 expr,
                 concrete_val,
                 # only print stack trace when debug mode is on (e.g. TORCH_LOGS="dynamic")
+<<<<<<< HEAD
                 stack_info=log.getEffectiveLevel() < logging.WARNING,
+=======
+                stack_info=True if log.getEffectiveLevel() < logging.WARNING else False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def _get_user_frame(self) -> Optional[types.FrameType]:
@@ -7181,7 +7624,10 @@ class ShapeEnv:
         instructions = list(dis.Bytecode(frame.f_code))
         co_lines, offset = inspect.getsourcelines(frame.f_code)
         start, end, cur = None, None, None
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for i, instr in enumerate(instructions):
             if instr.starts_line is not None:
                 cur = instr.starts_line
@@ -7470,6 +7916,10 @@ class ShapeEnv:
         forcing_spec: bool = False,
     ) -> sympy.Basic:
         # TODO: split conjunctions and evaluate them separately
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(
             orig_expr,
             (sympy.logic.boolalg.BooleanTrue, sympy.logic.boolalg.BooleanFalse),
@@ -7616,7 +8066,10 @@ class ShapeEnv:
                             orig_expr,
                             correct_hint,
                         )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         concrete_val = correct_hint
                         # NB: do NOT transmute into runtime assert
                         ok = True
@@ -7635,7 +8088,10 @@ class ShapeEnv:
                     ):
                         self._log_real_tensor_propagation(orig_expr, unsound_result)
                         transmute_into_runtime_assert = True
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         concrete_val = unsound_result
                         ok = True
 
@@ -7647,9 +8103,22 @@ class ShapeEnv:
                         ok = True
 
                     if not ok:
+<<<<<<< HEAD
                         raise self._make_data_dependent_error(
                             expr.xreplace(self.var_to_val),
                             expr,
+=======
+                        size_oblivious_result = None
+                        # compute size_oblivious_result to suggest it as a fix for the user if it works.
+                        if not size_oblivious:
+                            size_oblivious_result = self._maybe_evaluate_static(
+                                expr, size_oblivious=True
+                            )
+                        raise self._make_data_dependent_error(
+                            expr.xreplace(self.var_to_val),
+                            expr,
+                            size_oblivious_result=size_oblivious_result,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             expr_sym_node_id=self._expr_sym_node_id,
                         )
                 else:
@@ -7693,6 +8162,7 @@ class ShapeEnv:
                 # is no longer necessary)
                 self._maybe_guard_rel(g)
 
+<<<<<<< HEAD
                 if (
                     torch.compiler.is_exporting()
                     and self.prefer_deferred_runtime_asserts_over_guards
@@ -7702,6 +8172,9 @@ class ShapeEnv:
                     # and so the result here will be statically known
                     self.guard_or_defer_runtime_assert(g, f"evaluate_expr: {orig_expr}")
                 else:
+=======
+                if not self.allow_complex_guards_as_runtime_asserts:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # at this point, we've evaluated the concrete expr value, and have
                     # flipped/negated the guard if necessary. Now we know what to guard
                     # or defer to runtime assert on.
@@ -7710,6 +8183,14 @@ class ShapeEnv:
                     )
                     self.guards.append(guard)
                     self.axioms.update(dict(self.get_implications(self.simplify(g))))
+<<<<<<< HEAD
+=======
+                else:
+                    # it's fine to defer simple guards here without checking,
+                    # the _maybe_guard_rel() call above will set replacements if possible,
+                    # and so the result here will be statically known
+                    self.guard_or_defer_runtime_assert(g, f"evaluate_expr: {orig_expr}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 self._log_guard("eval [guard suppressed]", g, forcing_spec=forcing_spec)
 
@@ -7816,7 +8297,10 @@ class ShapeEnv:
             expr = canonicalize_bool_expr(expr)
             stack = CapturedTraceback.extract(skip=1)
             ra = RuntimeAssert(expr, msg, stack)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: Do this in a way that is less janky than int(s.name[1:])
             cands = sorted(
                 (s for s in expr.free_symbols if symbol_is_type(s, SymT.UNBACKED_INT)),
@@ -7880,13 +8364,21 @@ class ShapeEnv:
             # sympy.Eq may update both lower and upper bounds.
             # sympy.G{t,e} may update the lower bound, only.
             # sympy.L{t,e} may update the upper bound, only.
+<<<<<<< HEAD
             if lower <= rhs_vr.lower and isinstance(
+=======
+            if lower < rhs_vr.lower and isinstance(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 r_expr, (sympy.Eq, sympy.Ge, sympy.Gt)
             ):
                 # Strictly greater relations allow us to refine a bit more, since
                 # x < y implies that the lower bound for x is: y + 1.
                 lower = rhs_vr.lower + int(isinstance(r_expr, sympy.Gt))
+<<<<<<< HEAD
             if upper >= rhs_vr.upper and isinstance(
+=======
+            if upper > rhs_vr.upper and isinstance(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 r_expr, (sympy.Eq, sympy.Le, sympy.Lt)
             ):
                 upper = rhs_vr.upper - int(isinstance(r_expr, sympy.Lt))
@@ -7939,9 +8431,13 @@ class PropagateUnbackedSymInts(torch.fx.Interpreter):
         from torch._guards import detect_fake_mode
 
         result = super().run_node(n)
+<<<<<<< HEAD
         fake_mode = detect_fake_mode()
         assert fake_mode is not None
         rebind_unbacked(fake_mode.shape_env, n, result)
+=======
+        rebind_unbacked(detect_fake_mode().shape_env, n, result)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return result
 
 
@@ -7984,6 +8480,20 @@ class _PythonMsgPrinter(PythonPrinter):
         return self.src_map[sym.name][0]
 
 
+<<<<<<< HEAD
+=======
+def _is_non_negative_check(cond: sympy.Basic) -> Optional[str]:
+    """
+    Check if a condition (SymPy expression) is checking for non-negative values (>= 0).
+    Returns the variable name if it's a non-negative check (>= 0), None otherwise.
+    """
+    if isinstance(cond, sympy.Rel):
+        if cond.rel_op == ">=" and cond.rhs == 0:
+            return str(cond.lhs)
+    return None
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _suggest_torch_checks(
     e: GuardOnDataDependentSymNode, src_map: defaultdict[str, list[str]]
 ) -> None:
@@ -8012,6 +8522,7 @@ def _suggest_torch_checks(
     msg += "\nTo fix the error, insert one of the following checks before this call:"
 
     not_cond_str = printer.doprint(sympy.Not(cond))
+<<<<<<< HEAD
 
     # suggested fixes to resolve `cond` are to tell the compiler to assume
     # either `cond` or its negation (the user will need to select which)
@@ -8019,6 +8530,28 @@ def _suggest_torch_checks(
         f"torch._check({printer.doprint(cond)})",
         f"torch._check({not_cond_str})",
     ]
+=======
+    var_name = _is_non_negative_check(cond)
+
+    # suggested fixes to resolve `cond` are to tell the compiler to assume
+    # either `cond` or its negation (the user will need to select which)
+    suggested_fixes = []
+
+    if var_name:
+        suggested_fixes = [
+            f"You can add either: torch._check_is_size({var_name}) or torch._check({var_name}>=0)"
+            f" Note: torch._check_is_size({var_name}) could prevent data dependent errors that"
+            + " happen in a guard_size_oblivious(..) context by opting into guard_size_oblivious reasoning."
+            + " See documentation on guard_size_oblivious for more details:"
+            + " https://pytorch.org/docs/stable/generated/torch.fx.experimental.symbolic_shapes.guard_size_oblivious.html",
+            f"torch._check({not_cond_str})",
+        ]
+    else:
+        suggested_fixes = [
+            f"torch._check({printer.doprint(cond)})",
+            f"torch._check({not_cond_str})",
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for i, fix in enumerate(suggested_fixes):
         msg += f"\n  {i + 1}. {fix}"

@@ -43,9 +43,15 @@ struct TORCH_API LayerNormFuncOptions {
   /// input shape from an expected input.
   TORCH_ARG(std::vector<int64_t>, normalized_shape);
 
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
 
   TORCH_ARG(Tensor, bias);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+
+  TORCH_ARG(Tensor, bias) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /// a value added to the denominator for numerical stability. ``Default:
   /// 1e-5``.
@@ -177,9 +183,15 @@ struct TORCH_API GroupNormFuncOptions {
   /// number of groups to separate the channels into
   TORCH_ARG(int64_t, num_groups);
 
+<<<<<<< HEAD
   TORCH_ARG(Tensor, weight);
 
   TORCH_ARG(Tensor, bias);
+=======
+  TORCH_ARG(Tensor, weight) = {};
+
+  TORCH_ARG(Tensor, bias) = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /// a value added to the denominator for numerical stability. Default: 1e-5
   TORCH_ARG(double, eps) = 1e-5;

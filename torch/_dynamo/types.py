@@ -13,8 +13,12 @@ ensuring type safety and clear contracts between different components of the sys
 
 import dataclasses
 import types
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, NamedTuple, Optional, Protocol, Union
+=======
+from typing import Any, Callable, NamedTuple, Optional, Protocol, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # CacheEntry has a `guard_manager` field for the guard, and a `code` field for the code object.
 from torch._C._dynamo.eval_frame import (

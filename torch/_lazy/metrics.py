@@ -13,7 +13,11 @@ def counter_names():
 
 
 def counter_value(name: str):
+<<<<<<< HEAD
     """Return the value of the counter with the specified name"""
+=======
+    """Return the value of the counter with the speficied name"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._C._lazy._counter_value(name)
 
 

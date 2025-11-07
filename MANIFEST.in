@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Reference: https://setuptools.pypa.io/en/latest/userguide/miscellaneous.html
 
 # Include individual top-level files
@@ -97,3 +98,36 @@ include .gitmodules
 # concern here.
 
 # [2] https://packaging.python.org/en/latest/specifications/source-distribution-format/#source-distribution-archive-features
+=======
+include MANIFEST.in
+include CMakeLists.txt
+include CITATION.cff
+include LICENSE
+include NOTICE
+include .gitmodules
+include build_variables.bzl
+include mypy.ini
+include requirements.txt
+include ufunc_defs.bzl
+include version.txt
+recursive-include android *.*
+recursive-include aten *.*
+recursive-include binaries *.*
+recursive-include c10 *.*
+recursive-include caffe2 *.*
+recursive-include cmake *.*
+recursive-include torch *.*
+recursive-include tools *.*
+recursive-include test *.*
+recursive-include docs *.*
+recursive-include ios *.*
+recursive-include third_party *
+recursive-include test *.*
+recursive-include benchmarks *.*
+recursive-include scripts *.*
+recursive-include mypy_plugins *.*
+recursive-include modules *.*
+recursive-include functorch *.*
+prune */__pycache__
+global-exclude *.o *.so *.dylib *.a .git *.pyc *.swp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

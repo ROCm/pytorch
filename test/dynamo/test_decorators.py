@@ -2,16 +2,24 @@
 import functools
 import operator
 import os
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest.mock as mock
 from unittest.mock import patch
 
 import torch
 import torch._dynamo.test_case
 import torch._dynamo.testing
+<<<<<<< HEAD
 from torch._dynamo.exc import IncorrectUsage, Unsupported
 from torch._dynamo.utils import counters
 from torch.testing._internal.common_utils import skipIfWindows
+=======
+from torch._dynamo.exc import IncorrectUsage
+from torch._dynamo.utils import counters
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def my_custom_function(x):
@@ -516,6 +524,7 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
         fn(x, State(41))
         self.assertEqual(cnts.frame_count, 2)
 
+<<<<<<< HEAD
     def test_nonstrict_trace_int_and_float_output(self):
         @torch._dynamo.nonstrict_trace
         def trace_me(x):
@@ -533,6 +542,8 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
         res = opt_fn(x)
         self.assertEqual(ref, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nonstrict_trace_tuple_and_sym_int_output(self):
         @torch._dynamo.nonstrict_trace
         def trace_me(x):
@@ -690,7 +701,17 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
             fn(p)
             self.assertFalse(True)  # must raise error before this
         except torch._dynamo.exc.Unsupported as e:
+<<<<<<< HEAD
             self.assertIn("Invalid input type for nonstrict_trace-ed function", str(e))
+=======
+            msg = """
+For `nonstrict_trace`-ed function, the only allowed input types are basic types (e.g., torch.Tensor, int, float) or pytree containers of those. Here you are calling the function with arguments that contain a value of type <DecoratorTests.test_nonstrict_trace_custom_class_error.<locals>.Point>, please use one of the following to register the type with pytree:
+  * `torch.utils._pytree.register_constant`
+  * `torch.utils._pytree.register_dataclass`
+  * `torch.utils._pytree.register_pytree_node`
+"""  # NOQA: B950
+            self.assertIn(msg, str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_nonstrict_trace_nested_custom_class_error(self):
         class Point:
@@ -736,6 +757,7 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
             fn(torch.ones(10), torch.ones(1))
             self.assertFalse(True)  # must raise error before this
         except torch._dynamo.exc.Unsupported as e:
+<<<<<<< HEAD
             self.assertIn("Invalid input type for nonstrict_trace-ed function", str(e))
 
     def test_nonstrict_trace_custom_class_output_error(self):
@@ -765,6 +787,15 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
             self.assertIn(
                 "Unsupported output type for nonstrict_trace-ed function", str(e)
             )
+=======
+            msg = """
+For `nonstrict_trace`-ed function, the only allowed input types are basic types (e.g., torch.Tensor, int, float) or pytree containers of those. Here you are calling the function with arguments that contain a value of type <DecoratorTests.test_nonstrict_trace_nested_custom_class_error.<locals>.Point>, please use one of the following to register the type with pytree:
+  * `torch.utils._pytree.register_constant`
+  * `torch.utils._pytree.register_dataclass`
+  * `torch.utils._pytree.register_pytree_node`
+"""  # NOQA: B950
+            self.assertIn(msg, str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_nonstrict_newly_constructed_trace_register_constant_type_error(self):
         class State:
@@ -801,10 +832,19 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
             fn(x)
             self.assertFalse(True)  # must raise error before this
         except torch._dynamo.exc.Unsupported as e:
+<<<<<<< HEAD
             self.assertIn(
                 "Input marked with `pytree.register_constant` constructed in the `torch.compile` region",
                 str(e),
             )
+=======
+            msg = """
+You are calling a `nonstrict_trace`-ed function with an input that contains an object of type <DecoratorTests.test_nonstrict_newly_constructed_trace_register_constant_type_error.<locals>.State>, which was marked with `pytree.register_constant`. However, the object was constructed _inside_ the `torch.compile` region.
+
+Please construct the object _outside_ the `torch.compile` region, or submit an issue to GitHub.
+"""  # NOQA: B950
+            self.assertIn(msg, str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_nonstrict_trace_object_in_context_error(self):
         class Point:
@@ -847,9 +887,23 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
             fn(x, y)
             self.assertFalse(True)  # must raise error before this
         except torch._dynamo.exc.Unsupported as e:
+<<<<<<< HEAD
             self.assertIn(
                 "Invalid use of pytree_flatten with nonstrict_trace-ed function", str(e)
             )
+=======
+            msg = """
+You are calling a `nonstrict_trace`-ed function where one one of the inputs has been registered with a `pytree_flatten` that puts an object of type <DecoratorTests.test_nonstrict_trace_object_in_context_error.<locals>.Point> into the context.
+
+Please consider modifying that `pytree_flatten` to avoid putting the object into context, and apply one of the following to <DecoratorTests.test_nonstrict_trace_object_in_context_error.<locals>.Point>
+  * `torch.utils._pytree.register_constant`
+  * `torch.utils._pytree.register_dataclass`
+  * `torch.utils._pytree.register_pytree_node`
+
+If the above doesn't work, please subtmit an issue to GitHub.
+"""  # NOQA: B950
+            self.assertIn(msg, str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_graph_break(self):
         cnts = torch._dynamo.testing.CompileCounter()
@@ -894,6 +948,7 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(gn(inp), inp + 3)
         self.assertEqual(cnts.frame_count, 1)
 
+<<<<<<< HEAD
     def test_step_unsupported(self):
         cnts = torch._dynamo.testing.CompileCounter()
 
@@ -920,6 +975,8 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
     @skipIfWindows(
         msg="TODO: (xuhancn), confirm if torch.compiler.disable work on Windows."
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_disable_recursive_false(self):
         def fn2(x):
             return x + 1
@@ -1091,10 +1148,18 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(cnts.frame_count, 2)
         self.assertEqual(cnts.op_count, 4)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             Unsupported, r"Skip calling `torch.compiler.disable\(\)`d function"
         ):
             fn3(torch.randn(4, 5))
+=======
+        try:
+            fn3(torch.randn(4, 5))
+            self.assertFalse(True)
+        except torch._dynamo.exc.Unsupported as e:
+            self.assertIn("Skip calling `torch.compiler.disable()`d function", str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_disable_optimize(self):
         cnt = torch._dynamo.testing.CompileCounter()
@@ -1473,6 +1538,7 @@ class DecoratorTests(torch._dynamo.test_case.TestCase):
         self.assertEqual(out1, inp + 2)
         self.assertEqual(out2, inp + 2)
 
+<<<<<<< HEAD
     def test_fail_on_recompile_shows_guard_details(self):
         @torch.compile(backend="eager", dynamic=False)
         def f(x):
@@ -1497,6 +1563,8 @@ Detected recompile when torch.compile stance is 'fail_on_recompile'. filename: '
                 post_munge=post_munge,
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_set_stance_fail_on_recompile_with_disable(self):
         @torch.compiler.disable
         def inner(x):
@@ -1768,6 +1836,7 @@ Detected recompile when torch.compile stance is 'fail_on_recompile'. filename: '
         ):
             f4(torch.randn(3))
 
+<<<<<<< HEAD
     def test_error_on_graph_break(self):
         cnts = torch._dynamo.testing.CompileCounter()
 
@@ -2092,6 +2161,8 @@ Detected recompile when torch.compile stance is 'fail_on_recompile'. filename: '
         with self.assertRaises(Unsupported):
             outer_f2(inp)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

@@ -18,7 +18,11 @@ from torch.testing._internal.common_quantization import (
     LinearAddModel,
 )
 from torch.testing._internal.common_utils import TestCase
+<<<<<<< HEAD
 from torch.utils import bundled_inputs
+=======
+from torch.utils import bundled_inputs as bundled_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class myMod(torch.nn.Module):
@@ -99,17 +103,29 @@ class OnDevicePTQUtils:
         ):
             raise ValueError("Quantized weight must be produced.")
         fp_weight = weight.inputsAt(0).node()
+<<<<<<< HEAD
         assert fp_weight.kind() == "prim::GetAttr", (
             "Weight must be an attribute of the module."
         )
+=======
+        assert (
+            fp_weight.kind() == "prim::GetAttr"
+        ), "Weight must be an attribute of the module."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fp_weight_name = fp_weight.s("name")
         return fp_weight_name
 
     @staticmethod
     def is_per_channel_quantized_packed_param(node):
+<<<<<<< HEAD
         assert node.kind() == "quantized::linear_prepack", (
             "Node must corresponds to linear_prepack."
         )
+=======
+        assert (
+            node.kind() == "quantized::linear_prepack"
+        ), "Node must corresponds to linear_prepack."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weight = node.inputsAt(0).node()
         assert (
             weight.kind() != "aten::quantize_per_tensor"

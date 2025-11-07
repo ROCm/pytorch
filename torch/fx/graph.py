@@ -8,15 +8,25 @@ import inspect
 import keyword
 import math
 import os
+<<<<<<< HEAD
 import pprint
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import re
 import typing
 import warnings
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Literal, NamedTuple, Optional, TYPE_CHECKING
+=======
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
+from dataclasses import dataclass
+from typing import Any, Callable, Literal, NamedTuple, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -325,6 +335,7 @@ class CodeGen:
         self._body_transformer: Optional[TransformCodeFunc] = None
         self._func_name: str = "forward"
 
+<<<<<<< HEAD
     def _format_multiline_args(self, args: list[str]) -> str:
         """Helper to format function arguments in expanded multiline format."""
         return "".join(self._format_single_arg(arg) for arg in args)
@@ -374,6 +385,9 @@ class CodeGen:
         *,
         expanded_def: bool = False,
     ) -> str:
+=======
+    def gen_fn_def(self, free_vars: list[str], maybe_return_annotation: str) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Given the free variables and a return annotation, generates the beginning of the FX function.
         By default, `gen_fn_def(['a', 'b'], '') == 'def {self._func_name}(a, b):'`
@@ -382,6 +396,7 @@ class CodeGen:
         # would have added it.
         if len(free_vars) == 0 or free_vars[0] != "self":
             free_vars.insert(0, "self")
+<<<<<<< HEAD
 
         if expanded_def:
             args_formatted = self._format_multiline_args(free_vars)
@@ -394,14 +409,25 @@ class CodeGen:
     def generate_output(
         self, output_args: Argument, *, descs: Optional[Any] = None
     ) -> str:
+=======
+        return (
+            f"def {self._func_name}({', '.join(free_vars)}){maybe_return_annotation}:"
+        )
+
+    def generate_output(self, output_args: Argument) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Given the output arguments, generates the return statement of the FX function.
         Note: The returned statement should not be indented.
         """
+<<<<<<< HEAD
         if descs is not None and isinstance(output_args, (list, tuple)):
             return self._format_multiline_container(output_args, descs, "return ")
         else:
             return f"return {repr(output_args)}"
+=======
+        return f"return {repr(output_args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def process_inputs(self, *args: Any) -> Any:
         """
@@ -439,8 +465,11 @@ class CodeGen:
         include_stride: bool = False,
         include_device: bool = False,
         colored: bool = False,
+<<<<<<< HEAD
         # Render each argument on its own line
         expanded_def: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> PythonCode:
         free_vars: list[str] = []
         body: list[str] = []
@@ -455,7 +484,10 @@ class CodeGen:
         include_device = include_device or (
             os.environ.get("FX_GRAPH_SHOW_DEVICE", "0") == "1"
         )
+<<<<<<< HEAD
         include_meta = os.environ.get("FX_GRAPH_SHOW_META", "0") == "1"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def add_global(name_hint: str, obj: Any):
             """Add an obj to be tracked as a global.
@@ -502,10 +534,26 @@ class CodeGen:
 
                 origin_typename = add_global(_type_repr(origin_type), origin_type)
 
+<<<<<<< HEAD
                 if hasattr(o, "__args__") and o.__args__:
                     args = [type_repr(arg) for arg in o.__args__]
                     return f"{origin_typename}[{','.join(args)}]"
                 else:
+=======
+                if hasattr(o, "__args__"):
+                    # Assign global names for each of the inner type variables.
+                    args = [type_repr(arg) for arg in o.__args__]
+
+                    if len(args) == 0:
+                        # Bare type, such as `typing.Tuple` with no subscript
+                        # This code-path used in Python < 3.9
+                        return origin_typename
+
+                    return f"{origin_typename}[{','.join(args)}]"
+                else:
+                    # Bare type, such as `typing.Tuple` with no subscript
+                    # This code-path used in Python 3.9+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return origin_typename
 
             # Common case: this is a regular module name like 'foo.bar.baz'
@@ -608,13 +656,18 @@ class CodeGen:
             else:
                 body.append("\n")
 
+<<<<<<< HEAD
         prev_summary_str = None
+=======
+        prev_stacktrace = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def append_stacktrace_summary(node: Node):
             """
             Append a summary of the stacktrace to the generated code. This is
             useful for debugging.
             """
+<<<<<<< HEAD
             nonlocal prev_summary_str
 
             if node.op not in {"placeholder", "output"}:
@@ -633,6 +686,24 @@ class CodeGen:
                 if summary_str != prev_summary_str:
                     prev_summary_str = summary_str
                     body.append(summary_str)
+=======
+            nonlocal prev_stacktrace
+
+            if node.op not in {"placeholder", "output"}:
+                stack_trace = node.stack_trace
+                if stack_trace:
+                    if stack_trace != prev_stacktrace:
+                        prev_stacktrace = stack_trace
+                        if parsed_stack_trace := _parse_stack_trace(stack_trace):
+                            summary_str = parsed_stack_trace.get_summary_str()
+                        else:
+                            summary_str = ""
+                        body.append(f"\n {dim(f'# {summary_str}')}\n")
+                elif prev_stacktrace != "":
+                    prev_stacktrace = ""
+                    no_stacktrace_msg = "# No stacktrace found for following nodes"
+                    body.append(f"\n{dim(no_stacktrace_msg)}\n")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def stringify_shape(shape: Iterable) -> str:
             return f"[{', '.join([str(x) for x in shape])}]"
@@ -641,7 +712,10 @@ class CodeGen:
             maybe_type_annotation = (
                 "" if node.type is None else f" : {type_repr(node.type)}"
             )
+<<<<<<< HEAD
             maybe_comment = ""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if verbose:
                 # override annotation with more detailed information
@@ -652,6 +726,7 @@ class CodeGen:
                     "val",
                     node.meta.get("tensor_meta", node.meta.get("example_value", None)),
                 )
+<<<<<<< HEAD
 
                 def _tensor_annotation(t: torch.Tensor) -> str:
                     stride = stringify_shape(t.stride()) if include_stride else ""
@@ -663,11 +738,14 @@ class CodeGen:
                         f"{dim_green(device)}"
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # use string as annotation, to make it valid python code
                 if isinstance(meta_val, torch.Tensor) and meta_val.layout not in (
                     torch.sparse_csc,
                     torch.sparse_csr,
                 ):
+<<<<<<< HEAD
                     # Fake tensors cause tests to wobble, so do not custom print them.
                     is_plain = type(meta_val) is torch.Tensor or isinstance(
                         meta_val, torch._subclasses.FakeTensor
@@ -704,13 +782,35 @@ class CodeGen:
                     )
                 body.append('"""\n')
 
+=======
+                    stride_annotation = (
+                        f"{stringify_shape(meta_val.stride())}"
+                        if include_stride
+                        else ""
+                    )
+                    device_annotation = f"{meta_val.device}" if include_device else ""
+                    maybe_type_annotation = (
+                        f': "{red(dtype_abbrs[meta_val.dtype])}{blue(stringify_shape(meta_val.shape))}'
+                        f'{dim_blue(stride_annotation)}{dim_green(device_annotation)}"'
+                    )
+                elif isinstance(meta_val, py_sym_types):
+                    val_str = CodeGen._sym_repr(meta_val)
+                    maybe_type_annotation = f': "Sym({val_str})"'
+                elif isinstance(meta_val, TensorMetadata):
+                    maybe_type_annotation = f': "{dtype_abbrs[meta_val.dtype]}{stringify_shape(meta_val.shape)}"'
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if node.op == "placeholder":
                 assert isinstance(node.target, str)
                 maybe_default_arg = (
                     "" if not node.args else f" = {_get_repr(node.args[0])}"
                 )
                 free_vars.append(
+<<<<<<< HEAD
                     f"{node.target}{maybe_type_annotation}{maybe_default_arg}{maybe_comment}"
+=======
+                    f"{node.target}{maybe_type_annotation}{maybe_default_arg}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 raw_name = node.target.replace("*", "")
                 if raw_name != repr(node):
@@ -786,6 +886,7 @@ class CodeGen:
             elif node.op == "output":
                 if node.type is not None:
                     maybe_return_annotation[0] = f" -> {type_repr(node.type)}"
+<<<<<<< HEAD
                 body.append(
                     self._call_method_with_signature_check(
                         self.generate_output,
@@ -793,6 +894,9 @@ class CodeGen:
                         descs=desc if expanded_def else None,
                     )
                 )
+=======
+                body.append(self.generate_output(node.args[0]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return
             raise NotImplementedError(f"node: {node.op} {node.target}")
 
@@ -826,12 +930,16 @@ class CodeGen:
         for name, value in self.additional_globals():
             add_global(name, value)
 
+<<<<<<< HEAD
         prologue = self._call_method_with_signature_check(
             self.gen_fn_def,
             free_vars,
             maybe_return_annotation[0],
             expanded_def=expanded_def,
         )
+=======
+        prologue = self.gen_fn_def(free_vars, maybe_return_annotation[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # remove counter and generate lineno to node index mapping
         lineno_map: dict[int, Optional[int]] = {}
@@ -863,6 +971,7 @@ class CodeGen:
 # 2. In the FX graph, we need to access 2 attributes - in_spec and out_spec.
 #    Since we can't access .graph within the FX forward, we need to copy the attribute to the module.
 # 3. We currently can't register the pytree imports with `add_global` - not sure why.
+<<<<<<< HEAD
 class _BoxedCodeGen(CodeGen):
     """
     CodeGen subclass that generates code using the "boxed" calling convention.
@@ -901,6 +1010,8 @@ class _BoxedCodeGen(CodeGen):
         return fn_def
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _PyTreeCodeGen(CodeGen):
     def __init__(self, pytree_info: _PyTreeInfo):
         super().__init__()
@@ -918,6 +1029,7 @@ class _PyTreeCodeGen(CodeGen):
         assert self.pytree_info.out_spec is not None
         return pytree.tree_unflatten(out, self.pytree_info.out_spec)
 
+<<<<<<< HEAD
     def _format_annotations(self, free_vars: list[str], expanded_def: bool) -> str:
         """Helper to format annotations for variables in pytree codegen."""
         if not free_vars:
@@ -972,6 +1084,9 @@ class _PyTreeCodeGen(CodeGen):
     def gen_fn_def(
         self, free_vars, maybe_return_annotation, *, expanded_def: bool = False
     ):
+=======
+    def gen_fn_def(self, free_vars, maybe_return_annotation):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Given a user function/model:
         #   myargs = [myargs0, myargs1]
         #   mykwargs = {'mykwargs0': ..., 'mykwargs1': ...}
@@ -988,14 +1103,19 @@ class _PyTreeCodeGen(CodeGen):
         # If the user function/model does not have keywords, the dict is suppressed from tree_flatten_spec
         #   e.g. tree_flatten_spec([mypos, myargs0, myargs1]), self._in_spec)
         if self.pytree_info is None:
+<<<<<<< HEAD
             return super().gen_fn_def(
                 free_vars, maybe_return_annotation, expanded_def=expanded_def
             )
+=======
+            return super().gen_fn_def(free_vars, maybe_return_annotation)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fn_args = self.pytree_info.orig_args
         has_orig_self = (fn_args[0] == "self") if len(fn_args) > 0 else False
         if has_orig_self:
             free_vars.insert(0, "self")
+<<<<<<< HEAD
         fn_definition = super().gen_fn_def(
             fn_args[:], maybe_return_annotation, expanded_def=expanded_def
         )
@@ -1065,6 +1185,53 @@ class _ExportCodeGen(_PyTreeCodeGen):
     def generate_output(self, output_args, *args, **kwargs) -> str:
         output = f"self._out_shuffle_graph({', '.join(self.tree_leaf_names)}, {', '.join([str(a) for a in output_args])})"
         return f"return pytree.tree_unflatten({output}, self._out_spec)"
+=======
+        fn_definition = super().gen_fn_def(fn_args[:], maybe_return_annotation)
+
+        if len(free_vars) > 0:  # pytree has placeholders in it
+            # when kwargs is present, in_spec is tuple(args, kwargs)
+            has_args_kwargs_tuple = (
+                self.pytree_info.in_spec.type == tuple
+                and self.pytree_info.in_spec.num_children == 2
+                and self.pytree_info.in_spec.children_specs[0].type == tuple
+                and self.pytree_info.in_spec.children_specs[1].type == dict
+            )
+            fn_kwargs = "{}"
+            fn_signature = f"[{', '.join(fn_args)}], self._in_spec"
+            if has_args_kwargs_tuple:
+                count_args = self.pytree_info.in_spec.children_specs[0].num_children
+                fn_args = self.pytree_info.orig_args[:count_args]
+                fn_kwargs = (
+                    "{"
+                    + ", ".join(
+                        f"'{k}':{v}"
+                        for k, v in zip(
+                            self.pytree_info.in_spec.children_specs[1].context,
+                            self.pytree_info.orig_args[count_args:],
+                        )
+                    )
+                    + "}"
+                )
+                fn_signature = f"([{', '.join(fn_args)}], {fn_kwargs}), self._in_spec"
+
+            # in Python, `var1: annotation1, var2: annotation2 = function_call()` is invalid.
+            # we need to split it to two lines:
+            # one for annotation: `var1: annotation1; var2: annotation2;` (note the semicolon)
+            # one for code: `var1, var2, = function_call()`
+            without_annotation = [x.split(":")[0] for x in free_vars]
+            has_annotation = [x + "; " for x in free_vars if ":" in x]
+            if len(has_annotation) > 0:
+                fn_definition += "\n    " + "".join(has_annotation) + "\n"
+            fn_definition += f"""
+    {", ".join(without_annotation)}, = fx_pytree.tree_flatten_spec({fn_signature})"""
+        return fn_definition
+
+    def generate_output(self, output_args):
+        if self.pytree_info and self.pytree_info.out_spec:
+            return f"return pytree.tree_unflatten({repr(output_args)}, self._out_spec)"
+        else:
+            return super().generate_output(output_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _FindNodesLookupTable:
@@ -1220,7 +1387,11 @@ class Graph:
 
         Returns:
 
+<<<<<<< HEAD
             Iterable of nodes with the requested op and target.
+=======
+            Iteratable of nodes with the requested op and target.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         node_list = self._find_nodes_lookup_table.find_nodes(op=op, target=target)
         if sort:
@@ -1380,7 +1551,10 @@ class Graph:
                 f(to_erase)
 
         self._find_nodes_lookup_table.remove(to_erase)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to_erase._remove_from_list()
         to_erase._erased = True  # iterators may retain handles to erased nodes
         self._len -= 1
@@ -1730,7 +1904,11 @@ class Graph:
             op="output", target="output", args=(result,), type_expr=type_expr
         )
 
+<<<<<<< HEAD
     def _target_to_str(self, target: Optional[Target]) -> str:
+=======
+    def _target_to_str(self, target: Target) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if callable(target):
             op = target.__name__
         else:
@@ -1750,7 +1928,10 @@ class Graph:
         include_stride: bool = False,
         include_device: bool = False,
         colored: bool = False,
+<<<<<<< HEAD
         expanded_def: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> PythonCode:
         """
         Turn this ``Graph`` into valid Python code.
@@ -1782,7 +1963,11 @@ class Graph:
         # To do this, we create a new namespace just for this source. All names
         # that get printed must come from this namespace.
         #
+<<<<<<< HEAD
         # Why can't we reuse node.name? Because it was generated within the
+=======
+        # Why can't we re-use node.name? Because it was generated within the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # namespace `self._graph_namespace`. In order to provide uniqueness
         # over both locals (node.name) *and* globals, we create a completely
         # new namespace to put all identifiers in.
@@ -1790,7 +1975,11 @@ class Graph:
 
         # Override Node's repr to generate a valid name within our namespace.
         # Since repr() is designed to produce a valid Python expression, it
+<<<<<<< HEAD
         # makes sense to reuse it. This way, it's easy to print something like
+=======
+        # makes sense to re-use it. This way, it's easy to print something like
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Tuple[Node, Node] by simply calling repr() on it. Node's __repr__ is
         # implemented cooperatively to allow this.
         def node_repr(n: Node):
@@ -1817,7 +2006,10 @@ class Graph:
                 include_stride=include_stride,
                 include_device=include_device,
                 colored=colored,
+<<<<<<< HEAD
                 expanded_def=expanded_def,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def _python_code(
@@ -1829,7 +2021,10 @@ class Graph:
         include_stride: bool = False,
         include_device: bool = False,
         colored: bool = False,
+<<<<<<< HEAD
         expanded_def: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> PythonCode:
         return self._codegen._gen_python_code(
             self.nodes,
@@ -1839,7 +2034,10 @@ class Graph:
             include_stride=include_stride,
             include_device=include_device,
             colored=colored,
+<<<<<<< HEAD
             expanded_def=expanded_def,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def __str__(self) -> str:
@@ -1941,7 +2139,10 @@ class Graph:
                             "a str is expected"
                         )
                 if node.op in ["get_attr", "call_module"]:
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     target_atoms = node.target.split(".")
                     m_itr = self.owning_module
                     for i, atom in enumerate(target_atoms):

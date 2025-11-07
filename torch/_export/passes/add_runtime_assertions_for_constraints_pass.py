@@ -3,7 +3,11 @@ import math
 import operator
 import traceback
 from functools import partial
+<<<<<<< HEAD
 from typing import NamedTuple, TYPE_CHECKING
+=======
+from typing import Callable, NamedTuple
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import sympy
 
@@ -15,10 +19,13 @@ from torch.utils._sympy.numbers import int_oo
 from torch.utils._sympy.value_ranges import ValueRanges
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = ["InputDim"]
 
 

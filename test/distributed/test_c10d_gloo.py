@@ -25,7 +25,10 @@ if not c10d.is_available() or not c10d.is_gloo_available():
 
 import test_c10d_common
 from test_c10d_common import (
+<<<<<<< HEAD
     FFTModel,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gpus_for_rank,
     LOOPBACK,
     ModuleForDdpCommHook,
@@ -59,6 +62,10 @@ from torch.testing._internal.common_utils import (
     run_tests,
     skip_but_pass_in_sandcastle,
     skipIfRocm,
+<<<<<<< HEAD
+=======
+    skipIfRocmArch,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase,
 )
 
@@ -134,6 +141,7 @@ def simple_reduce_tests(rank, world_size):
             ),
         )
 
+<<<<<<< HEAD
     # Extend tests for cfloat dtype
     tests.extend(
         (
@@ -160,6 +168,8 @@ def simple_reduce_tests(rank, world_size):
             ),
         )
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return tests
 
 
@@ -399,6 +409,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
                     torch.tensor([i * num + j], dtype=torch.float32), output[1]
                 )
 
+<<<<<<< HEAD
             # Run with 1 input tensor of cfloat dtype
             x = fn(torch.tensor([complex(self.rank, self.rank)], dtype=torch.cfloat))
             output = broadcast([x], i, 0)
@@ -406,6 +417,8 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
                 torch.tensor([complex(i, i)], dtype=torch.cfloat), output[0]
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test overloaded convenience function
         x = torch.tensor([self.rank + 1.0])
         fut = pg.broadcast(x, root=0).get_future()
@@ -444,7 +457,10 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i * self.world_size + self.rank]) for i in range(1000)]
         self._test_broadcast_stress(inputs)
 
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -477,6 +493,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
             opts = c10d.AllreduceOptions()
             pg.allreduce([t1, t3], opts)
 
+<<<<<<< HEAD
     @requires_gloo()
     def test_allreduce_op_timeout(self):
         store = c10d.FileStore(self.file_name, self.world_size)
@@ -505,6 +522,8 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
             with self.assertRaisesRegex(RuntimeError, "Timed out waiting 1ms"):
                 pg.allreduce([t1]).wait()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_allreduce_basics(self, fn):
         store = c10d.FileStore(self.file_name, self.world_size)
         pg = self._create_process_group_gloo(
@@ -603,7 +622,10 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i + self.rank]) for i in range(1000)]
         self._test_allreduce_stress(inputs)
 
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -1058,8 +1080,11 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
     @skip_but_pass_in_sandcastle(
         "Test is flaky, see https://github.com/pytorch/pytorch/issues/15963"
     )
+<<<<<<< HEAD
 
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -1192,7 +1217,11 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
     @requires_gloo()
     def test_gather_noncontiguous_input(self):
         # Take a column of 2D tensor, such that memory is not dense
+<<<<<<< HEAD
         self._test_gather_basics(lambda t: t.expand(2, 2).tril().contiguous()[:, 0])
+=======
+        self._test_gather_basics(lambda t: t.expand(2, 2).contiguous()[:, 0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _test_gather_stress(self, inputs, fn):
         store = c10d.FileStore(self.file_name, self.world_size)
@@ -1235,8 +1264,13 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i + self.rank]) for i in range(1000)]
         self._test_gather_stress(inputs, lambda t: t.clone())
 
+<<<<<<< HEAD
     @skipIfRocm
     @skip_if_lt_x_gpu(2)
+=======
+    @skip_if_lt_x_gpu(2)
+    @skipIfRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gloo()
     def test_gather_stress_cuda(self):
         inputs = [torch.tensor([i + self.rank]).cuda() for i in range(1000)]
@@ -1326,7 +1360,11 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
     @requires_gloo()
     def test_allgather_noncontiguous_input(self):
         # Take a column of 2D tensor, such that memory is not dense
+<<<<<<< HEAD
         self._test_allgather_basics(lambda t: t.expand(2, 2).tril().contiguous()[:, 0])
+=======
+        self._test_allgather_basics(lambda t: t.expand(2, 2).contiguous()[:, 0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_gloo()
     def test_allgather_inference_mode(self):
@@ -1371,7 +1409,10 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i + self.rank]) for i in range(1000)]
         self._test_allgather_stress(inputs, lambda t: t.clone())
 
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -1463,7 +1504,11 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
     @requires_gloo()
     def test_reduce_checks(self):
         store = c10d.FileStore(self.file_name, self.world_size)
+<<<<<<< HEAD
         pg = self._create_process_group_gloo(
+=======
+        pg = pg = self._create_process_group_gloo(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             store, self.rank, self.world_size, self.opts()
         )
 
@@ -1559,7 +1604,10 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         inputs = [torch.tensor([i + self.rank]) for i in range(1000)]
         self._test_reduce_stress(inputs)
 
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -1629,6 +1677,7 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
         for i, tensor in enumerate(tensors):
             self.assertEqual(torch.full(size, float(i * self.world_size)), tensor)
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(2)
     @requires_gloo()
     @skipIfRocm
@@ -1660,6 +1709,8 @@ class ProcessGroupGlooTest(MultiProcessTestCase):
             pg.recv([recv_tensor], 0, 0).wait()
             self.assertEqual(send_tensor, recv_tensor)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DistributedDataParallelTest(
     test_c10d_common.CommonDistributedDataParallelTest, MultiProcessTestCase
@@ -2325,6 +2376,7 @@ class DistributedDataParallelTest(
 
         self._run_and_verify_sparse_gradients(vanilla_model, ddp_model)
 
+<<<<<<< HEAD
     @requires_gloo()
     def test_ddp_complex_params(self):
         process_group = self._get_process_group()
@@ -2343,6 +2395,8 @@ class DistributedDataParallelTest(
         loss.backward()
         optimizer.step()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReducerModule(nn.Module):
     def __init__(self) -> None:
@@ -2522,7 +2576,11 @@ class ProcessGroupGlooFRTest(ProcessGroupGlooTest):
 
     def _verify_trace(self, t, is_json):
         ver = t["version"]
+<<<<<<< HEAD
         self.assertEqual(ver, "2.10")
+=======
+        self.assertEqual(ver, "2.9")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pg_config = t["pg_config"]
         self.assertEqual(len(pg_config), 1)
         default_pg_info = pg_config["0"]

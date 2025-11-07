@@ -424,6 +424,7 @@ Tensor _dirichlet_grad_cpu(const Tensor& x, const Tensor& alpha, const Tensor& t
  */
 
 Tensor _s_binomial_cpu(const Tensor& count, const Tensor& prob, std::optional<Generator> gen) {
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(
       at::isFloatingType(count.scalar_type()),
       "binomial only supports floating-point dtypes for count, got: ",
@@ -432,6 +433,8 @@ Tensor _s_binomial_cpu(const Tensor& count, const Tensor& prob, std::optional<Ge
       at::isFloatingType(prob.scalar_type()),
       "binomial only supports floating-point dtypes for prob, got: ",
       prob.scalar_type());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor ret = at::zeros(count.sizes(), count.options());
   auto iter = TensorIteratorConfig()
     .add_output(ret)

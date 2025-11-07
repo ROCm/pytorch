@@ -9,7 +9,11 @@ import onnxscript
 from onnxscript.onnx_types import FLOAT
 
 import torch
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter import jit_utils
+=======
+from torch.onnx._internal import jit_utils
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 

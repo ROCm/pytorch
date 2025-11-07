@@ -2,13 +2,19 @@
 from __future__ import annotations
 
 import atexit
+<<<<<<< HEAD
 import contextlib
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import json
 import logging
 import multiprocessing
 import os
+<<<<<<< HEAD
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 from concurrent.futures import Future, ThreadPoolExecutor
 from concurrent.futures.process import BrokenProcessPool
@@ -38,11 +44,15 @@ from torch._inductor.codecache import (
     StaticAutotunerFuture,
     torch_key,
 )
+<<<<<<< HEAD
 from torch._inductor.compile_worker.subproc_pool import (
     AnyPool,
     SubprocException,
     SubprocPool,
 )
+=======
+from torch._inductor.compile_worker.subproc_pool import AnyPool, SubprocPool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.compile_worker.tracked_process_pool import (
     TrackedProcessPoolExecutor,
 )
@@ -53,7 +63,10 @@ from torch._inductor.runtime.compile_tasks import (
 )
 from torch._inductor.utils import clear_on_fresh_cache
 from torch._inductor.virtualized import V
+<<<<<<< HEAD
 from torch._utils_internal import log_triton_builds
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.hub import _Faketqdm, tqdm
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._triton import has_triton_package
@@ -73,10 +86,13 @@ log = logging.getLogger(__name__)
 
 _triton_kernel_metrics: Optional[dict[str, dict[str, Any]]] = None
 
+<<<<<<< HEAD
 size_hints_regex = re.compile(
     r"size_hints=(\{.*?\})",
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def pre_fork_setup():
     """
@@ -88,10 +104,20 @@ def pre_fork_setup():
 
     # Computing the triton key can be slow. If we call it before fork,
     # it will be cached for the forked subprocesses.
+<<<<<<< HEAD
     from torch._inductor.runtime.triton_compat import HAS_TRITON, triton_key
 
     if HAS_TRITON:
         triton_key()
+=======
+    try:
+        from triton.compiler.compiler import triton_key
+
+        triton_key()
+    except ImportError:
+        # Triton might not be installed or might be an old version.
+        pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def caching_device_properties():
@@ -148,7 +174,10 @@ def shutdown_compile_workers() -> None:
     """Shut down all outstanding compile-worker pools."""
     for pool in _pool_set:
         pool.shutdown()
+<<<<<<< HEAD
     AsyncCompile._ready_future = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     after_fork()
 
 
@@ -228,6 +257,7 @@ class CompiledTritonKernels:
             del CompiledTritonKernels._cache[key]
 
 
+<<<<<<< HEAD
 @contextlib.contextmanager
 def async_compile_pool_manager():
     """
@@ -247,6 +277,9 @@ class AsyncCompile:
 
     _ready_future: Optional[Future[Any]] = None
 
+=======
+class AsyncCompile:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self) -> None:
         pass
 
@@ -265,7 +298,10 @@ class AsyncCompile:
     @functools.lru_cache(1)
     def process_pool() -> AnyPool:
         assert get_compile_threads() > 1
+<<<<<<< HEAD
         AsyncCompile._ready_future = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.info(
             "Creating '%s' pool with %d workers",
             config.worker_start_method,
@@ -293,6 +329,11 @@ class AsyncCompile:
             # kill the worker thread that sends the shutdown message to the workers...
             multiprocessing.util.Finalize(None, pool.shutdown, exitpriority=sys.maxsize)
 
+<<<<<<< HEAD
+=======
+        # Set an attribute we can check to see if the pool is ready.
+        pool.ready_future = pool.submit(AsyncCompile._get_ready)  # type: ignore[union-attr]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _pool_set.add(pool)
         return pool
 
@@ -301,24 +342,32 @@ class AsyncCompile:
         if get_compile_threads() <= 1:
             return
         _compile_start()
+<<<<<<< HEAD
         # Pool is created on first access. Note for a SubprocPool, the sidecar process starts,
         # but its ProcessPoolExecutor does not initialize until a wakeup() call or the first
         # job is submitted.
+=======
+        # Pool is initialized on first access
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cls.process_pool()
         _compile_end()
 
     @classmethod
+<<<<<<< HEAD
     def wait_pool_ready(cls, timeout=120) -> None:
         cls.use_process_pool()
         if cls._ready_future is not None:
             cls._ready_future.result(timeout=timeout)
 
     @classmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def submit(cls, task: Callable[..., Any]) -> Any:
         if get_compile_threads() <= 1:
             return task()
         return cls.pool().submit(task)
 
+<<<<<<< HEAD
     @classmethod
     def use_process_pool(cls):
         if get_compile_threads() <= 1:
@@ -356,6 +405,12 @@ class AsyncCompile:
         pool = cls.process_pool()
         if isinstance(pool, SubprocPool):
             pool.wakeup()
+=======
+    def use_process_pool(self):
+        return (
+            get_compile_threads() > 1 and self.process_pool().ready_future.done()  # type: ignore[union-attr]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def triton(self, kernel_name: str, source_code: str, device_str: str = "cuda"):
         """
@@ -426,6 +481,7 @@ class AsyncCompile:
                 "use_static_cuda_launcher": torch._inductor.config.use_static_cuda_launcher
             }
 
+<<<<<<< HEAD
             if len(torch._inductor.config.autotune_lookup_table) > 0:
                 m = size_hints_regex.search(source_code)
                 if m:
@@ -447,6 +503,8 @@ class AsyncCompile:
                         fn_hash: torch._inductor.config.autotune_lookup_table[fn_hash]
                     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             task = self.process_pool().submit(
                 _worker_compile_triton,
                 load_kernel,
@@ -455,18 +513,25 @@ class AsyncCompile:
             )
 
             def get_result() -> CachingAutotuner:
+<<<<<<< HEAD
                 try:
                     kernel, elapsed_us = task.result()
                 except SubprocException as e:
                     raise e.with_name(kernel_name) from e
 
+=======
+                kernel, elapsed_us = task.result()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Now that we've compiled, we should clear the future
                 # so it can't be used again
                 kernel.set_compile_info(compile_id, is_backward)
                 CompiledTritonKernels.remove_future(source_code)
 
+<<<<<<< HEAD
                 kernel.restore_after_unpickle(old_values=None)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kernel.precompile(
                     warm_cache_only=False,
                     reload_kernel=reload_kernel_in_parent,
@@ -491,6 +556,7 @@ class AsyncCompile:
                 log_waitcounter=True,
                 waitcounter_name_override="compile_triton",
             ):
+<<<<<<< HEAD
                 fail = None
                 try:
                     start_ns = time_ns()
@@ -514,6 +580,24 @@ class AsyncCompile:
                     raise
                 finally:
                     log_triton_builds(fail=fail)
+=======
+                start_ns = time_ns()
+                _set_triton_ptxas_path()
+                kernel = load_kernel()
+                kernel.set_compile_info(compile_id, is_backward)
+                kernel.precompile(
+                    warm_cache_only=False,
+                    static_triton_bundle_key=CompiledTritonKernels.key(source_code),
+                )
+                elapsed_us = (time_ns() - start_ns) // 1000
+                get_metrics_context().add_top_n(
+                    "triton_kernel_compile_times_us", kernel_name, elapsed_us
+                )
+                info = kernel.autotune_cache_info or {}
+                info["compile_time_us"] = elapsed_us
+                _add_triton_kernel_info(kernel_name, info)
+                return kernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def multi_kernel(self, *args, **kwargs) -> Any:
         from torch._inductor.codegen.multi_kernel import MultiKernelCall
@@ -521,11 +605,14 @@ class AsyncCompile:
         # no need to call this in parallel since the sub-kernels are already parallel tasks
         return MultiKernelCall(*args, **kwargs)
 
+<<<<<<< HEAD
     def size_hint_multi_kernel(self, *args, **kwargs) -> Any:
         from torch._inductor.codegen.multi_kernel import SizeHintMultiKernelCall
 
         return SizeHintMultiKernelCall(*args, **kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def cpp(self, source_code: str):
         kernel_code_log.info("CPP Kernel:\n%s", source_code)
         if get_compile_threads() <= 1:
@@ -585,6 +672,7 @@ class AsyncCompile:
             )
             return LambdaFuture(get_result)
 
+<<<<<<< HEAD
     def cutedsl(self, kernel_name: str, source_code: str):
         """
         Compile CuteDSL (CUTLASS Python DSL) kernels.
@@ -624,6 +712,8 @@ class AsyncCompile:
             future = self.submit(task)
             return LambdaFuture(lambda: future.result())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def wait(self, scope: dict[str, Any]) -> None:
         if get_compile_threads() > 1:
             with dynamo_timed(
@@ -665,6 +755,7 @@ class AsyncCompile:
             pbar.update(1)
 
 
+<<<<<<< HEAD
 def maybe_warm_pool() -> None:
     if (
         os.environ.get("TORCH_TNT_IN_USE", "0") == "1"
@@ -683,6 +774,20 @@ def maybe_warm_pool() -> None:
     # could start them lazily if we're willing to lose a small amount of compile time.
     AsyncCompile.wakeup()
 
+=======
+if (
+    os.environ.get("TORCH_TNT_IN_USE", "0") == "1"
+    or os.environ.get("TORCH_WARM_POOL", "1") != "1"
+    # The subprocess pool is only used for the Triton backend
+    or not has_triton_package()
+    # Skip for fbcode. We have internal reports of usages inside multiprocessing
+    # pools that lead a multiplicative number of compile subprocesses.
+    or config.is_fbcode()
+):
+    pass
+else:
+    AsyncCompile.warm_pool()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # On exit give the workers a chance to clean themselves up. Without this the
 # resource_tracker can complain about leaked semaphores coming from the

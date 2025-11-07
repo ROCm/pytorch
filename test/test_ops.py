@@ -28,11 +28,17 @@ from torch.testing._internal.common_device_type import (
     onlyCPU,
     onlyCUDA,
     onlyNativeDeviceTypesAnd,
+<<<<<<< HEAD
     onlyOn,
     OpDTypes,
     ops,
     skipMeta,
     skipXPU,
+=======
+    OpDTypes,
+    ops,
+    skipMeta,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.common_dtype import (
     all_types_and_complex_and,
@@ -89,7 +95,11 @@ _variant_ops = partial(
 # Get names of all the operators which have ref in their entry in OpInfo (testing infra)
 #   except for elementwise unary operators (separately implemented in test/test_unary_ufuncs.py),
 #   elementwise binary operators (separately implemented in test_binary_ufuncs.py),
+<<<<<<< HEAD
 #   reduction operations (separately implemented in test_reductions.py),
+=======
+#   reduction operations (separately impelemented in test_reductions.py),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   and Spectral Functions (separately implemented for only 1D as of now, in test/test_spectral_ops.py)
 _ref_test_ops = tuple(
     filter(
@@ -112,6 +122,7 @@ def reduction_dtype_filter(op):
     return "dtype" in inspect.getfullargspec(op.op).kwonlyargs
 
 
+<<<<<<< HEAD
 def has_reduction_tag(op):
     """Check if an op has the reduction tag."""
     if not hasattr(torch.ops.aten, op.name):
@@ -122,6 +133,8 @@ def has_reduction_tag(op):
     return torch.Tag.reduction in aten_op.default.tags
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Create a list of operators that are a subset of _ref_test_ops but don't have a
 # numpy ref to compare them too, If both CPU and CUDA are compared to numpy
 # then they do not need to be compared to each other
@@ -130,17 +143,30 @@ _ops_and_refs_with_no_numpy_ref = [op for op in ops_and_refs if op.ref is None]
 aten = torch.ops.aten
 
 meta_consistency_out_dtype_mismatch_xfails = {
+<<<<<<< HEAD
+=======
+    xfail("alias_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("all"),
     xfail("amax"),
     xfail("amin"),
     xfail("aminmax"),
     xfail("any"),
+<<<<<<< HEAD
+=======
+    xfail("as_strided_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("bucketize"),
     xfail("conj_physical"),
     xfail("cross"),
     xfail("cummax"),
     xfail("cummin"),
     xfail("diag"),
+<<<<<<< HEAD
+=======
+    xfail("diagonal_copy"),
+    xfail("expand_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("fft.ihfft2"),
     xfail("fft.ihfftn"),
     xfail("frexp"),
@@ -175,6 +201,11 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("msort"),
     xfail("multinomial"),
     xfail("nan_to_num"),
+<<<<<<< HEAD
+=======
+    xfail("nanmean"),
+    xfail("narrow_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("native_batch_norm"),
     xfail("neg"),
     xfail("nn.functional.avg_pool3d"),
@@ -184,6 +215,10 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("nn.functional.softplus"),
     xfail("nn.functional.softshrink"),
     xfail("ormqr"),
+<<<<<<< HEAD
+=======
+    xfail("permute_copy"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("qr"),
     xfail("renorm"),
     xfail("round"),
@@ -198,10 +233,23 @@ meta_consistency_out_dtype_mismatch_xfails = {
     xfail("softmax"),
     xfail("sort"),
     xfail("sparse.sampled_addmm"),
+<<<<<<< HEAD
     xfail("take"),
     xfail("tril"),
     xfail("triu"),
     xfail("unfold_copy"),
+=======
+    xfail("squeeze_copy"),
+    xfail("t_copy"),
+    xfail("take"),
+    xfail("transpose_copy"),
+    xfail("tril"),
+    xfail("triu"),
+    xfail("unfold_copy"),
+    xfail("unsqueeze_copy"),
+    xfail("view_copy"),
+    xfail("where"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Output has dynamic shape.
     # Does not have a meta kernel implementation.
     skip("linalg.lstsq"),
@@ -233,7 +281,11 @@ class TestCommon(TestCase):
             assert len(filtered_ops) == 0, err_msg
 
     # Validates that each OpInfo works correctly on different CUDA devices
+<<<<<<< HEAD
     @onlyOn(["cuda", "xpu"])
+=======
+    @onlyCUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @deviceCountAtLeast(2)
     @ops(op_db, allowed_dtypes=(torch.float32, torch.long))
     def test_multiple_devices(self, devices, dtype, op):
@@ -337,6 +389,7 @@ class TestCommon(TestCase):
 
                         self.assertTrue(torch.Tag.pointwise in overload.tags)
 
+<<<<<<< HEAD
     def test_reduction_tag_coverage(self):
         """Test that operators with reduction tag are from reduction operator files."""
         pytorch_dir = os.path.abspath(__file__ + "/../../")
@@ -454,14 +507,19 @@ class TestCommon(TestCase):
                     f"(input: {sample.input.numel()}, expected: {expected_numel}, got: {result.numel()})",
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Tests that the function and its (ndarray-accepting) reference produce the same
     #   values on the tensors from sample_inputs func for the corresponding op.
     # This test runs in double and complex double precision because
     # NumPy does computation internally using double precision for many functions
     # resulting in possible equality check failures.
     # skip windows case on CPU due to https://github.com/pytorch/pytorch/issues/129947
+<<<<<<< HEAD
     # XPU test will be enabled step by step. Skip the tests temporarily.
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypesAnd(["hpu"])
     @suppress_warnings
     @ops(_ref_test_ops, allowed_dtypes=(torch.float64, torch.long, torch.complex128))
@@ -471,7 +529,11 @@ class TestCommon(TestCase):
             and op.formatted_name
             in ("signal_windows_exponential", "signal_windows_bartlett")
             and dtype == torch.float64
+<<<<<<< HEAD
             and ("cuda" in device or "xpu" in device)
+=======
+            and "cuda" in device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             or "cpu" in device
         ):  # noqa: E121
             raise unittest.SkipTest("XXX: raises tensor-likes are not close.")
@@ -484,7 +546,11 @@ class TestCommon(TestCase):
                 )
 
     # Tests that the cpu and gpu results are consistent
+<<<<<<< HEAD
     @onlyOn(["cuda", "xpu"])
+=======
+    @onlyCUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @suppress_warnings
     @slowTest
     @ops(_ops_and_refs_with_no_numpy_ref, dtypes=OpDTypes.any_common_cpu_cuda_one)
@@ -503,7 +569,11 @@ class TestCommon(TestCase):
 
             # output_process_fn_grad has a very unfortunate name
             # We use this function in linalg extensively to postprocess the inputs of functions
+<<<<<<< HEAD
             # that are not completely well-defined. Think svd and multiplying the singular vectors by -1.
+=======
+            # that are not completely well-defined. Think svd and muliplying the singular vectors by -1.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # CPU and CUDA implementations of the SVD can return valid SVDs that are different.
             # We use this function to compare them.
             cuda_results = sample.output_process_fn_grad(cuda_results)
@@ -516,7 +586,10 @@ class TestCommon(TestCase):
     # Tests that experimental Python References can propagate shape, dtype,
     # and device metadata properly.
     # See https://github.com/pytorch/pytorch/issues/78050 for a discussion of stride propagation.
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(python_ref_db)
     @skipIfTorchInductor("Takes too long for inductor")
@@ -711,8 +784,12 @@ class TestCommon(TestCase):
 
     # Tests that experimental Python References perform the same computation
     # as the operators they reference, when operator calls in the torch
+<<<<<<< HEAD
     # namespace are remapped to the refs namespace (torch.foo becomes refs.foo).
     @skipXPU
+=======
+    # namesapce are remapped to the refs namespace (torch.foo becomes refs.foo).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(python_ref_db)
     @skipIfTorchInductor("Takes too long for inductor")
@@ -731,7 +808,10 @@ class TestCommon(TestCase):
     # Tests that experimental Python References perform the same computation
     # as the operators they reference, when operator calls in the torch
     # namespace are preserved (torch.foo remains torch.foo).
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(python_ref_db)
     @skipIfTorchInductor("Takes too long for inductor")
@@ -767,7 +847,10 @@ class TestCommon(TestCase):
         op.op = partial(make_traced(op.op), executor=executor)
         self._ref_test_helper(contextlib.nullcontext, device, dtype, op)
 
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops([op for op in op_db if op.error_inputs_func is not None], dtypes=OpDTypes.none)
@@ -779,7 +862,10 @@ class TestCommon(TestCase):
                 out = op(si.input, *si.args, **si.kwargs)
                 self.assertFalse(isinstance(out, type(NotImplemented)))
 
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(
@@ -803,7 +889,10 @@ class TestCommon(TestCase):
                 out = op(si.input, *si.args, **si.kwargs)
                 self.assertFalse(isinstance(out, type(NotImplemented)))
 
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(
@@ -830,7 +919,10 @@ class TestCommon(TestCase):
 
     # Tests that the function produces the same result when called with
     #   noncontiguous tensors.
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_tf32_off
     @onlyNativeDeviceTypesAnd(["hpu"])
     @suppress_warnings
@@ -896,7 +988,11 @@ class TestCommon(TestCase):
                 else tuple(n_inp) + n_args
             )
 
+<<<<<<< HEAD
             # Filter the elements that are tensors that require grad
+=======
+            # Filter the elemnts that are tensors that require grad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             t_input_tensors = [
                 t for t in t_inputs if isinstance(t, torch.Tensor) and t.requires_grad
             ]
@@ -923,7 +1019,10 @@ class TestCommon(TestCase):
     #   incorrectly sized out parameter warning properly yet
     # Cases test here:
     #   - out= with the correct dtype and device, but the wrong shape
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(ops_and_refs, dtypes=OpDTypes.none)
     def test_out_warning(self, device, op):
         if TEST_WITH_TORCHDYNAMO and op.name == "_refs.clamp":
@@ -1062,7 +1161,10 @@ class TestCommon(TestCase):
     # Case 3 and 4 are slightly different when the op is a factory function:
     #   - if device, dtype are NOT passed, any combination of dtype/device should be OK for out
     #   - if device, dtype are passed, device and dtype should match
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(ops_and_refs, dtypes=OpDTypes.any_one)
     def test_out(self, device, dtype, op):
         # Prefers running in float32 but has a fallback for the first listed supported dtype
@@ -1248,6 +1350,7 @@ class TestCommon(TestCase):
                 if op.is_factory_function and sample.kwargs.get("dtype", None) is None:
                     op_out(out=out)
                 else:
+<<<<<<< HEAD
                     # TODO: Remove me when all ops will raise type error on mismatched types
                     exc_type = (
                         TypeError
@@ -1267,6 +1370,11 @@ class TestCommon(TestCase):
                         op_out(out=out)
 
     @skipXPU
+=======
+                    with self.assertRaises(RuntimeError, msg=msg_fail):
+                        op_out(out=out)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(
         [
             op
@@ -1305,7 +1413,10 @@ class TestCommon(TestCase):
         with self.assertRaises(RuntimeError, msg=msg), maybe_skip_size_asserts(op):
             op(sample.input, *sample.args, **sample.kwargs, out=out)
 
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(filter(reduction_dtype_filter, ops_and_refs), dtypes=(torch.int16,))
     def test_out_integral_dtype(self, device, dtype, op):
         def helper(with_out, expectFail, op_to_test, inputs, *args, **kwargs):
@@ -1349,7 +1460,10 @@ class TestCommon(TestCase):
     # Tests that the forward and backward passes of operations produce the
     #   same values for the cross-product of op variants (method, inplace)
     #   against eager's gold standard op function variant
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @_variant_ops(op_db)
     def test_variant_consistency_eager(self, device, dtype, op):
         # Acquires variants (method variant, inplace variant, operator variant, inplace_operator variant, aliases)
@@ -1530,7 +1644,10 @@ class TestCommon(TestCase):
 
     # Reference testing for operations in complex32 against complex64.
     # NOTE: We test against complex64 as NumPy doesn't have a complex32 equivalent dtype.
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @ops(op_db, allowed_dtypes=(torch.complex32,))
     def test_complex_half_reference_testing(self, device, dtype, op):
         if not op.supports_dtype(torch.complex32, device):
@@ -1566,6 +1683,7 @@ class TestCommon(TestCase):
             # `cfloat` input -> `float` output
             self.assertEqual(actual, expected, exact_dtype=False)
 
+<<<<<<< HEAD
     @skipXPU
     @ops(op_db, allowed_dtypes=(torch.bool,))
     def test_non_standard_bool_values(self, device, dtype, op):
@@ -1583,6 +1701,10 @@ class TestCommon(TestCase):
             if self._testMethodName in rocm_blocklist:
                 self.skipTest("Failed on ROCm")
 
+=======
+    @ops(op_db, allowed_dtypes=(torch.bool,))
+    def test_non_standard_bool_values(self, device, dtype, op):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test boolean values other than 0x00 and 0x01 (gh-54789)
         def convert_boolean_tensors(x):
             if not isinstance(x, torch.Tensor) or x.dtype != torch.bool:
@@ -1609,7 +1731,10 @@ class TestCommon(TestCase):
 
     # Validates that each OpInfo specifies its forward and backward dtypes
     #   correctly for CPU and CUDA devices
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(ops_and_refs, dtypes=OpDTypes.none)
@@ -1760,6 +1885,7 @@ class TestCommon(TestCase):
         ) == 0:
             return
 
+<<<<<<< HEAD
         if TEST_WITH_TORCHDYNAMO:
             # NOTE: Also for TEST_WITH_TORCHINDUCTOR tests
             # Under compile, some ops may be decomposed into supported ops
@@ -1770,6 +1896,8 @@ class TestCommon(TestCase):
             ) == 0:
                 return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Reference operators often support additional dtypes, and that's OK
         if op in python_ref_db:
             if (
@@ -1816,7 +1944,10 @@ class TestCommon(TestCase):
         self.fail(msg)
 
     # Validates that each OpInfo that sets promotes_int_to_float=True does as it says
+<<<<<<< HEAD
     @skipXPU
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipMeta
     @onlyNativeDeviceTypesAnd(["hpu"])
     @ops(
@@ -2661,7 +2792,11 @@ fake_skips = (
     "linalg.eigvals",  # The tensor has a non-zero number of elements, but its data is not allocated yet
     "linalg.eigvalsh",  # aten::linalg_eigvalsh.out' with arguments from the 'Meta' backend
     "linalg.matrix_power",  # Could not run 'aten::eye.m_out' with arguments from the 'Meta' backend
+<<<<<<< HEAD
     # "linalg.pinv",  # Could not run 'aten::pinv.out' with arguments from the 'Meta' backend
+=======
+    # "linalg.pinv",  # Could not run 'aten::pinv.out' with arguments from the 'Meta' backen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "linalg.matrix_rank.hermitian",  # Could not run 'aten::linalg_eigvalsh.out' with arguments from the 'Meta' backend
     "linalg.pinv.hermitian",  # tensor.mH is only supported on matrices or batches of matrices. Got 1-D tensor
     "linalg.solve",  # Could not run 'aten::linalg_solve' with arguments from the 'Meta' backend
@@ -2671,6 +2806,10 @@ fake_skips = (
     "mvlgamma.mvlgamma_p_1",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
     "mvlgamma.mvlgamma_p_3",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
     "mvlgamma.mvlgamma_p_5",  # Could not run 'aten::_local_scalar_dense' with arguments from the 'Meta' backend
+<<<<<<< HEAD
+=======
+    "nanmean",  # logical_not() got an unexpected keyword argument 'out'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "quantile",  # quantile() q values must be in the range [0, 1]
     "nanquantile",  # quantile() q values must be in the range [0, 1]
     "nn.functional.ctc_loss",  # The tensor has a non-zero number of elements, but its data is not allocated yet
@@ -2755,7 +2894,10 @@ fake_autocast_backward_xfails = {
 @unMarkDynamoStrictTest
 class TestFakeTensor(TestCase):
     def setUp(self):
+<<<<<<< HEAD
         super().setUp()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Turn on FakeTensor caching and cross-checking for these tests:
         cache_enabled = unittest.mock.patch(
             "torch._dynamo.config.fake_tensor_cache_enabled", True
@@ -3006,7 +3148,11 @@ class TestFakeTensor(TestCase):
             self.assertEqual(strided_result.layout, torch.strided)
 
 
+<<<<<<< HEAD
 instantiate_device_type_tests(TestCommon, globals(), allow_xpu=True)
+=======
+instantiate_device_type_tests(TestCommon, globals())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 instantiate_device_type_tests(TestCompositeCompliance, globals())
 instantiate_device_type_tests(TestMathBits, globals())
 instantiate_device_type_tests(TestRefsOpsInfo, globals(), only_for="cpu")

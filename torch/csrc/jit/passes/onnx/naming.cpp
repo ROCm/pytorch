@@ -85,7 +85,11 @@ class NodeNameGenerator {
 
  protected:
   virtual void CreateNodeName(Node* n) = 0;
+<<<<<<< HEAD
   void PopulateNodeNames(Block* /*b*/);
+=======
+  void PopulateNodeNames(Block*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void UpdateOutputsNames(Node* n);
   bool IsGraphOutput(const Value* v, const std::shared_ptr<Graph>& graph) const;
 

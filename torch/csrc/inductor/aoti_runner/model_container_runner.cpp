@@ -5,6 +5,7 @@
 #include <torch/csrc/inductor/aoti_torch/oss_proxy_executor.h>
 #include <torch/csrc/inductor/aoti_torch/tensor_converter.h>
 
+<<<<<<< HEAD
 #include <c10/util/FileSystem.h>
 
 #include <fcntl.h>
@@ -19,6 +20,25 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #endif // _WIN32
+=======
+#ifndef _WIN32
+#include <sys/stat.h>
+#else
+#include <filesystem>
+namespace fs = std::filesystem;
+#endif
+
+namespace {
+bool file_exists(std::string& path) {
+#ifdef _WIN32
+  return fs::exists(path);
+#else
+  struct stat rc{};
+  return lstat(path.c_str(), &rc) == 0;
+#endif
+}
+} // namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::inductor {
 
@@ -29,6 +49,7 @@ AOTIModelContainerRunner::AOTIModelContainerRunner(
     const std::string& cubin_dir,
     const bool run_single_threaded) {
   if (run_single_threaded) {
+<<<<<<< HEAD
     TORCH_CHECK(
         num_models == 1,
         "num_models must be 1 when run_single_threaded is true");
@@ -36,6 +57,17 @@ AOTIModelContainerRunner::AOTIModelContainerRunner(
     TORCH_CHECK(
         num_models >= 1,
         "num_models must be >=1 when run_single_threaded is false");
+=======
+    if (num_models != 1) {
+      throw std::runtime_error(
+          "num_models must be 1 when run_single_threaded is true");
+    }
+  } else {
+    if (num_models < 1) {
+      throw std::runtime_error(
+          "num_models must be >=1 when run_single_threaded is false");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   model_so_ = std::make_unique<at::DynamicLibrary>(model_so_path.c_str());
   TORCH_CHECK(model_so_, "Failed to load model: ", model_so_path);
@@ -84,10 +116,18 @@ AOTIModelContainerRunner::AOTIModelContainerRunner(
       ? "AOTInductorModelContainerRunSingleThreaded"
       : "AOTInductorModelContainerRun";
   TRY_LOAD_SYMBOL(run_func_, run_func_name)
+<<<<<<< HEAD
   TORCH_CHECK(
       run_func_ != nullptr || !run_single_threaded,
       "No AOTInductorModelContainerRunSingleThreaded function in .so! To use AOTInductor-compiled model in the single-threaded mode,\
 consider rebuild your model with the latest AOTInductor.");
+=======
+  if (run_func_ == nullptr && run_single_threaded) {
+    throw std::runtime_error(
+        "No AOTInductorModelContainerRunSingleThreaded function in .so! To use AOTInductor-compiled model in the single-threaded mode,\
+consider rebuild your model with the latest AOTInductor.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TRY_LOAD_SYMBOL(
       free_inactive_constant_buffer_func_,
@@ -98,19 +138,26 @@ consider rebuild your model with the latest AOTInductor.");
   TRY_LOAD_SYMBOL(
       update_user_managed_constant_buffer_func_,
       "AOTInductorModelContainerUpdateUserManagedConstantBuffer")
+<<<<<<< HEAD
   TRY_LOAD_SYMBOL(
       get_constants_blob_size_func_,
       "AOTInductorModelContainerGetConstantsBlobSize")
   TRY_LOAD_SYMBOL(
       update_constants_from_blob_func_,
       "AOTInductorModelUpdateConstantsFromBlob")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #undef TRY_LOAD_SYMBOL
 
   // Hack to find the json file name from the model so file
   size_t lastindex = model_so_path.find_last_of('.');
   std::string json_filename = model_so_path.substr(0, lastindex) + ".json";
 
+<<<<<<< HEAD
   if (c10::filesystem::exists(json_filename)) {
+=======
+  if (file_exists(json_filename)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     proxy_executor_ = std::make_unique<torch::aot_inductor::OSSProxyExecutor>(
         json_filename, device_str == "cpu");
     proxy_executor_handle_ =
@@ -267,6 +314,7 @@ void AOTIModelContainerRunner::update_constant_buffer(
   }
 }
 
+<<<<<<< HEAD
 void AOTIModelContainerRunner::update_constant_buffer_from_blob(
     const std::string& weights_path) {
   uint64_t weights_size;
@@ -342,6 +390,8 @@ void AOTIModelContainerRunner::update_constant_buffer_from_blob(
 #endif
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void AOTIModelContainerRunner::update_inactive_constant_buffer(
     const TensorConstantMap& const_map) {
   AOTI_RUNTIME_ERROR_CODE_CHECK(update_inactive_constant_buffer_func_(
@@ -363,9 +413,16 @@ void AOTIModelContainerRunner::swap_constant_buffer() {
 }
 
 void AOTIModelContainerRunner::free_inactive_constant_buffer() {
+<<<<<<< HEAD
   TORCH_CHECK(
       free_inactive_constant_buffer_func_ != nullptr,
       "No free_inactive_constant_buffer in .so! Consider rebuild your model with the latest AOTInductor.");
+=======
+  if (!free_inactive_constant_buffer_func_) {
+    throw std::runtime_error(
+        "No free_inactive_constant_buffer in .so! Consider rebuild your model with the latest AOTInductor.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   AOTI_RUNTIME_ERROR_CODE_CHECK(
       free_inactive_constant_buffer_func_(container_handle_));
 }

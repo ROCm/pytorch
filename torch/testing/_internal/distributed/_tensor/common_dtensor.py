@@ -2,6 +2,7 @@
 
 # Copyright (c) Meta Platforms, Inc. and affiliates
 
+<<<<<<< HEAD
 import contextlib
 import functools
 import itertools
@@ -11,11 +12,20 @@ from collections.abc import Callable, Iterator, Sequence
 from dataclasses import dataclass
 from functools import partial, wraps
 from typing import Any, cast, Optional, TypeVar, Union
+=======
+import itertools
+import sys
+from collections.abc import Iterator, Sequence
+from dataclasses import dataclass
+from functools import partial, wraps
+from typing import Any, Callable, cast, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 import torch.nn as nn
 import torch.nn.functional as F
+<<<<<<< HEAD
 from torch.distributed._local_tensor import (
     local_tensor_mode,
     LocalIntNode,
@@ -29,6 +39,12 @@ from torch.distributed.tensor import (
     distribute_tensor,
     DTensor,
     init_device_mesh,
+=======
+from torch._utils import _get_device_module
+from torch.distributed.tensor import (
+    DeviceMesh,
+    distribute_tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Placement,
     Replicate,
     Shard,
@@ -41,13 +57,17 @@ from torch.distributed.tensor.parallel import (
     SequenceParallel,
 )
 from torch.testing._internal.common_distributed import (
+<<<<<<< HEAD
     MultiProcContinuousTest,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MultiProcessTestCase,
     MultiThreadedTestCase,
     run_subtests,
     skip_if_lt_x_gpu,
     TEST_SKIPS,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     TEST_CUDA,
     TEST_HPU,
@@ -63,6 +83,24 @@ if TEST_CUDA or TEST_XPU or TEST_HPU or TEST_PRIVATEUSE1:
     DEVICE_TYPE = torch.accelerator.current_accelerator().type
     DEVICE_COUNT = torch.accelerator.device_count()
     PG_BACKEND = dist.Backend.default_device_backend_map[DEVICE_TYPE]
+=======
+from torch.testing._internal.common_utils import TEST_CUDA, TEST_HPU, TEST_XPU
+from torch.utils._pytree import tree_flatten, tree_unflatten, TreeSpec
+
+
+if TEST_CUDA:
+    DEVICE_TYPE = "cuda"
+    PG_BACKEND = "nccl"
+    DEVICE_COUNT = _get_device_module("cuda").device_count()
+elif TEST_HPU:
+    DEVICE_TYPE = "hpu"
+    PG_BACKEND = "hccl"
+    DEVICE_COUNT = _get_device_module("hpu").device_count()
+elif TEST_XPU:
+    DEVICE_TYPE = "xpu"
+    PG_BACKEND = "xccl"
+    DEVICE_COUNT = _get_device_module("xpu").device_count()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 else:
     DEVICE_TYPE = "cpu"
     PG_BACKEND = "gloo"
@@ -70,7 +108,11 @@ else:
 NUM_DEVICES = 4
 
 # We use this as a proxy for "multiple GPUs exist"
+<<<<<<< HEAD
 if (TEST_CUDA or TEST_XPU or TEST_HPU or TEST_PRIVATEUSE1) and DEVICE_COUNT > 1:
+=======
+if (TEST_CUDA or TEST_XPU or TEST_HPU) and DEVICE_COUNT > 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # when we actually have multiple GPUs, relax the requirement to smaller counts.
     NUM_DEVICES = min(NUM_DEVICES, DEVICE_COUNT)
 
@@ -344,6 +386,7 @@ def skip_unless_torch_gpu(method: T) -> T:
     return cast(T, skip_if_lt_x_gpu(NUM_DEVICES)(method))
 
 
+<<<<<<< HEAD
 class DTensorContinuousTestBase(MultiProcContinuousTest):
     @classmethod
     def device_type(cls) -> str:
@@ -368,16 +411,24 @@ class DTensorTestBase(MultiProcessTestCase):
         return False
 
     @property
+=======
+class DTensorTestBase(MultiProcessTestCase):
+    @property
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def world_size(self) -> int:
         return NUM_DEVICES
 
     @property
     def device_type(self) -> str:
         # if enough GPU/XPU/HPU we can use those devices, otherwise we fallback to CPU
+<<<<<<< HEAD
         if (
             not (TEST_CUDA or TEST_XPU or TEST_HPU or TEST_PRIVATEUSE1)
             or DEVICE_COUNT < self.world_size
         ):
+=======
+        if not (TEST_CUDA or TEST_XPU or TEST_HPU) or DEVICE_COUNT < self.world_size:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return "cpu"
         else:
             return DEVICE_TYPE
@@ -387,6 +438,7 @@ class DTensorTestBase(MultiProcessTestCase):
         backend = dist.get_default_backend_for_device(DEVICE_TYPE)
         return backend
 
+<<<<<<< HEAD
     def init_manual_seed_for_rank(self) -> None:
         torch.manual_seed(self.rank)
 
@@ -419,17 +471,47 @@ class DTensorTestBase(MultiProcessTestCase):
             # set device for nccl pg for collectives
             # TODO: if users want to enable testing across hosts, we may need
             # to change this part.
+=======
+    def build_device_mesh(self) -> DeviceMesh:
+        return DeviceMesh(self.device_type, list(range(self.world_size)))
+
+    def init_pg(self, eager_init) -> None:
+        if "nccl" in self.backend and torch.cuda.device_count() < self.world_size:
+            sys.exit(TEST_SKIPS[f"multi-gpu-{self.world_size}"].exit_code)
+
+        if self.backend not in [
+            "nccl",
+            "gloo",
+            "mpi",
+            "cpu:gloo,cuda:nccl",
+            "hccl",
+            "xccl",
+        ]:
+            raise RuntimeError(f"Backend {self.backend} not supported!")
+
+        device_id = None
+        if "nccl" in self.backend or "xccl" in self.backend:
+            # set device for nccl pg for collectives
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.accelerator.set_device_index(self.rank)
             # we only need to set device_id for nccl backend with eager init
             device_id = (
                 torch.device(f"{self.device_type}:{self.rank}") if eager_init else None
             )
+<<<<<<< HEAD
 
         # For nccl backend, bind the device to the process if device_id is not None
         # so the nccl communicator is immediately formed and we can use `ncclCommSplit`
         # for form subgroup to avoid unnecessary overhead.
         dist.init_process_group(
             backend=backend,
+=======
+        # For nccl backend, bind the device to the process if device_id is not None
+        # so the nccl communicator is immediately formed and we can use `ncclCommSplit`
+        # for form subgroup to avoid unnecesssary overhead.
+        dist.init_process_group(
+            backend=self.backend,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             world_size=self.world_size,
             rank=self.rank,  # pyre-ignore[16]
             init_method=f"file://{self.file_name}",  # pyre-ignore[16]
@@ -446,6 +528,7 @@ class DTensorTestBase(MultiProcessTestCase):
             device_id = (
                 torch.cuda.current_device() if self.device_type == "cuda" else self.rank
             )
+<<<<<<< HEAD
 
         if self.device_type == "cpu":
             # NOTE: when `device_id` is not None, barrier() will choose the accelerator
@@ -458,12 +541,16 @@ class DTensorTestBase(MultiProcessTestCase):
         else:
             dist.barrier(device_ids=[device_id])
 
+=======
+        dist.barrier(device_ids=[device_id])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dist.destroy_process_group()
 
     def setUp(self) -> None:
         super().setUp()
         self._spawn_processes()
 
+<<<<<<< HEAD
     def _test_op_on_dtensor(self, op_call, *args, **kwargs) -> None:
         """
         This function checks ``op_call(dtensor).full_tensor() == op_call(dtensor.full_tensor())``.
@@ -490,6 +577,8 @@ class DTensorTestBase(MultiProcessTestCase):
         d_out_full_tensor_flattened = [dt.full_tensor() for dt in d_out_flattened]
         self.assertEqual(out_flattened, d_out_full_tensor_flattened)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # pyre-ignore[2]:
     def _test_op(self, mesh: DeviceMesh, op_call, *args, **kwargs) -> None:
         out = op_call(*args, **kwargs)
@@ -508,6 +597,7 @@ TestFunc = Callable[[...], object]
 
 
 # wrapper to initialize comms (processgroup)
+<<<<<<< HEAD
 def with_comms(
     eager_init: Union[TestFunc, bool] = False, backend: Optional[str] = None
 ) -> TestFunc:
@@ -519,6 +609,15 @@ def with_comms(
             **kwargs: dict[str, Any],  # type: ignore[misc]
         ) -> None:
             self.init_pg(eager_init, backend)
+=======
+def with_comms(eager_init: Union[TestFunc, bool] = False) -> TestFunc:
+    def decorator(func, eager_init: bool = False):
+        @wraps(func)  # pyre-ignore[6]
+        def wrapper(
+            self, *args: tuple[object], **kwargs: dict[str, Any]  # type: ignore[misc]
+        ) -> None:
+            self.init_pg(eager_init)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             try:
                 func(self, *args, **kwargs)  # type: ignore[misc]
@@ -533,7 +632,11 @@ def with_comms(
     return (
         decorator(func=eager_init)
         if callable(eager_init)
+<<<<<<< HEAD
         else partial(decorator, eager_init=eager_init, backend=backend)
+=======
+        else partial(decorator, eager_init=eager_init)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -547,7 +650,11 @@ class DTensorOpTestBase(MultiThreadedTestCase):
         return DEVICE_TYPE
 
     def build_device_mesh(self):
+<<<<<<< HEAD
         return init_device_mesh(self.device_type, (self.world_size,))
+=======
+        return DeviceMesh(self.device_type, list(range(self.world_size)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def setUp(self) -> None:
         super().setUp()
@@ -678,7 +785,11 @@ class DTensorConverter:
     def to_dist_tensor(
         self, t: torch.Tensor, mesh: DeviceMesh, placements: list[Placement]
     ) -> torch.Tensor:
+<<<<<<< HEAD
         if type(t) is torch.Tensor or type(t) is nn.Parameter or type(t) is LocalTensor:
+=======
+        if type(t) is torch.Tensor or type(t) is nn.Parameter:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if self.is_supported_tensor(t):
                 self.hit += 1
                 if t.ndim == 0:
@@ -687,7 +798,11 @@ class DTensorConverter:
                 else:
                     # distribute non-scalar tensors
                     r = distribute_tensor(t, mesh, placements)
+<<<<<<< HEAD
                 if isinstance(t, nn.Parameter):
+=======
+                if type(t) is nn.Parameter:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     r = nn.Parameter(  # type: ignore[assignment]
                         r, requires_grad=r.requires_grad
                     )
@@ -704,6 +819,7 @@ class DTensorConverter:
             return t
         else:
             raise RuntimeError(f"Trying to convert to DTensor, but got {type(t)}")
+<<<<<<< HEAD
 
 
 class LocalDTensorTestBase(DTensorTestBase):
@@ -818,3 +934,5 @@ def map_local_tensor_for_rank(tensor, rank, func):
 @maybe_run_for_local_tensor
 def map_local_for_rank(rank, func):
     return func(rank)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

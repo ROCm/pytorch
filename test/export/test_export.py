@@ -1,14 +1,20 @@
 # Owner(s): ["oncall: export"]
 # ruff: noqa: F841
 # flake8: noqa
+<<<<<<< HEAD
 import contextlib
 import copy
 import dataclasses
 import enum
+=======
+import copy
+import dataclasses
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import logging
 import math
 import operator
+<<<<<<< HEAD
 import os
 import re
 import traceback
@@ -16,6 +22,12 @@ import unittest
 import warnings
 import weakref
 from contextlib import contextmanager, nullcontext
+=======
+import re
+import unittest
+import warnings
+from contextlib import contextmanager
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from re import escape
 from typing import Dict, List, Union
@@ -23,16 +35,25 @@ from unittest.mock import MagicMock, patch
 
 import torch
 import torch._dynamo as torchdynamo
+<<<<<<< HEAD
 import torch.fx.traceback as fx_traceback
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.nn.functional as F
 import torch.utils._pytree as pytree
 from functorch.experimental.control_flow import cond, map
 from torch import Tensor
+<<<<<<< HEAD
 from torch._decomp import decomposition_table, get_decompositions
 from torch._dynamo._trace_wrapped_higher_order_op import mod_index
 from torch._dynamo.test_case import TestCase
 from torch._dynamo.testing import normalize_gm
 from torch._export import config
+=======
+from torch._decomp import decomposition_table
+from torch._dynamo.test_case import TestCase
+from torch._dynamo.testing import normalize_gm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.pass_base import _ExportPassBaseDeprecatedDoNotUse
 from torch._export.utils import (
     get_buffer,
@@ -41,6 +62,7 @@ from torch._export.utils import (
     is_param,
     register_dataclass_as_pytree_node,
 )
+<<<<<<< HEAD
 from torch._functorch.aot_autograd import aot_export_joint_with_descriptors
 from torch._higher_order_ops.associative_scan import associative_scan
 from torch._higher_order_ops.hints_wrap import hints_wrapper
@@ -49,6 +71,20 @@ from torch._higher_order_ops.while_loop import while_loop
 from torch._inductor.compile_fx import split_const_gm
 from torch._subclasses import FakeTensorMode
 from torch.export import default_decompositions, Dim, export, unflatten
+=======
+from torch._higher_order_ops.associative_scan import associative_scan
+from torch._higher_order_ops.hints_wrap import hints_wrapper
+from torch._higher_order_ops.scan import scan
+from torch._inductor.compile_fx import split_const_gm
+from torch._subclasses import FakeTensorMode
+from torch.export import (
+    default_decompositions,
+    Dim,
+    export,
+    export_for_training,
+    unflatten,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.export._trace import (
     _export,
     _export_to_torch_ir,
@@ -61,7 +97,10 @@ from torch.export.graph_signature import (
     OutputSpec,
     TensorArgument,
 )
+<<<<<<< HEAD
 from torch.export.passes import move_to_device_pass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.fx.experimental.symbolic_shapes import ShapeEnv
 from torch.testing import FileCheck
@@ -88,16 +127,26 @@ from torch.testing._internal.custom_tensor import (
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 from torch.testing._internal.torchbind_impls import load_torchbind_test_lib
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton, requires_gpu
 from torch.testing._internal.two_tensor import TwoTensor
 from torch.utils._pytree import (
+=======
+from torch.testing._internal.triton_utils import requires_cuda, requires_gpu
+from torch.testing._internal.two_tensor import TwoTensor
+from torch.utils._pytree import (
+    LeafSpec,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     register_constant,
     tree_flatten,
     tree_map,
     tree_unflatten,
     TreeSpec,
     treespec_dumps,
+<<<<<<< HEAD
     treespec_leaf,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     treespec_loads,
 )
 
@@ -109,7 +158,11 @@ if HAS_GPU:
     from torch._library import capture_triton
 
 try:
+<<<<<<< HEAD
     from torchrec.sparse.jagged_tensor import JaggedTensor, KeyedJaggedTensor
+=======
+    from torchrec.sparse.jagged_tensor import KeyedJaggedTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     HAS_TORCHREC = True
 except ImportError:
@@ -149,7 +202,11 @@ torch.library.define(
 
 
 @torch.library.impl("testlib::returns_tensor_symint", "cpu")
+<<<<<<< HEAD
 @torch.library.register_fake("testlib::returns_tensor_symint")
+=======
+@torch.library.impl_abstract("testlib::returns_tensor_symint")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def returns_tensor_symint_impl(x):
     return x, x.shape[0]
 
@@ -162,7 +219,11 @@ def foo_impl(x, z):
     return x, z, x + z
 
 
+<<<<<<< HEAD
 @torch.library.register_fake("testlib::foo")
+=======
+@torch.library.impl_abstract("testlib::foo")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def foo_abstract(x, z):
     return x, z, x + z
 
@@ -220,12 +281,16 @@ TRAINING_IR_DECOMP_STRICT_SUFFIX = "_training_ir_to_decomp_strict"
 TRAINING_IR_DECOMP_NON_STRICT_SUFFIX = "_training_ir_to_decomp_nonstrict"
 CPP_RUNTIME_STRICT_SUFFIX = "_cpp_runtime_strict"
 CPP_RUNTIME_NONSTRICT_SUFFIX = "_cpp_runtime_nonstrict"
+<<<<<<< HEAD
 STRICT_EXPORT_V2_SUFFIX = "_strict_export_v2"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Now default mode is non strict, so original unammended test names
 # should be treated as non-strict
 def is_non_strict_test(test_name):
+<<<<<<< HEAD
     return not test_name.endswith(STRICT_SUFFIX) and not test_name.endswith(
         STRICT_EXPORT_V2_SUFFIX
     )
@@ -237,6 +302,9 @@ def is_strict_test(test_name):
 
 def is_strict_v2_test(test_name):
     return test_name.endswith(STRICT_EXPORT_V2_SUFFIX)
+=======
+    return not test_name.endswith(STRICT_SUFFIX)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def is_inline_and_install_strict_test(test_name: str) -> bool:
@@ -265,10 +333,13 @@ def is_training_ir_test(test_name):
     )
 
 
+<<<<<<< HEAD
 def is_training_ir_strict_test(test_name):
     return test_name.endswith(TRAINING_IR_DECOMP_STRICT_SUFFIX)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_cpp_runtime_test(test_name):
     return test_name.endswith(CPP_RUNTIME_STRICT_SUFFIX) or test_name.endswith(
         CPP_RUNTIME_NONSTRICT_SUFFIX
@@ -290,6 +361,10 @@ class TestDynamismExpression(TestCase):
         class Module(torch.nn.Module):
             def forward(self, x):
                 b = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.full((b, 1), 1)
 
         f = Module()
@@ -338,6 +413,7 @@ class TestDynamismExpression(TestCase):
             dynamic_shapes=dynamic_shapes,
         )
 
+<<<<<<< HEAD
     def test_no_grad_param_inplace(self):
         class Foo(torch.nn.Module):
             def __init__(self):
@@ -384,10 +460,16 @@ graph():
 
         self.assertTrue(torch.allclose(res, res_export))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_slice_unbacked_dim1(self):
         class MySlice(torch.nn.Module):
             def forward(self, x, seq_len):
                 l = seq_len.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(l, max=x.size(1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 x = x.narrow(1, 0, l)
                 return x
 
@@ -416,6 +498,10 @@ graph():
         class ConflictingConstraints(torch.nn.Module):
             def forward(self, x):
                 b = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(b >= 4)
                 torch._check(b <= 5)
                 torch._check(b <= 5)
@@ -525,6 +611,7 @@ class TestExport(TestCase):
         # )
 
     def _check_dynamic_shapes_specs_and_shapes(
+<<<<<<< HEAD
         self,
         model,
         inputs,
@@ -532,6 +619,9 @@ class TestExport(TestCase):
         passing_shapes,
         failing_shapes,
         test_serdes=False,
+=======
+        self, model, inputs, specs, passing_shapes, failing_shapes, test_serdes=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         from torch._export.serde.dynamic_shapes import (
             _dump_dynamic_shapes,
@@ -556,7 +646,11 @@ class TestExport(TestCase):
             eps = [ep]
             if test_serdes:
                 # test dynamic shapes serialization
+<<<<<<< HEAD
                 # test that behavior remains the same when exporting with Ser/Des specs:
+=======
+                # test that behavior remains the same when exporting with ser/des specs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # serialize + deserialize original specs, and export.
                 ep_serdes = export(
                     model,
@@ -573,7 +667,11 @@ class TestExport(TestCase):
                     ep.module()(*test_inputs)
                 for shapes in failing_shapes:
                     test_inputs = _construct_inputs(shapes)
+<<<<<<< HEAD
                     with self.assertRaisesRegex(AssertionError, "Guard failed"):
+=======
+                    with self.assertRaises(RuntimeError):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ep.module()(*test_inputs)
 
     def test_basic(self):
@@ -628,6 +726,7 @@ class TestExport(TestCase):
 
         self.assertEqual(counter, 1)
 
+<<<<<<< HEAD
     @testing.expectedFailureSerDer  # can't serialize functorch ops
     @testing.expectedFailureSerDerNonStrict  # can't serialize functorch ops
     def test_vmap_to_assert(self):
@@ -644,6 +743,8 @@ class TestExport(TestCase):
         eager = VmapToAssert()(torch.ones(4, 4, 4, 4), torch.ones(4, 4, 4, 4))
         self.assertEqual(exported, eager)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_from_node_metadata_export(self):
         class Foo(torch.nn.Module):
             def __init__(self) -> None:
@@ -662,6 +763,7 @@ class TestExport(TestCase):
 
         f = Foo()
         inputs = (torch.randn(1, 3, 5, 5),)
+<<<<<<< HEAD
         ep = export(f, inputs)
         graph_id = id(ep.graph)
         gm = ep.module()
@@ -669,6 +771,13 @@ class TestExport(TestCase):
 
         for node in gm.graph.nodes:
             if node.op in ("placeholder", "output", "call_module"):
+=======
+        gm = export(f, inputs).module()
+        from torch.fx.traceback import NodeSourceAction
+
+        for node in gm.graph.nodes:
+            if node.op in ("placeholder", "output"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
             if "weight" in node.name or "bias" in node.name:
                 self.assertTrue(
@@ -679,9 +788,12 @@ class TestExport(TestCase):
                     node.meta["from_node"][-1].action
                     == [NodeSourceAction.CREATE, NodeSourceAction.REPLACE]
                 )
+<<<<<<< HEAD
                 self.assertEqual(
                     node.meta["from_node"][-1].from_node[-1].graph_id, graph_id
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 self.assertTrue(
                     node.meta["from_node"][-1].pass_name == "ExportedProgram.module()"
@@ -689,6 +801,7 @@ class TestExport(TestCase):
                 self.assertTrue(
                     node.meta["from_node"][-1].action == [NodeSourceAction.CREATE]
                 )
+<<<<<<< HEAD
                 self.assertEqual(node.meta["from_node"][-1].graph_id, graph_id)
 
         ## re-export
@@ -700,6 +813,15 @@ class TestExport(TestCase):
             if node.op in ("placeholder", "output", "call_module"):
                 continue
 
+=======
+
+        ## re-export
+        gm2 = export(gm, inputs).module()
+
+        for node in gm2.graph.nodes:
+            if node.op in ("placeholder", "output"):
+                continue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if "weight" in node.name or "bias" in node.name:
                 self.assertTrue(
                     node.meta["from_node"][-1].pass_name
@@ -709,9 +831,12 @@ class TestExport(TestCase):
                     node.meta["from_node"][-1].action
                     == [NodeSourceAction.CREATE, NodeSourceAction.REPLACE]
                 )
+<<<<<<< HEAD
                 self.assertEqual(
                     node.meta["from_node"][-1].from_node[-1].graph_id, graph_id
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 self.assertTrue(
                     node.meta["from_node"][-1].pass_name == "ExportedProgram.module()"
@@ -719,6 +844,7 @@ class TestExport(TestCase):
                 self.assertTrue(
                     node.meta["from_node"][-1].action == [NodeSourceAction.CREATE]
                 )
+<<<<<<< HEAD
                 self.assertEqual(node.meta["from_node"][-1].graph_id, graph_id)
 
     @requires_gpu
@@ -962,6 +1088,8 @@ graph():
     %add_2 : [num_users=1] = call_function[target=torch.ops.aten.add.Tensor](args = (%x, %add_1), kwargs = {})
     return (add_2,)""",
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_bincount(self):
         class M(torch.nn.Module):
@@ -975,7 +1103,11 @@ graph():
 
         model = M()
         ep = export(model, (torch.randint(0, 8, (5,), dtype=torch.int64),))
+<<<<<<< HEAD
 
+=======
+        print(ep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inp = torch.randint(0, 8, (5,), dtype=torch.int64)
         self.assertTrue(torch.allclose(ep.module()(inp), M()(inp)))
 
@@ -1032,6 +1164,7 @@ graph():
         # instead of the scripted function, so we get x.sin()
         self.assertEqual(res, x.sin())
 
+<<<<<<< HEAD
     def test_nested_module_fake_tensor_leak(self):
         class Bar(torch.nn.Module):
             def __init__(self):
@@ -1120,6 +1253,8 @@ graph():
                     MyModel(), (torch.randn(1, 3, 5),), strict=False
                 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_inline_script_class_method(self):
         class M(torch.nn.Module):
             @staticmethod
@@ -1145,6 +1280,7 @@ graph():
         # instead of the scripted function, so we get x.sin()
         self.assertEqual(res, x.sin())
 
+<<<<<<< HEAD
     def test_tag_ac_export(self):
         ops_to_save = [torch.ops.aten.addmm.default]
 
@@ -1254,6 +1390,8 @@ def forward(self, primals, tangents):
     return pytree.tree_unflatten([addmm_1, t_9, view_1, t_5, view, mm_2], self._out_spec)""",
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_inline_script_class_method_recursive(self):
         f = 0.4
         i = 2
@@ -1399,8 +1537,12 @@ graph():
             """\
 graph():
     %lifted_tensor_0 : [num_users=1] = get_attr[target=lifted_tensor_0]
+<<<<<<< HEAD
     %x : [num_users=2] = placeholder[target=x]
     %_guards_fn : [num_users=0] = call_module[target=_guards_fn](args = (%x,), kwargs = {})
+=======
+    %x : [num_users=1] = placeholder[target=x]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     %add : [num_users=1] = call_function[target=torch.ops.aten.add.Tensor](args = (%x, %lifted_tensor_0), kwargs = {})
     return (add,)""",
         )
@@ -1452,6 +1594,10 @@ graph():
         ep = export(f, args, strict=False)
         self.assertEqual(ep.module()(*args), f(*args))
 
+<<<<<<< HEAD
+=======
+    @testing.expectedFailureCppSerDes  # Cpp serder seems to fail parsing complicated guards
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_statically_known_true(self):
         class Foo(torch.nn.Module):
             def forward(self, x, y):
@@ -1464,6 +1610,7 @@ graph():
             (torch.export.Dim.DYNAMIC, torch.export.Dim.DYNAMIC),
         )
 
+<<<<<<< HEAD
         m = Foo()
         inp = (torch.randn(4, 4), torch.randn(4, 4))
         ep = export(
@@ -1476,6 +1623,15 @@ graph():
         self.assertTrue(torch.allclose(ep.module()(*inp), m(*inp)))
 
         FileCheck().check_count("torch.ops.aten.slice.Tensor", 1, exactly=True).run(
+=======
+        ep = export(
+            Foo(),
+            (torch.randn(4, 4), torch.randn(4, 4)),
+            dynamic_shapes=dynamic_shapes,
+            strict=False,
+        )
+        FileCheck().check_count("torch.ops.aten.slice.Tensor", 2, exactly=True).run(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             str(ep.graph)
         )
         FileCheck().check_count("operator.sub", 1, exactly=True).run(str(ep.graph))
@@ -1521,7 +1677,11 @@ graph():
         args = (torch.randn(15, 3, 256, 256), torch.ones(15, 32, 256, 256))
         self.assertEqual(exported_program.module()(*args), m(*args))
 
+<<<<<<< HEAD
         gm: torch.fx.GraphModule = torch.export.export(
+=======
+        gm: torch.fx.GraphModule = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             m, args=example_args, dynamic_shapes=dynamic_shapes
         ).module()
 
@@ -1530,6 +1690,7 @@ graph():
         args = (torch.randn(15, 3, 256, 256), torch.ones(15, 32, 256, 256))
         self.assertEqual(gm(*args), m(*args))
 
+<<<<<<< HEAD
     # stride() is called for an undefined tensor
     @testing.expectedFailureCppRuntimeNonStrict
     def test_native_multi_attention_head(self):
@@ -1617,6 +1778,8 @@ graph():
                     )
                     self.assertEqual(ep.module()(*sample_input), npt(*sample_input))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_unused_constant(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -1626,6 +1789,7 @@ graph():
         ep = export(M(), (torch.ones(3),))
         self.assertEqual(len(ep.constants), 0)
 
+<<<<<<< HEAD
         class M(torch.nn.Module):
             def __init__(self, num_features: int = 1) -> None:
                 super().__init__()
@@ -1644,6 +1808,8 @@ graph():
         unf = unflatten(ep)
         self.assertTrue(torch.allclose(M()(inp)[0], unf(inp)[0]))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_unbacked_bincount(self):
         class Foo(torch.nn.Module):
             def forward(self, xs):
@@ -1897,6 +2063,7 @@ graph():
         for vr_upper in vr_upper_bounds:
             self.assertEqual(vr_upper, 1)
 
+<<<<<<< HEAD
     def test_detect_leak_strict(self):
         class Foo(torch.nn.Module):
             def __init__(self):
@@ -1942,6 +2109,8 @@ graph():
         ):
             ref(torch.randn(4, 4), torch.randn(4, 4))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_mask_nonzero_static(self):
         class TestModule(torch.nn.Module):
             def forward(self, seq_embeddings, mask, exp):
@@ -1999,6 +2168,7 @@ graph():
             ep = export(m, (x, y))
         self.assertEqual(ep.module()(x, y), m(x, y))
 
+<<<<<<< HEAD
     def test_subclass_context(self):
         class Foo(torch.nn.Module):
             def forward(self, x):
@@ -2032,6 +2202,8 @@ graph():
             ):
                 ep.module()(input_test)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_basic_non_strict_real_tensor(self):
         class Basic(torch.nn.Module):
             def __init__(self) -> None:
@@ -2046,6 +2218,7 @@ graph():
         ep = export(f, args, strict=False)
         self.assertEqual(ep.module()(*args), f(*args))
 
+<<<<<<< HEAD
     def test_where_decomp(self):
         class TestModule(torch.nn.Module):
             def __init__(self):
@@ -2080,6 +2253,8 @@ graph():
             dynamic_shapes=auto_dynamic_shapes_from_args(sample_input),
         ).run_decompositions({})
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_basic_non_strict_fake_tensor(self):
         class Basic(torch.nn.Module):
             def __init__(self) -> None:
@@ -2139,11 +2314,15 @@ graph():
             {"a": torch.zeros(5), "b": torch.ones(5)},
             torch.ones(4),
         )
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: ys[0].size()[0] == x.size()[0]"),
         ):
             # expected 6, but got 5
+=======
+        with self.assertRaisesRegex(RuntimeError, "to be equal to 6, but got 5"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep_ns.module()(*bad_runtime_inp1)
 
         bad_runtime_inp2 = (
@@ -2153,10 +2332,16 @@ graph():
             torch.ones(6),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: c.size()[0] == 4"),
         ):
             # expected 4, but got 6
+=======
+            RuntimeError,
+            escape("Expected input at *args[3].shape[0] to be equal to 4, but got 6"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep_ns.module()(*bad_runtime_inp2)
 
         good_runtime_inp = (
@@ -2284,9 +2469,12 @@ graph():
         torch.export.export(M(), (torch.randn(7),), strict=strict)
 
     def test_cond_branches_return_constant_int(self):
+<<<<<<< HEAD
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def forward(self, x):
                 idx = torch.cond(x.sum() > 3, lambda: 0, lambda: 1, tuple())
@@ -2304,8 +2492,11 @@ class GraphModule(torch.nn.Module):
         x: "f32[3, 3]";
 
         x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(x);  _guards_fn = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sum_1: "f32[]" = torch.ops.aten.sum.default(x)
         gt: "b8[]" = torch.ops.aten.gt.Scalar(sum_1, 3);  sum_1 = None
 
@@ -2334,6 +2525,7 @@ class GraphModule(torch.nn.Module):
             )
         self.assertEqual(m(*args), ep.module()(*args))
 
+<<<<<<< HEAD
     @testing.expectedFailureCppRuntimeNonStrict
     def test_cond_access_identical_symint_closure(self):
         class Example2(torch.nn.Module):
@@ -2358,6 +2550,8 @@ class GraphModule(torch.nn.Module):
             )
         self.assertEqual(m(*args), ep.module()(*args))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cond_branches_return_same_int(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -2381,8 +2575,11 @@ class GraphModule(torch.nn.Module):
         x: "f32[3, 3]";
 
         x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
         _guards_fn = self._guards_fn(x);  _guards_fn = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sum_1: "f32[]" = torch.ops.aten.sum.default(x)
         gt: "b8[]" = torch.ops.aten.gt.Scalar(sum_1, 3);  sum_1 = None
 
@@ -2486,8 +2683,13 @@ class GraphModule(torch.nn.Module):
                 # z = 3
                 return x + y + z
 
+<<<<<<< HEAD
         with self.assertWarnsRegex(
             UserWarning,
+=======
+        with self.assertRaisesRegex(
+            ValueError,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "The tensor attribute self.buf was assigned during export",
         ):
             export(M(), (torch.randn(2, 3),), strict=False)
@@ -2544,12 +2746,18 @@ class GraphModule(torch.nn.Module):
                 # z = 3 + 3
                 return x + y + z
 
+<<<<<<< HEAD
         with self.assertWarnsRegex(
             UserWarning,
+=======
+        with self.assertRaisesRegex(
+            ValueError,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "The tensor attributes self.tensors\\[0\\], self.tensors\\[1\\] were assigned during export",
         ):
             export(M(), (torch.randn(2, 3),), strict=False)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_while_loop_tensor_constant_idx(self):
         def while_loop_decomp(x, y0):
@@ -2582,6 +2790,8 @@ class GraphModule(torch.nn.Module):
         out = ep.module()(x, y0)
         self.assertEqual(exp_out, out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_malformed_fqn_from_source_name(self):
         # See https://github.com/pytorch/pytorch/issues/141939
         from types import MethodType
@@ -2640,11 +2850,16 @@ class GraphModule(torch.nn.Module):
         for problem in [Problem1, Problem2]:
             m = problem()
             m(torch.rand(64, 64))
+<<<<<<< HEAD
             # simplified torch.distributed.pipeline code
+=======
+            # simpified torch.distributed.pipeline code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             annotate_split_points(m, {"blocks.1": 1, "blocks.3": 1})
             gm = export(m, (torch.rand(64, 64),))
             torch.export.unflatten(gm)
 
+<<<<<<< HEAD
     def test_unflatten_closure(self):
         class Dummy(torch.nn.Module):
             def forward(self, fn, x):
@@ -2693,6 +2908,8 @@ def forward(self, add):
     return add_5""",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_state_primitives(self):
         class M(torch.nn.Module):
             def __init__(self) -> None:
@@ -3067,9 +3284,12 @@ def forward(self, x, y):
                 ep = export(model, inputs)
 
     def test_subclasses_parameterization(self):
+<<<<<<< HEAD
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Foo(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -3086,7 +3306,11 @@ def forward(self, x, y):
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
 
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,))
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3122,7 +3346,10 @@ graph():
 
         self.assertEqual(res, ref_out)
 
+<<<<<<< HEAD
     @testing.expectedFailureCppRuntimeNonStrict
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_subclasses_parameterization_nested(self):
         class Foo(torch.nn.Module):
             def __init__(self):
@@ -3149,7 +3376,11 @@ graph():
         ref_x = torch.randn(2, 2)
         ref_out = m(ref_x)
 
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3195,6 +3426,7 @@ graph():
         res = ep.module()(ref_x)
         self.assertEqual(res, ref_out)
 
+<<<<<<< HEAD
     @testing.expectedFailureSerDer  # can't serialize functorch ops
     @testing.expectedFailureSerDerNonStrict  # can't serialize functorch ops
     @testing.expectedFailureCppRuntime
@@ -3256,6 +3488,8 @@ graph():
 
     @testing.expectedFailureLegacyExportNonStrict  # Old export doesn't work with subclasses
     @testing.expectedFailureLegacyExportStrict  # Old export doesn't work with subclasses
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_subclass_nested_attr_access(self):
         class Foo(torch.nn.Module):
             def __init__(self):
@@ -3281,7 +3515,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(torch.allclose(ep_training.module()(ref_x), ref_out))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
@@ -3336,7 +3574,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3376,7 +3618,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3414,7 +3660,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3453,7 +3703,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3493,7 +3747,11 @@ graph():
         m = Foo()
         ref_x = torch.randn(3, 4)
         ref_out = m(ref_x)
+<<<<<<< HEAD
         ep_training = torch.export.export(m, (ref_x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(m, (ref_x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_training.graph).strip(),
             """\
@@ -3575,6 +3833,10 @@ graph():
                     sample_input = _tensor(nz=nz)
                     ep = export(mod, (sample_input,), strict=False)
                     self.assertEqual(ep.module()(sample_input), nz)
+<<<<<<< HEAD
+=======
+                    print(ep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_export_script_module(self):
         class Foo(torch.nn.Module):
@@ -3647,6 +3909,7 @@ graph():
         ):
             export(Foo(), inputs, dynamic_shapes=shapes)
 
+<<<<<<< HEAD
     def test_issue_157289(self):
         class MyModule(torch.nn.Module):
             def __init__(self):
@@ -3693,6 +3956,8 @@ def forward(self, causal_mask, fill_value):
     return (slice_scatter,)""",
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dim_dynamic_specialization(self):
         class Foo(torch.nn.Module):
             def forward(self, x):
@@ -3736,6 +4001,7 @@ def forward(self, causal_mask, fill_value):
                 },
             )
 
+<<<<<<< HEAD
     def test_unbacked_slice_forward(self):
         class Foo(torch.nn.Module):
             def forward(self, x, xs):
@@ -3762,6 +4028,8 @@ def forward(self, causal_mask, fill_value):
             bound_unbacked |= node.meta.get("unbacked_bindings", {}).keys()
         self.assertEqual(len(bound_unbacked), 4)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dim_hint_ranges(self):
         class Foo(torch.nn.Module):
             def forward(self, x, y):
@@ -3778,6 +4046,7 @@ def forward(self, causal_mask, fill_value):
         ep = export(Foo(), inputs, dynamic_shapes=shapes)
         ep.module()(torch.randn(8, 5), torch.randn(8, 5))
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[0] >= 4"),
         ):
@@ -3794,6 +4063,18 @@ def forward(self, causal_mask, fill_value):
             escape("Guard failed: x.size()[1] <= 32"),
         ):
             # expected <= 32, but got 33
+=======
+            RuntimeError, "Expected input at .* to be >= 4, but got 3"
+        ):
+            ep.module()(torch.randn(3, 5), torch.randn(3, 5))
+        with self.assertRaisesRegex(
+            RuntimeError, "Expected input at .* to be <= 16, but got 17"
+        ):
+            ep.module()(torch.randn(17, 5), torch.randn(17, 5))
+        with self.assertRaisesRegex(
+            RuntimeError, "Expected input at .* to be <= 32, but got 33"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(9, 33), torch.randn(9, 33))
 
     def test_dim_hint_range_violations(self):
@@ -3955,7 +4236,11 @@ def forward(self, causal_mask, fill_value):
     def test_export_custom_op_lib(self):
         ops_registered_before = set(torch.ops.mylib)
 
+<<<<<<< HEAD
         # Assert warning for CompositeImplicitAutograd op
+=======
+        # Assert warning for CompositeImplictAutograd op
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with torch.library._scoped_library("mylib", "FRAGMENT") as lib:
             lib.define("foo123(Tensor x) -> Tensor")
             lib.impl("foo123", lambda x: x.sin(), "CompositeImplicitAutograd")
@@ -4048,12 +4333,20 @@ def forward(self, p_linear_weight, p_linear_bias, x):
 
         actual_torch_fns = []
         for mod in gm.modules():
+<<<<<<< HEAD
             if hasattr(mod, "graph"):
                 for node in mod.graph.nodes:
                     if node.name in {"sin", "cos"}:
                         torch_fn = node.meta.get("torch_fn")
                         print(torch_fn)
                         actual_torch_fns.append(torch_fn)
+=======
+            for node in mod.graph.nodes:
+                if node.name in {"sin", "cos"}:
+                    torch_fn = node.meta.get("torch_fn")
+                    print(torch_fn)
+                    actual_torch_fns.append(torch_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         exp_torch_fns = [
             ("cos_1", "method_descriptor.cos"),
             ("sin_1", "method_descriptor.sin"),
@@ -4226,10 +4519,16 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimx}, {0: dimy}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[0] == -1 + y.size()[0]"),
         ):
             # expected 5, but got 6
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 5, but got 6",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(4), torch.randn(6))
 
         self.assertEqual(ep.module()(torch.randn(4), torch.randn(5)).size()[0], 4)
@@ -4288,6 +4587,7 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimz}, {0: dimy}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: z.size()[0] <= 7"),
         ):
@@ -4298,6 +4598,15 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             escape("Guard failed: -1 + 2 * z.size()[0] == y.size()[0]"),
         ):
             # expected 9, but got 8
+=======
+            RuntimeError, "Expected input.*shape.*to be <= 7, but got 8"
+        ):
+            ep.module()(torch.randn(8), torch.randn(15))
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 9, but got 8",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(5), torch.randn(8))
 
         self.assertEqual(ep.module()(torch.randn(5), torch.randn(9)).size()[0], 4)
@@ -4333,18 +4642,31 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimw},),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: w.size()[0] % 2 == 0"),
         ):
             # expected 2*..., got 9
+=======
+            RuntimeError,
+            "Expected input.*shape.*= 9 to be "
+            "of the form 2\\*s92, where s92 is an integer",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(9))
 
         self.assertEqual(ep.module()(torch.randn(8)).size()[0], 4)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: w.size()[0] <= 12"),
         ):
             # expected <= 12, but got 14
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be <= 12, but got 14",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(14))
 
     def test_derived_dim_repeat_derived(self):
@@ -4382,10 +4704,16 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimx}, {0: dimy}, {0: dimz}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: z.size()[0] >= 6"),
         ):
             # expected 8, but got 5
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 8, but got 5",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(6), torch.randn(7), torch.randn(5))
 
         self.assertEqual(
@@ -4418,10 +4746,16 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimx}, {0: dimy}, {0: dimz}, {0: dimx1}, {0: dimx2}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x2.size()[0] == x.size()[0]"),
         ):
             # expected 6, but got 5
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 6, but got 5",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(
                 torch.randn(6),
                 torch.randn(7),
@@ -4447,10 +4781,16 @@ def forward(self, p_linear_weight, p_linear_bias, x):
             dynamic_shapes=({0: dimx}, {0: dimy}, {0: dimz}, {0: dimx1}, {0: dimx2}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x2.size()[0] == x.size()[0]"),
         ):
             # expected 6, but got 5
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 6, but got 5",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(
                 torch.randn(6),
                 torch.randn(7),
@@ -4638,7 +4978,11 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
                 x_linear = self.linear(x_conv)
                 return x_linear.cos() + y_conv_1d.sum()
 
+<<<<<<< HEAD
         ep = torch.export.export(
+=======
+        ep = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Foo(), (torch.randn(20, 16, 50, 100), torch.randn(20, 16, 50))
         )
 
@@ -4837,6 +5181,7 @@ def forward(self, x):
         inp = torch.randn(3, 3)
         self.assertTrue(torch.allclose(ep.module()(inp)[0], inp + 1))
 
+<<<<<<< HEAD
     def test_set_grad_as_side_effect(self):
         class Foo(torch.nn.Module):
             def forward(self, x):
@@ -4848,6 +5193,8 @@ def forward(self, x):
         after = torch.is_grad_enabled()
         self.assertEqual(before, after)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_derived_dim_out_of_order_simplified(self):
         _dimz = torch.export.Dim("_dimz", min=6, max=8)
         dimy = _dimz - 1
@@ -4886,10 +5233,16 @@ def forward(self, x):
             dynamic_shapes=({0: dimx}, {0: dimy}, {0: dimz}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: z.size()[0] >= 6"),
         ):
             # expected 8, but got 5
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 8, but got 5",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(6), torch.randn(7), torch.randn(5))
 
         self.assertEqual(
@@ -4906,7 +5259,13 @@ def forward(self, x):
                 return self.linear(x)
 
         eager_model = Foo()
+<<<<<<< HEAD
         ep_for_training = torch.export.export(eager_model, (torch.ones(2, 2),))
+=======
+        ep_for_training = torch.export.export_for_training(
+            eager_model, (torch.ones(2, 2),)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_for_training.graph_module.code).strip(),
             """\
@@ -4922,7 +5281,10 @@ def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
     linear_weight = self.linear.weight
     linear_bias = self.linear.bias
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     linear = torch.ops.aten.linear.default(x, linear_weight, linear_bias);  x = linear_weight = linear_bias = None
     return pytree.tree_unflatten((linear,), self._out_spec)""",
         )
@@ -4944,7 +5306,11 @@ def forward(self, x):
 
         eager_model_for_export = Foo()
         eager_model_for_testing = Foo()
+<<<<<<< HEAD
         ep_for_training = torch.export.export(
+=======
+        ep_for_training = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eager_model_for_export, (torch.ones(4, 4),)
         )
         self.assertExpectedInline(
@@ -4963,7 +5329,10 @@ def forward(self, b_buffer, x):
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
     buffer = self.buffer
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add_ = torch.ops.aten.add_.Tensor(x, 5);  x = None
     add__1 = torch.ops.aten.add_.Tensor(buffer, 5);  buffer = None
     add = torch.ops.aten.add.Tensor(add_, add__1);  add_ = add__1 = None
@@ -4990,7 +5359,11 @@ def forward(self, x):
         eager_model_for_export_training = Foo()
         eager_model_for_export_inference = Foo()
         eager_model_for_testing = Foo()
+<<<<<<< HEAD
         ep_for_training = torch.export.export(
+=======
+        ep_for_training = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eager_model_for_export_training,
             (torch.ones(4, 4),),
             dynamic_shapes=({0: Dim("x")},),
@@ -5044,7 +5417,11 @@ def forward(self, x):
                 return x + y + self.buffer.sum()
 
         eager_model = Foo()
+<<<<<<< HEAD
         ep_for_training = torch.export.export(
+=======
+        ep_for_training = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eager_model,
             ([torch.ones(4, 4), torch.ones(4, 4)],),
         )
@@ -5058,6 +5435,7 @@ def forward(self, x):
             )
         )
 
+<<<<<<< HEAD
     def test_function_holding_tensor(self):
         global_storage = []
 
@@ -5202,6 +5580,8 @@ def forward(self, x):
             with self.assertWarnsRegex(UserWarning, warn_re):
                 ep = export(lc, (torch.randn(4, 4), torch.randn(4, 4)), strict=False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_for_training_run_decomp(self):
         class Foo(torch.nn.Module):
             def __init__(self) -> None:
@@ -5214,7 +5594,11 @@ def forward(self, x):
                 return self.linear(x) + self.buffer.sum()
 
         eager_model = Foo()
+<<<<<<< HEAD
         ep_for_training = torch.export.export(
+=======
+        ep_for_training = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             eager_model,
             (torch.ones(2, 2),),
         )
@@ -5249,10 +5633,16 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             dynamic_shapes=({0: dimx}, {0: dimy}, {0: dimy}, {0: dimz}),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y1.size()[0] == y.size()[0]"),
         ):
             # expected 7, but got 5
+=======
+            RuntimeError,
+            "Expected input.*shape.*to be equal to 7, but got 5",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(
                 torch.randn(6),
                 torch.randn(7),
@@ -5304,9 +5694,14 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             ep = export(foo, inputs, dynamic_shapes=dynamic_shapes)
             self.assertEqual(foo(*inputs), ep.module()(*inputs))
             for wrong_inputs in wrong_shape_inputs:
+<<<<<<< HEAD
                 with self.assertRaisesRegex(AssertionError, "Guard failed"):
                     with self.assertRaises(RuntimeError):
                         ep.module()(*wrong_inputs)
+=======
+                with self.assertRaises(RuntimeError):
+                    ep.module()(*wrong_inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # check range_constraints - static dims shouldn't be present
         ep = export(foo, inputs, dynamic_shapes=((dx, None), (dy, 4), (dz, 3)))
@@ -5342,10 +5737,15 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         ep.module()(torch.randn(1, 2))
         ep.module()(torch.randn(2, 2))
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[0] <= 2"),
         ):
             # expected <= 2, but got 3
+=======
+            RuntimeError, "Expected input at .* to be <= 2, but got 3"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.randn(3, 2))
         vr = list(ep.range_constraints.values())[0]
         self.assertEqual(vr.lower, 1)
@@ -5362,17 +5762,22 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             (torch.randn(2, 2), torch.randn(3, 2)),
             dynamic_shapes=({0: dx, 1: None}, {0: dx + 1, 1: None}),
         )
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: -1 + y.size()[0] != 1"),
         ):
             # TODO: this should not error?
             ep.module()(torch.randn(1, 2), torch.randn(2, 2))
+=======
+        ep.module()(torch.randn(1, 2), torch.randn(2, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         range_lower_bounds = sorted(vr.lower for vr in ep.range_constraints.values())
         range_upper_bounds = sorted(vr.upper for vr in ep.range_constraints.values())
         self.assertEqual(range_lower_bounds, [1, 2])
         self.assertEqual(range_upper_bounds, [2, 3])
 
+<<<<<<< HEAD
     def test_issue_161902(self):
         class Add(torch.nn.Module):
             def forward(self, x, y):
@@ -5393,6 +5798,8 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         ):
             export(m, (x, y), dynamic_shapes=conflicting)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_range_constraints_with_replacement(self):
         class M(torch.nn.Module):
             def forward(self, x, y):
@@ -5434,6 +5841,7 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         self.assertTrue(torch.allclose(ref[0], actual[0]))
         self.assertTrue(torch.allclose(ref[1], actual[1]))
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_layer_norm_unbacked_normalized_shape(self):
         class MyModel(torch.nn.Module):
@@ -5512,6 +5920,8 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             got = mod(*args)
             self.assertTrue(torch.allclose(expected, got))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_shapes_builder_basic(self):
         class M(torch.nn.Module):
             def forward(self, x, y, z):
@@ -5618,7 +6028,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         self.assertEqual(got_shapes, expected_shapes)
 
         def expect_error(bad_args, run_time_msg, compile_time_msg):
+<<<<<<< HEAD
             with self.assertRaisesRegex(AssertionError, run_time_msg):
+=======
+            with self.assertRaisesRegex(RuntimeError, run_time_msg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ep.module()(*bad_args)
 
             additional_inputs = torch.export.AdditionalInputs()
@@ -5630,27 +6044,39 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         expect_error(
             # 4->2, 4->2, 3->3
             bad_args=(torch.randn(2), [torch.randn(2)], {"k": torch.randn(3)}),
+<<<<<<< HEAD
             run_time_msg=escape(
                 "Guard failed: x.size()[0] >= 3"
             ),  # expected >= 3, but got 2
+=======
+            run_time_msg="Expected input.*to be >= 3, but got 2",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compile_time_msg="Expected input.*to be >= 3, but got 2",
         )
 
         expect_error(
             # 4->6, 4->7, 3->3
             bad_args=(torch.randn(6), [torch.randn(7)], {"k": torch.randn(3)}),
+<<<<<<< HEAD
             run_time_msg=escape(
                 "Guard failed: y[0].size()[0] == x.size()[0]"
             ),  # expected 6, but got 7
+=======
+            run_time_msg="Expected input.*to be equal to 6, but got 7",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compile_time_msg="Expected input.*to be equal to 6, but got 7",
         )
 
         expect_error(
             # 4->5, 4->5, 3->4
             bad_args=(torch.randn(5), [torch.randn(5)], {"k": torch.randn(4)}),
+<<<<<<< HEAD
             run_time_msg=escape(
                 "Guard failed: z['k'].size()[0] == 3"
             ),  # expected 3, but got 4
+=======
+            run_time_msg="Expected input.*to be equal to 3, but got 4",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             compile_time_msg=r"You marked.*but your code specialized it to be a constant.*If you're using Dim.DYNAMIC, replace it with either Dim.STATIC or Dim.AUTO",
         )
 
@@ -5895,8 +6321,12 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
 
         # check ShapeEnv counters compared to binding indices
         shape_env = _get_shape_env_from_gm(ep.graph_module)
+<<<<<<< HEAD
         next_index = shape_env.unbacked_symint_counter
         shape_env.unbacked_symint_counter += 1
+=======
+        next_index = next(shape_env.unbacked_symint_counter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for symbol in bound:
             self.assertTrue(symbol_is_type(symbol, SymT.UNBACKED_INT))
             self.assertTrue(
@@ -5996,6 +6426,10 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         class Foo(torch.nn.Module):
             def forward(self, x):
                 u0 = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(u0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 t = torch.empty(u0 - 1)
                 return t + t
 
@@ -6133,9 +6567,12 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         )
 
     def test_simple_unbacked_view(self):
+<<<<<<< HEAD
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Foo(torch.nn.Module):
             def forward(self, x):
                 u0 = x.item()
@@ -6245,6 +6682,10 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         # There should be nonzero view nodes in the graph
         self.assertTrue(view_count > 0)
 
+<<<<<<< HEAD
+=======
+    @testing.expectedFailureCppSerDes  # cpp ser/der not handling complicated symbols
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_solver_unsupported_sympy_function(self):
         # repro of https://github.com/pytorch/pytorch/issues/131897
 
@@ -6299,6 +6740,7 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         self.assertTrue(torch.allclose(ep.module()(x, y), model(x, y)))
         x2 = torch.arange(4).reshape((2, 2))
         y2 = torch.arange(9).reshape((3, 3))
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             (
@@ -6311,6 +6753,9 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         ):
             # TODO: this should not error?
             self.assertTrue(torch.allclose(ep.module()(x2, y2), model(x2, y2)))
+=======
+        self.assertTrue(torch.allclose(ep.module()(x2, y2), model(x2, y2)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_export_max_nonstrict(self):
         class FooMax(torch.nn.Module):
@@ -6434,11 +6879,19 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         dim0_x = torch.export.Dim("dim0_x", min=3)
         dim1_x = torch.export.Dim("dim1_x", max=8000)
         dynamic_shapes = {"x": (dim0_x, dim1_x)}
+<<<<<<< HEAD
         em = torch.export.export(
             m,
             (a,),
             dynamic_shapes=dynamic_shapes,
             prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        em = torch.export._trace._export(
+            m,
+            (a,),
+            dynamic_shapes=dynamic_shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         em.module()(torch.randn(4, 3))
         with self.assertRaisesRegex(
@@ -6453,10 +6906,16 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         em = torch.export.export(m, (a,), dynamic_shapes=dynamic_shapes)
         x = torch.randn(3, 5)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: 3 * x.size()[1] % 2 == 0"),
         ):
             # expected 2*..., but got 5
+=======
+            RuntimeError,
+            "Expected.*shape\\[1\\] = 5 to be of the form 2\\*s33, where s33 is an integer",
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             em.module()(x)
 
     def test_dont_duck_size_for_auto_dynamic(self):
@@ -6479,9 +6938,12 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         ep.module()(torch.randn(6, 3), torch.randn(7, 4))
 
     def test_map(self):
+<<<<<<< HEAD
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Module(torch.nn.Module):
             def forward(self, xs, y, z):
                 def body(x, y, z):
@@ -6686,6 +7148,7 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         }
         self._test_export_same_as_eager(kw_func, args, kwargs)
 
+<<<<<<< HEAD
     def test_unbacked_stack(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -6707,6 +7170,9 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         self.assertTrue(torch.allclose(orig_res, ep_res))
 
     def test_unbacked_slice_simple(self):
+=======
+    def test_unbacked_slice(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class M(torch.nn.Module):
             def forward(self, scores, score_thr, topk: torch.Tensor, results=None):
                 valid_mask = scores > score_thr
@@ -6714,6 +7180,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
                 valid_idxs = torch.nonzero(valid_mask).to(scores.device)
 
                 num_topk = torch.minimum(topk, torch.tensor(valid_idxs.shape[0])).item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(num_topk)
+                torch._check(scores.shape[0] >= num_topk)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 scores, idxs = scores.sort(descending=True)
                 scores = scores[:num_topk]
                 topk_idxs = valid_idxs[idxs[:num_topk]]
@@ -6742,7 +7213,10 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
                 b = x.item()
                 torch._check(b >= 0)
                 torch._check(b < y.shape[0])
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return y[0, b]
 
         if is_non_strict_test(self._testMethodName):
@@ -6755,6 +7229,7 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
 
             self.assertTrue(torch.allclose(er, r))
 
+<<<<<<< HEAD
     @testing.expectedFailureSerDerNonStrict
     @testing.expectedFailureCppRuntimeNonStrict
     def test_more_multidimensional_slicing(self):
@@ -6913,6 +7388,8 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
 
         test(M_slice_None_Ellipsis_int(), G_slice_None_Ellipsis_int())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sequential_slicing(self):
         # See https://github.com/pytorch/pytorch/issues/137455
 
@@ -6985,7 +7462,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             def forward(self, x, y):
                 b = x.item()
 
+<<<<<<< HEAD
                 torch._check(b >= 0)
+=======
+                torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(b < y.size(0))
                 return y[:b]
 
@@ -6993,7 +7474,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             def forward(self, x, y):
                 b = x.item()
 
+<<<<<<< HEAD
                 torch._check(b >= 0)
+=======
+                torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(b < y.size(0) * 2)
                 return y[:b]
 
@@ -7472,9 +7957,13 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             efoo = torch.export.export(
                 foo,
                 inputs,
+<<<<<<< HEAD
                 dynamic_shapes={
                     "kjt": [{0: dim}, None, {0: dim}, {0: dim_plus_one}, None, None]
                 },
+=======
+                dynamic_shapes={"kjt": [{0: dim}, None, {0: dim}, {0: dim_plus_one}]},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.assertEqual(
                 [out.shape for out in efoo.module()(*inputs)],
@@ -7791,7 +8280,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
 
         dt = MyDataClass(x=3, y=4)
         flat, spec = tree_flatten(dt)
+<<<<<<< HEAD
         self.assertTrue(spec, treespec_leaf())
+=======
+        self.assertTrue(spec, LeafSpec())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(len(flat) == 1)
 
         torch.export.register_dataclass(
@@ -7802,9 +8295,13 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
         flat, spec = tree_flatten(dt)
         self.assertEqual(
             spec,
+<<<<<<< HEAD
             TreeSpec(
                 MyDataClass, [["x", "y"], ["z"]], [treespec_leaf(), treespec_leaf()]
             ),
+=======
+            TreeSpec(MyDataClass, [["x", "y"], ["z"]], [LeafSpec(), LeafSpec()]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.assertEqual(flat, [3, 4])
 
@@ -7837,7 +8334,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
             TreeSpec(
                 MyOtherDataClass,
                 [["x", "y", "z"], []],
+<<<<<<< HEAD
                 [treespec_leaf(), treespec_leaf(), treespec_leaf()],
+=======
+                [LeafSpec(), LeafSpec(), LeafSpec()],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
         )
         self.assertEqual(flat, [3, 4, None])
@@ -7916,11 +8417,17 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
                 buffer.append(get_buffer(ep, node))
         self.assertEqual(num_buffer, 3)
 
+<<<<<<< HEAD
         # The insertion order is not guaranteed to be same for strict vs
         # non-strict, so commenting this out.
         # self.assertEqual(buffer[0].shape, torch.Size([100]))  # running_mean
         # self.assertEqual(buffer[1].shape, torch.Size([100]))  # running_var
         # self.assertEqual(buffer[2].shape, torch.Size([]))  # num_batches_tracked
+=======
+        self.assertEqual(buffer[0].shape, torch.Size([100]))  # running_mean
+        self.assertEqual(buffer[1].shape, torch.Size([100]))  # running_var
+        self.assertEqual(buffer[2].shape, torch.Size([]))  # num_batches_tracked
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_export_dynamo_config(self):
         class MyModule(torch.nn.Module):
@@ -8231,7 +8738,11 @@ def forward(self, p_linear_weight, p_linear_bias, b_buffer, x):
 
         inp = torch.randn(4, 4)
 
+<<<<<<< HEAD
         ep = torch.export.export(
+=======
+        ep = export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Foo(), (inp,), strict=False, preserve_module_call_signature=("bar",)
         )
         unflat = unflatten(ep).bar
@@ -8537,7 +9048,11 @@ graph():
 
         decomp_table = {**default_decompositions(), **decomposition_table}
 
+<<<<<<< HEAD
         ep = torch.export.export(M(), (torch.randn(2, 2),)).run_decompositions(
+=======
+        ep = export_for_training(M(), (torch.randn(2, 2),)).run_decompositions(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             decomp_table
         )
 
@@ -8566,7 +9081,11 @@ def forward(self, c_lifted_tensor_0, x):
         mod.eval()
         inp = torch.randn(1, 1, 3, 3)
 
+<<<<<<< HEAD
         gm = torch.export.export(mod, (inp,)).module()
+=======
+        gm = torch.export.export_for_training(mod, (inp,)).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(gm.code).strip(),
             """\
@@ -8579,14 +9098,21 @@ def forward(self, x):
     bn_running_mean = self.bn.running_mean
     bn_running_var = self.bn.running_var
     bn_num_batches_tracked = self.bn.num_batches_tracked;  bn_num_batches_tracked = None
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     conv2d = torch.ops.aten.conv2d.default(x, conv_weight, conv_bias);  x = conv_weight = conv_bias = None
     batch_norm = torch.ops.aten.batch_norm.default(conv2d, bn_weight, bn_bias, bn_running_mean, bn_running_var, False, 0.1, 1e-05, True);  conv2d = bn_weight = bn_bias = bn_running_mean = bn_running_var = None
     return pytree.tree_unflatten((batch_norm,), self._out_spec)""",
         )
 
         mod.train()
+<<<<<<< HEAD
         gm_train = torch.export.export(mod, (inp,)).module()
+=======
+        gm_train = torch.export.export_for_training(mod, (inp,)).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(gm_train.code).strip(),
             """\
@@ -8599,7 +9125,10 @@ def forward(self, x):
     bn_running_mean = self.bn.running_mean
     bn_running_var = self.bn.running_var
     bn_num_batches_tracked = self.bn.num_batches_tracked
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     conv2d = torch.ops.aten.conv2d.default(x, conv_weight, conv_bias);  x = conv_weight = conv_bias = None
     add_ = torch.ops.aten.add_.Tensor(bn_num_batches_tracked, 1);  bn_num_batches_tracked = add_ = None
     batch_norm = torch.ops.aten.batch_norm.default(conv2d, bn_weight, bn_bias, bn_running_mean, bn_running_var, True, 0.1, 1e-05, True);  conv2d = bn_weight = bn_bias = bn_running_mean = bn_running_var = None
@@ -8610,7 +9139,11 @@ def forward(self, x):
         class Module(torch.nn.Module):
             def forward(self, x, y):
                 n = x.max().item()
+<<<<<<< HEAD
                 torch._check(n >= 0)
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return y + n
 
         fn = Module()
@@ -8627,6 +9160,10 @@ def forward(self, x):
                 n = x.max().item()
                 torch._check(n >= 2)
                 torch._check(n <= 10)
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return y + n
 
         fn = Module()
@@ -8668,6 +9205,10 @@ def forward(self, x):
         class Module1(torch.nn.Module):
             def forward(self, x, y):
                 n = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(n >= 0)
                 return y.sum() + torch.ones(n, 5).sum()
 
@@ -8676,6 +9217,10 @@ def forward(self, x):
         class Module2(torch.nn.Module):
             def forward(self, x, y):
                 n = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(n >= 0)
                 torch._check(n <= 6)
                 return y.sum() + torch.ones(n, 5).sum()
@@ -8685,6 +9230,10 @@ def forward(self, x):
         class Module3(torch.nn.Module):
             def forward(self, x, y):
                 n = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(n >= 0)
                 torch._check(n <= 1)
                 return y.sum() + torch.ones(n, 5).sum()
@@ -8694,6 +9243,10 @@ def forward(self, x):
         class Module4(torch.nn.Module):
             def forward(self, x, y):
                 n = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(n >= 2)
                 return y.sum() + torch.ones(n, 5).sum()
 
@@ -8702,6 +9255,10 @@ def forward(self, x):
         class Module5(torch.nn.Module):
             def forward(self, x, y):
                 n = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(n >= 1)
                 return y.sum() + torch.ones(n, 5).sum()
 
@@ -8789,7 +9346,11 @@ def forward(self, x):
         ep = export(M(), (torch.tensor(1), torch.ones(4, 5)))
 
         # This is because we insert sym_constrain_range in the graph now
+<<<<<<< HEAD
         error_msg = r".* failed for expression u0 >= 0 on node .*"
+=======
+        error_msg = r"Invalid value range for -1 between"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(RuntimeError, error_msg):
             _ = ep.module()(torch.tensor(-1), torch.randn(4, 5))
 
@@ -8829,6 +9390,7 @@ def forward(self, x):
             ]:
                 self.assertFalse(hasattr(tensor, attr))
 
+<<<<<<< HEAD
     @testing.expectedFailureCppRuntime
     def test_while_loop_index_assertions(self):
         from torch._higher_order_ops import while_loop
@@ -8891,6 +9453,8 @@ def forward(self, x):
         ):
             ep.graph_module.while_loop_body_graph_0(torch.tensor([5]), torch.zeros(1))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_constrain_decomp(self) -> None:
         class M(torch.nn.Module):
             def __init__(self) -> None:
@@ -8899,6 +9463,10 @@ def forward(self, x):
 
             def forward(self, start_pos: torch.Tensor):
                 pos = start_pos.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(pos)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(pos >= 0)
                 torch._check(pos <= 4)
                 return self.freq[pos] * self.freq[pos]
@@ -8907,11 +9475,23 @@ def forward(self, x):
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         decompose_ep = ep.run_decompositions()
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_mixed_input(self):
         class Module(torch.nn.Module):
@@ -8996,6 +9576,15 @@ def forward(self, x):
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range.default", 0, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with self.assertRaisesRegex(
             RuntimeError,
@@ -9019,6 +9608,15 @@ def forward(self, x):
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range.default", 0, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_to_module_with_mutated_buffer(self):
         class Foo(torch.nn.Module):
@@ -9125,6 +9723,7 @@ def forward(self, x):
         ref_x = torch.randn(2, 2)
         ref_out = f(ref_x, mod)
 
+<<<<<<< HEAD
         ep = torch.export.export(f, (torch.randn(2, 2), mod), strict=False)
         self.assertEqual(ref_out, ep.module()(ref_x, mod))
 
@@ -9132,6 +9731,12 @@ def forward(self, x):
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+        ep = torch.export.export_for_training(f, (torch.randn(2, 2), mod), strict=False)
+        self.assertEqual(ref_out, ep.module()(ref_x, mod))
+
+    def test_unbacked_noncontig_lin(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Foo(torch.nn.Module):
             def __init__(self):
                 super().__init__()
@@ -9167,20 +9772,32 @@ def forward(self, x):
             )
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y == 5"),
         ):
             # expected 5, but got 6
+=======
+            RuntimeError,
+            escape("Expected input at *args[1] to be equal to 5, but got 6"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _ = exported.module()(torch.ones(8, 5), 6)
 
         exported = torch.export.export(
             foo, (tensor_inp, 5.0), dynamic_shapes=dynamic_shapes
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y == 5.0"),
         ):
             # expected 5.0, but got 6.0
+=======
+            RuntimeError,
+            escape("Expected input at *args[1] to be equal to 5.0, but got 6.0"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _ = exported.module()(torch.ones(7, 5), 6.0)
 
     def test_runtime_assert_for_prm_str(self):
@@ -9192,17 +9809,25 @@ def forward(self, x):
         inps = (torch.randn(4, 4), torch.randn(4), "trunc")
         exported = export(foo, inps)
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: mode == 'trunc'"),
         ):
             # expected 'trunc', but got 'floor'
+=======
+            RuntimeError, "to be equal to trunc, but got floor"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _ = exported.module()(torch.randn(4, 4), torch.randn(4), "floor")
         self.assertTrue(torch.allclose(exported.module()(*inps), foo(*inps)))
 
     def test_sym_or_sym_and(self):
+<<<<<<< HEAD
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.fx.experimental.symbolic_shapes import sym_and, sym_or
 
         class Foo(torch.nn.Module):
@@ -9322,12 +9947,18 @@ def forward(self, x):
         dim0_x = torch.export.Dim("dim0_x")
         exported = torch.export.export(Foo(), (inp,), dynamic_shapes=({0: dim0_x},))
         reexported = torch.export.export(exported.module(), (inp,))
+<<<<<<< HEAD
 
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x.size()[0] == 5"),
         ):
             # expected 5, but got 7
+=======
+        with self.assertRaisesRegex(
+            RuntimeError, "shape\[0\] to be equal to 5, but got 7"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             reexported.module()(torch.ones(7, 5))
 
         reexported = torch.export.export(
@@ -9345,10 +9976,16 @@ def forward(self, x):
             Foo(), (inp,), dynamic_shapes={"x": {0: dim0_x_v2}}
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[0] >= 3"),
         ):
             # expected >= 3, but got 2
+=======
+            RuntimeError,
+            escape("Expected input at *args[0].shape[0] to be >= 3, but got 2"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.export.export(exported_v2.module(), (torch.randn(2, 2),))
 
     def test_export_cond_symbool_pred(self):
@@ -9382,7 +10019,11 @@ def forward(self, x):
             str(schema),
             """cond(SymBool pred, GraphModule true_fn, GraphModule false_fn, Tensor[2] operands) -> Tensor[1]""",
         )
+<<<<<<< HEAD
         # serdes deserializes tuple as list
+=======
+        # serdes deserailizes tuple as list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if need_serdes_test(self._testMethodName):
             self.assertExpectedInline(
                 ep.graph_module.code.strip(),
@@ -9398,9 +10039,29 @@ def forward(self, b_a_buffer, x):
             )
 
         else:
+<<<<<<< HEAD
             self.assertExpectedInline(
                 ep.graph_module.code.strip(),
                 """\
+=======
+            if is_inline_and_install_strict_test(self._testMethodName):
+                self.assertExpectedInline(
+                    ep.graph_module.code.strip(),
+                    """\
+def forward(self, b____modules__a____buffers__buffer, x):
+    sym_size_int_1 = torch.ops.aten.sym_size.int(x, 0)
+    gt = sym_size_int_1 > 4;  sym_size_int_1 = None
+    true_graph_0 = self.true_graph_0
+    false_graph_0 = self.false_graph_0
+    cond = torch.ops.higher_order.cond(gt, true_graph_0, false_graph_0, (x, b____modules__a____buffers__buffer));  gt = true_graph_0 = false_graph_0 = x = b____modules__a____buffers__buffer = None
+    getitem = cond[0];  cond = None
+    return (getitem,)""",
+                )
+            else:
+                self.assertExpectedInline(
+                    ep.graph_module.code.strip(),
+                    """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, b_a_buffer, x):
     sym_size_int_1 = torch.ops.aten.sym_size.int(x, 0)
     gt = sym_size_int_1 > 4;  sym_size_int_1 = None
@@ -9409,11 +10070,16 @@ def forward(self, b_a_buffer, x):
     cond = torch.ops.higher_order.cond(gt, true_graph_0, false_graph_0, (x, b_a_buffer));  gt = true_graph_0 = false_graph_0 = x = b_a_buffer = None
     getitem = cond[0];  cond = None
     return (getitem,)""",
+<<<<<<< HEAD
             )
+=======
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(
             torch.allclose(ep.module()(torch.ones(6, 4)), Foo()(torch.ones(6, 4)))
         )
 
+<<<<<<< HEAD
     def test_ccode_python_mod(self):
         import sympy
 
@@ -9436,6 +10102,8 @@ def forward(self, b_a_buffer, x):
             """(u0 % u1) < 0 ? u0 % u1 + abs(u1) : u0 % u1""",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_aten_lift_fresh_copy(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -9478,7 +10146,11 @@ def forward(self, b_a_buffer, x):
                 len([node for node in gm.graph.nodes if node.op == "placeholder"]), 1
             )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @testing.expectedFailureCppRuntime
     def test_export_associative_scan_symbol_dim(self):
         device = torch.device("cuda")
@@ -9503,7 +10175,11 @@ def forward(self, b_a_buffer, x):
         module_out = Foo()(xs)
         self.assertTrue(torch.allclose(ep.module()(xs), module_out))
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @testing.expectedFailureCppRuntime
     def test_export_associative_scan_symbol_scandim(self):
         device = torch.device("cuda")
@@ -9528,11 +10204,16 @@ def forward(self, b_a_buffer, x):
         module_out = Foo()(xs)
         self.assertTrue(torch.allclose(ep.module()(xs), module_out))
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
     def test_export_associative_scan_lifted_buffers(self):
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+    @requires_cuda
+    def test_export_associative_scan_lifted_buffers(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device = torch.device("cuda")
         combine_mode = "pointwise"
 
@@ -9633,6 +10314,27 @@ def forward(self, b_a_buffer, x):
         ):
             ep.module()(torch.tensor(5))
 
+<<<<<<< HEAD
+=======
+    def test_is_non_negative_check_function(self):
+        import sympy as sp
+
+        from torch.fx.experimental.symbolic_shapes import _is_non_negative_check
+
+        x = sp.Symbol("x")
+        variable_name = sp.Symbol("variable_name")
+        tensor_shape = sp.Symbol("tensor.shape[0]")
+
+        self.assertEqual(_is_non_negative_check(variable_name >= 0), "variable_name")
+        self.assertEqual(_is_non_negative_check(tensor_shape >= 0), "tensor.shape[0]")
+
+        # Test cases where the condition is not checking for x >= 0
+        self.assertIsNone(_is_non_negative_check(x > 0))
+        self.assertIsNone(_is_non_negative_check(x == 0))
+        self.assertIsNotNone(_is_non_negative_check(0 <= x))
+        self.assertIsNone(_is_non_negative_check(x >= 1))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_suggest_torch_checks_with_non_negative_check(self):
         from unittest.mock import patch
 
@@ -9661,6 +10363,10 @@ def forward(self, b_a_buffer, x):
             src_map["u"] = ["u"]
             _suggest_torch_checks(mock_exception, src_map)
             error_msg = mock_exception.args[0]
+<<<<<<< HEAD
+=======
+            self.assertIn("torch._check_is_size(u)", error_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIn("torch._check(u < 0)", error_msg)
 
     def test_suggest_torch_checks_with_regular_check(self):
@@ -9695,6 +10401,10 @@ def forward(self, b_a_buffer, x):
             error_msg = mock_exception.args[0]
             self.assertIn("torch._check(u > 5)", error_msg)
             self.assertIn("torch._check(u <= 5)", error_msg)
+<<<<<<< HEAD
+=======
+            self.assertNotIn("torch._check_is_size", error_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_train_eval_on_exported_preautograd_module(self):
         class Foo(torch.nn.Module):
@@ -9987,9 +10697,33 @@ def forward(self, p_lin_weight, p_lin_bias, x):
             decomp_table={torch.ops.aten.linear.default: _decompose_linear_custom}
         )
 
+<<<<<<< HEAD
         self.assertExpectedInline(
             str(ep_decompose_linear.graph_module.code).strip(),
             """\
+=======
+        if is_inline_and_install_strict_test(self._testMethodName):
+            self.assertExpectedInline(
+                str(ep_decompose_linear.graph_module.code).strip(),
+                """\
+def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_linear_bias, c_linear_weight, x, y):
+    conv2d = torch.ops.aten.conv2d.default(x, p_conv_weight, p_conv_bias);  x = p_conv_weight = p_conv_bias = None
+    conv1d = torch.ops.aten.conv1d.default(y, p_conv1d_weight, p_conv1d_bias);  y = p_conv1d_weight = p_conv1d_bias = None
+    permute = torch.ops.aten.permute.default(c_linear_weight, [1, 0]);  c_linear_weight = None
+    matmul = torch.ops.aten.matmul.default(conv2d, permute);  conv2d = permute = None
+    mul = torch.ops.aten.mul.Tensor(c_linear_bias, 2);  c_linear_bias = None
+    add = torch.ops.aten.add.Tensor(matmul, mul);  matmul = mul = None
+    cos = torch.ops.aten.cos.default(add);  add = None
+    sum_1 = torch.ops.aten.sum.default(conv1d);  conv1d = None
+    add_1 = torch.ops.aten.add.Tensor(cos, sum_1);  cos = sum_1 = None
+    return (add_1,)""",
+            )
+
+        else:
+            self.assertExpectedInline(
+                str(ep_decompose_linear.graph_module.code).strip(),
+                """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_linear_weight, c_linear_bias, x, y):
     conv2d = torch.ops.aten.conv2d.default(x, p_conv_weight, p_conv_bias);  x = p_conv_weight = p_conv_bias = None
     conv1d = torch.ops.aten.conv1d.default(y, p_conv1d_weight, p_conv1d_bias);  y = p_conv1d_weight = p_conv1d_bias = None
@@ -10001,7 +10735,11 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
     sum_1 = torch.ops.aten.sum.default(conv1d);  conv1d = None
     add_1 = torch.ops.aten.add.Tensor(cos, sum_1);  cos = sum_1 = None
     return (add_1,)""",
+<<<<<<< HEAD
         )
+=======
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_export_decomps_dynamic(self):
         class M(torch.nn.Module):
@@ -10041,10 +10779,21 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
         inp = torch.randn(2)
         self.assertTrue(torch.allclose(ep.module()(inp), torch.nonzero(inp)))
 
+<<<<<<< HEAD
+=======
+    # TODO(pianpwk) blocker: https://github.com/pytorch/pytorch/issues/151809
+    @testing.expectedFailureSerDer
+    @testing.expectedFailureSerDerNonStrict
+    @testing.expectedFailureCppSerDes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_redundant_asserts(self):
         class Foo(torch.nn.Module):
             def forward(self, x):
                 y = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.zeros(y)
 
         f = Foo()
@@ -10052,12 +10801,24 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
         ep = export(f, (torch.tensor([3]),))
 
         FileCheck().check_count(
+<<<<<<< HEAD
+=======
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "torch.ops.aten._assert_scalar.default", 1, exactly=True
         ).run(ep.graph_module.code)
 
         ep = ep.run_decompositions()
 
         FileCheck().check_count(
+<<<<<<< HEAD
+=======
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "torch.ops.aten._assert_scalar.default", 1, exactly=True
         ).run(ep.graph_module.code)
 
@@ -10083,10 +10844,15 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
             dynamic_shapes=(None, None),
         )
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: b.size()[0] == 4"),
         ):
             # expected 4, but got 7
+=======
+            RuntimeError, "shape\[0\] to be equal to 4, but got 7"
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep_v2.module()(*test_inp)
 
     def test_constant_output(self):
@@ -10166,11 +10932,15 @@ def forward(self, p_conv_weight, p_conv_bias, p_conv1d_weight, p_conv1d_bias, c_
         ep = torch.export.export(foo, inp, dynamic_shapes=dynamic_shapes)
 
         test_inp = ((torch.randn(4, 4), torch.randn(2, 4)), torch.randn(4, 4))
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: a[1].size()[0] >= 3"),
         ):
             # expected >= 3, but got 2
+=======
+        with self.assertRaisesRegex(RuntimeError, "shape\[0\] to be >= 3, but got 2"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(*test_inp)
 
     def test_nested_module(self):
@@ -10260,7 +11030,11 @@ graph():
                 return m(x) * x
 
         inps = (torch.randn(3, 3),)
+<<<<<<< HEAD
         ep = torch.export.export(M2(), inps).run_decompositions({})
+=======
+        ep = export_for_training(M2(), inps).run_decompositions({})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(torch.allclose(ep.module()(*inps), M2()(*inps)))
 
         self.assertEqual(len(ep.state_dict), 0)
@@ -10297,7 +11071,11 @@ graph():
 
         inps = (torch.randn(3, 3),)
         # Strict export segfaults (Issue #128109)
+<<<<<<< HEAD
         ep = torch.export.export(M2(), inps, strict=False).run_decompositions({})
+=======
+        ep = export_for_training(M2(), inps, strict=False).run_decompositions({})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(torch.allclose(ep.module()(*inps), M2()(*inps)))
 
         self.assertEqual(len(ep.state_dict), 0)
@@ -10311,9 +11089,19 @@ graph():
     %x : [num_users=2] = placeholder[target=x]
     %ones : [num_users=1] = call_function[target=torch.ops.aten.ones.default](args = ([3, 3],), kwargs = {device: cpu, pin_memory: False})
     %detach : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%ones,), kwargs = {})
+<<<<<<< HEAD
     %clone : [num_users=1] = call_function[target=torch.ops.aten.clone.default](args = (%c_lifted_tensor_0,), kwargs = {})
     %detach_1 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%clone,), kwargs = {})
     %mul : [num_users=1] = call_function[target=torch.ops.aten.mul.Tensor](args = (%detach, %detach_1), kwargs = {})
+=======
+    %detach_1 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%detach,), kwargs = {})
+    %detach_2 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%detach_1,), kwargs = {})
+    %clone : [num_users=1] = call_function[target=torch.ops.aten.clone.default](args = (%c_lifted_tensor_0,), kwargs = {})
+    %detach_3 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%clone,), kwargs = {})
+    %detach_4 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%detach_3,), kwargs = {})
+    %detach_5 : [num_users=1] = call_function[target=torch.ops.aten.detach.default](args = (%detach_4,), kwargs = {})
+    %mul : [num_users=1] = call_function[target=torch.ops.aten.mul.Tensor](args = (%detach_2, %detach_5), kwargs = {})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     %add : [num_users=1] = call_function[target=torch.ops.aten.add.Tensor](args = (%x, %mul), kwargs = {})
     %mul_1 : [num_users=1] = call_function[target=torch.ops.aten.mul.Tensor](args = (%add, %x), kwargs = {})
     return (mul_1,)""",
@@ -10368,6 +11156,7 @@ graph():
         ).module()
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[0] >= 3"),
         ):
@@ -10379,6 +11168,15 @@ graph():
             escape("Guard failed: x.size()[0] >= 3"),
         ):
             # expected >= 3, got 2
+=======
+            RuntimeError, escape("Expected input at *args[0].shape[0]")
+        ):
+            gm(torch.randn(2, 2))
+
+        with self.assertRaisesRegex(
+            RuntimeError, escape("Expected input at *args[0].shape[0]")
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             export(gm, (torch.randn(2, 2),))
 
         ep = export(
@@ -10394,6 +11192,11 @@ graph():
         class M(torch.nn.Module):
             def forward(self, x, y):
                 a = x.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(a)
+                torch._check(a <= y.size(0))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return y[:a]
 
         ep = export(
@@ -10484,7 +11287,11 @@ graph():
             x = torch.rand(5, 2, 2)
             model = Model()
 
+<<<<<<< HEAD
         # Manually set the fake_device of fake tensors.
+=======
+        # Manualy set the fake_device of fake tensors.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x.fake_device = torch.device("cuda:0")
         for n, p in model.named_parameters():
             p.fake_device = torch.device("cuda:0")
@@ -10599,7 +11406,11 @@ graph():
                 return (torch.full((i0,), 0.0),)
 
         f = M()
+<<<<<<< HEAD
         ep = export(f, ())
+=======
+        ep = torch.export.export(f, ())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a = ep.module()()[0]
         self.assertEqual(a.size(), torch.Size([11]))
         self.assertEqual(a, torch.zeros(11))
@@ -10671,6 +11482,7 @@ graph():
         ep = export(m, args)
         self.assertEqual(ep.module()(*args), m(*args))
 
+<<<<<<< HEAD
     def test_cdist_forward_compute_mode_zero_export(self):
         class CDistModel(torch.nn.Module):
             def __init__(self):
@@ -10693,6 +11505,8 @@ graph():
         ep_0 = torch.export.export(model, (x, y, 0))
         self.assertTrue(torch.equal(ep_0.module()(x, y, 0), expected_0))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_then_compile_tensor_ctor(self):
         class M(torch.nn.Module):
             def forward(self, scores, mask):
@@ -10878,16 +11692,27 @@ graph():
         test_inp = torch.randn(2, 3)
 
         torch_gm = _export_to_torch_ir(orig_eager, (torch.rand(2, 3),), {})
+<<<<<<< HEAD
         torch_gm.state_dict().keys()
         for k, v in orig_eager.state_dict().items():
             self.assertIn(k, torch_gm.state_dict())
             self.assertEqual(v, torch_gm.state_dict()[k])
+=======
+        for k, v in orig_eager.state_dict().items():
+            normalized_k = k.replace(".", "_")
+            self.assertIn(normalized_k, torch_gm.state_dict())
+            self.assertEqual(v, torch_gm.state_dict()[normalized_k])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(torch.allclose(torch_gm(test_inp), orig_eager(test_inp)))
 
         pre_autograd_gm = torch.export._trace._export(
             orig_eager, (torch.rand(2, 3),), {}, pre_dispatch=True
         ).module()
         for k, v in orig_eager.state_dict().items():
+<<<<<<< HEAD
+=======
+            normalized_k = k.replace(".", "_")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIn(k, pre_autograd_gm.state_dict())
             self.assertEqual(v, pre_autograd_gm.state_dict()[k])
         self.assertTrue(torch.allclose(pre_autograd_gm(test_inp), orig_eager(test_inp)))
@@ -10899,7 +11724,10 @@ graph():
             self.assertIn(k, ep.state_dict)
             self.assertEqual(v, ep.state_dict[k])
         self.assertTrue(torch.allclose(ep.module()(test_inp), orig_eager(test_inp)))
+<<<<<<< HEAD
         self.assertTrue(torch_gm.state_dict().keys(), orig_eager.state_dict().keys())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_nn_module_stack(self):
         class Leaf(torch.nn.Module):
@@ -12217,11 +13045,15 @@ graph():
 
         ep = export(M(), (4, 5))
         self.assertEqual(ep.module()(4, 5), 20)
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x == 4"),
         ):
             # expected 4, but got 3
+=======
+        with self.assertRaisesRegex(RuntimeError, r"to be equal to 4, but got 3"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ep.module()(3, 6), 18)
 
         ep = export(M(), (4, 5), dynamic_shapes={"x": Dim.DYNAMIC, "y": Dim.AUTO})
@@ -12234,11 +13066,15 @@ graph():
 
         ep = export(M(), (5, 5), dynamic_shapes={"x": None, "y": Dim.AUTO})
         self.assertEqual(ep.module()(5, 6), 30)
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x == 5"),
         ):
             # expected 5, but got 3
+=======
+        with self.assertRaisesRegex(RuntimeError, r"to be equal to 5, but got 3"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(ep.module()(3, 5), 18)
 
         class M(torch.nn.Module):
@@ -12254,6 +13090,10 @@ graph():
         self.assertTrue(torch.allclose(ep.module()(*inp), M()(*inp)))
 
     @testing.expectedFailureCppRuntime
+<<<<<<< HEAD
+=======
+    @testing.expectedFailureRetraceabilityNonStrict  # no runtime asserts added for assert x == 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_symint_input_specialization(self):
         class M(torch.nn.Module):
             def forward(self, x, y):
@@ -12278,6 +13118,7 @@ graph():
             inp,
             dynamic_shapes=(Dim.AUTO, None),
         )
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x == 3"),
@@ -12286,6 +13127,13 @@ graph():
             ep.module()(4, torch.randn(4, 4))
 
     @testing.expectedFailureCppRuntime
+=======
+        with self.assertRaisesRegex(RuntimeError, "to be equal to 3, but got 4"):
+            ep.module()(4, torch.randn(4, 4))
+
+    @testing.expectedFailureCppRuntime
+    @testing.expectedFailureRetraceabilityNonStrict  # no runtime asserts added for assert x == 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_symint_input_ranges(self):
         class M(torch.nn.Module):
             def forward(self, x, y):
@@ -12299,6 +13147,7 @@ graph():
         )
 
         ep.module()(4, torch.randn(4, 4))
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x <= 10"),
@@ -12310,6 +13159,11 @@ graph():
             escape("Guard failed: x >= 3"),
         ):
             # expected >= 3, but got 2
+=======
+        with self.assertRaisesRegex(RuntimeError, "to be <= 10, but got 16"):
+            ep.module()(16, torch.randn(4, 4))
+        with self.assertRaisesRegex(RuntimeError, "to be >= 3, but got 2"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(2, torch.randn(4, 4))
 
         # While tracing the range was found to be a subset of the original range
@@ -12644,7 +13498,11 @@ graph():
 
         if is_training_ir_test(self._testMethodName):
             test(
+<<<<<<< HEAD
                 torch.export.export(
+=======
+                torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     M(),
                     inp,
                     strict=not is_non_strict_test(self._testMethodName),
@@ -12765,7 +13623,11 @@ graph():
         test(export(M(), inp))
 
         strict = not is_non_strict_test(self._testMethodName)
+<<<<<<< HEAD
         ept = torch.export.export(
+=======
+        ept = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             M(),
             inp,
             strict=strict,
@@ -12840,7 +13702,11 @@ graph():
 
         x = torch.zeros((4, 4, 10))
 
+<<<<<<< HEAD
         ep_training = torch.export.export(model, (x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(model, (x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state_dict_before = ep_training.state_dict
 
         ep = export(model, (x,), strict=False).run_decompositions()
@@ -12884,7 +13750,11 @@ def forward(self, c_params, x):
 
         x = torch.zeros((4, 4, 10))
 
+<<<<<<< HEAD
         ep_training = torch.export.export(model, (x,), strict=False)
+=======
+        ep_training = torch.export.export_for_training(model, (x,), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state_dict_before = ep_training.state_dict
 
         ep = export(model, (x,), strict=False).run_decompositions()
@@ -12990,7 +13860,10 @@ def forward(self, c_submod_params, x):
                     [
                         fqn
                         for fqn, _ in unflattened.named_modules(remove_duplicate=False)
+<<<<<<< HEAD
                         if fqn != "_guards_fn"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ]
                 ),
                 expected_fqns,
@@ -13141,9 +14014,13 @@ graph():
                 return x
 
         inp = torch.randn(4, 4)
+<<<<<<< HEAD
         gm = torch.fx.experimental.proxy_tensor.make_fx(
             Foo(), record_stack_traces=True
         )(
+=======
+        gm = torch.fx.experimental.proxy_tensor.make_fx(Foo(), stack_trace=True)(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inp,
         )
 
@@ -13184,6 +14061,7 @@ graph():
             )
         )
 
+<<<<<<< HEAD
     def test_filter_traceback_frames(self):
         class TestTracer(torch.fx.Tracer):
             def __init__(self) -> None:
@@ -13208,6 +14086,8 @@ graph():
         trace_x = [node for node in graph.nodes if node.name == "x"][0].stack_trace
         self.assertTrue(re.search(r"proxy.py.*in create_node\n", trace_x))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @testing.expectedFailureSerDerNonStrict  # register_constant needs to handle serialization
     @testing.expectedFailureSerDer  # register_constant needs to handle serialization
     def test_register_constant(self):
@@ -13403,7 +14283,11 @@ def forward(self, p_bar_linear_weight, p_bar_linear_bias, x):
 
         model = Model()
         with torch.no_grad():
+<<<<<<< HEAD
             exported_program = torch.export.export(
+=======
+            exported_program = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 model,
                 (torch.tensor(10), torch.tensor(12)),
                 {},
@@ -13499,7 +14383,11 @@ def forward(self, x, b_t, y):
         # no grad
         model = Model()
         with torch.no_grad():
+<<<<<<< HEAD
             ep_nograd = torch.export.export(
+=======
+            ep_nograd = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 model,
                 (torch.tensor(10), torch.tensor(12)),
                 {},
@@ -13519,7 +14407,11 @@ def forward(self, x, b_t, y):
 
         # enable grad
         model = Model()
+<<<<<<< HEAD
         ep_grad = torch.export.export(
+=======
+        ep_grad = torch.export.export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model,
             (torch.tensor(10), torch.tensor(12)),
             {},
@@ -13623,8 +14515,11 @@ def forward(self, x, b_t, y):
         _test(MyModule(), "foo")
         _test(MyOuterModule(), "inner.foo")
 
+<<<<<<< HEAD
     @testing.expectedFailureTrainingIRToRunDecomp  # set_grad disappears after decomp
     @testing.expectedFailureTrainingIRToRunDecompNonStrict  # set_grad disappears after decomp
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_with_set_grad_enabled(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -13637,9 +14532,24 @@ def forward(self, x, b_t, y):
 
         model = Model()
         ep = export(model, (torch.randn(4, 4),), {})
+<<<<<<< HEAD
         FileCheck().check_count(
             "torch.ops.higher_order.wrap_with_set_grad_enabled", 1, exactly=True
         ).run(ep.graph_module.code)
+=======
+        # _export_for_traininig is using pre_dispatch=False
+        # Therefore the set_grad calls are not replaced with a hop.
+        if not is_training_ir_test(self._testMethodName):
+            self.assertIn(
+                "torch.ops.higher_order.wrap_with_set_grad_enabled",
+                ep.graph_module.code,
+            )
+        gm = torch.export.export_for_training(model, (torch.randn(4, 4),)).module()
+        self.assertIn(
+            "set_grad_enabled",
+            gm.code,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_export_with_autocast(self):
         class Model(torch.nn.Module):
@@ -13664,7 +14574,11 @@ def forward(self, x, b_t, y):
             )
         # _export_for_traininig is using pre_dispatch=False
         # Therefore the autocast calls are not replaced with a hop.
+<<<<<<< HEAD
         gm = torch.export.export(model, (torch.randn(4, 4),)).module()
+=======
+        gm = torch.export.export_for_training(model, (torch.randn(4, 4),)).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertIn(
             "autocast",
             gm.code,
@@ -13911,17 +14825,25 @@ def forward(self, x, b_t, y):
 
         inps = (torch.ones(5),)
 
+<<<<<<< HEAD
         ep = torch.export.export(M(), inps).run_decompositions({})
         if IS_FBCODE:
             self.assertExpectedInline(
                 str(ep.graph_module.code.strip()),
                 """\
+=======
+        ep = export_for_training(M(), inps).run_decompositions({})
+        self.assertExpectedInline(
+            str(ep.graph_module.code.strip()),
+            """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, x):
     cos = torch.ops.aten.cos.default(x)
     auto_functionalized = torch.ops.higher_order.auto_functionalized(torch.ops.testlib.foo.default, x = x, z = cos);  x = cos = None
     getitem_3 = auto_functionalized[3];  auto_functionalized = None
     cos_1 = torch.ops.aten.cos.default(getitem_3)
     return (getitem_3, getitem_3, cos_1)""",
+<<<<<<< HEAD
             )
         else:
             self.assertExpectedInline(
@@ -13934,6 +14856,9 @@ def forward(self, x):
     cos_1 = torch.ops.aten.cos.default(getitem_3)
     return (getitem_3, getitem_3, cos_1)""",
             )
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_custom_op_auto_warn_pre_dispatch(self):
         class M(torch.nn.Module):
@@ -13946,10 +14871,16 @@ def forward(self, x):
         inps = (torch.ones(5),)
 
         ep = torch.export.export(M(), inps).run_decompositions()
+<<<<<<< HEAD
         if IS_FBCODE:
             self.assertExpectedInline(
                 str(ep.graph_module.code.strip()),
                 """\
+=======
+        self.assertExpectedInline(
+            str(ep.graph_module.code.strip()),
+            """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, x):
     cos = torch.ops.aten.cos.default(x)
     cos_1 = torch.ops.aten.cos.default(x);  x = None
@@ -13957,6 +14888,7 @@ def forward(self, x):
     getitem_3 = auto_functionalized[3];  auto_functionalized = None
     cos_2 = torch.ops.aten.cos.default(getitem_3);  getitem_3 = None
     return (cos_2,)""",
+<<<<<<< HEAD
             )
         else:
             self.assertExpectedInline(
@@ -13970,6 +14902,9 @@ def forward(self, x):
     cos_2 = torch.ops.aten.cos.default(getitem_3);  getitem_3 = None
     return (cos_2,)""",
             )
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ep = torch.export._trace._export(M(), inps, pre_dispatch=True)
         self.assertExpectedInline(
@@ -14093,6 +15028,7 @@ def forward(self, x):
             torch.randn(4),
         )
         ep = export(Foo(), inputs)
+<<<<<<< HEAD
         expected_names = [  # user inputs should be prioritized, unprefixed
             ("p_param_1", InputKind.PARAMETER),
             ("b_alpha_1", InputKind.BUFFER),
@@ -14103,6 +15039,31 @@ def forward(self, x):
             ("b_beta", InputKind.USER_INPUT),
             ("c_gamma", InputKind.USER_INPUT),
         ]
+=======
+        if is_inline_and_install_strict_test(self._testMethodName):
+            # when installed, prefix name
+            expected_names = [  # user inputs should be prioritized, unprefixed
+                ("p____parameters__param", InputKind.PARAMETER),
+                ("b____buffers__alpha", InputKind.BUFFER),
+                ("b____buffers__beta", InputKind.BUFFER),
+                ("c_gamma_1", InputKind.CONSTANT_TENSOR),
+                ("p_param", InputKind.USER_INPUT),
+                ("b_alpha", InputKind.USER_INPUT),
+                ("b_beta", InputKind.USER_INPUT),
+                ("c_gamma", InputKind.USER_INPUT),
+            ]
+        else:
+            expected_names = [  # user inputs should be prioritized, unprefixed
+                ("p_param_1", InputKind.PARAMETER),
+                ("b_alpha_1", InputKind.BUFFER),
+                ("b_beta_1", InputKind.BUFFER),
+                ("c_gamma_1", InputKind.CONSTANT_TENSOR),
+                ("p_param", InputKind.USER_INPUT),
+                ("b_alpha", InputKind.USER_INPUT),
+                ("b_beta", InputKind.USER_INPUT),
+                ("c_gamma", InputKind.USER_INPUT),
+            ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         real_names = [
             (spec.arg.name, spec.kind) for spec in ep.graph_signature.input_specs
         ]
@@ -14225,6 +15186,7 @@ def forward(self, x):
                 self.bar = x.sum()
                 return x + 2
 
+<<<<<<< HEAD
         with self.assertWarnsRegex(
             UserWarning,
             "The tensor attribute self.bar was assigned during export",
@@ -14277,26 +15239,48 @@ graph():
         )
         self.assertEqual(m(idxs), ep.module()(idxs))
 
+=======
+        with self.assertRaisesRegex(
+            ValueError,
+            "During torch.export, following attrs were created in the model.forward:",
+        ):
+            _ = export(Foo(), (torch.randn(4, 4),), strict=False)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_unbacked_deferred_runtime_retrace(self):
         class Foo(torch.nn.Module):
             def forward(self, x, y):
                 y_sum = y.sin().sum()
                 with torch.no_grad():
                     a = x.item()
+<<<<<<< HEAD
+=======
+                    torch._check_is_size(a)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch._check(a > 2)
                     torch._check(a < 6)
                     unbacked_shape = torch.ops.testlib.foo_unbacked(a)
                 return y + y_sum + unbacked_shape.sum()
 
         inps = (torch.tensor(4), torch.randn(5, 5))
+<<<<<<< HEAD
         ep_pre = torch.export.export(Foo(), inps, strict=False)
+=======
+        ep_pre = torch.export.export_for_training(Foo(), inps, strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep_pre.graph_module.submod_1.code).strip(),
             """\
 def forward(self, x):
     item = torch.ops.aten.item.default(x);  x = None
+<<<<<<< HEAD
     ge = item >= 3
     _assert_scalar_default = torch.ops.aten._assert_scalar.default(ge, "Runtime assertion failed for expression u0 >= 3 on node 'ge'");  ge = _assert_scalar_default = None
+=======
+    sym_constrain_range_for_size_default = torch.ops.aten.sym_constrain_range_for_size.default(item);  sym_constrain_range_for_size_default = None
+    ge_1 = item >= 3
+    _assert_scalar_default = torch.ops.aten._assert_scalar.default(ge_1, "Runtime assertion failed for expression u0 >= 3 on node 'ge_1'");  ge_1 = _assert_scalar_default = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     le = item <= 5
     _assert_scalar_default_1 = torch.ops.aten._assert_scalar.default(le, "Runtime assertion failed for expression u0 <= 5 on node 'le'");  le = _assert_scalar_default_1 = None
     gt_1 = item > 2
@@ -14314,6 +15298,10 @@ def forward(self, x, y):
     sin = torch.ops.aten.sin.default(y)
     sum_1 = torch.ops.aten.sum.dim_IntList(sin, []);  sin = None
     _local_scalar_dense = torch.ops.aten._local_scalar_dense.default(x);  x = None
+<<<<<<< HEAD
+=======
+    sym_constrain_range_for_size_default = torch.ops.aten.sym_constrain_range_for_size.default(_local_scalar_dense);  sym_constrain_range_for_size_default = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ge_1 = _local_scalar_dense >= 3
     _assert_scalar_default = torch.ops.aten._assert_scalar.default(ge_1, "Runtime assertion failed for expression u2 >= 3 on node 'ge_1'");  ge_1 = _assert_scalar_default = None
     le_1 = _local_scalar_dense <= 5
@@ -14360,7 +15348,11 @@ def forward(self, x, y):
 
     def test_disable_forced_specializations_ok(self):
         # check that we don't force specialization, and defer to runtime asserts
+<<<<<<< HEAD
         # with prefer_deferred_runtime_asserts_over_guards=True to successfully export
+=======
+        # with allow_complex_guards_as_runtime_asserts=True to successfully export
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # case 1: modulo guards
         from torch.export import dims
 
@@ -14370,6 +15362,7 @@ def forward(self, x, y):
 
         inputs = (torch.randn(10, 72),)
         dx, dy = dims("dx", "dy")
+<<<<<<< HEAD
         for use_new_tracer in [True, False]:
             with torch._export.config.patch(use_new_tracer_experimental=use_new_tracer):
                 ep = torch.export._trace._export(
@@ -14388,6 +15381,23 @@ def forward(self, x, y):
                 r"^Runtime assertion failed for expression Eq\(Mod\(s\d+\*s\d+, 4\*s\d+\s*-\s*4\), 0\) on node 'eq[^']*'$",
             ):
                 ep.module()(torch.randn(8, 8))  # fail
+=======
+        ep = torch.export._trace._export(
+            Mod4Reshape(),
+            inputs,
+            dynamic_shapes={"x": (dx, dy)},
+            allow_complex_guards_as_runtime_asserts=True,
+        )
+        out1 = ep.module()(torch.randn(8, 7))
+        self.assertEqual(out1.shape, torch.ones(7, 4, 2).shape)
+        out2 = ep.module()(torch.randn(12, 11))
+        self.assertEqual(out2.shape, torch.ones(11, 4, 3).shape)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"Runtime assertion failed for expression Eq\(Mod\(s27\*s77, 4\*s77 \- 4\), 0\) on node 'eq.*'",
+        ):
+            ep.module()(torch.randn(8, 8))  # fail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # case 2: 2d reshape
         class FreeReshape(torch.nn.Module):
@@ -14404,6 +15414,7 @@ def forward(self, x, y):
             "y": [Dim(f"dy{i}", min=2) for i in range(2)],
             "z": [Dim(f"dz{i}", min=4) for i in range(1)],
         }
+<<<<<<< HEAD
 
         for private_api in (True, False):
             if private_api:
@@ -14437,6 +15448,24 @@ def forward(self, x, y):
                 ):
                     # expected 40, but got 20
                     ep.module()(torch.randn(5, 8), torch.randn(4, 5), torch.randn(30))
+=======
+        ep = torch.export._trace._export(
+            FreeReshape(),
+            inputs,
+            dynamic_shapes=dynamic_shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+        )
+        ep = export(FreeReshape(), inputs, dynamic_shapes=dynamic_shapes)
+        out1 = ep.module()(torch.randn(48, 1), torch.randn(4, 12), torch.randn(48))
+        self.assertEqual(out1.shape, torch.ones(48).shape)
+        out2 = ep.module()(torch.randn(5, 8), torch.randn(4, 10), torch.randn(40))
+        self.assertEqual(out2.shape, torch.ones(40).shape)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            r"Runtime assertion failed for expression Eq\((.*)\) on node '.*'",
+        ):  # fail only at runtime
+            ep.module()(torch.randn(5, 8), torch.randn(4, 5), torch.randn(30))  # fail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # case 3: 3d reshape (previously failing with different issue)
         class Reshape3d(torch.nn.Module):
@@ -14451,11 +15480,19 @@ def forward(self, x, y):
             "x": (Dim("dx0", min=2), Dim("dx1", min=2), Dim("dx2", min=2)),
             "y": (Dim("dy", min=8),),
         }
+<<<<<<< HEAD
         ep = torch.export.export(
             Reshape3d(),
             inputs,
             dynamic_shapes=dynamic_shapes,
             prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        ep = torch.export._trace._export(
+            Reshape3d(),
+            inputs,
+            dynamic_shapes=dynamic_shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         out1 = ep.module()(torch.randn(9, 7, 2), torch.randn(126))
         self.assertEqual(out1.shape, torch.ones(126).shape)
@@ -14516,6 +15553,7 @@ def forward(self, x, y):
         self.assertFalse(placeholders[1].meta["val"].requires_grad)
         self.assertTrue(placeholders[2].meta["val"].requires_grad)
 
+<<<<<<< HEAD
     def test_expand_copy_export_handles_implicit_true(self):
         class ExpandModel(torch.nn.Module):
             def __init__(self):
@@ -14536,6 +15574,9 @@ def forward(self, x, y):
         if "cpp_runtime_nonstrict" in self.id():
             self.skipTest("TODO Unexpected success in OSS but not in fbcode.")
 
+=======
+    def test_unbacked_expand(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class Foo(torch.nn.Module):
             def forward(self, xs):
                 u0, u1, u2 = xs.tolist()
@@ -14593,11 +15634,19 @@ def forward(self, x, y):
         model = Model()
         x = torch.rand(1024, 20, 16)
         dynamic_shapes = {"x": {0: Dim("batch")}}
+<<<<<<< HEAD
         ep = torch.export.export(
             model,
             (x,),
             dynamic_shapes=dynamic_shapes,
             prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        ep = torch.export._trace._export(
+            model,
+            (x,),
+            dynamic_shapes=dynamic_shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         with self.assertRaisesRegex(
             RuntimeError,
@@ -14670,11 +15719,19 @@ def forward(self, x, y):
 
         inputs = (torch.randn(6), torch.randn(12))
         dynamic_shapes = {"x": [Dim("dx", min=4)], "y": [Dim("dy", min=4)]}
+<<<<<<< HEAD
         ep = torch.export.export(
             Foo(),
             inputs,
             dynamic_shapes=dynamic_shapes,
             prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        ep = torch.export._trace._export(
+            Foo(),
+            inputs,
+            dynamic_shapes=dynamic_shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # check forward pass
         out0, out1 = ep.module()(torch.randn(9), torch.randn(27))
@@ -14709,7 +15766,11 @@ def forward(self, x, y):
                 Foo(),
                 inputs,
                 dynamic_shapes=dynamic_shapes,
+<<<<<<< HEAD
                 prefer_deferred_runtime_asserts_over_guards=True,
+=======
+                allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ).run_decompositions()
 
         self.assertEqual(
@@ -14900,6 +15961,10 @@ graph():
             def forward(self, x, y):
                 n = y.item()
                 m = y.item()
+<<<<<<< HEAD
+=======
+                torch._check_is_size(n)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(m >= 0)
                 torch._check(n >= 3)
                 torch._check(-m >= -9)  # m <= 9
@@ -14912,11 +15977,29 @@ graph():
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range.default", 0, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         ep = ep.run_decompositions()
         FileCheck().check_count(
             "torch.ops.aten._assert_scalar.default", 2, exactly=True
         ).run(ep.graph_module.code)
+<<<<<<< HEAD
+=======
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range.default", 0, exactly=True
+        ).run(ep.graph_module.code)
+        FileCheck().check_count(
+            "torch.ops.aten.sym_constrain_range_for_size.default", 1, exactly=True
+        ).run(ep.graph_module.code)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # check runtime
         ep.module()(torch.randn(10), torch.tensor(5))
@@ -14926,6 +16009,12 @@ graph():
         ):
             ep.module()(torch.randn(10), torch.tensor(2))
 
+<<<<<<< HEAD
+=======
+    @testing.expectedFailureCppSerDes  # TODO: When we deserialize we somehow hardcode sympy.lower to 2
+    @testing.expectedFailureSerDerNonStrict
+    @testing.expectedFailureSerDer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.fx.experimental._config.patch(backed_size_oblivious=True)
     def test_baddbmm(self):
         class M(torch.nn.Module):
@@ -14950,7 +16039,11 @@ graph():
         self.assertTrue(torch.allclose(m(x2), ep.module()(x2)))
         self.assertTrue(torch.allclose(m(x1), ep.module()(x1)))
 
+<<<<<<< HEAD
     @testing.expectedFailureSerDerNonStrict  # constructor is not serialized today
+=======
+    @testing.expectedFailureSerDerNonStrict  # construtor is not serialized today
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @testing.expectedFailureSerDer  # constructor is not serialized today
     @testing.expectedFailureRetraceability  # dynamo doesn't work with FlatApply op
     def test_capture_subclass_constructor(self):
@@ -14967,7 +16060,11 @@ graph():
                 return val.b.a
 
         mod = Foo()
+<<<<<<< HEAD
         ep = torch.export.export(mod, (torch.randn(4, 4),), strict=False)
+=======
+        ep = export_for_training(mod, (torch.randn(4, 4),), strict=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             str(ep.graph).strip(),
             """\
@@ -15061,7 +16158,14 @@ graph():
             def forward(self, x):
                 return x.cos()
 
+<<<<<<< HEAD
         export(Foo(), (torch.randn(4, 4),))
+=======
+        with self.assertRaisesRegex(
+            RuntimeError, "TestExport.test_capture_subclass_wrong.<locals>.Foo"
+        ):
+            export(Foo(), (torch.randn(4, 4),))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_capture_subclass_constructor_torch_ir(self):
         class Foo(torch.nn.Module):
@@ -15105,11 +16209,19 @@ graph():
 
         inputs = (torch.randn(5), torch.randn(3))
         shapes = {"x": (Dim("dx"),), "y": (Dim("dy"),)}
+<<<<<<< HEAD
         ep = torch.export.export(
             Foo(),
             inputs,
             dynamic_shapes=shapes,
             prefer_deferred_runtime_asserts_over_guards=True,
+=======
+        ep = torch.export._trace._export(
+            Foo(),
+            inputs,
+            dynamic_shapes=shapes,
+            allow_complex_guards_as_runtime_asserts=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # count 2 pow nodes, 2 sym_size.int nodes
         self.assertEqual(
@@ -15163,8 +16275,18 @@ graph():
             for nn_module_stack in nn_module_stacks
         ]
 
+<<<<<<< HEAD
         self.assertEqual(filtered_nn_module_stack[0], "sub_net.0")
         self.assertEqual(filtered_nn_module_stack[1], "sub_net.2")
+=======
+        if is_inline_and_install_strict_test(self._testMethodName):
+            # when inlined and install have same ID so reference same layer
+            self.assertEqual(filtered_nn_module_stack[0], "sub_net.0")
+            self.assertEqual(filtered_nn_module_stack[1], "sub_net.0")
+        else:
+            self.assertEqual(filtered_nn_module_stack[0], "sub_net.0")
+            self.assertEqual(filtered_nn_module_stack[1], "sub_net.2")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_slice_nn_module_stack(self):
         class N(torch.nn.Module):
@@ -15197,11 +16319,17 @@ graph():
             list(nn_module_stack.values())[-1][0]
             for nn_module_stack in nn_module_stacks
         ]
+<<<<<<< HEAD
         if is_strict_test(self._testMethodName) or is_strict_v2_test(
             self._testMethodName
         ):
             self.assertEqual(filtered_nn_module_stack[0], "mod_list_1.2")
             self.assertEqual(filtered_nn_module_stack[1], "mod_list_2.4")
+=======
+        if is_inline_and_install_strict_test(self._testMethodName):
+            self.assertEqual(filtered_nn_module_stack[0], "mod_list_1.2")
+            self.assertEqual(filtered_nn_module_stack[1], "mod_list_1.2")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             self.assertEqual(
                 filtered_nn_module_stack[0], "mod_list_1.slice(2, 3, None).2"
@@ -15210,6 +16338,7 @@ graph():
                 filtered_nn_module_stack[1], "mod_list_2.slice(4, 5, None).0"
             )
 
+<<<<<<< HEAD
     def test_invalid_pytree_dynamo_graph_capture(self):
         class Block:
             def __init__(self, a, b):
@@ -15268,6 +16397,8 @@ graph():
 
         self.assertEqual(gm(inp), Foo()(inp))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_split_const_gm_with_lifted_constants(self):
         class Model(torch.nn.Module):
             def __init__(self) -> None:
@@ -15365,10 +16496,16 @@ graph():
             decomp_table,
         )
 
+<<<<<<< HEAD
         if IS_FBCODE:
             self.assertExpectedInline(
                 str(ep.graph_module.code).strip(),
                 """\
+=======
+        self.assertExpectedInline(
+            str(ep.graph_module.code).strip(),
+            """\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def forward(self, x):
     foo_functional = torch.ops.testlib.foo_functional.default(x);  x = None
     cos = torch.ops.aten.cos.default(foo_functional)
@@ -15376,6 +16513,7 @@ def forward(self, x):
     getitem_3 = auto_functionalized[3];  auto_functionalized = None
     cos_1 = torch.ops.aten.cos.default(getitem_3)
     return (getitem_3, cos_1)""",
+<<<<<<< HEAD
             )
         else:
             self.assertExpectedInline(
@@ -15389,6 +16527,9 @@ def forward(self, x):
     cos_1 = torch.ops.aten.cos.default(getitem_3)
     return (getitem_3, cos_1)""",
             )
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_run_decompositions_keep_metadata(self):
         """Make sure the metadata is kept after exported program run_decompositions."""
@@ -15674,6 +16815,7 @@ def forward(self, x):
             test_serdes=True,
         )
 
+<<<<<<< HEAD
     def test_preserve_annotation(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -15709,6 +16851,8 @@ def forward(self, x):
             else:
                 raise AssertionError(f"Node not checked: {node}, {node.target}")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_shapes_serdes_generic(self):
         from torch._export.serde.dynamic_shapes import (
             _dump_dynamic_shapes,
@@ -16009,6 +17153,7 @@ def forward(self, x):
             def forward(self, x: torch.Tensor) -> torch.Tensor:
                 return x.view(x.shape[0] - 1, -1)
 
+<<<<<<< HEAD
         for private_api in (True, False):
             if private_api:
                 ep = torch.export.export(
@@ -16047,6 +17192,23 @@ def forward(self, x):
                 ):
                     # expected 3*..., but got 8
                     ep.module()(torch.randn(4, 2))
+=======
+        ep = export(
+            ModConstraint(),
+            (torch.randn(3, 4),),
+            dynamic_shapes={
+                "x": (dynamic, dynamic),
+            },
+        )
+        ep.module()(torch.randn(5, 8))
+        num_asserts = [
+            node.target == torch.ops.aten._assert_scalar.default
+            for node in ep.graph.nodes
+        ].count(True)
+        self.assertEqual(num_asserts, 2)
+        with self.assertRaises(RuntimeError):
+            ep.module()(torch.randn(4, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @testing.expectedFailureSerDer  # T195866111
     @testing.expectedFailureSerDerNonStrict
@@ -16080,7 +17242,11 @@ def forward(self, x):
         x = torch.randn(2, 4)
         y = torch.ones(4)
 
+<<<<<<< HEAD
         ep_for_training = torch.export.export(M(), (x, y), strict=strict)
+=======
+        ep_for_training = torch.export.export_for_training(M(), (x, y), strict=strict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             normalize_gm(
                 ep_for_training.graph_module.print_readable(print_output=False)
@@ -16111,7 +17277,10 @@ class GraphModule(torch.nn.Module):
                 add: "f32[2, 4]" = torch.ops.aten.add.Tensor(relu, arg1_1);  relu = arg1_1 = None
                 return (add,)
 """,
+<<<<<<< HEAD
             ignore_empty_lines=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         ep = export(M(), (x, y), strict=strict).run_decompositions({})
@@ -16144,11 +17313,17 @@ class GraphModule(torch.nn.Module):
                 add: "f32[2, 4]" = torch.ops.aten.add.Tensor(relu, arg1_1);  relu = arg1_1 = None
                 return (add,)
 """,
+<<<<<<< HEAD
             ignore_empty_lines=True,
         )
 
     @testing.expectedFailureStrict  # test_hop doesn't have a dynamo implementation
     @testing.expectedFailureStrictV2  # test_hop doesn't have a dynamo implementation
+=======
+        )
+
+    @testing.expectedFailureStrict  # test_hop doesn't have a dynamo implementation
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @testing.expectedFailureRetraceability  # test_hop doesn't have a dynamo implementation
     @testing.expectedFailureTrainingIRToRunDecomp  # test_hop doesn't have a dynamo implementation
     @testing.expectedFailureSerDerNonStrict  # TODO: serde torch.FunctionSchema is not implemented yet
@@ -16242,6 +17417,7 @@ class GraphModule(torch.nn.Module):
         self.assertEqual(x.sin(), ep.module()(x))
         pytree._deregister_pytree_node(torch.FunctionSchema)
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.cuda.is_available(), "Test requires CUDA.")
     def test_exception(self):
         class Model(torch.nn.Module):
@@ -16287,6 +17463,8 @@ class GraphModule(torch.nn.Module):
                     strict=False,
                 ).module()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_for_training_with_state_dict_hooks(self):
         def _state_dict_pre_hook(mod, prefix, keep_vars):
             mod._buffers["test"] = torch.Tensor([1])
@@ -16417,6 +17595,7 @@ class GraphModule(torch.nn.Module):
             ]
             self.assertEqual(len(shift_op), 1)
 
+<<<<<<< HEAD
     def test_export_rnn_variants_with_warning(self):
         """
         Test that when exporting RNN, LSTM, and GRU models in non-strict mode, it:
@@ -16464,10 +17643,21 @@ class GraphModule(torch.nn.Module):
     @contextmanager
     def distributed_env(self, world_size):
         try:
+=======
+    @contextmanager
+    def distributed_env(self, world_size):
+        try:
+            from torch.testing._internal.distributed.fake_pg import FakeStore
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.distributed.init_process_group(
                 backend="fake",
                 world_size=world_size,
                 rank=0,
+<<<<<<< HEAD
+=======
+                store=FakeStore(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             yield
 
@@ -16624,6 +17814,7 @@ def forward(self, args_0):
     return (abs_1,)""",
         )
 
+<<<<<<< HEAD
     def test_sdpa_gqa(self):
         from torch.nn.attention import sdpa_kernel, SDPBackend
 
@@ -16747,6 +17938,8 @@ def forward(self, q, k, v):
 
         self.assertEqual(result_non_strict, result_strict)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(not torchdynamo.is_dynamo_supported(), "dynamo isn't support")
 class TestOneOffModelExportResult(TestCase):
@@ -16783,7 +17976,19 @@ class TestOneOffModelExportResult(TestCase):
 
         with torch.nn.attention.sdpa_kernel([SDPBackend.MATH]):
             ep = torch.export.export(ScaledDotProductAttention(), (q, k, v))
+<<<<<<< HEAD
             ep.run_decompositions()
+=======
+            print(ep.graph)
+            ep.run_decompositions()
+            print(ep.graph)
+
+    #         self.assertExpectedInline(ep.graph_module.code.strip(), """\
+    # def forward(self, arg0_1, arg1_1, arg2_1):
+    #     _scaled_dot_product_flash_attention_for_cpu = torch.ops.aten._scaled_dot_product_flash_attention_for_cpu.default(arg0_1, arg1_1, arg2_1, 0.0, True);  arg0_1 = arg1_1 = arg2_1 = None
+    #     getitem = _scaled_dot_product_flash_attention_for_cpu[0];  _scaled_dot_product_flash_attention_for_cpu = None
+    #     return (getitem,)""")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfCrossRef
     @unittest.skipIf(
@@ -16867,10 +18072,16 @@ def forward(self, q, k, v):
         self.assertEqual(res[1], 5)
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y == 5"),
         ):
             # expected 5, but got 20
+=======
+            RuntimeError,
+            escape("Expected input at *args[1] to be equal to 5, but got 20"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             res = ep.module()(torch.tensor(4), 20)
 
         class F(torch.nn.Module):
@@ -16904,11 +18115,17 @@ def forward(self, q, k, v):
             ) -> torch.Tensor:
                 # x.sizes(): 1, 128, 16, 128
                 sp = start_pos.item()
+<<<<<<< HEAD
 
                 # Checks needed for slicing.
                 torch._check(sp >= 0)
                 torch._check(sp <= 126)
 
+=======
+                torch._check_is_size(sp)
+                torch._check(sp >= 0)
+                torch._check(sp <= 126)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 key = cache[:, : sp + 1, :, :]  # 1, sp+1, 16, 128
                 value = cache[:, : sp + 1, :, :]  # 1, sp+1, 16, 128
                 query = query.transpose(1, 2)  # (bs, n_local_heads, seqlen, head_dim)
@@ -17266,6 +18483,7 @@ def forward(self, x):
             len(list(new_ep.graph.nodes)[-1].args[0]), len(signature.output_specs)
         )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
     def test_assert_tensor_metadata_device_index(self):
         class N(torch.nn.Module):
@@ -17390,6 +18608,8 @@ def forward(self, x):
         exported_param_names = [name for name, _ in gm.named_parameters()]
         self.assertEqual(original_param_names, exported_param_names)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @unittest.skipIf(not torchdynamo.is_dynamo_supported(), "dynamo doesn't support")
 class TestExportCustomClass(TorchTestCase):
@@ -17451,6 +18671,7 @@ class TestExportCustomClass(TorchTestCase):
                 arg = node.args[0]
                 self.assertTrue(arg.op == "placeholder")
 
+<<<<<<< HEAD
     def test_int_lift_constant(self):
         class M(torch.nn.Module):
             def forward(self, a, x):
@@ -17462,6 +18683,8 @@ class TestExportCustomClass(TorchTestCase):
         inp = (3, torch.randn(4))
         self.assertTrue(torch.allclose(M()(*inp), ep.module()(*inp)))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_export_script_module(self):
         class Add(torch.nn.Module):
             def forward(self, x, y):
@@ -17555,6 +18778,7 @@ class TestExportCustomClass(TorchTestCase):
             MyModel(), inps, dynamic_shapes=spec, strict=True
         ).run_decompositions({})
 
+<<<<<<< HEAD
     def test_unbacked_contiguous(self):
         class MyModel(torch.nn.Module):
             def forward(self, x, mask):
@@ -17669,6 +18893,8 @@ def forward(self, x, y):
             str(ep.graph)
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

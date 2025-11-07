@@ -1,7 +1,10 @@
 #undef __HIP_NO_HALF_CONVERSIONS__
 
 #include <ATen/native/hip/ck_gemm.h>
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_GEMM)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/hip/ck_gemm_template.h>
 
 #include <ck/utility/sequence.hpp>
@@ -599,6 +602,7 @@ void dispatch_half_gemm_wmma(CUDABLAS_GEMM_ARGTYPES(at::Half)) {
 
 template <>
 void gemm_internal_ck<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half)) {
+<<<<<<< HEAD
   static const std::vector<std::string> wmma_archs = {
     "gfx1100", "gfx1101", "gfx1102", "gfx1200", "gfx1201",
 #if ROCM_VERSION >= 70000
@@ -618,3 +622,13 @@ void gemm_internal_ck<at::Half>(CUDABLAS_GEMM_ARGTYPES(at::Half)) {
 
 } // namespace at::native
 #endif // USE_ROCM_CK_GEMM
+=======
+  if (at::detail::getCUDAHooks().isGPUArch({"gfx1100"})) {
+    dispatch_half_gemm_wmma(CUDABLAS_GEMM_ARGS(at::Half));
+  } else{
+    dispatch_half_gemm(CUDABLAS_GEMM_ARGS(at::Half));
+  }
+}
+
+} // namespace at::native
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

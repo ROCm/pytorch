@@ -218,7 +218,11 @@ class TORCH_API KernelFunction final {
    * &unboxed_func>();
    */
   template <class FuncPtr, bool AllowLegacyTypes = false>
+<<<<<<< HEAD
   static KernelFunction makeFromUnboxedFunction(FuncPtr /*func_ptr*/);
+=======
+  static KernelFunction makeFromUnboxedFunction(FuncPtr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /**
    * Create a KernelFunction from an unboxed function.
@@ -260,7 +264,11 @@ class TORCH_API KernelFunction final {
 
   std::string dumpState() const;
   // For testing internal invariants only
+<<<<<<< HEAD
   bool _equalsBoxedAndUnboxed(const KernelFunction& /*other*/) const;
+=======
+  bool _equalsBoxedAndUnboxed(const KernelFunction&) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   explicit KernelFunction(

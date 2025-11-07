@@ -50,7 +50,11 @@ def lower_pt2e_quantized_to_x86(
         m.recompile()
 
     lowered_model = (
+<<<<<<< HEAD
         torch.export.export(model, example_inputs, strict=True)
+=======
+        torch.export.export_for_training(model, example_inputs, strict=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .run_decompositions(_post_autograd_decomp_table())
         .module()
     )

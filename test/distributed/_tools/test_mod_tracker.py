@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["oncall: distributed"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from copy import copy
 

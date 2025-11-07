@@ -51,7 +51,11 @@ class DataFrameTracedOps(DFIterDataPipe):
             yield self.output_var.apply_ops(item)
 
 
+<<<<<<< HEAD
 #  TODO(VitalyFedyunin): Extract this list from the DFIterDataPipe registered functions
+=======
+#  TODO(VitalyFedyunin): Extract this list from the DFIterDataPipe registred functions
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DATAPIPES_OPS = [
     "_dataframes_as_tuples",
     "groupby",
@@ -80,7 +84,10 @@ class Capture:
 
     def _ops_str(self):
         res = ""
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for op in self.ctx["operations"]:
             if len(res) > 0:
                 res += "\n"
@@ -90,7 +97,10 @@ class Capture:
     def __getstate__(self):
         # TODO(VitalyFedyunin): Currently can't pickle (why?)
         self.ctx["schema_df"] = None
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for var in self.ctx["variables"]:
             var.calculated_value = None
         state = {}
@@ -105,7 +115,11 @@ class Capture:
     def __getattr__(self, attrname):
         if attrname == "kwarg" or attrname == "kwargs":
             raise RuntimeError("no kwargs!")
+<<<<<<< HEAD
         if attrname == "__deepcopy__":
+=======
+        if attrname in ["__deepcopy__"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise AttributeError
         result = CaptureGetAttr(self, attrname, ctx=self.ctx)
         return result
@@ -114,13 +128,19 @@ class Capture:
         return CaptureGetItem(self, key, ctx=self.ctx)
 
     def __setitem__(self, key, value):
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ctx["operations"].append(CaptureSetItem(self, key, value, ctx=self.ctx))
 
     def __add__(self, add_val):
         res = CaptureAdd(self, add_val, ctx=self.ctx)
         var = CaptureVariable(res, ctx=self.ctx)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ctx["operations"].append(
             CaptureVariableAssign(variable=var, value=res, ctx=self.ctx)
         )
@@ -129,7 +149,10 @@ class Capture:
     def __sub__(self, add_val):
         res = CaptureSub(self, add_val, ctx=self.ctx)
         var = CaptureVariable(res, ctx=self.ctx)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ctx["operations"].append(
             CaptureVariableAssign(variable=var, value=res, ctx=self.ctx)
         )
@@ -139,19 +162,29 @@ class Capture:
         res = CaptureMul(self, add_val, ctx=self.ctx)
         var = CaptureVariable(res, ctx=self.ctx)
         t = CaptureVariableAssign(variable=var, value=res, ctx=self.ctx)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ctx["operations"].append(t)
         return var
 
     def _is_context_empty(self):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return len(self.ctx["operations"]) == 0 and len(self.ctx["variables"]) == 0
 
     def apply_ops_2(self, dataframe):
         # TODO(VitalyFedyunin): Make this calculation thread safe (as currently it updates pointer)
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
         self.ctx["variables"][0].calculated_value = dataframe
         # pyrefly: ignore [not-iterable]
+=======
+        self.ctx["variables"][0].calculated_value = dataframe
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for op in self.ctx["operations"]:
             op.execute()
 
@@ -184,7 +217,10 @@ class Capture:
         res = CaptureCall(self, ctx=self.ctx, args=args, kwargs=kwargs)
         var = CaptureVariable(None, ctx=self.ctx)
         t = CaptureVariableAssign(ctx=self.ctx, variable=var, value=res)
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.ctx["operations"].append(t)
         return var
 
@@ -211,7 +247,11 @@ class CaptureLikeMock:
     def __init__(self, name):
         import unittest.mock as mock
 
+<<<<<<< HEAD
         # TODO(VitalyFedyunin): Do not use private function here, copy own implementation instead.
+=======
+        # TODO(VitalyFedyunin): Do not use provate function here, copy own implementation instead.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         get_target, attribute = mock._get_target(name)  # type: ignore[attr-defined]
         self.get_target = get_target
         self.attribute = attribute
@@ -283,9 +323,13 @@ class CaptureVariable(Capture):
 
     def apply_ops(self, dataframe):
         # TODO(VitalyFedyunin): Make this calculation thread safe (as currently it updates pointer)
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
         self.ctx["variables"][0].calculated_value = dataframe
         # pyrefly: ignore [not-iterable]
+=======
+        self.ctx["variables"][0].calculated_value = dataframe
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for op in self.ctx["operations"]:
             op.execute()
         return self.calculated_value
@@ -385,7 +429,10 @@ def get_val(capture):
 
 class CaptureInitial(CaptureVariable):
     def __init__(self, schema_df=None):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_ctx: dict[str, list[Any]] = {
             "operations": [],
             "variables": [],
@@ -401,7 +448,10 @@ class CaptureDataFrame(CaptureInitial):
 
 class CaptureDataFrameWithDataPipeOps(CaptureDataFrame):
     def as_datapipe(self):
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return DataFrameTracedOps(self.ctx["variables"][0].source_datapipe, self)
 
     def raw_iterator(self):

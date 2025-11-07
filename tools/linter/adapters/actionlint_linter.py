@@ -73,8 +73,11 @@ def check_file(
                 binary,
                 "-ignore",
                 '"runs-on" section must be sequence node but got mapping node with "!!map" tag',
+<<<<<<< HEAD
                 "-ignore",
                 'input "freethreaded" is not defined in action "actions/setup-python@v',
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 file,
             ]
         )

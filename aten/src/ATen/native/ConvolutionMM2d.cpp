@@ -25,7 +25,11 @@ namespace at::native {
 
 namespace {
 
+<<<<<<< HEAD
 Tensor compute_columns2d(
+=======
+static Tensor compute_columns2d(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     IntArrayRef padding,
     IntArrayRef stride,
@@ -93,7 +97,11 @@ Tensor compute_columns2d(
   return columns.contiguous();
 }
 
+<<<<<<< HEAD
 inline void slow_conv2d_shape_check(
+=======
+static inline void slow_conv2d_shape_check(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     const Tensor& grad_output,
     const Tensor& weight,
@@ -205,7 +213,11 @@ inline void slow_conv2d_shape_check(
   }
 }
 
+<<<<<<< HEAD
 inline Tensor view_weight_2d(const Tensor& weight_,
+=======
+static inline Tensor view_weight_2d(const Tensor& weight_,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     at::MemoryFormat memory_format = at::MemoryFormat::Contiguous) {
   Tensor weight = weight_.contiguous(memory_format);
   if (weight.dim() == 4) {
@@ -220,7 +232,11 @@ inline Tensor view_weight_2d(const Tensor& weight_,
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void slow_conv2d_update_output_frame(
+=======
+static void slow_conv2d_update_output_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorAccessor<const scalar_t, 3> input,
     TensorAccessor<scalar_t, 3> output,
     TensorAccessor<const scalar_t, 2> weight,
@@ -480,7 +496,11 @@ void slow_conv2d_backward_weight_frame(
   }
 }
 
+<<<<<<< HEAD
 void slow_conv2d_backward_weight_out_cpu_template(
+=======
+static void slow_conv2d_backward_weight_out_cpu_template(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& grad_weight,
     const Tensor& input,
     const Tensor& grad_output_,

@@ -1,5 +1,9 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager
 from importlib import import_module
 
@@ -10,18 +14,30 @@ from torch._inductor import config
 from torch._inductor.compiler_bisector import CompilerBisector
 from torch._inductor.test_case import TestCase
 from torch.library import _scoped_library, Library
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 aten = torch.ops.aten
 
+<<<<<<< HEAD
+=======
+requires_cuda = unittest.skipUnless(HAS_CUDA, "requires cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 f32 = torch.float32
 i64 = torch.int64
 i32 = torch.int32
 
 
+<<<<<<< HEAD
 @requires_cuda_and_triton
+=======
+@requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestCompilerBisector(TestCase):
     test_ns = "_test_bisector"
 
@@ -95,6 +111,7 @@ class TestCompilerBisector(TestCase):
         self.assertEqual(out.bisect_number, 1)
         self.assertTrue("aten.exponential" in out.debug_info)
 
+<<<<<<< HEAD
     def test_pre_grad(self):
         import operator
 
@@ -129,6 +146,8 @@ class TestCompilerBisector(TestCase):
         self.assertEqual(out.bisect_number, 0)
         self.assertTrue("pre_grad_custom_pass" in out.debug_info)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_joint_graph(self):
         from torch._inductor import config
 
@@ -218,7 +237,11 @@ class TestCompilerBisector(TestCase):
                 torch._dynamo.reset()
 
                 try:
+<<<<<<< HEAD
                     torch.testing.assert_close(torch.compile(op)(x), op(x))
+=======
+                    torch.testing.assert_allclose(torch.compile(op)(x), op(x))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 except Exception:
                     return False
                 return True

@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 from collections import OrderedDict
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING, Union
+=======
+from typing import Any, Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -26,10 +30,13 @@ from .qconfig import (
 )
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "get_default_qconfig_mapping",
     "get_default_qat_qconfig_mapping",

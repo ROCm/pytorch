@@ -4,7 +4,11 @@
 #include <ATen/cuda/CUDAConfig.h>
 
 // NOTE: These templates are intentionally not defined in this header,
+<<<<<<< HEAD
 // which avoids re-compiling them for each translation unit. If you get
+=======
+// which aviods re-compiling them for each translation unit. If you get
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // a link error, you need to add an explicit instantiation for your
 // types in cub.cu
 

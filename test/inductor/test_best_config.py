@@ -9,7 +9,11 @@ import unittest
 
 import torch
 from torch._inductor import config
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import IS_LINUX
+=======
+from torch.testing._internal.common_utils import IS_LINUX, skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 
 
@@ -48,6 +52,10 @@ class TestKernelBestConfig(TestCase):
         config.max_autotune = cls.original_max_autotune
         super().tearDownClass()
 
+<<<<<<< HEAD
+=======
+    @skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_best_config_has_triton_cache_key(self):
         with tempfile.TemporaryDirectory() as tmpdir:
             os.environ["TORCHINDUCTOR_CACHE_DIR"] = tmpdir

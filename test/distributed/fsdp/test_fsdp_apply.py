@@ -44,14 +44,22 @@ class TestApply(FSDPTest):
 
     @torch.no_grad()
     def _init_linear_weights(self, m):
+<<<<<<< HEAD
         if type(m) is nn.Linear:
+=======
+        if type(m) == nn.Linear:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             m.weight.fill_(1.0)
             m.bias.fill_(1.0)
 
     def check_weights(self, fsdp, expected_tensor_fn, check):
         with FSDP.summon_full_params(fsdp, recurse=True):
             linear_modules = [
+<<<<<<< HEAD
                 module for module in fsdp.modules() if type(module) is nn.Linear
+=======
+                module for module in fsdp.modules() if type(module) == nn.Linear
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             for module in linear_modules:
                 for param in module.parameters():

@@ -59,6 +59,7 @@ class NAdam(Optimizer):  # noqa: D101
             raise ValueError(f"Invalid weight_decay value: {weight_decay}")
         if not 0.0 <= momentum_decay:
             raise ValueError(f"Invalid momentum_decay value: {momentum_decay}")
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "betas": betas,
@@ -71,6 +72,20 @@ class NAdam(Optimizer):  # noqa: D101
             "capturable": capturable,
             "differentiable": differentiable,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            weight_decay=weight_decay,
+            momentum_decay=momentum_decay,
+            decoupled_weight_decay=decoupled_weight_decay,
+            maximize=maximize,
+            foreach=foreach,
+            capturable=capturable,
+            differentiable=differentiable,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
     def __setstate__(self, state):  # noqa: D105
@@ -317,6 +332,7 @@ def _single_tensor_nadam(
         # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
         if not torch.compiler.is_compiling() and capturable:
             capturable_supported_devices = _get_capturable_supported_devices()
+<<<<<<< HEAD
             if not (
                 param.device.type == mu_product.device.type == step_t.device.type
                 and param.device.type in capturable_supported_devices
@@ -325,6 +341,15 @@ def _single_tensor_nadam(
                     f"If capturable=True, params, mu_products and state_steps must be "
                     f"on supported devices: {capturable_supported_devices}."
                 )
+=======
+            assert (
+                param.device.type == mu_product.device.type == step_t.device.type
+                and param.device.type in capturable_supported_devices
+            ), (
+                f"If capturable=True, params, mu_products and state_steps must be "
+                f"on supported devices: {capturable_supported_devices}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # update step
         step_t += 1
@@ -372,9 +397,13 @@ def _single_tensor_nadam(
                 grad, denom, value=(-lr * (1.0 - mu) / (1.0 - _get_value(mu_product)))
             )
             param.addcdiv_(
+<<<<<<< HEAD
                 exp_avg,
                 denom,
                 value=cast(float, (-lr * mu_next) / (1.0 - mu_product_next)),
+=======
+                exp_avg, denom, value=(-lr * mu_next) / (1.0 - mu_product_next)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 
@@ -401,14 +430,19 @@ def _multi_tensor_nadam(
     if len(params) == 0:
         return
 
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # If compiling, the compiler will handle cudagraph checks, see note [torch.compile x capturable]
     if not torch.compiler.is_compiling() and capturable:
         capturable_supported_devices = _get_capturable_supported_devices(
             supports_xla=False
         )
+<<<<<<< HEAD
         if not all(
             p.device.type == mp.device.type == step.device.type
             and p.device.type in capturable_supported_devices
@@ -419,6 +453,17 @@ def _multi_tensor_nadam(
                 "params, mu_products, and state_steps must be on supported devices: "
                 f"{capturable_supported_devices}."
             )
+=======
+        assert all(
+            p.device.type == mp.device.type == step.device.type
+            and p.device.type in capturable_supported_devices
+            for p, mp, step in zip(params, mu_products, state_steps)
+        ), (
+            "If capturable=True, "
+            "params, mu_products, and state_steps must be on supported devices: "
+            f"{capturable_supported_devices}."
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     lr = _to_scalar(lr)
 
@@ -465,7 +510,11 @@ def _multi_tensor_nadam(
                 # Perform stepweight decay
                 torch._foreach_mul_(grouped_params, 1 - lr * weight_decay)
             else:
+<<<<<<< HEAD
                 # Reuse the intermediate memory (grouped_grads) already allocated for maximize
+=======
+                # Re-use the intermediate memory (grouped_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if maximize:
                     torch._foreach_add_(
                         grouped_grads, grouped_params, alpha=weight_decay

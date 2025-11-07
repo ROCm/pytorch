@@ -2,12 +2,18 @@
 #include <ATen/autocast_mode.h>
 #include <c10/core/SafePyObject.h>
 #include <c10/core/impl/PyInterpreter.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define PY_SSIZE_T_CLEAN
 #include <ATen/EmptyTensor.h>
 #include <ATen/SparseCsrTensorUtils.h>
 #include <c10/util/flat_hash_map.h>
+<<<<<<< HEAD
 #include <fmt/format.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/grad_mode.h>
 #include <torch/csrc/autograd/utils/wrap_outputs.h>
 #include <torch/csrc/dynamo/guards.h>
@@ -19,7 +25,10 @@
 #include <torch/csrc/utils/python_symnode.h>
 #include <torch/csrc/utils/pythoncapi_compat.h>
 #include <torch/extension.h>
+<<<<<<< HEAD
 #include <cstdint>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <torch/csrc/dynamo/debug_macros.h>
 
@@ -33,15 +42,19 @@
 #include <ATen/xpu/EmptyTensor.h>
 #endif
 
+<<<<<<< HEAD
 #ifdef USE_MTIA
 #include <ATen/native/mtia/EmptyTensor.h>
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <chrono>
 #include <sstream>
 #include <tuple>
 #include <utility>
 
+<<<<<<< HEAD
 // Uncomment next line to count instructions for guard eval.
 // #define GUARD_INSTRUCTION_COUNT
 #ifdef GUARD_INSTRUCTION_COUNT
@@ -80,6 +93,8 @@ uint64_t count_instructions(const std::function<void()>& fn) {
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Certain CPython data structures are defined in `.c` files in earlier Python
 // versions, e.g., for TupleIteratorGetItemAccessor, we need a fast way to
 // retrieve the underlying tuple and access the item. Before Python 3.12
@@ -569,7 +584,11 @@ static PyMethodDef TensorGuards_methods[] = {
     {nullptr} /* Sentinel */
 };
 
+<<<<<<< HEAD
 static PyTypeObject TensorGuardsType = {PyVarObject_HEAD_INIT(nullptr, 0)
+=======
+static PyTypeObject TensorGuardsType = { PyVarObject_HEAD_INIT(nullptr, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct AutocastState {
@@ -623,7 +642,11 @@ struct AutocastState {
 struct GlobalStateGuard {
   PyObject_HEAD
 
+<<<<<<< HEAD
   void init() {
+=======
+  inline void init() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto& ctx = at::globalContext();
     _grad_mode = at::GradMode::is_enabled();
     _autocast_state = AutocastState();
@@ -635,16 +658,24 @@ struct GlobalStateGuard {
     _torch_function_all_disabled = at::impl::torch_function_all_disabled();
     _deterministic_algorithms = ctx.deterministicAlgorithms();
     _deterministic_algorithms_warn_only = ctx.deterministicAlgorithmsWarnOnly();
+<<<<<<< HEAD
     _allow_tf32 =
         ctx.float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) ==
         at::Float32Precision::TF32;
+=======
+    _allow_tf32 = ctx.allowTF32CuBLAS();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _allow_fp16_reduce = ctx.allowFP16ReductionCuBLAS();
     _allow_bf16_reduce = ctx.allowBF16ReductionCuBLAS();
     _num_threads = at::get_num_threads();
     _default_dtype = at::get_default_dtype();
   }
 
+<<<<<<< HEAD
   bool check() const {
+=======
+  inline bool check() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto& ctx = at::globalContext();
     return (_grad_mode == at::GradMode::is_enabled() &&
             _autocast_state == AutocastState() &&
@@ -654,17 +685,25 @@ struct GlobalStateGuard {
             _deterministic_algorithms == ctx.deterministicAlgorithms() &&
             _deterministic_algorithms_warn_only ==
                 ctx.deterministicAlgorithmsWarnOnly() &&
+<<<<<<< HEAD
             _allow_tf32 ==
                 (ctx.float32Precision(
                      at::Float32Backend::CUDA, at::Float32Op::MATMUL) ==
                  at::Float32Precision::TF32) &&
+=======
+            _allow_tf32 == ctx.allowTF32CuBLAS() &&
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _allow_fp16_reduce == ctx.allowFP16ReductionCuBLAS() &&
             _allow_bf16_reduce == ctx.allowBF16ReductionCuBLAS() &&
             _num_threads == at::get_num_threads()) &&
         _default_dtype == at::get_default_dtype();
   }
 
+<<<<<<< HEAD
   std::string reason() const {
+=======
+  inline std::string reason() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::ostringstream os;
     auto& ctx = at::globalContext();
     if (_grad_mode != at::GradMode::is_enabled())
@@ -678,10 +717,14 @@ struct GlobalStateGuard {
     if (_deterministic_algorithms_warn_only !=
         ctx.deterministicAlgorithmsWarnOnly())
       os << "deterministic_algorithms_warn_only ";
+<<<<<<< HEAD
     if (_allow_tf32 !=
         (ctx.float32Precision(
              at::Float32Backend::CUDA, at::Float32Op::MATMUL) ==
          at::Float32Precision::TF32))
+=======
+    if (_allow_tf32 != ctx.allowTF32CuBLAS())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       os << "allow_tf32 ";
     if (_allow_fp16_reduce != ctx.allowFP16ReductionCuBLAS())
       os << "allow_fp16_reduce ";
@@ -704,10 +747,15 @@ struct GlobalStateGuard {
     json_j["deterministic_algorithms_warn_only"] =
         json_t._deterministic_algorithms_warn_only;
     json_j["allow_tf32"] = json_t._allow_tf32;
+<<<<<<< HEAD
     json_j["allow_fp16_reduce"] =
         static_cast<int64_t>(json_t._allow_fp16_reduce);
     json_j["allow_bf16_reduce"] =
         static_cast<int64_t>(json_t._allow_bf16_reduce);
+=======
+    json_j["allow_fp16_reduce"] = json_t._allow_fp16_reduce;
+    json_j["allow_bf16_reduce"] = json_t._allow_bf16_reduce;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     json_j["num_threads"] = json_t._num_threads;
     json_j["default_dtype"] = json_t._default_dtype.toScalarType();
   }
@@ -723,10 +771,15 @@ struct GlobalStateGuard {
     json_t._deterministic_algorithms_warn_only =
         json_j.at("deterministic_algorithms_warn_only");
     json_t._allow_tf32 = json_j.at("allow_tf32");
+<<<<<<< HEAD
     json_t._allow_fp16_reduce = static_cast<at::CuBLASReductionOption>(
         static_cast<int64_t>(json_j.at("allow_fp16_reduce")));
     json_t._allow_bf16_reduce = static_cast<at::CuBLASReductionOption>(
         static_cast<int64_t>(json_j.at("allow_bf16_reduce")));
+=======
+    json_t._allow_fp16_reduce = json_j.at("allow_fp16_reduce");
+    json_t._allow_bf16_reduce = json_j.at("allow_bf16_reduce");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     json_t._num_threads = json_j.at("num_threads");
     json_t._default_dtype =
         caffe2::TypeMeta::fromScalarType(json_j.at("default_dtype"));
@@ -739,8 +792,13 @@ struct GlobalStateGuard {
   bool _deterministic_algorithms;
   bool _deterministic_algorithms_warn_only;
   bool _allow_tf32;
+<<<<<<< HEAD
   at::CuBLASReductionOption _allow_fp16_reduce;
   at::CuBLASReductionOption _allow_bf16_reduce;
+=======
+  bool _allow_fp16_reduce;
+  bool _allow_bf16_reduce;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int _num_threads;
   caffe2::TypeMeta _default_dtype;
   // TODO(jansel): we should guard on more state as inductor starts using it
@@ -784,8 +842,14 @@ PyObject* GlobalStateGuard_load(
     PyObject* args,
     PyObject* kwargs) {
   char* json;
+<<<<<<< HEAD
   TORCH_CHECK(
       PyArg_ParseTuple(args, "s", &json), "Cannot parse as json string.");
+=======
+  if (!PyArg_ParseTuple(args, "s", &json)) {
+    throw std::runtime_error("Cannot parse as json string.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   nlohmann::json::parse(json).get_to(*self);
   Py_RETURN_NONE;
 }
@@ -800,16 +864,28 @@ static PyMethodDef GlobalStateGuard_methods[] = {
      (PyCFunction)(void*)GlobalStateGuard_reason,
      METH_NOARGS,
      "Return string reason for guard check failing"},
+<<<<<<< HEAD
     {"__getstate__",
      (PyCFunction)(void*)GlobalStateGuard_dump,
      METH_NOARGS,
      "Return serialized json format"},
     {"__setstate__",
+=======
+    {"dump",
+     (PyCFunction)(void*)GlobalStateGuard_dump,
+     METH_NOARGS,
+     "Return serialized json format"},
+    {"load",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
      (PyCFunction)(void*)GlobalStateGuard_load,
      METH_VARARGS,
      "Parse serialized json format"},
     {nullptr}};
+<<<<<<< HEAD
 static PyTypeObject GlobalStateGuardType = {PyVarObject_HEAD_INIT(nullptr, 0)
+=======
+static PyTypeObject GlobalStateGuardType = { PyVarObject_HEAD_INIT(nullptr, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 static PyObject* check_type_id(PyObject* dummy, PyObject* args) {
@@ -846,7 +922,10 @@ static PyObject* check_obj_id(PyObject* dummy, PyObject* args) {
 
 static std::unordered_map<PyObject*, uint64_t> dict_version_map;
 static int dict_version_watcher_id;
+<<<<<<< HEAD
 static int dict_recursive_tag_watcher_id;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static uint64_t global_dict_version_id = 1;
 static int dict_version_watch_callback(
     PyDict_WatchEvent event,
@@ -866,9 +945,15 @@ static int dict_version_watch_callback(
 static uint64_t get_dict_version_unchecked(PyObject* dict) {
 #if IS_PYTHON_3_12_PLUS
 
+<<<<<<< HEAD
   TORCH_CHECK(
       !PyDict_Watch(dict_version_watcher_id, dict),
       "failed to add version watcher to dict!");
+=======
+  if (PyDict_Watch(dict_version_watcher_id, dict)) {
+    throw std::runtime_error("failed to add version watcher to dict!");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!dict_version_map.count(dict)) {
     dict_version_map[dict] = global_dict_version_id++;
   }
@@ -1055,8 +1140,12 @@ static void _parse_empty_strided_args(
 static PyObject* _empty_strided_device(
     PyObject* dummy,
     PyObject* args,
+<<<<<<< HEAD
     c10::DeviceType device_type,
     bool is_pinned = false) {
+=======
+    c10::DeviceType device_type) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS;
   at::SmallVector<int64_t, 8> sizes;
   at::SmallVector<int64_t, 8> strides;
@@ -1064,7 +1153,11 @@ static PyObject* _empty_strided_device(
   _parse_empty_strided_args(args, sizes, strides, dtype);
   if (device_type == c10::DeviceType::CPU) {
     return THPVariable_Wrap(
+<<<<<<< HEAD
         at::detail::empty_strided_cpu(sizes, strides, dtype, is_pinned));
+=======
+        at::detail::empty_strided_cpu(sizes, strides, dtype));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 #ifdef USE_CUDA
   else if (device_type == c10::DeviceType::CUDA) {
@@ -1078,12 +1171,15 @@ static PyObject* _empty_strided_device(
         sizes, strides, dtype, c10::DeviceType::XPU));
   }
 #endif
+<<<<<<< HEAD
 #ifdef USE_MTIA
   else if (device_type == c10::DeviceType::MTIA) {
     return THPVariable_Wrap(at::detail::empty_strided_mtia(
         sizes, strides, dtype, c10::DeviceType::MTIA));
   }
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   else {
     TORCH_CHECK(
         false, "PyTorch compiled without support for the specified device.");
@@ -1098,6 +1194,7 @@ static PyObject* _empty_strided_cpu(PyObject* dummy, PyObject* args) {
   return _empty_strided_device(dummy, args, c10::DeviceType::CPU);
 }
 
+<<<<<<< HEAD
 static PyObject* _empty_strided_cpu_pinned(PyObject* dummy, PyObject* args) {
   // at::empty_strided is surprising slow.  This is a lower-overhead
   // version that saves ~2us on every allocation.
@@ -1105,6 +1202,8 @@ static PyObject* _empty_strided_cpu_pinned(PyObject* dummy, PyObject* args) {
       dummy, args, c10::DeviceType::CPU, /*is_pinned=*/true);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static PyObject* _empty_strided_cuda(PyObject* dummy, PyObject* args) {
   // at::empty_strided is surprising slow.  This is lower-overhead.
   return _empty_strided_device(dummy, args, c10::DeviceType::CUDA);
@@ -1115,10 +1214,13 @@ static PyObject* _empty_strided_xpu(PyObject* dummy, PyObject* args) {
   return _empty_strided_device(dummy, args, c10::DeviceType::XPU);
 }
 
+<<<<<<< HEAD
 static PyObject* _empty_strided_mtia(PyObject* dummy, PyObject* args) {
   return _empty_strided_device(dummy, args, c10::DeviceType::MTIA);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static PyObject* _reinterpret_tensor(PyObject* dummy, PyObject* args) {
   HANDLE_TH_ERRORS;
   static PythonArgParser parser(
@@ -1148,6 +1250,7 @@ static PyMethodDef _methods[] = {
     {"assert_alignment", assert_alignment, METH_VARARGS, nullptr},
     {"dict_version", dict_version, METH_VARARGS, nullptr},
     {"_empty_strided_cpu", _empty_strided_cpu, METH_VARARGS, nullptr},
+<<<<<<< HEAD
     {"_empty_strided_cpu_pinned",
      _empty_strided_cpu_pinned,
      METH_VARARGS,
@@ -1155,6 +1258,10 @@ static PyMethodDef _methods[] = {
     {"_empty_strided_cuda", _empty_strided_cuda, METH_VARARGS, nullptr},
     {"_empty_strided_xpu", _empty_strided_xpu, METH_VARARGS, nullptr},
     {"_empty_strided_mtia", _empty_strided_mtia, METH_VARARGS, nullptr},
+=======
+    {"_empty_strided_cuda", _empty_strided_cuda, METH_VARARGS, nullptr},
+    {"_empty_strided_xpu", _empty_strided_xpu, METH_VARARGS, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {"_reinterpret_tensor", _reinterpret_tensor, METH_VARARGS, nullptr},
     {nullptr, nullptr, 0, nullptr}};
 
@@ -1197,12 +1304,18 @@ bool is_immutable_object(py::handle example_value) {
     return true;
   }
 
+<<<<<<< HEAD
   return (example_value.ptr() == Py_None) ||
       PyLong_Check(example_value.ptr()) || PyFloat_Check(example_value.ptr()) ||
       PyBool_Check(example_value.ptr()) ||
       PyUnicode_Check(example_value.ptr()) ||
       PyCode_Check(example_value.ptr()) ||
       (Py_TYPE(example_value.ptr()) == &PyCFunction_Type) ||
+=======
+  return PyLong_Check(example_value.ptr()) ||
+      PyFloat_Check(example_value.ptr()) || PyBool_Check(example_value.ptr()) ||
+      PyUnicode_Check(example_value.ptr()) ||
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       (is_tensor_immutable && THPVariable_Check(example_value.ptr()));
 }
 
@@ -1570,6 +1683,7 @@ class GuardManager;
 class RootGuardManager;
 class DictGuardManager;
 
+<<<<<<< HEAD
 // Global registry used by the *recursive-dict-tag* optimisation.
 //
 // Key   : `PyObject*` pointing to a watched `dict`
@@ -1601,11 +1715,22 @@ class DictGuardManager;
 // stores only lightweight pointers.
 std::unordered_map<PyObject*, std::list<GuardManager*>> dict_to_guard_managers;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /**
  * Base class for the leaf guard in the GuardManager hierarchy.
  */
 class LeafGuard {
  public:
+<<<<<<< HEAD
+=======
+  // Most guards do not need root guard manager.
+  LeafGuard(py::object verbose_code_parts)
+      : _verbose_code_parts(std::move(verbose_code_parts)) {}
+
+  // Guards like TENSOR_MATCH require root_guard_manager to access local_state
+  // shared across all leaf guards.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   LeafGuard(RootGuardManager* root_guard_manager, py::object verbose_code_parts)
       : _root_guard_manager(root_guard_manager),
         _verbose_code_parts(std::move(verbose_code_parts)) {}
@@ -1667,11 +1792,16 @@ class LeafGuard {
  */
 class LAMBDA_GUARD : public LeafGuard {
  public:
+<<<<<<< HEAD
   LAMBDA_GUARD(
       RootGuardManager* root_guard_manager,
       py::object guard_check_fn,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {
+=======
+  LAMBDA_GUARD(py::object guard_check_fn, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (py::isinstance<py::function>(guard_check_fn)) {
       _guard_check_fn = py::cast<py::function>(std::move(guard_check_fn));
     } else {
@@ -1716,11 +1846,16 @@ class LAMBDA_GUARD : public LeafGuard {
 class TYPE_MATCH : public LeafGuard {
  public:
   // type_id = id(type(obj))
+<<<<<<< HEAD
   TYPE_MATCH(
       RootGuardManager* root_guard_manager,
       py::object type_id,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  TYPE_MATCH(py::object type_id, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _expected(py::cast<intptr_t>(std::move(type_id))) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -1736,11 +1871,16 @@ class TYPE_MATCH : public LeafGuard {
 class ID_MATCH : public LeafGuard {
  public:
   // obj_id = id(obj)
+<<<<<<< HEAD
   ID_MATCH(
       RootGuardManager* root_guard_manager,
       py::object obj_id,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  ID_MATCH(py::object obj_id, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _expected(py::cast<intptr_t>(std::move(obj_id))) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -1755,10 +1895,15 @@ class ID_MATCH : public LeafGuard {
 
 class NONE_MATCH : public LeafGuard {
  public:
+<<<<<<< HEAD
   NONE_MATCH(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  NONE_MATCH(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
     return value == Py_None;
@@ -1767,10 +1912,15 @@ class NONE_MATCH : public LeafGuard {
 
 class TRUE_MATCH : public LeafGuard {
  public:
+<<<<<<< HEAD
   TRUE_MATCH(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  TRUE_MATCH(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
     return value == Py_True;
@@ -1779,10 +1929,15 @@ class TRUE_MATCH : public LeafGuard {
 
 class FALSE_MATCH : public LeafGuard {
  public:
+<<<<<<< HEAD
   FALSE_MATCH(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  FALSE_MATCH(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
     return value == Py_False;
@@ -1791,11 +1946,16 @@ class FALSE_MATCH : public LeafGuard {
 
 class EQUALS_MATCH : public LeafGuard {
  public:
+<<<<<<< HEAD
   EQUALS_MATCH(
       RootGuardManager* root_guard_manager,
       py::object value,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  EQUALS_MATCH(py::object value, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _value(value),
         _value_type(Py_TYPE(value.ptr())) {}
 
@@ -1832,13 +1992,20 @@ class EQUALS_MATCH : public LeafGuard {
 class RANGE_ITERATOR_MATCH : public LeafGuard {
  public:
   RANGE_ITERATOR_MATCH(
+<<<<<<< HEAD
       RootGuardManager* root_guard_manager,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       py::object start,
       py::object stop,
       py::object step,
       py::object type_id,
       py::object verbose_code_parts)
+<<<<<<< HEAD
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _type_id(py::cast<intptr_t>(std::move(type_id))) {
     PyObject* start_obj = start.ptr();
     PyObject* stop_obj = stop.ptr();
@@ -1879,11 +2046,18 @@ class RANGE_ITERATOR_MATCH : public LeafGuard {
 class TUPLE_ITERATOR_LEN : public LeafGuard {
  public:
   TUPLE_ITERATOR_LEN(
+<<<<<<< HEAD
       RootGuardManager* root_guard_manager,
       py::object length,
       py::object type_id,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+      py::object length,
+      py::object type_id,
+      py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _length(py::cast<Py_ssize_t>(std::move(length))),
         _type_id(py::cast<intptr_t>(std::move(type_id))) {}
 
@@ -1908,11 +2082,16 @@ class TUPLE_ITERATOR_LEN : public LeafGuard {
 
 class LENGTH_CHECK : public LeafGuard {
  public:
+<<<<<<< HEAD
   LENGTH_CHECK(
       RootGuardManager* root_guard_manager,
       py::object value,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  LENGTH_CHECK(py::object value, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _length(py::cast<Py_ssize_t>(std::move(value))) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -1928,11 +2107,16 @@ class LENGTH_CHECK : public LeafGuard {
 
 class DICT_LENGTH : public LeafGuard {
  public:
+<<<<<<< HEAD
   DICT_LENGTH(
       RootGuardManager* root_guard_manager,
       py::object value,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  DICT_LENGTH(py::object value, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _length(py::cast<Py_ssize_t>(std::move(value))) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -1946,8 +2130,13 @@ class DICT_LENGTH : public LeafGuard {
 
 class NOT_NONE : public LeafGuard {
  public:
+<<<<<<< HEAD
   NOT_NONE(RootGuardManager* root_guard_manager, py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  NOT_NONE(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
     return value != Py_None;
@@ -1956,11 +2145,16 @@ class NOT_NONE : public LeafGuard {
 
 class MAPPING_KEYS_MATCH : public LeafGuard {
  public:
+<<<<<<< HEAD
   MAPPING_KEYS_MATCH(
       RootGuardManager* root_guard_manager,
       py::object value,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {
+=======
+  MAPPING_KEYS_MATCH(py::object value, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // This is ok to stash in the state because we only support
     // MappingProxyType objects with constant keys. So, the mem overhead is
     // negligible.
@@ -1980,10 +2174,15 @@ class MAPPING_KEYS_MATCH : public LeafGuard {
 
 class DEFAULT_DEVICE : public LeafGuard {
  public:
+<<<<<<< HEAD
   DEFAULT_DEVICE(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {
+=======
+  DEFAULT_DEVICE(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     py::handle device_module = py::module::import("torch.utils._device");
     // Save the dict using py::object
     _utils_device_dict = device_module.attr("__dict__");
@@ -2027,6 +2226,7 @@ class DEFAULT_DEVICE : public LeafGuard {
 
 class GLOBAL_STATE : public LeafGuard {
  public:
+<<<<<<< HEAD
   GLOBAL_STATE(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
@@ -2046,6 +2246,12 @@ class GLOBAL_STATE : public LeafGuard {
     if (!PyObject_TypeCheck(owner_.ptr(), &GlobalStateGuardType)) {
       throw py::type_error("GLOBAL_STATE expects a GlobalStateGuard");
     }
+=======
+  GLOBAL_STATE(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+    _guard = std::make_unique<GlobalStateGuard>();
+    _guard->init();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -2067,8 +2273,12 @@ class GLOBAL_STATE : public LeafGuard {
   }
 
  private:
+<<<<<<< HEAD
   py::object owner_;
   GlobalStateGuard* _guard;
+=======
+  std::unique_ptr<GlobalStateGuard> _guard;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // Checks that an attr is absent in the object. We don't need the opposite
@@ -2076,11 +2286,16 @@ class GLOBAL_STATE : public LeafGuard {
 // HASATTR guard.
 class NO_HASATTR : public LeafGuard {
  public:
+<<<<<<< HEAD
   NO_HASATTR(
       RootGuardManager* root_guard_manager,
       py::object attr_name,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  NO_HASATTR(py::object attr_name, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _attr_name(std::move(attr_name)) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -2098,12 +2313,17 @@ class NO_HASATTR : public LeafGuard {
 // being faster.
 class DICT_CONTAINS : public LeafGuard {
  public:
+<<<<<<< HEAD
   DICT_CONTAINS(
       RootGuardManager* root_guard_manager,
       bool contains,
       py::object key,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  DICT_CONTAINS(bool contains, py::object key, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _contains(contains ? 1 : 0),
         _key(std::move(key)) {}
 
@@ -2121,6 +2341,7 @@ class DICT_CONTAINS : public LeafGuard {
   py::object _key;
 };
 
+<<<<<<< HEAD
 // Check that set contains an item.
 class SET_CONTAINS : public LeafGuard {
  public:
@@ -2226,11 +2447,17 @@ class DUAL_LEVEL_MATCH : public LeafGuard {
   py::object forward_ad_module;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /**
  * Relational guards compare more than one value. We implement Relational
  * guards by capturing some state in the guard object. For example for tensor
  * aliasing guards - tensor X is not tensor Y - we construct one leaf guard
+<<<<<<< HEAD
  * and install it at as a leaf of two guard managers (one for X and
+=======
+ * and and install it at as a leaf of two guard managers (one for X and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * another for Y). Therefore, this guard is run twice. In the first
  * invocation, it saves the first value (state) and returns True. In the
  * second invocation, it compares the saved value with the new value and
@@ -2243,10 +2470,15 @@ class DUAL_LEVEL_MATCH : public LeafGuard {
  */
 class RelationalGuard : public LeafGuard {
  public:
+<<<<<<< HEAD
   RelationalGuard(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  RelationalGuard(py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // reset the relational guard state on guard failure. This is called by the
   // guard manager.
@@ -2258,10 +2490,15 @@ class RelationalGuard : public LeafGuard {
  */
 class OBJECT_ALIASING : public RelationalGuard {
  public:
+<<<<<<< HEAD
   OBJECT_ALIASING(
       RootGuardManager* root_guard_manager,
       py::object verbose_code_parts)
       : RelationalGuard(root_guard_manager, std::move(verbose_code_parts)) {}
+=======
+  OBJECT_ALIASING(py::object verbose_code_parts)
+      : RelationalGuard(std::move(verbose_code_parts)) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
     if (_is_first_call) {
@@ -2287,10 +2524,16 @@ class OBJECT_ALIASING : public RelationalGuard {
 class NO_TENSOR_ALIASING : public RelationalGuard {
  public:
   NO_TENSOR_ALIASING(
+<<<<<<< HEAD
       RootGuardManager* root_guard_manager,
       const py::list& tensor_names,
       py::object verbose_code_parts)
       : RelationalGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+      const py::list& tensor_names,
+      py::object verbose_code_parts)
+      : RelationalGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _tensor_names(tensor_names) {
     _unique_tensors.reserve(tensor_names.size());
   }
@@ -2338,11 +2581,18 @@ class NO_TENSOR_ALIASING : public RelationalGuard {
 class STORAGE_OVERLAPPING : public RelationalGuard {
  public:
   STORAGE_OVERLAPPING(
+<<<<<<< HEAD
       RootGuardManager* root_guard_manager,
       bool overlapping,
       std::shared_ptr<StorageOverlapChecker> checker,
       py::object verbose_code_parts)
       : RelationalGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+      bool overlapping,
+      std::shared_ptr<StorageOverlapChecker> checker,
+      py::object verbose_code_parts)
+      : RelationalGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _overlapping(overlapping),
         _checker(std::move(checker)) {}
 
@@ -2370,13 +2620,20 @@ class STORAGE_OVERLAPPING : public RelationalGuard {
 class SYMBOLIC_SHAPE_GUARD : public RelationalGuard {
  public:
   SYMBOLIC_SHAPE_GUARD(
+<<<<<<< HEAD
       RootGuardManager* root_guard_manager,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       py::int_ nargs_int,
       py::int_ nargs_float,
       py::int_ py_addr,
       py::object py_addr_keep_alive,
       py::object verbose_code_parts)
+<<<<<<< HEAD
       : RelationalGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+      : RelationalGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _py_addr_keep_alive(std::move(py_addr_keep_alive)) {
     _nargs_int = PyLong_AsSize_t(nargs_int.ptr());
     _nargs_float = PyLong_AsSize_t(nargs_float.ptr());
@@ -2484,12 +2741,19 @@ class DYNAMIC_INDICES : public LeafGuard {
   //      f"(({tensor_name}._dynamo_dynamic_indices.issubset({value._dynamo_dynamic_indices}))
   //      if hasattr({tensor_name}, '_dynamo_dynamic_indices') else True)"  #
   //      noqa: B950
+<<<<<<< HEAD
  public:
   DYNAMIC_INDICES(
       RootGuardManager* root_guard_manager,
       py::set dynamic_indices,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)),
+=======
+  //  )
+ public:
+  DYNAMIC_INDICES(py::set dynamic_indices, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _dynamic_indices(std::move(dynamic_indices)) {}
 
   bool check_nopybind(PyObject* value) override { // borrowed ref
@@ -2519,11 +2783,16 @@ class DYNAMIC_INDICES : public LeafGuard {
 
 class DICT_VERSION : public LeafGuard {
  public:
+<<<<<<< HEAD
   DICT_VERSION(
       RootGuardManager* root_guard_manager,
       py::object value,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {
+=======
+  DICT_VERSION(py::object value, py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!PyDict_Check(value.ptr())) {
       throw py::type_error("DICT_VERSION expects a dict");
     }
@@ -2548,6 +2817,7 @@ std::unique_ptr<GuardManager> make_guard_manager(
     py::handle example_value,
     py::handle guard_manager_enum);
 
+<<<<<<< HEAD
 // Forward declarations for tag safe related helpers. All of these require some
 // interaction between RootGuardManager and GuardManager. Since both of the
 // classes are forward declared, we have to forward declare these helpers as
@@ -2563,6 +2833,8 @@ bool is_recording_dict_pointers(RootGuardManager* root);
 void record_dict_pointer(RootGuardManager* root, PyObject* dict_pointer);
 void record_tensor_pointer(RootGuardManager* root, PyObject* tensor_pointer);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 GuardManager* clone_guard_manager(
     GuardManager* from,
     RootGuardManager* root,
@@ -2570,6 +2842,7 @@ GuardManager* clone_guard_manager(
 void add_relational_guard_resetter_to_cloned_root(
     RootGuardManager* root,
     std::shared_ptr<RelationalGuard> guard);
+<<<<<<< HEAD
 std::shared_ptr<RelationalGuard> get_no_tensor_aliasing_guard(
     RootGuardManager* _root);
 // std::string get_compile_id(RootGuardManager* root);
@@ -2578,6 +2851,9 @@ struct WeakEntry {
   PyObject* wr; // weakref
   PyObject* cap; // capsule whose m_self is used by the callback
 };
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /**
  * Base class representing a pair of accessor and the associated guard
  * manager. The accessor defines how to access the child value from the
@@ -2728,6 +3004,7 @@ class GuardManager {
       py::handle example_value)
       : _root(root),
         _source(std::move(source)),
+<<<<<<< HEAD
         _is_dict(py::isinstance<py::dict>(example_value)),
         _is_immutable(is_immutable_object(example_value)) {
     if (_is_dict) {
@@ -2740,10 +3017,17 @@ class GuardManager {
     _max_saved_pointers_for_recursive_dict_tags_check =
         config_module.attr("max_saved_pointers_for_recursive_dict_tags_check")
             .cast<uint64_t>();
+=======
+        _is_dict(py::isinstance<py::dict>(example_value)) {
+    if (_is_dict) {
+      _dict_tag = get_dict_version_unchecked(example_value.ptr());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   GuardManager(const GuardManager& m) = delete;
   GuardManager& operator=(const GuardManager&) = delete;
+<<<<<<< HEAD
 
   virtual ~GuardManager() {
     cleanup_tag_safe_entries();
@@ -2761,6 +3045,9 @@ class GuardManager {
     }
     _tag_safe_entries.clear();
   }
+=======
+  virtual ~GuardManager() = default;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   RootGuardManager* get_root() {
     return _root;
@@ -2775,6 +3062,7 @@ class GuardManager {
   }
 
  public:
+<<<<<<< HEAD
   // relational guard helpers
   void set_has_object_aliasing_guard() {
     _has_object_aliasing_guard = true;
@@ -2865,6 +3153,11 @@ class GuardManager {
         _is_dict(is_dict),
         _is_immutable(is_immutable),
         _weak_type(weak_type) {}
+=======
+  // For cloning
+  GuardManager(RootGuardManager* root, std::string source, bool is_dict)
+      : _root(root), _source(std::move(source)), _is_dict(is_dict) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void clone_common(
       RootGuardManager* cloned_root,
@@ -2895,6 +3188,7 @@ class GuardManager {
     if (!py::cast<bool>(clone_filter_fn(this))) {
       return nullptr;
     }
+<<<<<<< HEAD
     GuardManager* cloned_mgr = new GuardManager(
         cloned_root, _source, _is_dict, _is_immutable, _weak_type);
     if (is_tag_safe()) {
@@ -2903,6 +3197,9 @@ class GuardManager {
         cloned_mgr->mark_tag_safe_root();
       }
     }
+=======
+    GuardManager* cloned_mgr = new GuardManager(cloned_root, _source, _is_dict);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     clone_common(cloned_root, cloned_mgr, clone_filter_fn);
     return cloned_mgr;
   }
@@ -2957,6 +3254,7 @@ class GuardManager {
     return this->check_accessors_nopybind(value);
   }
 
+<<<<<<< HEAD
   bool check_dict_pointer_tags(PyObject* value) {
     if (_dict_callback_installed) {
       // This means that for 3.12+, there are callbacks watching dict pointers.
@@ -3238,6 +3536,10 @@ class GuardManager {
       }
     }
 #endif
+=======
+  virtual bool check_nopybind(PyObject* value) {
+    return check_nopybind_template(value);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   virtual bool check_nopybind(FrameLocalsMapping* value) {
@@ -3461,6 +3763,7 @@ class GuardManager {
   // to enable fail fast for the next check.
   std::vector<std::unique_ptr<GuardAccessor>> _accessors;
 
+<<<<<<< HEAD
   // relational guard helpers
   bool _has_object_aliasing_guard = false;
   bool _has_no_tensor_aliasing_guard = false;
@@ -3486,6 +3789,10 @@ class GuardManager {
   // weakref to the type of guarded value
   // protected because it is used for cloning by DictGuardManager
   py::object _weak_type;
+=======
+  bool _is_dict;
+  uint64_t _dict_tag{0};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 GuardAccessor::GuardAccessor(
@@ -3532,6 +3839,7 @@ class RootGuardManager : public GuardManager {
   // This is the root node, set its _root member to nullptr
   RootGuardManager() : GuardManager(this, "L") {}
 
+<<<<<<< HEAD
   void add_no_tensor_aliasing_guard(
       std::shared_ptr<RelationalGuard> no_tensor_aliasing_guard) {
     // stash a pointer to the _no_tensor_alising_guard
@@ -3543,6 +3851,8 @@ class RootGuardManager : public GuardManager {
     return _no_tensor_aliasing_guard;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Adds the relational guard resetter
   void add_relational_guard_resetter(
       std::shared_ptr<RelationalGuard> relational_guard) {
@@ -3569,9 +3879,12 @@ class RootGuardManager : public GuardManager {
     std::lock_guard<std::mutex> lock_guard(_lock);
     Py_BLOCK_THREADS; // ; is added to avoid clang-formatting
 
+<<<<<<< HEAD
     // Clean up dict pointer recording for tag safe roots
     reset_dict_tag_recording_variables();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Get the local state. This will be used for TENSOR_MATCH guards.
     if (_init_local_state) {
       LocalState state;
@@ -3714,6 +4027,7 @@ class RootGuardManager : public GuardManager {
     return ret;
   }
 
+<<<<<<< HEAD
   void attach_compile_id(std::string compile_id) {
     _compile_id = compile_id;
   }
@@ -3722,6 +4036,8 @@ class RootGuardManager : public GuardManager {
   //   return _compile_id;
   // }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   // Reset the state of all the relational guards on failure.
   void _reset_relational_guard_state() {
@@ -3731,6 +4047,7 @@ class RootGuardManager : public GuardManager {
   }
 
  public:
+<<<<<<< HEAD
   // tag safe optimizations
   void start_recording_dict_pointers(GuardManager* tag_safe_root) {
     _current_tag_safe_root = tag_safe_root;
@@ -3769,6 +4086,8 @@ class RootGuardManager : public GuardManager {
   }
 
  public:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Local state for TENSOR_MATCH guards.
   LocalState _local_state;
 
@@ -3812,6 +4131,7 @@ class RootGuardManager : public GuardManager {
   // We init LocalState only when this flag it set. This flag is set during
   // TENSOR_MATCH guard init.
   bool _init_local_state = false;
+<<<<<<< HEAD
 
   // debug info
   std::string _compile_id;
@@ -3824,6 +4144,8 @@ class RootGuardManager : public GuardManager {
   GuardManager* _current_tag_safe_root{nullptr};
   std::vector<std::pair<PyObject*, uint64_t>> _recorded_dict_pointers;
   std::vector<PyObject*> _recorded_tensor_pointers;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 /*
@@ -3842,7 +4164,11 @@ class DictGuardManager : public GuardManager {
       RootGuardManager* root,
       std::string source,
       py::handle example_value)
+<<<<<<< HEAD
       : GuardManager(root, std::move(source), example_value),
+=======
+      : GuardManager(root, std::move(source)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _size(PyDict_Size(example_value.ptr())),
         _expected_type(Py_TYPE(example_value.ptr())),
         _is_exact_dict_type(PyDict_CheckExact(example_value.ptr())) {}
@@ -4023,14 +4349,22 @@ class DictGuardManager : public GuardManager {
       const py::object& a,
       const std::string& source,
       const py::object& b) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Can not add an accessor to DictGuardManager");
+=======
+    throw std::runtime_error("Can not add an accessor to DictGuardManager");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void add_leaf_guard(std::shared_ptr<LeafGuard> leaf_guard) override {
     // If you are calling this, you probably want to go through a key, value
     // child manager and then add a leaf guard on them. DictGuardManager already
     // has TYPE_MATCH and LENGTH_CHECK built in.
+<<<<<<< HEAD
     TORCH_CHECK(false, "DictGuardManager does not support a leaf_guard");
+=======
+    throw std::runtime_error("DictGuardManager does not support a leaf_guard");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Debug helper - Returning raw pointers because we can't return unique_ptr
@@ -4057,6 +4391,7 @@ class DictGuardManager : public GuardManager {
       Py_ssize_t size,
       PyTypeObject* expected_type,
       bool is_exact_dict_type,
+<<<<<<< HEAD
       std::vector<Py_ssize_t> indices,
       py::object weak_type)
       : GuardManager(
@@ -4065,6 +4400,10 @@ class DictGuardManager : public GuardManager {
             true, // _is_dict
             false, // _is_immutable
             weak_type),
+=======
+      std::vector<Py_ssize_t> indices)
+      : GuardManager(cloned_root, std::move(source), true),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _size(size),
         _expected_type(expected_type),
         _is_exact_dict_type(is_exact_dict_type),
@@ -4083,6 +4422,7 @@ class DictGuardManager : public GuardManager {
         _size,
         _expected_type,
         _is_exact_dict_type,
+<<<<<<< HEAD
         _indices,
         _weak_type);
     if (is_tag_safe()) {
@@ -4091,6 +4431,10 @@ class DictGuardManager : public GuardManager {
         cloned_mgr->mark_tag_safe_root();
       }
     }
+=======
+        _indices);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     clone_common(cloned_root, cloned_mgr, clone_filter_fn);
     for (auto index : _indices) {
       KeyValueManager& key_value_manager = _key_value_managers[index];
@@ -4169,6 +4513,7 @@ void add_relational_guard_resetter_to_cloned_root(
   root->add_relational_guard_resetter(std::move(guard));
 }
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_12_PLUS
 static int dict_recursive_tag_watch_callback(
     PyDict_WatchEvent event,
@@ -4190,6 +4535,8 @@ static int dict_recursive_tag_watch_callback(
 }
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::unique_ptr<GuardManager> make_guard_manager(
     RootGuardManager* root,
     std::string source,
@@ -4233,6 +4580,7 @@ std::unique_ptr<GuardManager> make_guard_manager(
       throw py::type_error("Invalid guard manager enum");
     }
   }
+<<<<<<< HEAD
   return std::make_unique<GuardManager>(root, std::move(source), example_value);
 }
 
@@ -4277,6 +4625,17 @@ class TORCH_FUNCTION_MODE_STACK : public LeafGuard {
       const py::list& initial_stack,
       py::object verbose_code_parts)
       : LeafGuard(root_guard_manager, std::move(verbose_code_parts)) {
+=======
+  return std::make_unique<GuardManager>(root, std::move(source));
+}
+
+class TORCH_FUNCTION_MODE_STACK : public LeafGuard {
+ public:
+  TORCH_FUNCTION_MODE_STACK(
+      const py::list& initial_stack,
+      py::object verbose_code_parts)
+      : LeafGuard(std::move(verbose_code_parts)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Py_ssize_t len = PyList_Size(initial_stack.ptr());
     for (Py_ssize_t idx = 0; idx < len; idx++) {
       PyObject* mode = PyList_GetItem(initial_stack.ptr(), idx); // borrowed ref
@@ -4489,10 +4848,13 @@ class GetAttrGuardAccessor : public GuardAccessor {
         ")";
   }
 
+<<<<<<< HEAD
   std::string get_attr_name() {
     return py::str(_attr_name).cast<std::string>();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  public: // cloning functions
   GetAttrGuardAccessor(GuardManager* guard_manager, GetAttrGuardAccessor* from)
       : GuardAccessor(guard_manager, from) {
@@ -4616,6 +4978,7 @@ class GetGenericDictGuardAccessor : public GuardAccessor {
   // check_verbose_nopybind.
   bool check_nopybind(PyObject* obj, bool matches_dict_tag = false)
       override { // borrowed ref
+<<<<<<< HEAD
     // NOTE for future guard optimization developers - We tried saving the dict
     // pointer and weakref of the original object to avoid calling
     // PyObject_GenericGetDict on a fast path, but this did not lead any
@@ -4623,6 +4986,8 @@ class GetGenericDictGuardAccessor : public GuardAccessor {
     // 1) Once __dict__ is generated, accessing it the second time is fast.
     // 2) Getting the object from weakref, from 3.13 onwards, requires
     // Py_DECREF, which further eats into the benefit.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* x = PyObject_GenericGetDict(obj, nullptr); // new ref
     if (x == nullptr) {
       // Attribute absent, clear the exception and return false.
@@ -4789,12 +5154,22 @@ class FrameLocalsGuardAccessor : public GuardAccessor {
   // NB: Intentional duplication between check_nopybind and
   // check_verbose_nopybind.
   bool check_nopybind(PyObject* obj, bool matches_dict_tag = false) override {
+<<<<<<< HEAD
     // This should not cause guard failure.
     // If this error is encountered, it probably means
     // we did not convert FrameLocalsMapping to dict (using to_dict()).
     TORCH_CHECK_TYPE(
         PyDict_Check(obj),
         "FrameLocalsGuardAccessor check expected dict() input");
+=======
+    if (!PyDict_Check(obj)) {
+      // This should not cause guard failure.
+      // If this error is encountered, it probably means
+      // we did not convert FrameLocalsMapping to dict (using to_dict()).
+      throw std::runtime_error(
+          "FrameLocalsGuardAccessor check expected dict() input");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if (matches_dict_tag && _is_immutable_object) {
       // immutable object and dict tag matches, we can skip the guard subtree.
@@ -4891,7 +5266,10 @@ class DictGetItemGuardAccessor : public GuardAccessor {
   // check_verbose_nopybind.
   bool check_nopybind(PyObject* obj, bool matches_dict_tag = false) override {
     if (matches_dict_tag && _is_immutable_object &&
+<<<<<<< HEAD
         !is_recording_dict_pointers(get_guard_manager()->get_root()) &&
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _guard_manager->has_no_accessors()) {
       // immutable object and dict tag matches, we can skip the guard subtree.
       // NB: We only skip the subtree if there are no accessors in the subtree.
@@ -5025,6 +5403,7 @@ class ListGetItemGuardAccessor : public GuardAccessor {
 };
 
 /**
+<<<<<<< HEAD
  * Represents set[index] accessor by converting the set into a list.
  */
 class SetGetItemGuardAccessor : public GuardAccessor {
@@ -5101,6 +5480,8 @@ class SetGetItemGuardAccessor : public GuardAccessor {
 };
 
 /**
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * Represents tuple[index] accessor. It is faster than generic
  * GetItemGuardAccessor.
  */
@@ -5240,7 +5621,11 @@ class TensorPropertyGuardAccessor : public GuardAccessor {
     } else if (_prop == TensorProperty::STORAGE_OFFSET) {
       opt_value = tensor.sym_storage_offset().maybe_as_int();
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unknown property");
+=======
+      throw std::runtime_error("Unknown property");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     if (!opt_value.has_value()) {
@@ -5641,11 +6026,14 @@ class GlobalsGuardAccessor : public GuardAccessor {
     return "GlobalsGuardAccessor";
   }
 
+<<<<<<< HEAD
   bool check_nopybind(FrameLocalsMapping* map, bool matches_dict_tag) override {
     // Ensure that we don't construct the framelocals to dict here.
     return _guard_manager->check_nopybind(_globals_dict);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  public: // cloning functions
   GlobalsGuardAccessor(GuardManager* guard_manager, GlobalsGuardAccessor* from)
       : GuardAccessor(guard_manager, from) {
@@ -5721,6 +6109,7 @@ class TypeGuardAccessor : public GuardAccessor {
 };
 
 /**
+<<<<<<< HEAD
  * Represent x.__dict__ accessor, where x is type object.
  */
 class TypeDictGuardAccessor : public GuardAccessor {
@@ -5833,6 +6222,8 @@ class TypeMROGuardAccessor : public GuardAccessor {
 };
 
 /**
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * Getitem tuple_iterator accessor.
  */
 class TupleIteratorGetItemAccessor : public GuardAccessor {
@@ -6108,6 +6499,7 @@ class WeakRefCallGuardAccessor : public GuardAccessor {
 };
 
 /**
+<<<<<<< HEAD
  * Represent x.__code__
  */
 class CodeGuardAccessor : public GuardAccessor {
@@ -6260,6 +6652,8 @@ class ClosureGuardAccessor : public GuardAccessor {
 };
 
 /**
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  * Implements function call no args - e.g, torch.cuda.current_device()
  */
 class CallFunctionNoArgsGuardAccessor : public GuardAccessor {
@@ -6421,16 +6815,24 @@ void install_object_aliasing_guard(
     py::object verbose_code_parts) {
   // Adds tensor X is tensor Y guard. This is a an example of relational guard.
   // There is one guard object that is shared between two guard managers.
+<<<<<<< HEAD
   std::shared_ptr<RelationalGuard> guard = std::make_shared<OBJECT_ALIASING>(
       x->get_root(), std::move(verbose_code_parts));
+=======
+  std::shared_ptr<RelationalGuard> guard =
+      std::make_shared<OBJECT_ALIASING>(std::move(verbose_code_parts));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Register the resetter on the root guard manager, so that it can reset
   // the newly added relational guard when the guard eval fails.
   x->get_root()->add_relational_guard_resetter(guard);
 
+<<<<<<< HEAD
   x->set_has_object_aliasing_guard();
   y->set_has_object_aliasing_guard();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // In case the guard is a DictGuardManager, OBJECT_ALIASING guard is a
   // permitted guard.
   x->add_permitted_leaf_guard(guard);
@@ -6445,19 +6847,29 @@ void install_no_tensor_aliasing_guard(
   // relational guard. There is one guard object that is shared between multiple
   // guard managers.
   std::shared_ptr<RelationalGuard> guard = std::make_shared<NO_TENSOR_ALIASING>(
+<<<<<<< HEAD
       py::cast<GuardManager*>(guard_managers[0])->get_root(),
       tensor_names,
       std::move(verbose_code_parts));
+=======
+      tensor_names, std::move(verbose_code_parts));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Register the resetter on the root guard manager, so that it can reset
   // the newly added relational guard when the guard eval fails.
   py::cast<GuardManager*>(guard_managers[0])
       ->get_root()
+<<<<<<< HEAD
       ->add_no_tensor_aliasing_guard(guard);
 
   for (const auto& guard_manager : guard_managers) {
     py::cast<GuardManager*>(guard_manager)->add_leaf_guard(guard);
     py::cast<GuardManager*>(guard_manager)->set_has_no_tensor_aliasing_guard();
+=======
+      ->add_relational_guard_resetter(guard);
+  for (const auto& guard_manager : guard_managers) {
+    py::cast<GuardManager*>(guard_manager)->add_leaf_guard(guard);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -6473,7 +6885,10 @@ void install_symbolic_shape_guard(
   // multiple guard managers.
   std::shared_ptr<RelationalGuard> guard =
       std::make_shared<SYMBOLIC_SHAPE_GUARD>(
+<<<<<<< HEAD
           py::cast<GuardManager*>(guard_managers[0])->get_root(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           std::move(nargs_int),
           std::move(nargs_float),
           std::move(py_addr),
@@ -6503,10 +6918,14 @@ void install_storage_overlapping_guard_with_checker(
 
   std::shared_ptr<RelationalGuard> guard =
       std::make_shared<STORAGE_OVERLAPPING>(
+<<<<<<< HEAD
           py::cast<GuardManager*>(guard_managers[0])->get_root(),
           overlapping,
           checker,
           verbose_code_parts);
+=======
+          overlapping, checker, verbose_code_parts);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py::cast<GuardManager*>(guard_managers[0])
       ->get_root()
       ->add_relational_guard_resetter(guard);
@@ -6539,7 +6958,10 @@ void install_storage_overlapping_guard(
       /* overlapping= */ false);
 }
 
+<<<<<<< HEAD
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wdeprecated-volatile")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 char flush_cache_by_eviction() {
   constexpr size_t evict_size = 32 * 1024 * 1024;
   std::vector<char> buffer(evict_size, 1);
@@ -6550,7 +6972,10 @@ char flush_cache_by_eviction() {
   }
   return sink;
 }
+<<<<<<< HEAD
 C10_DIAGNOSTIC_POP()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 double profile_guard_manager(
     RootGuardManager* root,
@@ -6583,9 +7008,18 @@ double profile_guard_manager(
 } // namespace
 
 static void* _torchinductor_pyobject_tensor_data_ptr(PyObject* obj) {
+<<<<<<< HEAD
   TORCH_CHECK(
       obj != nullptr && (THPVariable_CheckExact(obj) || THPVariable_Check(obj)),
       "_torchinductor_pyobject_tensor_data_ptr: non-tensor input");
+=======
+  if (C10_UNLIKELY(
+          obj == nullptr ||
+          (!THPVariable_CheckExact(obj) && !THPVariable_Check(obj)))) {
+    throw std::runtime_error(
+        "_torchinductor_pyobject_tensor_data_ptr: non-tensor input");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPVariable_Unpack(obj).data_ptr();
 }
 
@@ -6603,6 +7037,7 @@ bool run_root_guard_manager(void* root, FrameLocalsMapping* f_locals) {
   if (root == nullptr) {
     return false;
   }
+<<<<<<< HEAD
 
 #ifdef GUARD_INSTRUCTION_COUNT
   auto n = count_instructions(
@@ -6610,6 +7045,8 @@ bool run_root_guard_manager(void* root, FrameLocalsMapping* f_locals) {
   std::cout << "#instructions in guard eval = " << n << std::endl << std::flush;
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return ((RootGuardManager*)root)->check_nopybind(f_locals);
 }
 
@@ -6690,6 +7127,7 @@ PyObject* torch_c_dynamo_guards_init() {
       .def("verbose_code_parts", &LeafGuard::verbose_code_parts);
   py::class_<LAMBDA_GUARD, LeafGuard, std::shared_ptr<LAMBDA_GUARD>>(
       py_m, "LAMBDA_GUARD")
+<<<<<<< HEAD
       .def(py::init<RootGuardManager*, py::function, py::list>())
       .def("__call__", &LAMBDA_GUARD::check);
   py::class_<TYPE_MATCH, LeafGuard, std::shared_ptr<TYPE_MATCH>>(
@@ -6729,23 +7167,73 @@ PyObject* torch_c_dynamo_guards_init() {
       .def("__call__", &DEFAULT_DEVICE::check);
   py::class_<NOT_NONE, LeafGuard, std::shared_ptr<NOT_NONE>>(py_m, "NOT_NONE")
       .def(py::init<RootGuardManager*, py::list>())
+=======
+      .def(py::init<py::function, py::list>())
+      .def("__call__", &LAMBDA_GUARD::check);
+  py::class_<TYPE_MATCH, LeafGuard, std::shared_ptr<TYPE_MATCH>>(
+      py_m, "TYPE_MATCH")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &TYPE_MATCH::check);
+  py::class_<ID_MATCH, LeafGuard, std::shared_ptr<ID_MATCH>>(py_m, "ID_MATCH")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &ID_MATCH::check);
+  py::class_<NONE_MATCH, LeafGuard, std::shared_ptr<NONE_MATCH>>(
+      py_m, "NONE_MATCH")
+      .def(py::init<py::list>())
+      .def("__call__", &NONE_MATCH::check);
+  py::class_<TRUE_MATCH, LeafGuard, std::shared_ptr<TRUE_MATCH>>(
+      py_m, "TRUE_MATCH")
+      .def(py::init<py::list>())
+      .def("__call__", &TRUE_MATCH::check);
+  py::class_<FALSE_MATCH, LeafGuard, std::shared_ptr<FALSE_MATCH>>(
+      py_m, "FALSE_MATCH")
+      .def(py::init<py::list>())
+      .def("__call__", &FALSE_MATCH::check);
+  py::class_<EQUALS_MATCH, LeafGuard, std::shared_ptr<EQUALS_MATCH>>(
+      py_m, "EQUALS_MATCH")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &EQUALS_MATCH::check);
+  py::class_<LENGTH_CHECK, LeafGuard, std::shared_ptr<LENGTH_CHECK>>(
+      py_m, "LENGTH_CHECK")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &LENGTH_CHECK::check);
+  py::class_<DICT_LENGTH, LeafGuard, std::shared_ptr<DICT_LENGTH>>(
+      py_m, "DICT_LENGTH")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &DICT_LENGTH::check);
+  py::class_<DEFAULT_DEVICE, LeafGuard, std::shared_ptr<DEFAULT_DEVICE>>(
+      py_m, "DEFAULT_DEVICE")
+      .def(py::init<py::list>())
+      .def("__call__", &DEFAULT_DEVICE::check);
+  py::class_<NOT_NONE, LeafGuard, std::shared_ptr<NOT_NONE>>(py_m, "NOT_NONE")
+      .def(py::init<py::list>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def("__call__", &NOT_NONE::check);
   py::class_<
       MAPPING_KEYS_MATCH,
       LeafGuard,
       std::shared_ptr<MAPPING_KEYS_MATCH>>(py_m, "MAPPING_KEYS_MATCH")
+<<<<<<< HEAD
       .def(py::init<RootGuardManager*, py::object, py::list>())
+=======
+      .def(py::init<py::object, py::list>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def("__call__", &MAPPING_KEYS_MATCH::check);
   py::class_<
       TUPLE_ITERATOR_LEN,
       LeafGuard,
       std::shared_ptr<TUPLE_ITERATOR_LEN>>(py_m, "TUPLE_ITERATOR_LEN")
+<<<<<<< HEAD
       .def(py::init<RootGuardManager*, py::object, py::object, py::list>())
+=======
+      .def(py::init<py::object, py::object, py::list>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def("__call__", &TUPLE_ITERATOR_LEN::check);
   py::class_<
       RANGE_ITERATOR_MATCH,
       LeafGuard,
       std::shared_ptr<RANGE_ITERATOR_MATCH>>(py_m, "RANGE_ITERATOR_MATCH")
+<<<<<<< HEAD
       .def(py::init<
            RootGuardManager*,
            py::object,
@@ -6757,6 +7245,13 @@ PyObject* torch_c_dynamo_guards_init() {
   py::class_<GLOBAL_STATE, LeafGuard, std::shared_ptr<GLOBAL_STATE>>(
       py_m, "GLOBAL_STATE")
       .def(py::init<RootGuardManager*, py::list>())
+=======
+      .def(py::init<py::object, py::object, py::object, py::object, py::list>())
+      .def("__call__", &RANGE_ITERATOR_MATCH::check);
+  py::class_<GLOBAL_STATE, LeafGuard, std::shared_ptr<GLOBAL_STATE>>(
+      py_m, "GLOBAL_STATE")
+      .def(py::init<py::list>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def("check_verbose", &GLOBAL_STATE::check_verbose)
       .def("__call__", &GLOBAL_STATE::check);
   py::class_<
@@ -6764,6 +7259,7 @@ PyObject* torch_c_dynamo_guards_init() {
       LeafGuard,
       std::shared_ptr<TORCH_FUNCTION_MODE_STACK>>(
       py_m, "TORCH_FUNCTION_MODE_STACK")
+<<<<<<< HEAD
       .def(py::init<RootGuardManager*, py::list, py::list>())
       .def("__call__", &TORCH_FUNCTION_MODE_STACK::check);
   py::class_<NO_HASATTR, LeafGuard, std::shared_ptr<NO_HASATTR>>(
@@ -6797,6 +7293,25 @@ PyObject* torch_c_dynamo_guards_init() {
   py::class_<DICT_VERSION, LeafGuard, std::shared_ptr<DICT_VERSION>>(
       py_m, "DICT_VERSION")
       .def(py::init<RootGuardManager*, py::object, py::list>())
+=======
+      .def(py::init<py::list, py::list>())
+      .def("__call__", &TORCH_FUNCTION_MODE_STACK::check);
+  py::class_<NO_HASATTR, LeafGuard, std::shared_ptr<NO_HASATTR>>(
+      py_m, "NO_HASATTR")
+      .def(py::init<py::object, py::list>())
+      .def("__call__", &NO_HASATTR::check);
+  py::class_<DICT_CONTAINS, LeafGuard, std::shared_ptr<DICT_CONTAINS>>(
+      py_m, "DICT_CONTAINS")
+      .def(py::init<bool, py::object, py::list>())
+      .def("__call__", &DICT_CONTAINS::check);
+  py::class_<DYNAMIC_INDICES, LeafGuard, std::shared_ptr<DYNAMIC_INDICES>>(
+      py_m, "DYNAMIC_INDICES")
+      .def(py::init<py::set, py::list>())
+      .def("__call__", &DYNAMIC_INDICES::check);
+  py::class_<DICT_VERSION, LeafGuard, std::shared_ptr<DICT_VERSION>>(
+      py_m, "DICT_VERSION")
+      .def(py::init<py::object, py::list>())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def("__call__", &DICT_VERSION::check);
   py::class_<
       DISPATCH_KEY_SET_MATCH,
@@ -6846,11 +7361,19 @@ PyObject* torch_c_dynamo_guards_init() {
   py::class_<GuardAccessor, std::unique_ptr<GuardAccessor>>(
       py_m, "GuardAccessor")
       .def("repr", &GuardAccessor::repr);
+<<<<<<< HEAD
   py::class_<
       GetAttrGuardAccessor,
       GuardAccessor,
       std::unique_ptr<GetAttrGuardAccessor>>(py_m, "GetAttrGuardAccessor")
       .def("get_attr_name", &GetAttrGuardAccessor::get_attr_name);
+=======
+  // NOLINTNEXTLINE(bugprone-unused-raii)
+  py::class_<
+      GetAttrGuardAccessor,
+      GuardAccessor,
+      std::unique_ptr<GetAttrGuardAccessor>>(py_m, "GetAttrGuardAccessor");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NOLINTNEXTLINE(bugprone-unused-raii)
   py::class_<
       GenericGetAttrGuardAccessor,
@@ -6916,6 +7439,7 @@ PyObject* torch_c_dynamo_guards_init() {
       std::unique_ptr<TypeGuardAccessor>>(py_m, "TypeGuardAccessor");
   // NOLINTNEXTLINE(bugprone-unused-raii)
   py::class_<
+<<<<<<< HEAD
       TypeDictGuardAccessor,
       GuardAccessor,
       std::unique_ptr<TypeDictGuardAccessor>>(py_m, "TypeDictGuardAccessor");
@@ -6926,6 +7450,8 @@ PyObject* torch_c_dynamo_guards_init() {
       std::unique_ptr<TypeMROGuardAccessor>>(py_m, "TypeMROGuardAccessor");
   // NOLINTNEXTLINE(bugprone-unused-raii)
   py::class_<
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       WeakRefCallGuardAccessor,
       GuardAccessor,
       std::unique_ptr<WeakRefCallGuardAccessor>>(
@@ -6944,6 +7470,7 @@ PyObject* torch_c_dynamo_guards_init() {
       py_m, "TupleIteratorGetItemAccessor");
   // NOLINTNEXTLINE(bugprone-unused-raii)
   py::class_<
+<<<<<<< HEAD
       CodeGuardAccessor,
       GuardAccessor,
       std::unique_ptr<CodeGuardAccessor>>(py_m, "CodeGuardAccessor");
@@ -6954,6 +7481,8 @@ PyObject* torch_c_dynamo_guards_init() {
       std::unique_ptr<ClosureGuardAccessor>>(py_m, "ClosureGuardAccessor");
   // NOLINTNEXTLINE(bugprone-unused-raii)
   py::class_<
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GlobalWeakRefGuardAccessor,
       GuardAccessor,
       std::unique_ptr<GlobalWeakRefGuardAccessor>>(
@@ -6966,6 +7495,7 @@ PyObject* torch_c_dynamo_guards_init() {
       .def("get_source", &GuardManager::get_source)
       .def("fail_count", &GuardManager::fail_count)
       .def(
+<<<<<<< HEAD
           "has_object_aliasing_guard", &GuardManager::has_object_aliasing_guard)
       .def(
           "is_guarded_value_immutable",
@@ -6981,6 +7511,8 @@ PyObject* torch_c_dynamo_guards_init() {
       .def(
           "get_type_of_guarded_value", &GuardManager::get_type_of_guarded_value)
       .def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "get_accessors",
           &GuardManager::get_accessors,
           py::return_value_policy::reference)
@@ -7002,9 +7534,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object lambda,
              py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<LAMBDA_GUARD>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(lambda),
                 std::move(verbose_code_parts)));
+=======
+                std::move(lambda), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_type_match_guard",
@@ -7013,9 +7549,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("TYPE_MATCH");
             self.add_leaf_guard(std::make_shared<TYPE_MATCH>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_id_match_guard",
@@ -7024,30 +7564,49 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("ID_MATCH");
             self.add_leaf_guard(std::make_shared<ID_MATCH>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_none_match_guard",
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("NONE_MATCH");
+<<<<<<< HEAD
             self.add_leaf_guard(std::make_shared<NONE_MATCH>(
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+            self.add_leaf_guard(
+                std::make_shared<NONE_MATCH>(std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_true_match_guard",
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("TRUE_MATCH");
+<<<<<<< HEAD
             self.add_leaf_guard(std::make_shared<TRUE_MATCH>(
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+            self.add_leaf_guard(
+                std::make_shared<TRUE_MATCH>(std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_false_match_guard",
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("FALSE_MATCH");
+<<<<<<< HEAD
             self.add_leaf_guard(std::make_shared<FALSE_MATCH>(
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+            self.add_leaf_guard(
+                std::make_shared<FALSE_MATCH>(std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_equals_match_guard",
@@ -7056,9 +7615,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("EQUALS_MATCH");
             self.add_leaf_guard(std::make_shared<EQUALS_MATCH>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_length_check_guard",
@@ -7067,9 +7630,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("LENGTH_CHECK");
             self.add_leaf_guard(std::make_shared<LENGTH_CHECK>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dict_length_check_guard",
@@ -7078,9 +7645,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("DICT_LENGTH");
             self.add_leaf_guard(std::make_shared<DICT_LENGTH>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_tuple_iterator_length_guard",
@@ -7090,7 +7661,10 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("TUPLE_ITERATOR_LEN");
             self.add_leaf_guard(std::make_shared<TUPLE_ITERATOR_LEN>(
+<<<<<<< HEAD
                 self.get_root(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::move(length),
                 std::move(type_id),
                 std::move(verbose_code_parts)));
@@ -7105,7 +7679,10 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("RANGE_ITERATOR_MATCH");
             self.add_leaf_guard(std::make_shared<RANGE_ITERATOR_MATCH>(
+<<<<<<< HEAD
                 self.get_root(),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 std::move(start),
                 std::move(stop),
                 std::move(step),
@@ -7116,14 +7693,23 @@ PyObject* torch_c_dynamo_guards_init() {
           "add_default_device_guard",
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<DEFAULT_DEVICE>(
+<<<<<<< HEAD
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+                std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_not_none_guard",
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("NOT_NONE");
+<<<<<<< HEAD
             self.add_leaf_guard(std::make_shared<NOT_NONE>(
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+            self.add_leaf_guard(
+                std::make_shared<NOT_NONE>(std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_mapping_keys_guard",
@@ -7132,9 +7718,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("MAPPING_KEYS_MATCH");
             self.add_leaf_guard(std::make_shared<MAPPING_KEYS_MATCH>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dispatch_key_set_guard",
@@ -7149,6 +7739,7 @@ PyObject* torch_c_dynamo_guards_init() {
           })
       .def(
           "add_global_state_guard",
+<<<<<<< HEAD
           [](GuardManager& self,
              py::object initial_state,
              py::object verbose_code_parts) -> void {
@@ -7156,6 +7747,11 @@ PyObject* torch_c_dynamo_guards_init() {
                 self.get_root(),
                 std::move(initial_state),
                 std::move(verbose_code_parts)));
+=======
+          [](GuardManager& self, py::object verbose_code_parts) -> void {
+            self.add_leaf_guard(
+                std::make_shared<GLOBAL_STATE>(std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_torch_function_mode_stack_guard",
@@ -7163,7 +7759,11 @@ PyObject* torch_c_dynamo_guards_init() {
              const py::list& initial_stack,
              py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<TORCH_FUNCTION_MODE_STACK>(
+<<<<<<< HEAD
                 self.get_root(), initial_stack, std::move(verbose_code_parts)));
+=======
+                initial_stack, std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_no_hasattr_guard",
@@ -7171,9 +7771,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object attr_name,
              py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<NO_HASATTR>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(attr_name),
                 std::move(verbose_code_parts)));
+=======
+                std::move(attr_name), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dict_contains_guard",
@@ -7182,6 +7786,7 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object key,
              py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<DICT_CONTAINS>(
+<<<<<<< HEAD
                 self.get_root(),
                 contains,
                 std::move(key),
@@ -7218,6 +7823,9 @@ PyObject* torch_c_dynamo_guards_init() {
           [](GuardManager& self, py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<COMPLEX_IS_NAN>(
                 self.get_root(), std::move(verbose_code_parts)));
+=======
+                contains, std::move(key), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dynamic_indices_guard",
@@ -7225,9 +7833,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::set value,
              py::object verbose_code_parts) -> void {
             self.add_leaf_guard(std::make_shared<DYNAMIC_INDICES>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dict_version_guard",
@@ -7236,9 +7848,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("DICT_VERSION");
             self.add_leaf_guard(std::make_shared<DICT_VERSION>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_tensor_match_guard",
@@ -7429,6 +8045,7 @@ PyObject* torch_c_dynamo_guards_init() {
       // return by reference because GuardManager has the ownership of accessors
       // and guard managers
       .def(
+<<<<<<< HEAD
           "type_dict_manager",
           [](GuardManager& self,
              std::string source,
@@ -7469,6 +8086,8 @@ PyObject* torch_c_dynamo_guards_init() {
       // return by reference because GuardManager has the ownership of accessors
       // and guard managers
       .def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "weakref_call_manager",
           [](GuardManager& self,
              std::string source,
@@ -7516,6 +8135,7 @@ PyObject* torch_c_dynamo_guards_init() {
           py::arg("example_value"),
           py::arg("guard_manager_enum"),
           py::return_value_policy::reference)
+<<<<<<< HEAD
       .def(
           "set_getitem_manager",
           &GuardManager::get_child_manager<SetGetItemGuardAccessor>,
@@ -7564,6 +8184,8 @@ PyObject* torch_c_dynamo_guards_init() {
           py::arg("example_value"),
           py::arg("guard_manager_enum"),
           py::return_value_policy::reference)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // return by reference because GuardManager has the ownership of accessors
       // and guard managers
       .def(
@@ -7651,7 +8273,10 @@ PyObject* torch_c_dynamo_guards_init() {
       .def(py::init<>())
       .def("check", &RootGuardManager::check)
       .def("check_verbose", &RootGuardManager::check_verbose)
+<<<<<<< HEAD
       .def("attach_compile_id", &RootGuardManager::attach_compile_id)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       .def(
           "clone_manager",
           &RootGuardManager::clone_manager,
@@ -7668,7 +8293,11 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object lambda,
              py::object verbose_code_parts) -> void {
             self.add_epilogue_lambda_guard(std::make_unique<LAMBDA_GUARD>(
+<<<<<<< HEAD
                 &self, std::move(lambda), std::move(verbose_code_parts)));
+=======
+                std::move(lambda), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           });
 
   // Dict Guard Manager
@@ -7731,10 +8360,14 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object key,
              py::object verbose_code_parts) -> void {
             self.add_permitted_leaf_guard(std::make_shared<DICT_CONTAINS>(
+<<<<<<< HEAD
                 self.get_root(),
                 contains,
                 std::move(key),
                 std::move(verbose_code_parts)));
+=======
+                contains, std::move(key), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_dict_version_guard",
@@ -7743,9 +8376,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object verbose_code_parts) -> void {
             SKIP_IF_GUARD_ALREADY_PRESENT("DICT_VERSION");
             self.add_permitted_leaf_guard(std::make_shared<DICT_VERSION>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(value),
                 std::move(verbose_code_parts)));
+=======
+                std::move(value), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       .def(
           "add_no_hasattr_guard",
@@ -7753,9 +8390,13 @@ PyObject* torch_c_dynamo_guards_init() {
              py::object attr_name,
              py::object verbose_code_parts) -> void {
             self.add_permitted_leaf_guard(std::make_shared<NO_HASATTR>(
+<<<<<<< HEAD
                 self.get_root(),
                 std::move(attr_name),
                 std::move(verbose_code_parts)));
+=======
+                std::move(attr_name), std::move(verbose_code_parts)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           })
       // Not permitted accessors
       .def("lambda_manager", &DictGuardManager::fail_on_get_child_manager)
@@ -7779,9 +8420,16 @@ PyObject* torch_c_dynamo_guards_init() {
              std::string source,
              py::handle example_value,
              py::handle guard_manager_enum) -> GuardManager* {
+<<<<<<< HEAD
             TORCH_CHECK(
                 !self.is_exact_dict_type(),
                 "getattr_manager on a DictGuardManager is supported only for dict subclasses");
+=======
+            if (self.is_exact_dict_type()) {
+              throw std::runtime_error(
+                  "getattr_manager on a DictGuardManager is supported only for dict subclasses");
+            }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self.get_child_manager<GetAttrGuardAccessor>(
                 std::move(attr_name),
                 std::move(source),
@@ -7819,6 +8467,7 @@ PyObject* torch_c_dynamo_guards_init() {
 #if IS_PYTHON_3_12_PLUS
 
   dict_version_watcher_id = PyDict_AddWatcher(dict_version_watch_callback);
+<<<<<<< HEAD
   TORCH_CHECK(
       dict_version_watcher_id != -1,
       "Failed to install dict_version_watch_callback");
@@ -7828,6 +8477,11 @@ PyObject* torch_c_dynamo_guards_init() {
   TORCH_CHECK(
       dict_recursive_tag_watcher_id != -1,
       "Failed to install dict_recursive_tag_watch_callback");
+=======
+  if (dict_version_watcher_id == -1) {
+    throw std::runtime_error("Failed to install dict_version_watch_callback");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #endif
 

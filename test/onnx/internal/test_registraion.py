@@ -4,7 +4,11 @@
 from collections.abc import Sequence
 
 from torch.onnx import errors
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter import registration
+=======
+from torch.onnx._internal import registration
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 

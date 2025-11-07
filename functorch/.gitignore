@@ -3,6 +3,10 @@ dist/
 functorch.egg-info/
 *__pycache__*
 functorch/version.py
+<<<<<<< HEAD
+=======
+functorch/_C.so
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .gdbinit
 t.py
 .vscode/

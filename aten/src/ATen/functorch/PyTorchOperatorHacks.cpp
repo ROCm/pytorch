@@ -6,7 +6,10 @@
 #include <ATen/functorch/BatchedTensorImpl.h>
 #include <ATen/Dispatch.h>
 #include <c10/util/irange.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/NamedTensorUtils.h>
 #include <ATen/native/LinearAlgebraUtils.h>
 #include <ATen/native/xnnpack/Engine.h>
@@ -71,7 +74,11 @@ Tensor linear_hack(const Tensor& input, const Tensor& weight, const std::optiona
   return output;
 }
 
+<<<<<<< HEAD
 inline at::Tensor apply_loss_reduction(const at::Tensor& unreduced, int64_t reduction) {
+=======
+static inline at::Tensor apply_loss_reduction(const at::Tensor& unreduced, int64_t reduction) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (reduction == at::Reduction::Mean) {
     return unreduced.mean();
   } else if (reduction == at::Reduction::Sum) {
@@ -109,7 +116,13 @@ Tensor binary_cross_entropy_with_logits_hack(
 }
 
 Tensor trace_backward_decomp(const Tensor& grad, IntArrayRef sizes) {
+<<<<<<< HEAD
   TORCH_CHECK(sizes.size() == 2, "expected matrix input");
+=======
+  if (sizes.size() != 2) {
+    throw std::runtime_error("expected matrix input");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto grad_input = at::zeros(sizes[0] * sizes[1], grad.options());
   auto indices = at::arange(0, grad_input.numel(), sizes[1] + 1, grad.options().dtype(at::kLong));
   // Workaround using index_put instead of yet unsupported index_fill_
@@ -127,7 +140,11 @@ namespace {
 template<bool inplace>
 using Ctype = std::conditional_t<inplace, Tensor&, Tensor>;
 
+<<<<<<< HEAD
 Tensor make_feature_noise(const Tensor& input) {
+=======
+static Tensor make_feature_noise(const Tensor& input) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto input_sizes = input.sizes();
   TORCH_CHECK(input.dim() >= 2, "Feature dropout requires at least 2 dimensions in the input");
   std::vector<int64_t> sizes;
@@ -141,7 +158,11 @@ Tensor make_feature_noise(const Tensor& input) {
   return at::empty(sizes, input.options());
 }
 
+<<<<<<< HEAD
 bool is_fused_kernel_acceptable(const Tensor& input, double p) {
+=======
+static bool is_fused_kernel_acceptable(const Tensor& input, double p) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (input.is_cuda() || input.is_xpu() || input.is_lazy() || input.is_privateuseone()) && p > 0 && p < 1 && input.numel() > 0;
 }
 
@@ -210,7 +231,11 @@ ALIAS_SPECIALIZATION(_feature_dropout,       true,  false)
 ALIAS_SPECIALIZATION(_alpha_dropout,         false, true )
 ALIAS_SPECIALIZATION(_feature_alpha_dropout, true,  true )
 
+<<<<<<< HEAD
 Tensor dropout(const Tensor& input, double p, bool train) {
+=======
+static Tensor dropout(const Tensor& input, double p, bool train) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto result = [&]() {
     NoNamesGuard guard;
     if (train && is_fused_kernel_acceptable(input, p)) {

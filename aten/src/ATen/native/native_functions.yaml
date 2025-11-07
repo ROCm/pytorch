@@ -288,7 +288,10 @@
   dispatch:
     CPU: native_dropout_cpu
     CUDA: native_dropout_cuda
+<<<<<<< HEAD
     MPS: native_dropout_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: native_dropout_nested
   tags: [nondeterministic_seeded, core]
   autogen: native_dropout.out
@@ -297,7 +300,10 @@
   dispatch:
     CPU, NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: native_dropout_backward
     CUDA: native_dropout_backward_cuda
+<<<<<<< HEAD
     MPS: native_dropout_backward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: native_dropout_backward.out
   tags: pointwise
 
@@ -342,8 +348,13 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: abs
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: abs_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: abs_sparse_csr
+=======
+    SparseCPU, SparseCUDA: abs_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: abs_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_abs
   tags: [core, pointwise]
 
@@ -352,16 +363,27 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: abs_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: abs_sparse_
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: abs_sparse_csr_
+=======
+    SparseCPU, SparseCUDA: abs_sparse_
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: abs_sparse_csr_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_abs_
 
 - func: abs.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: abs_out
     SparseCPU, SparseCUDA, SparseMPS: abs_sparse_out
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: abs_sparse_csr_out
+=======
+    CPU, CUDA, MPS: abs_out
+    SparseCPU, SparseCUDA: abs_sparse_out
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: abs_sparse_csr_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 # Note [Adding an alias]
@@ -403,14 +425,24 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: angle
+=======
+    CPU, CUDA: angle
+    MPS: angle_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: angle_sparse_csr
   tags: pointwise
 
 - func: angle.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: angle_out
+=======
+    CPU, CUDA: angle_out
+    MPS: angle_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: angle_sparse_csr_out
   tags: pointwise
 
@@ -428,7 +460,11 @@
   variants: function, method
   structured_delegate: sgn.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sgn_sparse
+=======
+    SparseCPU, SparseCUDA: sgn_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sgn_sparse_csr
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_sgn
   tags: pointwise
@@ -437,7 +473,11 @@
   variants: method
   structured_delegate: sgn.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sgn_sparse_
+=======
+    SparseCPU, SparseCUDA: sgn_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sgn_sparse_csr_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_sgn_
   tags: pointwise
@@ -448,7 +488,11 @@
   dispatch:
     CPU, CUDA: sgn_out
     MPS: sgn_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sgn_sparse_out
+=======
+    SparseCPU, SparseCUDA: sgn_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sgn_sparse_csr_out
   tags: pointwise
 
@@ -476,7 +520,11 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: _conj_physical
+<<<<<<< HEAD
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: conj_physical_sparse_csr
+=======
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: conj_physical_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _conj_physical.out
 
 - func: conj_physical(Tensor self) -> Tensor
@@ -487,8 +535,13 @@
   dispatch:
     CPU, CUDA: conj_physical_out
     MPS: conj_physical_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: conj_physical_out_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: conj_physical_sparse_csr_out
+=======
+    SparseCPU, SparseCUDA: conj_physical_out_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: conj_physical_sparse_csr_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: conj_physical_(Tensor(a!) self) -> Tensor(a!)
@@ -554,7 +607,11 @@
   structured_delegate: add.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: add_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: add_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: add_sparse_csr
     MkldnnCPU: mkldnn_add
     ZeroTensor: add_zerotensor
@@ -566,7 +623,11 @@
   variants: method
   structured_delegate: add.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: add_sparse_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: add_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: add_sparse_csr_
     MkldnnCPU: mkldnn_add_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_add__Tensor
@@ -582,12 +643,18 @@
   dispatch:
     SparseCPU, SparseMeta: add_out_sparse_cpu
     SparseCUDA: add_out_sparse_cuda
+<<<<<<< HEAD
     SparseMPS: add_out_sparse_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrMeta: add_out_sparse_compressed_cpu
     SparseCsrCUDA: add_out_sparse_compressed_cuda
     MkldnnCPU: mkldnn_add_out
     MPS: add_out_mps
+<<<<<<< HEAD
     MTIA: add_out_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: _add_relu.Tensor(Tensor self, Tensor other, *, Scalar alpha=1) -> Tensor
@@ -704,7 +771,10 @@
   variants: function, method
   dispatch:
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_all
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 - func: all.dims(Tensor self, int[]? dim=None, bool keepdim=False) -> Tensor
@@ -714,7 +784,10 @@
   cpp_no_default_args: ['dim']
   dispatch:
     CompositeExplicitAutograd: all_dims_default
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: all.out(Tensor self, int dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
@@ -722,8 +795,11 @@
   dispatch:
     CPU, CUDA: all_out
     MPS: all_out_mps
+<<<<<<< HEAD
     MTIA: all_out_mtia
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: all.dims_out(Tensor self, int[]? dim=None, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
@@ -732,16 +808,25 @@
     CPU, CUDA: all_dims_out
     CompositeExplicitAutograd: all_dims_out_default
   cpp_no_default_args: ['dim']
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: all.dimname(Tensor self, Dimname dim, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: all.dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: all.dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: allclose(Tensor self, Tensor other, float rtol=1e-05, float atol=1e-08, bool equal_nan=False) -> bool
   variants: function, method
@@ -753,14 +838,22 @@
   device_check: NoCheck   # TensorIterator
   structured_delegate: any.out
   variants: function, method
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: any.dims(Tensor self, int[]? dim=None, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   structured_delegate: any.dims_out
   variants: function, method
   cpp_no_default_args: ['dim']
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   dispatch:
     CompositeExplicitAutograd: any_dims_default
 
@@ -770,7 +863,10 @@
   dispatch:
     CPU, CUDA: any_out
     MPS: any_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: any.dims_out(Tensor self, int[]? dim=None, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
@@ -779,16 +875,25 @@
     CPU, CUDA: any_dims_out
     CompositeExplicitAutograd: any_dims_out_default
   cpp_no_default_args: ['dim']
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: any.dimname(Tensor self, Dimname dim, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: any.dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: any.dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: arange(Scalar end, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None) -> Tensor
   dispatch:
@@ -820,7 +925,10 @@
     CPU, Meta: arange_out
     CUDA: arange_cuda_out
     MPS: arange_mps_out
+<<<<<<< HEAD
     MTIA: arange_mtia_out
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cpp_no_default_args: ['step']
 
 # This function is a temporary hack to allow tracing of arange like constructs with dynamic
@@ -834,27 +942,41 @@
   structured_delegate: argmax.out
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: argmax.out(Tensor self, int? dim=None, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   structured: True
   dispatch:
     CPU, CUDA: argmax_out
     MPS: argmax_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: argmin(Tensor self, int? dim=None, bool keepdim=False) -> Tensor
   structured_delegate: argmin.out
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: argmin.out(Tensor self, int? dim=None, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   structured: True
   dispatch:
     CPU, CUDA: argmin_out
     MPS: argmin_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: acosh(Tensor self) -> Tensor
   variants: function, method
@@ -887,7 +1009,11 @@
   variants: function, method
   structured_delegate: asinh.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asinh_sparse
+=======
+    SparseCPU, SparseCUDA: asinh_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asinh_sparse_csr
   tags: [core, pointwise]
 
@@ -895,7 +1021,11 @@
   variants: function, method
   structured_delegate: asinh.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asinh_sparse_
+=======
+    SparseCPU, SparseCUDA: asinh_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asinh_sparse_csr_
   tags: pointwise
 
@@ -905,7 +1035,11 @@
   dispatch:
     CPU, CUDA: asinh_out
     MPS: asinh_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asinh_sparse_out
+=======
+    SparseCPU, SparseCUDA: asinh_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asinh_sparse_csr_out
   tags: pointwise
 
@@ -922,7 +1056,11 @@
   structured_delegate: atanh.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atanh_sparse
+=======
+    SparseCPU, SparseCUDA: atanh_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atanh_sparse_csr
   tags: [core, pointwise]
 
@@ -930,7 +1068,11 @@
   structured_delegate: atanh.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atanh_sparse_
+=======
+    SparseCPU, SparseCUDA: atanh_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atanh_sparse_csr_
   tags: pointwise
 
@@ -940,7 +1082,11 @@
   dispatch:
     CPU, CUDA: atanh_out
     MPS: atanh_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atanh_sparse_out
+=======
+    SparseCPU, SparseCUDA: atanh_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atanh_sparse_csr_out
   tags: pointwise
 # arctanh, alias for atanh
@@ -956,8 +1102,14 @@
 - func: as_strided(Tensor(a) self, SymInt[] size, SymInt[] stride, SymInt? storage_offset=None) -> Tensor(a)
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     ZeroTensor, CPU, CUDA, MTIA, MPS: as_strided_tensorimpl
     Meta: as_strided_tensorimpl_meta_symint
+=======
+    ZeroTensor, CPU, CUDA, MTIA: as_strided_tensorimpl
+    Meta: as_strided_tensorimpl_meta_symint
+    MPS: as_strided_tensorimpl_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     QuantizedCPU, QuantizedCUDA: as_strided_qtensorimpl
   device_check: NoCheck
   device_guard: False
@@ -977,7 +1129,11 @@
   variants: function, method
   structured_delegate: asin.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asin_sparse
+=======
+    SparseCPU, SparseCUDA: asin_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asin_sparse_csr
   tags: [core, pointwise]
 
@@ -986,7 +1142,11 @@
   variants: function, method
   structured_delegate: asin.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asin_sparse_
+=======
+    SparseCPU, SparseCUDA: asin_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asin_sparse_csr_
   tags: pointwise
 
@@ -996,7 +1156,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: asin_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: asin_sparse_out
+=======
+    SparseCPU, SparseCUDA: asin_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: asin_sparse_csr_out
   tags: pointwise
 
@@ -1014,7 +1178,11 @@
   structured_delegate: atan.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atan_sparse
+=======
+    SparseCPU, SparseCUDA: atan_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atan_sparse_csr
   tags: [core, pointwise]
 
@@ -1023,7 +1191,11 @@
   structured_delegate: atan.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atan_sparse_
+=======
+    SparseCPU, SparseCUDA: atan_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atan_sparse_csr_
   tags: pointwise
 
@@ -1033,7 +1205,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: atan_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: atan_sparse_out
+=======
+    SparseCPU, SparseCUDA: atan_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: atan_sparse_csr_out
   tags: pointwise
 
@@ -1082,7 +1258,10 @@
     CUDA: baddbmm_out_cuda
     MPS: baddbmm_out_mps
     XPU: baddbmm_out_xpu
+<<<<<<< HEAD
     MTIA: baddbmm_out_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCUDA: baddbmm_out_sparse_csr_cuda
 
 - func: baddbmm.dtype(Tensor self, Tensor batch1, Tensor batch2, ScalarType out_dtype, *, Scalar beta=1, Scalar alpha=1) -> Tensor
@@ -1297,7 +1476,11 @@
 - func: logical_not.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: logical_not_out
+=======
+    CPU, CUDA: logical_not_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: logical_not_out_mps
   tags: pointwise
 
@@ -1380,7 +1563,10 @@
   dispatch:
     SparseCPU: bmm_sparse_cpu
     SparseCUDA: bmm_sparse_cuda
+<<<<<<< HEAD
     SparseMPS: bmm_sparse_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NestedTensorCPU: bmm_nested
     NestedTensorCUDA: bmm_nested_cuda
   tags: core
@@ -1393,10 +1579,15 @@
     CUDA: bmm_out_cuda
     MPS: bmm_out_mps
     XPU: bmm_out_xpu
+<<<<<<< HEAD
     MTIA: bmm_out_mtia
     SparseCPU: bmm_out_sparse_cpu
     SparseCUDA: bmm_out_sparse_cuda
     SparseMPS: bmm_out_sparse_mps
+=======
+    SparseCPU: bmm_out_sparse_cpu
+    SparseCUDA: bmm_out_sparse_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCUDA: bmm_out_sparse_csr_cuda
 
 - func: bmm.dtype(Tensor self, Tensor mat2, ScalarType out_dtype) -> Tensor
@@ -1421,12 +1612,20 @@
 - func: _sparse_broadcast_to(Tensor(a) self, int[] size) -> Tensor(a)
   variants: function
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sparse_broadcast_to
+=======
+    SparseCPU, SparseCUDA: sparse_broadcast_to
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: cat(Tensor[] tensors, int dim=0) -> Tensor
   structured_delegate: cat.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: cat_sparse
+=======
+    SparseCPU, SparseCUDA: cat_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     QuantizedCPU: cat_quantized_cpu
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: cat_nested
   tags: core
@@ -1474,7 +1673,11 @@
   structured_delegate: ceil.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: ceil_sparse
+=======
+    SparseCPU, SparseCUDA: ceil_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: ceil_sparse_csr
   tags: [core, pointwise]
 
@@ -1483,7 +1686,11 @@
   structured_delegate: ceil.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: ceil_sparse_
+=======
+    SparseCPU, SparseCUDA: ceil_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: ceil_sparse_csr_
   tags: pointwise
 
@@ -1493,7 +1700,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: ceil_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: ceil_sparse_out
+=======
+    SparseCPU, SparseCUDA: ceil_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: ceil_sparse_csr_out
   tags: pointwise
 
@@ -1810,7 +2021,11 @@
   device_guard: False
   dispatch:
     MkldnnCPU: copy_mkldnn_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: copy_sparse_wrapper_
+=======
+    SparseCPU, SparseCUDA: copy_sparse_wrapper_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutograd: copy_
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: copy_sparse_compressed_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: copy_nested_
@@ -1879,14 +2094,20 @@
     CUDA: count_nonzero_cuda
     MPS: count_nonzero_mps
   autogen: count_nonzero.dim_IntList_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: count_nonzero(Tensor self, int? dim=None) -> Tensor
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: count_nonzero
   autogen: count_nonzero.out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: cov(Tensor self, *, int correction=1, Tensor? fweights=None, Tensor? aweights=None) -> Tensor
   variants: function, method
@@ -1908,10 +2129,14 @@
 - func: cudnn_batch_norm(Tensor input, Tensor weight, Tensor? bias, Tensor? running_mean, Tensor? running_var, bool training, float exponential_average_factor, float epsilon) -> (Tensor, Tensor, Tensor, Tensor)
   dispatch:
     CUDA: cudnn_batch_norm
+<<<<<<< HEAD
 
 - func: cudnn_batch_norm.out(Tensor input, Tensor weight, Tensor? bias, Tensor? running_mean, Tensor? running_var, bool training, float exponential_average_factor, float epsilon, *, Tensor(a!) out0, Tensor(b!) out1, Tensor(c!) out2, Tensor(d!) out3) -> (Tensor(a!), Tensor(b!), Tensor(c!), Tensor(d!))
   dispatch:
     CUDA: cudnn_batch_norm_out
+=======
+  autogen: cudnn_batch_norm.out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # NB: You can only use this if you used cudnn_batch_norm training=True
 - func: cudnn_batch_norm_backward(Tensor input, Tensor grad_output, Tensor weight, Tensor? running_mean, Tensor? running_var, Tensor? save_mean, Tensor? save_var, float epsilon, Tensor reserveSpace) -> (Tensor, Tensor, Tensor)
@@ -2174,7 +2399,11 @@
   variants: function, method
   structured_delegate: div.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: div_sparse
+=======
+    SparseCPU, SparseCUDA: div_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ZeroTensor: div_zerotensor
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_div_Tensor
   tags: [core, pointwise]
@@ -2184,7 +2413,11 @@
   variants: method
   structured_delegate: div.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: div_sparse_
+=======
+    SparseCPU, SparseCUDA: div_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: div.out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)
@@ -2192,8 +2425,13 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: div_out
     SparseCPU, SparseCUDA, SparseMPS: div_out_sparse_zerodim
+=======
+    CPU, CUDA, MPS: div_out
+    SparseCPU, SparseCUDA: div_out_sparse_zerodim
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: div.Tensor_mode(Tensor self, Tensor other, *, str? rounding_mode) -> Tensor
@@ -2201,7 +2439,11 @@
   variants: function, method
   structured_delegate: div.out_mode
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: div_sparse
+=======
+    SparseCPU, SparseCUDA: div_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: [core, pointwise]
 
 - func: div_.Tensor_mode(Tensor(a!) self, Tensor other, *, str? rounding_mode) -> Tensor(a!)
@@ -2209,7 +2451,11 @@
   variants: method
   structured_delegate: div.out_mode
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: div_sparse_
+=======
+    SparseCPU, SparseCUDA: div_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: div.out_mode(Tensor self, Tensor other, *, str? rounding_mode, Tensor(a!) out) -> Tensor(a!)
@@ -2218,7 +2464,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: div_out_mode
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: div_out_sparse_zerodim
+=======
+    SparseCPU, SparseCUDA: div_out_sparse_zerodim
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 # For C++ only, until we have conversion from C++ numbers to Tensor
@@ -2365,7 +2615,10 @@
   dispatch:
     CPU: _embedding_bag_forward_only_cpu
     CUDA: _embedding_bag_forward_only_cuda
+<<<<<<< HEAD
     MPS: _embedding_bag_forward_only_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _embedding_bag_forward_only.out
 
 - func: _rowwise_prune(Tensor weight, Tensor mask, ScalarType compressed_indices_dtype) -> (Tensor, Tensor)
@@ -2387,13 +2640,20 @@
   dispatch:
     CPU: _embedding_bag_cpu
     CUDA: _embedding_bag_cuda
+<<<<<<< HEAD
     MPS: _embedding_bag_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _embedding_bag.out
   tags: core
 
 - func: _embedding_bag_backward(Tensor grad, Tensor indices, Tensor offsets, Tensor offset2bag, Tensor bag_size, Tensor maximum_indices, SymInt num_weights, bool scale_grad_by_freq, int mode, bool sparse, Tensor? per_sample_weights, int padding_idx=-1) -> Tensor
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: _embedding_bag_backward_symint
+=======
+    CPU, CUDA: _embedding_bag_backward_symint
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _embedding_bag_sparse_backward(Tensor grad, Tensor indices, Tensor offsets, Tensor offset2bag, Tensor bag_size, SymInt num_weights, bool scale_grad_by_freq, int mode, Tensor? per_sample_weights, int padding_idx=-1) -> Tensor
   dispatch:
@@ -2403,14 +2663,20 @@
   dispatch:
     CPU: _embedding_bag_dense_backward_cpu
     CUDA: _embedding_bag_dense_backward_cuda
+<<<<<<< HEAD
     MPS: _embedding_bag_dense_backward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _embedding_bag_dense_backward.out
 
 - func: _embedding_bag_per_sample_weights_backward(Tensor grad, Tensor weight, Tensor indices, Tensor offsets, Tensor offset2bag, int mode, int padding_idx=-1) -> Tensor
   dispatch:
     CPU: _embedding_bag_per_sample_weights_backward_cpu
     CUDA: _embedding_bag_per_sample_weights_backward_cuda
+<<<<<<< HEAD
     MPS: _embedding_bag_per_sample_weights_backward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _embedding_bag_per_sample_weights_backward.out
 
 - func: empty.names(int[] size, *, Dimname[]? names, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None, MemoryFormat? memory_format=None) -> Tensor
@@ -2427,7 +2693,11 @@
     MPS: empty_mps
     Meta: empty_meta_symint
     MkldnnCPU: empty_mkldnn
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: empty_sparse
+=======
+    SparseCPU, SparseCUDA: empty_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseMeta: empty_sparse_symint
     SparseCsrCPU, SparseCsrCUDA: empty_sparse_compressed
     SparseCsrMeta: empty_sparse_compressed_symint
@@ -2535,7 +2805,11 @@
   dispatch:
     CompositeExplicitAutograd: empty_like
     QuantizedCPU, QuantizedCUDA: empty_like_quantized
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: empty_like_sparse_coo
+=======
+    SparseCPU, SparseCUDA, SparseMeta: empty_like_sparse_coo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: empty_like_sparse_csr
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: empty_like_nested
   autogen: empty_like.out
@@ -2555,7 +2829,11 @@
   structured_delegate: erf.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: erf_sparse
+=======
+    SparseCPU, SparseCUDA: erf_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: erf_sparse_csr
   tags: [core, pointwise]
 
@@ -2564,7 +2842,11 @@
   structured_delegate: erf.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: erf_sparse_
+=======
+    SparseCPU, SparseCUDA: erf_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: erf_sparse_csr_
   tags: pointwise
 
@@ -2574,7 +2856,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS, MTIA: erf_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: erf_sparse_out
+=======
+    SparseCPU, SparseCUDA: erf_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: erf_sparse_csr_out
   tags: pointwise
 
@@ -2640,7 +2926,11 @@
   structured_delegate: expm1.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: expm1_sparse
+=======
+    SparseCPU, SparseCUDA: expm1_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: expm1_sparse_csr
   tags: [core, pointwise]
 
@@ -2649,7 +2939,11 @@
   structured_delegate: expm1.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: expm1_sparse_
+=======
+    SparseCPU, SparseCUDA: expm1_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: expm1_sparse_csr_
   tags: pointwise
 
@@ -2659,7 +2953,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: expm1_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: expm1_sparse_out
+=======
+    SparseCPU, SparseCUDA: expm1_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: expm1_sparse_csr_out
   tags: pointwise
 
@@ -2758,7 +3056,11 @@
   structured_delegate: floor.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: floor_sparse
+=======
+    SparseCPU, SparseCUDA: floor_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: floor_sparse_csr
   tags: [core, pointwise]
 
@@ -2767,7 +3069,11 @@
   structured_delegate: floor.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: floor_sparse_
+=======
+    SparseCPU, SparseCUDA: floor_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: floor_sparse_csr_
   tags: pointwise
 
@@ -2777,7 +3083,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: floor_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: floor_sparse_out
+=======
+    SparseCPU, SparseCUDA: floor_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: floor_sparse_csr_out
   tags: pointwise
 
@@ -2785,21 +3095,34 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: floor_divide
     SparseCPU, SparseCUDA, SparseMPS: floor_divide_sparse
+=======
+    CPU, CUDA, MPS: floor_divide
+    SparseCPU, SparseCUDA: floor_divide_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: floor_divide_.Tensor(Tensor(a!) self, Tensor other) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   variants: method
   dispatch:
     CPU, CUDA, MPS: floor_divide_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: floor_divide_sparse_
+=======
+    SparseCPU, SparseCUDA: floor_divide_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: floor_divide.out(Tensor self, Tensor other, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     CPU, CUDA, MPS: floor_divide_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: floor_divide_out_sparse_zerodim
+=======
+    SparseCPU, SparseCUDA: floor_divide_out_sparse_zerodim
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: floor_divide.Scalar(Tensor self, Scalar other) -> Tensor
   device_check: NoCheck   # TensorIterator
@@ -2819,7 +3142,11 @@
   structured_delegate: frac.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: frac_sparse
+=======
+    SparseCPU, SparseCUDA: frac_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: frac_sparse_csr
   tags: pointwise
 
@@ -2828,7 +3155,11 @@
   structured_delegate: frac.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: frac_sparse_
+=======
+    SparseCPU, SparseCUDA: frac_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: frac_sparse_csr_
   tags: pointwise
 
@@ -2839,7 +3170,11 @@
   dispatch:
     CPU, CUDA: frac_out
     MPS: frac_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: frac_sparse_out
+=======
+    SparseCPU, SparseCUDA: frac_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: frac_sparse_csr_out
   tags: pointwise
 
@@ -2952,7 +3287,10 @@
   dispatch:
     CPU: grid_sampler_3d_cpu
     CUDA: grid_sampler_3d_cuda
+<<<<<<< HEAD
     MPS: grid_sampler_3d_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: grid_sampler_3d.out
 
 # `grid_sampler_3d_backward` takes in `output_mask` to optimize performance for
@@ -3229,7 +3567,11 @@
   dispatch:
     CPU, CUDA, MPS, MTIA: isnan
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_isnan
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isnan_sparse
+=======
+    SparseCPU, SparseCUDA: isnan_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isnan_sparse_csr
   autogen: isnan.out
   tags: [core, pointwise]
@@ -3310,7 +3652,10 @@
   dispatch:
     CPU: kthvalue_out_cpu
     CUDA: kthvalue_out_cuda
+<<<<<<< HEAD
     MPS: kthvalue_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: kthvalue.dimname(Tensor self, SymInt k, Dimname dim, bool keepdim=False) -> (Tensor values, Tensor indices)
   variants: function, method
@@ -3344,6 +3689,7 @@
   dispatch:
     CompositeImplicitAutograd: rms_norm_symint
 
+<<<<<<< HEAD
 - func: _fused_rms_norm(Tensor input, int[] normalized_shape, Tensor? weight, float? eps) -> (Tensor, Tensor)
   dispatch:
     CUDA: _fused_rms_norm_cuda
@@ -3353,26 +3699,43 @@
 - func: _fused_rms_norm_backward(Tensor grad_out, Tensor input, int[] normalized_shape, Tensor rstd, Tensor? weight, bool[2] output_mask) -> (Tensor, Tensor)
   dispatch:
     CUDA: _fused_rms_norm_backward_cuda
+=======
+- func: _fused_rms_norm(Tensor input, int normalized_shape_ndim, Tensor weight, float eps) -> Tensor
+  dispatch:
+    MPS: _fused_rms_norm_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: nan_to_num(Tensor self, float? nan=None, float? posinf=None, float? neginf=None) -> Tensor
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: nan_to_num
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: nan_to_num_sparse
+=======
+    SparseCPU, SparseCUDA: nan_to_num_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: nan_to_num_(Tensor(a!) self, float? nan=None, float? posinf=None, float? neginf=None) -> Tensor(a!)
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: nan_to_num_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: nan_to_num_sparse_
+=======
+    SparseCPU, SparseCUDA: nan_to_num_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: nan_to_num.out(Tensor self, float? nan=None, float? posinf=None, float? neginf=None, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CPU, CUDA, MTIA: nan_to_num_out
     MPS: nan_to_num_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: nan_to_num_sparse_out
+=======
+    SparseCPU, SparseCUDA: nan_to_num_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: linear(Tensor input, Tensor weight, Tensor? bias=None) -> Tensor
@@ -3468,6 +3831,7 @@
 
 - func: _wrapped_quantized_linear_prepacked(Tensor input, Tensor input_scale, Tensor input_zero_point, Tensor packed_weight, Tensor output_scale, Tensor output_zero_point, int out_channel) -> Tensor
 
+<<<<<<< HEAD
 - func: fbgemm_linear_fp16_weight_fp32_activation(Tensor input, Tensor packed_weight, Tensor? bias) -> Tensor
 
 - func: fbgemm_linear_fp16_weight_fp32_activation.out(Tensor input, Tensor packed_weight, Tensor? bias, Tensor(a!) output) -> Tensor
@@ -3476,6 +3840,12 @@
 
 - func: fbgemm_linear_fp16_weight.out(Tensor input, Tensor packed_weight, Tensor bias, Tensor(a!) output) -> Tensor
 
+=======
+- func: fbgemm_linear_fp16_weight_fp32_activation(Tensor input, Tensor packed_weight, Tensor bias) -> Tensor
+
+- func: fbgemm_linear_fp16_weight(Tensor input, Tensor packed_weight, Tensor bias) -> Tensor
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - func: fbgemm_pack_quantized_matrix(Tensor input) -> Tensor
 
 - func: fbgemm_pack_quantized_matrix.KN(Tensor input, int K, int N) -> Tensor
@@ -3575,7 +3945,11 @@
   structured_delegate: log1p.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: log1p_sparse
+=======
+    SparseCPU, SparseCUDA: log1p_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: log1p_sparse_csr
   tags: [core, pointwise]
 
@@ -3584,7 +3958,11 @@
   structured_delegate: log1p.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: log1p_sparse_
+=======
+    SparseCPU, SparseCUDA: log1p_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: log1p_sparse_csr_
   tags: pointwise
 
@@ -3594,7 +3972,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: log1p_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: log1p_sparse_out
+=======
+    SparseCPU, SparseCUDA: log1p_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: log1p_sparse_csr_out
   tags: pointwise
 
@@ -3780,13 +4162,19 @@
   dispatch:
     CPU: _logcumsumexp_cpu
     CUDA: _logcumsumexp_cuda
+<<<<<<< HEAD
     MPS: _logcumsumexp_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _logcumsumexp.out(Tensor self, int dim, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CPU: _logcumsumexp_out_cpu
     CUDA: _logcumsumexp_out_cuda
+<<<<<<< HEAD
     MPS: _logcumsumexp_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: logcumsumexp(Tensor self, int dim) -> Tensor
   variants: function, method
@@ -3807,23 +4195,35 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: logsumexp
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: logsumexp.out(Tensor self, int[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     # calls squeeze
     CompositeExplicitAutogradNonFunctional: logsumexp_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: logsumexp.names(Tensor self, Dimname[1] dim, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: logsumexp.names_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: logsumexp.names_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: margin_ranking_loss(Tensor input1, Tensor input2, Tensor target, float margin=0.0, int reduction=Mean) -> Tensor
 
@@ -3873,15 +4273,23 @@
   device_check: NoCheck   # TensorIterator
   structured_delegate: aminmax.out
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: aminmax.out(Tensor self, *, int? dim=None, bool keepdim=False, Tensor(a!) min, Tensor(b!) max) -> (Tensor(a!) min, Tensor(b!) max)
   device_check: NoCheck   # TensorIterator
   structured: True
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: aminmax_out
     MPS: aminmax_out_mps
   tags: reduction
+=======
+    CPU, CUDA: aminmax_out
+    MPS: aminmax_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _compute_linear_combination(Tensor input, Tensor coefficients) -> Tensor
   dispatch:
@@ -3897,7 +4305,11 @@
   variants: function, method
   dispatch:
     QuantizedCPU, QuantizedCUDA: qmax
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max.dim_max(Tensor self, int dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_values) -> (Tensor(a!) values, Tensor(b!) indices)
   device_check: NoCheck   # TensorIterator
@@ -3907,16 +4319,25 @@
   dispatch:
     CPU, CUDA, MTIA: max_out
     MPS: max_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max.names_dim(Tensor self, Dimname dim, bool keepdim=False) -> (Tensor values, Tensor indices)
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: max.names_dim_max(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_values) -> (Tensor(a!) values, Tensor(b!) indices)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: max.names_dim_max(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) max, Tensor(b!) max_values) -> (Tensor(a!) values, Tensor(b!) indices)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: value_selecting_reduction_backward(Tensor grad, int dim, Tensor indices, SymInt[] sizes, bool keepdim) -> Tensor
   variants: function
@@ -3929,14 +4350,23 @@
 - func: amax(Tensor self, int[1] dim=[], bool keepdim=False) -> Tensor
   variants: function, method
   structured_delegate: amax.out
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: amax.out(Tensor self, int[1] dim=[], bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   structured: True
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: amax_out
     MPS: amax_out_mps
   tags: reduction
+=======
+    CPU, CUDA: amax_out
+    MPS: amax_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Return: (Tensor output, Tensor indices)
 - func: max_pool1d_with_indices(Tensor self, int[1] kernel_size, int[1] stride=[], int[1] padding=0, int[1] dilation=1, bool ceil_mode=False) -> (Tensor, Tensor)
@@ -3998,14 +4428,21 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: mean
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # For normal naming convention this should be `mean.out`. However since we already have `mean.out` we have to rename this.
 - func: mean.dtype_out(Tensor self, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     CompositeExplicitAutograd: mean_dtype_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: mean.dim(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   structured_delegate: mean.out
@@ -4013,7 +4450,11 @@
   variants: function, method
   dispatch:
     QuantizedCPU: mean_quantized_cpu
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: mean.out(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   structured: True
@@ -4022,16 +4463,25 @@
     CPU, CUDA: mean_out
     MPS: mean_out_mps
     QuantizedCPU: mean_out_quantized_cpu
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: mean.names_dim(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: mean.names_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: mean.names_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: nanmean(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   device_check: NoCheck   # Composite
@@ -4094,7 +4544,11 @@
   variants: function, method
   dispatch:
     QuantizedCPU, QuantizedCUDA: qmin
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: min.dim_min(Tensor self, int dim, bool keepdim=False, *, Tensor(a!) min, Tensor(b!) min_indices) -> (Tensor(a!) values, Tensor(b!) indices)
   device_check: NoCheck   # TensorIterator
@@ -4104,28 +4558,46 @@
   dispatch:
     CPU, CUDA, MTIA: min_out
     MPS: min_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: min.names_dim(Tensor self, Dimname dim, bool keepdim=False) -> (Tensor values, Tensor indices)
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: min.names_dim_min(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) min, Tensor(b!) min_indices) -> (Tensor(a!) values, Tensor(b!) indices)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: min.names_dim_min(Tensor self, Dimname dim, bool keepdim=False, *, Tensor(a!) min, Tensor(b!) min_indices) -> (Tensor(a!) values, Tensor(b!) indices)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: amin(Tensor self, int[1] dim=[], bool keepdim=False) -> Tensor
   variants: function, method
   structured_delegate: amin.out
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: amin.out(Tensor self, int[1] dim=[], bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   structured: True
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: amin_out
     MPS: amin_out_mps
   tags: reduction
+=======
+    CPU, CUDA: amin_out
+    MPS: amin_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: Add this function to MPS dispatch key so that we avoid declaring it in
 # native_functions.yaml
@@ -4205,7 +4677,11 @@
   structured_delegate: mm.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: _sparse_mm
+=======
+    SparseCPU, SparseCUDA: _sparse_mm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: _sparse_csr_mm
   tags: core
 
@@ -4232,13 +4708,19 @@
   dispatch:
     CPU: _int_mm_cpu
     CUDA: _int_mm_cuda
+<<<<<<< HEAD
     XPU: _int_mm_xpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _int_mm.out(Tensor self, Tensor mat2, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CPU: _int_mm_out_cpu
     CUDA: _int_mm_out_cuda
+<<<<<<< HEAD
     XPU: _int_mm_out_xpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _convert_weight_to_int4pack(Tensor self, int innerKTiles) -> Tensor
   dispatch:
@@ -4275,9 +4757,13 @@
 - func: _weight_int8pack_mm(Tensor self, Tensor mat2, Tensor scales) -> Tensor
   dispatch:
     CPU: _weight_int8pack_mm_cpu
+<<<<<<< HEAD
     CUDA: _weight_int8pack_mm_cuda
     MPS: _weight_int8pack_mm_mps
     XPU: _weight_int8pack_mm_xpu
+=======
+    MPS: _weight_int8pack_mm_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _sparse_mm(Tensor sparse, Tensor dense) -> Tensor
   python_module: sparse
@@ -4310,7 +4796,11 @@
   structured_delegate: mul.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: mul_sparse
+=======
+    SparseCPU, SparseCUDA: mul_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: mul_sparse_csr
     MkldnnCPU: mkldnn_mul
     ZeroTensor: mul_zerotensor
@@ -4322,7 +4812,11 @@
   structured_delegate: mul.out
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: mul_sparse_
+=======
+    SparseCPU, SparseCUDA: mul_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: mul_sparse_csr_
     MkldnnCPU: mkldnn_mul_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_mul__Tensor
@@ -4333,10 +4827,16 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: mul_out
     SparseCPU: mul_out_sparse_cpu
     SparseCUDA: mul_out_sparse_cuda
     SparseMPS: mul_out_sparse_mps
+=======
+    CPU, CUDA, MPS: mul_out
+    SparseCPU: mul_out_sparse_cpu
+    SparseCUDA: mul_out_sparse_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: mul_out_sparse_csr
     MkldnnCPU: mkldnn_mul_out
   tags: pointwise
@@ -4409,7 +4909,11 @@
   variants: function, method
   dispatch:
     CPU: narrow_copy_dense_cpu
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: narrow_copy_sparse
+=======
+    SparseCPU, SparseCUDA: narrow_copy_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutogradNonFunctional: narrow_copy_dense_symint
   tags: view_copy
 
@@ -4577,7 +5081,10 @@
 - func: _cdist_forward(Tensor x1, Tensor x2, float p, int? compute_mode) -> Tensor
   dispatch:
     CPU, CUDA: _cdist_forward
+<<<<<<< HEAD
     MTIA: _cdist_forward_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: _cdist_forward_mps
   autogen: _cdist_forward.out
   tags: core
@@ -4707,7 +5214,11 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: rad2deg
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: rad2deg_sparse
+=======
+    SparseCPU, SparseCUDA: rad2deg_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: rad2deg_sparse_csr
   tags: pointwise
 
@@ -4715,14 +5226,22 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: rad2deg_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: rad2deg_sparse_
+=======
+    SparseCPU, SparseCUDA: rad2deg_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: rad2deg_sparse_csr_
   tags: pointwise
 
 - func: rad2deg.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CompositeExplicitAutograd: rad2deg_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: rad2deg_sparse_out
+=======
+    SparseCPU, SparseCUDA: rad2deg_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: rad2deg_sparse_csr_out
   tags: pointwise
 
@@ -4730,7 +5249,11 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: deg2rad
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: deg2rad_sparse
+=======
+    SparseCPU, SparseCUDA: deg2rad_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: deg2rad_sparse_csr
   tags: pointwise
 
@@ -4738,14 +5261,22 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: deg2rad_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: deg2rad_sparse_
+=======
+    SparseCPU, SparseCUDA: deg2rad_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: deg2rad_sparse_csr_
   tags: pointwise
 
 - func: deg2rad.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CompositeExplicitAutograd: deg2rad_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: deg2rad_sparse_out
+=======
+    SparseCPU, SparseCUDA: deg2rad_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: deg2rad_sparse_csr_out
   tags: pointwise
 
@@ -4971,7 +5502,11 @@
   structured_delegate: neg.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: neg_sparse
+=======
+    SparseCPU, SparseCUDA: neg_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: neg_sparse_csr
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_neg
   tags: [core, pointwise]
@@ -4981,7 +5516,11 @@
   structured_delegate: neg.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: neg_sparse_
+=======
+    SparseCPU, SparseCUDA: neg_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: neg_sparse_csr_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_neg_
   tags: pointwise
@@ -4992,7 +5531,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS, MTIA: neg_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: neg_out_sparse
+=======
+    SparseCPU, SparseCUDA: neg_out_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: neg_sparse_csr_out
   tags: pointwise
 # Alias for neg
@@ -5076,7 +5619,11 @@
   structured_delegate: round.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: round_sparse
+=======
+    SparseCPU, SparseCUDA: round_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: round_sparse_csr
   tags: [core, pointwise]
 
@@ -5085,7 +5632,11 @@
   structured_delegate: round.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: round_sparse_
+=======
+    SparseCPU, SparseCUDA: round_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: round_sparse_csr_
   tags: pointwise
 
@@ -5095,7 +5646,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: round_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: round_sparse_out
+=======
+    SparseCPU, SparseCUDA: round_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: round_sparse_csr_out
   tags: pointwise
 
@@ -5131,14 +5686,23 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA: relu
     MPS: relu_mps
     MTIA: relu_mtia
+=======
+    CPU, CUDA, MTIA: relu
+    MPS: relu_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MkldnnCPU: mkldnn_relu
     QuantizedCPU: relu_quantized_cpu
     QuantizedCUDA: relu_quantized_cuda
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_relu
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: relu_sparse
+=======
+    SparseCPU, SparseCUDA: relu_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: relu_sparse_csr
   tags: [core, pointwise]
 
@@ -5146,14 +5710,23 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA: relu_
     MPS: relu_mps_
     MTIA: relu_mtia_
+=======
+    CPU, CUDA, MTIA: relu_
+    MPS: relu_mps_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MkldnnCPU: mkldnn_relu_
     QuantizedCPU: relu_quantized_cpu_
     QuantizedCUDA: relu_quantized_cuda_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_relu_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: relu_sparse_
+=======
+    SparseCPU, SparseCUDA: relu_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: relu_sparse_csr_
   autogen: relu.out
   tags: pointwise
@@ -5440,7 +6013,11 @@
   variants: function, method
   dispatch:
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sin_sparse_csr
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sin_sparse
+=======
+    SparseCPU, SparseCUDA: sin_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_sin
   tags: [core, pointwise]
 
@@ -5450,7 +6027,11 @@
   variants: function, method
   dispatch:
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sin_sparse_csr_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sin_sparse_
+=======
+    SparseCPU, SparseCUDA: sin_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: sin.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
@@ -5460,7 +6041,11 @@
   dispatch:
     CPU, CUDA, MPS, MTIA: sin_out
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sin_sparse_csr_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sin_sparse_out
+=======
+    SparseCPU, SparseCUDA: sin_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: sinc(Tensor self) -> Tensor
@@ -5485,7 +6070,11 @@
   structured_delegate: sinh.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sinh_sparse
+=======
+    SparseCPU, SparseCUDA: sinh_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sinh_sparse_csr
   tags: [core, pointwise]
 
@@ -5494,7 +6083,11 @@
   structured_delegate: sinh.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sinh_sparse_
+=======
+    SparseCPU, SparseCUDA: sinh_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sinh_sparse_csr_
   tags: pointwise
 
@@ -5504,7 +6097,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: sinh_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sinh_sparse_out
+=======
+    SparseCPU, SparseCUDA: sinh_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sinh_sparse_csr_out
 
 # Returns a copy of this `Variable` that is detached from its autograd graph.
@@ -5552,6 +6149,7 @@
   tags: core
   manual_cpp_binding: True
 
+<<<<<<< HEAD
 - func: sym_is_contiguous(Tensor self, MemoryFormat memory_format=contiguous_format) -> SymBool
   variants: function
   device_check: NoCheck
@@ -5559,6 +6157,8 @@
   tags: core
   manual_cpp_binding: True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - func: sym_numel(Tensor self) -> SymInt
   variants: function
   device_check: NoCheck
@@ -5887,10 +6487,16 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: sum
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: sum_coo
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sum_csr
   autogen: sum.out
   tags: reduction
+=======
+    SparseCPU, SparseCUDA, SparseMeta: sum_coo
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sum_csr
+  autogen: sum.out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: sum.dim_IntList(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   # TODO: Align the signature of sum.dim_IntList and _sparse_csr_sum.dim_dtype
@@ -5899,14 +6505,23 @@
   variants: function, method
   dispatch:
     NestedTensorCPU: NestedTensor_sum_dim_CPU
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sum_sparse_coo
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sum_sparse_compressed
   tags: [core, reduction]
+=======
+    SparseCPU, SparseCUDA: sum_sparse_coo
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sum_sparse_compressed
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: sum.dim_DimnameList(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: sum.IntList_out(Tensor self, int[1]? dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   structured: True
@@ -5914,11 +6529,17 @@
   dispatch:
     CPU, CUDA: sum_out
     MPS: sum_out_mps
+<<<<<<< HEAD
   tags: reduction
 
 - func: sum.DimnameList_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: sum.DimnameList_out(Tensor self, Dimname[1] dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO: this function will be replaced once nested expand semantics have been settled on
 - func: _nested_sum_backward(Tensor grad, Tensor self, int[1]? dim, bool keepdim=False) -> Tensor
@@ -5930,12 +6551,16 @@
   dispatch:
     CPU, CUDA: nansum
     MPS: nansum_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: nansum.out(Tensor self, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CPU, CUDA: nansum_out
     MPS: nansum_out_mps
+<<<<<<< HEAD
   tags: reduction
 
 - func: hash_tensor(Tensor self, int[1] dim=[], *, bool keepdim=False, int mode=0) -> Tensor
@@ -5946,6 +6571,8 @@
   structured: True
   dispatch:
     CPU, CUDA: hash_tensor_out
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: sum_to_size(Tensor self, SymInt[] size) -> Tensor
   variants: method
@@ -5960,7 +6587,11 @@
   variants: function, method
   dispatch:
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_sqrt
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sqrt_sparse
+=======
+    SparseCPU, SparseCUDA: sqrt_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sqrt_sparse_csr
   tags: [core, pointwise]
 
@@ -5969,7 +6600,11 @@
   structured_delegate: sqrt.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sqrt_sparse_
+=======
+    SparseCPU, SparseCUDA: sqrt_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sqrt_sparse_csr_
   tags: pointwise
 
@@ -5979,7 +6614,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS, MTIA: sqrt_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sqrt_sparse_out
+=======
+    SparseCPU, SparseCUDA: sqrt_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sqrt_sparse_csr_out
   tags: pointwise
 
@@ -6000,13 +6639,19 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.dim(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.correction(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
@@ -6015,19 +6660,28 @@
     CPU, CUDA: std
     MPS: std_mps
     QuantizedCPU: std_quantized_cpu
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std_mean(Tensor self, bool unbiased=True) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std_mean.dim(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std_mean.correction(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
@@ -6036,51 +6690,78 @@
     CPU, CUDA: std_mean
     MPS: std_mean_mps
   autogen: std_mean.correction_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std_mean.names_dim(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std_mean.correction_names(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.out(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.correction_out(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     CPU, CUDA: std_out
     QuantizedCPU: std_out_quantized_cpu
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.names_dim(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.names_out(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.correction_names(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: std.correction_names_out(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   variants: function
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: prod(Tensor self, *, ScalarType? dtype=None) -> Tensor
   device_check: NoCheck   # TensorIterator
@@ -6089,13 +6770,21 @@
     CPU, CUDA: prod
     MPS: prod_mps
   autogen: prod.out
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: prod.dim_int(Tensor self, int dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   structured_delegate: prod.int_out
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: prod.int_out(Tensor self, int dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   structured: True
@@ -6103,16 +6792,25 @@
   dispatch:
     CPU, CUDA: prod_out
     MPS: prod_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: prod.dim_Dimname(Tensor self, Dimname dim, bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: prod.Dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: prod.Dimname_out(Tensor self, Dimname dim, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: t(Tensor(a) self) -> Tensor(a)
   device_check: NoCheck
@@ -6134,7 +6832,11 @@
   structured_delegate: tan.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tan_sparse
+=======
+    SparseCPU, SparseCUDA: tan_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tan_sparse_csr
   tags: [core, pointwise]
 
@@ -6143,7 +6845,11 @@
   structured_delegate: tan.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tan_sparse_
+=======
+    SparseCPU, SparseCUDA: tan_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tan_sparse_csr_
   tags: pointwise
 
@@ -6153,7 +6859,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: tan_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tan_sparse_out
+=======
+    SparseCPU, SparseCUDA: tan_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tan_sparse_csr_out
   tags: pointwise
 
@@ -6164,7 +6874,11 @@
   dispatch:
     QuantizedCPU: tanh_quantized_cpu
     MkldnnCPU: mkldnn_tanh
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tanh_sparse
+=======
+    SparseCPU, SparseCUDA: tanh_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tanh_sparse_csr
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_tanh
   tags: [core, pointwise]
@@ -6175,7 +6889,11 @@
   variants: function, method
   dispatch:
     MkldnnCPU: mkldnn_tanh_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tanh_sparse_
+=======
+    SparseCPU, SparseCUDA: tanh_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tanh_sparse_csr_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_tanh_
   tags: pointwise
@@ -6186,7 +6904,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS, MTIA: tanh_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: tanh_sparse_out
+=======
+    SparseCPU, SparseCUDA: tanh_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: tanh_sparse_csr_out
   tags: pointwise
 
@@ -6458,8 +7180,13 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: trunc_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: trunc_sparse_csr
+=======
+    SparseCPU, SparseCUDA: trunc_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: trunc_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: [core, pointwise]
 
 - func: trunc_(Tensor(a!) self) -> Tensor(a!)
@@ -6467,8 +7194,13 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: trunc_sparse_
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: trunc_sparse_csr_
+=======
+    SparseCPU, SparseCUDA: trunc_sparse_
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: trunc_sparse_csr_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: trunc.out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
@@ -6477,8 +7209,13 @@
   device_check: NoCheck   # TensorIterator
   dispatch:
     CPU, CUDA, MPS: trunc_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: trunc_sparse_out
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: trunc_sparse_csr_out
+=======
+    SparseCPU, SparseCUDA: trunc_sparse_out
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: trunc_sparse_csr_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 # Alias for trunc
 
@@ -6508,7 +7245,10 @@
   dispatch:
     CPU: unique_dim_cpu
     CUDA: unique_dim_cuda
+<<<<<<< HEAD
     MPS: unique_dim_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: dynamic_output_shape
   autogen: unique_dim.out
 
@@ -6554,7 +7294,11 @@
   device_guard: False
   dispatch:
     CompositeExplicitAutograd: unsqueeze
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: unsqueeze_sparse
+=======
+    SparseCPU, SparseCUDA: unsqueeze_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     QuantizedCPU, QuantizedCUDA: unsqueeze_quantized
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: unsqueeze_nested
   tags: core
@@ -6573,12 +7317,19 @@
   device_check: NoCheck   # TensorIterator
   variants: function, method
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.dim(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cpp_no_default_args: ["unbiased"]
 
 - func: var.correction(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False) -> Tensor
@@ -6587,52 +7338,80 @@
   dispatch:
     CPU, CUDA: var
     MPS: var_mps
+<<<<<<< HEAD
     MTIA: var_mtia
   tags: [core, reduction]
+=======
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.out(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.correction_out(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     CPU, CUDA: var_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.names_dim(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.names_out(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.correction_names(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var.correction_names_out(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   variants: function
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var_mean(Tensor self, bool unbiased=True) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var_mean.dim(Tensor self, int[1]? dim, bool unbiased=True, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var_mean.correction(Tensor self, int[1]? dim=None, *, Scalar? correction=None, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
@@ -6641,18 +7420,27 @@
     CPU, CUDA: var_mean
     MPS: var_mean_mps
   autogen: var_mean.correction_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var_mean.names_dim(Tensor self, Dimname[1] dim, bool unbiased=True, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
   cpp_no_default_args: ["unbiased"]
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: var_mean.correction_names(Tensor self, Dimname[1] dim, *, Scalar? correction=None, bool keepdim=False) -> (Tensor, Tensor)
   device_check: NoCheck   # TensorIterator
   variants: function
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: view_as(Tensor(a) self, Tensor other) -> Tensor(a)
   variants: method
@@ -6735,7 +7523,11 @@
 - func: zeros.out(SymInt[] size, *, Tensor(a!) out) -> Tensor(a!)
   dispatch:
     CompositeExplicitAutograd: zeros_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: zeros_sparse_out
+=======
+    SparseCPU, SparseCUDA, SparseMeta: zeros_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: zeros_like(Tensor self, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=None, MemoryFormat? memory_format=None) -> Tensor
   dispatch:
@@ -6794,12 +7586,20 @@
 
 - func: native_norm(Tensor self, Scalar p=2) -> Tensor
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: norm_sparse
+=======
+    SparseCPU, SparseCUDA: norm_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: native_norm.out
 
 - func: native_norm.ScalarOpt_dim_dtype(Tensor self, Scalar? p, int[1] dim, bool keepdim, ScalarType? dtype) -> Tensor
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: norm_sparse
+=======
+    SparseCPU, SparseCUDA: norm_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: native_norm.ScalarOpt_dim_dtype_out
 
 - func: _batch_norm_with_update(Tensor input, Tensor? weight, Tensor? bias, Tensor(a!) running_mean, Tensor(b!) running_var, float momentum, float eps) -> (Tensor, Tensor, Tensor, Tensor)
@@ -6912,7 +7712,10 @@
   dispatch:
     CompositeExplicitAutograd: norm
   autogen: norm.ScalarOpt_dtype_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.Scalar(Tensor self, Scalar p=2) -> Tensor
   device_check: NoCheck   # TensorIterator
@@ -6920,23 +7723,34 @@
   dispatch:
     CompositeExplicitAutograd: norm
   autogen: norm.Scalar_out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.ScalarOpt_dim_dtype(Tensor self, Scalar? p, int[1] dim, bool keepdim, *, ScalarType dtype) -> Tensor
   structured_delegate: norm.dtype_out
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sparse_dtype_norm
   tags: reduction
+=======
+    SparseCPU, SparseCUDA: sparse_dtype_norm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.ScalarOpt_dim(Tensor self, Scalar? p, int[1] dim, bool keepdim=False) -> Tensor
   structured_delegate: norm.out
   device_check: NoCheck   # TensorIterator
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sparse_norm
   tags: reduction
+=======
+    SparseCPU, SparseCUDA: sparse_norm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.dtype_out(Tensor self, Scalar? p, int[1] dim, bool keepdim, *, ScalarType dtype, Tensor(a!) out) -> Tensor(a!)
   structured: True
@@ -6944,7 +7758,10 @@
   dispatch:
     CPU, CUDA: norm_dtype_out
     MPS: norm_dtype_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.out(Tensor self, Scalar? p, int[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   structured: True
@@ -6952,17 +7769,24 @@
   dispatch:
     CPU, CUDA: norm_out
     MPS: norm_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # These four redispatch in their implementation, so OK to be CompositeImplicitAutograd
 - func: norm.names_ScalarOpt_dim_dtype(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim, *, ScalarType dtype) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: norm.names_ScalarOpt_dim(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim=False) -> Tensor
   device_check: NoCheck   # TensorIterator
   variants: function, method
+<<<<<<< HEAD
   tags: reduction
 
 - func: norm.names_dtype_out(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim, *, ScalarType dtype, Tensor(a!) out) -> Tensor(a!)
@@ -6972,6 +7796,14 @@
 - func: norm.names_out(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   tags: reduction
+=======
+
+- func: norm.names_dtype_out(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim, *, ScalarType dtype, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+
+- func: norm.names_out(Tensor self, Scalar? p, Dimname[1] dim, bool keepdim=False, *, Tensor(a!) out) -> Tensor(a!)
+  device_check: NoCheck   # TensorIterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: frexp.Tensor(Tensor self) -> (Tensor mantissa, Tensor exponent)
   variants: method, function
@@ -7012,7 +7844,11 @@
   variants: function, method
   dispatch:
     CompositeExplicitAutograd: clone
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: clone_sparse
+=======
+    SparseCPU, SparseCUDA: clone_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: clone_sparse_compressed
     MkldnnCPU: mkldnn_clone
     QuantizedCPU, QuantizedCUDA: quantized_clone
@@ -7047,7 +7883,11 @@
     CPU, CUDA: zero_
     MPS: zero_mps_
     Meta: zero_meta_
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: zero_sparse_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: zero_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: zero_sparse_csr_
     MkldnnCPU: mkldnn_zero_
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: zero_nested_
@@ -7060,8 +7900,12 @@
   dispatch:
     CPU, CUDA: sub_out
     MPS: sub_out_mps
+<<<<<<< HEAD
     MTIA: sub_out_mtia
     SparseCPU, SparseCUDA, SparseMPS: sub_out_sparse
+=======
+    SparseCPU, SparseCUDA: sub_out_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: sub.Tensor(Tensor self, Tensor other, *, Scalar alpha=1) -> Tensor
@@ -7069,7 +7913,11 @@
   variants: function, method
   structured_delegate: sub.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sub_sparse
+=======
+    SparseCPU, SparseCUDA: sub_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ZeroTensor: sub_zerotensor
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_sub_Tensor
   tags: [core, pointwise]
@@ -7079,7 +7927,11 @@
   variants: method
   structured_delegate: sub.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sub_sparse_
+=======
+    SparseCPU, SparseCUDA: sub_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 # For C++ only, until we have conversion from C++ numbers to Tensor
 
@@ -7118,7 +7970,11 @@
   device_check: NoCheck   # TensorIterator
   variants: function
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: rsub
+=======
+    CPU, CUDA, MPS: rsub
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: rsub.Tensor_out
 
 - func: heaviside.out(Tensor self, Tensor values, *, Tensor(a!) out) -> Tensor(a!)
@@ -7186,10 +8042,15 @@
     CUDA: addmm_out_cuda
     MPS: addmm_out_mps
     XPU: addmm_out_xpu
+<<<<<<< HEAD
     MTIA: addmm_out_mtia
     SparseCPU: addmm_out_sparse_dense_cpu
     SparseCUDA: addmm_out_sparse_dense_cuda
     SparseMPS: addmm_out_sparse_dense_mps
+=======
+    SparseCPU: addmm_out_sparse_dense_cpu
+    SparseCUDA: addmm_out_sparse_dense_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU: addmm_out_sparse_compressed_cpu
     SparseCsrCUDA: addmm_out_sparse_compressed_cuda
 
@@ -7199,7 +8060,10 @@
   dispatch:
     SparseCPU: addmm_sparse_dense_cpu
     SparseCUDA: addmm_sparse_dense_cuda
+<<<<<<< HEAD
     SparseMPS: addmm_sparse_dense_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: addmm_sparse_compressed_dense
   tags: core
 
@@ -7236,14 +8100,18 @@
   dispatch:
     CPU: _scaled_mm_cpu
     CUDA: _scaled_mm_cuda
+<<<<<<< HEAD
   tags: needs_exact_strides
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _scaled_mm.out(Tensor self, Tensor mat2, Tensor scale_a, Tensor scale_b, Tensor? bias=None, Tensor? scale_result=None, ScalarType? out_dtype=None, bool use_fast_accum=False, *, Tensor(a!) out) -> Tensor(a!)
   variants: function
   dispatch:
     CPU: _scaled_mm_out_cpu
     CUDA: _scaled_mm_out_cuda
+<<<<<<< HEAD
   tags: needs_exact_strides
 
 - func: _scaled_mm_v2(Tensor self, Tensor mat2, Tensor[] scale_a, int[] recipe_a, int[] swizzle_a, Tensor[] scale_b, int[] recipe_b, int[] swizzle_b, Tensor? bias, ScalarType? out_dtype, int[] contraction_dim=[], bool use_fast_accum=False) -> Tensor
@@ -7255,12 +8123,15 @@
   variants: function
   dispatch:
     CUDA: _scaled_mm_cuda_v2_out
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 - func: _scaled_grouped_mm(Tensor self, Tensor mat2, Tensor scale_a, Tensor scale_b, Tensor? offs=None, Tensor? bias=None, Tensor? scale_result=None, ScalarType? out_dtype=None, bool use_fast_accum=False) -> Tensor
   variants: function
   dispatch:
     CUDA: _scaled_grouped_mm_cuda
+<<<<<<< HEAD
   tags: needs_exact_strides
 
 - func: _scaled_grouped_mm_v2(Tensor self, Tensor mat2, Tensor[] scale_a, int[] recipe_a, int[] swizzle_a, Tensor[] scale_b, int[] recipe_b, int[] swizzle_b, Tensor? offs=None, Tensor? bias=None, ScalarType? out_dtype=None, int[] contraction_dim=[], bool use_fast_accum=False) -> Tensor
@@ -7268,11 +8139,16 @@
   dispatch:
     CUDA: _scaled_grouped_mm_cuda_v2
   tags: needs_exact_strides
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _grouped_mm(Tensor self, Tensor mat2, Tensor? offs=None, Tensor? bias=None, ScalarType? out_dtype=None) -> Tensor
   variants: function
   dispatch:
+<<<<<<< HEAD
     CompositeExplicitAutograd: _grouped_mm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CUDA: _grouped_mm_cuda
 
 # NOTE [ Sparse: autograd and API ]
@@ -7439,32 +8315,52 @@
 
 - func: _sparse_coo_tensor_with_dims(int sparse_dim, int dense_dim, int[] size, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=False) -> Tensor
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMeta, SparseMPS, Meta: new_with_dims_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta, Meta: new_with_dims_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _sparse_coo_tensor_with_dims.out
 
 - func: _sparse_coo_tensor_with_dims_and_tensors(int sparse_dim, int dense_dim, SymInt[] size, Tensor indices, Tensor values, *, ScalarType? dtype=None, Layout? layout=None, Device? device=None, bool? pin_memory=False, bool? is_coalesced=None) -> Tensor
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMeta, SparseMPS, Meta: new_with_dims_and_tensor_sparse_symint
+=======
+    SparseCPU, SparseCUDA, SparseMeta, Meta: new_with_dims_and_tensor_sparse_symint
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _sparse_coo_tensor_with_dims_and_tensors.out
 
 - func: sparse_resize_(Tensor(a!) self, int[] size, int sparse_dim, int dense_dim) -> Tensor(a!)
   use_const_ref_for_mutable_tensors: True
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: sparse_resize_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: sparse_resize_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: sparse_resize, sparse_resize.out
 
 - func: sparse_resize_and_clear_(Tensor(a!) self, int[] size, int sparse_dim, int dense_dim) -> Tensor(a!)
   use_const_ref_for_mutable_tensors: True
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: sparse_resize_and_clear_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: sparse_resize_and_clear_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: sparse_resize_and_clear, sparse_resize_and_clear.out
 
 - func: sparse_mask(Tensor self, Tensor mask) -> Tensor
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sparse_mask
+=======
+    SparseCPU, SparseCUDA: sparse_mask
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sparse_mask_sparse_compressed
   autogen: sparse_mask.out
 
@@ -7484,8 +8380,13 @@
 - func: _to_dense(Tensor self, ScalarType? dtype=None, bool? masked_grad=None) -> Tensor
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sparse_to_dense
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: sparse_compressed_to_dense
+=======
+    SparseCPU, SparseCUDA: sparse_to_dense
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sparse_compressed_to_dense
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MkldnnCPU: mkldnn_to_dense
   autogen: _to_dense.out
 
@@ -7494,8 +8395,13 @@
 - func: sparse_dim(Tensor self) -> int
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: sparse_dim_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: sparse_dim_sparse_csr
+=======
+    SparseCPU, SparseCUDA, SparseMeta: sparse_dim_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sparse_dim_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutograd: sparse_dim_default
   device_check: NoCheck
   device_guard: False
@@ -7511,8 +8417,13 @@
 - func: dense_dim(Tensor self) -> int
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: dense_dim_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: dense_dim_sparse_csr
+=======
+    SparseCPU, SparseCUDA, SparseMeta: dense_dim_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: dense_dim_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutograd: dense_dim_default
   device_check: NoCheck
   device_guard: False
@@ -7528,8 +8439,13 @@
 - func: _nnz(Tensor self) -> int
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: _nnz_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMPS, SparseCsrMeta: _nnz_sparse_csr
+=======
+    SparseCPU, SparseCUDA, SparseMeta: _nnz_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: _nnz_sparse_csr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   device_check: NoCheck
   device_guard: False
 
@@ -7545,13 +8461,20 @@
   dispatch:
     SparseCPU: _coalesce_sparse_cpu
     SparseCUDA: _coalesce_sparse_cuda
+<<<<<<< HEAD
     SparseMPS: _coalesce_sparse_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _coalesce.out
 
 - func: is_coalesced(Tensor self) -> bool
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: is_coalesced_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: is_coalesced_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutograd: is_coalesced_default
   device_check: NoCheck
   device_guard: False
@@ -7559,14 +8482,22 @@
 - func: _indices(Tensor(a) self) -> Tensor(a)
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: _indices_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: _indices_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   device_check: NoCheck
   device_guard: False
 
 - func: _values(Tensor(a) self) -> Tensor(a)
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: _values_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: _values_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   device_check: NoCheck
   device_guard: False
 
@@ -7576,7 +8507,11 @@
 - func: _coalesced_(Tensor(a!) self, bool coalesced) -> Tensor(a!)
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: _coalesced_sparse_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: _coalesced_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   device_check: NoCheck
   device_guard: False
   autogen: _coalesced, _coalesced.out
@@ -7584,7 +8519,11 @@
 - func: indices(Tensor(a) self) -> Tensor(a)
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: indices_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: indices_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CompositeExplicitAutograd: indices_default
   device_check: NoCheck
   device_guard: False
@@ -7592,7 +8531,11 @@
 - func: values(Tensor(a) self) -> Tensor(a)
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: values_sparse
+=======
+    SparseCPU, SparseCUDA, SparseMeta: values_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: values_sparse_csr
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: values_nested
     CompositeExplicitAutograd: values_default
@@ -7645,7 +8588,11 @@
   device_check: NoCheck  # Allows copy into different device
   variants: function
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS, SparseMeta: copy_sparse_
+=======
+    SparseCPU, SparseCUDA, SparseMeta: copy_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: copy_sparse_to_sparse, copy_sparse_to_sparse.out
 
 # By adding the AutogradNestedTensor this makes this function CompositeImplicit-like for nested tensors
@@ -7665,9 +8612,15 @@
 - func: _to_sparse.sparse_dim(Tensor self, int sparse_dim) -> Tensor
   variants: method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: dense_to_sparse
     SparseCPU, SparseCUDA, SparseMPS: sparse_coo_to_sparse
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta, SparseCsrMPS: sparse_compressed_to_sparse
+=======
+    CPU, CUDA: dense_to_sparse
+    SparseCPU, SparseCUDA: sparse_coo_to_sparse
+    SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sparse_compressed_to_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _to_sparse.sparse_dim_out
 
 - func: to_sparse(Tensor self, *, Layout? layout=None, int[2]? blocksize=None, int? dense_dim=None) -> Tensor
@@ -7677,8 +8630,13 @@
 - func: _to_sparse(Tensor self, *, Layout? layout=None, int[2]? blocksize=None, int? dense_dim=None) -> Tensor
   variants: method
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: dense_to_sparse
     SparseCPU, SparseCUDA, SparseMPS: sparse_coo_to_sparse
+=======
+    CPU, CUDA: dense_to_sparse
+    SparseCPU, SparseCUDA: sparse_coo_to_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sparse_compressed_to_sparse
   autogen: _to_sparse.out
 
@@ -9051,7 +10009,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: ne_Scalar_out
+=======
+    CPU, CUDA: ne_Scalar_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: ne_scalar_out_mps
     QuantizedCPU: ne_out_quantized_cpu
   tags: pointwise
@@ -9069,7 +10031,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: ne_Tensor_out
+=======
+    CPU, CUDA: ne_Tensor_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: ne_tensor_out_mps
     QuantizedCPU: ne_out_quantized_cpu
   tags: pointwise
@@ -9114,7 +10080,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: eq_Scalar_out
+=======
+    CPU, CUDA: eq_Scalar_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: eq_scalar_out_mps
     QuantizedCPU: eq_out_quantized_cpu
   tags: pointwise
@@ -9133,7 +10103,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: eq_Tensor_out
+=======
+    CPU, CUDA: eq_Tensor_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: eq_tensor_out_mps
     QuantizedCPU: eq_out_quantized_cpu
   tags: pointwise
@@ -9152,7 +10126,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: ge_Scalar_out
+=======
+    CPU, CUDA: ge_Scalar_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: ge_scalar_out_mps
     QuantizedCPU: ge_out_quantized_cpu
   tags: pointwise
@@ -9171,7 +10149,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: ge_Tensor_out
+=======
+    CPU, CUDA: ge_Tensor_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: ge_tensor_out_mps
     QuantizedCPU: ge_out_quantized_cpu
   tags: pointwise
@@ -9216,7 +10198,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: le_Scalar_out
+=======
+    CPU, CUDA: le_Scalar_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: le_scalar_out_mps
     QuantizedCPU: le_out_quantized_cpu
   tags: pointwise
@@ -9234,7 +10220,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: le_Tensor_out
+=======
+    CPU, CUDA: le_Tensor_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: le_tensor_out_mps
     QuantizedCPU: le_out_quantized_cpu
   tags: pointwise
@@ -9279,7 +10269,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA,MTIA: gt_Scalar_out
+=======
+    CPU, CUDA: gt_Scalar_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: gt_scalar_out_mps
     QuantizedCPU: gt_out_quantized_cpu
   tags: pointwise
@@ -9298,7 +10292,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: gt_Tensor_out
+=======
+    CPU, CUDA: gt_Tensor_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: gt_tensor_out_mps
     QuantizedCPU: gt_out_quantized_cpu
   tags: pointwise
@@ -9526,7 +10524,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: addcmul_out
+=======
+    CPU, CUDA: addcmul_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: addcmul_out_mps
   tags: pointwise
 
@@ -9547,7 +10549,11 @@
   structured_inherits: TensorIteratorBase
   device_check: NoCheck   # TensorIterator
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MTIA: addcdiv_out
+=======
+    CPU, CUDA: addcdiv_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: addcdiv_out_mps
   tags: pointwise
 
@@ -9836,7 +10842,11 @@
   structured_delegate: sign.out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sign_sparse
+=======
+    SparseCPU, SparseCUDA: sign_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sign_sparse_csr
   tags: [core, pointwise]
 
@@ -9845,7 +10855,11 @@
   structured_delegate: sign.out
   variants: method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sign_sparse_
+=======
+    SparseCPU, SparseCUDA: sign_sparse_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sign_sparse_csr_
   tags: pointwise
 
@@ -9856,7 +10870,11 @@
   dispatch:
     CPU, CUDA: sign_out
     MPS: sign_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: sign_sparse_out
+=======
+    SparseCPU, SparseCUDA: sign_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: sign_sparse_csr_out
   tags: pointwise
 
@@ -9864,7 +10882,11 @@
   variants: function, method
   structured_delegate: signbit.out
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: signbit_sparse
+=======
+    SparseCPU, SparseCUDA: signbit_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: signbit_sparse_csr
   tags: pointwise
 
@@ -9875,7 +10897,11 @@
     CPU: signbit_out
     CUDA: signbit_out
     MPS: signbit_out_mps
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: signbit_sparse_out
+=======
+    SparseCPU, SparseCUDA: signbit_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: signbit_sparse_csr_out
   tags: pointwise
 
@@ -10021,7 +11047,11 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS, MTIA: fmod_out
+=======
+    CPU, CUDA, MPS: fmod_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: fmod.Tensor(Tensor self, Tensor other) -> Tensor
@@ -10040,7 +11070,12 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: hypot_out
+=======
+    CPU, CUDA: hypot_out
+    MPS: hypot_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: hypot(Tensor self, Tensor other) -> Tensor
@@ -10057,7 +11092,11 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: igamma_out
+=======
+    CPU, CUDA: igamma_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: igamma(Tensor self, Tensor other) -> Tensor
@@ -10074,7 +11113,11 @@
   structured: True
   structured_inherits: TensorIteratorBase
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: igammac_out
+=======
+    CPU, CUDA: igammac_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: pointwise
 
 - func: igammac(Tensor self, Tensor other) -> Tensor
@@ -10156,14 +11199,20 @@
     CPU, CUDA: min
     MPS: min_mps
     QuantizedCPU: min_quantized_cpu
+<<<<<<< HEAD
   tags: [reduction]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: min.unary_out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
   dispatch:
     CPU, CUDA: min_unary_out
     QuantizedCPU: min_quantized_unary_out
+<<<<<<< HEAD
   tags: [reduction]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: fmin(Tensor self, Tensor other) -> Tensor
   structured_delegate: fmin.out
@@ -10186,7 +11235,10 @@
     CPU, CUDA: max
     MPS: max_mps
     QuantizedCPU: max_quantized_cpu
+<<<<<<< HEAD
   tags: [reduction]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: fmax(Tensor self, Tensor other) -> Tensor
   structured_delegate: fmax.out
@@ -10233,7 +11285,10 @@
   dispatch:
     CPU, CUDA: max_unary_out
     QuantizedCPU: max_quantized_unary_out
+<<<<<<< HEAD
   tags: [reduction]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: minimum(Tensor self, Tensor other) -> Tensor
   structured_delegate: minimum.out
@@ -10353,24 +11408,36 @@
   device_check: NoCheck   # TensorIterator
   structured_delegate: all.all_out
   variants: method, function
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: all.all_out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
   structured: True
   dispatch:
     CPU, CUDA: all_all_out
+<<<<<<< HEAD
     MTIA: all_all_out_mtia
     MPS: all_all_out_mps
   tags: reduction
+=======
+    MPS: all_all_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: any(Tensor self) -> Tensor
   device_check: NoCheck   # TensorIterator
   structured_delegate: any.all_out
   variants: method, function
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: any_sparse
   tags: [core, reduction]
+=======
+    SparseCPU, SparseCUDA: any_sparse
+  tags: core
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: any.all_out(Tensor self, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
@@ -10378,7 +11445,10 @@
   dispatch:
     CPU, CUDA: any_all_out
     MPS: any_all_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: renorm.out(Tensor self, Scalar p, int dim, Scalar maxnorm, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck   # TensorIterator
@@ -10454,7 +11524,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA: pow_Tensor_Scalar_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: pow_out_sparse_scalar
+=======
+    SparseCPU, SparseCUDA: pow_out_sparse_scalar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MPS: pow_tensor_scalar_out_mps
   tags: pointwise
 
@@ -10463,7 +11537,11 @@
   structured_delegate: pow.Tensor_Scalar_out
   variants: function, method
   dispatch:
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: pow_sparse_scalar
+=======
+    SparseCPU, SparseCUDA: pow_sparse_scalar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: [core, pointwise]
 
 - func: pow_.Scalar(Tensor(a!) self, Scalar exponent) -> Tensor(a!)
@@ -10628,7 +11706,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_add_scalar_kernel_slow_
     CUDA: foreach_tensor_add_scalar_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_add_scalar_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_add.Scalar_out
 
 - func: _foreach_add.List(Tensor[] self, Tensor[] other, *, Scalar alpha=1) -> Tensor[]
@@ -10637,7 +11718,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_add_list_kernel_slow
     CUDA: foreach_tensor_add_list_kernel_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_add_list_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_add_.List(Tensor(a!)[] self, Tensor[] other, *, Scalar alpha=1) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -10645,7 +11729,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_add_list_kernel_slow_
     CUDA: foreach_tensor_add_list_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_add_list_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_add.List_out
 
 - func: _foreach_add.ScalarList(Tensor[] self, Scalar[] scalars) -> Tensor[]
@@ -10676,7 +11763,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_add_tensor_kernel_slow_
     CUDA: foreach_tensor_add_tensor_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_add_tensor_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_add.Tensor_out
 
 - func: _foreach_sub.Scalar(Tensor[] self, Scalar scalar) -> Tensor[]
@@ -10737,7 +11827,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_mul_scalar_kernel_slow_
     CUDA: foreach_tensor_mul_scalar_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_mul_scalar_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_mul.Scalar_out
 
 - func: _foreach_mul.List(Tensor[] self, Tensor[] other) -> Tensor[]
@@ -10746,7 +11839,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_mul_list_kernel_slow
     CUDA: foreach_tensor_mul_list_kernel_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_mul_list_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_mul_.List(Tensor(a!)[] self, Tensor[] other) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -10754,7 +11850,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_mul_list_kernel_slow_
     CUDA: foreach_tensor_mul_list_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_mul_list_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_mul.List_out
 
 - func: _foreach_mul.ScalarList(Tensor[] self, Scalar[] scalars) -> Tensor[]
@@ -10778,7 +11877,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_mul_tensor_kernel_slow
     CUDA: foreach_tensor_mul_tensor_kernel_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_mul_tensor_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_mul_.Tensor(Tensor(a!)[] self, Tensor other) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -10786,7 +11888,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_mul_tensor_kernel_slow_
     CUDA: foreach_tensor_mul_tensor_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_mul_tensor_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_mul.Tensor_out
 
 - func: _foreach_div.Scalar(Tensor[] self, Scalar scalar) -> Tensor[]
@@ -10810,7 +11915,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_div_list_kernel_slow
     CUDA: foreach_tensor_div_list_kernel_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_div_list_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_div_.List(Tensor(a!)[] self, Tensor[] other) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -10818,7 +11926,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_div_list_kernel_slow_
     CUDA: foreach_tensor_div_list_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_div_list_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_div.List_out
 
 - func: _foreach_div.ScalarList(Tensor[] self, Scalar[] scalars) -> Tensor[]
@@ -10842,7 +11953,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_div_tensor_kernel_slow
     CUDA: foreach_tensor_div_tensor_kernel_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_div_tensor_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_div_.Tensor(Tensor(a!)[] self, Tensor other) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -10850,7 +11964,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_div_tensor_kernel_slow_
     CUDA: foreach_tensor_div_tensor_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_div_tensor_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_div.Tensor_out
 
 - func: _foreach_clamp_max.Scalar(Tensor[] self, Scalar scalar) -> Tensor[]
@@ -10957,7 +12074,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_clamp_min_scalar_kernel_slow_
     CUDA: foreach_tensor_clamp_min_scalar_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_maximum_scalar_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_maximum.Scalar_out
 
 # foreach_minimum/maximum dispatches to clamp_max/min
@@ -11088,7 +12208,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_addcmul_scalar_slow
     CUDA: foreach_tensor_addcmul_scalar_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_addcmul_scalar_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_addcmul.ScalarList(Tensor[] self, Tensor[] tensor1, Tensor[] tensor2, Scalar[] scalars) -> Tensor[]
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -11110,7 +12233,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_addcmul_scalar_slow_
     CUDA: foreach_tensor_addcmul_scalar_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_addcmul_scalar_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_addcmul.Scalar_out
 
 - func: _foreach_addcmul_.ScalarList(Tensor(a!)[] self, Tensor[] tensor1, Tensor[] tensor2, Scalar[] scalars) -> ()
@@ -11135,7 +12261,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_abs_slow
     CUDA: foreach_tensor_abs_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_abs_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: _foreach_abs_(Tensor(a!)[] self) -> ()
   device_check: NoCheck   # foreach kernels fall back to slow path when tensor are on different devices
@@ -11143,7 +12272,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_abs_slow_
     CUDA: foreach_tensor_abs_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_abs_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_abs.out
 
 - func: _foreach_acos(Tensor[] self) -> Tensor[]
@@ -11478,7 +12610,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_norm_slow
     CUDA: foreach_tensor_norm_cuda
+<<<<<<< HEAD
     MTIA: foreach_tensor_norm_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_norm.Scalar_out
 
 - func: _foreach_pow.List(Tensor[] self, Tensor[] exponent) -> Tensor[]
@@ -11651,7 +12786,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_sqrt_slow_
     CUDA: foreach_tensor_sqrt_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_sqrt_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_sqrt.out
 
 - func: _foreach_tan(Tensor[] self) -> Tensor[]
@@ -11713,7 +12851,10 @@
   dispatch:
     CompositeExplicitAutograd: foreach_tensor_copy_list_kernel_slow_
     CUDA: foreach_tensor_copy_list_kernel_cuda_
+<<<<<<< HEAD
     MTIA: foreach_tensor_copy_list_kernel_mtia_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _foreach_copy.out
 
 - func: _foreach_copy(Tensor[] self, Tensor[] src, bool non_blocking=False) -> Tensor[] self_out
@@ -11721,7 +12862,10 @@
   variants: function
   dispatch:
     CompositeExplicitAutograd: _foreach_copy
+<<<<<<< HEAD
     MTIA: foreach_tensor_copy_list_kernel_mtia
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: bucketize.Tensor(Tensor self, Tensor boundaries, *, bool out_int32=False, bool right=False) -> Tensor
   dispatch:
@@ -12497,7 +13641,10 @@
   dispatch:
     CPU: avg_pool3d_out_cpu
     CUDA: avg_pool3d_out_cuda
+<<<<<<< HEAD
     MPS: avg_pool3d_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MkldnnCPU: mkldnn_avg_pool3d_out
 
 - func: avg_pool3d(Tensor self, int[3] kernel_size, int[3] stride=[], int[3] padding=0, bool ceil_mode=False, bool count_include_pad=True, int? divisor_override=None) -> Tensor
@@ -12514,7 +13661,10 @@
   dispatch:
     CPU: avg_pool3d_backward_out_cpu
     CUDA: avg_pool3d_backward_out_cuda
+<<<<<<< HEAD
     MPS: avg_pool3d_backward_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MkldnnCPU: mkldnn_avg_pool3d_backward_out
 
 - func: avg_pool3d_backward(Tensor grad_output, Tensor self, int[3] kernel_size, int[3] stride, int[3] padding, bool ceil_mode, bool count_include_pad, int? divisor_override) -> Tensor
@@ -12610,7 +13760,10 @@
   dispatch:
     CPU: max_pool3d_with_indices_out_cpu
     CUDA: max_pool3d_with_indices_out_cuda
+<<<<<<< HEAD
     MPS: max_pool3d_with_indices_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Return: (Tensor output, Tensor indices)
 - func: max_pool3d_with_indices(Tensor self, int[3] kernel_size, int[3] stride=[], int[3] padding=0, int[3] dilation=1, bool ceil_mode=False) -> (Tensor, Tensor)
@@ -12618,7 +13771,10 @@
   dispatch:
     CPU: max_pool3d_with_indices_cpu
     CUDA: max_pool3d_with_indices_cuda
+<<<<<<< HEAD
     MPS: max_pool3d_with_indices_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: core
 
 - func: max_pool3d_with_indices_backward.grad_input(Tensor grad_output, Tensor self, int[3] kernel_size, int[3] stride, int[3] padding, int[3] dilation, bool ceil_mode, Tensor indices, *, Tensor(a!) grad_input) -> Tensor(a!)
@@ -12626,42 +13782,60 @@
   dispatch:
     CPU: max_pool3d_with_indices_backward_out_cpu
     CUDA: max_pool3d_with_indices_backward_out_cuda
+<<<<<<< HEAD
     MPS: max_pool3d_with_indices_backward_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max_pool3d_with_indices_backward(Tensor grad_output, Tensor self, int[3] kernel_size, int[3] stride, int[3] padding, int[3] dilation, bool ceil_mode, Tensor indices) -> Tensor
   python_module: nn
   dispatch:
     CPU: max_pool3d_with_indices_backward_cpu
     CUDA: max_pool3d_with_indices_backward_cuda
+<<<<<<< HEAD
     MPS: max_pool3d_with_indices_backward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max_unpool2d.out(Tensor self, Tensor indices, SymInt[2] output_size, *, Tensor(a!) out) -> Tensor(a!)
   python_module: nn
   dispatch:
     CPU: max_unpooling2d_forward_out_cpu
     CUDA: max_unpooling2d_forward_out_cuda
+<<<<<<< HEAD
     MPS: max_unpooling2d_forward_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max_unpool2d(Tensor self, Tensor indices, SymInt[2] output_size) -> Tensor
   python_module: nn
   dispatch:
     CPU: max_unpooling2d_forward_cpu
     CUDA: max_unpooling2d_forward_cuda
+<<<<<<< HEAD
     MPS: max_unpooling2d_forward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max_unpool3d.out(Tensor self, Tensor indices, SymInt[3] output_size, int[3] stride, int[3] padding, *, Tensor(a!) out) -> Tensor(a!)
   python_module: nn
   dispatch:
     CPU: max_unpooling3d_forward_out_cpu
     CUDA: max_unpooling3d_forward_out_cuda
+<<<<<<< HEAD
     MPS: max_unpooling3d_forward_out_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: max_unpool3d(Tensor self, Tensor indices, SymInt[3] output_size, int[3] stride, int[3] padding) -> Tensor
   python_module: nn
   dispatch:
     CPU: max_unpooling3d_forward_cpu
     CUDA: max_unpooling3d_forward_cuda
+<<<<<<< HEAD
     MPS: max_unpooling3d_forward_mps
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: reflection_pad1d.out(Tensor self, SymInt[2] padding, *, Tensor(a!) out) -> Tensor(a!)
   python_module: nn
@@ -13391,7 +14565,11 @@
   dispatch:
     CompositeExplicitAutograd: isinf
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_isinf
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isinf_sparse
+=======
+    SparseCPU, SparseCUDA: isinf_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseMeta: isinf_sparse_meta
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isinf_sparse_csr
   autogen: isinf.out
@@ -13407,7 +14585,11 @@
   structured_delegate: isposinf.out
   dispatch:
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_isposinf
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isposinf_sparse
+=======
+    SparseCPU, SparseCUDA: isposinf_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isposinf_sparse_csr
   tags: pointwise
 
@@ -13416,7 +14598,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: isposinf_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isposinf_sparse_out
+=======
+    SparseCPU, SparseCUDA: isposinf_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isposinf_sparse_csr_out
   tags: pointwise
 
@@ -13425,7 +14611,11 @@
   structured_delegate: isneginf.out
   dispatch:
     NestedTensorCPU, NestedTensorHPU, NestedTensorCUDA: NestedTensor_isneginf
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isneginf_sparse
+=======
+    SparseCPU, SparseCUDA: isneginf_sparse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isneginf_sparse_csr
   tags: pointwise
 
@@ -13434,7 +14624,11 @@
   structured_inherits: TensorIteratorBase
   dispatch:
     CPU, CUDA, MPS: isneginf_out
+<<<<<<< HEAD
     SparseCPU, SparseCUDA, SparseMPS: isneginf_sparse_out
+=======
+    SparseCPU, SparseCUDA: isneginf_sparse_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SparseCsrCPU, SparseCsrCUDA, SparseCsrMeta: isneginf_sparse_csr_out
   tags: pointwise
 
@@ -14154,10 +15348,22 @@
 - func: linalg_lu_factor(Tensor A, *, bool pivot=True) -> (Tensor LU, Tensor pivots)
   python_module: linalg
   variants: function
+<<<<<<< HEAD
+=======
+  dispatch:
+    CompositeImplicitAutograd: linalg_lu_factor
+    MPS: linalg_lu_factor_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_lu_factor.out(Tensor A, *, bool pivot=True, Tensor(a!) LU, Tensor(b!) pivots) -> (Tensor(a!) LU, Tensor(b!) pivots)
   python_module: linalg
   variants: function
+<<<<<<< HEAD
+=======
+  dispatch:
+    CompositeImplicitAutograd: linalg_lu_factor_out
+    MPS: linalg_lu_factor_out_mps
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_lu_factor_ex(Tensor A, *, bool pivot=True, bool check_errors=False) -> (Tensor LU, Tensor pivots, Tensor info)
   python_module: linalg
@@ -14359,12 +15565,20 @@
   python_module: linalg
   variants: function
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: linalg_householder_product
+=======
+    CPU, CUDA: linalg_householder_product
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_householder_product.out(Tensor input, Tensor tau, *, Tensor(a!) out) -> Tensor(a!)
   python_module: linalg
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: linalg_householder_product_out
+=======
+    CPU, CUDA: linalg_householder_product_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_inv_ex(Tensor A, *, bool check_errors=False) -> (Tensor inverse, Tensor info)
   python_module: linalg
@@ -14424,7 +15638,10 @@
   python_module: linalg
   variants: function
   structured_delegate: linalg_vector_norm.out
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_vector_norm.out(Tensor self, Scalar ord=2, int[1]? dim=None, bool keepdim=False, *, ScalarType? dtype=None, Tensor(a!) out) -> Tensor(a!)
   python_module: linalg
@@ -14432,7 +15649,10 @@
   dispatch:
     CPU, CUDA: linalg_vector_norm_out
     MPS: linalg_vector_norm_out_mps
+<<<<<<< HEAD
   tags: reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 - func: linalg_matrix_norm(Tensor self, Scalar ord, int[] dim=[-2,-1], bool keepdim=False, *, ScalarType? dtype=None) -> Tensor
   python_module: linalg
@@ -15143,7 +16363,10 @@
 - func: _scaled_dot_product_cudnn_attention_backward(Tensor grad_out, Tensor query, Tensor key, Tensor value, Tensor out, Tensor logsumexp, Tensor philox_seed, Tensor philox_offset, Tensor attn_bias, Tensor cum_seq_q, Tensor cum_seq_k, SymInt max_q, SymInt max_k, float dropout_p, bool is_causal, *, float? scale=None) -> (Tensor, Tensor, Tensor)
   dispatch:
     CUDA: _scaled_dot_product_cudnn_attention_backward_cuda
+<<<<<<< HEAD
     NestedTensorCUDA: _scaled_dot_product_cudnn_attention_nestedtensor_backward_cuda
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   tags: nondeterministic_seeded
 
 - func: _flash_attention_forward(Tensor query, Tensor key, Tensor value, Tensor? cum_seq_q, Tensor? cum_seq_k, SymInt max_q, SymInt max_k, float dropout_p, bool is_causal, bool return_debug_mask, *, float? scale=None, SymInt? window_size_left=None, SymInt? window_size_right=None, Tensor? seqused_k=None, Tensor? alibi_slopes=None) -> (Tensor output, Tensor softmax_logsumexp, Tensor rng_state, Tensor unused, Tensor debug_attn_mask)
@@ -15176,11 +16399,14 @@
     CUDA: _cudnn_attention_forward
   tags: nondeterministic_seeded
 
+<<<<<<< HEAD
 - func: _cudnn_attention_backward(Tensor grad_out, Tensor query, Tensor key, Tensor value, Tensor out, Tensor logsumexp, Tensor philox_seed, Tensor philox_offset, Tensor attn_bias, Tensor cum_seq_q, Tensor cum_seq_k, SymInt max_q, SymInt max_k, float dropout_p, bool is_causal, *, float? scale=None) -> (Tensor, Tensor, Tensor)
   dispatch:
     CUDA: _cudnn_attention_backward
   tags: nondeterministic_seeded
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 - func: _triton_scaled_dot_attention(Tensor q, Tensor k, Tensor v, float dropout_p=0.0) -> Tensor
   variants: function
   dispatch:
@@ -15783,7 +17009,11 @@
 - func: special_shifted_chebyshev_polynomial_t.out(Tensor x, Tensor n, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: special_shifted_chebyshev_polynomial_t_out
+=======
+    CPU, CUDA: special_shifted_chebyshev_polynomial_t_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python_module: special
   structured_inherits: TensorIteratorBase
   structured: True
@@ -15832,7 +17062,11 @@
 - func: special_shifted_chebyshev_polynomial_u.out(Tensor x, Tensor n, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: special_shifted_chebyshev_polynomial_u_out
+=======
+    CPU, CUDA: special_shifted_chebyshev_polynomial_u_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python_module: special
   structured_inherits: TensorIteratorBase
   structured: True
@@ -15881,7 +17115,11 @@
 - func: special_shifted_chebyshev_polynomial_v.out(Tensor x, Tensor n, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: special_shifted_chebyshev_polynomial_v_out
+=======
+    CPU, CUDA: special_shifted_chebyshev_polynomial_v_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python_module: special
   structured_inherits: TensorIteratorBase
   structured: True
@@ -15930,7 +17168,11 @@
 - func: special_shifted_chebyshev_polynomial_w.out(Tensor x, Tensor n, *, Tensor(a!) out) -> Tensor(a!)
   device_check: NoCheck
   dispatch:
+<<<<<<< HEAD
     CPU, CUDA, MPS: special_shifted_chebyshev_polynomial_w_out
+=======
+    CPU, CUDA: special_shifted_chebyshev_polynomial_w_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   python_module: special
   structured_inherits: TensorIteratorBase
   structured: True
@@ -16039,7 +17281,10 @@
   variants: function
   dispatch:
     CPU: _fused_adagrad_kernel_cpu_
+<<<<<<< HEAD
     CUDA: _fused_adagrad_kernel_cuda_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _fused_adagrad, _fused_adagrad.out
 
 - func: _fused_adagrad_.tensor_lr(Tensor(a!)[] self, Tensor(b!)[] grads, Tensor(c!)[] state_sums, Tensor[] state_steps, *, Tensor lr, float lr_decay, float weight_decay, float eps, bool maximize, Tensor? grad_scale=None, Tensor? found_inf=None) -> ()
@@ -16047,7 +17292,10 @@
   variants: function
   dispatch:
     CPU: _fused_adagrad_kernel_cpu_
+<<<<<<< HEAD
     CUDA: _fused_adagrad_kernel_cuda_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   autogen: _fused_adagrad.tensor_lr, _fused_adagrad.tensor_lr_out
 
 # This op is ONLY used by pytorch/XLA in functionalization, and should never show up in vanilla eager mode or in any pytorch tracing contexts.

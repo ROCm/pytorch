@@ -3,7 +3,10 @@
 #include <torch/csrc/python_headers.h>
 #include <torch/csrc/utils/object_ptr.h>
 #include <torch/csrc/utils/pybind.h>
+<<<<<<< HEAD
 #include <torch/csrc/utils/python_compat.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <stdexcept>
 #include <string>
 
@@ -27,10 +30,19 @@ inline std::string THPUtils_unpackString(PyObject* obj) {
   if (PyUnicode_Check(obj)) {
     Py_ssize_t size = 0;
     const char* data = PyUnicode_AsUTF8AndSize(obj, &size);
+<<<<<<< HEAD
     TORCH_CHECK(data, "error unpacking string as utf-8");
     return std::string(data, (size_t)size);
   }
   TORCH_CHECK(false, "unpackString: expected bytes or unicode object");
+=======
+    if (!data) {
+      throw std::runtime_error("error unpacking string as utf-8");
+    }
+    return std::string(data, (size_t)size);
+  }
+  throw std::runtime_error("unpackString: expected bytes or unicode object");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Unpacks PyBytes (PyString) or PyUnicode as std::string_view
@@ -49,10 +61,19 @@ inline std::string_view THPUtils_unpackStringView(PyObject* obj) {
   if (PyUnicode_Check(obj)) {
     Py_ssize_t size = 0;
     const char* data = PyUnicode_AsUTF8AndSize(obj, &size);
+<<<<<<< HEAD
     TORCH_CHECK(data, "error unpacking string as utf-8");
     return std::string_view(data, (size_t)size);
   }
   TORCH_CHECK(false, "unpackString: expected bytes or unicode object");
+=======
+    if (!data) {
+      throw std::runtime_error("error unpacking string as utf-8");
+    }
+    return std::string_view(data, (size_t)size);
+  }
+  throw std::runtime_error("unpackString: expected bytes or unicode object");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline PyObject* THPUtils_packString(const char* str) {
@@ -99,6 +120,7 @@ inline void THPUtils_internStringInPlace(PyObject** obj) {
  */
 
 inline py::object PyObject_FastGetAttrString(PyObject* obj, const char* name) {
+<<<<<<< HEAD
 #if IS_PYTHON_3_13_PLUS
   PyObject* res = (PyObject*)nullptr;
   int result_code = PyObject_GetOptionalAttrString(obj, name, &res);
@@ -107,6 +129,8 @@ inline py::object PyObject_FastGetAttrString(PyObject* obj, const char* name) {
   }
   return py::reinterpret_steal<py::object>(res);
 #else
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   PyTypeObject* tp = Py_TYPE(obj);
   PyObject* res = (PyObject*)nullptr;
 
@@ -121,7 +145,11 @@ inline py::object PyObject_FastGetAttrString(PyObject* obj, const char* name) {
   }
   /* Attribute referenced by (PyObject *)name */
   else if (tp->tp_getattro != nullptr) {
+<<<<<<< HEAD
     auto w = py::reinterpret_steal<py::object>(PyUnicode_FromString(name));
+=======
+    auto w = py::reinterpret_steal<py::object>(THPUtils_internString(name));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (w.ptr() == nullptr) {
       return py::object();
     }
@@ -131,5 +159,8 @@ inline py::object PyObject_FastGetAttrString(PyObject* obj, const char* name) {
     }
   }
   return py::reinterpret_steal<py::object>(res);
+<<<<<<< HEAD
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }

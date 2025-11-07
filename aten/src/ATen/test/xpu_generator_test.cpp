@@ -80,6 +80,7 @@ TEST(XpuGeneratorTest, testMultithreadingGetSetCurrentSeed) {
   t2.join();
   EXPECT_EQ(gen1.current_seed(), initial_seed+3);
 }
+<<<<<<< HEAD
 
 TEST(XpuGeneratorTest, testRNGForking) {
   // See Note [Acquire lock when using random generators]
@@ -96,3 +97,5 @@ TEST(XpuGeneratorTest, testRNGForking) {
   auto forked_value = at::randn({1000}, current_gen, at::kXPU);
   ASSERT_EQ(target_value.sum().item<double>(), forked_value.sum().item<double>());
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

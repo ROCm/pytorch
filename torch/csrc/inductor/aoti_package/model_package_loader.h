@@ -42,11 +42,14 @@ class TORCH_API AOTIModelPackageLoader {
       bool validate_full_updates,
       bool user_managed = false);
 
+<<<<<<< HEAD
   // Static function to load metadata directly from a model package
   static std::unordered_map<std::string, std::string> load_metadata_from_package(
       const std::string& model_package_path,
       const std::string& model_name);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  private:
   std::string temp_dir_;
   std::unique_ptr<AOTIModelContainerRunner> runner_;

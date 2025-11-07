@@ -1,6 +1,9 @@
 # mypy: allow-untyped-defs
 # Copyright (c) Meta Platforms, Inc. and affiliates
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import logging
 from dataclasses import dataclass
 from typing import Union
@@ -123,6 +126,7 @@ def generate_stage_to_rank_mapping(
     return mapping
 
 
+<<<<<<< HEAD
 def generate_rank_to_stage_mapping(
     pp_size: int, num_stages: int, style: str = "loop"
 ) -> dict[int, list[int]]:
@@ -149,6 +153,8 @@ def generate_rank_to_stage_mapping(
     return rank_to_stages
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclass
 class PipeInfo:
     """

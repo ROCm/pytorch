@@ -3,8 +3,12 @@ import functools
 import math
 import operator
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, SupportsFloat, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Callable, Optional, SupportsFloat, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import TypeVarTuple, Unpack
 
 import sympy
@@ -20,8 +24,11 @@ from sympy.core.traversal import walk
 from sympy.printing.precedence import PRECEDENCE
 from sympy.utilities.iterables import sift
 
+<<<<<<< HEAD
 from torch.torch_version import TorchVersion
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .numbers import int_oo
 
 
@@ -101,11 +108,18 @@ def _is_symbols_binary_summation(expr: sympy.Expr) -> bool:
 
 
 def _keep_float(
+<<<<<<< HEAD
     f: Callable[[Unpack[_Ts]], _T],
 ) -> Callable[[Unpack[_Ts]], Union[_T, sympy.Float]]:
     @functools.wraps(f)
     def inner(*args: Unpack[_Ts]) -> Union[_T, sympy.Float]:
         # pyrefly: ignore [bad-argument-type]
+=======
+    f: Callable[[Unpack[_Ts]], _T]
+) -> Callable[[Unpack[_Ts]], Union[_T, sympy.Float]]:
+    @functools.wraps(f)
+    def inner(*args: Unpack[_Ts]) -> Union[_T, sympy.Float]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         r: Union[_T, sympy.Float] = f(*args)
         if any(isinstance(a, sympy.Float) for a in args) and not isinstance(
             r, sympy.Float
@@ -113,7 +127,10 @@ def _keep_float(
             r = sympy.Float(float(r))
         return r
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return inner
 
 
@@ -200,12 +217,18 @@ class FloorDiv(sympy.Function):
 
     @property
     def base(self) -> sympy.Basic:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.args[0]
 
     @property
     def divisor(self) -> sympy.Basic:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.args[1]
 
     def _sympystr(self, printer: sympy.printing.StrPrinter) -> str:
@@ -274,6 +297,7 @@ class FloorDiv(sympy.Function):
             for term in sympy.Add.make_args(base):
                 quotient = term / divisor
 
+<<<<<<< HEAD
                 # This is a sympy bug fixed in https://github.com/sympy/sympy/pull/28442
                 # sympy can generate a quotient with (1/22)*.... such that quotient.is_integer is True
                 # FloorDiv should not allow that as output. see
@@ -288,6 +312,9 @@ class FloorDiv(sympy.Function):
                     quotient_is_integer = quotient.is_integer
 
                 if quotient_is_integer:
+=======
+                if quotient.is_integer:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     terms.append(term)
                     quotients += quotient
 
@@ -311,6 +338,14 @@ class FloorDiv(sympy.Function):
 
         return None
 
+<<<<<<< HEAD
+=======
+    def _ccode(self, printer):
+        base = printer.parenthesize(self.base, PRECEDENCE["Atom"] - 0.5)
+        divisor = printer.parenthesize(self.divisor, PRECEDENCE["Atom"] - 0.5)
+        return f"floor({base}/{divisor})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ModularIndexing(sympy.Function):
     """
@@ -327,6 +362,10 @@ class ModularIndexing(sympy.Function):
     ) -> Optional[sympy.Basic]:
         if base == 0 or modulus == 1:
             return sympy.S.Zero
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             isinstance(base, sympy.Integer)
             and isinstance(divisor, sympy.Integer)
@@ -374,7 +413,10 @@ class ModularIndexing(sympy.Function):
         return None
 
     def _eval_is_nonnegative(self) -> Optional[bool]:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         p, q = self.args[:2]
         return fuzzy_eq(p.is_nonnegative, q.is_nonnegative)  # type: ignore[attr-defined]
 
@@ -455,7 +497,10 @@ class PythonMod(sympy.Function):
         #   - floor(p / q) = 0
         #   - p % q = p - floor(p / q) * q = p
         less = p < q
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if less.is_Boolean and bool(less) and r.is_positive:
             return p
 
@@ -471,6 +516,7 @@ class PythonMod(sympy.Function):
     def _eval_is_nonpositive(self) -> Optional[bool]:
         return True if self.args[1].is_negative else None  # type: ignore[attr-defined]
 
+<<<<<<< HEAD
     def _ccode(self, printer):
         # pyrefly: ignore [missing-attribute]
         p = printer.parenthesize(self.args[0], PRECEDENCE["Atom"] - 0.5)
@@ -480,6 +526,8 @@ class PythonMod(sympy.Function):
         abs_q = str(q) if self.args[1].is_positive else f"abs({q})"
         return f"({p} % {q}) < 0 ? {p} % {q} + {abs_q} : {p} % {q}"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Generic modulus: only defined on non-negative arguments
 class Mod(sympy.Function):
@@ -510,10 +558,15 @@ class Mod(sympy.Function):
 
         # Evaluate if they are both literals.
         if q.is_Number and p.is_Number:
+<<<<<<< HEAD
             if p < 0:
                 raise AssertionError(p)
             if q < 1:
                 raise AssertionError(q)
+=======
+            assert p >= 0, p
+            assert q >= 1, q
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return p % q
 
         # If q == 2, it's a matter of whether p is odd or even.
@@ -559,7 +612,10 @@ class CeilToInt(sympy.Function):
             return sympy.Integer(math.ceil(float(number)))
 
     def _ccode(self, printer):
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         number = printer.parenthesize(self.args[0], self.args[0].precedence - 0.5)
         return f"ceil({number})"
 
@@ -830,7 +886,10 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
             if not cond:
                 return ai.func(*[do(i, a) for i in ai.args], evaluate=False)
             if isinstance(ai, cls):
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return ai.func(*[do(i, a) for i in ai.args if i != a], evaluate=False)
             return a
 
@@ -949,12 +1008,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
 
     _eval_is_algebraic = lambda s: _torf(i.is_algebraic for i in s.args)  # noqa: E731
     _eval_is_antihermitian = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_antihermitian
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_commutative = lambda s: _torf(  # noqa: E731
         i.is_commutative
         for i in s.args  # noqa: E731
+=======
+        i.is_antihermitian for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_commutative = lambda s: _torf(  # noqa: E731
+        i.is_commutative for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_complex = lambda s: _torf(i.is_complex for i in s.args)  # noqa: E731
     _eval_is_composite = lambda s: _torf(i.is_composite for i in s.args)  # noqa: E731
@@ -968,12 +1034,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
     _eval_is_negative = lambda s: _torf(i.is_negative for i in s.args)  # noqa: E731
     _eval_is_noninteger = lambda s: _torf(i.is_noninteger for i in s.args)  # noqa: E731
     _eval_is_nonnegative = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_nonnegative
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_nonpositive = lambda s: _torf(  # noqa: E731
         i.is_nonpositive
         for i in s.args  # noqa: E731
+=======
+        i.is_nonnegative for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_nonpositive = lambda s: _torf(  # noqa: E731
+        i.is_nonpositive for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_nonzero = lambda s: _torf(i.is_nonzero for i in s.args)  # noqa: E731
     _eval_is_odd = lambda s: _torf(i.is_odd for i in s.args)  # noqa: E731
@@ -983,12 +1056,19 @@ class MinMaxBase(Expr, LatticeOp):  # type: ignore[misc]
     _eval_is_rational = lambda s: _torf(i.is_rational for i in s.args)  # noqa: E731
     _eval_is_real = lambda s: _torf(i.is_real for i in s.args)  # noqa: E731
     _eval_is_extended_real = lambda s: _torf(  # noqa: E731
+<<<<<<< HEAD
         i.is_extended_real
         for i in s.args  # noqa: E731
     )  # noqa: E731
     _eval_is_transcendental = lambda s: _torf(  # noqa: E731
         i.is_transcendental
         for i in s.args  # noqa: E731
+=======
+        i.is_extended_real for i in s.args  # noqa: E731
+    )  # noqa: E731
+    _eval_is_transcendental = lambda s: _torf(  # noqa: E731
+        i.is_transcendental for i in s.args  # noqa: E731
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )  # noqa: E731
     _eval_is_zero = lambda s: _torf(i.is_zero for i in s.args)  # noqa: E731
 
@@ -1008,7 +1088,10 @@ class Max(MinMaxBase, Application):  # type: ignore[misc]
         return fuzzy_or(a.is_nonnegative for a in self.args)  # type: ignore[attr-defined]
 
     def _eval_is_negative(self):  # type:ignore[override]
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fuzzy_and(a.is_negative for a in self.args)
 
 
@@ -1027,7 +1110,10 @@ class Min(MinMaxBase, Application):  # type: ignore[misc]
         return fuzzy_and(a.is_nonnegative for a in self.args)  # type: ignore[attr-defined]
 
     def _eval_is_negative(self):  # type:ignore[override]
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fuzzy_or(a.is_negative for a in self.args)
 
 
@@ -1092,7 +1178,11 @@ class PowByNatural(sympy.Function):
 
 
 # base is assumed to be nonnegative, thereby prevent complex numbers from
+<<<<<<< HEAD
 # occurring
+=======
+# occuring
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FloatPow(sympy.Function):
     is_real = True
 
@@ -1165,9 +1255,13 @@ class IntTrueDiv(sympy.Function):
             return sympy.Float(int(base) / int(divisor))
 
     def _ccode(self, printer):
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         base = printer.parenthesize(self.args[0], PRECEDENCE["Atom"] - 0.5)
         # pyrefly: ignore [missing-attribute]
+=======
+        base = printer.parenthesize(self.args[0], PRECEDENCE["Atom"] - 0.5)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         divisor = printer.parenthesize(self.args[1], PRECEDENCE["Atom"] - 0.5)
         return f"((int){base}/(int){divisor})"
 
@@ -1183,10 +1277,14 @@ class IsNonOverlappingAndDenseIndicator(sympy.Function):
 
     @classmethod
     def eval(cls, *args):
+<<<<<<< HEAD
         if len(args) % 2 != 0:
             raise AssertionError(
                 f"expected an even number of arguments, got {len(args)}"
             )
+=======
+        assert len(args) % 2 == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim = len(args) // 2
         sizes = args[0:dim]
         strides = args[dim:]
@@ -1218,8 +1316,12 @@ class IsNonOverlappingAndDenseIndicator(sympy.Function):
             # this function could help figure this out.
 
         if all(isinstance(a, sympy.Integer) for a in strides):
+<<<<<<< HEAD
             if dim == 0:
                 raise AssertionError("dim must not be zero")
+=======
+            assert dim != 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # When all strides are integral, we can sort, and the size for the
             # largest stride doesn't matter and can be arbitrarily symbolic
             s_sizes, s_strides = zip(
@@ -1331,6 +1433,7 @@ class Identity(sympy.Function):
     precedence = 10
 
     def __repr__(self):  # type: ignore[override]
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         return f"Identity({self.args[0]})"
 
@@ -1341,6 +1444,11 @@ class Identity(sympy.Function):
 
     def _eval_is_real(self):
         # pyrefly: ignore [missing-attribute]
+=======
+        return f"Identity({self.args[0]})"
+
+    def _eval_is_real(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.args[0].is_real
 
     def _eval_is_integer(self):
@@ -1348,6 +1456,7 @@ class Identity(sympy.Function):
 
     def _eval_expand_identity(self, **hints):
         # Removes the identity op.
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         return self.args[0]
 
@@ -1357,6 +1466,14 @@ class Identity(sympy.Function):
 
     def __float__(self) -> float:
         # pyrefly: ignore [missing-attribute]
+=======
+        return self.args[0]
+
+    def __int__(self) -> int:
+        return int(self.args[0])
+
+    def __float__(self) -> float:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return float(self.args[0])
 
 
@@ -1368,7 +1485,11 @@ def make_opaque_unary_fn(name):
         constant propagation.  This helps avoid performing transformations
         that are valid for real numbers but are invalid for floating point;
         in particular, while we are willing to make optimizations that change
+<<<<<<< HEAD
         numerics for Tensor compute, we are NOT willing to make optimizations
+=======
+        numerics for Tensor compute, we are NOT willing to make optimziations
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         that change numerics for size compute.
         """
 
@@ -1452,10 +1573,14 @@ def make_opaque_bitwise_fn(name, real_op_name):
                 return sympy.Integer(getattr(operator, real_op_name)(int(a), int(b)))
             return None
 
+<<<<<<< HEAD
     nm = "BitwiseFn_" + name
     BitwiseFn.__name__ = nm
     BitwiseFn.__qualname__ = nm
 
+=======
+    BitwiseFn.__name__ = "BitwiseFn_" + name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return BitwiseFn
 
 

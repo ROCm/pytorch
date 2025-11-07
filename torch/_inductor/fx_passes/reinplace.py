@@ -4,16 +4,24 @@ import logging
 import operator
 from collections import defaultdict
 from collections.abc import Sequence
+<<<<<<< HEAD
 from contextlib import nullcontext
 from dataclasses import dataclass
 from typing import Any, Callable, cast
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, cast, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx.node
 from torch._C._dynamo.guards import compute_overlapping_tensors
 from torch._dispatch.python import enable_python_dispatcher
 from torch._dynamo.utils import ReinplaceCounters, ReInplaceTrigger
+<<<<<<< HEAD
 from torch._guards import detect_fake_mode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.triton_kernel_wrap import (
     kernel_side_table,
     triton_kernel_wrapper_functional,
@@ -24,10 +32,14 @@ from torch._inductor.lowering import (
     inplaceable_foreach_ops as inplaceable_foreach_ops_lowerings,
 )
 from torch._inductor.virtualized import V
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import (
     compute_unbacked_bindings,
     GuardOnDataDependentSymNode,
 )
+=======
+from torch.fx.experimental.symbolic_shapes import GuardOnDataDependentSymNode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.immutable_collections import immutable_dict, immutable_list
 from torch.fx.passes.reinplace import _is_view_op
 from torch.utils import _pytree as pytree
@@ -63,9 +75,13 @@ def graph_call_function(graph: torch.fx.Graph, fn, *args, **kwargs):
         fake_result = fn(*fake_args, **fake_kwargs)
 
     node = graph.call_function(fn, args, kwargs)
+<<<<<<< HEAD
 
     node.meta["val"] = fake_result
 
+=======
+    node.meta["val"] = fake_result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return node
 
 
@@ -85,6 +101,7 @@ def _inplace_generalized_scatter(
             lambda node: node.meta["val"] if isinstance(node, torch.fx.Node) else node,
             (view.args, view.kwargs),
         )
+<<<<<<< HEAD
         # slice and select can allocate new unbacked symints, but those won't be reflected
         # in the output of this function, hence shall be ignored.
         fake_mode = detect_fake_mode(fake_args)
@@ -94,6 +111,9 @@ def _inplace_generalized_scatter(
             else nullcontext()
         ):
             tmp = view.target(tmp, *fake_args, **fake_kwargs)
+=======
+        tmp = view.target(tmp, *fake_args, **fake_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         tmp.copy_(src)
     except RuntimeError as e:
@@ -176,6 +196,7 @@ def _decompose_scatter_mutating(
     tmp = inp
     for view in view_ops:  # type: ignore[union-attr]
         tmp = graph_call_function(graph, view.target, tmp, *view.args, **view.kwargs)  # type: ignore[union-attr]
+<<<<<<< HEAD
         # we need to set unbacked bindings that could have been created in the view ops.
         if (V.fake_mode.shape_env) and (
             symbol_to_path := compute_unbacked_bindings(
@@ -183,6 +204,8 @@ def _decompose_scatter_mutating(
             )
         ):
             tmp.meta["unbacked_bindings"] = symbol_to_path
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     graph_call_function(graph, aten.copy_.default, tmp, src)
     return inp  # type: ignore[return-value]
@@ -525,7 +548,11 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
 
         if mutated_arg.op in ("placeholder", "get_attr"):
             # Get the first copy_ node that mutates the mutated_arg.
+<<<<<<< HEAD
             copy_node = copy_nodes.get(mutated_arg)
+=======
+            copy_node = copy_nodes.get(mutated_arg, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if copy_node is None:
                 # There is no copy_ back to the candidate mutated_arg (which is a graph input).
                 # Therefore the semantics of the program are that it does not mutate
@@ -600,7 +627,11 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
         old_tensors_to_clone, kwargs, node_name, trigger
     ):
         tensors_to_clone: list[str] = []
+<<<<<<< HEAD
         storage_of_reinplaced_args = OrderedSet[int | None]()
+=======
+        storage_of_reinplaced_args = OrderedSet[Union[int, None]]()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Those used to count possibly_missed_reinplacing_opportunities
         missed_nodes = []
@@ -637,7 +668,11 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
                 copy_node = copy_args_to_copy_nodes.get((mutated_arg, node))
                 if copy_node is not None:
                     replace_dict[copy_node] = copy_node.args[0]
+<<<<<<< HEAD
                 if trigger != ReInplaceTrigger.AUTO_FUNC_V2:
+=======
+                if not trigger == ReInplaceTrigger.AUTO_FUNC_V2:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for user in node.users:
                         # For auto_functionalize_v2, arg is the index of the base, where base at index i corresponds to
                         # output atindex size(out)+i.
@@ -701,7 +736,11 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
             from torch._higher_order_ops.auto_functionalize import get_mutable_args
 
             tensors_to_clone, _ = get_mutable_args(_mutable_op)
+<<<<<<< HEAD
             # Don't try to reinplace Tensor | None args that are None.
+=======
+            # Don't try to reinplace Optional[Tensor] args that are None.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tensors_to_clone = [
                 t for t in tensors_to_clone if node.kwargs[t] is not None
             ]
@@ -781,6 +820,7 @@ def reinplace_inplaceable_ops_core(graph: torch.fx.Graph) -> None:
         graph.erase_node(node)
 
 
+<<<<<<< HEAD
 def reinplace_inplaceable_ops(
     fake_tensor_updater: torch._inductor.fx_utils.FakeTensorUpdater,
     graph: torch.fx.Graph,
@@ -791,5 +831,10 @@ def reinplace_inplaceable_ops(
         # We run fake_tensor_updater to update the alias information.
         # Correct alias information is required for `reinplace_inplaceable_ops_core`.
         fake_tensor_updater.incremental_update()
+=======
+def reinplace_inplaceable_ops(graph: torch.fx.Graph) -> None:
+    with enable_python_dispatcher():
+        canonicalize_view_scatter_ops(graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reinplace_inplaceable_ops_core(graph)
         decompose_generalized_scatter(graph)

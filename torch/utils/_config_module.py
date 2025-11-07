@@ -6,12 +6,30 @@ import inspect
 import io
 import os
 import pickle
+<<<<<<< HEAD
 import tokenize
 import unittest
 from collections.abc import Callable
 from dataclasses import dataclass
 from types import FunctionType, ModuleType
 from typing import Any, Generic, NoReturn, Optional, TYPE_CHECKING, TypeVar, Union
+=======
+import sys
+import tokenize
+import unittest
+from dataclasses import dataclass
+from types import FunctionType, ModuleType
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    NoReturn,
+    Optional,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 from unittest import mock
 
@@ -29,7 +47,11 @@ T = TypeVar("T", bound=Union[int, float, bool, None, str, list, set, tuple, dict
 _UNSET_SENTINEL = object()
 
 
+<<<<<<< HEAD
 @dataclass(kw_only=True)
+=======
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _Config(Generic[T]):
     """Represents a config with richer behaviour than just a default value.
     ::
@@ -43,17 +65,29 @@ class _Config(Generic[T]):
         alias: If set, the directly use the value of the alias.
         env_name_force: If set, this environment variable has precedence over
             everything after this.
+<<<<<<< HEAD
             If multiple env variables are given, the precedence order is from
+=======
+            If multiple env variables are given, the precendence order is from
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             left to right.
         user_override: If a user sets a value (i.e. foo.bar=True), that
             has precedence over everything after this.
         env_name_default: If set, this environment variable will override everything
             after this.
+<<<<<<< HEAD
             If multiple env variables are given, the precedence order is from
             left to right.
         justknob: If this pytorch installation supports justknobs, that will
             override defaults, but will not override the user_override precedence.
         default: This value is the lowest precedence, and will be used if nothing is
+=======
+            If multiple env variables are given, the precendence order is from
+            left to right.
+        justknob: If this pytorch installation supports justknobs, that will
+            override defaults, but will not override the user_override precendence.
+        default: This value is the lowest precendance, and will be used if nothing is
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             set.
 
     Environment Variables:
@@ -73,6 +107,7 @@ class _Config(Generic[T]):
     justknob: Optional[str] = None
     env_name_default: Optional[list[str]] = None
     env_name_force: Optional[list[str]] = None
+<<<<<<< HEAD
     value_type: Optional[type] = None
     alias: Optional[str] = None
 
@@ -99,13 +134,50 @@ class _Config(Generic[T]):
     @staticmethod
     def string_or_list_of_string_to_list(
         val: Optional[Union[str, list[str]]],
+=======
+    alias: Optional[str] = None
+
+    def __init__(
+        self,
+        default: Union[T, object] = _UNSET_SENTINEL,
+        justknob: Optional[str] = None,
+        env_name_default: Optional[Union[str, list[str]]] = None,
+        env_name_force: Optional[Union[str, list[str]]] = None,
+        value_type: Optional[type] = None,
+        alias: Optional[str] = None,
+    ):
+        # python 3.9 does not support kw_only on the dataclass :(.
+        self.default = default
+        self.justknob = justknob
+        self.env_name_default = _Config.string_or_list_of_string_to_list(
+            env_name_default
+        )
+        self.env_name_force = _Config.string_or_list_of_string_to_list(env_name_force)
+        self.value_type = value_type
+        self.alias = alias
+        if self.alias is not None:
+            assert (
+                default is _UNSET_SENTINEL
+                and justknob is None
+                and env_name_default is None
+                and env_name_force is None
+            ), "if alias is set, none of {default, justknob and env var} can be set"
+
+    @staticmethod
+    def string_or_list_of_string_to_list(
+        val: Optional[Union[str, list[str]]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Optional[list[str]]:
         if val is None:
             return None
         if isinstance(val, str):
             return [val]
+<<<<<<< HEAD
         if not isinstance(val, list):
             raise AssertionError(f"val is not a list, got {type(val)}")
+=======
+        assert isinstance(val, list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return val
 
 
@@ -122,7 +194,12 @@ if TYPE_CHECKING:
         env_name_force: Optional[Union[str, list[str]]] = None,
         value_type: Optional[type] = None,
         alias: Optional[str] = None,
+<<<<<<< HEAD
     ) -> T: ...
+=======
+    ) -> T:
+        ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 else:
 
@@ -135,12 +212,16 @@ else:
         alias: Optional[str] = None,
     ) -> _Config[T]:
         return _Config(
+<<<<<<< HEAD
             default=default,
             justknob=justknob,
             env_name_default=env_name_default,
             env_name_force=env_name_force,
             value_type=value_type,
             alias=alias,
+=======
+            default, justknob, env_name_default, env_name_force, value_type, alias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -170,7 +251,14 @@ def install_config_module(module: ModuleType) -> None:
         prefix: str,
     ) -> None:
         """Walk the module structure and move everything to module._config"""
+<<<<<<< HEAD
         type_hints = inspect.get_annotations(source)
+=======
+        if sys.version_info[:2] < (3, 10):
+            type_hints = getattr(source, "__annotations__", {})
+        else:
+            type_hints = inspect.get_annotations(source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for key, value in list(source.__dict__.items()):
             if (
                 key.startswith("__")
@@ -198,10 +286,14 @@ def install_config_module(module: ModuleType) -> None:
                 if dest is module:
                     delattr(module, key)
             elif isinstance(value, type):
+<<<<<<< HEAD
                 if value.__module__ != module.__name__:
                     raise AssertionError(
                         f"subconfig class {value} must be defined in module {module.__name__}"
                     )
+=======
+                assert value.__module__ == module.__name__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # a subconfig with `class Blah:` syntax
                 proxy = SubConfigProxy(module, f"{name}.")
                 visit(value, proxy, f"{name}.")
@@ -242,8 +334,15 @@ def get_assignments_with_compile_ignored_comments(module: ModuleType) -> set[str
             prev_name = ""
             maybe_current = token.string.strip()
             if COMPILE_IGNORED_MARKER in maybe_current:
+<<<<<<< HEAD
                 if current_comment != ("", -1):
                     raise AssertionError(f"unconsumed {COMPILE_IGNORED_MARKER}")
+=======
+                assert current_comment == (
+                    "",
+                    -1,
+                ), f"unconsumed {COMPILE_IGNORED_MARKER}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 current_comment = maybe_current, token.start[0]
         elif token.type == tokenize.NAME:
             # Only accept the first name token, to handle if you have
@@ -260,8 +359,12 @@ def get_assignments_with_compile_ignored_comments(module: ModuleType) -> set[str
                 assignments.add(prev_name)
                 current_comment = "", -1  # reset
             prev_name = ""
+<<<<<<< HEAD
     if current_comment != ("", -1):
         raise AssertionError(f"unconsumed {COMPILE_IGNORED_MARKER}")
+=======
+    assert current_comment == ("", -1), f"unconsumed {COMPILE_IGNORED_MARKER}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return assignments
 
 
@@ -313,6 +416,7 @@ class _ConfigEntry:
 
         # Ensure justknobs and envvars are allowlisted types
         if self.justknob is not None and self.default is not None:
+<<<<<<< HEAD
             if not isinstance(self.default, bool):
                 raise AssertionError(
                     f"justknobs only support booleans, {self.default} is not a boolean"
@@ -321,14 +425,27 @@ class _ConfigEntry:
             config.env_name_default is not None or config.env_name_force is not None
         ):
             if self.value_type not in (
+=======
+            assert isinstance(
+                self.default, bool
+            ), f"justknobs only support booleans, {self.default} is not a boolean"
+        if self.value_type is not None and (
+            config.env_name_default is not None or config.env_name_force is not None
+        ):
+            assert self.value_type in (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 bool,
                 str,
                 Optional[bool],
                 Optional[str],
+<<<<<<< HEAD
             ):
                 raise AssertionError(
                     f"envvar configs only support (optional) booleans or strings, {self.value_type} is neither"
                 )
+=======
+            ), f"envvar configs only support (optional) booleans or strings, {self.value_type} is neither"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ConfigModule(ModuleType):
@@ -413,7 +530,11 @@ class ConfigModule(ModuleType):
         try:
             module = importlib.import_module(module_name)
         except ImportError as e:
+<<<<<<< HEAD
             raise AttributeError(f"config alias {alias} does not exist") from e
+=======
+            raise AttributeError("config alias {alias} does not exist") from e
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return module, constant_name
 
     def _get_alias_val(self, entry: _ConfigEntry) -> Any:
@@ -426,10 +547,14 @@ class ConfigModule(ModuleType):
 
     def _set_alias_val(self, entry: _ConfigEntry, val: Any) -> None:
         data = self._get_alias_module_and_name(entry)
+<<<<<<< HEAD
         if data is None:
             raise AssertionError(
                 "alias data should not be None when setting alias value"
             )
+=======
+        assert data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         module, constant_name = data
         setattr(module, constant_name, val)
 
@@ -626,9 +751,12 @@ class ConfigModule(ModuleType):
     def get_config_copy(self) -> dict[str, Any]:
         return self._get_dict()
 
+<<<<<<< HEAD
     def get_serializable_config_copy(self) -> dict[str, Any]:
         return self._get_dict(ignored_keys=getattr(self, "_save_config_ignore", []))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def patch(
         self,
         arg1: Optional[Union[str, dict[str, Any]]] = None,
@@ -654,6 +782,7 @@ class ConfigModule(ModuleType):
         changes: dict[str, Any]
         if arg1 is not None:
             if arg2 is not None:
+<<<<<<< HEAD
                 if not isinstance(arg1, str):
                     raise AssertionError(
                         "first argument must be a string when passing 2 positional args to patch"
@@ -680,6 +809,21 @@ class ConfigModule(ModuleType):
                 )
         if not isinstance(changes, dict):
             raise AssertionError(f"expected `dict` got {type(changes)}")
+=======
+                assert isinstance(arg1, str)
+                # patch("key", True) syntax
+                changes = {arg1: arg2}
+            else:
+                assert isinstance(arg1, dict)
+                # patch({"key": True}) syntax
+                changes = arg1
+            assert not kwargs
+        else:
+            # patch(key=True) syntax
+            changes = kwargs
+            assert arg2 is None
+        assert isinstance(changes, dict), f"expected `dict` got {type(changes)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         prior: dict[str, Any] = {}
         config = self
 
@@ -688,10 +832,14 @@ class ConfigModule(ModuleType):
                 self.changes = changes
 
             def __enter__(self) -> None:
+<<<<<<< HEAD
                 if prior:
                     raise AssertionError(
                         "prior should be empty when entering ConfigPatch"
                     )
+=======
+                assert not prior
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for key in self.changes.keys():
                     # KeyError on invalid entry
                     prior[key] = config.__getattr__(key)

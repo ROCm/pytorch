@@ -34,12 +34,36 @@ PyObject* PyObjectSlot::_unchecked_untagged_pyobj() const {
       reinterpret_cast<uintptr_t>(pyobj_) & ~0x1ULL);
 }
 
+<<<<<<< HEAD
+=======
+void PyObjectSlot::unchecked_clear_pyobj(PyInterpreter* interpreter) {
+  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(interpreter == pyobj_interpreter_.load());
+  pyobj_ = nullptr;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyInterpreter& PyObjectSlot::load_pyobj_interpreter() const {
   auto interpreter = pyobj_interpreter_.load(std::memory_order_acquire);
   if (interpreter) {
     return *interpreter;
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "cannot access PyObject for Tensor - no interpreter set");
+=======
+  TORCH_CHECK(
+      false,
+      "cannot access PyObject for Tensor on interpreter ",
+      (*pyobj_interpreter_.load())->name());
+}
+
+bool PyObjectSlot::check_interpreter(PyInterpreter* interpreter) {
+  return interpreter == pyobj_interpreter();
+}
+
+bool PyObjectSlot::has_pyobj_nonhermetic() {
+  return check_pyobj(pyobj_interpreter(), /*ignore_hermetic_tls=*/true)
+      .has_value();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool PyObjectSlot::owns_pyobj() {

@@ -142,10 +142,13 @@ def _unused_constant(node: torch.fx.Node) -> Optional[list[torch.fx.Node]]:
     if len(lift_fresh_node.users) > 1:
         return None
 
+<<<<<<< HEAD
     # Case 1: lift node is not used anywhere
     if len(lift_fresh_node.users) == 0:
         return [lift_fresh_node, node]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     detach_node = next(iter(lift_fresh_node.users.keys()))
     if not (
         detach_node.op == "call_function"
@@ -160,7 +163,10 @@ def _unused_constant(node: torch.fx.Node) -> Optional[list[torch.fx.Node]]:
     if len(detach_node.users) > 0:
         return None
     else:
+<<<<<<< HEAD
         # Case 2: Lift node's child is not used anywhere
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [detach_node, lift_fresh_node, node]
 
 
@@ -170,7 +176,11 @@ def lift_constants_pass(
     constant_attrs: ConstantAttrMap,
 ) -> dict[str, _ConstantAttributeType]:
     """
+<<<<<<< HEAD
     Takes a graph module, graph signature, and modifies them inplace to lift any
+=======
+    Takes a graph module, graph signature, and modifies them implace to lift any
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     constants (tensors or custom classes) as inputs to the graph. Returns a
     dictionary of names to constants.
 
@@ -188,12 +198,21 @@ def lift_constants_pass(
     """
     all_constants: dict[str, _ConstantAttributeType] = {}
 
+<<<<<<< HEAD
     input_specs = graph_signature.input_specs
     num_custom_obj = sum(
         input_spec.kind == InputKind.CUSTOM_OBJ for input_spec in input_specs
     )
     num_tensor_constants = sum(
         input_spec.kind == InputKind.CONSTANT_TENSOR for input_spec in input_specs
+=======
+    inputs = graph_signature.input_specs
+    num_custom_obj = sum(
+        input_specs.kind == InputKind.CUSTOM_OBJ for input_specs in inputs
+    )
+    num_tensor_constants = sum(
+        input_specs.kind == InputKind.CONSTANT_TENSOR for input_specs in inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     fake_mode = detect_fake_mode(
@@ -202,6 +221,7 @@ def lift_constants_pass(
 
     first_user_input_loc, first_user_input = 0, next(iter(gm.graph.nodes))
     used_target_names = set()
+<<<<<<< HEAD
 
     input_nodes = [node for node in gm.graph.nodes if node.op == "placeholder"]
     assert len(input_nodes) == len(input_specs)
@@ -210,6 +230,21 @@ def lift_constants_pass(
         if input_spec.kind == InputKind.USER_INPUT:
             first_user_input = node
             first_user_input_loc = i
+=======
+    for node in gm.graph.nodes:
+        if node.op == "placeholder":
+            if node.name in graph_signature.user_inputs:
+                first_user_input = node
+                break
+            used_target_names.add(inputs[first_user_input_loc].target)
+            first_user_input_loc += 1
+        # If we ever hit here, it means that
+        # there was no user input so the constants
+        # should be inserted right before the first
+        # non-placeholder node.
+        if node.op != "placeholder":
+            first_user_input = node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             break
 
     lifted_objs = ConstantAttrMap()
@@ -373,7 +408,11 @@ def lift_constants_pass(
 
 def rewrite_script_object_meta(
     gm: torch.fx.GraphModule,
+<<<<<<< HEAD
 ) -> dict[str, _ConstantAttributeType]:
+=======
+) -> dict[str, _ConstantAttributeType,]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """When tracing, we produce a graph with FakeScriptObject in the
     meta["val"].
 

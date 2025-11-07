@@ -26,7 +26,11 @@ static void load_platform_library() {
   (void)run_once;
 }
 
+<<<<<<< HEAD
 // NnapiCompilation function definitions:
+=======
+// NnapiCompilation functon definitions:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Could possibly call load_platform_library in constructor, but error reporting
 // can be complicated if the constructor is called during model loading.

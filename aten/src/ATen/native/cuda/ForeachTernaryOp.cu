@@ -37,7 +37,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_ternary_cuda(
     vec_res.emplace_back(at::native::empty_like(t));
   }
   std::vector<std::vector<at::Tensor>> tensor_lists{
+<<<<<<< HEAD
       tensors1.vec(), tensors2.vec(), tensors3.vec(), std::move(vec_res)};
+=======
+      tensors1.vec(), tensors2.vec(), tensors3.vec(), vec_res};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND2(
       at::ScalarType::Half,
@@ -56,7 +60,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_ternary_cuda(
             LerpFunctor<opmath_t>());
       });
 
+<<<<<<< HEAD
   return std::move(tensor_lists[3]);
+=======
+  return tensor_lists[3];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void foreach_tensor_lerp_ternary_cuda_(
@@ -104,7 +112,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_list_cuda(
     vec_res.emplace_back(at::native::empty_like(t));
   }
   std::vector<std::vector<at::Tensor>> tensor_lists{
+<<<<<<< HEAD
       tensors1.vec(), tensors2.vec(), std::move(vec_res)};
+=======
+      tensors1.vec(), tensors2.vec(), vec_res};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND2(
       at::ScalarType::Half,
@@ -124,7 +136,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_list_cuda(
             weight.to<opmath_t>());
       });
 
+<<<<<<< HEAD
   return std::move(tensor_lists[2]);
+=======
+  return tensor_lists[2];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void foreach_tensor_lerp_list_cuda_(
@@ -173,7 +189,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_scalarlist_cuda(
     vec_res.emplace_back(at::native::empty_like(t));
   }
   std::vector<std::vector<at::Tensor>> tensor_lists{
+<<<<<<< HEAD
       tensors1.vec(), tensors2.vec(), std::move(vec_res)};
+=======
+      tensors1.vec(), tensors2.vec(), vec_res};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND2(
       at::ScalarType::Half,
@@ -193,7 +213,11 @@ std::vector<at::Tensor> foreach_tensor_lerp_scalarlist_cuda(
             LerpFunctor<opmath_t>());
       });
 
+<<<<<<< HEAD
   return std::move(tensor_lists[2]);
+=======
+  return tensor_lists[2];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void foreach_tensor_lerp_scalarlist_cuda_(

@@ -257,7 +257,11 @@ class strict_fusion:
 
     def __init__(self) -> None:
         if not torch._jit_internal.is_scripting():
+<<<<<<< HEAD
             warnings.warn("Only works in script mode", stacklevel=2)
+=======
+            warnings.warn("Only works in script mode")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __enter__(self):
         pass

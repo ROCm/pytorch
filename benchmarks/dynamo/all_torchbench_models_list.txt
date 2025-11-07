@@ -25,6 +25,18 @@ drq
 fambench_dlrm
 fambench_xlmr
 fastNLP_Bert
+<<<<<<< HEAD
+=======
+hf_Albert
+hf_Bart
+hf_Bert
+hf_BigBird
+hf_DistilBert
+hf_GPT2
+hf_Longformer
+hf_Reformer
+hf_T5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 maml
 maml_omniglot
 mnasnet1_0
@@ -51,6 +63,16 @@ soft_actor_critic
 speech_transformer
 squeezenet1_1
 tacotron2
+<<<<<<< HEAD
+=======
+timm_efficientdet
+timm_efficientnet
+timm_nfnet
+timm_regnet
+timm_resnest
+timm_vision_transformer
+timm_vovnet
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 tts_angular
 vgg16
 vision_maskrcnn

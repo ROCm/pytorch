@@ -118,6 +118,7 @@ class TestFullyShardStateDictMultiProcess(FSDPTest):
             self.assertEqual(value, sharded_sd[key])
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     def test_cached_state_dict(self):
         self.run_subtests(
             {"mlp_dim": [2, 3, 4, 5], "mutate_after_state_dict": [True, False]},
@@ -161,6 +162,8 @@ class TestFullyShardStateDictMultiProcess(FSDPTest):
                 )
 
     @skip_if_lt_x_gpu(2)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dp_state_dict_cpu_offload(self):
         self.run_subtests(
             {

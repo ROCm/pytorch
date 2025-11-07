@@ -12,6 +12,10 @@ from torch.testing._internal.common_device_type import (
     dtypes,
     dtypesIfMPS,
     expectedFailureMPS,
+<<<<<<< HEAD
+=======
+    expectedFailureMPSPre15,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     expectedFailureXLA,
     instantiate_device_type_tests,
 )
@@ -172,6 +176,10 @@ class TestDropoutNNDeviceType(NNTestCase):
                     else:
                         self.assertNotEqual(permuted_inp, out)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureMPSPre15
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_Dropout(self, device):
         input = torch.empty(1000)
         self._test_dropout(nn.Dropout, device, input)

@@ -50,7 +50,10 @@ class Multinomial(Distribution):
         logits (Tensor): event log probabilities (unnormalized)
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"probs": constraints.simplex, "logits": constraints.real_vector}
     total_count: int
 
@@ -93,7 +96,10 @@ class Multinomial(Distribution):
         return self._categorical._new(*args, **kwargs)
 
     @constraints.dependent_property(is_discrete=True, event_dim=1)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def support(self):
         return constraints.multinomial(self.total_count)
 

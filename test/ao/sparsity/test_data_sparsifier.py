@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["module: sparse"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import copy
 import itertools
@@ -123,7 +127,11 @@ class _BaseDataSparsiferTestCase(TestCase):
 
         step_count = 3
 
+<<<<<<< HEAD
         for _ in range(step_count):
+=======
+        for _ in range(0, step_count):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             sparsifier.step()
         for some_data in all_data:
             name, data, _ = self._get_name_data_config(some_data)
@@ -265,7 +273,11 @@ class _BaseDataSparsiferTestCase(TestCase):
 class _NormDataSparsifierTestCase(_BaseDataSparsiferTestCase):
     r"""This helper test class takes in any supported type of and runs some tests.
     This inherits the TestBaseDataSparsifierRuner wherein some functions are
+<<<<<<< HEAD
     over-ridden to take accommodate the specific sparsifier.
+=======
+    over-ridden to take accomodate the specific sparsifier.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TODO: Change the structure by creating a separate test case class for each
           member function
     """
@@ -710,6 +722,7 @@ class TestQuantizationUtils(TestCase):
             **sparse_config,
         )
 
+<<<<<<< HEAD
         assert type(model.emb1) is torch.ao.nn.quantized.modules.embedding_ops.Embedding
         assert (
             type(model.embbag1)
@@ -719,6 +732,17 @@ class TestQuantizationUtils(TestCase):
         assert type(model.emb_seq[1] is nn.EmbeddingBag)
         assert type(model.linear1) is nn.Linear
         assert type(model.linear2) is nn.Linear
+=======
+        assert type(model.emb1) == torch.ao.nn.quantized.modules.embedding_ops.Embedding
+        assert (
+            type(model.embbag1)
+            == torch.ao.nn.quantized.modules.embedding_ops.EmbeddingBag
+        )
+        assert type(model.emb_seq[0] == nn.Embedding)
+        assert type(model.emb_seq[1] == nn.EmbeddingBag)
+        assert type(model.linear1) == nn.Linear
+        assert type(model.linear2) == nn.Linear
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dequant_emb1 = torch.dequantize(model.emb1.weight())
         dequant_embbag1 = torch.dequantize(model.embbag1.weight())
@@ -749,6 +773,7 @@ class TestQuantizationUtils(TestCase):
             model, DataNormSparsifier, sparsify_first=False, **sparse_config
         )
 
+<<<<<<< HEAD
         assert type(model.emb1) is torch.ao.nn.quantized.modules.embedding_ops.Embedding
         assert (
             type(model.embbag1)
@@ -764,6 +789,21 @@ class TestQuantizationUtils(TestCase):
         )
         assert type(model.linear1) is nn.Linear  # not quantized
         assert type(model.linear2) is nn.Linear  # not quantized
+=======
+        assert type(model.emb1) == torch.ao.nn.quantized.modules.embedding_ops.Embedding
+        assert (
+            type(model.embbag1)
+            == torch.ao.nn.quantized.modules.embedding_ops.EmbeddingBag
+        )
+        assert type(
+            model.emb_seq[0] == torch.ao.nn.quantized.modules.embedding_ops.Embedding
+        )
+        assert type(
+            model.emb_seq[1] == torch.ao.nn.quantized.modules.embedding_ops.EmbeddingBag
+        )
+        assert type(model.linear1) == nn.Linear  # not quantized
+        assert type(model.linear2) == nn.Linear  # not quantized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         dequant_emb1 = torch.dequantize(model.emb1.weight())
         dequant_embbag1 = torch.dequantize(model.embbag1.weight())
@@ -772,7 +812,11 @@ class TestQuantizationUtils(TestCase):
 
         # higher threshold as quantization occurs before sparsity
         threshold = (
+<<<<<<< HEAD
             1  # zero points seem to have higher magnitude with sparsity occurring after
+=======
+            1  # zero points seem to have higher magnitude with sparsity occuring after
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         sl_emb1 = (torch.abs(dequant_emb1) < threshold).float().mean()

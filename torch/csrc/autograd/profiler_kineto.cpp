@@ -37,8 +37,12 @@ extern "C" {
 // https://github.com/pytorch/pytorch/issues/51026
 __attribute__((weak)) int acc_get_device_type();
 __attribute__((weak)) int acc_get_device_type() {
+<<<<<<< HEAD
   TORCH_CHECK(
       false,
+=======
+  throw std::runtime_error(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Dummy implementation of acc_get_device_type is not supposed to be called!");
 }
 } // extern "C"
@@ -222,7 +226,11 @@ struct AddTensorboardFields : public MetadataBase {
   }
 
   template <typename T>
+<<<<<<< HEAD
   void operator()(const T& /*unused*/) {}
+=======
+  void operator()(const T&) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct AddGenericMetadata : public MetadataBase {
@@ -265,6 +273,7 @@ struct AddGenericMetadata : public MetadataBase {
         continue;
       }
 
+<<<<<<< HEAD
       // Until needed, lets limit the kwargs to only ints, doubles, strings,
       // bools, and list of strings
       bool isValidType =
@@ -297,6 +306,18 @@ struct AddGenericMetadata : public MetadataBase {
         bool isString = val.isString();
         addMetadata(key, ivalueToStr(val, isString));
       }
+=======
+      // Until needed, lets limit the kwargs to only ints, doubles, strings and
+      // bools
+      if (!val.isInt() && !val.isDouble() && !val.isString() && !val.isBool()) {
+        LOG(WARNING) << "Inputted kwarg: " << key
+                     << " is not an int, double, string, or bool for op: "
+                     << op_event.name_ << " skipping";
+        continue;
+      }
+      bool isString = val.isString();
+      addMetadata(key, ivalueToStr(val, isString));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     // Add extra metadata if any
     for (const auto& [key, val] : op_event.extra_meta_) {
@@ -346,7 +367,11 @@ struct AddGenericMetadata : public MetadataBase {
   }
 
   template <typename T>
+<<<<<<< HEAD
   void operator()(const T& /*unused*/) {}
+=======
+  void operator()(const T&) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   /* To get names of the performance events */
@@ -959,10 +984,13 @@ bool KinetoEvent::hasKwinputs() const {
   return !kwinputs_.empty();
 }
 
+<<<<<<< HEAD
 bool KinetoEvent::isHiddenEvent() const {
   return result_ && result_->hidden_;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const std::unordered_map<std::string, c10::IValue> KinetoEvent::kwinputs()
     const {
   return kwinputs_;
@@ -1068,6 +1096,7 @@ void KinetoEvent::getPerfEventCounters(std::vector<uint64_t>& in) const {
       [](const auto&) -> void { return; }));
 }
 
+<<<<<<< HEAD
 std::string KinetoEvent::metadataJson() const {
   return result_->visit(c10::overloaded(
       [](const ExtraFields<EventType::TorchOp>& op) -> std::string {
@@ -1079,6 +1108,8 @@ std::string KinetoEvent::metadataJson() const {
       [](const auto&) -> std::string { return std::string(""); }));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define FORWARD_FROM_RESULT(method_name, result_expr)                        \
   decltype(std::declval<KinetoEvent>().method_name())                        \
   KinetoEvent::method_name() const {                                         \

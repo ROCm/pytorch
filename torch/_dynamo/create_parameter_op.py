@@ -20,7 +20,10 @@ allowed to compute gradients on).
 
 class TracableCreateParameter(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx: Any, tensor: Any, placeholder: Any) -> torch.nn.Parameter:
         assert not tensor.requires_grad
         return placeholder.set_(tensor)

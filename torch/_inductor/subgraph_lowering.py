@@ -13,7 +13,10 @@ from torch.utils._ordered_set import OrderedSet
 
 from . import ir
 from .exc import SubgraphLoweringException
+<<<<<<< HEAD
 from .graph import GraphLowering
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .ops_handler import SimpleCSEHandler
 from .virtualized import ops, V, WrapperHandler
 
@@ -33,7 +36,11 @@ class PointwiseSubgraphLowering(torch.fx.Interpreter):
     """
 
     graph_outputs: Optional[list[ir.IRNode]]
+<<<<<<< HEAD
     root_graph: GraphLowering
+=======
+    root_graph: torch._inductor.graph.GraphLowering
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _current_op: Optional[TargetType]
     # For backwards of buffer_grads with scatters we allow mutations
     allowed_mutations: Optional[OrderedSet[OpOverload]]
@@ -44,7 +51,11 @@ class PointwiseSubgraphLowering(torch.fx.Interpreter):
     def __init__(
         self,
         gm: torch.fx.GraphModule,
+<<<<<<< HEAD
         root_graph_lowering: GraphLowering,
+=======
+        root_graph_lowering: torch._inductor.graph.GraphLowering,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         allowed_mutations: Optional[OrderedSet[OpOverload]] = None,
         additional_lowerings: Optional[LoweringDict] = None,
     ) -> None:
@@ -87,7 +98,12 @@ class PointwiseSubgraphLowering(torch.fx.Interpreter):
 
     def register_buffer(self, buffer: ir.Buffer, *, set_name: bool = False) -> str:
         if self._approved_mutator():
+<<<<<<< HEAD
             name = self.root_graph.register_buffer(buffer, set_name=set_name)
+=======
+            name = self.qualify_name(f"buf{len(self.buffers)}")
+            self.buffers.append(buffer)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return name
         else:
             raise SubgraphLoweringException(

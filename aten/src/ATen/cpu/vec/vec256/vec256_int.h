@@ -23,9 +23,13 @@ struct Vectorizedi {
   }
 
  public:
+<<<<<<< HEAD
   Vectorizedi() {
     values = _mm256_setzero_si256();
   }
+=======
+  Vectorizedi() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorizedi(__m256i v) : values(v) {}
   operator __m256i() const {
     return values;
@@ -55,9 +59,13 @@ class Vectorized<int64_t> : public Vectorizedi {
     return 4;
   }
   using Vectorizedi::Vectorizedi;
+<<<<<<< HEAD
   Vectorized() {
     values = _mm256_setzero_si256();
   }
+=======
+  Vectorized() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized(int64_t v) {
     values = _mm256_set1_epi64x(v);
   }
@@ -905,7 +913,11 @@ class Vectorized8 : public Vectorizedi {
     // Because loadu(const void* ptr, T count) requires zero initialization for
     // upper 128 bits. However, by using _mm256_castsi128_si256, the upper 128
     // bits of the result are undefined.
+<<<<<<< HEAD
     // TODO<leslie> We can use _mm256_zextsi128_si256 in the future,
+=======
+    // TODO<leslie> We can use _mm256_zextsi128_si256 in the furture,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // since gcc 9.3 doesn't support it now.
     __m128i input_128 = _mm_loadl_epi64(reinterpret_cast<const __m128i*>(ptr));
     return _mm256_castsi128_si256(input_128);
@@ -1740,7 +1752,11 @@ Vectorized<int16_t> inline shift_256_16(
 
   // Control masks for shuffle operation, treating 256 bits as an
   // array of 16-bit elements, and considering pairs of neighboring
+<<<<<<< HEAD
   // elements.  Specifically, a mask named "ctl_M_N" (M,N in [0,1], and
+=======
+  // elements.  Specifially, a mask named "ctl_M_N" (M,N in [0,1], and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // M!=N) is set so that shuffle will move element with index M from
   // input pair into element with index N in output pair, and element
   // with index M in output pair will be set to all 0s.
@@ -1844,7 +1860,11 @@ Vectorized<int16_t> inline shift_256_16(
     c0 = _mm256_srav_epi32(a0, b0);
   c0 = _mm256_shuffle_epi8(c0, ctl_1_0);
 
+<<<<<<< HEAD
   // Perform shifting the same way for input array elements with
+=======
+  // Peform shifting the same way for input array elements with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // idx%2==1.
   __m256i a1 = _mm256_and_si256(a, keep_1);
   __m256i b1 = _mm256_shuffle_epi8(b, ctl_1_0);
@@ -1875,7 +1895,11 @@ Vectorized<T> inline shift_256_8(
 
   // Control masks for shuffle operation, treating 256 bits as an
   // array of 8-bit elements, and considering quadruples of
+<<<<<<< HEAD
   // neighboring elements.  Specifically, a mask named "ctl_M_N" (M,N
+=======
+  // neighboring elements.  Specifially, a mask named "ctl_M_N" (M,N
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // in [0,1,2,3], and M!=N) is set so that shuffle will move element
   // with index M from input quadruple into element with index N in
   // output quadruple, and other elements in output quadruple will be
@@ -2180,7 +2204,11 @@ Vectorized<T> inline shift_256_8(
     c0 = _mm256_srlv_epi32(a0, b0);
   c0 = _mm256_shuffle_epi8(c0, ctl_3_0);
 
+<<<<<<< HEAD
   // Perform shifting the same way for input array elements with
+=======
+  // Peform shifting the same way for input array elements with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // idx%4==1.
   __m256i a1 = _mm256_shuffle_epi8(a, ctl_1_3);
   __m256i b1 = _mm256_shuffle_epi8(b, ctl_1_0);
@@ -2193,7 +2221,11 @@ Vectorized<T> inline shift_256_8(
     c1 = _mm256_srlv_epi32(a1, b1);
   c1 = _mm256_shuffle_epi8(c1, ctl_3_1);
 
+<<<<<<< HEAD
   // Perform shifting the same way for input array elements with
+=======
+  // Peform shifting the same way for input array elements with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // idx%4==2.
   __m256i a2 = _mm256_shuffle_epi8(a, ctl_2_3);
   __m256i b2 = _mm256_shuffle_epi8(b, ctl_2_0);
@@ -2206,7 +2238,11 @@ Vectorized<T> inline shift_256_8(
     c2 = _mm256_srlv_epi32(a2, b2);
   c2 = _mm256_shuffle_epi8(c2, ctl_3_2);
 
+<<<<<<< HEAD
   // Perform shifting the same way for input array elements with
+=======
+  // Peform shifting the same way for input array elements with
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // idx%4==3.
   __m256i a3 = _mm256_and_si256(a, keep_3);
   __m256i b3 = _mm256_shuffle_epi8(b, ctl_3_0);

@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 #include <ATen/core/class_type.h>
 #include <ATen/core/function.h>
 #include <c10/util/Exception.h>
 #include <torch/csrc/jit/ir/scope.h>
+=======
+#include <torch/csrc/jit/ir/scope.h>
+
+#include <ATen/core/class_type.h>
+#include <ATen/core/function.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::jit {
 // util functions
@@ -45,7 +52,13 @@ ScopePtr Scope::push(Symbol name) {
 }
 
 ScopePtr Scope::parent() {
+<<<<<<< HEAD
   TORCH_CHECK(parent_, "Cannot get parent from Scope with no parent");
+=======
+  if (!parent_) {
+    throw std::runtime_error("Cannot get parent from Scope with no parent");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return parent_;
 }
 

@@ -149,8 +149,12 @@ class BaseSparsifier(abc.ABC):
             for _name, child in module.named_children():
                 if type(child) in SUPPORTED_MODULES:
                     module_fqn = module_to_fqn(model, child)
+<<<<<<< HEAD
                     if not isinstance(module_fqn, str):
                         raise AssertionError("module_fqn must be a string")
+=======
+                    assert isinstance(module_fqn, str)  # for mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.config.append({"tensor_fqn": module_fqn + ".weight"})
                 else:
                     stack.append(child)
@@ -171,6 +175,7 @@ class BaseSparsifier(abc.ABC):
             self.make_config_from_model(model)
 
         # TODO: Remove the configuration by reference ('module')
+<<<<<<< HEAD
         # pyrefly: ignore [not-iterable]
         for module_config in self.config:
             if not isinstance(module_config, dict):
@@ -181,15 +186,31 @@ class BaseSparsifier(abc.ABC):
 
             if not isinstance(self.defaults, dict):
                 raise AssertionError("defaults must be a dict")
+=======
+        for module_config in self.config:
+            assert isinstance(module_config, dict), (
+                "config elements should be dicts not modules i.e.:"
+                "[{`tensor_fqn`: `foo.bar.weight`}, {`tensor_fqn`: ... }, ...]"
+            )
+
+            assert isinstance(self.defaults, dict)  # for mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_args = copy.deepcopy(self.defaults)
             local_args.update(module_config)
 
             tensor_fqn = local_args.get("tensor_fqn", None)
+<<<<<<< HEAD
             if tensor_fqn is None:
                 raise AssertionError(
                     "tensor_fqn is a required argument in the sparsity config which"
                     "replaces previous `module` and [module]`fqn` arguments"
                 )
+=======
+            assert tensor_fqn is not None, (
+                "tensor_fqn is a required argument in the sparsity config which"
+                "replaces previous `module` and [module]`fqn` arguments"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # populate all information from tensor_fqn
             info_from_tensor_fqn = get_arg_info_from_tensor_fqn(model, tensor_fqn)
@@ -198,17 +219,27 @@ class BaseSparsifier(abc.ABC):
             # from tensor_fqn
             for key in info_from_tensor_fqn.keys():
                 if key in local_args:
+<<<<<<< HEAD
                     if not (
+=======
+                    assert (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         info_from_tensor_fqn[key] == local_args[key]
                         or (
                             key == "tensor_fqn"
                             and "." + info_from_tensor_fqn[key] == local_args[key]
                         )
                         # info_from_tensor_fqn will chop leading '.' from tensor_fqn so ignore that
+<<<<<<< HEAD
                     ):
                         raise AssertionError(
                             f"Given both `{key}` and `tensor_fqn` in the config, it is expected them to agree!"
                         )
+=======
+                    ), (
+                        f"Given both `{key}` and `tensor_fqn` in the config, it is expected them to agree!"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_args.update(info_from_tensor_fqn)
             self.groups.append(local_args)
         self._prepare()

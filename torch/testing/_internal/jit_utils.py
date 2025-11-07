@@ -249,7 +249,11 @@ class JitTestCase(JitCommonTestCase):
             saved_module_buffer_2.seek(0)
             code_files_2, _debug_files_2 = extract_files(saved_module_buffer_2)
 
+<<<<<<< HEAD
             for a, b in zip(code_files, code_files_2, strict=True):
+=======
+            for a, b in zip(code_files, code_files_2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertMultiLineEqual(a, b)
 
             if isinstance(m, torch._C.ScriptModule):
@@ -439,7 +443,11 @@ class JitTestCase(JitCommonTestCase):
         state = model.get_debug_state()
         plan = get_execution_plan(state)
         num_bailouts = plan.code.num_bailouts()
+<<<<<<< HEAD
         for i in range(num_bailouts):
+=======
+        for i in range(0, num_bailouts):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             plan.code.request_bailout(i)
             bailout_outputs = model(*inputs)
             self.assertEqual(bailout_outputs, expected)
@@ -617,7 +625,11 @@ class JitTestCase(JitCommonTestCase):
         self.assertEqual(outputs, outputs_ge)
         if inputs_require_grads:
             self.assertEqual(grads, grads_ge, atol=grad_atol, rtol=grad_rtol)
+<<<<<<< HEAD
             for g2, g2_ge in zip(grads2, grads2_ge, strict=True):
+=======
+            for g2, g2_ge in zip(grads2, grads2_ge):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if g2 is None and g2_ge is None:
                     continue
                 self.assertEqual(g2, g2_ge, atol=8e-4, rtol=8e-4)

@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 import functools
 import itertools as it
+<<<<<<< HEAD
 from typing import Any, Optional, Union
 from collections.abc import Callable
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
@@ -93,6 +97,7 @@ class FuzzedParameter:
 
     def _check_distribution(self, distribution):
         if not isinstance(distribution, dict):
+<<<<<<< HEAD
             if distribution not in _DISTRIBUTIONS:
                 raise AssertionError(f"Unknown distribution: {distribution}")
         else:
@@ -104,6 +109,14 @@ class FuzzedParameter:
                 raise AssertionError("When passing a custom distribution, 'minval' must be None")
             if self._maxval is not None:
                 raise AssertionError("When passing a custom distribution, 'maxval' must be None")
+=======
+            assert distribution in _DISTRIBUTIONS
+        else:
+            assert not any(i < 0 for i in distribution.values()), "Probabilities cannot be negative"
+            assert abs(sum(distribution.values()) - 1) <= 1e-5, "Distribution is not normalized"
+            assert self._minval is None
+            assert self._maxval is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return distribution
 
@@ -333,8 +346,12 @@ class FuzzedTensor:
         size, _, allocation_size = self._get_size_and_steps(params)
         # Product is computed in Python to avoid integer overflow.
         num_elements = prod(size)
+<<<<<<< HEAD
         if num_elements < 0:
             raise AssertionError("Computed number of elements is negative")
+=======
+        assert num_elements >= 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         allocation_bytes = prod(allocation_size, base=dtype_size(self._dtype))
 

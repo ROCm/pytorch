@@ -3,8 +3,13 @@ import copy
 import io
 import math
 import weakref
+<<<<<<< HEAD
 from collections.abc import Callable, Mapping, MutableMapping
 from typing import Any, cast, NamedTuple, Optional, TYPE_CHECKING, Union
+=======
+from collections.abc import Mapping, MutableMapping
+from typing import Any, Callable, cast, NamedTuple, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.cuda._pin_memory_utils as pin_memory_utils
@@ -195,13 +200,19 @@ def _iterate_state_dict(
                             ret.local_shards()[idx].tensor, non_blocking=non_blocking
                         )
                 else:
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     companion_obj.copy_(ret, non_blocking=non_blocking)
                 ret = companion_obj
     else:
         ret = {} if isinstance(ret, dict) else None
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ret
 
 
@@ -425,7 +436,11 @@ def _create_cpu_state_dict(
             t = t.share_memory_()
             if pin_memory:
                 pin_memory_utils.pin_memory(t.data_ptr(), t.numel() * t.element_size())
+<<<<<<< HEAD
                 weakref.finalize(t, pin_memory_utils.unpin_memory, t.data_ptr())
+=======
+                weakref.finalize(t, pin_memory_utils.unpin_memory, t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return t
         elif pin_memory:
@@ -598,7 +613,11 @@ def _distribute_tensors(
     if pg is None:
         pg = dist.distributed_c10d._get_default_group()
     for key in keys:
+<<<<<<< HEAD
         _local_state = local_state_dict.get(key)
+=======
+        _local_state = local_state_dict.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if _local_state is None or torch.is_tensor(_local_state):
             continue
 
@@ -708,7 +727,11 @@ def _distribute_state_dict(
             local_state_dict[key] = value.cpu()
         else:
             assert isinstance(value, torch.Tensor)
+<<<<<<< HEAD
             local_state = local_state_dict.get(key)
+=======
+            local_state = local_state_dict.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if local_state is None:
                 continue
             elif isinstance(local_state, DTensor):
@@ -792,21 +815,32 @@ def _set_element(root_dict: STATE_DICT_TYPE, path: OBJ_PATH, value: Any) -> None
     for i in range(1, len(path)):
         prev_key = path[i - 1]
         key = path[i]
+<<<<<<< HEAD
         def_val: Union[CONTAINER_TYPE, list[Any]] = {} if type(key) is str else []
+=======
+        def_val: Union[CONTAINER_TYPE, list[Any]] = {} if type(key) == str else []
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(cur_container, Mapping):
             cur_container = cast(
                 CONTAINER_TYPE, cur_container.setdefault(prev_key, def_val)
             )
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             extend_list(cur_container, prev_key)
             if cur_container[prev_key] is None:
                 cur_container[prev_key] = def_val
             cur_container = cur_container[prev_key]
 
     key = path[-1]
+<<<<<<< HEAD
     if type(key) is int:
+=======
+    if type(key) == int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extend_list(cast(list[Any], cur_container), key)
 
     cur_container[key] = value

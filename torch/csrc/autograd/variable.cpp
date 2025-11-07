@@ -274,7 +274,11 @@ void set_grad_accumulator(
       std::move(grad_accumulator);
 }
 
+<<<<<<< HEAD
 std::shared_ptr<Node> try_get_grad_accumulator(const at::TensorBase& self) {
+=======
+std::shared_ptr<Node> try_get_grad_accumulator(const Variable& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (get_autograd_meta(self)) {
     return get_autograd_meta(self)->grad_accumulator_.lock();
   } else {
@@ -282,10 +286,13 @@ std::shared_ptr<Node> try_get_grad_accumulator(const at::TensorBase& self) {
   }
 }
 
+<<<<<<< HEAD
 std::shared_ptr<Node> try_get_grad_accumulator(const Variable& self) {
   return try_get_grad_accumulator(get_tensor_base(self));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::shared_ptr<Node> grad_accumulator(const Variable& self) {
   auto autograd_meta = get_autograd_meta(self);
   if (!autograd_meta) {
@@ -601,9 +608,16 @@ void VariableHooks::_backward(
 void VariableHooks::requires_grad_(
     const at::TensorBase& self,
     bool _requires_grad) const {
+<<<<<<< HEAD
   TORCH_CHECK(
       self.is_leaf() || _requires_grad,
       autograd::utils::requires_grad_leaf_error(_requires_grad));
+=======
+  if (!self.is_leaf() && !_requires_grad) {
+    throw std::runtime_error(
+        autograd::utils::requires_grad_leaf_error(_requires_grad));
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   self.set_requires_grad(_requires_grad);
 }
 
@@ -627,7 +641,11 @@ const at::TensorBase& VariableHooks::base(const at::TensorBase& self) const {
         "Can't get base of non-backward view Tensor");
     return diff_view_meta->get_backward_view().base_;
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Can't get base of non-view Tensor");
+=======
+    throw std::runtime_error("Can't get base of non-view Tensor");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -717,8 +735,12 @@ const std::shared_ptr<torch::autograd::Node>& VariableHooks::grad_fn(
             self.sym_sizes(), // Note: sizes(), not base_.sizes(), is
                               // intentional
             self.unsafeGetTensorImpl()->is_python_dispatch(),
+<<<<<<< HEAD
             self.is_nested(),
             self.grad_dtype());
+=======
+            self.is_nested());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         diff_view_meta->grad_fn_ = std::move(fn);
       }
       diff_view_meta->set_attr_version(current_version);
@@ -914,6 +936,7 @@ std::unique_ptr<ViewFunc> ChainedViewFunc::clone_and_set(
       second->clone_and_set(second_symints, second_tensors));
 }
 
+<<<<<<< HEAD
 std::optional<c10::ScalarType> VariableHooks::grad_dtype(
     const at::TensorBase& self) const {
   if (auto* meta = impl::get_autograd_meta(self)) {
@@ -955,4 +978,6 @@ void AutogradMeta::set_grad_dtype(
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::autograd

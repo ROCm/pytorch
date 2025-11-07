@@ -27,7 +27,10 @@ import torch.nn as nn
 import torch.optim
 import torch.utils.data
 from torch._C._profiler import _ExperimentalConfig, _ExtraFields_PyCall
+<<<<<<< HEAD
 from torch._inductor.utils import is_big_gpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.autograd.profiler import KinetoStepTracker, profile as _profile
 from torch.autograd.profiler_legacy import profile as _profile_legacy
 from torch.profiler import (
@@ -82,7 +85,11 @@ if TYPE_CHECKING:
 # This causes an issue in the multithreading test because we check all events
 # in that test with their tids. The events that correspond to these lingering
 # threads all have TID of (uint64_t)(-1) which is invalid.
+<<<<<<< HEAD
 # The work around is turning off monitoring thread when tqdm is loaded.
+=======
+# The work around is turnning off monitoring thread when tqdm is loaded.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Since these are unit tests, it is safe to turn off monitor thread.
 try:
     import tqdm
@@ -529,7 +536,11 @@ class TestProfiler(TestCase):
                 found_mm = True
             if "gemm" in e.name.lower() or "Cijk" in e.name:
                 found_gemm = True
+<<<<<<< HEAD
             if "memcpy" in e.name.lower() or "__amd_rocclr_copyBuffer" in e.name:
+=======
+            if "memcpy" in e.name.lower():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 found_memcpy = True
         if use_cuda:
             self.assertTrue(found_gemm)
@@ -967,7 +978,11 @@ class TestProfiler(TestCase):
         profiler_output = prof.key_averages(group_by_input_shape=True).table(
             sort_by="cpu_time_total", row_limit=10
         )
+<<<<<<< HEAD
         self.assertRegex(profiler_output, "Total M?FLOPs")
+=======
+        self.assertIn("Total MFLOPs", profiler_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not (kineto_available() and torch.cuda.is_available()):
             return
 
@@ -983,6 +998,7 @@ class TestProfiler(TestCase):
         profiler_output = kineto_profiler.key_averages().table(
             sort_by="self_cuda_time_total", row_limit=-1
         )
+<<<<<<< HEAD
         self.assertRegex(profiler_output, "Total M?FLOPs")
 
     def test_override_time_units(self):
@@ -1028,6 +1044,9 @@ class TestProfiler(TestCase):
             cpu_time_total_str_us = f"{event.cpu_time_total:.3f}us"
             self.assertTrue(cpu_time_str_us in profiler_output)
             self.assertTrue(cpu_time_total_str_us in profiler_output)
+=======
+        self.assertIn("Total MFLOPs", profiler_output)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @patch.dict(os.environ, {"KINETO_USE_DAEMON": "1"})
     @patch.dict(os.environ, {"KINETO_DAEMON_INIT_DELAY_S": "1"})
@@ -1468,7 +1487,11 @@ class TestProfiler(TestCase):
                     cats = {e.get("cat", None) for e in j["traceEvents"]}
             self.assertTrue(
                 "cuda_sync" in cats,
+<<<<<<< HEAD
                 f"Expected to find cuda_sync event found = {cats}",
+=======
+                "Expected to find cuda_sync event" f" found = {cats}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         print("Testing enable_cuda_sync_events in _ExperimentalConfig")
@@ -1764,6 +1787,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             with open(fname) as f:
                 j = json.load(f)
                 op_events = [
+<<<<<<< HEAD
                     e
                     for e in j["traceEvents"]
                     if e.get("name", "") == "add_test_kwinputs"
@@ -1779,12 +1803,31 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
                     self.assertTrue(args["debug"] == "None")
                     self.assertTrue(args["boolean"])
                     self.assertTrue(e["cat"] == "cpu_op")
+=======
+                    e for e in j["traceEvents"] if e.get("cat", "") == "cpu_op"
+                ]
+                for e in op_events:
+                    if e["name"] == "add_test_kwinputs":
+                        # print(e["args"])
+                        args = e["args"]
+                        self.assertTrue("stream" in args)
+                        self.assertTrue("grid" in args)
+                        self.assertTrue("boolean" in args)
+                        self.assertTrue(args["stream"] == 0)
+                        self.assertTrue(args["grid"] == "lambda x : x + 1")
+                        self.assertTrue(args["debug"] == "None")
+                        self.assertTrue(args["boolean"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with profile(record_shapes=True) as p1:
             cm = torch._C._profiler._RecordFunctionFast(
                 "add_test_kwinputs",
                 [x, y],
+<<<<<<< HEAD
                 {"stream": "test", "grid": [1, 2], "scope": "user_scope"},
+=======
+                {"stream": "test", "grid": [1, 2]},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for _ in range(4):
                 with cm:
@@ -1794,6 +1837,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             with open(fname1) as f1:
                 j = json.load(f1)
                 op_events = [
+<<<<<<< HEAD
                     e
                     for e in j["traceEvents"]
                     if e.get("name", "") == "add_test_kwinputs"
@@ -1880,6 +1924,16 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
                     self.assertEqual(args["valid_string_list"], ["valid1", "valid2"])
                     self.assertEqual(args["valid_int"], 100)
                     self.assertTrue(e["cat"] == "cpu_op")
+=======
+                    e for e in j["traceEvents"] if e.get("cat", "") == "cpu_op"
+                ]
+                for e in op_events:
+                    if e["name"] == "add_test_kwinputs":
+                        # print(e["args"])
+                        args = e["args"]
+                        self.assertTrue("stream" not in args)
+                        self.assertTrue("grid" not in args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_is_profiler_enabled(self):
         self.assertFalse(torch.autograd.profiler._is_profiler_enabled)
@@ -1930,7 +1984,11 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
         event_list.table()
 
     def _check_all_gpu_present(self, gpu_dict, max_gpu_count):
+<<<<<<< HEAD
         for i in range(max_gpu_count):
+=======
+        for i in range(0, max_gpu_count):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(gpu_dict["GPU " + str(i)], 1)
 
     # Do json sanity testing. Checks that all events are between profiler start and end
@@ -2139,8 +2197,13 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
                         step_helper_funcs.append(event)
             self.assertEqual(len(prof_steps), 5)
             self.assertEqual(len(step_helper_funcs), 5)
+<<<<<<< HEAD
             for i in range(len(step_helper_funcs)):
                 for j in range(len(step_helper_funcs)):
+=======
+            for i in range(0, len(step_helper_funcs)):
+                for j in range(0, len(step_helper_funcs)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertTrue(
                         not self._partial_overlap(prof_steps[i], step_helper_funcs[j])
                     )
@@ -2416,6 +2479,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             events = main_with_thread_fn(profile_all_threads)
             verify_events(events)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("profiler gets ignored if dynamo activated")
     @unittest.skipIf(not kineto_available(), "Kineto is required")
     def test_python_gc_event(self):
@@ -2484,6 +2548,8 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
                 payload()
             validate_json(prof, gc_flag)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SimpleNet(nn.Module):
     def __init__(self) -> None:
@@ -3238,6 +3304,7 @@ aten::mm""",
             assert "Overload Name" in key_averages.table()
             validate_json(prof)
 
+<<<<<<< HEAD
     def test_expose_kineto_event_metadata(self):
         def check_metadata(prof, op_name, metadata_key):
             with TemporaryFileName(mode="w+") as fname:
@@ -3319,6 +3386,8 @@ aten::mm""",
         n2 = names(prof2)
         self.assertEqual(n1, n2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

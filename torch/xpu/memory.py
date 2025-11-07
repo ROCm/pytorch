@@ -4,7 +4,11 @@ from typing import Any, Union
 import torch
 from torch.types import Device
 
+<<<<<<< HEAD
 from . import _get_device_index, _lazy_init, is_initialized
+=======
+from . import _get_device_index, is_initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 _device_t = Union[Device, str, int, None]
@@ -194,6 +198,7 @@ def mem_get_info(device: _device_t = None) -> tuple[int, int]:
     return torch._C._xpu_getMemoryInfo(device)
 
 
+<<<<<<< HEAD
 def set_per_process_memory_fraction(fraction: float, device: _device_t = None) -> None:
     r"""
     Set the memory fraction for a single process on XPU device.
@@ -219,6 +224,8 @@ def set_per_process_memory_fraction(fraction: float, device: _device_t = None) -
     torch._C._xpu_setMemoryFraction(fraction, device)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     "empty_cache",
     "max_memory_allocated",
@@ -230,5 +237,8 @@ __all__ = [
     "memory_stats_as_nested_dict",
     "reset_accumulated_memory_stats",
     "reset_peak_memory_stats",
+<<<<<<< HEAD
     "set_per_process_memory_fraction",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]

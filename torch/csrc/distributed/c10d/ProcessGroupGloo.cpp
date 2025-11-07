@@ -299,7 +299,10 @@ ProcessGroupGloo::AsyncWork::AsyncWork(
     std::vector<std::vector<at::Tensor>> outputTensors,
     OpType opType,
     uint64_t seq,
+<<<<<<< HEAD
     std::chrono::milliseconds timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const char* profilingTitle,
     const std::optional<std::vector<at::Tensor>>& inputTensors)
     // Profiler: Pass nullptr as profilingTitle to parent constructor to
@@ -307,7 +310,10 @@ ProcessGroupGloo::AsyncWork::AsyncWork(
     // correct timestamps for work that is asynchronously executed.
     : Work(-1, opType, nullptr, inputTensors),
       context_(std::move(context)),
+<<<<<<< HEAD
       timeout_(timeout == kUnsetTimeout ? context_->getTimeout() : timeout),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       outputTensors_(std::move(outputTensors)),
       future_(createFutureAsOutput(outputTensors_)),
       seq_(seq) {
@@ -528,16 +534,27 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
   // use. Note: if the hostname does not resolve to an address (e.g.
   // because of misconfigured /etc/hosts file), this will not work.
   const auto hostNameMax = sysconf(_SC_HOST_NAME_MAX);
+<<<<<<< HEAD
   std::string hostname(hostNameMax, '\0');
   auto rv = gethostname(hostname.data(), hostNameMax);
+=======
+  auto hostname = std::unique_ptr<char[]>(new char[hostNameMax]);
+  auto rv = gethostname(hostname.get(), hostNameMax);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (rv != 0) {
     C10_THROW_ERROR(DistBackendError, c10::utils::str_error(errno));
   }
 
   // Use this machine's hostname if it resolves to an address.
+<<<<<<< HEAD
   if (doesHostnameResolveToUsableAddress(hostname.data())) {
     return ::c10d::GlooDeviceFactory::makeDeviceForHostname(
         hostname.data(), lazyInit);
+=======
+  if (doesHostnameResolveToUsableAddress(hostname.get())) {
+    return ::c10d::GlooDeviceFactory::makeDeviceForHostname(
+        hostname.get(), lazyInit);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Otherwise, use the loopback address.
@@ -551,6 +568,7 @@ std::shared_ptr<::gloo::transport::Device> ProcessGroupGloo::
 
 static std::atomic<size_t> process_group_id = 0;
 
+<<<<<<< HEAD
 c10::intrusive_ptr<ProcessGroupGloo::Options> ProcessGroupGloo::Options::
     create_default(std::chrono::milliseconds timeout) {
   auto options = ::c10d::ProcessGroupGloo::Options::create();
@@ -577,6 +595,8 @@ c10::intrusive_ptr<ProcessGroupGloo::Options> ProcessGroupGloo::Options::
   return options;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ProcessGroupGloo::ProcessGroupGloo(
     const c10::intrusive_ptr<Store>& store,
     int rank,
@@ -723,6 +743,7 @@ const std::vector<uint64_t>& ProcessGroupGloo::groupRanks() const {
   return options_->global_ranks_in_group;
 }
 
+<<<<<<< HEAD
 c10::intrusive_ptr<Backend> ProcessGroupGloo::split(
     const c10::intrusive_ptr<Store>& store,
     const std::vector<int>& ranks,
@@ -771,6 +792,8 @@ c10::intrusive_ptr<Backend> ProcessGroupGloo::merge(
   return c10::static_intrusive_pointer_cast<Backend>(pg);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void ProcessGroupGloo::enqueue(c10::intrusive_ptr<AsyncWork> work) {
   std::unique_lock<std::mutex> lock(workMutex_);
   pgStatus_->lastEnqueuedSeq = static_cast<int64_t>(work->seq_);
@@ -813,14 +836,21 @@ class AsyncBroadcastWork : public ProcessGroupGloo::AsyncWork {
       int rootRank,
       int rootTensor,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {inputs},
             OpType::BROADCAST,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:broadcast",
             inputs),
         inputs(inputs),
@@ -828,20 +858,31 @@ class AsyncBroadcastWork : public ProcessGroupGloo::AsyncWork {
         rootTensor(rootTensor),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int rootRank;
   const int rootTensor;
   const uint32_t tag;
 
+<<<<<<< HEAD
   void broadcast(at::Tensor tensor) {
     if (tensor.is_complex()) {
       tensor = at::view_as_real(tensor);
     }
+=======
+  void broadcast(at::Tensor& tensor) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const auto& scalarType = tensor.scalar_type();
     gloo::BroadcastOptions opts(context_);
     opts.setRoot(rootRank);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     GENERATE_ALL_TYPES(scalarType, setOutput, opts, tensor);
     gloo::broadcast(opts);
   }
@@ -875,6 +916,7 @@ class AsyncBroadcastCUDAWork : public AsyncBroadcastWork {
       int rootRank,
       int rootTensor,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
       : AsyncBroadcastWork(
@@ -885,6 +927,10 @@ class AsyncBroadcastCUDAWork : public AsyncBroadcastWork {
             tag,
             seq,
             timeout) {
+=======
+      uint64_t seq)
+      : AsyncBroadcastWork(context, inputs, rootRank, rootTensor, tag, seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents(inputs, streams, events);
 
     // Create pinned host side tensors.
@@ -924,8 +970,13 @@ class AsyncBroadcastCUDAWork : public AsyncBroadcastWork {
   }
 
   at::Tensor tmp;
+<<<<<<< HEAD
   std::vector<c10::Stream> streams;
   std::vector<c10::Event> events;
+=======
+  std::vector<c10::Stream> streams{};
+  std::vector<c10::Event> events{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace
@@ -961,6 +1012,7 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::broadcast(
   ++seq_;
   if (device.type() == at::kCPU) {
     work = c10::make_intrusive<AsyncBroadcastWork>(
+<<<<<<< HEAD
         std::move(context),
         inputs,
         opts.rootRank,
@@ -977,6 +1029,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::broadcast(
         tag,
         seq_,
         opts.timeout);
+=======
+        std::move(context), inputs, opts.rootRank, opts.rootTensor, tag, seq_);
+  } else if (device.type() == at::kCUDA) {
+    work = c10::make_intrusive<AsyncBroadcastCUDAWork>(
+        std::move(context), inputs, opts.rootRank, opts.rootTensor, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
@@ -1021,7 +1079,11 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce(
   ++seq_;
 
   work = GlooAllreduceRegistry()->Create(
+<<<<<<< HEAD
       device.type(), context, inputs, opts.reduceOp, tag, seq_, opts.timeout);
+=======
+      device.type(), context, inputs, opts.reduceOp, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   enqueue(work);
   return work;
@@ -1032,16 +1094,27 @@ static c10::intrusive_ptr<ProcessGroupGloo::AsyncWork> makeAllreduceCPUWork(
     std::vector<at::Tensor>& inputs,
     ReduceOp reduceOp,
     uint32_t tag,
+<<<<<<< HEAD
     uint64_t seq,
     std::chrono::milliseconds timeout) {
+=======
+    uint64_t seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto layout = inputs[0].layout();
 
   if (layout == c10::kStrided) {
     return c10::make_intrusive<AsyncAllreduceWork>(
+<<<<<<< HEAD
         std::move(context), inputs, reduceOp, tag, seq, timeout);
   } else if (layout == c10::kSparse) {
     return c10::make_intrusive<AsyncSparseAllreduceWork>(
         std::move(context), inputs, tag, seq, timeout);
+=======
+        std::move(context), inputs, reduceOp, tag, seq);
+  } else if (layout == c10::kSparse) {
+    return c10::make_intrusive<AsyncSparseAllreduceWork>(
+        std::move(context), inputs, tag, seq);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "ProcessGroupGloo::allreduce: unsupported layout");
   }
@@ -1056,8 +1129,12 @@ C10_DEFINE_TYPED_REGISTRY(
     std::vector<at::Tensor>&,
     ReduceOp,
     uint32_t,
+<<<<<<< HEAD
     uint64_t,
     std::chrono::milliseconds)
+=======
+    uint64_t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C10_REGISTER_TYPED_CREATOR(
     GlooAllreduceRegistry,
@@ -1122,7 +1199,11 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allreduce_coalesced(
   if (device.type() == c10::kCPU) {
     if (layout == c10::kStrided) {
       work = c10::make_intrusive<AsyncAllreduceCoalescedWork>(
+<<<<<<< HEAD
           std::move(context), tensors, opts.reduceOp, tag, seq_, opts.timeout);
+=======
+          std::move(context), tensors, opts.reduceOp, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       invalidArgument("unsupported layout");
     }
@@ -1144,14 +1225,21 @@ class AsyncReduceWork : public ProcessGroupGloo::AsyncWork {
       int rootTensor,
       ReduceOp reduceOp,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {inputs},
             OpType::REDUCE,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:reduce",
             inputs),
         inputs(inputs),
@@ -1160,13 +1248,18 @@ class AsyncReduceWork : public ProcessGroupGloo::AsyncWork {
         reduceOp(std::move(reduceOp)),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int rootRank;
   const int rootTensor;
   const ReduceOp reduceOp;
   const uint32_t tag;
 
   void reduce(std::vector<at::Tensor>& tensors) {
+<<<<<<< HEAD
     auto tensor = tensors[0];
     if (tensor.is_complex()) {
       TORCH_CHECK(
@@ -1183,6 +1276,14 @@ class AsyncReduceWork : public ProcessGroupGloo::AsyncWork {
     opts.setReduceFunction(getFunction(scalarType, reduceOp));
     opts.setTimeout(timeout_);
     GENERATE_ALL_TYPES(scalarType, setOutput, opts, tensor);
+=======
+    const auto& scalarType = tensors[0].scalar_type();
+    gloo::ReduceOptions opts(context_);
+    opts.setRoot(rootRank);
+    opts.setTag(tag);
+    opts.setReduceFunction(getFunction(scalarType, reduceOp));
+    GENERATE_ALL_TYPES(scalarType, setOutput, opts, tensors[0]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::reduce(opts);
 
     // Gloo doesn't support AVG so we use SUM + division.
@@ -1227,8 +1328,12 @@ class AsyncReduceCUDAWork : public AsyncReduceWork {
       int rootTensor,
       ReduceOp reduceOp,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : AsyncReduceWork(
             context,
             inputs,
@@ -1236,8 +1341,12 @@ class AsyncReduceCUDAWork : public AsyncReduceWork {
             rootTensor,
             std::move(reduceOp),
             tag,
+<<<<<<< HEAD
             seq,
             timeout) {
+=======
+            seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents(inputs, streams, events);
 
     // Kick off copy from CUDA tensors to pinned CPU tensors.
@@ -1276,9 +1385,15 @@ class AsyncReduceCUDAWork : public AsyncReduceWork {
     }
   }
 
+<<<<<<< HEAD
   std::vector<at::Tensor> tmp;
   std::vector<c10::Stream> streams;
   std::vector<c10::Event> events;
+=======
+  std::vector<at::Tensor> tmp{};
+  std::vector<c10::Stream> streams{};
+  std::vector<c10::Event> events{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace
@@ -1320,8 +1435,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::reduce(
         opts.rootTensor,
         opts.reduceOp,
         tag,
+<<<<<<< HEAD
         seq_,
         opts.timeout);
+=======
+        seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (device.type() == at::kCUDA) {
     work = c10::make_intrusive<AsyncReduceCUDAWork>(
         std::move(context),
@@ -1330,8 +1449,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::reduce(
         opts.rootTensor,
         opts.reduceOp,
         tag,
+<<<<<<< HEAD
         seq_,
         opts.timeout);
+=======
+        seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
@@ -1348,22 +1471,34 @@ class AsyncAllgatherWork : public ProcessGroupGloo::AsyncWork {
       std::vector<std::vector<at::Tensor>>& outputs,
       std::vector<at::Tensor>& inputs,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             outputs,
             OpType::ALLGATHER,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:all_gather",
             inputs),
         outputs(outputs),
         inputs(inputs),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<std::vector<at::Tensor>> outputs;
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<std::vector<at::Tensor>> outputs{};
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint32_t tag;
 
   void allgather(
@@ -1372,7 +1507,10 @@ class AsyncAllgatherWork : public ProcessGroupGloo::AsyncWork {
     const auto& scalarType = inputs[0].scalar_type();
     gloo::AllgatherOptions opts(context_);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Use single flattened input tensor.
     at::Tensor flatInputTensor = flattenDenseTensors(inputs);
@@ -1415,9 +1553,14 @@ class AsyncAllgatherCUDAWork : public AsyncAllgatherWork {
       std::vector<std::vector<at::Tensor>>& outputs,
       std::vector<at::Tensor>& inputs,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
       : AsyncAllgatherWork(context, outputs, inputs, tag, seq, timeout) {
+=======
+      uint64_t seq)
+      : AsyncAllgatherWork(context, outputs, inputs, tag, seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents(inputs, inputStreams, inputEvents);
     initializeStreamsEvents(outputs, outputStreams, outputEvents);
 
@@ -1471,6 +1614,7 @@ class AsyncAllgatherCUDAWork : public AsyncAllgatherWork {
     }
   }
 
+<<<<<<< HEAD
   std::vector<at::Tensor> tmpInputs;
   std::vector<c10::Stream> inputStreams;
   std::vector<c10::Event> inputEvents;
@@ -1478,6 +1622,15 @@ class AsyncAllgatherCUDAWork : public AsyncAllgatherWork {
   std::vector<std::vector<at::Tensor>> tmpOutputs;
   std::vector<c10::Stream> outputStreams;
   std::vector<c10::Event> outputEvents;
+=======
+  std::vector<at::Tensor> tmpInputs{};
+  std::vector<c10::Stream> inputStreams{};
+  std::vector<c10::Event> inputEvents{};
+
+  std::vector<std::vector<at::Tensor>> tmpOutputs{};
+  std::vector<c10::Stream> outputStreams{};
+  std::vector<c10::Event> outputEvents{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // A work that takes an lambda on construction and calls it on wait.
@@ -1533,8 +1686,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::reduce_scatter_tensor_coalesced(
     std::vector<at::Tensor> inp = {buffers[i]};
     AllreduceOptions arOpts;
     arOpts.reduceOp = opts.reduceOp;
+<<<<<<< HEAD
     arOpts.timeout = opts.timeout;
     works.push_back(allreduce(inp, arOpts));
+=======
+    works.push_back(allreduce(inp));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return c10::make_intrusive<LambdaWork>(
       [rank, worldSize, buffers, outputTensors, works = std::move(works)]() {
@@ -1612,10 +1769,17 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allgather(
   ++seq_;
   if (device.type() == at::kCPU) {
     work = c10::make_intrusive<AsyncAllgatherWork>(
+<<<<<<< HEAD
         std::move(context), outputs, inputs, tag, seq_, opts.timeout);
   } else if (device.type() == at::kCUDA) {
     work = c10::make_intrusive<AsyncAllgatherCUDAWork>(
         std::move(context), outputs, inputs, tag, seq_, opts.timeout);
+=======
+        std::move(context), outputs, inputs, tag, seq_);
+  } else if (device.type() == at::kCUDA) {
+    work = c10::make_intrusive<AsyncAllgatherCUDAWork>(
+        std::move(context), outputs, inputs, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
@@ -1632,22 +1796,34 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
       std::vector<std::vector<at::Tensor>>& output_lists,
       std::vector<at::Tensor>& input_list,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             output_lists,
             OpType::ALLGATHER_COALESCED,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:all_gather",
             input_list),
         output_lists(output_lists),
         input_list(input_list),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<std::vector<at::Tensor>> output_lists;
   std::vector<at::Tensor> input_list;
+=======
+  std::vector<std::vector<at::Tensor>> output_lists{};
+  std::vector<at::Tensor> input_list{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint32_t tag;
 
   void allgather_coalesced() {
@@ -1658,7 +1834,10 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
     const auto& scalarType = input_list[0].scalar_type();
     gloo::AllgatherOptions opts(context_);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Use single flattened input tensor.
     at::Tensor flatInputTensor = flattenDenseTensors(input_list);
@@ -1707,7 +1886,11 @@ class AsyncAllgatherCoalescedWork : public ProcessGroupGloo::AsyncWork {
 c10::intrusive_ptr<Work> ProcessGroupGloo::allgather_coalesced(
     std::vector<std::vector<at::Tensor>>& output_lists,
     std::vector<at::Tensor>& input_list,
+<<<<<<< HEAD
     const AllgatherOptions& opts) {
+=======
+    const AllgatherOptions& /* unused */) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static auto invalidArgument = [](const std::string& msg) {
     TORCH_CHECK(false, "ProcessGroupGloo::allgather_coalesced: " + msg);
   };
@@ -1755,7 +1938,11 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::allgather_coalesced(
   auto context = getContext(tag);
   ++seq_;
   auto work = c10::make_intrusive<AsyncAllgatherCoalescedWork>(
+<<<<<<< HEAD
       std::move(context), output_lists, input_list, tag, seq_, opts.timeout);
+=======
+      std::move(context), output_lists, input_list, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   enqueue(work);
   return work;
 }
@@ -1785,14 +1972,21 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
       std::vector<at::Tensor>& inputs,
       int root,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             outputs,
             OpType::GATHER,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:gather",
             inputs),
         outputs(outputs),
@@ -1800,8 +1994,13 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
         root(root),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<std::vector<at::Tensor>> outputs;
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<std::vector<at::Tensor>> outputs{};
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int root;
   const uint32_t tag;
 
@@ -1812,7 +2011,10 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
     gloo::GatherOptions opts(context_);
     opts.setRoot(root);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Set single temporary tensor on root process.
     // This is later scattered to the separate output tensors.
@@ -1823,8 +2025,12 @@ class AsyncGatherWork : public ProcessGroupGloo::AsyncWork {
     }
 
     // Set single input tensor on all processes.
+<<<<<<< HEAD
     at::Tensor flatInputTensor = flattenDenseTensors(inputs[0]);
     GENERATE_ALL_TYPES(scalarType, setInput, opts, flatInputTensor);
+=======
+    GENERATE_ALL_TYPES(scalarType, setInput, opts, inputs[0]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::gather(opts);
 
     // Unflatten into output tensors on root process.
@@ -1862,9 +2068,14 @@ class AsyncGatherCUDAWork : public AsyncGatherWork {
       std::vector<at::Tensor>& inputs,
       int root,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
       : AsyncGatherWork(context, outputs, inputs, root, tag, seq, timeout) {
+=======
+      uint64_t seq)
+      : AsyncGatherWork(context, outputs, inputs, root, tag, seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents(inputs, inputStreams, inputEvents);
     initializeStreamsEvents(outputs, outputStreams, outputEvents);
 
@@ -1918,6 +2129,7 @@ class AsyncGatherCUDAWork : public AsyncGatherWork {
     }
   }
 
+<<<<<<< HEAD
   std::vector<at::Tensor> tmpInputs;
   std::vector<c10::Stream> inputStreams;
   std::vector<c10::Event> inputEvents;
@@ -1925,6 +2137,15 @@ class AsyncGatherCUDAWork : public AsyncGatherWork {
   std::vector<std::vector<at::Tensor>> tmpOutputs;
   std::vector<c10::Stream> outputStreams;
   std::vector<c10::Event> outputEvents;
+=======
+  std::vector<at::Tensor> tmpInputs{};
+  std::vector<c10::Stream> inputStreams{};
+  std::vector<c10::Event> inputEvents{};
+
+  std::vector<std::vector<at::Tensor>> tmpOutputs{};
+  std::vector<c10::Stream> outputStreams{};
+  std::vector<c10::Event> outputEvents{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace
@@ -1982,6 +2203,7 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::gather(
   ++seq_;
   if (device.type() == at::kCPU) {
     work = c10::make_intrusive<AsyncGatherWork>(
+<<<<<<< HEAD
         std::move(context),
         outputs,
         inputs,
@@ -1998,6 +2220,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::gather(
         tag,
         seq_,
         opts.timeout);
+=======
+        std::move(context), outputs, inputs, opts.rootRank, tag, seq_);
+  } else if (device.type() == at::kCUDA) {
+    work = c10::make_intrusive<AsyncGatherCUDAWork>(
+        std::move(context), outputs, inputs, opts.rootRank, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
@@ -2015,14 +2243,21 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
       std::vector<std::vector<at::Tensor>>& inputs,
       int root,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {outputs},
             OpType::SCATTER,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:scatter",
             !inputs.empty() ? std::optional<std::vector<at::Tensor>>(inputs[0])
                             : std::nullopt),
@@ -2031,8 +2266,13 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
         root(root),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<at::Tensor> outputs;
   std::vector<std::vector<at::Tensor>> inputs;
+=======
+  std::vector<at::Tensor> outputs{};
+  std::vector<std::vector<at::Tensor>> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int root;
   const uint32_t tag;
 
@@ -2043,7 +2283,10 @@ class AsyncScatterWork : public ProcessGroupGloo::AsyncWork {
     gloo::ScatterOptions opts(context_);
     opts.setRoot(root);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Set list of input tensors on root process
     if (context_->rank == root) {
@@ -2077,9 +2320,14 @@ class AsyncScatterCUDAWork : public AsyncScatterWork {
       std::vector<std::vector<at::Tensor>>& inputs,
       int root,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
       : AsyncScatterWork(context, outputs, inputs, root, tag, seq, timeout) {
+=======
+      uint64_t seq)
+      : AsyncScatterWork(context, outputs, inputs, root, tag, seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents(inputs, inputStreams, inputEvents);
     initializeStreamsEvents(outputs, outputStreams, outputEvents);
 
@@ -2131,6 +2379,7 @@ class AsyncScatterCUDAWork : public AsyncScatterWork {
     }
   }
 
+<<<<<<< HEAD
   std::vector<at::Tensor> tmpOutputs;
   std::vector<c10::Stream> outputStreams;
   std::vector<c10::Event> outputEvents;
@@ -2138,6 +2387,15 @@ class AsyncScatterCUDAWork : public AsyncScatterWork {
   std::vector<std::vector<at::Tensor>> tmpInputs;
   std::vector<c10::Stream> inputStreams;
   std::vector<c10::Event> inputEvents;
+=======
+  std::vector<at::Tensor> tmpOutputs{};
+  std::vector<c10::Stream> outputStreams{};
+  std::vector<c10::Event> outputEvents{};
+
+  std::vector<std::vector<at::Tensor>> tmpInputs{};
+  std::vector<c10::Stream> inputStreams{};
+  std::vector<c10::Event> inputEvents{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace
@@ -2194,6 +2452,7 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::scatter(
   ++seq_;
   if (device.type() == at::kCPU) {
     work = c10::make_intrusive<AsyncScatterWork>(
+<<<<<<< HEAD
         std::move(context),
         outputs,
         inputs,
@@ -2210,6 +2469,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::scatter(
         tag,
         seq_,
         opts.timeout);
+=======
+        std::move(context), outputs, inputs, opts.rootRank, tag, seq_);
+  } else if (device.type() == at::kCUDA) {
+    work = c10::make_intrusive<AsyncScatterCUDAWork>(
+        std::move(context), outputs, inputs, opts.rootRank, tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     TORCH_CHECK(false, "Invalid backend");
   }
@@ -2251,8 +2516,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::reduce_scatter(
     std::vector<at::Tensor> inp = {buffers[i]};
     AllreduceOptions arOpts;
     arOpts.reduceOp = opts.reduceOp;
+<<<<<<< HEAD
     arOpts.timeout = opts.timeout;
     works.push_back(allreduce(inp, arOpts));
+=======
+    works.push_back(allreduce(inp));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return c10::make_intrusive<LambdaWork>(
       [worldSize, works = std::move(works)]() {
@@ -2273,14 +2542,21 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
       std::vector<int64_t>& outputCounts,
       std::vector<int64_t>& inputCounts,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {{outputTensor}},
             OpType::ALLTOALL,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:all_to_all",
             std::optional<std::vector<at::Tensor>>({inputTensor})),
         outputTensor(outputTensor),
@@ -2291,8 +2567,13 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
 
   at::Tensor outputTensor;
   at::Tensor inputTensor;
+<<<<<<< HEAD
   std::vector<int64_t> outputCounts;
   std::vector<int64_t> inputCounts;
+=======
+  std::vector<int64_t> outputCounts{};
+  std::vector<int64_t> inputCounts{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint32_t tag;
 
   void alltoall(at::Tensor& outputTensor, at::Tensor& inputTensor) {
@@ -2301,7 +2582,10 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
       // Gloo alltoall
       gloo::AlltoallOptions opts(context_);
       opts.setTag(tag);
+<<<<<<< HEAD
       opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GENERATE_ALL_TYPES(scalarType, setInput, opts, inputTensor);
       GENERATE_ALL_TYPES(scalarType, setOutput, opts, outputTensor);
       gloo::alltoall(opts);
@@ -2319,7 +2603,10 @@ class AsyncAlltoallWork : public ProcessGroupGloo::AsyncWork {
           outputCounts, outputTensor, &recvCounts, &recvOffsets);
       gloo::AlltoallvOptions opts(context_);
       opts.setTag(tag);
+<<<<<<< HEAD
       opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       GENERATE_ALL_TYPES(scalarType, setInput, opts, inputTensor, sendCounts);
       GENERATE_ALL_TYPES(scalarType, setOutput, opts, outputTensor, recvCounts);
       gloo::alltoallv(opts);
@@ -2348,8 +2635,12 @@ class AsyncAlltoallCUDAWork : public AsyncAlltoallWork {
       std::vector<int64_t>& outputCounts,
       std::vector<int64_t>& inputCounts,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : AsyncAlltoallWork(
             context,
             outputTensor,
@@ -2357,8 +2648,12 @@ class AsyncAlltoallCUDAWork : public AsyncAlltoallWork {
             outputCounts,
             inputCounts,
             tag,
+<<<<<<< HEAD
             seq,
             timeout) {
+=======
+            seq) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     initializeStreamsEvents({inputTensor}, inputStreams, inputEvents);
     initializeStreamsEvents({outputTensor}, outputStreams, outputEvents);
 
@@ -2394,12 +2689,21 @@ class AsyncAlltoallCUDAWork : public AsyncAlltoallWork {
   }
 
   at::Tensor cpuOutput;
+<<<<<<< HEAD
   std::vector<c10::Stream> outputStreams;
   std::vector<c10::Event> outputEvents;
 
   at::Tensor cpuInput;
   std::vector<c10::Stream> inputStreams;
   std::vector<c10::Event> inputEvents;
+=======
+  std::vector<c10::Stream> outputStreams{};
+  std::vector<c10::Event> outputEvents{};
+
+  at::Tensor cpuInput;
+  std::vector<c10::Stream> inputStreams{};
+  std::vector<c10::Event> inputEvents{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace
@@ -2409,7 +2713,11 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::alltoall_base(
     at::Tensor& inputTensor,
     std::vector<int64_t>& outputCounts,
     std::vector<int64_t>& inputCounts,
+<<<<<<< HEAD
     const AllToAllOptions& opts) {
+=======
+    const AllToAllOptions& /* unused */) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static auto invalidArgument = [](const std::string& msg) {
     TORCH_CHECK(false, "ProcessGroupGloo::alltoall_base: " + msg);
   };
@@ -2438,8 +2746,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::alltoall_base(
         outputCounts,
         inputCounts,
         tag,
+<<<<<<< HEAD
         seq_,
         opts.timeout);
+=======
+        seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (device.type() == at::kCUDA) {
     work = c10::make_intrusive<AsyncAlltoallCUDAWork>(
         std::move(context),
@@ -2448,8 +2760,12 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::alltoall_base(
         outputCounts,
         inputCounts,
         tag,
+<<<<<<< HEAD
         seq_,
         opts.timeout);
+=======
+        seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     invalidArgument(c10::str("unsupported device type ", device.type()));
   }
@@ -2473,7 +2789,11 @@ static at::Tensor& checkSingleTensor(std::vector<at::Tensor>& tensors) {
 
 static uint32_t checkTag(int32_t tag) {
   TORCH_CHECK(tag >= 0, "Tag must be nonnegative");
+<<<<<<< HEAD
   return static_cast<uint32_t>(tag);
+=======
+  return (uint32_t)tag;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 c10::intrusive_ptr<Work> ProcessGroupGloo::send(
@@ -2560,22 +2880,35 @@ class AsyncBarrierWork : public ProcessGroupGloo::AsyncWork {
       std::shared_ptr<gloo::Context> context,
       std::vector<c10::weak_intrusive_ptr<AsyncWork>> priorWork,
       uint32_t tag,
+<<<<<<< HEAD
       uint64_t seq,
       std::chrono::milliseconds timeout)
+=======
+      uint64_t seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : ProcessGroupGloo::AsyncWork(
             std::move(context),
             {},
             OpType::BARRIER,
             seq,
+<<<<<<< HEAD
             timeout,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "gloo:barrier",
             std::nullopt),
         priorWork(std::move(priorWork)),
         tag(tag) {}
 
+<<<<<<< HEAD
   std::vector<c10::weak_intrusive_ptr<AsyncWork>> priorWork;
   const uint32_t tag;
   std::vector<at::Tensor> inputs;
+=======
+  std::vector<c10::weak_intrusive_ptr<AsyncWork>> priorWork{};
+  const uint32_t tag;
+  std::vector<at::Tensor> inputs{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const std::vector<at::Tensor> getInputTensors() override {
     return inputs;
@@ -2596,7 +2929,10 @@ class AsyncBarrierWork : public ProcessGroupGloo::AsyncWork {
 
     gloo::BarrierOptions opts(context_);
     opts.setTag(tag);
+<<<<<<< HEAD
     opts.setTimeout(timeout_);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     gloo::barrier(opts);
   }
 };
@@ -2620,7 +2956,11 @@ c10::intrusive_ptr<Work> ProcessGroupGloo::barrier(const BarrierOptions& opts) {
   auto context = getContext(tag);
   ++seq_;
   auto work = c10::make_intrusive<AsyncBarrierWork>(
+<<<<<<< HEAD
       std::move(context), std::move(priorWork), tag, seq_, opts.timeout);
+=======
+      std::move(context), std::move(priorWork), tag, seq_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   enqueue(work);
   return work;
 }

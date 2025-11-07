@@ -1,14 +1,18 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
 
+<<<<<<< HEAD
 import copy
 import re
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 import warnings
 
 import torch
 import torch.distributed as dist
 import torch.testing._internal.common_methods_invocations as common_ops
+<<<<<<< HEAD
 from torch.distributed._local_tensor import LocalTensorMode, reconcile_args
 from torch.distributed.tensor import (
     distribute_tensor,
@@ -17,19 +21,29 @@ from torch.distributed.tensor import (
     Replicate,
     Shard,
 )
+=======
+from torch.distributed.tensor import DeviceMesh, DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.overrides import resolve_name
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     ops,
 )
 from torch.testing._internal.common_methods_invocations import DecorateInfo, op_db
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests, suppress_warnings, TestCase
+=======
+from torch.testing._internal.common_utils import run_tests, suppress_warnings
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorConverter,
     DTensorOpTestBase,
 )
 from torch.utils import _pytree as pytree
+<<<<<<< HEAD
 from torch.utils._debug_mode import DebugMode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._pytree import tree_map
 
 
@@ -51,7 +65,11 @@ def skip(op_name, variant_name="", *, device_type=None, dtypes=None):
     return (op_name, variant_name, device_type, dtypes, False)
 
 
+<<<<<<< HEAD
 def skipOps(op_db, test_case_name, base_test_name, to_skip):
+=======
+def skipOps(test_case_name, base_test_name, to_skip):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_opinfos = op_db
     for xfail in to_skip:
         op_name, variant_name, device_type, dtypes, expected_failure = xfail
@@ -90,6 +108,7 @@ def skipOps(op_db, test_case_name, base_test_name, to_skip):
     return wrapped
 
 
+<<<<<<< HEAD
 def repurpose_ops(op_db, base_test_name, derived_test_name):
     """
     Copies op info database and for the decorators that applied to base test class updates
@@ -118,6 +137,8 @@ def repurpose_ops(op_db, base_test_name, derived_test_name):
     return repurposed_ops
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Re-generate this failed list, turn on dry_run of the below func
 # check_dtensor_func(self, test, op, dry_run=True), then run sth
 # like python test/distributed/tensor/test_dtensor_ops.py > failed.expect
@@ -141,6 +162,10 @@ dtensor_fails = {
     xfail("arange"),
     xfail("argmax"),
     xfail("argmin"),
+<<<<<<< HEAD
+=======
+    xfail("argsort"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("as_strided"),
     xfail("as_strided", "partial_views"),
     xfail("as_strided_copy"),
@@ -155,14 +180,31 @@ dtensor_fails = {
     xfail("cholesky"),
     xfail("cholesky_inverse"),
     xfail("cholesky_solve"),
+<<<<<<< HEAD
     xfail("combinations"),
     xfail("complex"),
+=======
+    xfail("chunk"),
+    xfail("clamp"),
+    xfail("clamp_max"),
+    xfail("clamp_min"),
+    xfail("combinations"),
+    xfail("complex"),
+    xfail("constant_pad_nd"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("count_nonzero"),
     xfail("cross"),
     xfail("cummax"),
     xfail("cummin"),
     xfail("diagonal_scatter"),
     xfail("dist"),
+<<<<<<< HEAD
+=======
+    xfail("empty"),
+    xfail("empty_strided"),
+    xfail("empty_like"),
+    xfail("empty_permuted"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("expand_copy"),
     xfail("exponential"),
     xfail("equal"),
@@ -192,10 +234,21 @@ dtensor_fails = {
     xfail("fmin"),
     xfail("frexp"),
     xfail("full"),
+<<<<<<< HEAD
     xfail("geometric"),
     xfail("geqrf"),
     xfail("grid_sampler_2d"),
     xfail("heaviside"),
+=======
+    xfail("full_like"),
+    xfail("gather"),
+    xfail("geometric"),
+    xfail("geqrf"),
+    xfail("grid_sampler_2d"),
+    xfail("gradient"),
+    xfail("heaviside"),
+    xfail("histc"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("histogram"),
     xfail("histogramdd"),
     xfail("index_add"),
@@ -229,6 +282,10 @@ dtensor_fails = {
     xfail("linalg.lu_factor_ex"),
     xfail("linalg.lu_solve"),
     xfail("linalg.matrix_power"),
+<<<<<<< HEAD
+=======
+    xfail("linalg.multi_dot"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("linalg.pinv"),
     xfail("linalg.pinv", "hermitian"),
     xfail("linalg.slogdet"),
@@ -255,6 +312,10 @@ dtensor_fails = {
     xfail("masked_select"),
     xfail("masked.argmax"),
     xfail("masked.argmin"),
+<<<<<<< HEAD
+=======
+    xfail("masked.cumprod"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("masked.logsumexp"),
     xfail("masked.median"),
     xfail("matrix_exp"),
@@ -262,6 +323,10 @@ dtensor_fails = {
     xfail("median"),
     xfail("min", "reduction_with_dim"),
     xfail("mode"),
+<<<<<<< HEAD
+=======
+    xfail("msort"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("multinomial"),
     xfail("mv"),
     xfail("max_pool2d_with_indices_backward", ""),
@@ -270,8 +335,16 @@ dtensor_fails = {
     xfail("nanquantile"),
     xfail("nansum"),
     xfail("native_batch_norm"),
+<<<<<<< HEAD
     xfail("narrow_copy"),
     xfail("ne"),
+=======
+    xfail("native_dropout_backward"),
+    xfail("narrow_copy"),
+    xfail("ne"),
+    xfail("new_empty"),
+    xfail("new_empty_strided"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("transpose"),
     xfail("nn.functional.adaptive_avg_pool1d"),
     xfail("nn.functional.adaptive_avg_pool2d"),
@@ -298,6 +371,11 @@ dtensor_fails = {
     xfail("nn.functional.cosine_similarity"),
     xfail("nn.functional.ctc_loss"),
     xfail("nn.functional.dropout"),
+<<<<<<< HEAD
+=======
+    xfail("nn.functional.dropout2d"),
+    xfail("nn.functional.dropout3d"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("nn.functional.elu"),
     xfail("nn.functional.fractional_max_pool2d"),
     xfail("nn.functional.fractional_max_pool3d"),
@@ -314,6 +392,10 @@ dtensor_fails = {
     xfail("nn.functional.interpolate", "nearest"),
     xfail("nn.functional.interpolate", "nearest-exact"),
     xfail("nn.functional.leaky_relu"),
+<<<<<<< HEAD
+=======
+    xfail("nn.functional.linear"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("nn.functional.local_response_norm"),
     xfail("nn.functional.logsigmoid"),
     xfail("nn.functional.margin_ranking_loss"),
@@ -329,8 +411,16 @@ dtensor_fails = {
     xfail("nn.functional.mish"),
     xfail("nn.functional.mse_loss"),
     xfail("nn.functional.multi_margin_loss"),
+<<<<<<< HEAD
     xfail("nn.functional.multilabel_margin_loss"),
     xfail("nn.functional.multilabel_soft_margin_loss"),
+=======
+    xfail("nn.functional.multi_head_attention_forward"),
+    xfail("nn.functional.multilabel_margin_loss"),
+    xfail("nn.functional.multilabel_soft_margin_loss"),
+    xfail("nn.functional.normalize"),
+    xfail("nn.functional.pad", "constant"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("nn.functional.pad", "reflect"),
     xfail("nn.functional.pad", "replicate"),
     xfail("nn.functional.pad", "replicate_negative"),
@@ -379,6 +469,10 @@ dtensor_fails = {
     xfail("rot90"),
     xfail("rsub"),
     xfail("scalar_tensor"),
+<<<<<<< HEAD
+=======
+    xfail("scatter_add"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("scatter_reduce", "amax"),
     xfail("scatter_reduce", "amin"),
     xfail("scatter_reduce", "mean"),
@@ -386,6 +480,10 @@ dtensor_fails = {
     xfail("scatter_reduce", "sum"),
     xfail("searchsorted"),
     xfail("select_scatter"),
+<<<<<<< HEAD
+=======
+    xfail("sort"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("sparse.sampled_addmm"),
     xfail("sparse.mm", "reduce"),
     xfail("special.airy_ai"),
@@ -395,8 +493,11 @@ dtensor_fails = {
     xfail("special.bessel_y1"),
     xfail("special.chebyshev_polynomial_t"),
     xfail("special.chebyshev_polynomial_u"),
+<<<<<<< HEAD
     xfail("special.chebyshev_polynomial_v"),
     xfail("special.chebyshev_polynomial_w"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("special.entr"),
     xfail("special.erfcx"),
     xfail("special.hermite_polynomial_h"),
@@ -405,7 +506,10 @@ dtensor_fails = {
     xfail("special.i1"),
     xfail("special.i1e"),
     xfail("special.laguerre_polynomial_l"),
+<<<<<<< HEAD
     xfail("special.legendre_polynomial_p"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("special.log_ndtr"),
     xfail("special.modified_bessel_i0"),
     xfail("special.modified_bessel_i1"),
@@ -414,10 +518,13 @@ dtensor_fails = {
     xfail("special.ndtri"),
     xfail("special.scaled_modified_bessel_k0"),
     xfail("special.scaled_modified_bessel_k1"),
+<<<<<<< HEAD
     xfail("special.shifted_chebyshev_polynomial_t"),
     xfail("special.shifted_chebyshev_polynomial_u"),
     xfail("special.shifted_chebyshev_polynomial_v"),
     xfail("special.shifted_chebyshev_polynomial_w"),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("special.spherical_bessel_j0"),
     xfail("special.xlog1py"),
     xfail("special.zeta"),
@@ -447,6 +554,11 @@ dtensor_fails = {
     xfail("tensor_split"),
     xfail("to_sparse"),
     xfail("trace"),
+<<<<<<< HEAD
+=======
+    xfail("trapezoid"),
+    xfail("trapz"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xfail("triangular_solve"),
     xfail("unbind"),
     xfail("unbind_copy"),
@@ -505,6 +617,7 @@ dtensor_fails = {
     skip("_segment_reduce", "offsets"),
     # TODO: fix the following ops
     skip("squeeze"),
+<<<<<<< HEAD
     skip("empty"),
     skip("empty_strided"),
     skip("empty_like"),
@@ -520,6 +633,10 @@ dtensor_multi_threaded_fails = {
     xfail("masked.cumprod"),
     skip("nn.functional.multi_head_attention_forward"),
 }
+=======
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Add a list of ops that are currently failing BW pass
 skip_bw = [
@@ -538,6 +655,7 @@ OP_DB_WORLD_SIZE = 4
 DEVICE_TYPE = "cpu"
 
 
+<<<<<<< HEAD
 class TestDTensorOps(TestCase):
     __test__ = False
 
@@ -545,10 +663,14 @@ class TestDTensorOps(TestCase):
         super().__init_subclass__(**kwargs)
         cls.__test__ = True
 
+=======
+class TestDTensorOps(DTensorOpTestBase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def world_size(self) -> int:
         return OP_DB_WORLD_SIZE
 
+<<<<<<< HEAD
     def run_opinfo_test(
         self, dtype, op, requires_grad=True, sample_inputs_filter=lambda s: True
     ):
@@ -560,6 +682,20 @@ class TestDTensorOps(TestCase):
             for sample_input in samples:
                 if not sample_inputs_filter(sample_input):
                     continue
+=======
+    # only allow float dytpe for now, we can relax this constraint
+    # when feel necessary later (i.e when adding quantization support).
+    @suppress_warnings
+    @ops(op_db, allowed_dtypes=(torch.float,))
+    @skipOps("TestDTensorOps", "test_dtensor_op_db", dtensor_fails)
+    def test_dtensor_op_db(self, dtype, op):
+        self.mesh = DeviceMesh(DEVICE_TYPE, torch.arange(self.world_size))
+
+        # test each op with dist tensor inputs and normal inputs
+        def test():
+            samples = op.sample_inputs(DEVICE_TYPE, dtype, requires_grad=True)
+            for sample_input in samples:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 args = [sample_input.input] + list(sample_input.args)
                 kwargs = sample_input.kwargs
 
@@ -596,9 +732,12 @@ class TestDTensorOps(TestCase):
 
             self.assertEqualOnRank(dtensor_r, r)
 
+<<<<<<< HEAD
     def assertEqualOnRank(self, x, y, msg=None, *, rank=0) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run_dtensor_crossref(self, func, args, kwargs):
         to_dtensor = DTensorConverter(self.mesh, args, kwargs)
 
@@ -612,8 +751,12 @@ class TestDTensorOps(TestCase):
                 return res
 
         # TODO: also handle cases where func raise an exception
+<<<<<<< HEAD
         op_args, op_kwargs = reconcile_args(args, kwargs)
         rs = func(*op_args, **op_kwargs)
+=======
+        rs = func(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         rs = concat_res_if_necessary(func, rs)
 
         def to_replicate(e: object) -> object:
@@ -668,12 +811,20 @@ class TestDTensorOps(TestCase):
                         self.assert_ref_dtensor_equal(dtensor_rs, rs)
                     else:
                         raise RuntimeError(
+<<<<<<< HEAD
                             f"Failed to convert args to DTensor; "
+=======
+                            f"failed to convert args to DTensor; "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             f"originally (*{args}, **{kwargs})"
                         )
                 except Exception as e:
                     raise RuntimeError(
+<<<<<<< HEAD
                         f"{str(e)}\n\nFailed to run: {resolve_name(func)}, with (*{dtensor_args}, **{dtensor_kwargs})"
+=======
+                        f"failed to run: {resolve_name(func)}, with (*{dtensor_args}, **{dtensor_kwargs})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ) from e
         return rs
 
@@ -689,6 +840,7 @@ class TestDTensorOps(TestCase):
                 else:
                     print(f"xfail('{opinfo.name}'),")
 
+<<<<<<< HEAD
     def run_one_hot(self):
         ops = [op for op in op_db if op.name == "nn.functional.one_hot"]
         assert len(ops) == 1
@@ -824,6 +976,12 @@ instantiate_device_type_tests(
 )
 
 instantiate_device_type_tests(TestLocalDTensorOps, globals(), only_for=(DEVICE_TYPE,))
+=======
+
+# only instantiate tests for DEVICE_TYPE alone (i.e. either CPU or GPU)
+instantiate_device_type_tests(TestDTensorOps, globals(), only_for=(DEVICE_TYPE,))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

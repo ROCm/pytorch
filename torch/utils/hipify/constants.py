@@ -59,5 +59,9 @@ HIP_UNSUPPORTED = 46
 API_PYTORCH = 1337
 API_CAFFE2 = 1338
 API_C10 = 1339
+<<<<<<< HEAD
 API_PYT_EXT = 1340
 API_ROCMSMI = 1341
+=======
+API_ROCMSMI = 1340
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

@@ -27,7 +27,10 @@ COPY ./common/install_linter.sh install_linter.sh
 RUN bash ./install_linter.sh
 RUN rm install_linter.sh
 
+<<<<<<< HEAD
 RUN chown -R jenkins:jenkins /var/lib/jenkins/ci_env
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 USER jenkins
 CMD ["bash"]

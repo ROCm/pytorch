@@ -128,12 +128,20 @@ void FlightRecorder<EventType>::record_pg_ranks(
 
 template <typename EventType>
 void FlightRecorder<EventType>::record_accelerator_version(
+<<<<<<< HEAD
     const std::string comm_lib_version) {
+=======
+    const std::string nccl_version) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!enabled_) {
     return;
   }
   std::lock_guard<std::mutex> guard(mutex_);
+<<<<<<< HEAD
   comm_lib_version_ = std::move(comm_lib_version);
+=======
+  nccl_version_ = std::move(nccl_version);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <typename EventType>
@@ -250,6 +258,7 @@ void FlightRecorder<EventType>::retire_id(
 }
 
 template <typename EventType>
+<<<<<<< HEAD
 void FlightRecorder<EventType>::reset_all() {
   std::lock_guard<std::mutex> guard(mutex_);
   next_ = 0;
@@ -258,6 +267,8 @@ void FlightRecorder<EventType>::reset_all() {
 }
 
 template <typename EventType>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 const c10::List<c10::IValue> FlightRecorder<EventType>::getCollectiveTrace(
     bool includeStacktraces,
     bool onlyActive) {
@@ -433,7 +444,11 @@ std::string FlightRecorder<EventType>::dump_json(
     bool onlyActive) {
   json result;
   result[version_key_str] = version_val_str;
+<<<<<<< HEAD
   result[comm_lib_version_key_str] = comm_lib_version_;
+=======
+  result[nccl_version_key_str] = nccl_version_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   result[pg_config_key_str] = getPgConfigJson();
   result[pg_status_key_str] = getPgStatusJson();
 
@@ -530,7 +545,11 @@ std::string FlightRecorder<EventType>::dump(
   // common values
   result.insert(version_key, version_val);
   result.insert(pg_config_key, getPgConfig());
+<<<<<<< HEAD
   result.insert(comm_lib_version_key_str, comm_lib_version_);
+=======
+  result.insert(nccl_version_key_str, nccl_version_);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   result.insert(pg_status_key, getPgStatus());
 
   // collective trace

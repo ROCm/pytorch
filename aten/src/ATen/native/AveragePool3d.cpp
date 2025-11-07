@@ -153,7 +153,11 @@ namespace at::native {
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void avg_pool3d_out_frame(
+=======
+static void avg_pool3d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           const scalar_t *input_p,
           scalar_t *output_p,
           int64_t nslices,
@@ -333,7 +337,11 @@ TORCH_IMPL_FUNC(avg_pool3d_out_cpu) (
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void avg_pool3d_backward_out_frame(
+=======
+static void avg_pool3d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           scalar_t *gradInput_p,
           const scalar_t *gradOutput_p,
           int64_t nslices,

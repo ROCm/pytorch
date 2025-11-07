@@ -9,7 +9,11 @@ from torch._dynamo.utils import disable_cache_limit
 from torch._inductor import config
 from torch._inductor.codegen.triton import OpDtypeSupport
 from torch._inductor.test_case import TestCase as InductorTestCase
+<<<<<<< HEAD
 from torch._inductor.utils import run_and_get_code, run_and_get_triton_code, triton_type
+=======
+from torch._inductor.utils import run_and_get_code, run_and_get_triton_code
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.operator_schemas import get_signature_for_torch_op
 from torch.testing import FileCheck
 from torch.testing._internal.common_device_type import instantiate_device_type_tests
@@ -67,14 +71,21 @@ class TestCase(InductorTestCase):
     )
     # @config.patch("triton.codegen_upcast_to_fp32", False) # TODO enable
     @config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
     @config.patch("test_configs.runtime_triton_shape_assert", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("test_configs.static_cpp_dtype_assert", True)
     @disable_cache_limit()
     def test_op_dtype_propagation(self, op, dtype):
         def run(op, args, kwargs):
             return op(*args, **kwargs)
 
+<<<<<<< HEAD
         sample_inputs_itr = op.sample_inputs(GPU_TYPE, dtype, requires_grad=False)
+=======
+        sample_inputs_itr = op.sample_inputs("cuda", dtype, requires_grad=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for sample_input in sample_inputs_itr:
             args = (sample_input.input,) + sample_input.args
             kwargs = sample_input.kwargs
@@ -205,8 +216,11 @@ class TestCase(InductorTestCase):
         # Edge case: torch.round maps to libdevice.nearbyint.
         triton_op_name_overrides = {
             "round": "nearbyint",
+<<<<<<< HEAD
             # torch.sqrt lowers to tl.sqrt_rn after switching away from libdevice.sqrt
             "sqrt": "sqrt_rn",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         override = triton_op_name_overrides.get(op_name)
         triton_op_name = override if override is not None else torch_op_name
@@ -258,13 +272,20 @@ class TestCase(InductorTestCase):
 
     @config.patch("test_configs.static_cpp_dtype_assert", True)
     @config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
     @config.patch("test_configs.runtime_triton_shape_assert", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("triton.codegen_upcast_to_fp32", False)
     def test_downcast_div_mod(self):
         def fn(x, y):
             return x % y, x / y
 
+<<<<<<< HEAD
         x, y = (torch.rand([8], dtype=torch.float16, device=GPU_TYPE) for _ in range(2))
+=======
+        x, y = (torch.rand([8], dtype=torch.float16, device="cuda") for _ in range(2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         out, code = run_and_get_code(torch.compile(fn), x, y)
 
@@ -273,39 +294,60 @@ class TestCase(InductorTestCase):
 
     @config.patch("test_configs.static_cpp_dtype_assert", True)
     @config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
     @config.patch("test_configs.runtime_triton_shape_assert", True)
     def test_constant(self):
         def fn():
             return (torch.full((2, 3), 3.1416, device=GPU_TYPE, dtype=torch.float16),)
+=======
+    def test_constant(self):
+        def fn():
+            return (torch.full((2, 3), 3.1416, device="cuda", dtype=torch.float16),)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         out, code = run_and_get_code(torch.compile(fn))
         FileCheck().check("static_assert").check_same(".dtype").run(code[0])
         self.assertEqual(fn(), out)
 
     @config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
     @config.patch("test_configs.runtime_triton_shape_assert", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("test_configs.static_cpp_dtype_assert", True)
     @config.patch("triton.persistent_reductions", False)
     def test_any(self):
         def fn(x):
             return torch.any(x)
 
+<<<<<<< HEAD
         x = torch.rand([40], device=GPU_TYPE).to(torch.bool)
+=======
+        x = torch.rand([40], device="cuda").to(torch.bool)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out, code = run_and_get_code(torch.compile(fn), x)
         self.assertEqual(fn(x), out)
 
     @config.patch("test_configs.runtime_triton_dtype_assert", True)
+<<<<<<< HEAD
     @config.patch("test_configs.runtime_triton_shape_assert", True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @config.patch("test_configs.static_cpp_dtype_assert", True)
     def test_assoc_scan(self):
         from torch._higher_order_ops.associative_scan import associative_scan
 
+<<<<<<< HEAD
         x = torch.randn(10, device=GPU_TYPE)
+=======
+        x = torch.randn(10, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # dtype check correctly
         associative_scan(
             lambda acc, curr: acc + torch.abs(curr), x, dim=-1, combine_mode="pointwise"
         )
 
+<<<<<<< HEAD
     @parametrize("upcast_to_fp32", (False, True))
     @parametrize("dtype", (torch.float16, torch.bfloat16))
     def test_upcast_rank_0_cpu(self, dtype: torch.dtype, upcast_to_fp32: bool):
@@ -338,6 +380,10 @@ class TestCase(InductorTestCase):
 instantiate_device_type_tests(
     TestCase, globals(), only_for=("cuda", "xpu"), allow_xpu=True
 )
+=======
+
+instantiate_device_type_tests(TestCase, globals(), only_for=("cuda",))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

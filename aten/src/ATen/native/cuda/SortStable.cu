@@ -21,6 +21,7 @@ namespace {
 struct offset_t {
   int stride;
   int begin;
+<<<<<<< HEAD
   __device__ int operator[](int i) const {
     return stride * (begin + i);
   }
@@ -30,6 +31,11 @@ struct offset_t {
     return *this;
   }
 #endif
+=======
+  __device__ int operator[](int i) {
+    return stride * (begin + i);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 // Segmented sort by full sort algorithm:.
 // Say we are sorting a (2, 3) tensor. We have in flattened form:

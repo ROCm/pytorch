@@ -2596,12 +2596,20 @@ class TestBincount(TestCase):
         intp_refcount = sys.getrefcount(np.dtype(np.intp))
         double_refcount = sys.getrefcount(np.dtype(np.double))
 
+<<<<<<< HEAD
         for _ in range(10):
+=======
+        for j in range(10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             np.bincount([1, 2, 3])
         assert_equal(sys.getrefcount(np.dtype(np.intp)), intp_refcount)
         assert_equal(sys.getrefcount(np.dtype(np.double)), double_refcount)
 
+<<<<<<< HEAD
         for _ in range(10):
+=======
+        for j in range(10):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             np.bincount([1, 2, 3], [4, 5, 6])
         assert_equal(sys.getrefcount(np.dtype(np.intp)), intp_refcount)
         assert_equal(sys.getrefcount(np.dtype(np.double)), double_refcount)
@@ -2881,8 +2889,12 @@ class TestPercentile(TestCase):
         np.testing.assert_equal(res.dtype, arr.dtype)
 
     H_F_TYPE_CODES = [
+<<<<<<< HEAD
         (int_type, np.float64)
         for int_type in "Bbhil"  # np.typecodes["AllInteger"]
+=======
+        (int_type, np.float64) for int_type in "Bbhil"  # np.typecodes["AllInteger"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ] + [
         (np.float16, np.float16),
         (np.float32, np.float32),
@@ -3361,42 +3373,70 @@ class TestPercentile(TestCase):
         assert_equal(np.percentile(a, 0.3), np.nan)
         assert_equal(np.percentile(a, 0.3).ndim, 0)
 
+<<<<<<< HEAD
         # axis0 zeroed
+=======
+        # axis0 zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(np.arange(24, dtype=float).reshape(2, 3, 4), 0.3, 0)
         b[2, 3] = np.nan
         b[1, 2] = np.nan
         assert_equal(np.percentile(a, 0.3, 0), b)
 
+<<<<<<< HEAD
         # axis0 not zeroed
+=======
+        # axis0 not zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(np.arange(24, dtype=float).reshape(2, 3, 4), [0.3, 0.6], 0)
         b[:, 2, 3] = np.nan
         b[:, 1, 2] = np.nan
         assert_equal(np.percentile(a, [0.3, 0.6], 0), b)
 
+<<<<<<< HEAD
         # axis1 zeroed
+=======
+        # axis1 zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(np.arange(24, dtype=float).reshape(2, 3, 4), 0.3, 1)
         b[1, 3] = np.nan
         b[1, 2] = np.nan
         assert_equal(np.percentile(a, 0.3, 1), b)
+<<<<<<< HEAD
         # axis1 not zeroed
+=======
+        # axis1 not zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(np.arange(24, dtype=float).reshape(2, 3, 4), [0.3, 0.6], 1)
         b[:, 1, 3] = np.nan
         b[:, 1, 2] = np.nan
         assert_equal(np.percentile(a, [0.3, 0.6], 1), b)
 
+<<<<<<< HEAD
         # axis02 zeroed
+=======
+        # axis02 zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(np.arange(24, dtype=float).reshape(2, 3, 4), 0.3, (0, 2))
         b[1] = np.nan
         b[2] = np.nan
         assert_equal(np.percentile(a, 0.3, (0, 2)), b)
+<<<<<<< HEAD
         # axis02 not zeroed
+=======
+        # axis02 not zerod
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(
             np.arange(24, dtype=float).reshape(2, 3, 4), [0.3, 0.6], (0, 2)
         )
         b[:, 1] = np.nan
         b[:, 2] = np.nan
         assert_equal(np.percentile(a, [0.3, 0.6], (0, 2)), b)
+<<<<<<< HEAD
         # axis02 not zeroed with method='nearest'
+=======
+        # axis02 not zerod with method='nearest'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         b = np.percentile(
             np.arange(24, dtype=float).reshape(2, 3, 4),
             [0.3, 0.6],

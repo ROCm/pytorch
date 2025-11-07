@@ -99,7 +99,11 @@ inline void check_gradout_shape_nll_loss2d(
 
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void nll_loss2d_forward_out_frame(
+=======
+static void nll_loss2d_forward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& output,
     Tensor& total_weight,
     const Tensor& input,
@@ -280,7 +284,11 @@ void nll_loss2d_forward_out_cpu_template(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void nll_loss2d_backward_out_frame(
+=======
+static void nll_loss2d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& grad_input,
     const Tensor& grad_output,
     const Tensor& input,

@@ -42,11 +42,19 @@
 
 #  Args passed via stack.
 #  TOS
+<<<<<<< HEAD
 #  |------------|
 #  |c_stride    | 0
 #  |out ch index| 8
 #  |params      | 16
 #  |------------|
+=======
+#  |-----------|
+#  |c_stride   | 0
+#  |out ch indx| 8
+#  |params     | 16
+#  |-----------|
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # void pytorch_q8gemm_dq_sparse_1x4_ukernel_8x8_packedA_w##W_INDEX_DTYPE_NUM_BITS##__aarch64_neon(
 #     size_t mr,
@@ -234,7 +242,11 @@
         /* v16, v17, v18, v19, v20, v21, v22, v23 */                         XX\
         /* When nr < 8, say nr = 1, extra v values will be fetched from stack which may overlap */ XX\
         /* with other parts of stack storing local variables. To avoid that we just */ XX\
+<<<<<<< HEAD
         /* create a buffer of 256 bytes in between to make sure pointer increment */ XX\
+=======
+        /* create a buffer of 256 bytes inbetween to make sure pointer increment */ XX\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         /* never produces address that is beyond the stack frame of this function. */ XX\
         SUB x9, sp, 320                                                      XX\
         /* Each iteration produce 8 values each of 4 bytes */                XX\
@@ -287,7 +299,11 @@
         LD1 {v22.4s}, [x9], 16                                               XX\
         LD1 {v23.4s}, [x9]                                                   XX\
                                                                              XX\
+<<<<<<< HEAD
         /* We can transpose one 4x4 block using macro */                     XX\
+=======
+        /* We can tranpose one 4x4 block using macro */                      XX\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         /* TRANSPOSE_4X4_S32 v8, v10, v12, v14, v0, v1, v2, v3 */            XX\
         /* After this we have */                                             XX\
         /* v8  : x00, x01, x02, x03 */                                       XX\
@@ -302,7 +318,11 @@
         /* v20 : x24, x25, x26, x27 */                                       XX\
         /* v22 : x34, x35, x36, x37 */                                       XX\
         /* Similarly we can transpose other two 4x4 blocks and we get */     XX\
+<<<<<<< HEAD
         /* transposed 8x8 */                                                 XX\
+=======
+        /* tranposed 8x8 */                                                  XX\
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                                                              XX\
         TRANSPOSE_4X4_S32 v8, v10, v12, v14, v0, v1, v2, v3                  XX\
         TRANSPOSE_4X4_S32 v16, v18, v20, v22, v4, v5, v6, v7                 XX\

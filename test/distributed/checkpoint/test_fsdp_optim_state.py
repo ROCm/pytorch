@@ -1,7 +1,10 @@
 # Owner(s): ["oncall: distributed"]
 
 import torch
+<<<<<<< HEAD
 import torch.distributed as dist
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import torch.distributed.checkpoint as dcp
 import torch.nn as nn
 from torch.distributed._shard.sharded_tensor.api import ShardedTensor
@@ -29,9 +32,14 @@ class FsdpOptimStateCheckpoint(DTensorTestBase):
         layer3_weight_dim = self.world_size * 3
 
         class TestDummyModel(torch.nn.Module):
+<<<<<<< HEAD
             def __init__(self, device_type) -> None:
                 super().__init__()
                 self.device_type = device_type
+=======
+            def __init__(self) -> None:
+                super().__init__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.net1 = nn.Sequential(nn.Linear(8, layer1_weight_dim), nn.ReLU())
                 self.net2 = nn.Sequential(
                     nn.Linear(layer1_weight_dim, layer2_weight_dim), nn.ReLU()
@@ -44,18 +52,31 @@ class FsdpOptimStateCheckpoint(DTensorTestBase):
                 return self.net3(self.net2(self.net1(x)))
 
             def get_input(self):
+<<<<<<< HEAD
                 return torch.rand(8, 8, device=self.device_type)
 
         model = TestDummyModel(self.device_type).to(self.device_type)
+=======
+                return torch.rand(8, 8, device="cuda")
+
+        model = TestDummyModel().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return model
 
     @property
     def backend(self):
+<<<<<<< HEAD
         curr_backend = dist.get_default_backend_for_device(self.device_type)
         return f"cpu:gloo,{self.device_type}:{curr_backend}"
 
     @skip_if_lt_x_gpu(2)
     @with_comms
+=======
+        return "cpu:gloo,cuda:nccl"
+
+    @with_comms
+    @skip_if_lt_x_gpu(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @with_temp_dir
     @parametrize("pass_planner", [True, False])
     def test_load_sharded_optimizer_state_dict(self, pass_planner) -> None:

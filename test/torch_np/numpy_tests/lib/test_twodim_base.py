@@ -1,7 +1,13 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 """Test functions for matrix module"""
 
+=======
+"""Test functions for matrix module
+
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 from unittest import expectedFailure as xfail, skipIf as skipif
 

@@ -19,18 +19,30 @@ def mark_mixed_dtype(computation_node):
     if computation_node_dtype not in (torch.float16, torch.bfloat16):
         return
 
+<<<<<<< HEAD
     if len(computation_node.users) != 1:
+=======
+    if not len(computation_node.users) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     computation_node_user = next(iter(computation_node.users.keys()))
     if not isinstance(computation_node_user.meta["val"], torch.Tensor):
         return
 
+<<<<<<< HEAD
     if computation_node_user.meta["val"].dtype != torch.float32:
         return
 
     while computation_node_user.target in _binary_ops:
         if len(computation_node_user.users) != 1:
+=======
+    if not computation_node_user.meta["val"].dtype == torch.float32:
+        return
+
+    while computation_node_user.target in _binary_ops:
+        if not len(computation_node_user.users) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         computation_node_user = next(iter(computation_node_user.users.keys()))
@@ -188,7 +200,11 @@ def binary_folding_init():
         ):
             return False
 
+<<<<<<< HEAD
         if len(conv_node.args[1].users) != 1:
+=======
+        if not len(conv_node.args[1].users) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         weight_meta_value = conv_node.args[1].meta.get("val")
@@ -242,7 +258,11 @@ def binary_folding_init():
         ):
             return False
 
+<<<<<<< HEAD
         if len(weight_node.users) != 1:
+=======
+        if not len(weight_node.users) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         weight_meta_value = weight_node.meta.get("val")

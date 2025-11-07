@@ -241,16 +241,26 @@ class _ReferenceConvBnNd(torch.nn.Conv2d, torch.nn.modules.conv._ConvNd):
         Args: `mod` a float module, either produced by torch.ao.quantization utilities
         or directly from user
         """
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "qat."
             + cls.__name__
             + ".from_float only works for "
             + cls._FLOAT_MODULE.__name__
         )
         if not qconfig:
+<<<<<<< HEAD
             assert hasattr(mod, "qconfig"), (
                 "Input float module must have qconfig defined"
             )
+=======
+            assert hasattr(
+                mod, "qconfig"
+            ), "Input float module must have qconfig defined"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert mod.qconfig, "Input float module must have a valid qconfig"
             qconfig = mod.qconfig
         conv, bn = mod[0], mod[1]
@@ -1264,8 +1274,13 @@ class TestQuantizeEagerQATNumerics(QuantizationTestCase):
         mp = prepare_qat(m)
         mp(data)
         mq = convert(mp)
+<<<<<<< HEAD
         self.assertTrue(type(mq[1]) is nnq.Linear)
         self.assertTrue(type(mq[2]) is nn.Identity)
+=======
+        self.assertTrue(type(mq[1]) == nnq.Linear)
+        self.assertTrue(type(mq[2]) == nn.Identity)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfNoXNNPACK
     @override_qengines

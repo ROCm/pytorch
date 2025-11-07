@@ -61,9 +61,14 @@
 #include <c10/core/SymIntArrayRef.h>
 #include <utility>
 #include <vector>
+<<<<<<< HEAD
 #include <iostream>
 
 static constexpr int MIOPEN_DIM_MAX = 5;
+=======
+
+static const int MIOPEN_DIM_MAX = 5;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::meta {
 
@@ -93,7 +98,11 @@ namespace {
              arg_name, " should contain ", expected, " elements not ", actual);
   }
 
+<<<<<<< HEAD
   inline Tensor repeat_if_defined(const Tensor& t, const SymInt& repeat) {
+=======
+  static inline Tensor repeat_if_defined(const Tensor& t, const SymInt& repeat) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (t.defined()) {
       return t.repeat_symint(repeat);
     }
@@ -495,8 +504,11 @@ static std::tuple<Tensor, Tensor, Tensor> batch_norm_backward_cpu_template(
   return std::make_tuple(grad_input, grad_weight, grad_bias);
 }
 
+<<<<<<< HEAD
 static bool PYTORCH_MIOPEN_EXTRA_LOGGING = c10::utils::check_env("PYTORCH_MIOPEN_EXTRA_LOGGING").value_or(false);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BatchNormBackend _select_batch_norm_backend(
     const Tensor& input, const Tensor& weight, const Tensor& bias, const Tensor& running_mean,
     const Tensor& running_var, bool training, double eps) {
@@ -504,6 +516,7 @@ BatchNormBackend _select_batch_norm_backend(
   auto& ctx = at::globalContext();
   bool cudnn_enabled = ctx.userEnabledCuDNN();
 
+<<<<<<< HEAD
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std::cout
       << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _select_batch_norm_backend"
@@ -517,6 +530,8 @@ BatchNormBackend _select_batch_norm_backend(
       << " input.dim=" << input.dim()
       << std::endl;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (
       input.is_cuda()
       && input.scalar_type() != at::kBFloat16 && weight.scalar_type() != at::kBFloat16
@@ -537,6 +552,7 @@ BatchNormBackend _select_batch_norm_backend(
   }
 
   // TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM once ROCm officially supports NHWC in MIOpen
+<<<<<<< HEAD
   // See https://github.com/pytorch/pytorch/issues/64427.
   // non static variable is used to be able to change environment variable in runtime for testing
   // enabled by default for ROCm >= 7.0.0 with miopen 3.5
@@ -544,6 +560,12 @@ BatchNormBackend _select_batch_norm_backend(
   bool is_miopen_3_4 = miopen_version >= 30400;  // ROCm 6.4
   bool is_miopen_3_5 = miopen_version >= 30500;  // ROCm 7.0
   bool PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM = c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM").value_or(is_miopen_3_5);
+=======
+  // See #64427
+  // non static variable is used to be able to change environment variable in runtime for testing
+  // enabled by default for ROCm >= 7.0.0
+  bool PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM = c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM").value_or(ROCM_VERSION >= 70000);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (
       detail::getCUDAHooks().compiledWithMIOpen()
@@ -552,15 +574,30 @@ BatchNormBackend _select_batch_norm_backend(
       && input.dim() <= MIOPEN_DIM_MAX
       && input.dim() >= 3
       && input.scalar_type() != at::kDouble
+<<<<<<< HEAD
       && (is_miopen_3_4 || input.scalar_type() != at::kBFloat16)
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION < 60400)
+      && (input.scalar_type() != at::kBFloat16)
+#endif
+      && (detail::getCUDAHooks().versionMIOpen() >= 30400 || input.scalar_type() != at::kBFloat16)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       && weight.scalar_type() == at::kFloat // only FP32 weight for FP32 or FP16/BF16(mixed) input
       && weight.defined() && bias.defined()
       && ((running_mean.defined() && running_var.defined())
         || (!running_mean.defined() && !running_var.defined() && training))
       && (input.suggest_memory_format() == MemoryFormat::Contiguous
+<<<<<<< HEAD
           || (is_miopen_3_5 && PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM &&
               (input.suggest_memory_format() == MemoryFormat::ChannelsLast
                || input.suggest_memory_format() == MemoryFormat::ChannelsLast3d)))
+=======
+#if (defined(USE_ROCM) && ROCM_VERSION >= 60500)
+        || (input.suggest_memory_format() == MemoryFormat::ChannelsLast && PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM)
+        || (input.suggest_memory_format() == MemoryFormat::ChannelsLast3d && PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM)
+#endif
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ) {
     return BatchNormBackend::Miopen;
   }
@@ -578,6 +615,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
     const Tensor& input, const std::optional<Tensor>& weight_opt /* optional */, const std::optional<Tensor>& bias_opt /* optional */, const std::optional<Tensor>& running_mean_opt /* optional */, const std::optional<Tensor>& running_var_opt /* optional */,
     bool training, double momentum, double eps, bool cudnn_enabled) {
   // See [Note: hacky wrapper removal for optional tensor]
+<<<<<<< HEAD
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std::cout
       << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index"
@@ -592,6 +630,8 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
       << " cudnn_enabled=" << cudnn_enabled
       << std::endl;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
   const Tensor& weight = *weight_maybe_owned;
   const Tensor& bias = bias_opt.value_or(Tensor());
@@ -651,6 +691,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
 
   Tensor reserve = at::empty({0}, input.options().dtype(kByte));
 
+<<<<<<< HEAD
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std::cout
             << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (use_miopen)"
@@ -674,6 +715,12 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
                input.contiguous(input.suggest_memory_format()),
                weight.contiguous(),
                bias.contiguous(),
+=======
+  if (backend == BatchNormBackend::Miopen) {
+    return std::tuple_cat(
+             at::miopen_batch_norm(
+               input.contiguous(input.suggest_memory_format()), weight.contiguous(), bias.contiguous(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                running_mean.defined() ? running_mean.contiguous() : running_mean,
                running_var.defined() ? running_var.contiguous() : running_var,
                training, momentum, eps),
@@ -681,9 +728,12 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
              std::make_tuple(2));
   }
 
+<<<<<<< HEAD
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std::cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index (calling native_batch_norm)" << std::endl;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::tuple_cat(
            at::native_batch_norm(
              input, weight, bias, running_mean, running_var, training, momentum, eps),
@@ -696,8 +746,11 @@ std::tuple<Tensor, Tensor, Tensor> _batch_norm_impl_index_backward(
     const Tensor& input, const Tensor& grad_output, const std::optional<Tensor>& weight_opt /* optional */, const std::optional<Tensor>& running_mean_opt /* optional */, const std::optional<Tensor>& running_var_opt /* optional */, const std::optional<Tensor>& save_mean_opt /* optional */, const std::optional<Tensor>& save_var_transform_opt /* optional */,
     bool train, double epsilon, std::array<bool, 3> output_mask, const Tensor &reservedSpace) {
   // See [Note: hacky wrapper removal for optional tensor]
+<<<<<<< HEAD
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std :: cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index_backward" << std::endl;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::MaybeOwned<Tensor> weight_maybe_owned = at::borrow_from_optional_tensor(weight_opt);
   const Tensor& weight = *weight_maybe_owned;
   const Tensor& running_mean = running_mean_opt.value_or(Tensor());
@@ -728,16 +781,22 @@ std::tuple<Tensor, Tensor, Tensor> _batch_norm_impl_index_backward(
 
   // backward in inference mode is not supported in cudnn, fallback to native
   if (impl_index == 0 || (!train)) {
+<<<<<<< HEAD
     if (PYTORCH_MIOPEN_EXTRA_LOGGING)
       std :: cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index_backward (calling native_batch_norm_backward)" << std::endl;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return at::native_batch_norm_backward(grad_output, input, weight, running_mean, running_var, save_mean, save_var_transform, train, epsilon, output_mask);
   } else if (impl_index == 1) {
     // TODO: _batch_norm_impl_index_backward is only used in JIT. cudnn NHWC
     // format conversion is done inside cudnn_batch_norm_backward instead
     return at::cudnn_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon, reservedSpace);
   } else if (impl_index == 2) {
+<<<<<<< HEAD
     if (PYTORCH_MIOPEN_EXTRA_LOGGING)
       std :: cout << "PYTORCH_MIOPEN_EXTRA_LOGGING: ********************* _batch_norm_impl_index_backward (calling miopen_batch_norm_backward)" << std::endl;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return at::miopen_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
   }
   TORCH_INTERNAL_ASSERT(false, "Unsupported impl_index in _batch_norm_impl_index_backward: ", impl_index);
@@ -748,6 +807,7 @@ Tensor batch_norm(
     const Tensor& input, const std::optional<Tensor>& weight_opt, const std::optional<Tensor>& bias_opt,
     const std::optional<Tensor>& running_mean_opt, const std::optional<Tensor>& running_var_opt,
     bool training, double momentum, double eps, bool cudnn_enabled) {
+<<<<<<< HEAD
 
   if (PYTORCH_MIOPEN_EXTRA_LOGGING)
     std :: cout
@@ -763,11 +823,16 @@ Tensor batch_norm(
       << " cudnn_enabled=" << cudnn_enabled
       << std::endl;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const Tensor& weight = weight_opt.value_or(Tensor());
   const Tensor& bias = bias_opt.value_or(Tensor());
   const Tensor& running_mean = running_mean_opt.value_or(Tensor());
   const Tensor& running_var = running_var_opt.value_or(Tensor());
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return std::get<0>(at::_batch_norm_impl_index(input, weight, bias, running_mean, running_var,
                                                 training, momentum, eps, cudnn_enabled));
   // TODO: switch to the new stack after the 2 week FC window

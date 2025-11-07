@@ -1,6 +1,10 @@
 import re
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Union
+=======
+from typing import Any, Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.utils._pytree import tree_flatten_with_path, tree_map

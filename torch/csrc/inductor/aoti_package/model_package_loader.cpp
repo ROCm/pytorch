@@ -9,10 +9,15 @@
 #include <fmt/format.h>
 #include <miniz.h>
 #include <nlohmann/json.hpp>
+<<<<<<< HEAD
 #include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <regex>
+=======
+#include <fstream>
+#include <iostream>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef _WIN32
 #include <dirent.h>
@@ -24,7 +29,10 @@ namespace fs = std::filesystem;
 
 // TODO: C++17 has the filesystem header, which may replace these
 #ifdef _WIN32
+<<<<<<< HEAD
 #include <Windows.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // On Windows, the POSIX implementations are considered deprecated. We simply
 // map to the newer variant.
 #include <direct.h>
@@ -38,6 +46,7 @@ namespace fs = std::filesystem;
 #endif
 
 namespace {
+<<<<<<< HEAD
 
 const std::string k_separator = "/";
 
@@ -79,6 +88,8 @@ std::string normalize_path_separator(const std::string& orig_path) {
   return normalized_path;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool file_exists(const std::string& path) {
 #ifdef _WIN32
   return fs::exists(path);
@@ -90,6 +101,7 @@ bool file_exists(const std::string& path) {
 
 std::string create_temp_dir() {
 #ifdef _WIN32
+<<<<<<< HEAD
   try {
     fs::path temp_dir = fs::temp_directory_path();
     return temp_dir.string();
@@ -106,10 +118,21 @@ std::string create_temp_dir() {
       mkdtemp(temp_dir.data()) != nullptr,
       "Failed to create temporary directory: ",
       c10::utils::str_error(errno));
+=======
+  throw std::runtime_error("Not implemented");
+#else
+  std::string temp_dir = "/tmp/XXXXXX";
+  if (mkdtemp(temp_dir.data()) == nullptr) {
+    throw std::runtime_error(
+        std::string("Failed to create temporary directory: ") +
+        c10::utils::str_error(errno));
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return temp_dir;
 #endif
 }
 
+<<<<<<< HEAD
 const char* object_file_ext() {
 #ifdef _WIN32
   return ".obj";
@@ -149,13 +172,26 @@ bool _is_windows_os() {
   return false;
 #endif
 }
+=======
+#ifdef _WIN32
+const std::string k_separator = "\\";
+#else
+const std::string k_separator = "/";
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 namespace torch::inductor {
 
 namespace {
 const nlohmann::json& load_json_file(const std::string& json_path) {
+<<<<<<< HEAD
   TORCH_CHECK(file_exists(json_path), "File not found: ", json_path);
+=======
+  if (!file_exists(json_path)) {
+    throw std::runtime_error("File not found: " + json_path);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::ifstream json_file(json_path);
   TORCH_CHECK(json_file.is_open());
@@ -166,23 +202,37 @@ const nlohmann::json& load_json_file(const std::string& json_path) {
 }
 
 std::tuple<std::string, std::string> get_cpp_compile_command(
+<<<<<<< HEAD
     const std::string& arg_filename,
+=======
+    const std::string& filename,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::vector<std::string>& sources,
     const nlohmann::json& compile_options,
     const std::string& output_dir = "") {
   // Construct the cpp command
+<<<<<<< HEAD
   auto filename = normalize_path_separator(arg_filename);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::string compiler = compile_options["compiler"].get<std::string>();
   bool compile_only = compile_options["compile_only"].get<bool>();
 
   std::string source_args;
   for (const std::string& source : sources) {
+<<<<<<< HEAD
     source_args += normalize_path_separator(source) + " ";
   }
 
   std::string file_ext =
       compile_only ? object_file_ext() : extension_file_ext();
+=======
+    source_args += source + " ";
+  }
+
+  std::string file_ext = compile_only ? ".o" : ".so";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::string target_file = output_dir + filename + file_ext;
   std::string target_dir = output_dir;
   if (target_dir.empty()) {
@@ -192,42 +242,63 @@ std::tuple<std::string, std::string> get_cpp_compile_command(
 
   std::string cflags_args;
   for (auto& arg : compile_options["cflags"]) {
+<<<<<<< HEAD
     // [Windows compiler need it] convert first char arg to std::string, for
     // following plus(+) strings.
     cflags_args += std::string(_is_windows_os() ? "/" : "-") +
         arg.get<std::string>() + " ";
+=======
+    cflags_args += "-" + arg.get<std::string>() + " ";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::string definitions_args;
   for (auto& arg : compile_options["definitions"]) {
+<<<<<<< HEAD
     definitions_args += std::string(_is_windows_os() ? "/D" : "-D ") +
         arg.get<std::string>() + " ";
+=======
+    definitions_args += "-D " + arg.get<std::string>() + " ";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::string include_dirs_args;
   for (auto& arg : compile_options["include_dirs"]) {
+<<<<<<< HEAD
     include_dirs_args += std::string(_is_windows_os() ? "/I" : "-I") +
         arg.get<std::string>() + " ";
+=======
+    include_dirs_args += "-I" + arg.get<std::string>() + " ";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::string ldflags_args;
   for (auto& arg : compile_options["ldflags"]) {
+<<<<<<< HEAD
     ldflags_args += std::string(_is_windows_os() ? "/" : "-") +
         arg.get<std::string>() + " ";
+=======
+    ldflags_args += "-" + arg.get<std::string>() + " ";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::string libraries_dirs_args;
   for (auto& arg : compile_options["libraries_dirs"]) {
+<<<<<<< HEAD
     if (_is_windows_os()) {
       libraries_dirs_args +=
           fmt::format("/LIBPATH:\"{}\"", arg.get<std::string>()) + " ";
     } else {
       libraries_dirs_args += "-L" + arg.get<std::string>() + " ";
     }
+=======
+    libraries_dirs_args += "-L" + arg.get<std::string>() + " ";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   std::string libraries_args;
   for (auto& arg : compile_options["libraries"]) {
+<<<<<<< HEAD
     if (_is_windows_os()) {
       libraries_args += fmt::format("{}.lib", arg.get<std::string>()) + " ";
     } else {
@@ -288,6 +359,39 @@ std::tuple<std::string, std::string> get_cpp_compile_command(
           " {} {} {}", ldflags_args, libraries_args, libraries_dirs_args);
     }
   }
+=======
+    libraries_args += "-l" + arg.get<std::string>() + " ";
+  }
+
+  std::string passthrough_parameters_args;
+  for (auto& arg : compile_options["passthrough_args"]) {
+    std::string arg_str = arg.get<std::string>();
+    std::string target = "script.ld";
+    std::string replacement = target_dir;
+    replacement.append(k_separator).append(target);
+    size_t pos = arg_str.find(target);
+    if (pos != std::string::npos) {
+      arg_str.replace(pos, target.length(), replacement);
+    }
+    passthrough_parameters_args += arg_str + " ";
+  }
+
+  std::string compile_only_arg = compile_only ? "-c" : "";
+
+  std::string cmd = fmt::format(
+      "{} {} {} {} {} {} {} {} {} {} -o {}",
+      compiler,
+      source_args,
+      definitions_args,
+      cflags_args,
+      include_dirs_args,
+      passthrough_parameters_args,
+      ldflags_args,
+      libraries_args,
+      libraries_dirs_args,
+      compile_only_arg,
+      target_file);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return std::make_tuple(cmd, target_file);
 }
@@ -396,15 +500,24 @@ std::string compile_so(
   size_t lastindex = cpp_filename.find_last_of('.');
   std::string filename = cpp_filename.substr(0, lastindex);
 
+<<<<<<< HEAD
   std::string compile_flags_path =
       normalize_path_separator(filename + "_compile_flags.json");
+=======
+  std::string compile_flags_path = filename + "_compile_flags.json";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const nlohmann::json compile_flags = load_json_file(compile_flags_path);
 
   auto [compile_cmd, output_o] =
       get_cpp_compile_command(filename, {cpp_filename}, compile_flags);
 
+<<<<<<< HEAD
   std::string linker_flags_path = normalize_path_separator(
       cpp_filename.substr(0, lastindex) + "_linker_flags.json");
+=======
+  std::string linker_flags_path =
+      cpp_filename.substr(0, lastindex) + "_linker_flags.json";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const nlohmann::json linker_flags = load_json_file(linker_flags_path);
 
   obj_filenames.push_back(output_o);
@@ -412,25 +525,48 @@ std::string compile_so(
       get_cpp_compile_command(filename, obj_filenames, linker_flags);
 
   // Run the commands to generate a .so file
+<<<<<<< HEAD
   TORCH_CHECK(system(compile_cmd.c_str()) == 0, "Failed to compile cpp file.");
   TORCH_CHECK(system(link_cmd.c_str()) == 0, "Failed to link files.");
+=======
+  int status = system(compile_cmd.c_str());
+  if (status != 0) {
+    throw std::runtime_error("Failed to compile cpp file.");
+  }
+  status = system(link_cmd.c_str());
+  if (status != 0) {
+    throw std::runtime_error("Failed to link files.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Move the mmapped weights onto the .so
   std::string serialized_weights_path = filename + "_serialized_weights.bin";
   if (file_exists(serialized_weights_path)) {
     std::ifstream serialized_weights_file(
         serialized_weights_path, std::ios::binary);
+<<<<<<< HEAD
     TORCH_CHECK(
         serialized_weights_file.is_open(),
         "Failed to open serialized weights file");
 
+=======
+    if (!serialized_weights_file.is_open()) {
+      throw std::runtime_error("Failed to open serialized weights file");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<char> serialized_weights(
         (std::istreambuf_iterator<char>(serialized_weights_file)),
         std::istreambuf_iterator<char>());
     serialized_weights_file.close();
 
     std::ofstream output_so_file(output_so, std::ios::binary | std::ios::app);
+<<<<<<< HEAD
     TORCH_CHECK(output_so_file.is_open(), "Failed to open output .so file");
+=======
+    if (!output_so_file.is_open()) {
+      throw std::runtime_error("Failed to open output .so file");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Page align the weights
     std::streampos so_size = output_so_file.tellp();
     std::vector<char> padding(16384 - so_size % 16384, ' ');
@@ -444,6 +580,7 @@ std::string compile_so(
 
   return output_so;
 }
+<<<<<<< HEAD
 
 std::unordered_set<std::string> find_model_names(
     const std::vector<std::string>& paths) {
@@ -466,6 +603,8 @@ std::unordered_set<std::string> find_model_names(
   return model_names;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 void AOTIModelPackageLoader::load_metadata(const std::string& cpp_filename) {
@@ -481,6 +620,7 @@ void AOTIModelPackageLoader::load_metadata(const std::string& cpp_filename) {
   }
 }
 
+<<<<<<< HEAD
 class RAIIMinizArchive {
  public:
   RAIIMinizArchive(const std::string& zip_path) {
@@ -662,6 +802,8 @@ std::unordered_map<std::string, std::string> AOTIModelPackageLoader::
   return metadata;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AOTIModelPackageLoader::AOTIModelPackageLoader(
     const std::string& model_package_path,
     const std::string& model_name,
@@ -669,6 +811,7 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
     const size_t num_runners,
     const c10::DeviceIndex device_index) {
   if (run_single_threaded) {
+<<<<<<< HEAD
     TORCH_CHECK(
         num_runners == 1,
         "num_runners must be 1 when run_single_threaded is true");
@@ -682,6 +825,49 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
   RAIIMinizArchive zip_archive{model_package_path};
   auto found_filenames{zip_archive.get_filenames()};
   TORCH_CHECK(!found_filenames.empty(), "No files found in zip archive.");
+=======
+    if (num_runners != 1) {
+      throw std::runtime_error(
+          "num_runners must be 1 when run_single_threaded is true");
+    }
+  } else {
+    if (num_runners < 1) {
+      throw std::runtime_error(
+          "num_runners must be >=1 when run_single_threaded is false");
+    }
+  }
+
+  // Extract all files within the zipfile to a temporary directory
+  mz_zip_archive zip_archive;
+  memset(&zip_archive, 0, sizeof(zip_archive));
+
+  if (!mz_zip_reader_init_file(&zip_archive, model_package_path.c_str(), 0)) {
+    throw std::runtime_error(
+        std::string("Failed to initialize zip archive: ") +
+        mz_zip_get_error_string(mz_zip_get_last_error(&zip_archive)));
+  }
+
+  std::vector<std::string> found_filenames;
+  for (uint32_t i = 0; i < zip_archive.m_total_files; i++) {
+    uint32_t filename_len =
+        mz_zip_reader_get_filename(&zip_archive, i, nullptr, 0);
+    if (filename_len == 0) {
+      throw std::runtime_error("Failed to read filename");
+    }
+    // filename_len returned by mz_zip_reader_get_filename includes the null
+    // terminator, so we need to subtract 1 here
+    std::string filename_str(filename_len - 1, '\0');
+    if (!mz_zip_reader_get_filename(
+            &zip_archive, i, filename_str.data(), filename_len)) {
+      throw std::runtime_error("Failed to read filename");
+    }
+    found_filenames.push_back(filename_str);
+  }
+
+  if (found_filenames.empty()) {
+    throw std::runtime_error("No files found in zip archive.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // All the paths are prepended with a tmp/ directory. We need to find the
   // prefix.
@@ -700,6 +886,7 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
         << found_filenames[1];
   }
 
+<<<<<<< HEAD
   temp_dir_ = normalize_path_separator(create_temp_dir());
 
   std::string so_filename;
@@ -731,6 +918,34 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
         std::string filename = cur_filename;
         if (lastSlash != std::string::npos) {
           filename = cur_filename.substr(lastSlash + 1);
+=======
+  temp_dir_ = create_temp_dir();
+
+  std::string so_filename;
+  std::string cpp_filename;
+  std::vector<std::string> obj_filenames;
+  std::string model_directory = file_prefix + "data" + k_separator +
+      "aotinductor" + k_separator + model_name;
+  std::string const_directory =
+      file_prefix + "data" + k_separator + "constants";
+
+  for (const std::string& filename_str : found_filenames) {
+    // Only compile files in the specified model directory
+    if (c10::starts_with(filename_str, model_directory) ||
+        c10::starts_with(filename_str, const_directory)) {
+      std::string output_path_str = temp_dir_;
+
+      if (c10::starts_with(filename_str, model_directory)) {
+        output_path_str += k_separator;
+        output_path_str += filename_str;
+      } else { // startsWith(filename_str, const_directory)
+        // Extract constants to the same directory as the rest of the files
+        // to be consistent with internal implementation
+        size_t lastSlash = filename_str.find_last_of(k_separator);
+        std::string filename = filename_str;
+        if (lastSlash != std::string::npos) {
+          filename = filename_str.substr(lastSlash + 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         output_path_str.append(k_separator)
             .append(model_directory)
@@ -738,6 +953,7 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
             .append(filename);
       }
 
+<<<<<<< HEAD
       std::string output_file_path = normalize_path_separator(output_path_str);
       LOG(INFO) << "Extract file: " << zip_filename_str << " to "
                 << output_file_path;
@@ -770,16 +986,61 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
           so_filename = output_file_path;
         } else if (filename_extension == ".blob") {
           weight_blob_filename = output_file_path;
+=======
+      LOG(INFO) << "Extract file: " << filename_str << " to "
+                << output_path_str;
+
+      // Create the parent directory if it doesn't exist
+      size_t parent_path_idx = output_path_str.find_last_of(k_separator);
+      if (parent_path_idx == std::string::npos) {
+        throw std::runtime_error(
+            "Failed to find parent path in " + output_path_str);
+      }
+      std::string parent_path = output_path_str.substr(0, parent_path_idx);
+      if (!recursive_mkdir(parent_path)) {
+        throw std::runtime_error(fmt::format(
+            "Failed to create directory {}: {}",
+            parent_path,
+            c10::utils::str_error(errno)));
+      }
+
+      // Extracts file to the temp directory
+      mz_zip_reader_extract_file_to_file(
+          &zip_archive, filename_str.c_str(), output_path_str.c_str(), 0);
+
+      // Save the file for bookkeeping
+      size_t extension_idx = output_path_str.find_last_of('.');
+      if (extension_idx != std::string::npos) {
+        std::string filename_extension = output_path_str.substr(extension_idx);
+        if (filename_extension == ".cpp") {
+          cpp_filename = output_path_str;
+        } else if (filename_extension == ".o") {
+          obj_filenames.push_back(output_path_str);
+        } else if (filename_extension == ".so") {
+          so_filename = output_path_str;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
       }
     }
   }
 
+<<<<<<< HEAD
+=======
+  // Close the zip archive as we have extracted all files to the temp
+  // directory
+  if (!mz_zip_reader_end(&zip_archive)) {
+    throw std::runtime_error(
+        std::string("Failed to close zip archive: {}") +
+        mz_zip_get_error_string(mz_zip_get_last_error(&zip_archive)));
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (cpp_filename.empty() && so_filename.empty()) {
     std::string found_filenames_str;
     for (const std::string& filename : found_filenames) {
       found_filenames_str += filename + "\n";
     }
+<<<<<<< HEAD
     std::string model_names_str;
     for (const std::string& model_name_tmp :
          find_model_names(found_filenames)) {
@@ -795,6 +1056,11 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
         "\n\nTo load a specific model, please provide its name using the `model_name` parameter when calling AOTIModelPackageLoader() or torch._inductor.package.load_package.\n\n",
         "The following files were loaded from the archive:\n",
         found_filenames_str);
+=======
+    throw std::runtime_error(
+        "No AOTInductor generate cpp file or so file found in zip archive with the prefix " +
+        model_directory + "Loaded the following:\n" + found_filenames_str);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Compile the .so
@@ -807,15 +1073,28 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
 
   // Construct the runner depending on the device information
   std::string device_key = metadata_["AOTI_DEVICE_KEY"];
+<<<<<<< HEAD
   TORCH_CHECK(!device_key.empty(), "No device information found.");
+=======
+
+  if (device_key.empty()) {
+    throw std::runtime_error("No device information found.");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   std::unordered_map<std::string, CreateAOTIModelRunnerFunc>
       registered_aoti_runner = getAOTIModelRunnerRegistry();
 
+<<<<<<< HEAD
   TORCH_CHECK(
       registered_aoti_runner.find(device_key) != registered_aoti_runner.end(),
       "Unsupported device key found: ",
       device_key);
+=======
+  if (registered_aoti_runner.find(device_key) == registered_aoti_runner.end()) {
+    throw std::runtime_error("Unsupported device key found: " + device_key);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   c10::Device device = c10::Device(device_key);
   device.set_index(device_index);
@@ -823,10 +1102,13 @@ AOTIModelPackageLoader::AOTIModelPackageLoader(
   std::string cubin_dir = temp_dir_ + k_separator + model_directory;
   runner_ = registered_aoti_runner[device_key](
       so_path, num_runners, device.str(), cubin_dir, run_single_threaded);
+<<<<<<< HEAD
 
   if (weight_blob_filename != "") {
     runner_->update_constant_buffer_from_blob(weight_blob_filename);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 AOTIModelPackageLoader::~AOTIModelPackageLoader() {
@@ -878,7 +1160,11 @@ void AOTIModelPackageLoader::load_constants(
     if (fqn_to_constant_name.find(it.first) != fqn_to_constant_name.end()) {
       updated_constants_map.emplace(fqn_to_constant_name[it.first], it.second);
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "Constant not found: ", it.first);
+=======
+      throw std::runtime_error("Constant not found: " + it.first);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 

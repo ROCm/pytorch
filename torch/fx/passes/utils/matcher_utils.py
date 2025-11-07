@@ -95,7 +95,11 @@ class SubgraphMatcher:
             )
 
         for node in pattern.nodes:
+<<<<<<< HEAD
             if node.op != "output" and not node.is_impure():
+=======
+            if node.op != "output":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(node.users) > 0, (
                     "SubgraphMatcher cannot be initialized with an pattern with dead code"
                 )
@@ -127,7 +131,11 @@ class SubgraphMatcher:
         pn_value = torch.fx.graph_module._get_attr(pn.graph.owning_module, pn.target)
         gn_value = torch.fx.graph_module._get_attr(gn.graph.owning_module, gn.target)
 
+<<<<<<< HEAD
         if type(pn_value) is not type(gn_value):
+=======
+        if type(pn_value) != type(gn_value):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         # Don't require exact match on tensor values.
@@ -137,14 +145,21 @@ class SubgraphMatcher:
             raise RuntimeError(f"Unsupported type {pn_value} when matching attributes")
         return False
 
+<<<<<<< HEAD
     def _nodes_are_equal(self, pn: Node, gn: Node, node_name_match: str = "") -> bool:
+=======
+    def _nodes_are_equal(self, pn: Node, gn: Node) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # if exact match for placeholder is not required, then use placeholder as a wildcard
         if not self.match_placeholder and pn.op == "placeholder":
             return True
 
+<<<<<<< HEAD
         if node_name_match and node_name_match in gn.name:
             return True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if pn.op == gn.op:
             if pn.op == "placeholder" or pn.op == "output":
                 return True
@@ -213,11 +228,17 @@ class SubgraphMatcher:
         elif not isinstance(pn, Node) and isinstance(gn, Node):
             return False
         else:
+<<<<<<< HEAD
             return type(gn) is type(pn) and gn == pn
 
     def _match_nodes(
         self, pn: Node, gn: Node, match: InternalMatch, node_name_match: str = ""
     ) -> bool:
+=======
+            return type(gn) == type(pn) and gn == pn
+
+    def _match_nodes(self, pn: Node, gn: Node, match: InternalMatch) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         logger.info("  matching %s to %s", pn, gn)
 
         assert isinstance(pn, Node) and isinstance(gn, Node), str(
@@ -233,7 +254,11 @@ class SubgraphMatcher:
         if gn in match.nodes_map.values():
             return False
 
+<<<<<<< HEAD
         if not self._nodes_are_equal(pn, gn, node_name_match):
+=======
+        if not self._nodes_are_equal(pn, gn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         # Optimistically mark `pn` as a match for `gn`, and save a local copy of match
@@ -318,11 +343,19 @@ class SubgraphMatcher:
 
         return True
 
+<<<<<<< HEAD
     def match(self, graph: Graph, node_name_match: str = "") -> list[InternalMatch]:
         """
         Returns:
             The matched subgraphs.
             The returned subgraph would be fully self-contained, meaning the nodes (except placeholder
+=======
+    def match(self, graph: Graph) -> list[InternalMatch]:
+        """
+        Returns:
+            The matched subgraphs.
+            Thre returned subgraph would be fully self-contained, meaning the nodes (except placeholder
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and nodes returned by output) can only be consumed by nodes within the matched subgraph.
 
         Subgraph pattern matcher is implemented with the backtracking style in the following steps:
@@ -360,7 +393,11 @@ class SubgraphMatcher:
         match_candidates: dict[Node, list[Node]] = defaultdict(list)
         for pattern_anchor in self.pattern_anchors:
             for node in graph.nodes:
+<<<<<<< HEAD
                 if self._nodes_are_equal(pattern_anchor, node, node_name_match):
+=======
+                if self._nodes_are_equal(pattern_anchor, node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     match_candidates[pattern_anchor].append(node)
         match_candidates_list = list(match_candidates.items())
 
@@ -387,9 +424,13 @@ class SubgraphMatcher:
             for node in candidate_nodes:
                 logger.info("Trying to match anchor %s to %s", pattern_anchor, node)
 
+<<<<<<< HEAD
                 match_found = self._match_nodes(
                     pattern_anchor, node, match, node_name_match
                 )
+=======
+                match_found = self._match_nodes(pattern_anchor, node, match)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if match_found:
                     # match next anchor
                     backtracking(anchor_index + 1, match)

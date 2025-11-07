@@ -1,5 +1,9 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from typing import Any, Literal, Optional
+=======
+from typing import Any, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -62,7 +66,11 @@ class Conv1d(_ConvNd, nn.Conv1d):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
         weight_qparams: Optional[dict[str, Any]] = None,
@@ -95,7 +103,10 @@ class Conv1d(_ConvNd, nn.Conv1d):
         and the backend should be able to fuse the ops with `*` into a quantized conv1d
         """
         weight_quant_dequant = self.get_weight()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = F.conv1d(
             x,
             weight_quant_dequant,
@@ -141,7 +152,10 @@ class Conv2d(_ConvNd, nn.Conv2d):
             dilation,
             groups,
             bias,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode,
             device,
             dtype,
@@ -160,7 +174,10 @@ class Conv2d(_ConvNd, nn.Conv2d):
         and the backend should be able to fuse the ops with `*` into a quantized conv2d
         """
         weight_quant_dequant = self.get_weight()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = F.conv2d(
             x,
             weight_quant_dequant,
@@ -206,7 +223,10 @@ class Conv3d(_ConvNd, nn.Conv3d):
             dilation,
             groups,
             bias,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode,
             device,
             dtype,
@@ -225,7 +245,10 @@ class Conv3d(_ConvNd, nn.Conv3d):
         and the backend should be able to fuse the ops with `*` into a quantized conv3d
         """
         weight_quant_dequant = self.get_weight()
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = F.conv3d(
             x,
             weight_quant_dequant,
@@ -287,7 +310,11 @@ class ConvTranspose1d(_ConvTransposeNd, nn.ConvTranspose1d):
         groups: int = 1,
         bias: bool = True,
         dilation: _size_1_t = 1,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
         weight_qparams: Optional[dict[str, Any]] = None,
@@ -383,7 +410,10 @@ class ConvTranspose2d(_ConvTransposeNd, nn.ConvTranspose2d):
             groups,
             bias,
             dilation,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode,
             device,
             dtype,
@@ -465,7 +495,10 @@ class ConvTranspose3d(_ConvTransposeNd, nn.ConvTranspose3d):
             groups,
             bias,
             dilation,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode,
             device,
             dtype,

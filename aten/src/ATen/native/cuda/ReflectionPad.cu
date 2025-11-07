@@ -92,6 +92,7 @@ inline thrust::pair<int64_t, int64_t>  get_index_mapping2d(
     output_offset + output_y * output_dim_x + output_x);
 }
 
+<<<<<<< HEAD
 __device__ __forceinline__ int64_t reflect_index(int64_t x, int64_t len) {
   const int64_t two = (len - 1) * 2;
   if (two <= 0) {
@@ -102,6 +103,8 @@ __device__ __forceinline__ int64_t reflect_index(int64_t x, int64_t len) {
   return (m < len) ? m : (two - m);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<typename scalar_t>
 __global__ void reflection_pad1d_out_kernel(
     const scalar_t * input, scalar_t * output,
@@ -117,6 +120,7 @@ __global__ void reflection_pad1d_out_kernel(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 __global__ void reflection_pad1d_flat(
     const scalar_t* __restrict__ input,
     scalar_t* __restrict__ output,
@@ -139,6 +143,8 @@ __global__ void reflection_pad1d_flat(
 }
 
 template <typename scalar_t>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __global__ void reflection_pad1d_backward_out_kernel(
     scalar_t * grad_input, const scalar_t * grad_output,
     int64_t input_w,
@@ -742,6 +748,7 @@ TORCH_IMPL_FUNC(reflection_pad1d_out_cuda)
   int64_t input_w = input_.size(dim_w);
   int64_t output_w = input_w + pad_l + pad_r;
 
+<<<<<<< HEAD
 
   Tensor input = input_.contiguous();
 
@@ -780,6 +787,27 @@ TORCH_IMPL_FUNC(reflection_pad1d_out_cuda)
 
     C10_CUDA_KERNEL_LAUNCH_CHECK();
   });
+=======
+  dim3 block_size(output_w > 256 ? 256 : output_w);
+  dim3 grid_size((int)::ceil(output_w / 256.0), nplane, nbatch);
+
+  Tensor input = input_.contiguous();
+
+  AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND2(
+      kHalf, kBFloat16, input.scalar_type(), "reflection_pad1d_out_template", [&] {
+        reflection_pad1d_out_kernel<<<
+            grid_size,
+            block_size,
+            0,
+            at::cuda::getCurrentCUDAStream()>>>(
+            input.const_data_ptr<scalar_t>(),
+            output.mutable_data_ptr<scalar_t>(),
+            input_w,
+            pad_l,
+            pad_r);
+        C10_CUDA_KERNEL_LAUNCH_CHECK();
+      });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(reflection_pad1d_backward_out_cuda)(const Tensor& grad_output_,

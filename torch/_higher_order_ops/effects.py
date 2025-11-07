@@ -240,9 +240,15 @@ def handle_effects(
     key = get_effect_key(op, args, kwargs)
     assert key is not None
     if key not in tokens:
+<<<<<<< HEAD
         assert allow_token_discovery, (
             f"Could not find a token for effect {key} which came from the function {op}"
         )
+=======
+        assert (
+            allow_token_discovery
+        ), f"Could not find a token for effect {key} which came from the function {op}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         proxy_tensor_mode = torch._C._get_dispatch_mode(
             torch._C._TorchDispatchModeKey.PROXY
         )
@@ -298,5 +304,8 @@ def handle_effects(
     assert isinstance(wrapped_token, torch.Tensor)
     tokens[key] = wrapped_token
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ctx.wrap_tensors(unwrapped_outs)

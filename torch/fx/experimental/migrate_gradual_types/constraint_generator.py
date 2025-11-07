@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 import operator
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import TypeVar
+=======
+from collections.abc import Iterable
+from typing import Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -528,6 +533,7 @@ def view_inference_rule(n: Node, symbols, constraints, counter):
         if t == -1:
             var, counter = gen_dvar(counter)
             t2_type.append(var)
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             num_constraints.append(BinConstraintD(var, Dyn, op_neq))
 
@@ -535,6 +541,13 @@ def view_inference_rule(n: Node, symbols, constraints, counter):
             # pyrefly: ignore [bad-argument-type]
             num_constraints.append(BinConstraintD(t, Dyn, op_neq))
             t2_type.append(t)  # type: ignore[arg-type]
+=======
+            num_constraints.append(BinConstraintD(var, Dyn, op_neq))
+
+        else:
+            num_constraints.append(BinConstraintD(t, Dyn, op_neq))
+            t2_type.append(t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     t2_type = TensorType(t2_type)  # type: ignore[assignment]
 
@@ -683,7 +696,11 @@ def getitem_inference_rule(n: Node, symbols, constraints, counter):
     # tensor output case
     elif isinstance(n.args[1], tuple):
         # create and store the new tensor variable
+<<<<<<< HEAD
         get_item_output, counter = gen_tvar(counter)  # type: ignore[arg-type,assignment]
+=======
+        get_item_output, counter = gen_tvar(counter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         symbols[n] = get_item_output
 
         # retrieve arg variables
@@ -1075,7 +1092,11 @@ def broadcasting_inference_rule(n: Node, symbols, constraints, counter):
             e1 = symbols[n.args[0]]
             return [BinConstraintT(my_output, e1, op_eq)], counter
         elif isinstance(symbols[n.args[0]], DVar):
+<<<<<<< HEAD
             my_output, counter = gen_dvar(counter)  # type: ignore[arg-type,assignment]
+=======
+            my_output, counter = gen_dvar(counter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             symbols[n] = my_output
             e1 = symbols[n.args[0]]
 
@@ -1097,7 +1118,11 @@ def broadcasting_inference_rule(n: Node, symbols, constraints, counter):
             e2 = symbols[n.args[1]]
             return [BinConstraintT(my_output, e2, op_eq)], counter
         elif isinstance(symbols[n.args[1]], DVar):
+<<<<<<< HEAD
             my_output, counter = gen_dvar(counter)  # type: ignore[arg-type,assignment]
+=======
+            my_output, counter = gen_dvar(counter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             symbols[n] = my_output
             e2 = symbols[n.args[1]]
 
@@ -1477,7 +1502,10 @@ class ConstraintGenerator:
 
         all_constraints = []
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for n in graph.nodes:
             (constraints, counter) = self.generate_constraints_node(n, counter)
             all_constraints += constraints

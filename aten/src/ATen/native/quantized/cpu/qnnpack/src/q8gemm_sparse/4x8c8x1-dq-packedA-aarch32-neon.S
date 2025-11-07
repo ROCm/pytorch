@@ -46,7 +46,11 @@
 #  |b               | 12
 #  |c               | 16
 #  |c_stride        | 20
+<<<<<<< HEAD
 #  |out ch index    | 24
+=======
+#  |out ch indx     | 24
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #  |params          | 28
 #  |----------------|
 #
@@ -61,7 +65,11 @@
 #  |b               | 108
 #  |c               | 112
 #  |c_stride        | 116
+<<<<<<< HEAD
 #  |out ch index    | 120
+=======
+#  |out ch indx     | 120
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #  |params          | 124
 #  |----------------|
 #

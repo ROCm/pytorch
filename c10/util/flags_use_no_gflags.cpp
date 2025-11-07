@@ -15,7 +15,11 @@ using std::string;
 C10_DEFINE_REGISTRY(C10FlagsRegistry, C10FlagParser, const string&)
 
 namespace {
+<<<<<<< HEAD
 bool gCommandLineFlagsParsed = false;
+=======
+static bool gCommandLineFlagsParsed = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // Since flags is going to be loaded before logging, we would
 // need to have a stringstream to hold the messages instead of directly
 // using caffe logging.
@@ -23,7 +27,11 @@ std::stringstream& GlobalInitStream() {
   static std::stringstream ss;
   return ss;
 }
+<<<<<<< HEAD
 const char* gUsageMessage = "(Usage message not set.)";
+=======
+static const char* gUsageMessage = "(Usage message not set.)";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 C10_EXPORT void SetUsageMessage(const string& str) {

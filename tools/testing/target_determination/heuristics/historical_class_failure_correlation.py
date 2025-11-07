@@ -83,9 +83,13 @@ def _rank_correlated_tests(
 ) -> list[str]:
     # Find the tests failures that are correlated with the edited files.
     # Filter the list to only include tests we want to run.
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
     tests_to_run = set(tests_to_run)
     # pyrefly: ignore [bad-argument-type]
+=======
+    tests_to_run = set(tests_to_run)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ratings = _get_ratings_for_tests(tests_to_run)
     prioritize = sorted(ratings, key=lambda x: -ratings[x])
     return prioritize

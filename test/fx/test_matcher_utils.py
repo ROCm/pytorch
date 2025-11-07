@@ -2,11 +2,19 @@
 
 import os
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
 
 import torch
 import torch.nn.functional as F
 from torch.export import export
+=======
+from typing import Callable
+
+import torch
+import torch.nn.functional as F
+from torch.export import export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx import symbolic_trace
 from torch.fx.experimental.proxy_tensor import make_fx
 
@@ -172,7 +180,11 @@ class TestMatcher(JitTestCase):
             torch.randn(1, 3, 3, 3) * 10,
             torch.randn(3, 3, 3, 3),
         )
+<<<<<<< HEAD
         pattern_gm = export(
+=======
+        pattern_gm = export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             WrapperModule(pattern), example_inputs, strict=True
         ).module()
         before_split_res = pattern_gm(*example_inputs)
@@ -203,11 +215,19 @@ class TestMatcher(JitTestCase):
             torch.randn(1, 3, 3, 3) * 10,
             torch.randn(3, 3, 3, 3),
         )
+<<<<<<< HEAD
         pattern_gm = export(
             WrapperModule(pattern), example_inputs, strict=True
         ).module()
         matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
         target_gm = export(
+=======
+        pattern_gm = export_for_training(
+            WrapperModule(pattern), example_inputs, strict=True
+        ).module()
+        matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
+        target_gm = export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             WrapperModule(target_graph), example_inputs, strict=True
         ).module()
         internal_matches = matcher.match(target_gm.graph)
@@ -248,9 +268,17 @@ class TestMatcher(JitTestCase):
                 return linear, {"linear": linear, "x": x}
 
         example_inputs = (torch.randn(3, 5),)
+<<<<<<< HEAD
         pattern_gm = export(Pattern(), example_inputs, strict=True).module()
         matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
         target_gm = export(M(), example_inputs, strict=True).module()
+=======
+        pattern_gm = export_for_training(
+            Pattern(), example_inputs, strict=True
+        ).module()
+        matcher = SubgraphMatcherWithNameNodeMap(pattern_gm)
+        target_gm = export_for_training(M(), example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         internal_matches = matcher.match(target_gm.graph)
         for internal_match in internal_matches:
             name_node_map = internal_match.name_node_map

@@ -109,10 +109,13 @@ TORCH_LIBRARY_IMPL(_, AutogradHPU, m) {
   m.fallback(AUTOGRAD_FALLBACK);
 }
 
+<<<<<<< HEAD
 TORCH_LIBRARY_IMPL(_, AutogradPrivateUse1, m) {
   m.fallback(AUTOGRAD_FALLBACK);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #undef AUTOGRAD_FALLBACK
 
 } // namespace

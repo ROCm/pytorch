@@ -37,8 +37,13 @@ class EventHandlers {
   }
 
  private:
+<<<<<<< HEAD
   std::mutex mu_;
   std::vector<std::shared_ptr<EventHandler>> handlers_;
+=======
+  std::mutex mu_{};
+  std::vector<std::shared_ptr<EventHandler>> handlers_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 } // namespace
 

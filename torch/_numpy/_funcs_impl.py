@@ -5,7 +5,10 @@
 Things imported from here have numpy-compatible signatures but operate on
 pytorch tensors.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Contents of this module ends up in the main namespace via _funcs.py
 # where type annotations are used in conjunction with the @normalizer decorator.
 from __future__ import annotations
@@ -96,7 +99,11 @@ def _concat_cast_helper(tensors, out=None, dtype=None, casting="same_kind"):
     else:
         out_dtype = _dtypes_impl.result_type_impl(*tensors)
 
+<<<<<<< HEAD
     # cast input arrays if necessary; do not broadcast them against `out`
+=======
+    # cast input arrays if necessary; do not broadcast them agains `out`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tensors = _util.typecast_tensors(tensors, out_dtype, casting)
 
     return tensors
@@ -1290,7 +1297,11 @@ def cross(a: ArrayLike, b: ArrayLike, axisa=-1, axisb=-1, axisc=-1, axis=None):
 
 def einsum(*operands, out=None, dtype=None, order="K", casting="safe", optimize=False):
     # Have to manually normalize *operands and **kwargs, following the NumPy signature
+<<<<<<< HEAD
     # We have a local import to avoid polluting the global space, as it will be then
+=======
+    # We have a local import to avoid poluting the global space, as it will be then
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # exported in funcs.py
     from ._ndarray import ndarray
     from ._normalizations import (
@@ -1449,7 +1460,11 @@ def rollaxis(a: ArrayLike, axis, start=0):
         # numpy returns a view, here we try returning the tensor itself
         # return tensor[...]
         return a
+<<<<<<< HEAD
     axes = list(range(n))
+=======
+    axes = list(range(0, n))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     axes.remove(axis)
     axes.insert(start, axis)
     return a.view(axes)
@@ -1867,7 +1882,11 @@ def common_type(*tensors: ArrayLike):
         if not (t.is_floating_point or t.is_complex):
             p = 2  # array_precision[_nx.double]
         else:
+<<<<<<< HEAD
             p = array_precision.get(t)
+=======
+            p = array_precision.get(t, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if p is None:
                 raise TypeError("can't get common type for non-numeric array")
         precision = builtins.max(precision, p)

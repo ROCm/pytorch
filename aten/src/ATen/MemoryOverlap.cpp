@@ -24,7 +24,11 @@ MemOverlap has_internal_overlap(TensorImpl* t) {
     }
   }
 
+<<<<<<< HEAD
   if (t->is_non_overlapping_and_dense_or_false()) {
+=======
+  if (t->is_non_overlapping_and_dense()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return MemOverlap::No;
   }
 
@@ -63,7 +67,11 @@ MemOverlapStatus get_overlap_status(const TensorImpl* a, const TensorImpl* b) {
   if (a->numel() == 0 || b->numel() == 0) {
     return MemOverlapStatus::No;
   }
+<<<<<<< HEAD
   if (!a->is_non_overlapping_and_dense_or_false() || !b->is_non_overlapping_and_dense_or_false()) {
+=======
+  if (!a->is_non_overlapping_and_dense() || !b->is_non_overlapping_and_dense()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return MemOverlapStatus::TooHard;
   }
   // Test for storage equality, rather than pointer equality.

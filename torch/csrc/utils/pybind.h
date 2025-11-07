@@ -38,7 +38,11 @@ struct TORCH_PYTHON_API type_caster<at::Tensor> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::Tensor, _("torch.Tensor"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/);
+=======
+  bool load(handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static handle cast(
       const at::Tensor& src,
@@ -53,7 +57,11 @@ struct type_caster<at::Storage> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::Storage, _("torch.StorageBase"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (torch::isStorage(obj)) {
       value = torch::createStorage(obj);
@@ -76,7 +84,11 @@ struct type_caster<at::Generator> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::Generator, _("torch.Generator"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (THPGenerator_Check(obj)) {
       value = reinterpret_cast<THPGenerator*>(obj)->cdata;
@@ -99,7 +111,11 @@ struct TORCH_PYTHON_API type_caster<at::IntArrayRef> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::IntArrayRef, _("Tuple[int, ...]"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/);
+=======
+  bool load(handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static handle cast(
       at::IntArrayRef src,
       return_value_policy /* policy */,
@@ -115,7 +131,11 @@ struct TORCH_PYTHON_API type_caster<at::SymIntArrayRef> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::SymIntArrayRef, _("List[int]"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/);
+=======
+  bool load(handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static handle cast(
       at::SymIntArrayRef src,
       return_value_policy /* policy */,
@@ -131,7 +151,11 @@ struct TORCH_PYTHON_API type_caster<at::ArrayRef<c10::SymNode>> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::ArrayRef<c10::SymNode>, _("List[SymNode]"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/);
+=======
+  bool load(handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static handle cast(
       at::ArrayRef<c10::SymNode> src,
       return_value_policy /* policy */,
@@ -147,7 +171,11 @@ struct type_caster<at::MemoryFormat> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(at::MemoryFormat, _("torch.memory_format"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (THPMemoryFormat_Check(obj)) {
       value = reinterpret_cast<THPMemoryFormat*>(obj)->memory_format;
@@ -175,7 +203,11 @@ struct type_caster<at::Device> {
   // after a successful call to load.
   type_caster() : value(c10::kCPU) {}
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (THPDevice_Check(obj)) {
       value = reinterpret_cast<THPDevice*>(obj)->device;
@@ -204,7 +236,11 @@ struct type_caster<at::ScalarType> {
   // after a successful call to load.
   type_caster() : value(at::kFloat) {}
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (THPDtype_Check(obj)) {
       value = reinterpret_cast<THPDtype*>(obj)->scalar_type;
@@ -233,7 +269,11 @@ struct type_caster<c10::Stream> {
   // after a successful call to load.
   type_caster() : value(c10::Stream::DEFAULT, c10::Device(c10::kCPU, 0)) {}
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
     if (THPStream_Check(obj)) {
       value = c10::Stream::unpack3(
@@ -286,7 +326,11 @@ struct TORCH_PYTHON_API type_caster<c10::Scalar> {
   PYBIND11_TYPE_CASTER(
       c10::Scalar,
       _("Union[Number, torch.SymInt, torch.SymFloat, torch.SymBool]"));
+<<<<<<< HEAD
   bool load(py::handle src, bool /*unused*/);
+=======
+  bool load(py::handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static py::handle cast(
       const c10::Scalar& si,
@@ -298,7 +342,11 @@ template <>
 struct TORCH_PYTHON_API type_caster<c10::SymInt> {
  public:
   PYBIND11_TYPE_CASTER(c10::SymInt, _("Union[int, torch.SymInt]"));
+<<<<<<< HEAD
   bool load(py::handle src, bool /*unused*/);
+=======
+  bool load(py::handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static py::handle cast(
       const c10::SymInt& si,
@@ -310,7 +358,11 @@ template <>
 struct TORCH_PYTHON_API type_caster<c10::SymFloat> {
  public:
   PYBIND11_TYPE_CASTER(c10::SymFloat, _("float"));
+<<<<<<< HEAD
   bool load(py::handle src, bool /*unused*/);
+=======
+  bool load(py::handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static py::handle cast(
       const c10::SymFloat& si,
@@ -322,7 +374,11 @@ template <>
 struct TORCH_PYTHON_API type_caster<c10::SymBool> {
  public:
   PYBIND11_TYPE_CASTER(c10::SymBool, _("Union[bool, torch.SymBool]"));
+<<<<<<< HEAD
   bool load(py::handle src, bool /*unused*/);
+=======
+  bool load(py::handle src, bool);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static py::handle cast(
       const c10::SymBool& si,
@@ -336,7 +392,11 @@ struct type_caster<c10::complex<T>> {
   // NOLINTNEXTLINE(cppcoreguidelines-non-private-member-variables-in-classes)
   PYBIND11_TYPE_CASTER(c10::complex<T>, _("complex"));
 
+<<<<<<< HEAD
   bool load(handle src, bool /*unused*/) {
+=======
+  bool load(handle src, bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* obj = src.ptr();
 
     // Referred from `THPUtils_unpackComplexDouble`

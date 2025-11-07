@@ -83,7 +83,10 @@ class TrackedProcessPoolExecutor(ProcessPoolExecutor):
     def submit(
         self, fn: Callable[_P, _R], /, *args: _P.args, **kwargs: _P.kwargs
     ) -> Future[_R]:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         f = super().submit(fn, *args, **kwargs)
         self._record_enqueue(f)
         return f

@@ -296,6 +296,7 @@ if __name__ == "__main__":
             remove_nan_inf(test_cases),
         )
 
+<<<<<<< HEAD
     # Part of an experiment to see if we can handle all the data as is
     upload_workflow_stats_to_s3(
         args.workflow_run_id,
@@ -304,4 +305,6 @@ if __name__ == "__main__":
         remove_nan_inf(test_cases),
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     upload_additional_info(args.workflow_run_id, args.workflow_run_attempt, test_cases)

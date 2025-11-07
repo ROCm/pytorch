@@ -67,6 +67,7 @@ TORCH_PRECOMPUTE_META_FUNC(fractional_max_pool3d)(
   int64_t inputH = input_.size(heightDim);
   int64_t inputW = input_.size(widthDim);
 
+<<<<<<< HEAD
   TORCH_CHECK((poolSizeT <= inputT) && (outputT + poolSizeT - 1 < inputT),
            "fractional_max_pool3d_out(): pool time ", poolSizeT,
            " too large relative to input time ", inputT);
@@ -74,6 +75,15 @@ TORCH_PRECOMPUTE_META_FUNC(fractional_max_pool3d)(
            "fractional_max_pool3d_out(): pool width ", poolSizeW,
            " too large relative to input width ", inputW);
   TORCH_CHECK((poolSizeH <= inputH) && (outputH + poolSizeH - 1 < inputH),
+=======
+  TORCH_CHECK(outputT + poolSizeT - 1 < inputT,
+           "fractional_max_pool3d_out(): pool time ", poolSizeT,
+           " too large relative to input time ", inputT);
+  TORCH_CHECK(outputW + poolSizeW - 1 < inputW,
+           "fractional_max_pool3d_out(): pool width ", poolSizeW,
+           " too large relative to input width ", inputW);
+  TORCH_CHECK(outputH + poolSizeH - 1 < inputH,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
            "fractional_max_pool3d_out(): pool height ", poolSizeH,
            " too large relative to input height ", inputH);
 
@@ -99,7 +109,11 @@ namespace at::native {
 namespace {
 
 template<typename scalar_t>
+<<<<<<< HEAD
 void fractional_max_pool3d_out_single_batch_frame(
+=======
+static void fractional_max_pool3d_out_single_batch_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const scalar_t* input,
   scalar_t* output,
   int64_t* indices,
@@ -169,7 +183,11 @@ void fractional_max_pool3d_out_single_batch_frame(
 }
 
 template<typename scalar_t>
+<<<<<<< HEAD
 void fractional_max_pool3d_out_frame(
+=======
+static void fractional_max_pool3d_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const scalar_t* input,
   scalar_t* output,
   int64_t* indices,
@@ -257,7 +275,11 @@ TORCH_IMPL_FUNC(fractional_max_pool3d_out_cpu)(
 namespace {
 
 template<typename scalar_t>
+<<<<<<< HEAD
 void fractional_max_pool3d_backward_out_single_batch_frame(
+=======
+static void fractional_max_pool3d_backward_out_single_batch_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   scalar_t* gradInput,
   const scalar_t* gradOutput,
   const int64_t* indices,
@@ -287,7 +309,11 @@ void fractional_max_pool3d_backward_out_single_batch_frame(
 }
 
 template<typename scalar_t>
+<<<<<<< HEAD
 void fractional_max_pool3d_backward_out_frame(
+=======
+static void fractional_max_pool3d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   scalar_t* gradInput,
   const scalar_t* gradOutput,
   const int64_t* indices,

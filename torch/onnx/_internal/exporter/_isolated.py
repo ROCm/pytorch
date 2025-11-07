@@ -5,6 +5,7 @@ from __future__ import annotations
 import multiprocessing
 import os
 import warnings
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING, TypeVar, TypeVarTuple, Union, Unpack
 from typing_extensions import ParamSpec
 
@@ -13,6 +14,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+from typing import Any, Callable, TypeVar, TypeVarTuple, Union, Unpack
+from typing_extensions import ParamSpec
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
 _Ts = TypeVarTuple("_Ts")
@@ -26,7 +33,10 @@ def _call_function_and_return_exception(
     """Call function and return a exception if there is one."""
 
     try:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return func(*args, **kwargs)
     except Exception as e:
         return e

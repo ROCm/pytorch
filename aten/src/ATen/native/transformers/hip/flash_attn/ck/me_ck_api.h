@@ -3,7 +3,11 @@
 
 #include <ATen/core/Tensor.h>
 
+<<<<<<< HEAD
 #if defined(USE_ROCM_CK_SDPA)
+=======
+#if defined(USE_CK_FLASH_ATTENTION)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace pytorch_flash {
 
 std::tuple<
@@ -64,4 +68,8 @@ mem_eff_backward_ck(
     const at::Tensor philox_offset);
 
 } // namespace pytorch_flash
+<<<<<<< HEAD
 #endif // USE_ROCM_CK_SDPA
+=======
+#endif // USE_CK_FLASH_ATTENTION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

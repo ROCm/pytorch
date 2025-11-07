@@ -27,7 +27,11 @@
 //    ops (ops being called by other ops). After the intermediate op call
 //    finishes it's set back to the original `TracingState` object.
 //
+<<<<<<< HEAD
 //    The `TracingState` object in TLS can also be read/written via its Python
+=======
+//    The `TracingState` obect in TLS can also be read/written via its Python
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //    binding in `python_tracer.cpp`, and `get/setTracingState()` C++ APIs,
 //    which are also exposed as `TORCH_API`.
 //

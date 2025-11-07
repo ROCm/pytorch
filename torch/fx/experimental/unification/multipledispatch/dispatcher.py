@@ -238,7 +238,10 @@ class Dispatcher:
                         "To use a variadic union type place the desired types "
                         "inside of a tuple, e.g., [(int, str)]"
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-specialization]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_signature.append(Variadic[typ[0]])
             else:
                 new_signature.append(typ)
@@ -266,7 +269,11 @@ class Dispatcher:
         return od
 
     def __call__(self, *args, **kwargs):
+<<<<<<< HEAD
         types = tuple(type(arg) for arg in args)
+=======
+        types = tuple([type(arg) for arg in args])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             func = self._cache[types]
         except KeyError as e:
@@ -407,7 +414,10 @@ class MethodDispatcher(Dispatcher):
         Dispatcher
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     __slots__ = ("obj", "cls")
 
     @classmethod
@@ -422,7 +432,11 @@ class MethodDispatcher(Dispatcher):
         return self
 
     def __call__(self, *args, **kwargs):
+<<<<<<< HEAD
         types = tuple(type(arg) for arg in args)
+=======
+        types = tuple([type(arg) for arg in args])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         func = self.dispatch(*types)
         if not func:
             raise NotImplementedError(

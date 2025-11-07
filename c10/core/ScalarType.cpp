@@ -228,7 +228,11 @@ std::pair<std::string, std::string> getDtypeNames(c10::ScalarType scalarType) {
     case c10::ScalarType::Float4_e2m1fn_x2:
       return std::make_pair("float4_e2m1fn_x2", "");
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "Unimplemented scalar type");
+=======
+      throw std::runtime_error("Unimplemented scalar type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 

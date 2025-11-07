@@ -81,7 +81,11 @@ C10_API void _force_tls_local_dispatch_key_set(LocalDispatchKeySet key_set);
 
 class C10_API IncludeDispatchKeyGuard {
  public:
+<<<<<<< HEAD
   IncludeDispatchKeyGuard(DispatchKeySet /*include*/);
+=======
+  IncludeDispatchKeyGuard(DispatchKeySet);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   IncludeDispatchKeyGuard(DispatchKey k)
       : IncludeDispatchKeyGuard(DispatchKeySet(k)) {}
   IncludeDispatchKeyGuard(const IncludeDispatchKeyGuard&) = delete;
@@ -99,7 +103,11 @@ class C10_API IncludeDispatchKeyGuard {
 
 class C10_API ExcludeDispatchKeyGuard {
  public:
+<<<<<<< HEAD
   ExcludeDispatchKeyGuard(DispatchKeySet /*exclude*/);
+=======
+  ExcludeDispatchKeyGuard(DispatchKeySet);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ExcludeDispatchKeyGuard(DispatchKey k)
       : ExcludeDispatchKeyGuard(DispatchKeySet(k)) {}
   ExcludeDispatchKeyGuard(const ExcludeDispatchKeyGuard&) = delete;

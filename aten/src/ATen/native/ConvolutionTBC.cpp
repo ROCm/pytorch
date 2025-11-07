@@ -52,7 +52,12 @@ Tensor conv_tbc(const Tensor& self, const Tensor& weight, const Tensor& bias, in
   for (const auto k : c10::irange(kw)) {
     int iShift = std::max(0, static_cast<int>(k - real_pad));
     int oShift = std::max(0, static_cast<int>(real_pad - k));
+<<<<<<< HEAD
     long t = std::min(ilen + real_pad - k, olen) - oShift;
+=======
+    // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+    int t = std::min(ilen + real_pad - k, olen) - oShift;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Note: gemm assumes column-major matrices
     // input    is l*m (row-major)
     // weight   is m*r (row-major)

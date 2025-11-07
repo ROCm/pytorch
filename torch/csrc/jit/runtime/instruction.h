@@ -95,5 +95,9 @@ std::ostream& operator<<(std::ostream& out, Instruction inst);
 bool isOpSupportedInMobile(OpCode op);
 char const* toString(OpCode op);
 OpCode parseOpCode(const char* str);
+<<<<<<< HEAD
+=======
+std::ostream& operator<<(std::ostream& out, Instruction inst);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 } // namespace torch::jit

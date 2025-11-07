@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx
@@ -47,12 +51,20 @@ class NormalizeArgs(Transformer):
 
         def get_type(arg):
             if isinstance(arg, fx.Node):
+<<<<<<< HEAD
                 return n.meta.get("type")
+=======
+                return n.meta["type"] if "type" in n.meta else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return type(arg)
 
         arg_types = map_aggregate(n.args, get_type)
         assert isinstance(arg_types, tuple)
+<<<<<<< HEAD
         arg_types = tuple(create_type_hint(i) for i in arg_types)
+=======
+        arg_types = tuple([create_type_hint(i) for i in arg_types])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kwarg_types = {k: get_type(v) for k, v in kwargs.items()}
         if n.op == "call_function":
             out = self.call_function(n.target, args, kwargs, arg_types, kwarg_types)

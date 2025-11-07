@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Iterator, Sized
 from io import BufferedIOBase
 from typing import Any
+=======
+from collections.abc import Iterable, Iterator, Sized
+from io import BufferedIOBase
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.utils.data.datapipes._decorator import functional_datapipe
 from torch.utils.data.datapipes.datapipe import IterDataPipe

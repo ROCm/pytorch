@@ -99,7 +99,11 @@ def sparsify_model(path_to_model, sparsified_model_dump_path):
         sparse_block_shapes (List of tuples)
             List of sparse block shapes to be sparsified on
     """
+<<<<<<< HEAD
     sparsity_levels = [sl / 10 for sl in range(10)]
+=======
+    sparsity_levels = [sl / 10 for sl in range(0, 10)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sparsity_levels += [0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99, 1.0]
 
     norms = ["L1", "L2"]

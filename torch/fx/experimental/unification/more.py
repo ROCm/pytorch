@@ -1,4 +1,5 @@
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 from .core import (  # type: ignore[attr-defined]
     _reify as core_reify,
     _unify as core_unify,
@@ -11,6 +12,12 @@ from .dispatch import dispatch
 __all__ = ["unifiable", "reify_object", "unify_object"]
 
 
+=======
+from .core import reify, unify  # type: ignore[attr-defined]
+from .dispatch import dispatch
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def unifiable(cls):
     """Register standard unify and reify operations on class
     This uses the type and __dict__ or __slots__ attributes to define the
@@ -29,8 +36,13 @@ def unifiable(cls):
     >>> unify(a, b, {})
     {~x: 2}
     """
+<<<<<<< HEAD
     core_unify.add((cls, cls, dict), unify_object)  # type: ignore[attr-defined]
     core_reify.add((cls, dict), reify_object)  # type: ignore[attr-defined]
+=======
+    _unify.add((cls, cls, dict), unify_object)
+    _reify.add((cls, dict), reify_object)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return cls
 
@@ -87,7 +99,10 @@ def _reify_object_slots(o, s):
 @dispatch(slice, dict)
 def _reify(o, s):
     """Reify a Python ``slice`` object"""
+<<<<<<< HEAD
     # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return slice(*reify((o.start, o.stop, o.step), s))
 
 
@@ -113,7 +128,11 @@ def unify_object(u, v, s):
     >>> unify_object(f, g, {})
     {~x: 2}
     """
+<<<<<<< HEAD
     if type(u) is not type(v):
+=======
+    if type(u) != type(v):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
     if hasattr(u, "__slots__"):
         return unify(

@@ -199,7 +199,11 @@ class TestFunctionalization(TestCase):
             y.set_(x.storage())
             return y
 
+<<<<<<< HEAD
         # We should probably get the crossref test to work,
+=======
+        # We should probaby get the crossref test to work,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # but fixing it for Storage() objects is annoying.
         r = _functionalize(f, reapply_views=True, crossref=False)(torch.ones(2))
         self.assertEqual(str(r.device), "cpu")
@@ -2318,7 +2322,11 @@ def forward(self, arg0_1):
     ]
 )
 @unittest.skipIf(
+<<<<<<< HEAD
     TEST_WITH_TORCHDYNAMO, "dynamo-ing code with proxy + fake doesn't work well"
+=======
+    TEST_WITH_TORCHDYNAMO, "dynamo-ing code with proxy + fake doesnt work well"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 class TestCrossRefFunctionalization(TestFunctionalization):
     crossref = True

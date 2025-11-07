@@ -53,13 +53,21 @@ def _invoke_rpc(rref, rpc_api, func_name, timeout, *args, **kwargs):
         def _wrap_rref_type_cont(fut):
             try:
                 _rref_type_cont(fut).then(_complete_op)
+<<<<<<< HEAD
             except BaseException as ex:  # noqa: B036
+=======
+            except BaseException as ex:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result.set_exception(ex)
 
         def _complete_op(fut):
             try:
                 result.set_result(fut.value())
+<<<<<<< HEAD
             except BaseException as ex:  # noqa: B036
+=======
+            except BaseException as ex:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result.set_exception(ex)
 
         rref_fut.then(_wrap_rref_type_cont)

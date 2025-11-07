@@ -36,7 +36,11 @@ from __future__ import annotations
 import itertools
 import re
 from collections import defaultdict
+<<<<<<< HEAD
 from typing import TYPE_CHECKING
+=======
+from typing import Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import yaml
 
@@ -77,7 +81,11 @@ from .gen_trace_type import should_trace
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterable, Sequence
+=======
+    from collections.abc import Iterable, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 #
@@ -97,7 +105,10 @@ _SKIP_PYTHON_BINDINGS = [
     "is_sparse_csr",
     "size",
     "stride",
+<<<<<<< HEAD
     "sym_is_contiguous",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "sym_size",
     "sym_stride",
     "sym_storage_offset",

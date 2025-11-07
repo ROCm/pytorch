@@ -3,15 +3,21 @@
 import functools
 import itertools
 import math
+<<<<<<< HEAD
 import operator
 import sys
 from collections.abc import Callable
 from functools import reduce
 from typing import Optional, Union
+=======
+import sys
+from typing import Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._custom_op
 import torch._logging
+<<<<<<< HEAD
 import torch._prims_common as utils
 from torch._dispatch.python import no_python_dispatcher
 from torch._ops import OpOverload
@@ -26,6 +32,17 @@ from torch._prims_common import (
     is_float_dtype,
     is_integer_dtype,
     make_contiguous_strides_for,
+=======
+from torch._dispatch.python import no_python_dispatcher
+from torch._ops import OpOverload
+from torch._prims_common import (
+    definitely_contiguous_for_memory_format,
+    elementwise_dtypes,
+    ELEMENTWISE_TYPE_PROMOTION_KIND,
+    is_boolean_dtype,
+    is_float_dtype,
+    is_integer_dtype,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._subclasses.fake_tensor import (
     DataDependentOutputException,
@@ -137,9 +154,15 @@ def _is_tensor_constructor(func: OpOverload):
 def register_op_impl(run_impl_check: Union[Callable[[OpOverload], bool], OpOverload]):
     def impl_decorator(op_impl):
         if isinstance(run_impl_check, OpOverload):
+<<<<<<< HEAD
             assert run_impl_check not in op_implementations_dict, (
                 f"duplicate registration: {run_impl_check}"
             )
+=======
+            assert (
+                run_impl_check not in op_implementations_dict
+            ), f"duplicate registration: {run_impl_check}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             op_implementations_dict[run_impl_check] = op_impl
         elif isinstance(run_impl_check, (list, tuple)):
             for op in run_impl_check:
@@ -158,7 +181,12 @@ def _is_op_registered_to_fake_rule(op):
 
 
 def _deregister_op_impl(op):
+<<<<<<< HEAD
     op_implementations_dict.pop(op, None)
+=======
+    if op in op_implementations_dict:
+        del op_implementations_dict[op]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for check, impl in op_implementations_checks:
         if check is op:
             op_implementations_checks.remove((check, impl))
@@ -238,7 +266,11 @@ def stride_incorrect_op(op):
 # These operators have meta implementations with incorrect strides
 @register_op_impl(stride_incorrect_op)
 def wordaround_stride_incorrect_op(fake_mode, func, *args, **kwargs):
+<<<<<<< HEAD
     # This is a workaround for meta implementations with incorrect strides
+=======
+    # This is a workaround for meta implmentations with incorrect strides
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def is_symbolic(x):
         if isinstance(x, FakeTensor):
@@ -366,6 +398,7 @@ def unique2(
     return _unique(fake_mode, func, arg, None, sorted, return_inverse, return_counts)
 
 
+<<<<<<< HEAD
 @register_op_impl(aten.select.int)
 def meta_select(fake_mode, func, self, dim, index):
     from torch.fx.experimental.symbolic_shapes import guard_or_false
@@ -408,6 +441,8 @@ def meta_select(fake_mode, func, self, dim, index):
     return self.as_strided(new_size, new_stride, new_storage_offset)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_op_impl(aten.unique_dim.default)
 def unique_dim(
     fake_mode, func, arg, dim, sorted=True, return_inverse=False, return_counts=False
@@ -438,6 +473,7 @@ def _(fake_mode, func, arg, return_inverse=False, return_counts=False, dim=None)
     )
 
 
+<<<<<<< HEAD
 # This function is python match of computeStride_impl in TensorUtils.cpp
 def _compute_stride(old_shape, old_stride, new_shape, size_oblivious=False):
     from torch.fx.experimental.symbolic_shapes import (
@@ -631,6 +667,8 @@ def _view_meta_copy(fake_mode, func, a, *shape, out=None):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_op_impl(aten.repeat_interleave.Tensor)
 def repeat_interleave_tensor(fake_mode, func, repeats, output_size=None):
     if output_size is None:
@@ -762,6 +800,7 @@ def _padded_dense_to_jagged_forward(fake_mode, func, padded, offsets, total_L=No
     return padded.new_empty(output_shape)
 
 
+<<<<<<< HEAD
 def _compute_slice_index(size, index):
     from torch.fx.experimental.symbolic_shapes import guard_or_false, sym_and
 
@@ -845,6 +884,8 @@ def slice_forward(
         return self.as_strided(sizes, strides, storage_offset)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_op_impl(torch.ops.aten.masked_select.default)
 def masked_select(fake_mode, func, self, mask):
     if (
@@ -900,6 +941,7 @@ def assert_tensor_metadata(
     layout=None,
 ) -> None:
     if sizes is not None:
+<<<<<<< HEAD
         assert t.size() == sizes, (
             f"Tensor sizes mismatch! Expected: {sizes}, Got: {t.size()}"
         )
@@ -919,6 +961,27 @@ def assert_tensor_metadata(
         assert t.device == device, (
             f"Tensor device mismatch! Expected: {device}, Got: {t.device}"
         )
+=======
+        assert (
+            t.size() == sizes
+        ), f"Tensor sizes mismatch! Expected: {sizes}, Got: {t.size()}"
+    if strides is not None:
+        assert (
+            t.stride() == strides
+        ), f"Tensor strides mismatch! Expected: {strides}, Got: {t.stride()}"
+    if dtype is not None:
+        assert (
+            t.dtype == dtype
+        ), f"Tensor dtype mismatch! Expected: {dtype}, Got: {t.dtype}"
+    if layout is not None:
+        assert (
+            t.layout == layout
+        ), f"Tensor layout mismatch! Expected: {layout}, Got: {t.layout()}"
+    if device is not None:
+        assert (
+            t.device == device
+        ), f"Tensor device mismatch! Expected: {device}, Got: {t.device}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # NB: this must be ordered after local_scalar_dense
@@ -1120,6 +1183,11 @@ def conv(fake_mode, func, *args, **kwargs):
             # TODO: We can make this a little more faithful with best effort
             # channels last detection (but only if it's statically obvious!)
             mem_fmt = None
+<<<<<<< HEAD
+=======
+        elif k == 3 and not kwargs["input"].is_mkldnn and not kwargs["input"].is_xpu:
+            mem_fmt = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             if func is aten.convolution.default:
                 conv_backend = torch._C._select_conv_backend(**kwargs)
@@ -1136,6 +1204,7 @@ def conv(fake_mode, func, *args, **kwargs):
                     groups=kwargs["groups"],
                     bias_sizes=kwargs["bias_sizes"],
                 )
+<<<<<<< HEAD
             # Expand 1d -> 2d.
             # Note: Avoid expanding before calling _select_conv_backend,
             # as the function handles 2D expansion internally.
@@ -1160,16 +1229,25 @@ def conv(fake_mode, func, *args, **kwargs):
                     kwargs["padding"].pop(0)
                     kwargs["dilation"].pop(0)
                     kwargs["output_padding"].pop(0)
+=======
+            mem_fmt = torch._C._conv_determine_backend_memory_format(
+                kwargs["input"], kwargs["weight"], conv_backend
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def convert(t, mem_fmt):
         if t is None:
             return t
         if mem_fmt is not None:
+<<<<<<< HEAD
             # channels last only support 4d, try to expand dim then convert it back later.
             if t.dim() == 3 and mem_fmt == torch.channels_last:
                 t = t.unsqueeze(2).to(memory_format=mem_fmt).squeeze(2)
             else:
                 t = t.to(memory_format=mem_fmt)
+=======
+            t = t.to(memory_format=mem_fmt)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return FakeTensor(fake_mode, t, device)
 
     with in_kernel_invocation_manager(fake_mode):
@@ -1336,7 +1414,11 @@ def make_fast_binary_impl(
                 # Use elementwise_dtypes for the tricky case
                 has_different_input_dtypes = True
                 continue
+<<<<<<< HEAD
             if common_device == cpu and op.device.type != "cpu":
+=======
+            if common_device == cpu and not op.device.type == "cpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 common_device = op.device
             # Slightly simplified here as target_dtype cannot vary
             if common_dtype is None:
@@ -1368,8 +1450,12 @@ def make_fast_binary_impl(
         # compute_fast_setup_type
         definitely_contiguous = True
         definitely_channels_last = True
+<<<<<<< HEAD
 
         # TODO: is_non-overlapping_and_dense not bound from Python
+=======
+        # TODO: is_non-overlapping_and_dense (not bound from Python
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # no inplace, no out, everything defined
 
         if is_noncontiguous_supported(common_device):
@@ -1378,13 +1464,21 @@ def make_fast_binary_impl(
                     continue
                 definitely_contiguous = (
                     definitely_contiguous
+<<<<<<< HEAD
                     and is_contiguous_for_memory_format_or_false(
+=======
+                    and definitely_contiguous_for_memory_format(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         op, memory_format=torch.contiguous_format
                     )
                 )
                 definitely_channels_last = (
                     definitely_channels_last
+<<<<<<< HEAD
                     and is_contiguous_for_memory_format_or_false(
+=======
+                    and definitely_contiguous_for_memory_format(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         op, memory_format=torch.channels_last
                     )
                 )
@@ -1440,9 +1534,13 @@ def get_fast_op_impls():
     register_fast_op_impl(torch.ops.aten.sub.Tensor)(
         make_fast_binary_impl(torch._refs.sub)
     )
+<<<<<<< HEAD
     register_fast_op_impl(torch.ops.aten.mul.Tensor)(
         make_fast_binary_impl(torch._refs.mul)
     )  # type: ignore[has-type]
+=======
+    register_fast_op_impl(torch.ops.aten.mul.Tensor)(make_fast_binary_impl(torch._refs.mul))  # type: ignore[has-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     register_fast_op_impl(torch.ops.aten.div.Tensor)(
         make_fast_binary_impl(
             torch._refs.div,

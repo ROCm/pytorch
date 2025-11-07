@@ -3,14 +3,21 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.ao.quantization.utils import Pattern
 
 
@@ -240,29 +247,46 @@ scale_min_lower_bound=None, scale_max_upper_bound=None)
             "bias_type": torch.dtype
             "is_dynamic": bool
         """
+<<<<<<< HEAD
         input_dtype = dtype_config_dict.get(INPUT_DTYPE_DICT_KEY)
+=======
+        input_dtype = dtype_config_dict.get(INPUT_DTYPE_DICT_KEY, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if input_dtype is not None and not isinstance(
             input_dtype, (torch.dtype, DTypeWithConstraints)
         ):
             raise ValueError(
                 "Expected input_dtype to be a torch.dtype or DTypeWithConstraints"
             )
+<<<<<<< HEAD
         output_dtype = dtype_config_dict.get(OUTPUT_DTYPE_DICT_KEY)
+=======
+        output_dtype = dtype_config_dict.get(OUTPUT_DTYPE_DICT_KEY, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if output_dtype is not None and not isinstance(
             output_dtype, (torch.dtype, DTypeWithConstraints)
         ):
             raise ValueError(
                 "Expected output_dtype to be a torch.dtype or DTypeWithConstraints"
             )
+<<<<<<< HEAD
         weight_dtype = dtype_config_dict.get(WEIGHT_DTYPE_DICT_KEY)
+=======
+        weight_dtype = dtype_config_dict.get(WEIGHT_DTYPE_DICT_KEY, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if weight_dtype is not None and not isinstance(
             weight_dtype, (torch.dtype, DTypeWithConstraints)
         ):
             raise ValueError(
                 "Expected weight_dtype to be a torch.dtype or DTypeWithConstraints"
             )
+<<<<<<< HEAD
         bias_dtype = dtype_config_dict.get(BIAS_DTYPE_DICT_KEY)
         is_dynamic = dtype_config_dict.get(IS_DYNAMIC_DICT_KEY)
+=======
+        bias_dtype = dtype_config_dict.get(BIAS_DTYPE_DICT_KEY, None)
+        is_dynamic = dtype_config_dict.get(IS_DYNAMIC_DICT_KEY, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls(input_dtype, output_dtype, weight_dtype, bias_dtype, is_dynamic)
 
     def to_dict(self) -> dict[str, Any]:
@@ -673,6 +697,7 @@ class BackendPatternConfig:
         for d in backend_pattern_config_dict.get(DTYPE_CONFIGS_DICT_KEY, []):
             conf.add_dtype_config(_get_dtype_config(d))
         conf.set_root_module(
+<<<<<<< HEAD
             backend_pattern_config_dict.get(ROOT_MODULE_DICT_KEY)  # type: ignore[arg-type]
         )
         conf.set_qat_module(backend_pattern_config_dict.get(QAT_MODULE_DICT_KEY))  # type: ignore[arg-type]
@@ -690,6 +715,25 @@ class BackendPatternConfig:
         )
         conf._set_extra_inputs_getter(
             backend_pattern_config_dict.get(EXTRA_INPUTS_GETTER_DICT_KEY)  # type: ignore[arg-type]
+=======
+            backend_pattern_config_dict.get(ROOT_MODULE_DICT_KEY, None)  # type: ignore[arg-type]
+        )
+        conf.set_qat_module(backend_pattern_config_dict.get(QAT_MODULE_DICT_KEY, None))  # type: ignore[arg-type]
+        conf.set_reference_quantized_module(
+            backend_pattern_config_dict.get(REFERENCE_QUANTIZED_MODULE_DICT_KEY, None)  # type: ignore[arg-type]
+        )
+        conf.set_fused_module(
+            backend_pattern_config_dict.get(FUSED_MODULE_DICT_KEY, None)  # type: ignore[arg-type]
+        )
+        conf.set_fuser_method(
+            backend_pattern_config_dict.get(FUSER_METHOD_DICT_KEY, None)  # type: ignore[arg-type]
+        )
+        conf._set_root_node_getter(
+            backend_pattern_config_dict.get(ROOT_NODE_GETTER_DICT_KEY, None)  # type: ignore[arg-type]
+        )
+        conf._set_extra_inputs_getter(
+            backend_pattern_config_dict.get(EXTRA_INPUTS_GETTER_DICT_KEY, None)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         conf._set_num_tensor_args_to_observation_type(
             backend_pattern_config_dict.get(

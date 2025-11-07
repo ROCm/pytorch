@@ -39,7 +39,11 @@ void check_mkldnn_binary_fusion_inputs(
 inline std::vector<int64_t> padding_r(
     IntArrayRef padding, IntArrayRef output_padding)
 {
+<<<<<<< HEAD
   // ConvTranspose padding adjustment
+=======
+  // ConvTranpose padding adjustment
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //
   // PyTorch uses padding/output_padding:
   //   osize = (isize - 1) * stride - 2 * padding + dilation * (kernel_size - 1) + output_padding + 1

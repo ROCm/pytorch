@@ -23,7 +23,10 @@ restoring state changes.
 import inspect
 import sys
 import warnings
+<<<<<<< HEAD
 from contextlib import ExitStack
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import TYPE_CHECKING, Union
 
 import torch._C
@@ -35,10 +38,17 @@ from ..bytecode_transformation import (
     create_instruction,
     create_setup_with,
 )
+<<<<<<< HEAD
 from ..exc import unimplemented_v2
 from ..guards import GuardBuilder, install_guard
 from ..source import AttrSource, GlobalStateSource
 from ..utils import _get_error_on_graph_break, _set_error_on_graph_break
+=======
+from ..device_interface import get_interface_for_device
+from ..exc import unimplemented_v2
+from ..guards import GuardBuilder, install_guard
+from ..source import AttrSource, GlobalStateSource
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .base import VariableTracker
 from .functions import (
     NestedUserFunctionVariable,
@@ -197,6 +207,7 @@ class GenericContextWrappingVariable(UserDefinedObjectVariable):
         return True
 
 
+<<<<<<< HEAD
 class RepararametrizeModuleContextVariable(GenericContextWrappingVariable):
     def __init__(self, ctx_manager_vt, mod):
         self.cm_vt = ctx_manager_vt
@@ -225,6 +236,8 @@ class RepararametrizeModuleContextVariable(GenericContextWrappingVariable):
         return getattr(self.cm_vt, name)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GradInplaceRequiresGradCtxManagerVariable(ContextWrappingVariable):
     """represents torch grad requires grad"""
 
@@ -512,17 +525,31 @@ class VmapIncrementNestingCtxManagerVariable(ContextWrappingVariable):
         batch_size, randomness = self.target_values
         if isinstance(batch_size, variables.SymNodeVariable):
             batch_size_value = batch_size.sym_num
+<<<<<<< HEAD
         else:
             batch_size_value = batch_size.as_python_constant()
+=======
+            batch_size_node = batch_size.as_proxy().node
+        else:
+            batch_size_value = batch_size.as_python_constant()
+            batch_size_node = batch_size.as_python_constant()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         randomness = randomness.as_python_constant()
         vmap_level = torch._C._functorch._vmap_increment_nesting(
             batch_size_value, randomness
         )
         self.set_cleanup_hook(tx, lambda: torch._C._functorch._vmap_decrement_nesting())
+<<<<<<< HEAD
         self.proxy = tx.output.create_proxy(
             "call_function",
             torch._functorch.predispatch._vmap_increment_nesting,
             (batch_size.as_proxy(), randomness),
+=======
+        self.proxy = tx.output.create_node(
+            "call_function",
+            torch._C._functorch._vmap_increment_nesting,
+            (batch_size_node, randomness),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {},
         )
         return variables.ConstantVariable.create(vmap_level)
@@ -530,10 +557,14 @@ class VmapIncrementNestingCtxManagerVariable(ContextWrappingVariable):
     def exit(self, tx: "InstructionTranslator", *args):
         self.cleanup()
         tx.output.create_node(
+<<<<<<< HEAD
             "call_function",
             torch._functorch.predispatch._vmap_decrement_nesting,
             (),
             {},
+=======
+            "call_function", torch._C._functorch._vmap_decrement_nesting, (), {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return variables.ConstantVariable.create(None)
 
@@ -808,8 +839,15 @@ class DeterministicAlgorithmsVariable(ContextWrappingVariable):
     def _call_func(self, tx: "InstructionTranslator", values):
         assert len(values) == 1
         value = values[0]
+<<<<<<< HEAD
         tx.output.create_node(
             "call_function", torch._C._set_deterministic_algorithms, (value,), {}
+=======
+        (
+            tx.output.create_node(
+                "call_function", torch._C._set_deterministic_algorithms, (value,), {}
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         torch._C._set_deterministic_algorithms(value)
 
@@ -941,8 +979,12 @@ class NullContextVariable(ContextWrappingVariable):
         super().__init__(target_values=target_values, **kwargs)
 
     def enter(self, tx):
+<<<<<<< HEAD
         none = variables.ConstantVariable.create(None)
         return self.target_values if self.target_values else none
+=======
+        return variables.ConstantVariable.create(None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def exit(self, tx: "InstructionTranslator", *args):
         return variables.ConstantVariable.create(None)
@@ -989,6 +1031,73 @@ class ProfilerContextVariable(ContextWrappingVariable):
         )
 
 
+<<<<<<< HEAD
+=======
+class StreamContextVariable(ContextWrappingVariable):
+    @staticmethod
+    def create(tx: "InstructionTranslator", target_value, **kwargs):
+        from .builder import wrap_fx_proxy_cls
+
+        current_stream_method = get_interface_for_device(
+            target_value.device
+        ).current_stream
+        current_stream = wrap_fx_proxy_cls(
+            StreamVariable,
+            tx,
+            tx.output.create_proxy(
+                "call_function",
+                current_stream_method,
+                (None,),
+                {},
+            ),
+        )
+        return StreamContextVariable(
+            target_values=[target_value],
+            initial_values=[current_stream],
+            device=target_value.device,
+            **kwargs,
+        )
+
+    def __init__(self, target_values, device, initial_values=None, **kwargs) -> None:
+        super().__init__(
+            target_values=target_values, initial_values=initial_values, **kwargs
+        )
+        self.device = device
+        self.set_stream = get_interface_for_device(self.device).set_stream
+        self.set_stream_id = get_interface_for_device(self.device)._set_stream_by_id
+
+    def enter(self, tx):
+        # stream generated inside the traced function
+        if self.target_values[0].as_proxy() is not None:
+            tx.output.create_proxy(
+                "call_function",
+                self.set_stream,
+                (self.target_values[0].as_proxy(),),
+                {},
+            )
+        # stream passed from outside the traced function
+        else:
+            stream = self.target_values[0].value
+            tx.output.create_proxy(
+                "call_function",
+                self.set_stream_id,
+                (stream.stream_id, stream.device_index, stream.device_type),
+                {},
+            )
+        self.set_stream(self.target_values[0].value)
+        self.set_cleanup_hook(tx, lambda: self.set_stream(self.initial_values[0].value))
+
+    def exit(self, tx: "InstructionTranslator", *args):
+        tx.output.create_proxy(
+            "call_function",
+            self.set_stream,
+            (self.initial_values[0].as_proxy(),),
+            {},
+        )
+        self.cleanup_assert()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class PreserveVersionContextVariable(ContextWrappingVariable):
     """
     Wraps torch.autograd._unsafe_preserve_version_counter
@@ -1196,6 +1305,7 @@ class SDPAKernelVariable(ContextWrappingVariable):
         return "_sdpa_kernel_variadic"
 
 
+<<<<<<< HEAD
 class FxTracebackAnnotateVariable(ContextWrappingVariable):
     """
     fx.traceback.annotate is a context manager that allows users to annotate the
@@ -1236,6 +1346,142 @@ class FxTracebackAnnotateVariable(ContextWrappingVariable):
                 *graph_break_hints.SUPPORTABLE,
             ],
         )
+=======
+class StreamVariable(VariableTracker):
+    def __init__(self, proxy, value, device, **kwargs) -> None:
+        if proxy is not None and "example_value" in proxy.node.meta:
+            assert proxy.node.meta["example_value"] == value
+        assert value.device.type == device.type, (
+            "stream value is not equal to the passed device"
+        )
+        super().__init__(**kwargs)
+        self.proxy = proxy
+        self.value = value
+        self.device = device
+
+    def python_type(self):
+        return torch.Stream
+
+    def call_method(
+        self,
+        tx,
+        name,
+        args: "list[VariableTracker]",
+        kwargs: "dict[str, VariableTracker]",
+    ) -> "VariableTracker":
+        assert hasattr(self.value, name), f"no stream method found named {name}"
+
+        from ..utils import cmp_name_to_op_mapping, proxy_args_kwargs
+        from .builder import wrap_fx_proxy_cls
+
+        if name in ("wait_stream", "synchronize", "wait_event"):
+            tx.output.create_proxy(
+                "call_method", name, *proxy_args_kwargs([self] + args, kwargs)
+            )
+            return variables.ConstantVariable(None)
+        elif name == "query":
+            return wrap_fx_proxy_cls(
+                target_cls=variables.ConstantVariable,
+                tx=tx,
+                proxy=tx.output.create_proxy(
+                    "call_method", name, *proxy_args_kwargs([self] + args, kwargs)
+                ),
+            )
+        elif name == "record_event":
+            return wrap_fx_proxy_cls(
+                target_cls=EventVariable,
+                tx=tx,
+                proxy=tx.output.create_proxy(
+                    "call_method", name, *proxy_args_kwargs([self] + args, kwargs)
+                ),
+            )
+        elif name in cmp_name_to_op_mapping and len(args) == 1 and not kwargs:
+            # NB : Checking for mutation is necessary because we compare
+            # constant values
+            other = args[0]
+            if not isinstance(other, StreamVariable):
+                return variables.ConstantVariable.create(NotImplemented)
+            return variables.ConstantVariable.create(
+                cmp_name_to_op_mapping[name](self.value, other.value)
+            )
+
+        return super().call_method(tx, name, args, kwargs)
+
+    def as_proxy(self):
+        return self.proxy
+
+    def reconstruct(self, codegen: "PyCodegen"):
+        # If we got here, this stream is fully subsumed by the graph - this means it is
+        # not an input or global
+        assert not self.source
+        # Since we just proved that - for other such structures, like lists and dicts, reconstruction
+        # is fine and sound according to dynamo principles of treating collectives. However,
+        # streams are special in that we want to preserve the identity of the stream as the same as in the graph
+        # Normally, we would do this via codegen for the proxy mapping to an output - we cannot do this yet, as we do not
+        # yet have a plan for how we want to handle the case where the stream is used as an input or an output. Pending
+        # design, to unblock current work, we lift the stream into a global and then codegen bytecode to load it from there.
+        prefix = f"_stream_{self.device}"
+        name = codegen.tx.output.install_global_by_id(prefix, self.value)
+        codegen.append_output(codegen.create_load_global(name, add=True))
+
+
+class EventVariable(VariableTracker):
+    def __init__(self, proxy, value, **kwargs) -> None:
+        if proxy is not None and "example_value" in proxy.node.meta:
+            assert proxy.node.meta["example_value"] == value
+        super().__init__(**kwargs)
+        self.proxy = proxy
+        self.value = value
+
+    def call_method(
+        self,
+        tx,
+        name,
+        args: "list[VariableTracker]",
+        kwargs: "dict[str, VariableTracker]",
+    ) -> "VariableTracker":
+        from ..utils import proxy_args_kwargs
+        from .builder import wrap_fx_proxy_cls
+
+        if name in ("wait", "record", "synchronize"):
+            tx.output.create_proxy(
+                "call_method", name, *proxy_args_kwargs([self] + args, kwargs)
+            )
+            return variables.ConstantVariable(None)
+        elif name == "query":
+            return wrap_fx_proxy_cls(
+                target_cls=variables.ConstantVariable,
+                tx=tx,
+                proxy=tx.output.create_proxy(
+                    "call_method", name, *proxy_args_kwargs([self] + args, kwargs)
+                ),
+            )
+        else:
+            method_name = (
+                f"{type(self.value).__module__}.{type(self.value).__qualname__}.{name}"
+            )
+            unimplemented_v2(
+                gb_type="Unsupported event method",
+                context=str(name),
+                explanation=f"Dynamo doesn't support tracing the {method_name} method. "
+                f"We currently support wait, record, synchronize, and query.",
+                hints=[
+                    *graph_break_hints.SUPPORTABLE,
+                ],
+            )
+
+    def as_proxy(self):
+        return self.proxy
+
+    def reconstruct(self, codegen: "PyCodegen"):
+        # If we got here, this event is fully subsumed by the graph - this means it is
+        # not an input or global
+        assert not self.source
+        # Similar to stream handling, we lift the event into a global and then codegen bytecode to load it from there.
+        prefix = "_event"
+        name = codegen.tx.output.install_global_by_id(prefix, self.value)
+        codegen.append_output(codegen.create_load_global(name, add=True))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DynamoConfigPatchVariable(ContextWrappingVariable):
@@ -1251,6 +1497,19 @@ class DynamoConfigPatchVariable(ContextWrappingVariable):
             self.initial_values[key] = torch._dynamo.config.__getattr__(key)
         self.initial_values = (tuple(self.initial_values.items()),)
 
+<<<<<<< HEAD
+=======
+    def enter(self, tx):
+        # resets all config patches at the end of tracing
+        self.set_cleanup_hook(tx)
+        self._call_func(tx, self.target_values)
+        return variables.ConstantVariable.create(None)
+
+    def exit(self, tx: "InstructionTranslator", *args):
+        self._call_func(tx, self.initial_values)
+        return variables.ConstantVariable.create(None)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _call_func(self, tx: "InstructionTranslator", values):
         assert len(values) == 1
         value = values[0]
@@ -1269,6 +1528,7 @@ class DynamoConfigPatchVariable(ContextWrappingVariable):
         return "patch_dynamo_config"
 
 
+<<<<<<< HEAD
 class ErrorOnGraphBreakVariable(ContextWrappingVariable):
     """represents torch._dynamo.error_on_graph_break"""
 
@@ -1330,6 +1590,8 @@ class WithEnterFunctionVariable(VariableTracker):
         )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class WithExitFunctionVariable(VariableTracker):
     _nonvar_fields = {
         "target",

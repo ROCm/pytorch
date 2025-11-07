@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["module: sparse"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import copy
 
@@ -50,12 +54,20 @@ class TestActivationSparsifier(TestCase):
         sparsifier_defaults = activation_sparsifier.defaults
         combined_defaults = {**defaults, "sparse_config": sparse_config}
 
+<<<<<<< HEAD
         # more keys are populated in activation sparsifier (even though they may be None)
+=======
+        # more keys are populated in activation sparsifier (eventhough they may be None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(combined_defaults) <= len(activation_sparsifier.defaults)
 
         for key, config in sparsifier_defaults.items():
             # all the keys in combined_defaults should be present in sparsifier defaults
+<<<<<<< HEAD
             assert config == combined_defaults.get(key)
+=======
+            assert config == combined_defaults.get(key, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _check_register_layer(
         self, activation_sparsifier, defaults, sparse_config, layer_args_list
@@ -190,7 +202,11 @@ class TestActivationSparsifier(TestCase):
                 if features is None:
                     assert torch.all(mask * input_data == output)
                 else:
+<<<<<<< HEAD
                     for feature_idx in range(len(features)):
+=======
+                    for feature_idx in range(0, len(features)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         feature = torch.Tensor(
                             [features[feature_idx]], device=input_data.device
                         ).long()
@@ -243,7 +259,11 @@ class TestActivationSparsifier(TestCase):
             if mask1 is None:
                 assert mask2 is None
             else:
+<<<<<<< HEAD
                 assert type(mask1) is type(mask2)
+=======
+                assert type(mask1) == type(mask2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if isinstance(mask1, list):
                     assert len(mask1) == len(mask2)
                     for idx in range(len(mask1)):
@@ -378,7 +398,11 @@ class TestActivationSparsifier(TestCase):
         # some dummy data
         data_list = []
         num_data_points = 5
+<<<<<<< HEAD
         for _ in range(num_data_points):
+=======
+        for _ in range(0, num_data_points):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             rand_data = torch.randn(16, 1, 28, 28)
             activation_sparsifier.model(rand_data)
             data_list.append(rand_data)

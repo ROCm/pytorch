@@ -118,7 +118,11 @@ class TestConstParamShapeInControlFlow(TestCase):
         graph1_node_targets = [n.target for n in traced_graph.nodes]
         graph2_node_targets = [n.target for n in traced_graph2.nodes]
 
+<<<<<<< HEAD
         # the second graph has an extra relu function call node
+=======
+        # the second graph has an exta relu function call node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert torch.mm in graph1_node_targets and torch.mm in graph2_node_targets
         assert (
             torch.relu not in graph1_node_targets and torch.relu in graph2_node_targets

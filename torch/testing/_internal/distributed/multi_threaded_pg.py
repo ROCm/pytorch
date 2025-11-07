@@ -71,6 +71,7 @@ _reduce_ops = {
 }
 
 
+<<<<<<< HEAD
 # Note [Hide collectives mutation from autograd]
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Threaded PG is intended to closely simulate the behavior of regular process
@@ -89,6 +90,8 @@ _reduce_ops = {
 # the mutations from autograd.
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class AllToAll:
     @torch.no_grad()
     def work(self, data):
@@ -97,10 +100,14 @@ class AllToAll:
             output_tensor_list, _ = data[dest_rank]
             for src_rank in range(world_size):
                 _, input_tensor_list = data[src_rank]
+<<<<<<< HEAD
                 # See Note [Hide collectives mutation from autograd]
                 output_tensor_list[src_rank].detach().copy_(
                     input_tensor_list[dest_rank]
                 )
+=======
+                output_tensor_list[src_rank].copy_(input_tensor_list[dest_rank])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class AllToAllBase:
@@ -120,10 +127,16 @@ class AllToAllBase:
                     input_buffer.size(0), input_split_sizes, world_size
                 )
 
+<<<<<<< HEAD
                 # See Note [Hide collectives mutation from autograd]
                 output_buffer[
                     output_indexes[src_rank] : output_indexes[src_rank + 1]
                 ].detach().copy_(
+=======
+                output_buffer[
+                    output_indexes[src_rank] : output_indexes[src_rank + 1]
+                ].copy_(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     input_buffer[
                         input_indexes[dest_rank] : input_indexes[dest_rank + 1]
                     ]
@@ -166,7 +179,11 @@ class AllReduce:
             # collect all data to the list and make them
             # all on rank 0 device
             tensors = [
+<<<<<<< HEAD
                 data[src_rank][i].to(rank_0_device) for src_rank in range(len(data))
+=======
+                data[src_rank][i].to(rank_0_device) for src_rank in range(0, len(data))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
 
             # now mimic reduce across all ranks
@@ -174,8 +191,12 @@ class AllReduce:
 
             # copy all the reduced value to each rank
             for src_rank in range(len(data)):
+<<<<<<< HEAD
                 # See Note [Hide collectives mutation from autograd]
                 data[src_rank][i].detach().copy_(res.to(data[src_rank][i].device))
+=======
+                data[src_rank][i].copy_(res.to(data[src_rank][i].device))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class AllGather:
@@ -189,8 +210,12 @@ class AllGather:
 
             for dest in data:
                 dest_tensor = dest[0][0][src_rank]
+<<<<<<< HEAD
                 # See Note [Hide collectives mutation from autograd]
                 dest_tensor.detach().copy_(src_tensor)
+=======
+                dest_tensor.copy_(src_tensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Scatter:
@@ -209,8 +234,12 @@ class Scatter:
             # Can't handle scatter with multiple output tensor
             assert len(out_tensor_list) == 1
             dest_tensor = out_tensor_list[0]
+<<<<<<< HEAD
             # See Note [Hide collectives mutation from autograd]
             dest_tensor.detach().copy_(src_in_tensors[rank])
+=======
+            dest_tensor.copy_(src_in_tensors[rank])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Gather:
@@ -227,8 +256,12 @@ class Gather:
             # Can't handle gather with multiple tensor lists
             assert len(src_in_tensor_list) == 1
             dest_tensor = out_tensor_list[rank]
+<<<<<<< HEAD
             # See Note [Hide collectives mutation from autograd]
             dest_tensor.detach().copy_(src_in_tensor_list[0])
+=======
+            dest_tensor.copy_(src_in_tensor_list[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ReduceScatter:
@@ -250,6 +283,7 @@ class ReduceScatter:
                 assert len(dest_tensor_on_rank_i) == 1
                 dst_tensor_device = dest_tensor_on_rank_i[0].device
                 if not start_reduction[i]:
+<<<<<<< HEAD
                     # See Note [Hide collectives mutation from autograd]
                     dest_tensor_on_rank_i[0].detach().copy_(
                         to_scatter[i].to(dst_tensor_device)
@@ -265,6 +299,16 @@ class ReduceScatter:
             for each_rank_data in data:
                 # See Note [Hide collectives mutation from autograd]
                 each_rank_data[0][0].detach().div_(num_ranks)
+=======
+                    dest_tensor_on_rank_i[0].copy_(to_scatter[i].to(dst_tensor_device))
+                    start_reduction[i] = True
+                else:
+                    dest_tensor_on_rank_i[0].add_(to_scatter[i].to(dst_tensor_device))
+        if self.op == dist.ReduceOp.AVG:
+            num_ranks = len(data)
+            for each_rank_data in data:
+                each_rank_data[0][0] /= num_ranks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Broadcast:
@@ -275,12 +319,18 @@ class Broadcast:
     def work(self, data):
         in_tensor_list = flatten_list(data[self.src])
         for i in range(len(data)):
+<<<<<<< HEAD
             if i == self.src:
                 continue
             out_tensor_list = flatten_list(data[i])
             for j in range(len(in_tensor_list)):
                 # See Note [Hide collectives mutation from autograd]
                 out_tensor_list[j].detach().copy_(in_tensor_list[j])
+=======
+            out_tensor_list = flatten_list(data[i])
+            for j in range(len(in_tensor_list)):
+                out_tensor_list[j].copy_(in_tensor_list[j])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class Collective:
@@ -457,9 +507,13 @@ class ProcessLocalGroup(dist.ProcessGroup):
     ):
         works = [
             self._reduce_scatter_base(output_tensor, input_tensor, opts)
+<<<<<<< HEAD
             for output_tensor, input_tensor in zip(
                 output_tensors, input_tensors, strict=True
             )
+=======
+            for output_tensor, input_tensor in zip(output_tensors, input_tensors)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         for work in works[:-1]:
             work.wait()
@@ -469,7 +523,11 @@ class ProcessLocalGroup(dist.ProcessGroup):
         self, output_tensor_list, input_tensor_list, opts=AllgatherOptions()
     ):
         res = None
+<<<<<<< HEAD
         for o_t, i_t in zip(output_tensor_list, input_tensor_list, strict=True):
+=======
+        for o_t, i_t in zip(output_tensor_list, input_tensor_list):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             res = self._allgather_base(o_t, i_t)
         return res
 

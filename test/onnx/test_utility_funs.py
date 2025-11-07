@@ -1,9 +1,17 @@
 # Owner(s): ["module: onnx"]
 
 import copy
+<<<<<<< HEAD
 import io
 import re
 import warnings
+=======
+import functools
+import io
+import re
+import warnings
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import onnx
 
@@ -21,7 +29,11 @@ import torch
 import torch.onnx
 import torch.utils.cpp_extension
 from torch.onnx import _constants, OperatorExportTypes, TrainingMode, utils
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter._globals import GLOBALS
+=======
+from torch.onnx._globals import GLOBALS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.onnx.symbolic_helper import _unpack_list, parse_args
 from torch.testing._internal import common_utils
 from torch.testing._internal.common_utils import skipIfNoLapack
@@ -84,6 +96,89 @@ class _BaseTestCase(pytorch_test_common.ExportTestCase):
         return graph, params_dict, torch_out
 
 
+<<<<<<< HEAD
+=======
+@common_utils.instantiate_parametrized_tests
+class TestUnconvertibleOps(pytorch_test_common.ExportTestCase):
+    """Unit tests for the `unconvertible_ops` function."""
+
+    def setUp(self):
+        class EinsumModule(torch.nn.Module):
+            def forward(self, x):
+                return torch.einsum("ii", x)
+
+        self.einsum_module = EinsumModule()
+
+    def test_it_returns_graph_and_unconvertible_ops_at_lower_opset_version(self):
+        x = torch.randn(4, 4)
+
+        # Einsum is supported since opset 12. It should be unconvertible at opset 9.
+        graph, unconvertible_ops = utils.unconvertible_ops(
+            self.einsum_module, (x,), opset_version=9
+        )
+        nodes = graph.nodes()
+        self.assertEqual(next(nodes).kind(), "prim::Constant")
+        self.assertEqual(next(nodes).kind(), "prim::ListConstruct")
+        self.assertEqual(next(nodes).kind(), "prim::Constant")
+        self.assertEqual(next(nodes).kind(), "aten::einsum")
+        self.assertEqual(unconvertible_ops, ["aten::einsum"])
+
+    @common_utils.parametrize(
+        "jit_function",
+        [
+            common_utils.subtest(
+                functools.partial(torch.jit.trace, example_inputs=torch.randn(4, 4)),
+                name="traced",
+            ),
+            common_utils.subtest(torch.jit.script, name="scripted"),
+        ],
+    )
+    def test_it_returns_unconvertible_ops_at_lower_opset_version_for_jit_module(
+        self, jit_function: Callable
+    ):
+        module = jit_function(self.einsum_module)
+        x = torch.randn(4, 4)
+
+        # Einsum is supported since opset 12. It should be unconvertible at opset 9.
+        _, unconvertible_ops = utils.unconvertible_ops(module, (x,), opset_version=9)
+        self.assertEqual(unconvertible_ops, ["aten::einsum"])
+
+    @common_utils.parametrize(
+        "jit_function",
+        [
+            common_utils.subtest(lambda x: x, name="nn_module"),
+            common_utils.subtest(
+                functools.partial(torch.jit.trace, example_inputs=torch.randn(4, 4)),
+                name="traced",
+            ),
+            common_utils.subtest(torch.jit.script, name="scripted"),
+        ],
+    )
+    def test_it_returns_empty_list_when_all_ops_convertible(
+        self, jit_function: Callable
+    ):
+        module = jit_function(self.einsum_module)
+        x = torch.randn(4, 4)
+
+        # Einsum is supported since opset 12
+        _, unconvertible_ops = utils.unconvertible_ops(module, (x,), opset_version=12)
+        self.assertEqual(unconvertible_ops, [])
+
+    def test_it_returns_empty_list_when_model_contains_supported_inplace_ops(self):
+        class SkipConnectionModule(torch.nn.Module):
+            def forward(self, x):
+                out = x
+                out += x
+                out = torch.nn.functional.relu(out, inplace=True)
+                return out
+
+        module = SkipConnectionModule()
+        x = torch.randn(4, 4)
+        _, unconvertible_ops = utils.unconvertible_ops(module, (x,), opset_version=13)
+        self.assertEqual(unconvertible_ops, [])
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @parameterized.parameterized_class(
     [
         {"opset_version": opset}
@@ -111,9 +206,13 @@ class TestUtilityFuns(_BaseTestCase):
         x = torch.randn(3, 4)
         f = io.BytesIO()
         try:
+<<<<<<< HEAD
             torch.onnx.export(
                 MyModule(), x, f, opset_version=self.opset_version, dynamo=False
             )
+=======
+            torch.onnx.export(MyModule(), x, f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except ValueError:
             self.assertFalse(torch.onnx.is_in_onnx_export())
 
@@ -640,7 +739,11 @@ class TestUtilityFuns(_BaseTestCase):
         model = torch.nn.Upsample(scale_factor=2, mode="bilinear", align_corners=True)
         x = torch.randn(1, 32, 224, 224)
         f = io.BytesIO()
+<<<<<<< HEAD
         torch.onnx.export(model, x, f, dynamo=False)
+=======
+        torch.onnx.export(model, x, f)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         self.assertEqual(len(onnx_model.graph.initializer), 0)
 
@@ -653,6 +756,7 @@ class TestUtilityFuns(_BaseTestCase):
 
         def is_model_stripped(f, verbose=None):
             if verbose is None:
+<<<<<<< HEAD
                 torch.onnx.export(
                     MyModule(), x, f, opset_version=self.opset_version, dynamo=False
                 )
@@ -664,6 +768,12 @@ class TestUtilityFuns(_BaseTestCase):
                     verbose=verbose,
                     opset_version=self.opset_version,
                     dynamo=False,
+=======
+                torch.onnx.export(MyModule(), x, f, opset_version=self.opset_version)
+            else:
+                torch.onnx.export(
+                    MyModule(), x, f, verbose=verbose, opset_version=self.opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             model = onnx.load(io.BytesIO(f.getvalue()))
             model_strip = copy.copy(model)
@@ -686,9 +796,13 @@ class TestUtilityFuns(_BaseTestCase):
             "exporter, please use 'attribute' module to "
             "unwrap model from torch.nn.DataParallel. Try ",
         ):
+<<<<<<< HEAD
             torch.onnx.export(
                 model, x, f, opset_version=self.opset_version, dynamo=False
             )
+=======
+            torch.onnx.export(model, x, f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfUnsupportedMinOpsetVersion(11)
     def test_sequence_dim(self):
@@ -712,7 +826,10 @@ class TestUtilityFuns(_BaseTestCase):
             opset_version=self.opset_version,
             input_names=["x", "y"],
             dynamic_axes={"y": [1]},
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         loop_output_value_info_proto = onnx_model.graph.output[0]
@@ -724,9 +841,13 @@ class TestUtilityFuns(_BaseTestCase):
         # Case 2: no dynamic axes.
         f = io.BytesIO()
         y = torch.randn(2, 3)
+<<<<<<< HEAD
         torch.onnx.export(
             script_model, (x, y), f, opset_version=self.opset_version, dynamo=False
         )
+=======
+        torch.onnx.export(script_model, (x, y), f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         loop_output_value_info_proto = onnx_model.graph.output[0]
         ref_value_info_proto = onnx.helper.make_tensor_sequence_value_info(
@@ -753,7 +874,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             training=torch.onnx.TrainingMode.TRAINING,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # verify that the model state is preserved
         self.assertEqual(model.training, old_state)
@@ -767,7 +891,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             training=torch.onnx.TrainingMode.EVAL,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # verify that the model state is preserved
         self.assertEqual(model.training, old_state)
@@ -795,9 +922,13 @@ class TestUtilityFuns(_BaseTestCase):
         # jit.freeze removes the training attribute in the module
         module = torch.jit.freeze(module)
 
+<<<<<<< HEAD
         torch.onnx.export(
             module, (x,), io.BytesIO(), opset_version=self.opset_version, dynamo=False
         )
+=======
+        torch.onnx.export(module, (x,), io.BytesIO(), opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @skipIfUnsupportedMinOpsetVersion(15)
     def test_local_function(self):
@@ -846,7 +977,10 @@ class TestUtilityFuns(_BaseTestCase):
                 torch.nn.Dropout,
                 torch.nn.LayerNorm,
             },
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -881,7 +1015,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             export_modules_as_functions={torch.nn.CELU},
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -897,7 +1034,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             export_modules_as_functions=set(),
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -912,7 +1052,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             export_modules_as_functions=True,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -949,7 +1092,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             export_modules_as_functions={NWithOverloads},
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -979,7 +1125,10 @@ class TestUtilityFuns(_BaseTestCase):
             export_modules_as_functions=True,
             opset_version=self.opset_version,
             do_constant_folding=False,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -1012,7 +1161,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             export_modules_as_functions=True,
             opset_version=self.opset_version,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
@@ -1078,7 +1230,10 @@ class TestUtilityFuns(_BaseTestCase):
             export_modules_as_functions=True,
             opset_version=self.opset_version,
             verbose=True,  # Allows the test case to print `Skipping module attribute 'freeze'`
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_node_scope(self):
@@ -1323,7 +1478,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             custom_opsets={"com.microsoft": 1},
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         graph = onnx.load(io.BytesIO(f.getvalue()))
@@ -1344,9 +1502,13 @@ class TestUtilityFuns(_BaseTestCase):
         model = torch.nn.GELU(approximate="none")
         x = torch.randn(3, 3)
         f = io.BytesIO()
+<<<<<<< HEAD
         torch.onnx.export(
             model, (x,), f, opset_version=self.opset_version, dynamo=False
         )
+=======
+        torch.onnx.export(model, (x,), f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph = onnx.load(io.BytesIO(f.getvalue()))
 
         self.assertEqual(graph.graph.node[0].op_type, "Gelu")
@@ -1373,7 +1535,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             custom_opsets={"com.microsoft": 1},
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         graph = onnx.load(io.BytesIO(f.getvalue()))
@@ -1677,7 +1842,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             opset_version=self.opset_version,
             keep_initializers_as_inputs=True,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         graph = onnx.load(io.BytesIO(f.getvalue()))
         self.assertEqual(graph.graph.input[1].name, "in_weight")
@@ -1710,19 +1878,27 @@ class TestUtilityFuns(_BaseTestCase):
         ]
         f = io.BytesIO()
 
+<<<<<<< HEAD
         torch.onnx.export(
             module, torch.ones(1, 10), f, output_names=["y"], dynamo=False
         )
+=======
+        torch.onnx.export(module, torch.ones(1, 10), f, output_names=["y"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         for n in onnx_model.graph.node:
             self.assertIn(n.name, ref_node_names)
 
         torch.onnx.export(
+<<<<<<< HEAD
             torch.jit.script(module),
             torch.ones(1, 10),
             f,
             output_names=["y"],
             dynamo=False,
+=======
+            torch.jit.script(module), torch.ones(1, 10), f, output_names=["y"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         for n in onnx_model.graph.node:
@@ -1765,7 +1941,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             training=TrainingMode.TRAINING,
             opset_version=self.opset_version,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         graph = onnx.load(io.BytesIO(f.getvalue()))
         self.assertSetEqual({i.name for i in graph.graph.initializer}, param_name_set)
@@ -1778,7 +1957,10 @@ class TestUtilityFuns(_BaseTestCase):
             f,
             training=TrainingMode.PRESERVE,
             opset_version=self.opset_version,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         graph = onnx.load(io.BytesIO(f.getvalue()))
         self.assertSetEqual({i.name for i in graph.graph.initializer}, param_name_set)
@@ -1786,9 +1968,13 @@ class TestUtilityFuns(_BaseTestCase):
         # Test eval mode.
         model.eval()
         f = io.BytesIO()
+<<<<<<< HEAD
         torch.onnx.export(
             model, (x,), f, opset_version=self.opset_version, dynamo=False
         )
+=======
+        torch.onnx.export(model, (x,), f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph = onnx.load(io.BytesIO(f.getvalue()))
         param_name_set.remove("param2")
         self.assertSetEqual({i.name for i in graph.graph.initializer}, param_name_set)
@@ -1817,9 +2003,13 @@ class TestUtilityFuns(_BaseTestCase):
         x = torch.randn(3, 3, device=torch.device("cpu"))
         y = torch.randn(3, 3, device=torch.device("cuda"))
         f = io.BytesIO()
+<<<<<<< HEAD
         torch.onnx.export(
             Model(), (x, y), f, opset_version=self.opset_version, dynamo=False
         )
+=======
+        torch.onnx.export(Model(), (x, y), f, opset_version=self.opset_version)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph = onnx.load(io.BytesIO(f.getvalue()))
         self.assertSetEqual({i.name for i in graph.graph.initializer}, {"w_cpu"})
 
@@ -1860,7 +2050,10 @@ class TestUtilityFuns(_BaseTestCase):
             dynamic_axes=dynamic_axes,
             verbose=True,
             keep_initializers_as_inputs=True,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         graph = onnx.load(io.BytesIO(f.getvalue()))
@@ -1888,7 +2081,11 @@ class TestUtilityFuns(_BaseTestCase):
 
         f = io.BytesIO()
         x = torch.randn(1, 32, 224, 224)
+<<<<<<< HEAD
         torch.onnx.export(Model(), x, f, dynamo=False)
+=======
+        torch.onnx.export(Model(), x, f)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         onnx_model = onnx.load(io.BytesIO(f.getvalue()))
         # aten::upsample converts to onnx::resize
         resize_nodes = [n for n in onnx_model.graph.node if n.op_type == "Resize"]
@@ -1920,7 +2117,11 @@ class TestUtilityFuns(_BaseTestCase):
         self.assertExpectedRaisesInline(
             AssertionError,
             lambda: torch.onnx.export(
+<<<<<<< HEAD
                 model, (x,), f, opset_version=_onnx_opset_version, dynamo=False
+=======
+                model, (x,), f, opset_version=_onnx_opset_version
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             (
                 "A mismatch between the number of arguments (2) and their descriptors (1) was found at symbolic function "

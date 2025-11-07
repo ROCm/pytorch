@@ -1,6 +1,9 @@
 import hashlib
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Sequence
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from functools import lru_cache
 from typing import Any, Callable, Optional, Union
 from typing_extensions import TypeAlias
@@ -100,6 +103,7 @@ def get_hash_for_files(paths: tuple[str], extra: str = "") -> bytes:
     hasher.update(extra.encode("utf-8"))
     for path in paths:
         with open(path, "rb") as f:
+<<<<<<< HEAD
             hasher.update(f.read())
     return hasher.digest()
 
@@ -157,3 +161,8 @@ class CustomPartitionerFn(ABC):
 
 
 CustomPartitionerFnType: TypeAlias = Optional[CustomPartitionerFn]
+=======
+            hasher.update(path.encode("utf-8"))
+            hasher.update(f.read())
+    return hasher.digest()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

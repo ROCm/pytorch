@@ -36,8 +36,12 @@ def _check_balance(device_ids: Sequence[Union[int, torch.device]]) -> None:
         max_pos, max_val = max(enumerate(values), key=operator.itemgetter(1))
         if min_val / max_val < 0.75:
             warnings.warn(
+<<<<<<< HEAD
                 imbalance_warn.format(device_ids[min_pos], device_ids[max_pos]),
                 stacklevel=2,
+=======
+                imbalance_warn.format(device_ids[min_pos], device_ids[max_pos])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return True
         return False
@@ -161,7 +165,10 @@ class DataParallel(Module, Generic[T]):
         self.module = module
         self.device_ids = [_get_device_index(x, True) for x in device_ids]
         self.output_device = _get_device_index(output_device, True)
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.src_device_obj = torch.device(device_type, self.device_ids[0])
 
         if device_type == "cuda":
@@ -175,7 +182,10 @@ class DataParallel(Module, Generic[T]):
             if not self.device_ids:
                 return self.module(*inputs, **kwargs)
 
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for t in chain(self.module.parameters(), self.module.buffers()):
                 if t.device != self.src_device_obj:
                     raise RuntimeError(
@@ -262,10 +272,15 @@ def data_parallel(
 
     device_ids = [_get_device_index(x, True) for x in device_ids]
     output_device = _get_device_index(output_device, True)
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
     src_device_obj = torch.device(device_type, device_ids[0])
 
     # pyrefly: ignore [bad-argument-type]
+=======
+    src_device_obj = torch.device(device_type, device_ids[0])
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for t in chain(module.parameters(), module.buffers()):
         if t.device != src_device_obj:
             raise RuntimeError(

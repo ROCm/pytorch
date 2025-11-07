@@ -78,7 +78,11 @@ TEST(LiteTrainerTest, Params) {
   AT_ASSERT(parameters[0].item<float>() == bc_parameters[0].item<float>());
 }
 
+<<<<<<< HEAD
 // TODO Re-enable these tests after parameters are correctly loaded on mobile
+=======
+// TODO Renable these tests after parameters are correctly loaded on mobile
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /*
 TEST(MobileTest, NamedParameters) {
   Module m("m");

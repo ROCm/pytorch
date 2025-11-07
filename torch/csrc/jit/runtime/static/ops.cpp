@@ -1910,7 +1910,11 @@ REGISTER_OPERATOR_FUNCTOR(aten::div, aten_div, [](Node* n) -> SROperator {
     }
     auto& out_t = p_node->Output(0).toTensor();
 
+<<<<<<< HEAD
     if (te && te->checkInput<float>(in0_t) && in0_t.sizes() == in1_t.sizes() &&
+=======
+    if (in0_t.sizes() == in1_t.sizes() &&
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         in0_t.scalar_type() == in1_t.scalar_type() &&
         in0_t.strides() == in1_t.strides() && in0_t.is_contiguous() &&
         in0_t.scalar_type() == at::kFloat) {

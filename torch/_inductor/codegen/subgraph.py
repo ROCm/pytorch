@@ -1,6 +1,10 @@
 import itertools
 import logging
+<<<<<<< HEAD
 from typing import Any, Callable, Union
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._inductor.config as config
@@ -80,7 +84,10 @@ class SubgraphChoiceCaller(ir.ChoiceCaller):
             bm_graph_lowering.graph_input_names.append(sym_inp.name)
 
         sym_inputs = [
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             int(V.graph.sizevars.shape_env.size_hint(sym_var))
             for sym_var in self.sym_inputs
         ]
@@ -96,6 +103,20 @@ class SubgraphChoiceCaller(ir.ChoiceCaller):
                     assert ar.shape == example_inp.shape
                     assert ar.stride() == example_inp.stride()
 
+<<<<<<< HEAD
+=======
+        if len(sym_inputs) == 0:
+            # Sanity check that args are same layout as example inputs
+            # Only do it if there are no symbolic inputs, otherwise
+            # the dynamic dim will be realized to the same size as args
+            for ar, example_inp in zip(args, self.example_inputs):
+                # Sanity check that args are same layout as example inputs
+                if isinstance(ar, torch.Tensor):
+                    assert isinstance(example_inp, torch.Tensor)
+                    assert ar.shape == example_inp.shape
+                    assert ar.stride() == example_inp.stride()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with V.set_graph_handler(bm_graph_lowering):
             # Don't bother autotuning on Triton here
             with inductor_config.patch(
@@ -122,7 +143,11 @@ class SubgraphChoiceCaller(ir.ChoiceCaller):
             ]
         )
 
+<<<<<<< HEAD
     def output_node(self) -> Union[ir.TensorBox, ir.ShapeAsConstantBuffer]:
+=======
+    def output_node(self) -> ir.TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return ir.TensorBox.create(
             ir.SubgraphBuffer(
                 layout=self.layout,
@@ -158,6 +183,10 @@ class SubgraphTemplate(KernelTemplate):
     def __init__(
         self,
         name: str,
+<<<<<<< HEAD
+=======
+        make_fx_graph: Callable[..., Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Initialize a subgraph template.
@@ -166,6 +195,7 @@ class SubgraphTemplate(KernelTemplate):
             name: The name of this template
             graph: The FX graph
         """
+<<<<<<< HEAD
         super().__init__(name=name)
 
     def generate(  # type: ignore[override]
@@ -175,6 +205,15 @@ class SubgraphTemplate(KernelTemplate):
         layout: Layout,
         make_fx_graph: Callable[..., Any],
         description: str = "",
+=======
+        self.name = f"{name}_{next(SubgraphTemplate.index_counter)}"
+        self.make_fx_graph = make_fx_graph
+
+    def generate(  # type: ignore[override]
+        self,
+        input_nodes: list[Buffer],
+        layout: Layout,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **kwargs: Any,
     ) -> SubgraphChoiceCaller:
         """
@@ -191,9 +230,17 @@ class SubgraphTemplate(KernelTemplate):
         """
 
         return SubgraphChoiceCaller(
+<<<<<<< HEAD
             name=f"{name}_{next(SubgraphTemplate.index_counter)}",
             input_nodes=input_nodes,
             layout=layout,
             description=description,
             make_fx_graph=make_fx_graph,
+=======
+            name=self.name,
+            input_nodes=input_nodes,
+            layout=layout,
+            description="",
+            make_fx_graph=self.make_fx_graph,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )

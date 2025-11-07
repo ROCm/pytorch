@@ -3,8 +3,13 @@
 import functools
 import itertools
 import operator
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Sequence
 from typing import cast, Optional, TypeVar, Union
+=======
+from collections.abc import Iterable, Sequence
+from typing import Callable, cast, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -19,7 +24,10 @@ from torch.distributed.tensor._op_schema import (
     OutputSharding,
     PlacementList,
     RuntimeSchemaInfo,
+<<<<<<< HEAD
     StrategyType,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.distributed.tensor.device_mesh import DeviceMesh
 from torch.distributed.tensor.placement_types import (
@@ -35,12 +43,23 @@ _P = ParamSpec("_P")
 
 
 # convenient wrapper to register sharding propagation rules
+<<<<<<< HEAD
+=======
+# pyre-fixme[3]: Return type must be annotated.
+# pyre-fixme[2]: Parameter must be annotated.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def register_prop_rule(
     op: Union[torch._ops.OpOverload, list[torch._ops.OpOverload]],
     schema_info: Optional[RuntimeSchemaInfo] = None,
 ) -> Callable[
     [Callable[[OpSchema], OutputSharding]], Callable[[OpSchema], OutputSharding]
 ]:
+<<<<<<< HEAD
+=======
+    # pyre-fixme[53]: Captured variable `func` is not annotated.
+    # pyre-fixme[3]: Return type must be annotated.
+    # pyre-fixme[2]: Parameter must be annotated.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def wrapper(
         impl: Callable[[OpSchema], OutputSharding],
     ) -> Callable[[OpSchema], OutputSharding]:
@@ -57,6 +76,11 @@ def register_prop_rule(
 def register_op_strategy(
     op, schema_info=None
 ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]:
+<<<<<<< HEAD
+=======
+    # pyre-fixme[53]: Captured variable `func` is not annotated.
+    # pyre-fixme[3]: Return type must be annotated.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # pyre-fixme[2]: Parameter must be annotated.
 
     # For every ATen op that accepts any args in this list,
@@ -96,6 +120,7 @@ def register_op_strategy(
     return wrapper
 
 
+<<<<<<< HEAD
 def replicate_op_strategy(op_schema: OpSchema) -> StrategyType:
     """
     Fallback strategy all use Replication()
@@ -126,6 +151,8 @@ def replicate_op_strategy(op_schema: OpSchema) -> StrategyType:
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def as_list(
     x: Union[list[object], object],
     # pyre-fixme[11]: Annotation `immutable_list` is not defined as a type.
@@ -150,7 +177,11 @@ def normalize_dims(dims: DimsType, ndim: int) -> DimsSequenceType:
     elif isinstance(dims, list):
         dims = [normalize_dim(dim, ndim) for dim in dims]
     elif isinstance(dims, tuple):
+<<<<<<< HEAD
         dims = tuple(normalize_dim(dim, ndim) for dim in dims)
+=======
+        dims = tuple([normalize_dim(dim, ndim) for dim in dims])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return dims
 
 
@@ -165,8 +196,11 @@ def is_tensor_shardable(shape: Sequence[int], spec: DTensorSpec) -> bool:
     for i, placement in enumerate(spec.placements):
         if placement.is_shard():
             shard_dim = cast(Shard, placement).dim
+<<<<<<< HEAD
             if shard_dim >= len(shape):
                 return False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shards_map[shard_dim] *= spec.mesh.size(i)
 
     for i, dim_size in enumerate(shape):
@@ -194,6 +228,7 @@ def is_tensor_evenly_shardable(shape: Sequence[int], spec: DTensorSpec) -> bool:
     return True
 
 
+<<<<<<< HEAD
 def is_tensor_evenly_shardable_on_dim(
     shape: Sequence[int], spec: DTensorSpec, dim: int
 ) -> bool:
@@ -210,6 +245,8 @@ def is_tensor_evenly_shardable_on_dim(
     return shape[dim] % num_shards == 0
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_tensor_dim_sharded(spec: DTensorSpec, dim: int) -> bool:
     """Return True if tensor dim is sharded."""
     return any(p.is_shard(dim) for p in spec.placements)
@@ -238,11 +275,15 @@ def map_placements_after_broadcast(
     placements: tuple[Placement, ...],
     shape: torch.Size,
     broadcast_dims_map: list[int],
+<<<<<<< HEAD
     partial_to_replicate: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[Placement, ...]:
     """Map each placement based on the output shape after broadcast."""
     new_placements: list[Placement] = []
     for placement in placements:
+<<<<<<< HEAD
         if isinstance(placement, Partial):
             if partial_to_replicate:
                 # map the partial placement to replicate
@@ -250,6 +291,9 @@ def map_placements_after_broadcast(
             else:
                 new_placements.append(placement)
         elif isinstance(placement, Replicate):
+=======
+        if isinstance(placement, (Replicate, Partial)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_placements.append(placement)
         else:
             assert isinstance(placement, Shard)
@@ -265,7 +309,11 @@ def map_placements_after_broadcast(
                 # the input shape shard dim before broadcasting,
                 # in this case it means implicit broadcasting happen
                 # in this dim, so we can just mark it as replicate
+<<<<<<< HEAD
                 # and implicit broadcast will broadcast automatically
+=======
+                # and implict broadcast will broadcast automatically
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # to the sharded shape
                 new_placements.append(Replicate())
 
@@ -275,11 +323,14 @@ def map_placements_after_broadcast(
 def generate_redistribute_costs(
     src_strategy: OpStrategy, dst_spec: DTensorSpec
 ) -> list[float]:
+<<<<<<< HEAD
     """Generates one row in the 'redistribute_costs' matrix in an OpSpec
     The length of the returned list will match the number of strategies in 'src_strategy'.
 
     Each value in the row is the cost of redistributing from a particular src_strategy to dst_spec.
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     redistribute_costs: list[float] = [
         redistribute_cost(strat.output_spec, dst_spec)
         for strat in src_strategy.strategies
@@ -295,6 +346,7 @@ def expand_to_full_mesh_op_strategy(
     *,
     input_index: int = 1,
     inplace_op: bool = False,
+<<<<<<< HEAD
     is_valid_strategy_cb: Optional[
         Callable[[list[DTensorSpec], tuple[Optional[DTensorSpec], ...]], bool]
     ] = None,
@@ -325,6 +377,9 @@ def expand_to_full_mesh_op_strategy(
             [Replicate(), Replicate(), Replicate()]
         ]
     """
+=======
+) -> OpStrategy:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Expand the single_mesh_dim_strategies to full mesh dim strategies.
     all_mesh_dim_strategies = [single_mesh_dim_strategies] * mesh.ndim
 
@@ -335,8 +390,11 @@ def expand_to_full_mesh_op_strategy(
         spec_list: list[Optional[DTensorSpec]] = []
         for specs in zip(*strategy_comb):
             if specs[0] is not None:
+<<<<<<< HEAD
                 # TODO: we should fill in tensor_meta here.  If nothing else, it helps the filter strategy callback
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 spec_list.append(DTensorSpec(mesh, specs))
             else:
                 spec_list.append(None)
@@ -354,6 +412,7 @@ def expand_to_full_mesh_op_strategy(
             # input_spec matches the first argument's runtime sharding, otherwise we skip
             continue
 
+<<<<<<< HEAD
         output_specs: tuple[Optional[DTensorSpec], ...]
         if input_index > 1:
             output_specs = tuple(spec_list[:input_index])
@@ -411,3 +470,32 @@ def shift_shard_dims_after_remove(
         else:
             normalized_placements.append(placement)
     return normalized_placements
+=======
+        # check inputs shardable
+        inputs_shardable = all(
+            is_tensor_shardable(inp.shape, s)
+            for inp, s in zip(input_args_strategy, input_specs)
+        )
+
+        # only add to the all_strategies list when all inputs are shardable
+        if inputs_shardable:
+            redistribute_cost = [
+                generate_redistribute_costs(input_strategy, input_spec)
+                for input_strategy, input_spec in zip(input_args_strategy, input_specs)
+            ]
+            if input_index > 1:
+                output_specs = tuple(spec_list[:input_index])
+            else:
+                if spec_list[0] is not None:
+                    output_specs = spec_list[0]  # type: ignore[assignment]
+                else:
+                    raise RuntimeError("output spec is None")
+            strategy = OpSpec(
+                output_specs=output_specs,
+                input_specs=input_specs,
+                redistribute_cost=redistribute_cost,
+            )
+            all_strategies.append(strategy)
+
+    return OpStrategy(all_strategies)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

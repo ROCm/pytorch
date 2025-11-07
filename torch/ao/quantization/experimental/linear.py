@@ -28,12 +28,17 @@ class LinearAPoT(WeightedQuantizedModule):
     """
 
     def __init__(self, weight2quantize: torch.Tensor, b: int, k: int):
+<<<<<<< HEAD
         if weight2quantize.dim() != 2:
             raise AssertionError(
                 f"weight2quantize must be a 2-D tensor, got dim={weight2quantize.dim()}"
             )
         if b % k != 0:
             raise AssertionError(f"b must be divisible by k, got b={b}, k={k}")
+=======
+        assert weight2quantize.dim() == 2
+        assert b % k == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         super().__init__()
 
@@ -146,10 +151,14 @@ class LinearAPoT(WeightedQuantizedModule):
         Args:
             activation (Tensor): uniformly quantized activation tensor
         """
+<<<<<<< HEAD
         if activation.dim() != 2:
             raise AssertionError(
                 f"activation must be a 2-D tensor, got dim={activation.dim()}"
             )
+=======
+        assert activation.dim() == 2
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         weight_rows = self.weight_transposed.size()[0]
         weight_cols = self.weight_transposed.size()[1]

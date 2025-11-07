@@ -51,8 +51,12 @@ def _generate_inputs_for_submodules(
         model(*args, **kwargs)
     except Exception as e:
         warnings.warn(
+<<<<<<< HEAD
             f"Failed to generate submodule inputs because of the following error:\n{e}",
             stacklevel=2,
+=======
+            f"Failed to generate submodule inputs because of the following error:\n{e}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     finally:
         for h in handles:

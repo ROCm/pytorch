@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from typing import Any, Optional
+=======
+# mypy: allow-untyped-defs
+from typing import Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn.functional as F
@@ -14,10 +19,14 @@ from .expanded_weights_utils import (
 @implements_per_sample_grads(F.embedding)
 class EmbeddingPerSampleGrad(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def forward(
         ctx: Any, kwarg_names: list[str], _: Any, *expanded_args_and_kwargs: Any
     ) -> torch.Tensor:
+=======
+    def forward(ctx, kwarg_names, _, *expanded_args_and_kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         expanded_args, expanded_kwargs = standard_kwargs(
             kwarg_names, expanded_args_and_kwargs
         )
@@ -35,10 +44,14 @@ class EmbeddingPerSampleGrad(torch.autograd.Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def backward(
         ctx: Any, grad_output: torch.Tensor
     ) -> tuple[Optional[torch.Tensor], ...]:
+=======
+    def backward(ctx, grad_output):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         input, weight = ctx.input, ctx.weight
         padding_idx, scale_grad_by_freq, sparse = (
             ctx.padding_idx,
@@ -46,7 +59,11 @@ class EmbeddingPerSampleGrad(torch.autograd.Function):
             ctx.sparse,
         )
 
+<<<<<<< HEAD
         def weight_per_sample_grad(weight: torch.Tensor) -> torch.Tensor:
+=======
+        def weight_per_sample_grad(weight):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             batch_size = input.shape[0]
             embedding_dim = weight.shape[1]
             index = (
@@ -54,7 +71,11 @@ class EmbeddingPerSampleGrad(torch.autograd.Function):
                 .expand(*input.shape, embedding_dim)
                 .reshape(batch_size, -1, embedding_dim)
             )
+<<<<<<< HEAD
             grad_sample = torch.zeros(  # type: ignore[attr-defined]
+=======
+            grad_sample = torch.zeros(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 batch_size, *weight.shape, device=weight.device, dtype=grad_output.dtype
             )
             return grad_sample.scatter_add_(

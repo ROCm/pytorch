@@ -101,10 +101,14 @@ template <
     typename Function,
     typename Accessor,
     size_t... Is>
+<<<<<<< HEAD
 ReturnType unpack(
     Function function,
     Accessor accessor,
     Indices<Is...> /*unused*/) {
+=======
+ReturnType unpack(Function function, Accessor accessor, Indices<Is...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return ReturnType(function(accessor.template operator()<Ts>(Is)...));
 }
 

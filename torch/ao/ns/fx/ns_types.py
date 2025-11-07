@@ -1,6 +1,10 @@
 import enum
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, NamedTuple, Union
+=======
+from typing import Any, Callable, NamedTuple, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.fx.graph import Node
 

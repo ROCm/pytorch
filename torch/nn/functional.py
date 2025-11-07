@@ -3,6 +3,7 @@
 import importlib
 import math
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any as _Any, Optional, TYPE_CHECKING, Union
 
@@ -14,6 +15,13 @@ from torch._C import (
     _ScalingType as ScalingType,
     _SwizzleType as SwizzleType,
 )
+=======
+from typing import Callable, Optional, TYPE_CHECKING, Union
+
+import torch
+from torch import _VF, sym_int as _sym_int, Tensor
+from torch._C import _add_docstr, _infer_size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._jit_internal import (
     _overload,
     boolean_dispatch,
@@ -32,10 +40,13 @@ from torch.overrides import (
 )
 
 
+<<<<<<< HEAD
 # Set visibility of the bound enums to this module
 ScalingType.__module__ = "torch.nn.functional"
 SwizzleType.__module__ = "torch.nn.functional"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TYPE_CHECKING:
     from torch.types import _dtype as DType
 else:
@@ -348,6 +359,12 @@ avg_pool1d(input, kernel_size, stride=None, padding=0, ceil_mode=False, count_in
 Applies a 1D average pooling over an input signal composed of several
 input planes.
 
+<<<<<<< HEAD
+=======
+.. note::
+    pad should be at most half of effective kernel size.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 See :class:`~torch.nn.AvgPool1d` for details and output shape.
 
 Args:
@@ -356,9 +373,14 @@ Args:
       tuple `(kW,)`
     stride: the stride of the window. Can be a single number or a tuple
       `(sW,)`. Default: :attr:`kernel_size`
+<<<<<<< HEAD
     padding: implicit zero paddings on both sides of the input. Can be a single
       number or a tuple `(padW,)`. Should be at most half of effective kernel
       size, that is :math:`((kernelSize - 1) * dilation + 1) / 2`. Default: 0
+=======
+    padding: implicit zero paddings on both sides of the input. Can be a
+      single number or a tuple `(padW,)`. Default: 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ceil_mode: when True, will use `ceil` instead of `floor` to compute the
         output shape. Default: ``False``
     count_include_pad: when True, will include the zero-padding in the
@@ -384,6 +406,12 @@ Applies 2D average-pooling operation in :math:`kH \times kW` regions by step siz
 :math:`sH \times sW` steps. The number of output features is equal to the number of
 input planes.
 
+<<<<<<< HEAD
+=======
+.. note::
+    pad should be at most half of effective kernel size.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 See :class:`~torch.nn.AvgPool2d` for details and output shape.
 
 Args:
@@ -393,9 +421,13 @@ Args:
     stride: stride of the pooling operation. Can be a single number, a single-element tuple or a
       tuple `(sH, sW)`. Default: :attr:`kernel_size`
     padding: implicit zero paddings on both sides of the input. Can be a
+<<<<<<< HEAD
       single number, a single-element tuple or a tuple `(padH, padW)`.
       Should be at most half of effective kernel size, that
       is :math:`((kernelSize - 1) * dilation + 1) / 2`. Default: 0
+=======
+      single number, a single-element tuple or a tuple `(padH, padW)`. Default: 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ceil_mode: when True, will use `ceil` instead of `floor` in the formula
         to compute the output shape. Default: ``False``
     count_include_pad: when True, will include the zero-padding in the
@@ -414,6 +446,12 @@ Applies 3D average-pooling operation in :math:`kT \times kH \times kW` regions b
 size :math:`sT \times sH \times sW` steps. The number of output features is equal to
 :math:`\lfloor\frac{\text{input planes}}{sT}\rfloor`.
 
+<<<<<<< HEAD
+=======
+.. note::
+    pad should be at most half of effective kernel size.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 See :class:`~torch.nn.AvgPool3d` for details and output shape.
 
 Args:
@@ -423,9 +461,13 @@ Args:
     stride: stride of the pooling operation. Can be a single number or a
       tuple `(sT, sH, sW)`. Default: :attr:`kernel_size`
     padding: implicit zero paddings on both sides of the input. Can be a
+<<<<<<< HEAD
       single number or a tuple `(padT, padH, padW)`. Should be at most half
       of effective kernel size, that is :math:`((kernelSize - 1) * dilation + 1) / 2`.
       Default: 0
+=======
+      single number or a tuple `(padT, padH, padW)`, Default: 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ceil_mode: when True, will use `ceil` instead of `floor` in the formula
         to compute the output shape
     count_include_pad: when True, will include the zero-padding in the
@@ -1089,9 +1131,12 @@ def lp_pool3d(
     If the sum of all inputs to the power of `p` is
     zero, the gradient is set to zero as well.
 
+<<<<<<< HEAD
     When ``ceil_mode`` is ``True``, sliding windows may go off-bounds if they start within the left
     padding or the input. Sliding windows that would start in the right padded region are ignored.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     See :class:`~torch.nn.LPPool3d` for details.
     """
     if has_torch_function_unary(input):
@@ -1130,9 +1175,12 @@ def lp_pool2d(
     If the sum of all inputs to the power of `p` is
     zero, the gradient is set to zero as well.
 
+<<<<<<< HEAD
     When ``ceil_mode`` is ``True``, sliding windows may go off-bounds if they start within the left
     padding or the input. Sliding windows that would start in the right padded region are ignored.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     See :class:`~torch.nn.LPPool2d` for details.
     """
     if has_torch_function_unary(input):
@@ -1168,9 +1216,12 @@ def lp_pool1d(
     If the sum of all inputs to the power of `p` is
     zero, the gradient is set to zero as well.
 
+<<<<<<< HEAD
     When ``ceil_mode`` is ``True``, sliding windows may go off-bounds if they start within the left
     padding or the input. Sliding windows that would start in the right padded region are ignored.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     See :class:`~torch.nn.LPPool1d` for details.
     """
     if has_torch_function_unary(input):
@@ -1275,7 +1326,10 @@ def adaptive_max_pool2d_with_indices(
             output_size,
             return_indices=return_indices,
         )
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     output_size = _list_with_default(output_size, input.size())
     return torch._C._nn.adaptive_max_pool2d(input, output_size)
 
@@ -1333,7 +1387,10 @@ def adaptive_max_pool3d_with_indices(
             output_size,
             return_indices=return_indices,
         )
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     output_size = _list_with_default(output_size, input.size())
     return torch._C._nn.adaptive_max_pool3d(input, output_size)
 
@@ -1392,7 +1449,10 @@ def adaptive_avg_pool2d(input: Tensor, output_size: BroadcastingList2[int]) -> T
     """
     if has_torch_function_unary(input):
         return handle_torch_function(adaptive_avg_pool2d, (input,), input, output_size)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _output_size = _list_with_default(output_size, input.size())
     return torch._C._nn.adaptive_avg_pool2d(input, _output_size)
 
@@ -1408,7 +1468,10 @@ def adaptive_avg_pool3d(input: Tensor, output_size: BroadcastingList3[int]) -> T
     """
     if has_torch_function_unary(input):
         return handle_torch_function(adaptive_avg_pool3d, (input,), input, output_size)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _output_size = _list_with_default(output_size, input.size())
     return torch._C._nn.adaptive_avg_pool3d(input, _output_size)
 
@@ -1551,7 +1614,11 @@ def dropout2d(
             "exists to provide channel-wise dropout on inputs with 2 spatial dimensions, "
             "a channel dimension, and an optional batch dimension (i.e. 3D or 4D inputs)."
         )
+<<<<<<< HEAD
         warnings.warn(warn_msg, stacklevel=2)
+=======
+        warnings.warn(warn_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # TODO: Properly support no-batch-dim inputs. For now, these are NOT supported; passing
     # a 3D input will perform dropout1d behavior instead. This was done historically and the
@@ -1563,8 +1630,12 @@ def dropout2d(
             "1D dropout behavior is desired - input is interpreted as shape (N, C, L), where C "
             "is the channel dim. This behavior will change in a future release to interpret the "
             "input as one without a batch dimension, i.e. shape (C, H, W). To maintain the 1D "
+<<<<<<< HEAD
             "channel-wise dropout behavior, please switch to using dropout1d instead.",
             stacklevel=2,
+=======
+            "channel-wise dropout behavior, please switch to using dropout1d instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     result = (
@@ -1611,7 +1682,11 @@ def dropout3d(
             "exists to provide channel-wise dropout on inputs with 3 spatial dimensions, "
             "a channel dimension, and an optional batch dimension (i.e. 4D or 5D inputs)."
         )
+<<<<<<< HEAD
         warnings.warn(warn_msg, stacklevel=2)
+=======
+        warnings.warn(warn_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     is_batched = inp_dim == 5
     if not is_batched:
@@ -2211,7 +2286,11 @@ def gumbel_softmax(
             gumbel_softmax, (logits,), logits, tau=tau, hard=hard, eps=eps, dim=dim
         )
     if eps != 1e-10:
+<<<<<<< HEAD
         warnings.warn("`eps` parameter is deprecated and has no effect.", stacklevel=2)
+=======
+        warnings.warn("`eps` parameter is deprecated and has no effect.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     gumbels = (
         -torch.empty_like(logits, memory_format=torch.legacy_contiguous_format)
@@ -2445,7 +2524,10 @@ def _no_grad_embedding_renorm_(
     input: Tensor,
     max_norm: float,
     norm_type: float,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[Tensor, Tensor]:
     torch.embedding_renorm_(weight.detach(), input, max_norm, norm_type)
 
@@ -2682,8 +2764,12 @@ def embedding_bag(
         warnings.warn(
             "Argument order of nn.functional.embedding_bag was changed. "
             "Usage `embedding_bag(weight, input, ...)` is deprecated, "
+<<<<<<< HEAD
             "and should now be `embedding_bag(input, weight, ...)`.",
             stacklevel=2,
+=======
+            "and should now be `embedding_bag(input, weight, ...)`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         weight, input = input, weight
 
@@ -2700,7 +2786,10 @@ def embedding_bag(
 
     if not torch.jit.is_scripting() and input.dim() == 2 and input.is_nested:
         include_last_offset = True
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         offsets = input.offsets()
         input = input.values().reshape(-1)
         if per_sample_weights is not None:
@@ -2835,7 +2924,10 @@ def batch_norm(
             eps=eps,
         )
     if training:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _verify_batch_size(input.size())
 
     return torch.batch_norm(
@@ -2891,7 +2983,10 @@ def instance_norm(
             eps=eps,
         )
     if use_input_stats:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _verify_spatial_size(input.size())
     return torch.instance_norm(
         input,
@@ -3017,13 +3112,19 @@ def local_response_norm(
     div = input.mul(input)
     if dim == 3:
         div = div.unsqueeze(1)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         div = pad(div, (0, 0, size // 2, (size - 1) // 2))
         div = avg_pool2d(div, (size, 1), stride=1).squeeze(1)
     else:
         sizes = input.size()
         div = div.view(sizes[0], 1, sizes[1], sizes[2], -1)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         div = pad(div, (0, 0, 0, 0, size // 2, (size - 1) // 2))
         div = avg_pool3d(div, (size, 1, 1), stride=1).squeeze(1)
         div = div.view(sizes)
@@ -3172,12 +3273,16 @@ def nll_loss(
     if size_average is not None or reduce is not None:
         reduction = _Reduction.legacy_get_string(size_average, reduce)
     return torch._C._nn.nll_loss_nd(
+<<<<<<< HEAD
         input,
         target,
         weight,
         # pyrefly: ignore [bad-argument-type]
         _Reduction.get_enum(reduction),
         ignore_index,
+=======
+        input, target, weight, _Reduction.get_enum(reduction), ignore_index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -3298,6 +3403,7 @@ def gaussian_nll_loss(
         if input.size()[:-1] == var.size():
             var = torch.unsqueeze(var, -1)
 
+<<<<<<< HEAD
         # This checks if the var is broadcastable to the input and there is only one mismatched dimension.
         # This is also a homoscedastic case.
         # e.g. input.size = (10, 2, 3), var.size = (10, 2, 1)
@@ -3305,6 +3411,13 @@ def gaussian_nll_loss(
         elif (
             input.ndim == var.ndim
             and sum(y for x, y in zip(input.size(), var.size()) if x != y) == 1
+=======
+        # This checks if the sizes match up to the final dimension, and the final dimension of var is of size 1.
+        # This is also a homoscedastic case.
+        # e.g. input.size = (10, 2, 3), var.size = (10, 2, 1)
+        elif (
+            input.size()[:-1] == var.size()[:-1] and var.size(-1) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):  # Heteroscedastic case
             pass
 
@@ -3322,7 +3435,10 @@ def gaussian_nll_loss(
         var.clamp_(min=eps)
 
     # Calculate the loss
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     loss = 0.5 * (torch.log(var) + (input - target) ** 2 / var)
     if full:
         loss += 0.5 * math.log(2 * math.pi)
@@ -3394,8 +3510,12 @@ def kl_div(
             warnings.warn(
                 "reduction: 'mean' divides the total loss by both the batch size and the support size."
                 "'batchmean' divides only by the batch size, and aligns with the KL div math definition."
+<<<<<<< HEAD
                 "'mean' will be changed to behave the same as 'batchmean' in the next major release.",
                 stacklevel=2,
+=======
+                "'mean' will be changed to behave the same as 'batchmean' in the next major release."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         # special case for batchmean
@@ -3499,7 +3619,10 @@ def cross_entropy(
         input,
         target,
         weight,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _Reduction.get_enum(reduction),
         ignore_index,
         label_smoothing,
@@ -3564,7 +3687,10 @@ def binary_cross_entropy(
         new_size = _infer_size(target.size(), weight.size())
         weight = weight.expand(new_size)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._C._nn.binary_cross_entropy(input, target, weight, reduction_enum)
 
 
@@ -3679,7 +3805,11 @@ def smooth_l1_loss(
             reduction=reduction,
             beta=beta,
         )
+<<<<<<< HEAD
     if target.size() != input.size():
+=======
+    if not (target.size() == input.size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warnings.warn(
             f"Using a target size ({target.size()}) that is different to the input size ({input.size()}). "
             "This will likely lead to incorrect results due to broadcasting. "
@@ -3693,6 +3823,7 @@ def smooth_l1_loss(
 
     if beta == 0.0:
         return torch._C._nn.l1_loss(
+<<<<<<< HEAD
             expanded_input,
             expanded_target,
             # pyrefly: ignore [bad-argument-type]
@@ -3705,6 +3836,13 @@ def smooth_l1_loss(
             # pyrefly: ignore [bad-argument-type]
             _Reduction.get_enum(reduction),
             beta,
+=======
+            expanded_input, expanded_target, _Reduction.get_enum(reduction)
+        )
+    else:
+        return torch._C._nn.smooth_l1_loss(
+            expanded_input, expanded_target, _Reduction.get_enum(reduction), beta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -3749,7 +3887,11 @@ def huber_loss(
             weight=weight,
         )
 
+<<<<<<< HEAD
     if target.size() != input.size():
+=======
+    if not (target.size() == input.size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warnings.warn(
             f"Using a target size ({target.size()}) that is different to the input size ({input.size()}). "
             "This will likely lead to incorrect results due to broadcasting. "
@@ -3762,11 +3904,15 @@ def huber_loss(
     if weight is None:
         # Use the optimized C++ backend for standard Huber loss
         return torch._C._nn.huber_loss(
+<<<<<<< HEAD
             expanded_input,
             expanded_target,
             # pyrefly: ignore [bad-argument-type]
             _Reduction.get_enum(reduction),
             delta,
+=======
+            expanded_input, expanded_target, _Reduction.get_enum(reduction), delta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     else:
         if weight.size() != input.size():
@@ -3774,11 +3920,15 @@ def huber_loss(
 
         # Calculate the unweighted loss first
         unweighted_loss = torch._C._nn.huber_loss(
+<<<<<<< HEAD
             expanded_input,
             expanded_target,
             # pyrefly: ignore [bad-argument-type]
             _Reduction.get_enum("none"),
             delta,
+=======
+            expanded_input, expanded_target, _Reduction.get_enum("none"), delta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Apply weight to the unweighted loss
@@ -3834,7 +3984,11 @@ def l1_loss(
             reduce=reduce,
             reduction=reduction,
         )
+<<<<<<< HEAD
     if target.size() != input.size():
+=======
+    if not (target.size() == input.size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warnings.warn(
             f"Using a target size ({target.size()}) that is different to the input size ({input.size()}). "
             "This will likely lead to incorrect results due to broadcasting. "
@@ -3865,10 +4019,14 @@ def l1_loss(
             )
     else:
         return torch._C._nn.l1_loss(
+<<<<<<< HEAD
             expanded_input,
             expanded_target,
             # pyrefly: ignore [bad-argument-type]
             _Reduction.get_enum(reduction),
+=======
+            expanded_input, expanded_target, _Reduction.get_enum(reduction)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -3910,7 +4068,11 @@ def mse_loss(
             weight=weight,
         )
 
+<<<<<<< HEAD
     if target.size() != input.size():
+=======
+    if not (target.size() == input.size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         warnings.warn(
             f"Using a target size ({target.size()}) that is different to the input size ({input.size()}). "
             "This will likely lead to incorrect results due to broadcasting. "
@@ -3943,10 +4105,14 @@ def mse_loss(
             )
     else:
         return torch._C._nn.mse_loss(
+<<<<<<< HEAD
             expanded_input,
             expanded_target,
             # pyrefly: ignore [bad-argument-type]
             _Reduction.get_enum(reduction),
+=======
+            expanded_input, expanded_target, _Reduction.get_enum(reduction)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -4083,7 +4249,10 @@ def multilabel_margin_loss(
         reduction_enum = _Reduction.legacy_get_enum(size_average, reduce)
     else:
         reduction_enum = _Reduction.get_enum(reduction)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._C._nn.multilabel_margin_loss(input, target, reduction_enum)
 
 
@@ -4125,7 +4294,10 @@ def soft_margin_loss(
         reduction_enum = _Reduction.legacy_get_enum(size_average, reduce)
     else:
         reduction_enum = _Reduction.get_enum(reduction)
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._C._nn.soft_margin_loss(input, target, reduction_enum)
 
 
@@ -4290,6 +4462,7 @@ def multi_margin_loss(
             raise ValueError("weight must be one-dimensional")
 
     return torch._C._nn.multi_margin_loss(
+<<<<<<< HEAD
         input,
         target,
         p,
@@ -4297,6 +4470,9 @@ def multi_margin_loss(
         weight,
         # pyrefly: ignore [bad-argument-type]
         reduction_enum,
+=======
+        input, target, p, margin, weight, reduction_enum
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -4442,7 +4618,10 @@ def upsample(  # noqa: F811
     scale_factor: Optional[float] = None,
     mode: str = "nearest",
     align_corners: Optional[bool] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:  # noqa: B950
     pass
 
@@ -4454,7 +4633,10 @@ def upsample(  # noqa: F811
     scale_factor: Optional[float] = None,
     mode: str = "nearest",
     align_corners: Optional[bool] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:  # noqa: B950
     pass
 
@@ -4557,7 +4739,10 @@ def interpolate(  # noqa: F811
     align_corners: Optional[bool] = None,
     recompute_scale_factor: Optional[bool] = None,
     antialias: bool = False,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:  # noqa: B950
     pass
 
@@ -4571,7 +4756,10 @@ def interpolate(  # noqa: F811
     align_corners: Optional[bool] = None,
     recompute_scale_factor: Optional[bool] = None,
     antialias: bool = False,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:  # noqa: B950
     pass
 
@@ -4585,7 +4773,10 @@ def interpolate(  # noqa: F811
     align_corners: Optional[bool] = None,
     recompute_scale_factor: Optional[bool] = None,
     antialias: bool = False,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:  # noqa: B950
     pass
 
@@ -4599,7 +4790,10 @@ def interpolate(  # noqa: F811
     align_corners: Optional[bool] = None,
     recompute_scale_factor: Optional[bool] = None,
     antialias: bool = False,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -4760,7 +4954,11 @@ def interpolate(  # noqa: F811
         )
 
     # "area" mode always requires an explicit size rather than scale factor.
+<<<<<<< HEAD
     # Reuse the recompute_scale_factor code path.
+=======
+    # Re-use the recompute_scale_factor code path.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if mode == "area" and output_size is None:
         recompute_scale_factor = True
 
@@ -4774,7 +4972,10 @@ def interpolate(  # noqa: F811
                 (
                     torch.floor(
                         (
+<<<<<<< HEAD
                             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             input.size(i + 2).float()
                             * torch.tensor(scale_factors[i], dtype=torch.float32)
                         ).float()
@@ -4784,7 +4985,11 @@ def interpolate(  # noqa: F811
             ]
         elif torch.jit.is_scripting():
             output_size = [
+<<<<<<< HEAD
                 math.floor(float(input.size(i + 2)) * scale_factors[i])
+=======
+                int(math.floor(float(input.size(i + 2)) * scale_factors[i]))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for i in range(dim)
             ]
         else:
@@ -4799,6 +5004,7 @@ def interpolate(  # noqa: F811
         )
 
     if input.dim() == 3 and mode == "nearest":
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         return torch._C._nn.upsample_nearest1d(input, output_size, scale_factors)
     if input.dim() == 4 and mode == "nearest":
@@ -4816,11 +5022,27 @@ def interpolate(  # noqa: F811
         return torch._C._nn._upsample_nearest_exact2d(input, output_size, scale_factors)
     if input.dim() == 5 and mode == "nearest-exact":
         # pyrefly: ignore [bad-argument-type]
+=======
+        return torch._C._nn.upsample_nearest1d(input, output_size, scale_factors)
+    if input.dim() == 4 and mode == "nearest":
+        return torch._C._nn.upsample_nearest2d(input, output_size, scale_factors)
+    if input.dim() == 5 and mode == "nearest":
+        return torch._C._nn.upsample_nearest3d(input, output_size, scale_factors)
+
+    if input.dim() == 3 and mode == "nearest-exact":
+        return torch._C._nn._upsample_nearest_exact1d(input, output_size, scale_factors)
+    if input.dim() == 4 and mode == "nearest-exact":
+        return torch._C._nn._upsample_nearest_exact2d(input, output_size, scale_factors)
+    if input.dim() == 5 and mode == "nearest-exact":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch._C._nn._upsample_nearest_exact3d(input, output_size, scale_factors)
 
     if input.dim() == 3 and mode == "area":
         assert output_size is not None
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return adaptive_avg_pool1d(input, output_size)
     if input.dim() == 4 and mode == "area":
         assert output_size is not None
@@ -4832,26 +5054,40 @@ def interpolate(  # noqa: F811
     if input.dim() == 3 and mode == "linear":
         assert align_corners is not None
         return torch._C._nn.upsample_linear1d(
+<<<<<<< HEAD
             input,
             # pyrefly: ignore [bad-argument-type]
             output_size,
             align_corners,
             scale_factors,
+=======
+            input, output_size, align_corners, scale_factors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if input.dim() == 4 and mode == "bilinear":
         assert align_corners is not None
         if antialias:
             return torch._C._nn._upsample_bilinear2d_aa(
+<<<<<<< HEAD
                 input,
                 # pyrefly: ignore [bad-argument-type]
                 output_size,
                 align_corners,
                 scale_factors,
+=======
+                input, output_size, align_corners, scale_factors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         # Two levels are necessary to prevent TorchScript from touching
         # are_deterministic_algorithms_enabled.
         if not torch.jit.is_scripting():
+<<<<<<< HEAD
             if not input.is_cpu and torch.are_deterministic_algorithms_enabled():
+=======
+            if torch.are_deterministic_algorithms_enabled() and (
+                input.is_cuda or input.is_xpu
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Use slow decomp whose backward will be in terms of index_put
                 # importlib is required because the import cannot be top level
                 # (cycle) and cannot be nested (TS doesn't support)
@@ -4859,6 +5095,7 @@ def interpolate(  # noqa: F811
                     "torch._decomp.decompositions"
                 )._upsample_linear_vec(input, output_size, align_corners, scale_factors)
         return torch._C._nn.upsample_bilinear2d(
+<<<<<<< HEAD
             input,
             # pyrefly: ignore [bad-argument-type]
             output_size,
@@ -4883,11 +5120,20 @@ def interpolate(  # noqa: F811
             output_size,
             align_corners,
             scale_factors,
+=======
+            input, output_size, align_corners, scale_factors
+        )
+    if input.dim() == 5 and mode == "trilinear":
+        assert align_corners is not None
+        return torch._C._nn.upsample_trilinear3d(
+            input, output_size, align_corners, scale_factors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if input.dim() == 4 and mode == "bicubic":
         assert align_corners is not None
         if antialias:
             return torch._C._nn._upsample_bicubic2d_aa(
+<<<<<<< HEAD
                 input,
                 # pyrefly: ignore [bad-argument-type]
                 output_size,
@@ -4900,6 +5146,12 @@ def interpolate(  # noqa: F811
             output_size,
             align_corners,
             scale_factors,
+=======
+                input, output_size, align_corners, scale_factors
+            )
+        return torch._C._nn.upsample_bicubic2d(
+            input, output_size, align_corners, scale_factors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if input.dim() == 3 and mode == "bilinear":
@@ -4931,7 +5183,10 @@ def upsample_nearest(  # noqa: F811
     input: Tensor,
     size: Optional[int] = None,
     scale_factor: Optional[float] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -4941,7 +5196,10 @@ def upsample_nearest(  # noqa: F811
     input: Tensor,
     size: Optional[list[int]] = None,
     scale_factor: Optional[float] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -4983,7 +5241,10 @@ def upsample_bilinear(  # noqa: F811
     input: Tensor,
     size: Optional[int] = None,
     scale_factor: Optional[float] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -4993,7 +5254,10 @@ def upsample_bilinear(  # noqa: F811
     input: Tensor,
     size: Optional[list[int]] = None,
     scale_factor: Optional[float] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -5003,7 +5267,10 @@ def upsample_bilinear(  # noqa: F811
     input: Tensor,
     size: Optional[int] = None,
     scale_factor: Optional[list[float]] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -5013,7 +5280,10 @@ def upsample_bilinear(  # noqa: F811
     input: Tensor,
     size: Optional[list[int]] = None,
     scale_factor: Optional[list[float]] = None,
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Tensor:
     pass
 
@@ -5026,7 +5296,11 @@ def upsample_bilinear(input, size=None, scale_factor=None):  # noqa: F811
         This is equivalent with
         ``nn.functional.interpolate(..., mode='bilinear', align_corners=True)``.
 
+<<<<<<< HEAD
     Expected inputs are spatial (4 dimensional). Use `upsample_trilinear` for
+=======
+    Expected inputs are spatial (4 dimensional). Use `upsample_trilinear` fo
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     volumetric (5 dimensional) inputs.
 
     Args:
@@ -5216,8 +5490,12 @@ def grid_sample(
             "Default grid_sample and affine_grid behavior has changed "
             "to align_corners=False since 1.3.0. Please specify "
             "align_corners=True if the old behavior is desired. "
+<<<<<<< HEAD
             "See the documentation of grid_sample for details.",
             stacklevel=2,
+=======
+            "See the documentation of grid_sample for details."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         align_corners = False
 
@@ -5284,8 +5562,12 @@ def affine_grid(
             "Default grid_sample and affine_grid behavior has changed "
             "to align_corners=False since 1.3.0. Please specify "
             "align_corners=True if the old behavior is desired. "
+<<<<<<< HEAD
             "See the documentation of grid_sample for details.",
             stacklevel=2,
+=======
+            "See the documentation of grid_sample for details."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         align_corners = False
 
@@ -5319,8 +5601,12 @@ def affine_grid(
             "Since version 1.3.0, affine_grid behavior has changed "
             "for unit-size grids when align_corners=True. "
             "This is not an intended use case of affine_grid. "
+<<<<<<< HEAD
             "See the documentation of affine_grid for details.",
             stacklevel=2,
+=======
+            "See the documentation of affine_grid for details."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     elif min(size) <= 0:
         raise ValueError(f"Expected non-zero, positive output size. Got {size}")
@@ -5823,7 +6109,10 @@ def _in_projection_packed(
                 .squeeze(-2)
                 .contiguous()
             )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return proj[0], proj[1], proj[2]
         else:
             # encoder-decoder attention
@@ -5842,7 +6131,10 @@ def _in_projection_packed(
                 .squeeze(-2)
                 .contiguous()
             )
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return (q_proj, kv_proj[0], kv_proj[1])
     else:
         w_q, w_k, w_v = w.chunk(3)
@@ -5850,7 +6142,10 @@ def _in_projection_packed(
             b_q = b_k = b_v = None
         else:
             b_q, b_k, b_v = b.chunk(3)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return linear(q, w_q, b_q), linear(k, w_k, b_k), linear(v, w_v, b_v)
 
 
@@ -5944,6 +6239,10 @@ scaled_dot_product_attention = _add_docstr(
                 assert attn_mask is None
                 temp_mask = torch.ones(L, S, dtype=torch.bool).tril(diagonal=0)
                 attn_bias.masked_fill_(temp_mask.logical_not(), float("-inf"))
+<<<<<<< HEAD
+=======
+                attn_bias.to(query.dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if attn_mask is not None:
                 if attn_mask.dtype == torch.bool:
@@ -6164,8 +6463,12 @@ def _canonical_mask(
             if _mask_dtype != other_type:
                 warnings.warn(
                     f"Support for mismatched {mask_name} and {other_name} "
+<<<<<<< HEAD
                     "is deprecated. Use same type for both instead.",
                     stacklevel=2,
+=======
+                    "is deprecated. Use same type for both instead."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         if not _mask_is_float:
             mask = torch.zeros_like(mask, dtype=target_type).masked_fill_(
@@ -6482,10 +6785,15 @@ def multi_head_attention_forward(
         k = torch.cat([k, bias_k.repeat(1, bsz, 1)])
         v = torch.cat([v, bias_v.repeat(1, bsz, 1)])
         if attn_mask is not None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             attn_mask = pad(attn_mask, (0, 1))
         if key_padding_mask is not None:
             # pyrefly: ignore [bad-argument-type]
+=======
+            attn_mask = pad(attn_mask, (0, 1))
+        if key_padding_mask is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key_padding_mask = pad(key_padding_mask, (0, 1))
     else:
         assert bias_k is None
@@ -6494,10 +6802,15 @@ def multi_head_attention_forward(
     #
     # reshape q, k, v for multihead attention and make them batch first
     #
+<<<<<<< HEAD
     # pyrefly: ignore [no-matching-overload]
     q = q.view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
     if static_k is None:
         # pyrefly: ignore [no-matching-overload]
+=======
+    q = q.view(tgt_len, bsz * num_heads, head_dim).transpose(0, 1)
+    if static_k is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         k = k.view(k.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
     else:
         # TODO finish disentangling control flow so we don't do in-projections when statics are passed
@@ -6509,7 +6822,10 @@ def multi_head_attention_forward(
         )
         k = static_k
     if static_v is None:
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         v = v.view(v.shape[0], bsz * num_heads, head_dim).transpose(0, 1)
     else:
         # TODO finish disentangling control flow so we don't do in-projections when statics are passed
@@ -6525,6 +6841,7 @@ def multi_head_attention_forward(
     if add_zero_attn:
         zero_attn_shape = (bsz * num_heads, 1, head_dim)
         k = torch.cat(
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
             [k, torch.zeros(zero_attn_shape, dtype=k.dtype, device=k.device)],
             dim=1,
@@ -6539,6 +6856,16 @@ def multi_head_attention_forward(
             attn_mask = pad(attn_mask, (0, 1))
         if key_padding_mask is not None:
             # pyrefly: ignore [bad-argument-type]
+=======
+            [k, torch.zeros(zero_attn_shape, dtype=k.dtype, device=k.device)], dim=1
+        )
+        v = torch.cat(
+            [v, torch.zeros(zero_attn_shape, dtype=v.dtype, device=v.device)], dim=1
+        )
+        if attn_mask is not None:
+            attn_mask = pad(attn_mask, (0, 1))
+        if key_padding_mask is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key_padding_mask = pad(key_padding_mask, (0, 1))
 
     # update source sequence length after adjustments
@@ -6588,7 +6915,10 @@ def multi_head_attention_forward(
         attn_output = torch.bmm(attn_output_weights, v)
 
         attn_output = (
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             attn_output.transpose(0, 1).contiguous().view(tgt_len * bsz, embed_dim)
         )
         attn_output = linear(attn_output, out_proj_weight, out_proj_bias)
@@ -6615,16 +6945,23 @@ def multi_head_attention_forward(
                 attn_mask = attn_mask.view(bsz, num_heads, -1, src_len)
 
         q = q.view(bsz, num_heads, tgt_len, head_dim)
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
         k = k.view(bsz, num_heads, src_len, head_dim)
         # pyrefly: ignore [no-matching-overload]
+=======
+        k = k.view(bsz, num_heads, src_len, head_dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         v = v.view(bsz, num_heads, src_len, head_dim)
 
         attn_output = scaled_dot_product_attention(
             q, k, v, attn_mask, dropout_p, is_causal
         )
         attn_output = (
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             attn_output.permute(2, 0, 1, 3).contiguous().view(bsz * tgt_len, embed_dim)
         )
 
@@ -6634,6 +6971,7 @@ def multi_head_attention_forward(
             # squeeze the output if input was unbatched
             attn_output = attn_output.squeeze(1)
         return attn_output, None
+<<<<<<< HEAD
 
 
 def scaled_mm(
@@ -6805,3 +7143,5 @@ def scaled_grouped_mm(
     )
 
     return out
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

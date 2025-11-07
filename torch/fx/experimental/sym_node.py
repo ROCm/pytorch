@@ -49,7 +49,11 @@ log = logging.getLogger(__name__)
 sym_node_log = torch._logging.getArtifactLogger(__name__, "sym_node")
 
 
+<<<<<<< HEAD
 __all__ = ["SymNode", "method_to_operator", "magic_methods", "DynamicInt"]
+=======
+__all__ = ["SymNode", "method_to_operator", "magic_methods"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from torch.types import py_sym_types as SymTypes
@@ -560,6 +564,23 @@ class SymNode:
             self.expr, f"{file}:{line}", fx_node=self.fx_node
         )
 
+<<<<<<< HEAD
+=======
+    def expect_size(self, file, line):
+        from torch.fx.experimental.symbolic_shapes import _advise_is_size
+
+        b = self.ge(self.wrap_int(0))
+        # Generate a deferred runtime assert
+        r = b.expect_true(file, line)
+        # Refine compile time range, but only if it's unbacked.
+        # If you refine range for hinted variables, you can end up making
+        # improper deductions since compile time reasoning may be
+        # incompatible with runtime reasoning.
+        if r and not self.has_hint():
+            _advise_is_size(SymInt(self))
+        return r
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def statically_known_true(self, file, line):
         from torch.fx.experimental.symbolic_shapes import statically_known_true
 
@@ -611,6 +632,7 @@ class SymNode:
         return False
 
 
+<<<<<<< HEAD
 class _DynamicScalar:
     def __new__(cls, *args):
         if cls is _DynamicScalar:
@@ -645,6 +667,8 @@ class DynamicInt(_DynamicScalar, int):
         return DynamicInt(other // self.real)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: this probably needs the sizes-strides eval functions
 METHOD_TO_OPERATOR = {
     "pos": operator.pos,
@@ -1670,6 +1694,10 @@ for method, func in sizes_strides_methods.items():
 def _make_user_magic(method, user_type):
     # User magic takes care of wrapping the other operand into a node,
     # so that our internal logic can assume everything is nodes
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if method in magic_methods_on_operator_with_trailing_underscore:
         method_attr = f"sym_{method}"
     else:
@@ -1678,8 +1706,11 @@ def _make_user_magic(method, user_type):
     def get_constant(x: Union[SymInt, int, SymFloat, float, SymBool, bool]):
         if isinstance(x, (int, float, bool)):
             return x
+<<<<<<< HEAD
         if isinstance(x, SymInt):
             return x.node.guard_int("", 0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(x, SymBool):
             return x.node.guard_bool("", 0)
         raise AssertionError("expect to be called with constant SymBools")
@@ -1802,7 +1833,11 @@ def _make_user_magic(method, user_type):
         other = promote(other)
         self, other = promote2(self, other)
         if is_constant(self):
+<<<<<<< HEAD
             return (method_to_operator(method))(other, get_constant(self))
+=======
+            return (method_to_operator(method))(get_constant(self), other)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if is_constant(other):
             other = get_constant(other)
         other_node = to_node(self.node, other)
@@ -1811,6 +1846,7 @@ def _make_user_magic(method, user_type):
         ret = wrap_node(getattr(other_node, method_attr)(self.node))
         return get_constant(ret) if is_constant(ret) else ret
 
+<<<<<<< HEAD
     def setattrs(user_type, attr, symnode_impl):
         """
         Registers the SymNode magic method on SymInt/Float/Bool,
@@ -1836,6 +1872,13 @@ def _make_user_magic(method, user_type):
     elif method in unary_nonmagic_methods:
         orig = getattr(user_type, method)
         setattrs(user_type, method, update_wrapper(unary_magic_impl, orig))
+=======
+    if method in unary_magic_methods:
+        setattr(user_type, f"__{method}__", unary_magic_impl)
+    elif method in unary_nonmagic_methods:
+        orig = getattr(user_type, method)
+        setattr(user_type, method, update_wrapper(unary_magic_impl, orig))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif method == "sym_ite":
 
         def sym_ite_magic_impl(pred, then_val, else_val):
@@ -1852,7 +1895,11 @@ def _make_user_magic(method, user_type):
             ret = wrap_node(getattr(pred.node, method_attr)(then_node, else_node))
             return get_constant(ret) if ret.node.is_constant() else ret
 
+<<<<<<< HEAD
         setattrs(user_type, f"__{method}__", sym_ite_magic_impl)
+=======
+        setattr(user_type, f"__{method}__", sym_ite_magic_impl)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif method == "round":
 
         def round_magic_impl(self, ndigits=None):
@@ -1861,14 +1908,24 @@ def _make_user_magic(method, user_type):
 
             return wrap_node(getattr(self.node, method)(ndigits))
 
+<<<<<<< HEAD
         setattrs(user_type, f"__{method}__", round_magic_impl)
+=======
+        setattr(user_type, f"__{method}__", round_magic_impl)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         method_name = method
         if method in bitwise_ops:
             method_name = bitwise_ops[method]
+<<<<<<< HEAD
         setattrs(user_type, f"__{method_name}__", binary_magic_impl)
         if method in reflectable_magic_methods:
             setattrs(user_type, f"__r{method_name}__", rbinary_magic_impl)
+=======
+        setattr(user_type, f"__{method_name}__", binary_magic_impl)
+        if method in reflectable_magic_methods:
+            setattr(user_type, f"__r{method_name}__", rbinary_magic_impl)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 for method, func in magic_methods.items():  # type: ignore[assignment]

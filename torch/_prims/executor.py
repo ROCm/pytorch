@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec, TypeVarTuple, Unpack
 
 from torch._prims.context import TorchRefsMode

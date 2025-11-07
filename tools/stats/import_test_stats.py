@@ -7,6 +7,7 @@ import json
 import os
 import shutil
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, cast, TYPE_CHECKING
 from urllib.request import urlopen
 
@@ -15,6 +16,12 @@ if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+from typing import Any, Callable, cast
+from urllib.request import urlopen
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
@@ -36,8 +43,12 @@ TD_HEURISTIC_HISTORICAL_EDITED_FILES = "td_heuristic_historical_edited_files.jso
 TD_HEURISTIC_PREVIOUSLY_FAILED = "previous_failures.json"
 TD_HEURISTIC_PREVIOUSLY_FAILED_ADDITIONAL = "previous_failures_additional.json"
 
+<<<<<<< HEAD
 #increse the cache time to 6 months
 FILE_CACHE_LIFESPAN_SECONDS = 6 * 30 * 24 * 3600
+=======
+FILE_CACHE_LIFESPAN_SECONDS = datetime.timedelta(hours=3).seconds
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def fetch_and_cache(
@@ -113,7 +124,11 @@ def get_disabled_tests(
         return disabled_test_from_issues
 
     try:
+<<<<<<< HEAD
         url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json"
+=======
+        url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json?versionId=oZfFXdfoa7trdcAiH1aL91T9jUDckwlX"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return fetch_and_cache(dirpath, filename, url, process_disabled_test)
     except Exception:
         print("Couldn't download test skip set, leaving all tests enabled...")

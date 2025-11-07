@@ -3,7 +3,10 @@ import argparse
 import os
 import re
 import subprocess
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pathlib import Path
 
 
@@ -108,7 +111,11 @@ def process_file(
             env["TORCHINDUCTOR_DUMP_LAUNCH_PARAMS"] = "1"
 
             result = subprocess.run(
+<<<<<<< HEAD
                 [sys.executable, input_filename],
+=======
+                ["python", input_filename],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 env=env,
                 capture_output=True,
                 text=True,

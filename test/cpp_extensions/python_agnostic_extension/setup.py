@@ -9,8 +9,12 @@ from pathlib import Path
 
 from setuptools import setup
 
+<<<<<<< HEAD
 import torch
 from torch.utils.cpp_extension import BuildExtension, CUDAExtension, SyclExtension
+=======
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 ROOT_DIR = Path(__file__).parent
@@ -41,6 +45,7 @@ def get_extension():
         "cxx": ["-fdiagnostics-color=always"],
     }
 
+<<<<<<< HEAD
     if torch.cuda.is_available():
         sources = list(CSRC_DIR.glob("**/*.cu"))
         extension = CUDAExtension
@@ -52,6 +57,12 @@ def get_extension():
 
     return [
         extension(
+=======
+    sources = list(CSRC_DIR.glob("**/*.cu"))
+
+    return [
+        CUDAExtension(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "python_agnostic._C",
             sources=sorted(str(s) for s in sources),
             py_limited_api=True,

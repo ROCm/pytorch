@@ -98,8 +98,15 @@ class OpKernel {
  public:
   explicit OpKernel(
       const Node* node,
+<<<<<<< HEAD
       OpKernelKind kind = OpKernelKind::kInterpreterFallbackKernel)
       : node_(node), kind_(kind) {
+=======
+      std::optional<c10::Device> device = std::nullopt,
+      torch::nativert::OpKernelKind kind =
+          torch::nativert::OpKernelKind::kInterpreterFallbackKernel)
+      : node_(node), device_(device), kind_(kind) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     VLOG(1) << "Initializing kernel for node: " << *node_;
   }
 
@@ -108,17 +115,30 @@ class OpKernel {
   }
   void compute(ExecutionFrame& executionFrame) const;
 
+<<<<<<< HEAD
   OpKernelKind kind() const {
+=======
+  torch::nativert::OpKernelKind kind() const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return kind_;
   }
 
   bool hasPrimKernel() const {
+<<<<<<< HEAD
     return kind() == OpKernelKind::kPrimKernel;
   }
 
   bool hasStaticDispatch() const {
     return kind() == OpKernelKind::kStaticDispatchKernel ||
         kind() == OpKernelKind::kNativeStaticDispatchKernel;
+=======
+    return kind() == torch::nativert::OpKernelKind::kPrimKernel;
+  }
+
+  bool hasStaticDispatch() const {
+    return kind() == torch::nativert::OpKernelKind::kStaticDispatchKernel ||
+        kind() == torch::nativert::OpKernelKind::kNativeStaticDispatchKernel;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   size_t numInputs() const {
@@ -149,9 +169,16 @@ class OpKernel {
   virtual void computeInternal(ExecutionFrame& executionFrame) const = 0;
 
   const Node* node_;
+<<<<<<< HEAD
   const static bool blockingEnabled_;
   // this should be set in the ctor!
   const OpKernelKind kind_;
+=======
+  std::optional<c10::Device> device_;
+  const static bool blockingEnabled_;
+  // this should be set in the ctor!
+  const torch::nativert::OpKernelKind kind_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace torch::nativert

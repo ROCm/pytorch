@@ -74,7 +74,11 @@ static const char* scalarTypeName(const at::ScalarType type) {
     AT_FORALL_SCALAR_TYPES_WITH_COMPLEX_AND_QINTS(DEFINE_CASE)
 #undef DEFINE_CASE
     default:
+<<<<<<< HEAD
       TORCH_CHECK(false, "unknown scalar type");
+=======
+      throw std::runtime_error("unknown scalar type");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -99,7 +103,12 @@ static std::string variableType(const c10::Type& t) {
     return calcScalarTypeName(*scalar_type);
   }
   // something went wrong with the type analysis during shape propagation
+<<<<<<< HEAD
   TORCH_CHECK(false, "unknown type during JIT fusion code generation");
+=======
+  throw std::runtime_error(
+      "unknown scalar type during JIT fusion code generation");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static std::string typeCastedValueName(
@@ -128,7 +137,12 @@ static std::string typeCastedValueName(
     return vn;
   }
   // something went wrong with the type analysis during shape propagation
+<<<<<<< HEAD
   TORCH_CHECK(false, "unknown type during JIT fusion code generation");
+=======
+  throw std::runtime_error(
+      "unknown scalar type during JIT fusion code generation");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 // Writes RHS of special handling "simple mappable" ops
@@ -153,10 +167,18 @@ static std::string encodeSpecialRHS(const Node* n, at::jit::TemplateEnv& env) {
       env.s("1", valueName(min));
       return format("(${0} < ${1} ? ${1} : ${0})", env);
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "At least one of 'min' or 'max' must not be None");
     }
   } else {
     TORCH_CHECK(false, "Cannot encode RHS of the node, op not supported");
+=======
+      throw std::runtime_error(
+          "At least one of 'min' or 'max' must not be None");
+    }
+  } else {
+    throw std::runtime_error("Cannot encode RHS of the node, op not supported");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -632,7 +654,11 @@ std::string generateKernel(
   }
 
   // Includes headers
+<<<<<<< HEAD
   // Note: CUDA kernels support Halfs and random generation, CPU kernels do not
+=======
+  // Note: CUDA kernels support halfs and random generation, CPU kernels do not
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (has_half_tensor) {
     env.s("HalfHeader", cuda::half_support_literal);
   } else {

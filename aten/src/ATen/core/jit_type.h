@@ -8,7 +8,10 @@
 #include <ATen/core/type_factory.h>
 #include <ATen/core/qualified_name.h>
 #include <c10/util/TypeList.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <optional>
 #include <c10/core/SymFloat.h>
 #include <c10/core/SymBool.h>
@@ -117,8 +120,15 @@ struct SingleElementType : public SharedType {
 
  protected:
   SingleElementType(TypePtr elem) : SharedType(Kind), elem(std::move(elem)) {
+<<<<<<< HEAD
     TORCH_CHECK(this->elem, c10::str(
             "Can not create ", typeKindToString(Kind), " with None type"));
+=======
+    if (!this->elem) {
+      throw std::runtime_error(c10::str(
+            "Can not create ", typeKindToString(Kind), " with None type"));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
  private:
@@ -373,7 +383,11 @@ struct TORCH_API SymbolicShape {
   // Unranked shape constructor.
   SymbolicShape() : dims_(std::nullopt) {}
 
+<<<<<<< HEAD
   // Known rank but unknown dimensions.
+=======
+  // Known rank but unknown dimentions.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   SymbolicShape(std::optional<size_t> rank) : dims_(std::nullopt) {
     if(!rank) {
       return;
@@ -415,12 +429,24 @@ struct TORCH_API SymbolicShape {
   }
 
   ShapeSymbol operator[](size_t i) const {
+<<<<<<< HEAD
     TORCH_CHECK(dims_, "Rank isn't fixed");
+=======
+    if (!dims_) {
+      throw std::runtime_error("Rank isn't fixed");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (*dims_).at(i);
   }
 
   ShapeSymbol at(size_t i) const {
+<<<<<<< HEAD
     TORCH_CHECK(dims_, "Rank isn't fixed");
+=======
+    if (!dims_) {
+      throw std::runtime_error("Rank isn't fixed");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (*dims_).at(i);
   }
 
@@ -515,7 +541,13 @@ struct VaryingShape {
   }
 
   const std::optional<T> &operator[](size_t i) const {
+<<<<<<< HEAD
     TORCH_CHECK(dims_, "Rank isn't fixed");
+=======
+    if (!dims_) {
+      throw std::runtime_error("Rank isn't fixed");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (*dims_).at(i);
   }
 
@@ -884,9 +916,15 @@ struct TORCH_API ListType
 
   // global singleton
   // Given an inner type T and an identifier,
+<<<<<<< HEAD
   // this function will return the global singleton type pointer
   // the type List<T>.
   // The extra "identifier" argument is needed because we have multiple container types
+=======
+  // this function wil return the global singleton type pointer
+  // the type List<T>.
+  // The extra "identifier" argument is needed beccause we have multiple container types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // that all re-use this function (List<T>, array<T, N>, etc.)
   static TypePtr get(const std::string& identifier, TypePtr inner);
 
@@ -950,7 +988,13 @@ struct TORCH_API DictType : public SharedType {
 
   TypePtr createWithContained(
       std::vector<TypePtr> contained_types) const override {
+<<<<<<< HEAD
     TORCH_CHECK(contained_types.size() == 2, "Expected 2 contained types");
+=======
+    if (contained_types.size() != 2) {
+      throw std::runtime_error("Expected 2 contained types");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return create(std::move(contained_types.at(0)), std::move(contained_types.at(1)));
   }
 
@@ -1225,7 +1269,11 @@ struct TORCH_API TupleType : public NamedType {
   std::shared_ptr<FunctionSchema> schema_;
 };
 
+<<<<<<< HEAD
 // the common supertype of all Enums, only used in operator registration.
+=======
+// the common supertype of all Enums, only used in operator registraion.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // EnumType <: AnyEnumType for all Enums
 struct AnyEnumType;
 using AnyEnumTypePtr = SingletonTypePtr<AnyEnumType>;

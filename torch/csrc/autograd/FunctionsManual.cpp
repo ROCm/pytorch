@@ -894,8 +894,12 @@ Tensor logcumsumexp_backward(
   // Reference:
   // https://github.com/tensorflow/tensorflow/blob/2a5910906a0e0f3dbc186ff9db6386d81a63448c/tensorflow/python/ops/math_grad.py#L1832-L1863
 
+<<<<<<< HEAD
   auto scalar_min = AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND2(
       at::ScalarType::Half,
+=======
+  auto scalar_min = AT_DISPATCH_FLOATING_AND_COMPLEX_TYPES_AND1(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       at::ScalarType::BFloat16,
       at::typeMetaToScalarType(grad.dtype()),
       "logcumsumexp_backward",
@@ -1078,7 +1082,11 @@ std::vector<Tensor> cat_tensors_backward(
     auto& shape = sizes[i];
     // If input was empty tensor, gradInput should be empty tensor.
     if (shape.size() == 1) {
+<<<<<<< HEAD
       if (TORCH_GUARD_OR_FALSE(shape[0].sym_eq(0))) {
+=======
+      if (TORCH_GUARD_SIZE_OBLIVIOUS(shape[0].sym_eq(0))) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         grad_inputs[i] = at::zeros({0}, grad_val.options());
         continue;
       }
@@ -2176,7 +2184,11 @@ Tensor _nested_split_with_sizes_backward(
     const Tensor& nt_sizes,
     const at::TensorOptions& options) {
   // add 1 to account for batch dim
+<<<<<<< HEAD
   dim = at::maybe_wrap_dim(dim, nt_sizes.size(1) + 1);
+=======
+  dim = at::maybe_wrap_dim(dim, static_cast<int64_t>(nt_sizes.size(1)) + 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // it's possible some of the grads are not defined (represents tensors of all
   // 0s). Since at::cat can't handle those, let's define them
   std::vector<Tensor> grads_all_defined;
@@ -2187,9 +2199,16 @@ Tensor _nested_split_with_sizes_backward(
       const auto& length = split_sizes[i].guard_int(__FILE__, __LINE__);
       auto nt_split_size = nt_sizes.clone();
       auto nt_split_size_ptr = nt_split_size.data_ptr<int64_t>();
+<<<<<<< HEAD
       for (int64_t j : c10::irange(nt_sizes.size(0))) {
         // subtract 1 to account for batch dim
         nt_split_size_ptr[j * nt_sizes.size(1) + (dim - 1)] = length;
+=======
+      for (int64_t j : c10::irange(static_cast<int64_t>(nt_sizes.size(0)))) {
+        // subtract 1 to account for batch dim
+        nt_split_size_ptr
+            [j * static_cast<int64_t>(nt_sizes.size(1)) + (dim - 1)] = length;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       Tensor zeros_buffer = at::zeros(
           {at::native::get_numel_from_nested_size_tensor(nt_split_size)},
@@ -3451,11 +3470,16 @@ std::tuple<Tensor, Tensor, Tensor> linalg_svd_jvp(
   const auto V = Vh.mH();
 
   // dP = U^H dA V
+<<<<<<< HEAD
   // U^H (dA V) is O(km(n + k))
   // (U^H dA) V is O(kn(m + k))
   // So prefer U^H (dA V) if m < n
   auto dP = m < n ? at::matmul(U.mH(), at::matmul(dA, V))
                   : at::matmul(at::matmul(U.mH(), dA), V);
+=======
+  auto dP = m >= n ? at::matmul(U.mH(), at::matmul(dA, V))
+                   : at::matmul(at::matmul(U.mH(), dA), V);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto dS =
       is_complex ? at::real(dP.diagonal(0, -2, -1)) : dP.diagonal(0, -2, -1);
@@ -5025,6 +5049,7 @@ std::tuple<Tensor, Tensor, Tensor> layer_norm_double_backward(
   return std::tuple<Tensor, Tensor, Tensor>{gI, gG, ggO};
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor> infinitely_differentiable_native_rms_norm_backward(
     const Tensor& dY,
     const Tensor& drstd,
@@ -5122,6 +5147,8 @@ std::tuple<Tensor, Tensor> infinitely_differentiable_native_rms_norm_backward(
   return std::make_tuple(dX, dgamma);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::tuple<Tensor, Tensor, Tensor>
 infinitely_differentiable_native_group_norm_backward(
     const Tensor& dY,
@@ -6476,6 +6503,7 @@ Tensor layer_norm_jvp(
       bias_t.defined() ? bias_t.view(view_size_affine) : bias_t);
 }
 
+<<<<<<< HEAD
 Tensor rms_norm_jvp(
     const Tensor& input_p,
     const Tensor& input_t,
@@ -6568,6 +6596,8 @@ Tensor rms_norm_rstd_jvp(
   return rstd_t;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor group_norm_jvp(
     const Tensor& input_p,
     const Tensor& input_t,

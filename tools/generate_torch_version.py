@@ -1,13 +1,19 @@
 from __future__ import annotations
 
 import argparse
+<<<<<<< HEAD
 import email
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 import re
 import subprocess
 from pathlib import Path
 
+<<<<<<< HEAD
 from packaging.version import Version
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from setuptools import distutils  # type: ignore[import,attr-defined]
 
 
@@ -50,6 +56,7 @@ def get_tag(pytorch_root: str | Path) -> str:
 
 
 def get_torch_version(sha: str | None = None) -> str:
+<<<<<<< HEAD
     """Determine the torch version string.
 
     The version is determined from one of the following sources, in order of
@@ -72,12 +79,18 @@ def get_torch_version(sha: str | None = None) -> str:
         sdist_version = pkg_info["Version"]
     else:
         sdist_version = None
+=======
+    pytorch_root = Path(__file__).absolute().parent.parent
+    version = open(pytorch_root / "version.txt").read().strip()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if os.getenv("PYTORCH_BUILD_VERSION"):
         assert os.getenv("PYTORCH_BUILD_NUMBER") is not None
         build_number = int(os.getenv("PYTORCH_BUILD_NUMBER", ""))
         version = os.getenv("PYTORCH_BUILD_VERSION", "")
         if build_number > 1:
             version += ".post" + str(build_number)
+<<<<<<< HEAD
         origin = "PYTORCH_BUILD_{VERSION,NUMBER} env variables"
     elif sdist_version:
         version = sdist_version
@@ -104,6 +117,12 @@ def get_torch_version(sha: str | None = None) -> str:
             f"Source part '{source_version}' of version '{version}' from "
             f"{origin} does not match version '{sdist_version}' from PKG-INFO"
         )
+=======
+    elif sha != UNKNOWN:
+        if sha is None:
+            sha = get_sha(pytorch_root)
+        version += "+git" + sha[:7]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return version
 
 

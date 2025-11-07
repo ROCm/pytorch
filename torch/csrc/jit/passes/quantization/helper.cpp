@@ -116,7 +116,11 @@ static std::vector<std::string> _single_input_general_shape_aten_funcs = {
     "__getitem__",
 };
 
+<<<<<<< HEAD
 // These are prim::CallFunctions for ops that doesn't require observation and
+=======
+// Theses are prim::CallFunctions for ops that doesn't require observation and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // have a single input Tensor
 // Also these ops do computation on the value of Tensor
 // TODO: [Need verify] looks like we can quantize simple functionals that just
@@ -136,7 +140,11 @@ static std::vector<std::string> _single_input_general_value_call_funcs = {
     "leaky_relu",
 };
 
+<<<<<<< HEAD
 // These are aten functions for ops that doesn't require observation and
+=======
+// Theses are aten functions for ops that doesn't require observation and
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // have a single input Tensor
 // Also these ops do computation on the value of Tensor
 // e.g. `aten::avg_pool2d(%input_tensor, ...)`

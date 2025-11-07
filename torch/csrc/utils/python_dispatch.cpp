@@ -2,11 +2,17 @@
 #include <torch/csrc/utils/python_dispatch.h>
 
 #include <ATen/ATen.h>
+<<<<<<< HEAD
 #include <ATen/DTensorState.h>
 #include <ATen/FuncTorchTLS.h>
 #include <ATen/FunctionalTensorWrapper.h>
 #include <ATen/TensorSubclassLikeUtils.h>
 #include <ATen/autocast_mode.h>
+=======
+#include <ATen/FuncTorchTLS.h>
+#include <ATen/FunctionalTensorWrapper.h>
+#include <ATen/TensorSubclassLikeUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/core/NestedIntSymNodeImpl.h>
 #include <ATen/core/PythonOpRegistrationTrampoline.h>
 #include <ATen/core/dispatch/Dispatcher.h>
@@ -16,7 +22,10 @@
 
 #include <c10/core/SafePyObject.h>
 #include <torch/csrc/PyInterpreter.h>
+<<<<<<< HEAD
 #include <torch/csrc/autograd/autograd_not_implemented_fallback.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/autograd/python_variable.h>
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/utils/tensor_new.h>
@@ -28,8 +37,11 @@
 #include <torch/csrc/utils/pybind.h>
 #include <torch/csrc/utils/python_raii.h>
 
+<<<<<<< HEAD
 #include <cstdlib>
 #include <cstring>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <iostream>
 #include <utility>
 
@@ -37,10 +49,13 @@ namespace py = pybind11;
 
 namespace torch::impl::dispatch {
 
+<<<<<<< HEAD
 // Global storage for leaked Python filenames to ensure they remain valid
 // for the lifetime of Library objects
 static std::vector<std::string> leaked_python_filenames_;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NB: I'd like to index this on OperatorHandle, but I can't, as I can't
 // guarantee that the main interpreter has finish doing all registrations before
 // the other interpreters start banging on it
@@ -195,6 +210,18 @@ class PythonKernelHolder : public c10::OperatorKernel {
 
     auto arguments = torch::jit::pop(*stack, op.schema().arguments().size());
     py::gil_scoped_acquire g;
+<<<<<<< HEAD
+=======
+    // Jan 2024: We're slated to get rid of multipy, // codespell:ignore multipy
+    // so stop forcing hermetic mode unconditionally in all situations when
+    // you're using multipy.  // codespell:ignore multipy
+    // Eventually just delete this entirely.  (Note that you may break
+    // multipy anyway this way with dispatcher  // codespell:ignore multipy
+    // registered functions that require hermetic to be off.)
+#if defined(USE_DEPLOY)
+    EnableHermeticPyObject g2;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto args_kwargs = parseIValuesToPyArgsKwargs(op, arguments);
     auto func =
         py::reinterpret_borrow<py::object>(func_.ptr(getPyInterpreter()));
@@ -217,10 +244,19 @@ class PythonKernelHolder : public c10::OperatorKernel {
   }
 };
 
+<<<<<<< HEAD
 // @todo sahanp: Afait only register is used in the codebase. This can be
 // removed / simplified
 static torch::_RegisterOrVerify register_or_verify() {
   return torch::_RegisterOrVerify::REGISTER;
+=======
+static torch::_RegisterOrVerify register_or_verify() {
+  if (isMainPyInterpreter()) {
+    return torch::_RegisterOrVerify::REGISTER;
+  } else {
+    return torch::_RegisterOrVerify::VERIFY;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static py::object ophandle_call_boxed(
@@ -293,6 +329,10 @@ void initDispatchBindings(PyObject* module) {
       .def(
           "reset",
           [](const py::object& self) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().reset();
             return;
           },
@@ -302,6 +342,10 @@ void initDispatchBindings(PyObject* module) {
       .def(
           "def_",
           [](py::object self, const char* schema, const char* alias) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().def(
                 torch::schema(schema, parseAliasAnalysisKind(alias)));
             return self;
@@ -315,6 +359,10 @@ void initDispatchBindings(PyObject* module) {
       .def(
           "def_legacy",
           [](py::object self, const char* schema) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().def(torch::jit::parseSchema(schema));
             return self;
           },
@@ -334,6 +382,10 @@ void initDispatchBindings(PyObject* module) {
              const char* name,
              const char* dispatch,
              const char* debug) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().def(
                 name, dispatch_str(dispatch, [](const at::Tensor& a) {
                         return a;
@@ -351,6 +403,10 @@ void initDispatchBindings(PyObject* module) {
              const char* dispatch,
              const char* alias,
              const char* debug) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().def(
                 torch::schema(schema, parseAliasAnalysisKind(alias)),
                 dispatch_str(dispatch, [](const at::Tensor& a) {
@@ -371,6 +427,10 @@ void initDispatchBindings(PyObject* module) {
              const char* name,
              const char* dispatch,
              const char* debug) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().impl(
                 name, dispatch_str(dispatch, [](const at::Tensor& a) {
                         return a;
@@ -465,6 +525,10 @@ void initDispatchBindings(PyObject* module) {
       .def(
           "fallback_fallthrough",
           [](py::object self, const char* dispatch) {
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.cast<torch::Library&>().fallback(
                 dispatch_str(dispatch, CppFunction::makeFallthrough()));
             return self;
@@ -479,6 +543,10 @@ void initDispatchBindings(PyObject* module) {
              bool with_keyset) {
             HANDLE_TH_ERRORS
             auto& lib = self.cast<torch::Library&>();
+<<<<<<< HEAD
+=======
+            TORCH_INTERNAL_ASSERT(isMainPyInterpreter());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (func.is(py::module::import("torch.library")
                             .attr("fallthrough_kernel"))) {
               lib.fallback(
@@ -495,6 +563,7 @@ void initDispatchBindings(PyObject* module) {
           "",
           py::arg("dispatch"),
           py::arg("func"),
+<<<<<<< HEAD
           py::arg("with_keyset") = false)
       .def(
           "register_ad_inplace_or_view_fallback",
@@ -509,6 +578,9 @@ void initDispatchBindings(PyObject* module) {
           },
           "",
           py::arg("name"));
+=======
+          py::arg("with_keyset") = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   m.def(
       "_dispatch_library",
@@ -518,18 +590,25 @@ void initDispatchBindings(PyObject* module) {
          const char* file,
          uint32_t linenum) {
         HANDLE_TH_ERRORS
+<<<<<<< HEAD
         // Store the file string in global storage to ensure it remains valid
         // for the lifetime of the Library object
         leaked_python_filenames_.emplace_back(file);
         const char* leaked_file = leaked_python_filenames_.back().c_str();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return std::make_unique<torch::Library>(
             parseKind(kind),
             std::move(name),
             std::string(dispatch).empty()
                 ? std::nullopt
                 : std::make_optional(c10::parseDispatchKey(dispatch)),
+<<<<<<< HEAD
             leaked_file,
+=======
+            "/dev/null", // temporary workaround
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             linenum);
         END_HANDLE_TH_ERRORS_PYBIND
       },
@@ -541,12 +620,15 @@ void initDispatchBindings(PyObject* module) {
       py::arg("linenum") = 0);
 
   m.def(
+<<<<<<< HEAD
       "_dispatch_clear_leaked_python_filenames",
       []() { leaked_python_filenames_.clear(); },
       "Clear the global storage of leaked Python filenames. "
       "WARNING: Only call this if you're sure no Library objects are still using the filenames.");
 
   m.def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "_dispatch_find_schema_or_throw",
       [](const char* name, const char* overload_name) -> c10::OperatorHandle {
         return c10::Dispatcher::singleton().findSchemaOrThrow(
@@ -935,6 +1017,11 @@ void initDispatchBindings(PyObject* module) {
         handle.setReportErrorCallback_(std::move(callback_obj));
       });
 
+<<<<<<< HEAD
+=======
+  m.def(
+      "_dispatch_is_main_interpreter", []() { return isMainPyInterpreter(); });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_dispatch_pystub", [](const char* name, const char* overload) {
     return c10::Dispatcher::singleton().getPyStub(
         c10::OperatorName(name, overload));
@@ -970,6 +1057,7 @@ void initDispatchBindings(PyObject* module) {
         include_set.has(c10::DispatchKey::FuncTorchDynamicLayerBackMode));
   });
 
+<<<<<<< HEAD
   m.def("_autocast_supported_devices", []() {
     std::vector<std::string> result;
     for (const auto device_type : at::autocast::_AUTOCAST_SUPPORTED_DEVICES) {
@@ -979,6 +1067,8 @@ void initDispatchBindings(PyObject* module) {
     return result;
   });
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("_get_nested_int", [](int64_t data, int64_t coeff) {
     return c10::SymInt(c10::SymNode(
         c10::make_intrusive<c10::NestedIntSymNodeImpl>(data, coeff)));
@@ -1023,6 +1113,7 @@ void initDispatchBindings(PyObject* module) {
   m.def("_only_lift_cpu_tensors", &torch::utils::only_lift_cpu_tensors);
   m.def("_set_only_lift_cpu_tensors", &torch::utils::set_only_lift_cpu_tensors);
 
+<<<<<<< HEAD
   m.def(
       "_get_dtensor_allow_implicit_replication",
       &at::get_dtensor_allow_implicit_replication);
@@ -1030,6 +1121,8 @@ void initDispatchBindings(PyObject* module) {
       "_set_dtensor_allow_implicit_replication",
       &at::set_dtensor_allow_implicit_replication);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using c10::impl::TorchDispatchModeKey;
   py::enum_<TorchDispatchModeKey>(m, "_TorchDispatchModeKey")
       .value("FUNCTIONAL", TorchDispatchModeKey::FUNCTIONAL)

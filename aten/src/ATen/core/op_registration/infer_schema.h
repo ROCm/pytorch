@@ -44,7 +44,11 @@ constexpr int checkStaticTypes() {
 }
 
 template <typename... Ts, size_t... Is>
+<<<<<<< HEAD
 constexpr std::array<ArgumentDef, sizeof...(Ts)> createArgumentVectorFromTypes(std::index_sequence<Is...> /*unused*/) {
+=======
+constexpr std::array<ArgumentDef, sizeof...(Ts)> createArgumentVectorFromTypes(std::index_sequence<Is...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return (
     // Check types for common errors
     checkStaticTypes<Ts...>(),

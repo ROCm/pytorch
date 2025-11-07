@@ -154,7 +154,11 @@ class DefaultMobileCPUAllocator final : public at::Allocator {
   }
 };
 
+<<<<<<< HEAD
 void NoDelete(void* /*unused*/) {}
+=======
+void NoDelete(void*) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 at::Allocator* GetCPUAllocator() {
   return GetAllocator(DeviceType::CPU);

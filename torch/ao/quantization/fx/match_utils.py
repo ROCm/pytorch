@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import Any, Optional
+=======
+from collections.abc import Iterable
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.ao.quantization.qconfig import QConfigAny
@@ -51,7 +56,11 @@ def _is_match(modules, node, pattern, max_uses=sys.maxsize):
     if isinstance(self_match, type) and issubclass(self_match, torch.nn.Module):
         if node.op != "call_module":
             return False
+<<<<<<< HEAD
         if type_before_parametrizations(modules[node.target]) != self_match:
+=======
+        if not type_before_parametrizations(modules[node.target]) == self_match:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
     elif callable(self_match):
         if node.op != "call_function" or node.target is not self_match:
@@ -168,7 +177,11 @@ def _find_matches(
     for node in reversed(graph.nodes):
         if node.name not in match_map and node.name not in all_matched:
             for pattern, quantize_handler_cls in patterns.items():
+<<<<<<< HEAD
                 root_node_getter = root_node_getter_mapping.get(pattern)
+=======
+                root_node_getter = root_node_getter_mapping.get(pattern, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if _is_match(modules, node, pattern) and node.name not in match_map:
                     matched_node_pattern: list[Node] = []
                     record_match(pattern, node, node, matched_node_pattern, match_map)

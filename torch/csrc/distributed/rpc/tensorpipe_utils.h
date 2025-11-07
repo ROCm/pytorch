@@ -49,8 +49,13 @@ extern TORCH_API std::array<
 class TORCH_API TensorpipeDeviceTypeConverterRegistrar {
  public:
   TensorpipeDeviceTypeConverterRegistrar(
+<<<<<<< HEAD
       DeviceType /*type*/,
       const TensorpipeDeviceTypeConverter* /*impl*/);
+=======
+      DeviceType,
+      const TensorpipeDeviceTypeConverter*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 #define C10_REGISTER_TENSORPIPE_DEVICE_TYPE_CONVERTER(                     \

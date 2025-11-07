@@ -11,6 +11,10 @@ from collections import Counter
 from functools import partial, wraps
 from typing import (
     Any,
+<<<<<<< HEAD
+=======
+    Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cast,
     Literal,
     Optional,
@@ -28,7 +32,11 @@ from .optimizer import _to_scalar, Optimizer
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterable, Sequence
+=======
+    from collections.abc import Iterable, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -78,6 +86,7 @@ def _format_param(name: str, optimizer: Optimizer, param):
     return list(map(_copy, param))
 
 
+<<<<<<< HEAD
 def _param_groups_val_list(optimizer: Optimizer, key: str) -> list[Any]:
     """Create a list containing group[key] for each optimizer param_group.
     Prevents aliasing when group[key] could be a Tensor.
@@ -119,6 +128,10 @@ class LRScheduler:
         :meth:`~torch.optim.Optimizer.load_state_dict` to avoid overwriting the
         loaded learning rates.
     """
+=======
+class LRScheduler:
+    r"""Adjusts the learning rate during optimization."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _get_lr_called_within_step: bool = False
     _is_initial: bool = False
@@ -144,6 +157,7 @@ class LRScheduler:
             for i, group in enumerate(optimizer.param_groups):
                 if "initial_lr" not in group:
                     raise KeyError(
+<<<<<<< HEAD
                         f"param 'initial_lr' is not specified in param_groups[{i}] when resuming scheduler with last_epoch >= 0.\n"
                         "This typically happens when:\n"
                         "1. You're trying to resume training from a checkpoint but haven't properly loaded the optimizer state\n"
@@ -152,6 +166,14 @@ class LRScheduler:
         self.base_lrs: list[float | Tensor] = _param_groups_val_list(
             optimizer, "initial_lr"
         )
+=======
+                        "param 'initial_lr' is not specified "
+                        f"in param_groups[{i}] when resuming an optimizer"
+                    )
+        self.base_lrs: list[float] = [
+            group["initial_lr"] for group in optimizer.param_groups
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.last_epoch = last_epoch
 
         # Following https://github.com/pytorch/pytorch/issues/20124
@@ -189,7 +211,11 @@ class LRScheduler:
     def state_dict(self) -> dict[str, Any]:
         """Return the state of the scheduler as a :class:`dict`.
 
+<<<<<<< HEAD
         It contains an entry for every variable in ``self.__dict__`` which
+=======
+        It contains an entry for every variable in self.__dict__ which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is not the optimizer.
         """
         return {
@@ -205,6 +231,7 @@ class LRScheduler:
         """
         self.__dict__.update(state_dict)
 
+<<<<<<< HEAD
     def get_last_lr(self) -> list[float | Tensor]:
         r"""Get the most recent learning rates computed by this scheduler.
 
@@ -257,6 +284,18 @@ class LRScheduler:
             Call this method after calling the optimizer's
             :meth:`~torch.optim.Optimizer.step`.
         """
+=======
+    def get_last_lr(self) -> list[float]:
+        """Return last computed learning rate by current scheduler."""
+        return self._last_lr
+
+    def get_lr(self) -> list[float]:
+        """Compute learning rate using chainable form of the scheduler."""
+        raise NotImplementedError
+
+    def step(self, epoch: Optional[int] = None) -> None:
+        """Perform a step."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Raise a warning if old pattern is detected
         # https://github.com/pytorch/pytorch/issues/20124
         if self._step_count == 1:
@@ -267,7 +306,10 @@ class LRScheduler:
                     "`lr_scheduler.step()`. See more details at "
                     "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             # Just check if there were two first lr_scheduler.step() calls before optimizer.step()
@@ -280,6 +322,7 @@ class LRScheduler:
                     "See more details at "
                     "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
                 )
 
@@ -289,25 +332,49 @@ class LRScheduler:
         self._update_lr(epoch)
 
     def _update_lr(self, epoch: Optional[int] = None):
+=======
+                )
+
+        self._step_count += 1
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with _enable_get_lr_call(self):
             if epoch is None:
                 self.last_epoch += 1
                 values = self.get_lr()
             else:
+<<<<<<< HEAD
                 self.last_epoch = epoch
                 if hasattr(self, "_get_closed_form_lr"):
                     values = cast(
                         list[Union[float, Tensor]], self._get_closed_form_lr()
                     )
+=======
+                warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+                self.last_epoch = epoch
+                if hasattr(self, "_get_closed_form_lr"):
+                    values = cast(list[float], self._get_closed_form_lr())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     values = self.get_lr()
 
         for param_group, lr in zip(self.optimizer.param_groups, values):
+<<<<<<< HEAD
             _update_param_group_val(param_group, "lr", lr)
 
         self._last_lr: list[float | Tensor] = _param_groups_val_list(
             self.optimizer, "lr"
         )
+=======
+            if isinstance(param_group["lr"], Tensor):
+                param_group["lr"].fill_(_to_scalar(lr))
+            else:
+                param_group["lr"] = lr
+
+        self._last_lr: list[float] = [
+            group["lr"] for group in self.optimizer.param_groups
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _warn_get_lr_called_within_step(lr_scheduler: LRScheduler) -> None:
@@ -407,7 +474,12 @@ class LambdaLR(LRScheduler):
     def state_dict(self) -> dict[str, Any]:
         """Return the state of the scheduler as a :class:`dict`.
 
+<<<<<<< HEAD
         It contains an entry for every variable in ``self.__dict__`` which is not the optimizer.
+=======
+        It contains an entry for every variable in self.__dict__ which
+        is not the optimizer.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         The learning rate lambda functions will only be saved if they are callable objects
         and not if they are functions or lambdas.
 
@@ -422,7 +494,10 @@ class LambdaLR(LRScheduler):
 
         for idx, fn in enumerate(self.lr_lambdas):
             if not isinstance(fn, types.FunctionType):
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 state_dict["lr_lambdas"][idx] = fn.__dict__.copy()
 
         return state_dict
@@ -448,6 +523,7 @@ class LambdaLR(LRScheduler):
                 self.lr_lambdas[idx].__dict__.update(fn)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -468,6 +544,10 @@ class LambdaLR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute learning rate."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         return [
@@ -528,7 +608,11 @@ class MultiplicativeLR(LRScheduler):
     def state_dict(self) -> dict[str, Any]:
         """Return the state of the scheduler as a :class:`dict`.
 
+<<<<<<< HEAD
         It contains an entry for every variable in ``self.__dict__`` which
+=======
+        It contains an entry for every variable in self.__dict__ which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is not the optimizer.
         The learning rate lambda functions will only be saved if they are callable objects
         and not if they are functions or lambdas.
@@ -542,7 +626,10 @@ class MultiplicativeLR(LRScheduler):
 
         for idx, fn in enumerate(self.lr_lambdas):
             if not isinstance(fn, types.FunctionType):
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 state_dict["lr_lambdas"][idx] = fn.__dict__.copy()
 
         return state_dict
@@ -566,6 +653,7 @@ class MultiplicativeLR(LRScheduler):
                 self.lr_lambdas[idx].__dict__.update(fn)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -587,6 +675,10 @@ class MultiplicativeLR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         if not self._is_initial:
@@ -595,7 +687,11 @@ class MultiplicativeLR(LRScheduler):
                 for lmbda, group in zip(self.lr_lambdas, self.optimizer.param_groups)
             ]
         else:
+<<<<<<< HEAD
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class StepLR(LRScheduler):
@@ -639,6 +735,7 @@ class StepLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -679,6 +776,17 @@ class StepLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+        _warn_get_lr_called_within_step(self)
+
+        if (self.last_epoch == 0) or (self.last_epoch % self.step_size != 0):
+            return [group["lr"] for group in self.optimizer.param_groups]
+        return [group["lr"] * self.gamma for group in self.optimizer.param_groups]
+
+    def _get_closed_form_lr(self) -> list[float]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             base_lr * self.gamma ** (self.last_epoch // self.step_size)
             for base_lr in self.base_lrs
@@ -725,6 +833,7 @@ class MultiStepLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -754,12 +863,21 @@ class MultiStepLR(LRScheduler):
 
         if self.last_epoch not in self.milestones:
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+        _warn_get_lr_called_within_step(self)
+
+        if self.last_epoch not in self.milestones:
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             group["lr"] * self.gamma ** self.milestones[self.last_epoch]
             for group in self.optimizer.param_groups
         ]
 
     def _get_closed_form_lr(self):
+<<<<<<< HEAD
         r"""Compute learning rates for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups` at :attr:`last_epoch` using
         a closed-form formula.
@@ -772,6 +890,8 @@ class MultiStepLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         milestones = sorted(self.milestones.elements())
         return [
             base_lr * self.gamma ** bisect_right(milestones, self.last_epoch)
@@ -829,6 +949,7 @@ class ConstantLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -851,19 +972,28 @@ class ConstantLR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         if self.last_epoch == 0:
             return [group["lr"] * self.factor for group in self.optimizer.param_groups]
 
         if self.last_epoch != self.total_iters:
+<<<<<<< HEAD
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return [
             group["lr"] * (1.0 / self.factor) for group in self.optimizer.param_groups
         ]
 
     def _get_closed_form_lr(self):
+<<<<<<< HEAD
         r"""Compute learning rates for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups` at :attr:`last_epoch` using
         a closed-form formula.
@@ -876,6 +1006,8 @@ class ConstantLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             base_lr
             * (self.factor + (self.last_epoch >= self.total_iters) * (1 - self.factor))
@@ -943,6 +1075,7 @@ class LinearLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -965,6 +1098,10 @@ class LinearLR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         if self.last_epoch == 0:
@@ -973,7 +1110,11 @@ class LinearLR(LRScheduler):
             ]
 
         if self._is_initial or self.last_epoch > self.total_iters:
+<<<<<<< HEAD
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return [
             group["lr"]
@@ -989,6 +1130,7 @@ class LinearLR(LRScheduler):
         ]
 
     def _get_closed_form_lr(self):
+<<<<<<< HEAD
         r"""Compute learning rates for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups` at :attr:`last_epoch` using
         a closed-form formula.
@@ -1001,6 +1143,8 @@ class LinearLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             base_lr
             * (
@@ -1044,6 +1188,7 @@ class ExponentialLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -1064,11 +1209,16 @@ class ExponentialLR(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         # when loading from a checkpoint, we don't want _initial_step (called from the constructor)
         # to update the lr one more step ahead of itself.
         if self._is_initial:
+<<<<<<< HEAD
             return _param_groups_val_list(self.optimizer, "lr")
         return [group["lr"] * self.gamma for group in self.optimizer.param_groups]
 
@@ -1085,6 +1235,12 @@ class ExponentialLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+            return [group["lr"] for group in self.optimizer.param_groups]
+        return [group["lr"] * self.gamma for group in self.optimizer.param_groups]
+
+    def _get_closed_form_lr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [base_lr * self.gamma**self.last_epoch for base_lr in self.base_lrs]
 
 
@@ -1168,7 +1324,11 @@ class SequentialLR(LRScheduler):
 
         # Reset learning rates back to initial values
         for group in self.optimizer.param_groups:
+<<<<<<< HEAD
             _update_param_group_val(group, "lr", group["initial_lr"])
+=======
+            group["lr"] = group["initial_lr"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # "Undo" the step performed by other schedulers
         self.recursive_undo()
@@ -1197,7 +1357,11 @@ class SequentialLR(LRScheduler):
         idx = bisect_right(self._milestones, self.last_epoch)
         scheduler = self._schedulers[idx]
         if idx > 0 and self._milestones[idx - 1] == self.last_epoch:
+<<<<<<< HEAD
             scheduler._update_lr(0)
+=======
+            scheduler.step(0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             scheduler.step()
 
@@ -1207,7 +1371,11 @@ class SequentialLR(LRScheduler):
     def state_dict(self) -> dict[str, Any]:
         """Return the state of the scheduler as a :class:`dict`.
 
+<<<<<<< HEAD
         It contains an entry for every variable in ``self.__dict__`` which
+=======
+        It contains an entry for every variable in self.__dict__ which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is not the optimizer.
         The wrapped scheduler states will also be saved.
         """
@@ -1219,7 +1387,10 @@ class SequentialLR(LRScheduler):
         state_dict["_schedulers"] = [None] * len(self._schedulers)
 
         for idx, s in enumerate(self._schedulers):
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             state_dict["_schedulers"][idx] = s.state_dict()
 
         return state_dict
@@ -1281,6 +1452,7 @@ class PolynomialLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -1313,6 +1485,14 @@ class PolynomialLR(LRScheduler):
 
         if self._is_initial or self.last_epoch > self.total_iters:
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate."""
+        _warn_get_lr_called_within_step(self)
+
+        if self._is_initial or self.last_epoch > self.total_iters:
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         decay_factor = (
             (1.0 - self.last_epoch / self.total_iters)
@@ -1320,6 +1500,7 @@ class PolynomialLR(LRScheduler):
         ) ** self.power
         return [group["lr"] * decay_factor for group in self.optimizer.param_groups]
 
+<<<<<<< HEAD
     def _get_closed_form_lr(self) -> list[float | Tensor]:
         r"""Compute learning rates for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups` at :attr:`last_epoch` using
@@ -1333,6 +1514,9 @@ class PolynomialLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+    def _get_closed_form_lr(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             (
                 base_lr
@@ -1405,6 +1589,7 @@ class CosineAnnealingLR(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -1435,6 +1620,14 @@ class CosineAnnealingLR(LRScheduler):
 
         if self._is_initial:
             return _param_groups_val_list(self.optimizer, "lr")
+=======
+    def get_lr(self) -> list[float]:
+        """Retrieve the learning rate of each parameter group."""
+        _warn_get_lr_called_within_step(self)
+
+        if self._is_initial:
+            return [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif self._step_count == 1 and self.last_epoch > 0:
             return [
                 self.eta_min
@@ -1457,6 +1650,7 @@ class CosineAnnealingLR(LRScheduler):
             for group in self.optimizer.param_groups
         ]
 
+<<<<<<< HEAD
     def _get_closed_form_lr(self) -> list[float | Tensor]:
         r"""Compute learning rates for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups` at :attr:`last_epoch` using
@@ -1470,6 +1664,9 @@ class CosineAnnealingLR(LRScheduler):
             the optimizer's :attr:`~torch.optim.Optimizer.param_groups` with the
             same types as their current ``group["lr"]``\s.
         """
+=======
+    def _get_closed_form_lr(self) -> list[float]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             self.eta_min
             + (base_lr - self.eta_min)
@@ -1538,19 +1735,35 @@ class ChainedScheduler(LRScheduler):
                 )
         self._schedulers = schedulers
         self.optimizer = optimizer
+<<<<<<< HEAD
         self._last_lr = _param_groups_val_list(self._schedulers[-1].optimizer, "lr")
+=======
+        self._last_lr = [
+            group["lr"] for group in self._schedulers[-1].optimizer.param_groups
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def step(self) -> None:  # type: ignore[override]
         """Perform a step."""
         for scheduler in self._schedulers:
             scheduler.step()
+<<<<<<< HEAD
         self._last_lr = _param_groups_val_list(self._schedulers[-1].optimizer, "lr")
+=======
+        self._last_lr = [
+            group["lr"] for group in self._schedulers[-1].optimizer.param_groups
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @override
     def state_dict(self) -> dict[str, Any]:
         """Return the state of the scheduler as a :class:`dict`.
 
+<<<<<<< HEAD
         It contains an entry for every variable in ``self.__dict__`` which
+=======
+        It contains an entry for every variable in self.__dict__ which
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is not the optimizer.
         The wrapped scheduler states will also be saved.
         """
@@ -1562,7 +1775,10 @@ class ChainedScheduler(LRScheduler):
         state_dict["_schedulers"] = [None] * len(self._schedulers)
 
         for idx, s in enumerate(self._schedulers):
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             state_dict["_schedulers"][idx] = s.state_dict()
 
         return state_dict
@@ -1671,7 +1887,10 @@ class ReduceLROnPlateau(LRScheduler):
             self.default_min_lr = None
             self.min_lrs = list(min_lr)
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.default_min_lr = min_lr
             self.min_lrs = [min_lr] * len(optimizer.param_groups)
 
@@ -1679,7 +1898,11 @@ class ReduceLROnPlateau(LRScheduler):
         self.cooldown = cooldown
         self.eps = eps
         self.last_epoch = 0
+<<<<<<< HEAD
         self._last_lr = _param_groups_val_list(self.optimizer, "lr")
+=======
+        self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._init_is_better(
             mode=mode, threshold=threshold, threshold_mode=threshold_mode
         )
@@ -1698,10 +1921,17 @@ class ReduceLROnPlateau(LRScheduler):
         if epoch is None:
             epoch = self.last_epoch + 1
         else:
+<<<<<<< HEAD
             warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning, stacklevel=2)
         self.last_epoch = epoch
 
         if self._is_better(current, self.best):
+=======
+            warnings.warn(EPOCH_DEPRECATION_WARNING, UserWarning)
+        self.last_epoch = epoch
+
+        if self.is_better(current, self.best):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.best = current
             self.num_bad_epochs = 0
         else:
@@ -1716,7 +1946,11 @@ class ReduceLROnPlateau(LRScheduler):
             self.cooldown_counter = self.cooldown
             self.num_bad_epochs = 0
 
+<<<<<<< HEAD
         self._last_lr = _param_groups_val_list(self.optimizer, "lr")
+=======
+        self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _reduce_lr(self, epoch):
         if len(self.optimizer.param_groups) != len(self.min_lrs):
@@ -1731,20 +1965,31 @@ class ReduceLROnPlateau(LRScheduler):
                     "of the `optimizer` param groups."
                 )
             else:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.min_lrs = [self.default_min_lr] * len(self.optimizer.param_groups)
 
         for i, param_group in enumerate(self.optimizer.param_groups):
             old_lr = float(param_group["lr"])
             new_lr = max(old_lr * self.factor, self.min_lrs[i])
             if old_lr - new_lr > self.eps:
+<<<<<<< HEAD
                 _update_param_group_val(param_group, "lr", new_lr)
+=======
+                param_group["lr"] = new_lr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def in_cooldown(self):  # noqa: D102
         return self.cooldown_counter > 0
 
+<<<<<<< HEAD
     def _is_better(self, a, best):  # noqa: D102
+=======
+    def is_better(self, a, best):  # noqa: D102
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.mode == "min" and self.threshold_mode == "rel":
             rel_epsilon = 1.0 - self.threshold
             return a < best * rel_epsilon
@@ -1907,6 +2152,7 @@ class CyclicLR(LRScheduler):
         base_lrs = _format_param("base_lr", optimizer, base_lr)
         if last_epoch == -1:
             for lr, group in zip(base_lrs, optimizer.param_groups):
+<<<<<<< HEAD
                 _update_param_group_val(group, "lr", lr)
 
         self.max_lrs = _format_param("max_lr", optimizer, max_lr)
@@ -1918,6 +2164,20 @@ class CyclicLR(LRScheduler):
             float(step_size_down) if step_size_down is not None else step_size_up
         )
         # pyrefly: ignore [unsupported-operation]
+=======
+                if isinstance(group["lr"], Tensor):
+                    lr_val = lr.item() if isinstance(lr, Tensor) else lr
+                    group["lr"].fill_(lr_val)
+                else:
+                    group["lr"] = lr
+
+        self.max_lrs = _format_param("max_lr", optimizer, max_lr)
+
+        step_size_up = float(step_size_up)
+        step_size_down = (
+            float(step_size_down) if step_size_down is not None else step_size_up
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.total_size = step_size_up + step_size_down
         self.step_ratio = step_size_up / self.total_size
 
@@ -1994,6 +2254,7 @@ class CyclicLR(LRScheduler):
         return gamma**x
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -2022,6 +2283,15 @@ class CyclicLR(LRScheduler):
         .. note::
             When :attr:`cycle_momentum` is ``True``, this method has a side
             effect of updating the optimizer's momentum.
+=======
+    def get_lr(self) -> list[float]:
+        """Calculate the learning rate at batch index.
+
+        This function treats `self.last_epoch` as the last batch index.
+
+        If `self.cycle_momentum` is ``True``, this function has a side effect of
+        updating the optimizer's momentum.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         _warn_get_lr_called_within_step(self)
 
@@ -2064,6 +2334,7 @@ class CyclicLR(LRScheduler):
 
     @override
     def state_dict(self) -> dict[str, Any]:  # noqa: D102
+<<<<<<< HEAD
         """Return the state of the scheduler as a :class:`dict`.
 
         It contains an entry for every variable in ``self.__dict__`` which
@@ -2073,6 +2344,8 @@ class CyclicLR(LRScheduler):
 
         When saving or loading the scheduler, please make sure to also save or load the state of the optimizer.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state = super().state_dict()
         # We are dropping the `_scale_fn_ref` attribute because it is a
         # `weakref.WeakMethod` and can't be pickled.
@@ -2161,6 +2434,7 @@ class CosineAnnealingWarmRestarts(LRScheduler):
         super().__init__(optimizer, last_epoch)
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -2191,6 +2465,10 @@ class CosineAnnealingWarmRestarts(LRScheduler):
             The returned :class:`~torch.Tensor`\s are copies, and never alias
             the optimizer's ``group["lr"]``\s.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the initial learning rate."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         return [
@@ -2261,9 +2539,15 @@ class CosineAnnealingWarmRestarts(LRScheduler):
 
         with _enable_get_lr_call(self):
             for param_group, lr in zip(self.optimizer.param_groups, self.get_lr()):
+<<<<<<< HEAD
                 _update_param_group_val(param_group, "lr", lr)
 
         self._last_lr = _param_groups_val_list(self.optimizer, "lr")
+=======
+                param_group["lr"] = lr
+
+        self._last_lr = [group["lr"] for group in self.optimizer.param_groups]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _SchedulePhase(TypedDict):
@@ -2535,6 +2819,7 @@ class OneCycleLR(LRScheduler):
         return (end - start) * pct + start
 
     @override
+<<<<<<< HEAD
     def get_lr(self) -> list[float | Tensor]:
         r"""Compute the next learning rate for each of the optimizer's
         :attr:`~torch.optim.Optimizer.param_groups`.
@@ -2560,6 +2845,10 @@ class OneCycleLR(LRScheduler):
             When :attr:`cycle_momentum` is ``True``, this method has a side
             effect of updating the optimizer's momentum.
         """
+=======
+    def get_lr(self) -> list[float]:
+        """Compute the learning rate of each parameter group."""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _warn_get_lr_called_within_step(self)
 
         lrs = []

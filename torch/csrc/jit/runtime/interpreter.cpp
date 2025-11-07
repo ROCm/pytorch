@@ -55,7 +55,11 @@ C10_DEFINE_bool(
 C10_DEFINE_bool(
     torch_jit_enable_expanded_stacks,
     false,
+<<<<<<< HEAD
     "When true we will attempts to pre-expand node stacks and cache expanded stacks.")
+=======
+    "When true we will attemps to pre-expand node stacks and cache expanded stacks.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 C10_DEFINE_bool(
     torch_jit_expanded_stacks_mangled,

@@ -9,7 +9,10 @@ The goal is to validate on numpy, and tests should work when replacing
 by
 >>> import torch._numpy as np
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import operator
 from unittest import skipIf as skip, SkipTest
 

@@ -2,8 +2,12 @@
 import inspect
 import logging
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.fx._compatibility import compatibility
@@ -60,8 +64,11 @@ def split_module(
     keep_original_order: Optional[bool] = False,
     keep_original_node_name: Optional[bool] = False,
     keep_original_input_name: bool = True,
+<<<<<<< HEAD
     *,
     partition_affix: Optional[str] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Creates subgraphs out of main graph
@@ -84,8 +91,11 @@ def split_module(
             have the same node names as the original graph.
         keep_original_input_name: bool: If the partitioned graphs should
             have the same input names as the original graph.
+<<<<<<< HEAD
         partition_affix: Optional[str]: If specified, the submodules' names will contain
             the affix, e.g. "submod_<affix>_<idx>".
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         GraphModule: the module after split.
@@ -95,7 +105,11 @@ def split_module(
         This is a sample setup:
 
             import torch
+<<<<<<< HEAD
             from torch.fx._symbolic_trace import symbolic_trace
+=======
+            from torch.fx.symbolic_trace import symbolic_trace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch.fx.graph_module import GraphModule
             from torch.fx.node import Node
             from torch.fx.passes.split_module import split_module
@@ -253,11 +267,15 @@ def split_module(
                                 s_def_partition = partitions[s_defined]
                                 s_def_partition.outputs.setdefault(s_node.name)
                                 s_def_partition.dependents.setdefault(used)
+<<<<<<< HEAD
                                 use_partition.dependencies.setdefault(s_defined)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if defined is not None:
                     use_partition.dependencies.setdefault(defined)
 
     def instantiate_node_partition_mapping(node):
+<<<<<<< HEAD
         partition_idx = split_callback(node)
         partition_name = str(partition_idx)
         if partition_affix is not None:
@@ -265,6 +283,9 @@ def split_module(
             # partition name will be "pp_0", "pp_1", etc
             partition_name = "_".join([partition_affix, partition_name])
 
+=======
+        partition_name = str(split_callback(node))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         log.debug(
             "instantiate_node_partition_mapping %s (%s)", node.name, partition_name
         )
@@ -351,9 +372,13 @@ def split_module(
 
     assert all(v is not None for v in autocast_exits.values()), "autocast must exit"
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
     autocast_regions = {k: sorted(v) for k, v in autocast_regions.items()}
     # pyrefly: ignore [bad-assignment]
+=======
+    autocast_regions = {k: sorted(v) for k, v in autocast_regions.items()}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grad_regions = {k: sorted(v) for k, v in grad_regions.items()}
 
     if _LOGGER.isEnabledFor(logging.DEBUG):
@@ -408,7 +433,11 @@ def split_module(
         root_partition = root_partitions.pop()
         sorted_partitions.append(root_partition)
         for dependent in partitions[root_partition].dependents:
+<<<<<<< HEAD
             partitions[dependent].dependencies.pop(root_partition)  # noqa: B909
+=======
+            partitions[dependent].dependencies.pop(root_partition)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not partitions[dependent].dependencies:
                 root_partitions.append(dependent)
     if len(sorted_partitions) != len(partitions):
@@ -418,9 +447,13 @@ def split_module(
     for regions_mapping in [autocast_regions, grad_regions]:
         for node, regions in regions_mapping.items():
             assert len(regions) > 0
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
             partitions[str(regions[0])].environment[node] = node
             # pyrefly: ignore [index-error]
+=======
+            partitions[str(regions[0])].environment[node] = node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for r in regions[1:]:
                 partition = partitions[str(r)]
                 new_node = partition.graph.create_node(
@@ -520,7 +553,10 @@ def split_module(
         for node in reversed(regions_mapping):
             regions = regions_mapping[node]
             assert len(regions) > 0
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for r in regions[:-1]:
                 partition = partitions[str(r)]
                 exit_node = autocast_exits[node]

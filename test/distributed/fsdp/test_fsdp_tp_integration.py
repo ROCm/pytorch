@@ -49,8 +49,11 @@ if TEST_WITH_DEV_DBG_ASAN:
     )
     sys.exit(0)
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class SimpleModel(torch.nn.Module):
     def __init__(self) -> None:
@@ -121,7 +124,11 @@ class TestTPFSDPIntegration(FSDPTest):
         """
         # 2-D mesh is [dp, tp]
         twod_mesh = DeviceMesh(
+<<<<<<< HEAD
             device_type=device_type,
+=======
+            device_type="cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mesh=torch.arange(0, self.world_size).view(-1, tensor_parallel_size),
         )
 
@@ -168,7 +175,11 @@ class TestTPFSDPIntegration(FSDPTest):
                 self.rank // tp_world_size
             ]
             grad_device = flat_param.grad.device
+<<<<<<< HEAD
             grad = flat_param.grad.detach().clone().to(self.rank)
+=======
+            grad = flat_param.grad.detach().clone().cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dist.all_reduce(grad, op=dist.ReduceOp.SUM, group=tp_pg)
             grad = grad.to(grad_device)
             flat_param.grad[~sharded_mask] = grad[~sharded_mask]
@@ -201,7 +212,11 @@ class TestTPFSDPIntegration(FSDPTest):
                 ]
             )
             .contiguous()
+<<<<<<< HEAD
             .to(self.rank)
+=======
+            .cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         all_grads_as_flattened = torch.cat(
             [torch.empty_like(local_grads_as_flattened) for _ in range(fsdp_pg.size())]
@@ -254,7 +269,11 @@ class TestTPFSDPIntegration(FSDPTest):
         tensor_parallel_size = 2
         LR = 3e-5
         torch.manual_seed(0)
+<<<<<<< HEAD
         model = SimpleModel().to(self.rank)
+=======
+        model = SimpleModel().cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         tp_fsdp_model = copy.deepcopy(model)
         sharded_param_names = SimpleModel.get_sharded_param_names()
         non_sharded_param_names = SimpleModel.get_non_sharded_param_names()
@@ -270,10 +289,17 @@ class TestTPFSDPIntegration(FSDPTest):
         input_seed = self.rank
         torch.manual_seed(input_seed + 1)
         inp_size = [2, 3, 5]
+<<<<<<< HEAD
         inp = torch.rand(*inp_size).to(self.rank)
         self.assertEqual(model(inp), tp_fsdp_model(inp))  # sanity check
 
         mesh_1d = init_device_mesh(device_type, (self.world_size,))
+=======
+        inp = torch.rand(*inp_size).cuda(self.rank)
+        self.assertEqual(model(inp), tp_fsdp_model(inp))  # sanity check
+
+        mesh_1d = init_device_mesh("cuda", (self.world_size,))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fsdp_model = FSDP(
             model,
             cpu_offload=cpu_offload,
@@ -282,7 +308,11 @@ class TestTPFSDPIntegration(FSDPTest):
             use_orig_params=use_orig_params,
         )
         mesh_2d = init_device_mesh(
+<<<<<<< HEAD
             device_type,
+=======
+            "cuda",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.world_size // tensor_parallel_size, tensor_parallel_size),
             mesh_dim_names=["dp", "tp"],
         )
@@ -348,7 +378,11 @@ class TestTPFSDPIntegration(FSDPTest):
         fsdp_optim.step()
         tp_fsdp_optim.step()
         torch.manual_seed(input_seed + 16)
+<<<<<<< HEAD
         inp = torch.rand(*inp_size).to(self.rank)
+=======
+        inp = torch.rand(*inp_size).cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fsdp_out = fsdp_model(inp)
         tp_fsdp_out = tp_fsdp_model(inp)
         self.assertEqual(fsdp_out, tp_fsdp_out)
@@ -359,19 +393,31 @@ class TestTPFSDPIntegration(FSDPTest):
         Tests TP + FSDP extension with correct gradient (i.e. no ACT)
         """
         mesh_2d = init_device_mesh(
+<<<<<<< HEAD
             device_type, (self.world_size // 2, 2), mesh_dim_names=["dp", "tp"]
+=======
+            "cuda", (self.world_size // 2, 2), mesh_dim_names=["dp", "tp"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         class TestModel(torch.nn.Module):
             def __init__(self) -> None:
                 super().__init__()
+<<<<<<< HEAD
                 self.mlp = MLPModule(device_type)
+=======
+                self.mlp = MLPModule("cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.mlp_norm = RMSNormPython(10)
 
             def forward(self, x):
                 return self.mlp(self.mlp_norm(x))
 
+<<<<<<< HEAD
         model = TestModel().to(self.rank)
+=======
+        model = TestModel().cuda(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Shard with TP and test gradient
         tp_mesh = mesh_2d["tp"]
@@ -389,7 +435,11 @@ class TestTPFSDPIntegration(FSDPTest):
         comm_mode = CommDebugMode()
 
         with comm_mode:
+<<<<<<< HEAD
             fsdp_2d_model(torch.rand(2, 10).to(self.rank)).sum().backward()
+=======
+            fsdp_2d_model(torch.rand(2, 10).cuda(self.rank)).sum().backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         funcol = torch.ops.c10d_functional
         c10d_ops = torch.ops.c10d
@@ -411,7 +461,11 @@ class TestTPFSDPIntegration(FSDPTest):
     @skip_if_lt_x_gpu(4)
     def test_fsdp_tp_sync_module_state(self):
         mesh_2d = init_device_mesh(
+<<<<<<< HEAD
             device_type, (self.world_size // 2, 2), mesh_dim_names=["dp", "tp"]
+=======
+            "cuda", (self.world_size // 2, 2), mesh_dim_names=["dp", "tp"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         tp_mesh = mesh_2d["tp"]
         dp_mesh = mesh_2d["dp"]

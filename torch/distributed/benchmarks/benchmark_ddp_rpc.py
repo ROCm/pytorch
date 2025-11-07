@@ -74,7 +74,10 @@ class HybridModel(torch.nn.Module):
         assert NUM_PS * EMBEDDING_DIM >= 512
         dim_normalizer = int(NUM_PS * EMBEDDING_DIM / 512)
         emb_lookups_reshaped = emb_lookups_cat.reshape(  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             [emb_lookups_cat.shape[0] * dim_normalizer, 512]
         )
 

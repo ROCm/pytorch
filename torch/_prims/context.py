@@ -2,12 +2,20 @@ from __future__ import annotations
 
 import functools
 from contextlib import nullcontext
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING, TypeVar
+=======
+from typing import Any, Callable, TYPE_CHECKING, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Sequence
+=======
+    from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._decomp
@@ -125,7 +133,10 @@ class TorchRefsMode(torch.overrides.TorchFunctionMode):
         # Unless we are in prims_mode, in which case we want to use nvprims
         if orig_func in torch_function_passthrough or orig_func in all_prims():
             with self.prims_mode_cls():
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-param-spec]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return orig_func(*args, **kwargs)
         mapping = torch_to_refs_map()
         func = mapping.get(orig_func, None)
@@ -148,7 +159,10 @@ class TorchRefsMode(torch.overrides.TorchFunctionMode):
         if func is not None:
             # If the ref exists query whether we should use it or not
             if self.should_fallback_fn(self, orig_func, func, args, kwargs):
+<<<<<<< HEAD
                 # pyrefly: ignore [invalid-param-spec]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return orig_func(*args, **kwargs)
             # torch calls inside func should be interpreted as refs calls
             with self:
@@ -157,5 +171,8 @@ class TorchRefsMode(torch.overrides.TorchFunctionMode):
             raise RuntimeError(
                 f"no _refs support for {torch.overrides.resolve_name(orig_func)}"
             )
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-param-spec]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return orig_func(*args, **kwargs)

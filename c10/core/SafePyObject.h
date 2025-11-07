@@ -60,7 +60,11 @@ struct C10_API SafePyObject {
   c10::impl::PyInterpreter& pyinterpreter() const {
     return *pyinterpreter_;
   }
+<<<<<<< HEAD
   PyObject* ptr(const c10::impl::PyInterpreter* /*interpreter*/) const;
+=======
+  PyObject* ptr(const c10::impl::PyInterpreter*) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // stop tracking the current object, and return it
   PyObject* release() {
@@ -103,7 +107,11 @@ struct C10_API SafePyHandle {
   c10::impl::PyInterpreter& pyinterpreter() const {
     return *pyinterpreter_;
   }
+<<<<<<< HEAD
   PyObject* ptr(const c10::impl::PyInterpreter* /*interpreter*/) const;
+=======
+  PyObject* ptr(const c10::impl::PyInterpreter*) const;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void reset() {
     data_ = nullptr;
     pyinterpreter_ = nullptr;

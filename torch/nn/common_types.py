@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 from typing import Optional, TypeAlias as _TypeAlias, TypeVar, Union
+=======
+from typing import Optional, TypeVar, Union
+from typing_extensions import TypeAlias as _TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch import Tensor
 

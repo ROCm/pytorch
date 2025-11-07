@@ -5,7 +5,11 @@ import torch._inductor
 from torch._dynamo.utils import counters
 from torch._inductor.test_case import run_tests, TestCase
 from torch.testing._internal.inductor_utils import GPU_TYPE
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
+=======
+from torch.testing._internal.triton_utils import requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -49,6 +53,7 @@ class TestSplitCat(torch.nn.Module):
         return torch.ops.aten.cat.default([cat_1, cat_2], 1)
 
 
+<<<<<<< HEAD
 class TestSplitCatSingular(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -65,6 +70,8 @@ class TestSplitCatSingular(torch.nn.Module):
         return torch.ops.aten.cat.default([cat_1, cat_2], 1)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestSplitCatPartial(torch.nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -248,7 +255,11 @@ class TestSplitCatAten(TestCase):
             self.compare_dict_tensors(ref_grad, res_grad, rtol=rtol, atol=atol)
         )
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._inductor.config.patch(
         pre_grad_fusion_options={},
         post_grad_fusion_options={
@@ -291,6 +302,7 @@ class TestSplitCatAten(TestCase):
         self.compare_parameters(module, traced, rtol=1e-8, atol=1e-8)
         counters.clear()
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
     @torch._inductor.config.patch(
         pre_grad_fusion_options={},
@@ -318,6 +330,9 @@ class TestSplitCatAten(TestCase):
         counters.clear()
 
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._inductor.config.patch(
         pre_grad_fusion_options={},
         post_grad_fusion_options={
@@ -342,7 +357,11 @@ class TestSplitCatAten(TestCase):
         self.compare_parameters(module, traced, rtol=1e-8, atol=1e-8)
         counters.clear()
 
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._inductor.config.patch(
         pre_grad_fusion_options={},
         post_grad_fusion_options={
@@ -367,6 +386,7 @@ class TestSplitCatAten(TestCase):
         counters.clear()
 
 
+<<<<<<< HEAD
 class TestSplitCatAtenNormalizationPasses(TestCase):
     @torch._inductor.config.patch(
         pre_grad_fusion_options={},
@@ -400,5 +420,7 @@ class TestSplitCatAtenNormalizationPasses(TestCase):
             counters.clear()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

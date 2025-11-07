@@ -9,7 +9,10 @@ from typing import Any, Optional
 import torch
 import numpy as np
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from google.protobuf import struct_pb2
 
 from tensorboard.compat.proto.summary_pb2 import (
@@ -370,9 +373,15 @@ def scalar(name, tensor, collections=None, new_style=False, double_precision=Fal
       ValueError: If tensor has the wrong shape or type.
     """
     tensor = make_np(tensor).squeeze()
+<<<<<<< HEAD
     if tensor.ndim != 0:
         raise AssertionError(f"Tensor should contain one element (0 dimensions). \
             Was given size: {tensor.size} and {tensor.ndim} dimensions.")
+=======
+    assert (
+        tensor.ndim == 0
+    ), f"Tensor should contain one element (0 dimensions). Was given size: {tensor.size} and {tensor.ndim} dimensions."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # python float is double precision in numpy
     scalar = float(tensor)
     if new_style:
@@ -498,7 +507,10 @@ def make_histogram(values, bins, max_bins=None):
         subsampling = num_bins // max_bins
         subsampling_remainder = num_bins % subsampling
         if subsampling_remainder != 0:
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             counts = np.pad(
                 counts,
                 pad_width=[[0, subsampling - subsampling_remainder]],
@@ -700,8 +712,12 @@ def audio(tag, tensor, sample_rate=44100):
     if abs(array).max() > 1:
         print("warning: audio amplitude out of range, auto clipped.")
         array = array.clip(-1, 1)
+<<<<<<< HEAD
     if array.ndim != 1:
         raise AssertionError("input tensor should be 1 dimensional.")
+=======
+    assert array.ndim == 1, "input tensor should be 1 dimensional."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     array = (array * np.iinfo(np.int16).max).astype("<i2")
 
     import io
@@ -732,8 +748,12 @@ def custom_scalars(layout):
         for chart_name, chart_metadata in v.items():
             tags = chart_metadata[1]
             if chart_metadata[0] == "Margin":
+<<<<<<< HEAD
                 if len(tags) != 3:
                     raise AssertionError("len(tags) != 3")
+=======
+                assert len(tags) == 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mgcc = layout_pb2.MarginChartContent(
                     series=[
                         layout_pb2.MarginChartContent.Series(
@@ -838,6 +858,7 @@ def compute_curve(labels, predictions, num_thresholds=None, weights=None):
         weights = 1.0
 
     # Compute bins of true positives and false positives.
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
     bucket_indices = np.int32(np.floor(predictions * (num_thresholds - 1)))
     float_labels = labels.astype(np.float64)
@@ -846,13 +867,23 @@ def compute_curve(labels, predictions, num_thresholds=None, weights=None):
     tp_buckets, _ = np.histogram(
         bucket_indices,
         # pyrefly: ignore [bad-argument-type]
+=======
+    bucket_indices = np.int32(np.floor(predictions * (num_thresholds - 1)))
+    float_labels = labels.astype(np.float64)
+    histogram_range = (0, num_thresholds - 1)
+    tp_buckets, _ = np.histogram(
+        bucket_indices,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bins=num_thresholds,
         range=histogram_range,
         weights=float_labels * weights,
     )
     fp_buckets, _ = np.histogram(
         bucket_indices,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         bins=num_thresholds,
         range=histogram_range,
         weights=(1.0 - float_labels) * weights,

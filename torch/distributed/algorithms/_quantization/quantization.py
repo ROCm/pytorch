@@ -65,7 +65,10 @@ def _dequantize_tensor(tensor, qtype, quant_loss=None):
         elif tensor.dtype == torch.float16 and quant_loss is None:
             return tensor.float()
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return tensor.float() / quant_loss
     elif qtype == DQuantType.BFP16:
         if tensor.dtype != torch.float16:
@@ -107,7 +110,11 @@ def auto_quantize(func, qtype, quant_loss=None):
 
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
+<<<<<<< HEAD
         group = kwargs.get("group")
+=======
+        group = kwargs.get("group", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         async_op = kwargs.get("async_op", False)
         if async_op is True:
             raise RuntimeError("The async_op=True mode is not supported yet.")
@@ -133,8 +140,13 @@ def auto_quantize(func, qtype, quant_loss=None):
 
         elif func == dist.all_to_all_single:
             tensors = args[0]
+<<<<<<< HEAD
             out_splits = kwargs.get("out_splits")
             in_splits = kwargs.get("in_splits")
+=======
+            out_splits = kwargs.get("out_splits", None)
+            in_splits = kwargs.get("in_splits", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Quantizing the input/output tensor
             input_tensors = _quantize_tensor(args[1], qtype)
             out_tensors = _quantize_tensor(tensors, qtype)

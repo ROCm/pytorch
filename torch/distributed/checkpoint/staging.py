@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import os
 import tempfile
 from concurrent.futures import Future, ThreadPoolExecutor
@@ -34,6 +35,16 @@ Classes:
     BlockingAsyncStager: Implementation of AsyncStager which stages the state_dict
     on CPU RAM and blocks until the copy is complete. Please use DefaultStager instead.
 """
+=======
+from typing import Optional
+from typing_extensions import Protocol, runtime_checkable
+
+from torch.distributed._state_dict_utils import _copy_state_dict, _create_cpu_state_dict
+from torch.distributed.checkpoint.metadata import STATE_DICT_TYPE
+
+
+__all__ = ["AsyncStager", "BlockingAsyncStager"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @runtime_checkable
@@ -57,7 +68,11 @@ class AsyncStager(Protocol):
 
     3. If AsyncStager.should_synchronize_after_execute is True, this method will be called immediately after
         the serialization thread starts and before returning from dcp.async_save. If this is set to False,
+<<<<<<< HEAD
         the assumption is the user has defined a custom synchronization point for the purpose of further
+=======
+        the assumption is the user has defined a custom synchronization point for the the purpose of further
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         optimizing save latency in the training loop (for example, by overlapping staging with the
         forward/backward pass), and it is the respondsibility of the user to call `AsyncStager.synchronize_staging`
         at the appropriate time.
@@ -72,11 +87,18 @@ class AsyncStager(Protocol):
         """
         Whether to synchronize after executing the stage.
         """
+<<<<<<< HEAD
         return self._synchronize_after_execute
 
     def stage(
         self, state_dict: STATE_DICT_TYPE
     ) -> Union[Future[STATE_DICT_TYPE], STATE_DICT_TYPE]:
+=======
+
+        return self._synchronize_after_execute
+
+    def stage(self, state_dict: STATE_DICT_TYPE) -> STATE_DICT_TYPE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns a "staged" copy of `state_dict`. The expectation of the staged copy is that it is
         inoculated from any updates incurred after the stage call is complete.
@@ -85,17 +107,21 @@ class AsyncStager(Protocol):
             f"{self.__class__.__name__} must implement stage method"
         )
 
+<<<<<<< HEAD
     @deprecated(
         "`synchronize_staging` is deprecated and will be removed in future versions."
         "Please use staging_future from AsyncSaveResponse instead.",
         category=FutureWarning,
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def synchronize_staging(self) -> None:
         """
         In the case `stage` is async in some way, this method should be called to ensure staging
         is complete and it is safe to begin modifying the original `state_dict`
         """
 
+<<<<<<< HEAD
     def close(self) -> None:
         """
         Clean up all resources used by the stager.
@@ -274,6 +300,8 @@ class DefaultStager(AsyncStager):
         if self._staging_future is not None:
             self._staging_future.result()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class BlockingAsyncStager(AsyncStager):
     """
@@ -325,6 +353,7 @@ class BlockingAsyncStager(AsyncStager):
         """
         No-op function, since staging is blocking.
         """
+<<<<<<< HEAD
 
     def close(self) -> None:
         pass
@@ -472,3 +501,5 @@ class _ReplicationStager(AsyncStager):
         """
         Clean up resources. Persisted files are intentionally left for future discovery.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

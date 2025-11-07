@@ -361,7 +361,11 @@ class _ConvBnNd(nn.modules.conv._ConvNd, nni._FusedModule):
         """
         # The ignore is because _FLOAT_MODULE is a TypeVar here where the bound
         # has no __name__ (code is fine though)
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "qat."
             + cls.__name__
             + ".from_float only works for "
@@ -620,7 +624,10 @@ class ConvReLU1d(nnqat.Conv1d, nni._FusedModule):
             dilation=dilation,
             groups=groups,
             bias=bias,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode=padding_mode,
             qconfig=qconfig,
         )
@@ -821,7 +828,10 @@ class ConvReLU2d(nnqat.Conv2d, nni._FusedModule):
             dilation=dilation,
             groups=groups,
             bias=bias,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode=padding_mode,
             qconfig=qconfig,
         )
@@ -1023,7 +1033,10 @@ class ConvReLU3d(nnqat.Conv3d, nni._FusedModule):
             dilation=dilation,
             groups=groups,
             bias=bias,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padding_mode=padding_mode,
             qconfig=qconfig,
         )

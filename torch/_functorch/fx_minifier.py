@@ -4,9 +4,15 @@ import copy
 import math
 import os
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from functools import partial, wraps
+=======
+from dataclasses import dataclass
+from functools import partial, wraps
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx as fx

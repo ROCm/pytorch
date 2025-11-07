@@ -25,11 +25,17 @@
 #include <c10/util/irange.h>
 
 #ifdef USE_FBGEMM
+<<<<<<< HEAD
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wextra-semi")
 #include <fbgemm/Fbgemm.h>
 #include <fbgemm/FbgemmFP16.h>
 #include <fbgemm/QuantUtils.h>
 C10_DIAGNOSTIC_POP()
+=======
+#include <fbgemm/Fbgemm.h>
+#include <fbgemm/FbgemmFP16.h>
+#include <fbgemm/QuantUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif // USE_FBGEMM
 
 namespace caffe2 {
@@ -68,6 +74,10 @@ Tensor fbgemm_linear_int8_weight_fp32_activation(
   const float* input_ptr = input_contig.const_data_ptr<float>();
 
   TORCH_CHECK(input.dim() >= 2);
+<<<<<<< HEAD
+=======
+  // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int64_t M = size_to_dim_(input.dim() - 1, input.sizes());
   const int64_t K = input.size(input.dim() - 1);
   TORCH_CHECK(weight.dim() == 2);
@@ -410,8 +420,12 @@ Tensor fbgemm_pack_gemm_matrix_fp16(const Tensor& weight) {
 Tensor fbgemm_linear_fp16_weight_fp32_activation(
     const Tensor& input,
     const Tensor& packed_weight,
+<<<<<<< HEAD
     const std::optional<Tensor>& bias,
     at::Tensor& output) {
+=======
+    const Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_WARN_ONCE("fbgemm_linear_fp16_weight_fp32_activation is deprecated "
                   "and will be removed in a future PyTorch release.")
 
@@ -432,15 +446,25 @@ Tensor fbgemm_linear_fp16_weight_fp32_activation(
 
   TORCH_CHECK(input.size(input.dim() - 1) == packed_weight_fp16.numRows())
   TORCH_CHECK(input.dim() >= 2);
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(bias.dim() == 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-narrowing-conversions)
   const int64_t M = size_to_dim_(input.dim() - 1, input.sizes());
   const int64_t N = packed_weight_fp16.numCols();
+<<<<<<< HEAD
 
   std::vector<int64_t> output_size = input.sizes().vec();
   output_size.back() = N;
   // Resize output Tensor
   output.resize_(output_size);
+=======
+  std::vector<int64_t> output_size = input.sizes().vec();
+  output_size.back() = N;
+  Tensor output = at::empty(output_size, input.options().dtype(at::kFloat));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Call the fp16 gemm interface
   fbgemm::cblas_gemm_compute(
@@ -452,16 +476,21 @@ Tensor fbgemm_linear_fp16_weight_fp32_activation(
       output.data_ptr<float>());
 
   // Add bias term
+<<<<<<< HEAD
   c10::MaybeOwned<Tensor> bias_maybe_owned = at::borrow_from_optional_tensor(bias);
   const Tensor& bias_ = *bias_maybe_owned;
   if (bias_.defined()) {
     TORCH_CHECK(bias_.dim() == 1);
     output.add_(bias_);
   }
+=======
+  output.add_(bias);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return output;
 }
 
+<<<<<<< HEAD
 Tensor fbgemm_linear_fp16_weight_fp32_activation(
     const Tensor& input,
     const Tensor& packed_weight,
@@ -470,6 +499,8 @@ Tensor fbgemm_linear_fp16_weight_fp32_activation(
       return at::native::fbgemm_linear_fp16_weight_fp32_activation(input, packed_weight, bias, output);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor fbgemm_linear_fp16_weight(
     const Tensor& input,
     const Tensor& packed_weight,
@@ -478,6 +509,7 @@ Tensor fbgemm_linear_fp16_weight(
       input, packed_weight, bias);
 }
 
+<<<<<<< HEAD
 Tensor fbgemm_linear_fp16_weight(
   const Tensor& input,
     const Tensor& packed_weight,
@@ -487,6 +519,8 @@ Tensor fbgemm_linear_fp16_weight(
       input, packed_weight, bias, output);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else // USE_FBGEMM
 
 Tensor fbgemm_linear_int8_weight_fp32_activation(
@@ -576,8 +610,12 @@ Tensor fbgemm_pack_gemm_matrix_fp16(const Tensor& weight) {
 Tensor fbgemm_linear_fp16_weight_fp32_activation(
     const Tensor& input,
     const Tensor& packed_weight,
+<<<<<<< HEAD
     const std::optional<Tensor>& bias,
     at::Tensor& output) {
+=======
+    const Tensor& bias) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_WARN_ONCE("fbgemm_linear_fp16_weight_fp32_activation is deprecated "
                   "and will be removed in a future PyTorch release.")
 
@@ -588,6 +626,7 @@ Tensor fbgemm_linear_fp16_weight_fp32_activation(
       false, "This PyTorch installation was not built with FBGEMM operators");
 }
 
+<<<<<<< HEAD
 Tensor fbgemm_linear_fp16_weight_fp32_activation(
     const Tensor& input,
     const Tensor& packed_weight,
@@ -617,6 +656,8 @@ Tensor fbgemm_linear_fp16_weight(
       false, "This PyTorch installation was not built with FBGEMM operators");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor fbgemm_linear_fp16_weight(
     const Tensor& input,
     const Tensor& packed_weight,

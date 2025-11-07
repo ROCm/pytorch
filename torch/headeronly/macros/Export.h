@@ -1,5 +1,6 @@
 #pragma once
 
+<<<<<<< HEAD
 #ifndef C10_MACROS_EXPORT_H_
 #define C10_MACROS_EXPORT_H_
 
@@ -7,6 +8,8 @@
 #include <torch/headeronly/macros/cmake_macros.h>
 #endif // C10_USING_CUSTOM_GENERATED_MACROS
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /* Header file to define the common scaffolding for exported symbols.
  *
  * Export is by itself a quite tricky situation to deal with, and if you are
@@ -92,6 +95,7 @@
 #else
 #define C10_API C10_IMPORT
 #endif
+<<<<<<< HEAD
 
 // This one is being used by libtorch.so
 #ifdef CAFFE2_BUILD_MAIN_LIB
@@ -143,3 +147,5 @@
 #define C10_API_ENUM
 #endif
 #endif // C10_MACROS_EXPORT_H_
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

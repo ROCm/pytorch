@@ -34,9 +34,14 @@ void eval_frame_callback_set(PyObject* obj) {
   PyThread_tss_set(&eval_frame_callback_key, obj);
 }
 
+<<<<<<< HEAD
 // 3.15 Not supported at all. See cpython_defs.c for hints
 // 3.14 currently not fully supported on Windows
 #if !(IS_PYTHON_3_15_PLUS || (IS_PYTHON_3_14_PLUS && defined(_WIN32)))
+=======
+// 3.14 Not supported at all. See cpython_defs.c for hints
+#if !(IS_PYTHON_3_14_PLUS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define DECLARE_PYOBJ_ATTR(name)                        \
   static PyObject* THPPyInterpreterFrame_##name(        \
@@ -57,6 +62,7 @@ static PyObject* THPPyInterpreterFrame_f_locals(
   return self->locals;
 }
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
 static PyObject* THPPyInterpreterFrame_f_executable(
     THPPyInterpreterFrame* self,
@@ -64,6 +70,9 @@ static PyObject* THPPyInterpreterFrame_f_executable(
   return PyStackRef_AsPyObjectNew(self->frame->f_executable);
 }
 #elif IS_PYTHON_3_13_PLUS
+=======
+#if IS_PYTHON_3_13_PLUS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DECLARE_PYOBJ_ATTR(f_executable)
 #else
 DECLARE_PYOBJ_ATTR(f_code)
@@ -116,8 +125,16 @@ static PyObject* THPPyInterpreterFrame_f_back(
 static PyObject* THPPyInterpreterFrame_closure(
     THPPyInterpreterFrame* self,
     PyObject* _noargs) {
+<<<<<<< HEAD
 #if IS_PYTHON_3_11_PLUS
   PyObject* closure = FUNC(self->frame)->func_closure;
+=======
+#if IS_PYTHON_3_12_PLUS
+  PyObject* closure = ((PyFunctionObject*)self->frame->f_funcobj)->func_closure;
+  return closure == NULL ? PyTuple_New(0) : Py_XNewRef(closure);
+#elif IS_PYTHON_3_11_PLUS
+  PyObject* closure = ((PyFunctionObject*)self->frame->f_func)->func_closure;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return closure == NULL ? PyTuple_New(0) : Py_XNewRef(closure);
 #else
   PyCodeObject* code = self->frame->f_code;
@@ -228,6 +245,7 @@ const char* get_frame_name(THP_EVAL_API_FRAME_OBJECT* frame) {
   return PyUnicode_AsUTF8(F_CODE(frame)->co_name);
 }
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
 static void dup_obj(_PyStackRef* dst, _PyStackRef src) {
   *dst = PyStackRef_DUP(src);
@@ -238,6 +256,18 @@ static void dup_obj(PyObject** dst, PyObject* src) {
   *dst = src;
 }
 #endif
+=======
+void clear_old_frame_if_python_312_plus(
+    PyThreadState* tstate,
+    THP_EVAL_API_FRAME_OBJECT* frame) {
+#if IS_PYTHON_3_12_PLUS
+
+  THP_PyFrame_Clear(frame);
+  THP_PyThreadState_PopFrame(tstate, frame);
+
+#endif
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static PyObject* dynamo_eval_custom_code_impl(
     PyThreadState* tstate,
@@ -252,10 +282,18 @@ static PyObject* dynamo_eval_custom_code_impl(
 
   // Generate Python function object and _PyInterpreterFrame in a way similar to
   // https://github.com/python/cpython/blob/e715da6db1d1d70cd779dc48e1ba8110c51cc1bf/Python/ceval.c#L1130
+<<<<<<< HEAD
   PyFunctionObject* old_func = FUNC(frame);
 #if IS_PYTHON_3_12_PLUS
   size_t size = code->co_framesize;
 #else
+=======
+#if IS_PYTHON_3_12_PLUS
+  PyFunctionObject* old_func = (PyFunctionObject*)frame->f_funcobj;
+  size_t size = code->co_framesize;
+#else
+  PyFunctionObject* old_func = frame->f_func;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t size = code->co_nlocalsplus + code->co_stacksize + FRAME_SPECIALS_SIZE;
 #endif
 
@@ -273,16 +311,21 @@ static PyObject* dynamo_eval_custom_code_impl(
 
   Py_INCREF(func);
   // consumes reference to func
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
   _PyStackRef func_stackref = PyStackRef_FromPyObjectSteal((PyObject*)func);
   _PyFrame_Initialize(
       tstate, shadow, func_stackref, NULL, code, 0, frame->previous);
 #elif IS_PYTHON_3_12_PLUS
+=======
+#if IS_PYTHON_3_12_PLUS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _PyFrame_Initialize(shadow, func, NULL, code, 0);
 #else
   _PyFrame_InitializeSpecials(shadow, func, NULL, code->co_nlocalsplus);
 #endif
 
+<<<<<<< HEAD
 #if IS_PYTHON_3_14_PLUS
   _PyStackRef* fastlocals_old = frame->localsplus;
   _PyStackRef* fastlocals_new = shadow->localsplus;
@@ -290,6 +333,10 @@ static PyObject* dynamo_eval_custom_code_impl(
   PyObject** fastlocals_old = frame->localsplus;
   PyObject** fastlocals_new = shadow->localsplus;
 #endif
+=======
+  PyObject** fastlocals_old = frame->localsplus;
+  PyObject** fastlocals_new = shadow->localsplus;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Py_ssize_t n_old = F_CODE(frame)->co_nlocalsplus;
   Py_ssize_t n_new = code->co_nlocalsplus;
 
@@ -390,14 +437,24 @@ static PyObject* dynamo_eval_custom_code_impl(
       !!(F_CODE(frame)->co_flags & CO_VARKEYWORDS);
 
   for (Py_ssize_t i = 0; i < total_argcount_old; i++) {
+<<<<<<< HEAD
     dup_obj(&fastlocals_new[i], fastlocals_old[i]);
+=======
+    Py_XINCREF(fastlocals_old[i]);
+    fastlocals_new[i] = fastlocals_old[i];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // copy free vars
   Py_ssize_t nfrees_old = PyCode_GetNFreevars(F_CODE(frame));
 
   for (Py_ssize_t i = 0; i < nfrees_old; i++) {
+<<<<<<< HEAD
     dup_obj(&fastlocals_new[n_new - 1 - i], fastlocals_old[n_old - 1 - i]);
+=======
+    Py_XINCREF(fastlocals_old[n_old - 1 - i]);
+    fastlocals_new[n_new - 1 - i] = fastlocals_old[n_old - 1 - i];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // copy cell vars, from high index to low index, until it meets a variable
@@ -423,7 +480,12 @@ static PyObject* dynamo_eval_custom_code_impl(
     }
 #endif
 
+<<<<<<< HEAD
     dup_obj(&fastlocals_new[j], fastlocals_old[i]);
+=======
+    Py_XINCREF(fastlocals_old[i]);
+    fastlocals_new[j] = fastlocals_old[i];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // NOTE: if you want to evaluate frame instead of shadow in 3.12+,
@@ -488,12 +550,17 @@ static PyObject* dynamo__custom_eval_frame_shim(
   return dynamo__custom_eval_frame(tstate, frame, throw_flag, callback);
 }
 
+<<<<<<< HEAD
 #else // !(IS_PYTHON_3_15_PLUS)
+=======
+#else // !(IS_PYTHON_3_14_PLUS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Fake definitions for everything we removed
 
 static void enable_eval_frame_shim(PyThreadState* tstate) {}
 static void enable_eval_frame_default(PyThreadState* tstate) {}
+<<<<<<< HEAD
 PyObject* dynamo_eval_custom_code(
     PyThreadState* tstate,
     THP_EVAL_API_FRAME_OBJECT* frame,
@@ -514,6 +581,10 @@ PyObject* dynamo_eval_frame_default(
 }
 
 static struct PyGetSetDef THPPyInterpreterFrame_properties[] = {{NULL}};
+=======
+
+static struct PyGetSetDef THPPyInterpreterFrame_properties[] = {NULL};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static PyTypeObject THPPyInterpreterFrameType = {
     PyVarObject_HEAD_INIT(NULL, 0)
@@ -523,6 +594,7 @@ static PyTypeObject THPPyInterpreterFrameType = {
     .tp_getset = THPPyInterpreterFrame_properties,
 };
 
+<<<<<<< HEAD
 #endif // !(IS_PYTHON_3_15_PLUS)
 
 void clear_old_frame_if_python_312_plus(
@@ -535,6 +607,9 @@ void clear_old_frame_if_python_312_plus(
 
 #endif
 }
+=======
+#endif // !(IS_PYTHON_3_14_PLUS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 static PyObject* increment_working_threads(
     PyThreadState* tstate,
@@ -568,13 +643,21 @@ static PyObject* decrement_working_threads(
   Py_RETURN_NONE;
 }
 
+<<<<<<< HEAD
 static PyObject* set_eval_frame(PyObject* new_callback, PyObject* module) {
+=======
+static PyObject* set_eval_frame(
+    PyObject* new_callback,
+    PyThreadState* tstate,
+    PyObject* module) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Change the eval frame callback and return the old one
   //  - None: disables TorchDynamo
   //  - False: run-only mode (reuse existing compiles)
   //  - Python callable(): enables TorchDynamo
   PyObject* old_callback = eval_frame_callback_get();
 
+<<<<<<< HEAD
   // Common case: if Dynamo is actually off, we might see a lot of
   // traffic setting the callback to None when it was already
   // None. Skip messing with threading, thread-local storage, and
@@ -601,6 +684,24 @@ static PyObject* set_eval_frame(PyObject* new_callback, PyObject* module) {
     Py_INCREF(old_callback);
   }
 
+=======
+  // owned by caller
+  Py_INCREF(old_callback);
+
+  if (old_callback != Py_None && new_callback == Py_None) {
+    decrement_working_threads(tstate, module);
+  } else if (old_callback == Py_None && new_callback != Py_None) {
+    increment_working_threads(tstate, module);
+  }
+
+  Py_INCREF(new_callback);
+  Py_DECREF(old_callback);
+
+  // Set thread local callback. This will drive behavior of our shim, if/when it
+  // is installed.
+  eval_frame_callback_set(new_callback);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return old_callback;
 }
 
@@ -615,7 +716,11 @@ static PyObject* set_eval_frame_py(PyObject* module, PyObject* callback) {
       "python enabled=%d and is run_only=%d",
       callback != Py_None,
       callback == Py_False);
+<<<<<<< HEAD
   return set_eval_frame(callback, module);
+=======
+  return set_eval_frame(callback, PyThreadState_GET(), module);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static PyObject* set_skip_guard_eval_unsafe(

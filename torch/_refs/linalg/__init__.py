@@ -56,7 +56,11 @@ def _check_norm_dtype(dtype: Optional[torch.dtype], x_dtype: torch.dtype, fn_nam
         torch._check(
             utils.get_higher_dtype(dtype, x_dtype) == dtype,
             lambda: f"{fn_name}: the dtype of the input ({x_dtype}) should be convertible "
+<<<<<<< HEAD
             f"without narrowing to the specified dtype ({dtype})",
+=======
+            "without narrowing to the specified dtype ({dtype})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -110,7 +114,11 @@ def _check_vector_norm_args(
             x.numel() != 0,
             not isinstance(dim, IntLike) and dim is not None and len(dim) != 0,
         ),
+<<<<<<< HEAD
         lambda: f"linalg.vector_norm cannot compute the {ord} norm on an empty tensor "
+=======
+        "linalg.vector_norm cannot compute the {ord} norm on an empty tensor "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "because the operation does not have an identity",
     )
 
@@ -119,7 +127,11 @@ def _check_vector_norm_args(
         for d in dim:
             torch._check(
                 sym_or(x.numel() != 0, d < len(shape) and d >= 0 and shape[d] != 0),
+<<<<<<< HEAD
                 lambda: f"linalg.vector_norm cannot compute the {ord} norm on the "
+=======
+                "linalg.vector_norm cannot compute the {ord} norm on the "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"dimension {d} because this dimension is empty and the "
                 "operation does not have an identity",
             )
@@ -180,7 +192,11 @@ def vector_norm(
             if keepdim or x.ndim == 0:
                 return to_result_dtype(x).contiguous()
             elif dim is None:
+<<<<<<< HEAD
                 return to_result_dtype(x).flatten()[0]
+=======
+                return x.flatten()[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 new_shape = [s for d, s in enumerate(x.shape) if d not in dim]
                 return to_result_dtype(x.view(new_shape)).contiguous()
@@ -216,11 +232,15 @@ def matrix_norm(
     # shape
     check_is_matrix(A, "linalg.matrix_norm")
     # dim
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dim = utils.canonicalize_dims(A.ndim, dim)
     if isinstance(dim, Dim):
         dim = (dim,)  # type: ignore[assignment]
     torch._check(
+<<<<<<< HEAD
         len(dim) == 2, lambda: f"linalg.matrix_norm: dim must be a 2-tuple. Got {dim}"
     )
     torch._check(
@@ -228,6 +248,13 @@ def matrix_norm(
         dim[0] != dim[1],
         # pyrefly: ignore [index-error]
         lambda: f"linalg.matrix_norm: dims must be different. Got ({dim[0]}, {dim[1]})",
+=======
+        len(dim) == 2, lambda: "linalg.matrix_norm: dim must be a 2-tuple. Got {dim}"
+    )
+    torch._check(
+        dim[0] != dim[1],
+        lambda: "linalg.matrix_norm: dims must be different. Got ({dim[0]}, {dim[1]})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     # dtype arg
     _check_norm_dtype(dtype, A.dtype, "linalg.matrix_norm")
@@ -236,7 +263,11 @@ def matrix_norm(
         # ord
         torch._check(
             ord in ("fro", "nuc"),
+<<<<<<< HEAD
             lambda: f"linalg.matrix_norm: Order {ord} not supported.",
+=======
+            lambda: "linalg.matrix_norm: Order {ord} not supported.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # dtype
         check_fp_or_complex(
@@ -248,7 +279,10 @@ def matrix_norm(
         else:  # ord == "nuc"
             if dtype is not None:
                 A = _maybe_convert_to_dtype(A, dtype)  # type: ignore[assignment]
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             perm = _backshift_permutation(dim[0], dim[1], A.ndim)
             result = torch.sum(svdvals(prims.transpose(A, perm)), -1, keepdim)
             if keepdim:
@@ -260,7 +294,11 @@ def matrix_norm(
         abs_ord = abs(ord)
         torch._check(
             abs_ord in (2, 1, float("inf")),
+<<<<<<< HEAD
             lambda: f"linalg.matrix_norm: Order {ord} not supported.",
+=======
+            lambda: "linalg.matrix_norm: Order {ord} not supported.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # dtype
         check_fp_or_complex(
@@ -272,7 +310,10 @@ def matrix_norm(
         if abs_ord == 2.0:
             if dtype is not None:
                 A = _maybe_convert_to_dtype(A, dtype)  # type: ignore[assignment]
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             perm = _backshift_permutation(dim[0], dim[1], A.ndim)
             result = max_min(svdvals(prims.transpose(A, perm)), dim=-1)
             if keepdim:
@@ -280,7 +321,10 @@ def matrix_norm(
                 result = prims.transpose(torch.unsqueeze(result, -1), inv_perm)
             return result
         else:  # 1, -1, inf, -inf
+<<<<<<< HEAD
             # pyrefly: ignore [bad-unpacking]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dim0, dim1 = dim
             if abs_ord == float("inf"):
                 dim0, dim1 = dim1, dim0
@@ -306,12 +350,20 @@ def norm(
             dim = (dim,)  # type: ignore[assignment]
         torch._check(
             len(dim) in (1, 2),
+<<<<<<< HEAD
             lambda: f"linalg.norm: If dim is specified, it must be of length 1 or 2. Got {dim}",
+=======
+            lambda: "linalg.norm: If dim is specified, it must be of length 1 or 2. Got {dim}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     elif ord is not None:
         torch._check(
             A.ndim in (1, 2),
+<<<<<<< HEAD
             lambda: f"linalg.norm: If dim is not specified but ord is, the input must be 1D or 2D. Got {A.ndim}D",
+=======
+            lambda: "linalg.norm: If dim is not specified but ord is, the input must be 1D or 2D. Got {A.ndim}D",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     if ord is not None and (

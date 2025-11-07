@@ -5,6 +5,7 @@
 namespace at::vec {
 inline namespace CPU_CAPABILITY {
 #if (defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE256))
+<<<<<<< HEAD
 
 // Enable auto-vectorization for GCC-13+ and clang-17+
 // GCC-12 has a bug: gcc.gnu.org/bugzilla/show_bug.cgi?id=117001
@@ -249,6 +250,8 @@ inline void convert(const c10::BFloat16* src, bool* dst, int64_t n) {
 
 #endif
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename src_t>
 struct VecConvert<
     float,

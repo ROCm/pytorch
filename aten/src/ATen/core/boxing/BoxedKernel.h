@@ -18,10 +18,17 @@ class KernelFunction;
 // implementation notes; notably, this does NOT actually go through the
 // boxing/unboxing codepath.
 TORCH_API void fallthrough_kernel(
+<<<<<<< HEAD
     OperatorKernel* /*unused*/,
     const OperatorHandle& /*unused*/,
     DispatchKeySet /*unused*/,
     Stack* /*unused*/);
+=======
+    OperatorKernel*,
+    const OperatorHandle&,
+    DispatchKeySet,
+    Stack*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Note [Ambiguity in AutogradOther kernel]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,10 +69,17 @@ TORCH_API void fallthrough_kernel(
 // than arbitrarily pick one or the other, we just register a kernel that raises
 // an error and let the user decide how to proceed.
 TORCH_API void ambiguous_autogradother_kernel(
+<<<<<<< HEAD
     OperatorKernel* /*unused*/,
     const OperatorHandle& /*op*/,
     DispatchKeySet /*unused*/,
     Stack* /*unused*/);
+=======
+    OperatorKernel*,
+    const OperatorHandle&,
+    DispatchKeySet,
+    Stack*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Note [named_not_supported_kernel]
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -75,10 +89,17 @@ TORCH_API void ambiguous_autogradother_kernel(
 // give a good error message in cases when boxing is not supported).  When
 // boxing is universally supported this can be removed.
 [[noreturn]] TORCH_API void named_not_supported_kernel(
+<<<<<<< HEAD
     OperatorKernel* /*unused*/,
     const OperatorHandle& /*op*/,
     DispatchKeySet /*unused*/,
     Stack* /*unused*/);
+=======
+    OperatorKernel*,
+    const OperatorHandle&,
+    DispatchKeySet,
+    Stack*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /**
  * BoxedKernel is similar to a std::function storing a boxed kernel.
@@ -185,16 +206,28 @@ class TORCH_API BoxedKernel final {
 
   template <BoxedKernelFunction* func>
   static void make_boxed_function(
+<<<<<<< HEAD
       OperatorKernel* /*unused*/,
       const OperatorHandle& opHandle,
       DispatchKeySet /*unused*/,
+=======
+      OperatorKernel*,
+      const OperatorHandle& opHandle,
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       Stack* stack);
 
   template <BoxedKernelFunction_withDispatchKeys* func>
   static void make_boxed_function(
+<<<<<<< HEAD
       OperatorKernel* /*unused*/,
       const OperatorHandle& opHandle,
       DispatchKeySet /*ks*/,
+=======
+      OperatorKernel*,
+      const OperatorHandle& opHandle,
+      DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       Stack* stack);
 
   explicit BoxedKernel(

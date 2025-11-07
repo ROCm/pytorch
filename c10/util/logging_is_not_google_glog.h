@@ -234,9 +234,13 @@ inline std::ostream& operator<<(
   return out;
 }
 
+<<<<<<< HEAD
 inline std::ostream& operator<<(
     std::ostream& out,
     const std::nullptr_t& /*unused*/) {
+=======
+inline std::ostream& operator<<(std::ostream& out, const std::nullptr_t&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   out << "(null)";
   return out;
 }

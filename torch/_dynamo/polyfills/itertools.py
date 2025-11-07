@@ -5,9 +5,15 @@ Python polyfills for itertools
 from __future__ import annotations
 
 import itertools
+<<<<<<< HEAD
 import operator
 from collections.abc import Callable
 from typing import Optional, overload, TYPE_CHECKING, TypeAlias, TypeVar
+=======
+import sys
+from typing import Callable, overload, TYPE_CHECKING, TypeVar
+from typing_extensions import TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ..decorators import substitute_in_graph
 
@@ -17,6 +23,7 @@ if TYPE_CHECKING:
 
 
 __all__ = [
+<<<<<<< HEAD
     "accumulate",
     "chain",
     "chain_from_iterable",
@@ -28,6 +35,15 @@ __all__ = [
     "tee",
     "zip_longest",
     "pairwise",
+=======
+    "chain",
+    "chain_from_iterable",
+    "compress",
+    "dropwhile",
+    "islice",
+    "tee",
+    "zip_longest",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -45,6 +61,7 @@ def chain(*iterables: Iterable[_T]) -> Iterator[_T]:
         yield from iterable
 
 
+<<<<<<< HEAD
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.accumulate
 @substitute_in_graph(itertools.accumulate, is_embedded_type=True)  # type: ignore[arg-type]
 def accumulate(
@@ -81,6 +98,11 @@ def chain_from_iterable(iterable: Iterable[Iterable[_T]], /) -> Iterator[_T]:
     # If iterable is an infinite generator, this will lead to infinite recursion
     for it in iterable:
         yield from it
+=======
+@substitute_in_graph(itertools.chain.from_iterable)  # type: ignore[arg-type]
+def chain_from_iterable(iterable: Iterable[Iterable[_T]], /) -> Iterator[_T]:
+    return itertools.chain(*iterable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 chain.from_iterable = chain_from_iterable  # type: ignore[attr-defined]
@@ -92,6 +114,7 @@ def compress(data: Iterable[_T], selectors: Iterable[_U], /) -> Iterator[_T]:
     return (datum for datum, selector in zip(data, selectors) if selector)
 
 
+<<<<<<< HEAD
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.cycle
 @substitute_in_graph(itertools.cycle, is_embedded_type=True)  # type: ignore[arg-type]
 def cycle(iterable: Iterable[_T]) -> Iterator[_T]:
@@ -110,6 +133,8 @@ def cycle(iterable: Iterable[_T]) -> Iterator[_T]:
     return _cycle(iterator)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.dropwhile
 @substitute_in_graph(itertools.dropwhile, is_embedded_type=True)  # type: ignore[arg-type]
 def dropwhile(predicate: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[_T]:
@@ -124,6 +149,7 @@ def dropwhile(predicate: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[
     yield from iterator
 
 
+<<<<<<< HEAD
 @substitute_in_graph(itertools.filterfalse, is_embedded_type=True)  # type: ignore[arg-type]
 def filterfalse(function: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator[_T]:
     it = iter(iterable)
@@ -133,6 +159,8 @@ def filterfalse(function: _Predicate[_T], iterable: Iterable[_T], /) -> Iterator
         return filter(lambda x: not function(x), it)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.islice
 @substitute_in_graph(itertools.islice, is_embedded_type=True)  # type: ignore[arg-type]
 def islice(iterable: Iterable[_T], /, *args: int | None) -> Iterator[_T]:
@@ -163,6 +191,7 @@ def islice(iterable: Iterable[_T], /, *args: int | None) -> Iterator[_T]:
 
 
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.pairwise
+<<<<<<< HEAD
 @substitute_in_graph(itertools.pairwise, is_embedded_type=True)  # type: ignore[arg-type]
 def pairwise(iterable: Iterable[_T], /) -> Iterator[tuple[_T, _T]]:
     a = None
@@ -173,6 +202,22 @@ def pairwise(iterable: Iterable[_T], /) -> Iterator[tuple[_T, _T]]:
         else:
             yield a, b  # type: ignore[misc]
         a = b
+=======
+if sys.version_info >= (3, 10):
+
+    @substitute_in_graph(itertools.pairwise, is_embedded_type=True)  # type: ignore[arg-type]
+    def pairwise(iterable: Iterable[_T], /) -> Iterator[tuple[_T, _T]]:
+        a = None
+        first = True
+        for b in iterable:
+            if first:
+                first = False
+            else:
+                yield a, b  # type: ignore[misc]
+            a = b
+
+    __all__ += ["pairwise"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Reference: https://docs.python.org/3/library/itertools.html#itertools.tee
@@ -196,7 +241,10 @@ def tee(iterable: Iterable[_T], n: int = 2, /) -> tuple[Iterator[_T], ...]:
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def zip_longest(
     iter1: Iterable[_T1],
     /,
@@ -206,7 +254,10 @@ def zip_longest(
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def zip_longest(
     iter1: Iterable[_T1],
     iter2: Iterable[_T2],
@@ -215,7 +266,10 @@ def zip_longest(
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def zip_longest(
     iter1: Iterable[_T1],
     iter2: Iterable[_T2],
@@ -226,7 +280,10 @@ def zip_longest(
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def zip_longest(
     iter1: Iterable[_T],
     iter2: Iterable[_T],
@@ -237,7 +294,10 @@ def zip_longest(
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def zip_longest(
     iter1: Iterable[_T],
     iter2: Iterable[_T],

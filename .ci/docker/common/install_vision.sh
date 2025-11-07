@@ -15,6 +15,7 @@ install_ubuntu() {
 install_centos() {
   # Need EPEL for many packages we depend on.
   # See http://fedoraproject.org/wiki/EPEL
+<<<<<<< HEAD
   if [[ $OS_VERSION == 9 ]]; then
       yum install -y epel-release
   else
@@ -23,6 +24,12 @@ install_centos() {
           opencv-devel \
           ffmpeg-devel
   fi
+=======
+  yum --enablerepo=extras install -y epel-release
+
+  yum install -y \
+      opencv-devel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   # Cleanup
   yum clean all
@@ -31,8 +38,11 @@ install_centos() {
   rm -rf /var/lib/yum/history
 }
 
+<<<<<<< HEAD
 OS_VERSION=$(grep -oP '(?<=^VERSION_ID=).+' /etc/os-release | tr -d '"')
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Install base packages depending on the base OS
 ID=$(grep -oP '(?<=^ID=).+' /etc/os-release | tr -d '"')
 case "$ID" in

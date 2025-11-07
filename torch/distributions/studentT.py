@@ -31,7 +31,10 @@ class StudentT(Distribution):
         scale (float or Tensor): scale of the distribution
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "df": constraints.positive,
         "loc": constraints.real,

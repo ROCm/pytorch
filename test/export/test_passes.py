@@ -14,7 +14,10 @@ from re import escape
 import torch
 from functorch.experimental.control_flow import cond
 from torch._dynamo.eval_frame import is_dynamo_supported
+<<<<<<< HEAD
 from torch._export import config
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.non_strict_utils import (
     _fakify_script_objects,
     _gather_constant_attrs,
@@ -180,8 +183,12 @@ def _set_grad_enabled_tests():
 
     def _get_predispatch_module(mod, args, ambient_grad_enabled=True):
         with torch.set_grad_enabled(ambient_grad_enabled):
+<<<<<<< HEAD
             with config.patch(use_new_tracer_experimental=True):
                 return _export(mod, args, pre_dispatch=True).module()
+=======
+            return _export(mod, args, pre_dispatch=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return {
         "ctx_manager": (
@@ -309,9 +316,13 @@ def _with_mixed_autocast_set_grad_tests():
     x = torch.randn(2, 2)
 
     def _get_predispatch_module(mod, args):
+<<<<<<< HEAD
         with torch._export.config.patch(use_new_tracer_experimental=True):
             ep = _export(mod, args, pre_dispatch=True).module()
             return ep
+=======
+        return _export(mod, args, pre_dispatch=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return {
         "multi_ctx_manager": (
@@ -358,7 +369,13 @@ def _sequential_split_inline_tests():
 
         for i, node in enumerate(insert_locs):
             with gm.graph.inserting_before(node):
+<<<<<<< HEAD
                 gm.graph.call_function(torch._C._set_grad_enabled, (i % 2 == 0,), {})
+=======
+                gm.graph.call_function(
+                    torch._C._set_grad_enabled, (True if i % 2 == 0 else False,), {}
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return gm
 
     x = torch.randn(2, 2)
@@ -413,10 +430,16 @@ class TestPasses(TestCase):
         )
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[1] <= 6"),
         ):
             # expected <= 6, but got 7
+=======
+            RuntimeError,
+            escape("Expected input at *args[0].shape[1] to be <= 6, but got 7"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(2, 7, 3))
 
         self.assertEqual(
@@ -445,6 +468,7 @@ class TestPasses(TestCase):
         )
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[1] <= 6"),
         ):
@@ -456,6 +480,17 @@ class TestPasses(TestCase):
             escape("Guard failed: y.size()[0] >= 3"),
         ):
             # expected >= 3, but got 2
+=======
+            RuntimeError,
+            escape("Expected input at *args[0].shape[1] to be <= 6, but got 7"),
+        ):
+            ep.module()(torch.zeros(4, 7, 3), torch.ones(5, 5, 5))
+
+        with self.assertRaisesRegex(
+            RuntimeError,
+            escape("Expected input at *args[1].shape[0] to be >= 3, but got 2"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(4, 2, 3), torch.ones(2, 5, 5))
 
     def test_runtime_assert_some_dims_not_specified(self) -> None:
@@ -480,18 +515,30 @@ class TestPasses(TestCase):
         )
 
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: x.size()[1] <= 6"),
         ):
             # expected <= 6, but got 7
+=======
+            RuntimeError,
+            escape("Expected input at *args[0].shape[1] to be <= 6, but got 7"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(4, 7, 3), torch.ones(5, 5, 5))
 
         # y is specialized to 5
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y.size()[0] == 5"),
         ):
             # expected 5, but got 2
+=======
+            RuntimeError,
+            escape("Expected input at *args[1].shape[0] to be equal to 5, but got 2"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(4, 2, 3), torch.ones(2, 5, 5))
 
         # Since we didn't insert the constraint for x[1] >= 2, it should work for case where x[1] == 1
@@ -516,19 +563,29 @@ class TestPasses(TestCase):
             M(), (x, y), dynamic_shapes={"x": None, "y": {1: dim1_y}}, strict=True
         )
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(
             AssertionError,
             escape("Guard failed: x.size()[1] == 2"),
         ):
             # expected 2, but got 7
+=======
+        with self.assertRaisesRegex(RuntimeError, escape("shape[1] to be equal to 2")):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(4, 7, 3), torch.ones(5, 5, 5))
 
         # y is specialized to 5
         with self.assertRaisesRegex(
+<<<<<<< HEAD
             AssertionError,
             escape("Guard failed: y.size()[0] == 5"),
         ):
             # expected 5, but got 2
+=======
+            RuntimeError,
+            escape("Expected input at *args[1].shape[0] to be equal to 5, but got 2"),
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ep.module()(torch.zeros(4, 2, 3), torch.ones(2, 5, 5))
 
         # Since we didn't insert the constraint for x[1] >= 2, it should work for case where x[1] == 1
@@ -815,7 +872,10 @@ def forward(self, token, obj_attr, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     sin = torch.ops.aten.sin.default(add);  add = None
     sum_1 = torch.ops.aten.sum.default(sin);  sin = None
@@ -835,6 +895,7 @@ def forward(self, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_4 = self.submod_1
@@ -845,6 +906,16 @@ def forward(self, x):
     sub = torch.ops.higher_order.wrap_with_set_grad_enabled(True, submod_5, add_1);  submod_5 = None
     getitem_1 = sub[0];  sub = None
     return pytree.tree_unflatten((add_1, getitem_1), self._out_spec)
+=======
+    add = torch.ops.aten.add.Tensor(x, 1);  x = None
+    sin = torch.ops.aten.sin.default(add);  add = None
+    sum_1 = torch.ops.aten.sum.default(sin);  sin = None
+    submod_4 = self.submod_2
+    add_1 = torch.ops.higher_order.wrap_with_set_grad_enabled(False, submod_4, sum_1);  submod_4 = sum_1 = None
+    getitem = add_1[0];  add_1 = None
+    sub = torch.ops.aten.sub.Tensor(getitem, 1)
+    return pytree.tree_unflatten((getitem, sub), self._out_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """,
         )
 
@@ -856,7 +927,10 @@ def forward(self, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     sin = torch.ops.aten.sin.default(add);  add = None
     sum_1 = torch.ops.aten.sum.default(sin);  sin = None
@@ -876,7 +950,10 @@ def forward(self, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_5 = self.submod_1
     sum_1 = torch.ops.higher_order.wrap_with_set_grad_enabled(True, submod_5, add);  submod_5 = add = None
@@ -897,7 +974,10 @@ def forward(self, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     sin = torch.ops.aten.sin.default(add)
     sum_1 = torch.ops.aten.sum.default(sin);  sin = None
@@ -923,7 +1003,10 @@ def forward(self, x):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_5 = self.submod_1
     wrap_with_set_grad_enabled = torch.ops.higher_order.wrap_with_set_grad_enabled(True, submod_5, add);  submod_5 = add = None
@@ -959,7 +1042,10 @@ def forward(self, x):
             """\
 def forward(self, x1, x2):
     x1, x2, = fx_pytree.tree_flatten_spec(([x1, x2], {}), self._in_spec)
+<<<<<<< HEAD
     submod_0 = self.submod_0(x1, x2);  submod_0 = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     submod_1 = self.submod_1(x1, x2);  x1 = x2 = None
     getitem = submod_1[0]
     getitem_1 = submod_1[1];  submod_1 = None
@@ -1015,6 +1101,7 @@ def forward(self, sin, cos):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     sin = torch.ops.aten.sin.default(add);  add = None
@@ -1039,6 +1126,30 @@ def forward(self, sin):
         )
         self.assertExpectedInline(
             mod.submod_2.submod_1.code.strip("\n"),
+=======
+    submod_3 = self.submod_3
+    add = torch.ops.aten.add.Tensor(x, 1);  x = None
+    sin = torch.ops.higher_order.wrap_with_set_grad_enabled(True, submod_3, add);  submod_3 = add = None
+    getitem_2 = sin[0];  sin = None
+    cos = torch.ops.aten.cos.default(getitem_2);  getitem_2 = None
+    submod_4 = self.submod_1
+    add_1 = torch.ops.higher_order.wrap_with_autocast('cpu', None, False, None, submod_4, cos);  submod_4 = cos = None
+    getitem = add_1[0];  add_1 = None
+    sub = torch.ops.aten.sub.Tensor(getitem, 1)
+    return pytree.tree_unflatten((getitem, sub), self._out_spec)
+    """,
+        )
+        self.assertExpectedInline(
+            mod.submod_3.code.strip("\n"),
+            """\
+def forward(self, add):
+    sin = torch.ops.aten.sin.default(add);  add = None
+    return (sin,)
+    """,
+        )
+        self.assertExpectedInline(
+            mod.submod_1.code.strip("\n"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """\
 def forward(self, cos):
     add_1 = torch.ops.aten.add.Tensor(cos, 1);  cos = None
@@ -1055,7 +1166,10 @@ def forward(self, cos):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_3 = self.submod_1
     add_1 = torch.ops.higher_order.wrap_with_autocast('cpu', None, True, None, submod_3, add);  submod_3 = add = None
@@ -1088,7 +1202,10 @@ def forward(self, add):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_4 = self.submod_1
     sum_1 = torch.ops.higher_order.wrap_with_autocast('cpu', None, True, None, submod_4, add);  submod_4 = add = None
@@ -1139,7 +1256,10 @@ def forward(self, add_1):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_4 = self.submod_1
     wrap_with_autocast = torch.ops.higher_order.wrap_with_autocast('cpu', None, True, None, submod_4, add);  submod_4 = add = None
@@ -1197,7 +1317,10 @@ def forward(self, add_1, add_2):
             """\
 def forward(self, x):
     x, = fx_pytree.tree_flatten_spec(([x], {}), self._in_spec)
+<<<<<<< HEAD
     _guards_fn = self._guards_fn(x);  _guards_fn = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     add = torch.ops.aten.add.Tensor(x, 1);  x = None
     submod_4 = self.submod_1
     sum_1 = torch.ops.higher_order.wrap_with_autocast('cpu', None, True, None, submod_4, add);  submod_4 = add = None
@@ -1239,7 +1362,10 @@ def forward(self, add_1):
             )
             after_inline_str = new_gm.print_readable(print_output=False)
             self.assertEqual(before_str, after_inline_str)
+<<<<<<< HEAD
             new_gm._guards_fn = gm._guards_fn
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(gm(*args), new_gm(*args))
 
     def test_remove_auto_functionalized_pass(self) -> None:
@@ -1330,6 +1456,7 @@ default](args = (%x, %b_state), kwargs = {})
             )
 
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
+<<<<<<< HEAD
     def test_move_device_to(self):
         class M(torch.nn.Module):
             def forward(self, x):
@@ -1373,6 +1500,8 @@ def forward(self, arg0_1):
         )
 
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_move_to_device_pass(self):
         class Model(torch.nn.Module):
             def __init__(self, size=4, h_dim=10):
@@ -1408,6 +1537,7 @@ def forward(self, arg0_1):
         outputs = gm(*test_inputs)
         self.assertEqual(outputs.device, torch.device("cuda:0"))
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "requires cuda")
     def test_move_device_example_inputs(self):
         class Model(torch.nn.Module):
@@ -1440,6 +1570,8 @@ def forward(self, arg0_1):
         self.assertEqual(ep_cuda.example_inputs[0][1].device, torch.device("cuda:0"))
         self.assertEqual(ep_cuda.example_inputs[1]["z"].device, torch.device("cuda:0"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_constant_folding_pass(self):
         from torch.ao.quantization.observer import MappingType, PerGroup, PerToken
         from torch.ao.quantization.pt2e._affine_quantization import (

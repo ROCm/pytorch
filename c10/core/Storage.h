@@ -61,6 +61,7 @@ struct C10_API Storage {
             allocator,
             resizable)) {}
 
+<<<<<<< HEAD
   // Creates storage with pre-allocated memory buffer. Allocator is given for
   // potential future reallocations, however it can be nullptr if the storage
   // is non-resizable
@@ -79,6 +80,10 @@ struct C10_API Storage {
 
  protected:
   explicit Storage(unsafe_borrow_t /*unused*/, const Storage& rhs)
+=======
+ protected:
+  explicit Storage(unsafe_borrow_t, const Storage& rhs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : storage_impl_(c10::intrusive_ptr<c10::StorageImpl>::reclaim(
             rhs.storage_impl_.get())) {}
 
@@ -149,7 +154,11 @@ struct C10_API Storage {
   }
 
   void set_data_ptr_noswap(at::DataPtr&& data_ptr) const {
+<<<<<<< HEAD
     storage_impl_->set_data_ptr_noswap(std::move(data_ptr));
+=======
+    return storage_impl_->set_data_ptr_noswap(std::move(data_ptr));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   DeviceType device_type() const {

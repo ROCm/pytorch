@@ -4,9 +4,14 @@ import inspect
 import itertools
 import warnings
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Concatenate, Optional, TypeVar
 from typing_extensions import deprecated, ParamSpec
+=======
+from typing import Any, Optional
+from typing_extensions import deprecated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._C as _C
@@ -30,10 +35,13 @@ __all__ = [
 # This is incremented in FunctionMeta during class definition
 AUTOGRAD_FUNCTION_COUNTER = itertools.count()
 
+<<<<<<< HEAD
 _T = TypeVar("_T")
 _R = TypeVar("_R")
 _P = ParamSpec("_P")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Formerly known as: _ContextMethodMixin
 class FunctionCtx:
@@ -146,11 +154,18 @@ class FunctionCtx:
 
         """
         for tensor in tensors:
+<<<<<<< HEAD
             if not (isinstance(tensor, torch.Tensor) or tensor is None):
                 raise AssertionError(
                     "save_for_forward expects all arguments to be tensors; you should "
                     "save non-tensors as attributes on ctx."
                 )
+=======
+            assert isinstance(tensor, torch.Tensor) or tensor is None, (
+                "save_for_forward expects all arguments to be tensors; you should "
+                "save non-tensors as attributes on ctx."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.saved_for_forward = tensors
 
@@ -372,7 +387,10 @@ class _SingleLevelFunction(
             def forward(*args: Any, **kwargs: Any) -> Any:
                 pass
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             @staticmethod
             def setup_context(ctx: Any, inputs: Tuple[Any, ...], output: Any) -> None:
                 pass
@@ -601,6 +619,7 @@ def _is_setup_context_defined(fn):
     return fn != _SingleLevelFunction.setup_context
 
 
+<<<<<<< HEAD
 def once_differentiable(
     fn: Callable[Concatenate[_T, _P], _R],
 ) -> Callable[Concatenate[_T, _P], _R]:
@@ -608,6 +627,13 @@ def once_differentiable(
     def wrapper(ctx: _T, *args: _P.args, **kwargs: _P.kwargs) -> _R:
         with torch.no_grad():
             outputs = fn(ctx, *args, **kwargs)
+=======
+def once_differentiable(fn):
+    @functools.wraps(fn)
+    def wrapper(ctx, *args):
+        with torch.no_grad():
+            outputs = fn(ctx, *args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not torch.is_grad_enabled():
             return outputs
@@ -628,14 +654,22 @@ def once_differentiable(
             return outputs
 
         if not isinstance(outputs, tuple):
+<<<<<<< HEAD
             outputs_ = (outputs,)
         else:
             outputs_ = outputs
+=======
+            outputs = (outputs,)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         err_fn = _functions.DelayedError(
             b"trying to differentiate twice a function that was marked "
             b"with @once_differentiable",
+<<<<<<< HEAD
             len(outputs_),
+=======
+            len(outputs),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Create aliases of each output that has requires_grad=True. We need
@@ -647,7 +681,11 @@ def once_differentiable(
                 var.requires_grad = True
             return var
 
+<<<<<<< HEAD
         return err_fn(*[fake_requires_grad(v) for v in outputs_])  # type: ignore[return-value]
+=======
+        return err_fn(*[fake_requires_grad(v) for v in outputs])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return wrapper
 
@@ -777,7 +815,10 @@ class NestedIOFunction(Function):
     This class is here only for backward compatibility reasons.
     Use :class:`Function` instead of this for any new use case.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # The 'type: ignore' statements are needed here because these functions are declared as '@staticmethod' in the
     # superclass (Function) but are instance methods here, which mypy reports as incompatible.
 

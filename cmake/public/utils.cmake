@@ -163,7 +163,24 @@ macro(caffe2_interface_library SRC DST)
   # link command for the specific SRC library.
   if(${__src_target_type} STREQUAL "STATIC_LIBRARY")
     # In the case of static library, we will need to add whole-static flags.
+<<<<<<< HEAD
     target_link_libraries(${DST} INTERFACE $<LINK_LIBRARY:WHOLE_ARCHIVE,${SRC}>)
+=======
+    if(APPLE)
+      target_link_libraries(
+          ${DST} INTERFACE -Wl,-force_load,\"$<TARGET_FILE:${SRC}>\")
+    elseif(MSVC)
+      # In MSVC, we will add whole archive in default.
+      target_link_libraries(
+         ${DST} INTERFACE "$<TARGET_FILE:${SRC}>")
+      target_link_options(
+         ${DST} INTERFACE "-WHOLEARCHIVE:$<TARGET_FILE:${SRC}>")
+    else()
+      # Assume everything else is like gcc
+      target_link_libraries(${DST} INTERFACE
+          "-Wl,--whole-archive,\"$<TARGET_FILE:${SRC}>\" -Wl,--no-whole-archive")
+    endif()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Link all interface link libraries of the src target as well.
     # For static library, we need to explicitly depend on all the libraries
     # that are the dependent library of the source library. Note that we cannot
@@ -362,6 +379,17 @@ function(torch_compile_options libname)
     # For MS official doc: https://learn.microsoft.com/en-us/cpp/build/reference/zc-preprocessor
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:preprocessor" PARENT_SCOPE)
 
+<<<<<<< HEAD
+=======
+    if(${MSVC_TOOLSET_VERSION} GREATER_EQUAL 143)
+      # Add /d2implyavx512upperregs- to disable compiler over-aggressive optimization, which caused involeved AVX512 register on AVX2 machine.
+      # Reference: https://github.com/pytorch/pytorch/issues/145702#issuecomment-2874029459
+      target_compile_options(${libname} PUBLIC $<$<COMPILE_LANGUAGE:CXX>:/d2implyavx512upperregs->)
+    endif()
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     target_compile_options(${libname} PUBLIC
       $<$<COMPILE_LANGUAGE:CXX>:
         ${MSVC_RUNTIME_LIBRARY_OPTION}
@@ -383,10 +411,17 @@ function(torch_compile_options libname)
       -Wno-strict-aliasing
       )
     if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+<<<<<<< HEAD
       list(APPEND private_compile_options -Wredundant-move -Wno-interference-size)
     endif()
     if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       list(APPEND private_compile_options -Wextra-semi -Wmove)
+=======
+      list(APPEND private_compile_options -Wredundant-move)
+    endif()
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+      list(APPEND private_compile_options -Wextra-semi -Wno-error=extra-semi -Wmove)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else()
       list(APPEND private_compile_options
         # Considered to be flaky.  See the discussion at
@@ -397,7 +432,10 @@ function(torch_compile_options libname)
     if(WERROR)
       list(APPEND private_compile_options
         -Werror
+<<<<<<< HEAD
         -Werror=ignored-attributes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         -Werror=inconsistent-missing-override
         -Werror=inconsistent-missing-destructor-override
         -Werror=pedantic
@@ -439,6 +477,13 @@ function(torch_compile_options libname)
         $<$<COMPILE_LANGUAGE:CXX>: -fvisibility=hidden>)
   endif()
 
+<<<<<<< HEAD
+=======
+  # Use -O2 for release builds (-O3 doesn't improve perf, and -Os results in perf regression)
+  target_compile_options(${libname} PRIVATE
+      $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:-O2>)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 endfunction()
 
 ##############################################################################
@@ -478,7 +523,10 @@ function(torch_update_find_cuda_flags)
 endfunction()
 
 include(CheckCXXCompilerFlag)
+<<<<<<< HEAD
 include(CheckLinkerFlag)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ##############################################################################
 # CHeck if given flag is supported and append it to provided outputvar
@@ -508,6 +556,7 @@ function(target_compile_options_if_supported target flag)
     target_compile_options(${target} PRIVATE ${flag})
   endif()
 endfunction()
+<<<<<<< HEAD
 
 # Check if a global link option is supported
 function(add_link_options_if_supported flag)
@@ -527,3 +576,5 @@ function(target_link_options_if_supported tgt flag)
     message(WARNING "Attempted to use unsupported link option : ${flag}.")
   endif()
 endfunction()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

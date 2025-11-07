@@ -16,7 +16,13 @@ static AllocInfo get_alloc_info(const char* filename) {
   info.pid = getpid();
   info.free = false;
   size_t len = strlen(filename);
+<<<<<<< HEAD
   TORCH_CHECK(len < sizeof(info.filename), "MapAllocatorContext_filename too long");
+=======
+  if (len >= sizeof(info.filename)) {
+    throw std::runtime_error("MapAllocatorContext_filename too long");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   memcpy(info.filename, filename, len + 1);
   return info;
 }
@@ -55,6 +61,7 @@ static void start_manager() {
     handle.append(buffer.data(), bytes_read);
   }
   SYSCHECK_ERR_RETURN_NEG1(close(pipe_ends[0]));
+<<<<<<< HEAD
 
   TORCH_CHECK(handle.length() != 0, "no response from torch_shm_manager at \"", manager_executable_path, "\"");
 
@@ -65,6 +72,23 @@ static void start_manager() {
       manager_executable_path,
       "\": ",
       handle.substr(7));
+=======
+  if (handle.length() == 0) {
+    std::string msg("no response from torch_shm_manager at \"");
+    msg += manager_executable_path;
+    msg += "\"";
+    throw std::runtime_error(msg);
+  }
+
+  handle.pop_back(); // remove \n
+  if (handle.rfind("ERROR: ", 0) == 0) {
+    std::string msg("torch_shm_manager at \"");
+    msg += manager_executable_path;
+    msg += "\": ";
+    msg += handle.substr(7); // remove "ERROR: "
+    throw std::runtime_error(msg);
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ClientSocket manager{handle};
   managers.emplace(std::move(handle), std::move(manager));

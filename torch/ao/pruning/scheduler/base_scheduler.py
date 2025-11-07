@@ -92,8 +92,12 @@ class BaseScheduler:
         if not self._get_sl_called_within_step:
             warnings.warn(
                 "To get the last sparsity level computed by the scheduler, "
+<<<<<<< HEAD
                 "please use `get_last_sl()`.",
                 stacklevel=2,
+=======
+                "please use `get_last_sl()`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         raise NotImplementedError
 
@@ -125,7 +129,10 @@ class BaseScheduler:
                     "initialization. Please, make sure to call `sparsifier.step()` before "
                     "`scheduler.step()`.",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             # Just check if there were two first scheduler.step() calls before sparsifier.step()
@@ -135,7 +142,10 @@ class BaseScheduler:
                     "You have to make sure you run the sparsifier.step() BEFORE any "
                     "calls to the scheduler.step().",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         self._step_count += 1
 

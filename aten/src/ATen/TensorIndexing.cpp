@@ -59,7 +59,11 @@ static inline void set_item(const Tensor& self, ArrayRef<TensorIndex> indices, c
     }
   }
 
+<<<<<<< HEAD
   set_item(self, indices, value);
+=======
+  return set_item(self, indices, value);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace indexing

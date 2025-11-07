@@ -13,14 +13,20 @@ if TYPE_CHECKING:
 
 # See also the TYPE_CHECKING block in torch/_dynamo/polyfills/__init__.py
 POLYFILLED_MODULE_NAMES: tuple[str, ...] = (
+<<<<<<< HEAD
     "_collections",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "builtins",
     "functools",
     "itertools",
     "operator",
     "os",
     "pytree",
+<<<<<<< HEAD
     "struct",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "sys",
     "fx",
     "tensor",

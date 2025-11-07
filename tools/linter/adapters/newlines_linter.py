@@ -7,7 +7,10 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 from enum import Enum
 from typing import NamedTuple
@@ -16,7 +19,10 @@ from typing import NamedTuple
 NEWLINE = 10  # ASCII "\n"
 CARRIAGE_RETURN = 13  # ASCII "\r"
 LINTER_CODE = "NEWLINE"
+<<<<<<< HEAD
 MAX_FILE_SIZE: int = 1024 * 1024 * 1024  # 1GB in bytes
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LintSeverity(str, Enum):
@@ -41,6 +47,7 @@ class LintMessage(NamedTuple):
 def check_file(filename: str) -> LintMessage | None:
     logging.debug("Checking file %s", filename)
 
+<<<<<<< HEAD
     # Check if file is too large
     try:
         file_size = os.path.getsize(filename)
@@ -69,6 +76,8 @@ def check_file(filename: str) -> LintMessage | None:
             description=f"Failed to get file size: {err}",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with open(filename, "rb") as f:
         lines = f.readlines()
 

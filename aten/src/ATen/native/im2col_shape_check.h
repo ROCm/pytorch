@@ -2,7 +2,10 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/TensorUtils.h>
 #include <ATen/div_rtn.h>
+<<<<<<< HEAD
 #include <c10/util/safe_numerics.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native {
 
@@ -55,6 +58,7 @@ inline void col2im_shape_check(
 
   int64_t batch_dim = (ndim == 3) ? 0 : -1;
   int64_t n_input_plane = input.size(batch_dim + 1);
+<<<<<<< HEAD
   uint64_t prod_kernel_size = 1;
 
   TORCH_CHECK(!c10::mul_overflows(static_cast<uint64_t>(kernel_width), static_cast<uint64_t>(kernel_height), &prod_kernel_size),
@@ -63,6 +67,8 @@ inline void col2im_shape_check(
             " and kernel_height = ",
             kernel_height,
             " the product of kernel_width and kernel_height overflowed.");
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (n_input_plane % (kernel_width * kernel_height) != 0) {
     TORCH_CHECK(false,

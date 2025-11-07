@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #pragma once
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/core/Tensor.h>
 #include <ATen/Config.h>
 #include <cstdint>

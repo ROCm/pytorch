@@ -1,7 +1,10 @@
 #pragma once
 
 #include <c10/core/Allocator.h>
+<<<<<<< HEAD
 #include <c10/core/Stream.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10::CachingDeviceAllocator {
 
@@ -60,6 +63,7 @@ struct DeviceStats {
 };
 
 } // namespace c10::CachingDeviceAllocator
+<<<<<<< HEAD
 
 namespace c10 {
 
@@ -112,3 +116,5 @@ C10_API inline DeviceAllocator* getDeviceAllocator(const DeviceType& t) {
 }
 
 } // namespace c10
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

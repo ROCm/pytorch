@@ -52,6 +52,7 @@ class function_ref<Ret(Params...)> {
   function_ref(
       // NOLINTNEXTLINE(cppcoreguidelines-missing-std-forward)
       Callable&& callable,
+<<<<<<< HEAD
       std::enable_if_t<!std::is_same_v<
           std::remove_reference_t<Callable>,
           function_ref>>* /*unused*/
@@ -60,6 +61,14 @@ class function_ref<Ret(Params...)> {
           typename std::invoke_result_t<Callable, Params...>,
           Ret>>* /*unused*/
       = nullptr)
+=======
+      std::enable_if_t<
+          !std::is_same_v<std::remove_reference_t<Callable>, function_ref>>* =
+          nullptr,
+      std::enable_if_t<std::is_convertible_v<
+          typename std::invoke_result_t<Callable, Params...>,
+          Ret>>* = nullptr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : callback(callback_fn<std::remove_reference_t<Callable>>),
         callable(reinterpret_cast<intptr_t>(&callable)) {}
 

@@ -3,6 +3,15 @@
 TorchInductor and AOTInductor Provenance Tracking
 =================================================
 
+<<<<<<< HEAD
+=======
+.. warning::
+    This feature is a prototype under active development and there will be
+    breaking change in future releases.
+    The current compatibility of this tool is limited to the latest nightly build of PyTorch.
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 This section describes how to use the provenance tracking feature for TorchInductor and AOTInductor in ``tlparse``.
 Provenance tracking helps you visualize the relationships between the input GraphModule to (AOT)Inductor and the optimized code generated. This feature allows you to trace how your original operations are transformed during compilation.
 
@@ -31,7 +40,11 @@ Follow these steps to enable and use provenance tracking in your PyTorch project
 
    .. code-block:: bash
 
+<<<<<<< HEAD
      TORCH_TRACE=~/my_trace_log_dir INDUCTOR_PROVENANCE=1 python your_program.py
+=======
+     TORCH_TRACE=~/my_trace_log_dir TORCH_LOGS="+inductor" TORCH_COMPILE_DEBUG=1 python your_program.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
    This will generate a log file in ``~/my_trace_log_dir``. The log file will be used by tlparse to generate the provenance tracking highlighter.
 3. Run ``tlparse`` on the log with ``--inductor-provenance`` flag. For example:
@@ -56,6 +69,7 @@ For a demo, see: https://github.com/pytorch/tlparse/pull/93
  .. image:: _static/img/inductor_provenance/index.png
 
 
+<<<<<<< HEAD
 Source code corresponding to each Inductor kernel
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -74,6 +88,8 @@ You can also find the debug handle in the comments within the kernel source code
  .. image:: _static/img/inductor_provenance/kernel_source_3.png
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 See Also
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

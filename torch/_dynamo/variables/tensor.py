@@ -23,7 +23,11 @@ import operator
 import textwrap
 import traceback
 import types
+<<<<<<< HEAD
 from contextlib import nullcontext
+=======
+import unittest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing import TYPE_CHECKING
 
 import sympy
@@ -62,7 +66,10 @@ from ..utils import (
     object_has_getattribute,
     product,
     proxy_args_kwargs,
+<<<<<<< HEAD
     raise_args_mismatch,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_example_value,
     tensortype_to_dtype,
 )
@@ -203,6 +210,7 @@ class TensorVariable(VariableTracker):
             _is_name_set = self.proxy.node.op == "placeholder"
         self._is_name_set: bool = _is_name_set
 
+<<<<<<< HEAD
     def synchronize_attributes(self, tx, target_cls=None):
         from .builder import get_specialized_props, infer_subclass_type
 
@@ -216,6 +224,8 @@ class TensorVariable(VariableTracker):
         for k, v in specialized_props.items():
             setattr(self, k, v)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def debug_repr(self):
         # TODO: strip off fake tensor from repr here
         return repr(self.proxy.node.meta["example_value"])
@@ -248,7 +258,11 @@ class TensorVariable(VariableTracker):
 
         if is_sparse_any(value) and not has_free_symbols(value):
             props["_size"] = tuple(
+<<<<<<< HEAD
                 int(s) if is_symbolic(s) else s for s in value.size()
+=======
+                [int(s) if is_symbolic(s) else s for s in value.size()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         elif not has_free_symbols(value):
             # this is a fully static shape, and the keys on props here inform specialization.
@@ -260,8 +274,12 @@ class TensorVariable(VariableTracker):
             props["_size"] = tuple(
                 # the non is_symbolic case applies to the jagged layout
                 # NestedTensor case as singleton ints are not symbolic
+<<<<<<< HEAD
                 int(s) if is_symbolic(s) else s
                 for s in value.size()
+=======
+                [int(s) if is_symbolic(s) else s for s in value.size()]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             props["stride"] = tuple(value.stride())
             if torch._C._functorch.is_batchedtensor(value):
@@ -270,9 +288,17 @@ class TensorVariable(VariableTracker):
                 props["is_contiguous"] = None
             else:
                 props["is_contiguous"] = tuple(
+<<<<<<< HEAD
                     x
                     for x in torch._prims_common._memory_formats
                     if value.is_contiguous(memory_format=x)
+=======
+                    [
+                        x
+                        for x in torch._prims_common._memory_formats
+                        if value.is_contiguous(memory_format=x)
+                    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         return props
 
@@ -329,18 +355,28 @@ class TensorVariable(VariableTracker):
         real_value = getattr(_input_associated_real_value, name)
 
         attr_source = AttrSource(self.source, name)
+<<<<<<< HEAD
+=======
+        install_guard(attr_source.make_guard(GuardBuilder.HASATTR))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Typically we'd want to use variable builder here
         # but unfortunately id(real_value.__self__) is not id(<original value>)
         if is_bound_tensor_method(real_value):
+<<<<<<< HEAD
             # No need to install the guard because its a bound tensor method
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from .misc import GetAttrVariable
 
             return GetAttrVariable(
                 self, name, source=attr_source, py_type=type(real_value)
             )
 
+<<<<<<< HEAD
         install_guard(attr_source.make_guard(GuardBuilder.HASATTR))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return VariableTracker.build(tx, real_value, attr_source)
 
     def method_attr_ndim(self, tx):
@@ -518,7 +554,11 @@ class TensorVariable(VariableTracker):
                 # these attributes are implemented under tp_getset, which appear
                 # as `getset_descriptor`s, (compared to, say, methods which appear
                 # as `method_descriptor`s)
+<<<<<<< HEAD
                 if type(static_attr) is not types.GetSetDescriptorType:
+=======
+                if type(static_attr) != types.GetSetDescriptorType:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return None
 
                 proxy = GetAttrVariable.create_getattr_proxy(self.as_proxy(), name)
@@ -958,10 +998,22 @@ class TensorVariable(VariableTracker):
 
         def tolist(tensor, sub_proxy):
             def wrap(i, sub_proxy):
+<<<<<<< HEAD
                 return wrap_fx_proxy(
                     tx,
                     sub_proxy.item(),
                 )
+=======
+                # Sigh, we forgot to gate this, so this data dependent is on
+                # by default and is load bearing in CI
+                with unittest.mock.patch.object(
+                    tx.fake_mode, "allow_scalar_outputs", True
+                ):
+                    return wrap_fx_proxy(
+                        tx,
+                        sub_proxy.item(),
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if tensor.dtype not in [
                 torch.int8,
@@ -1007,11 +1059,15 @@ class TensorVariable(VariableTracker):
         return DataPtrVariable(self)
 
     def method_item(self, *args, **kwargs):
+<<<<<<< HEAD
         from ..symbolic_convert import InstructionTranslator
 
         tx = InstructionTranslator.current_tx()
         # We enable capture_scalar_outputs when full_graph=True by default.
         if not tx.one_graph and not config.capture_scalar_outputs:
+=======
+        if not config.capture_scalar_outputs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._warn_capture_scalar_outputs()
             unimplemented_v2(
                 gb_type="Unsupported Tensor.item() call with capture_scalar_outputs=False",
@@ -1102,6 +1158,7 @@ class TensorVariable(VariableTracker):
             *proxy_args_kwargs([self, key, value], {}),
         )
 
+<<<<<<< HEAD
         if isinstance(value, TensorVariable):
             # [Note: Tensor.__setitem__ and VariableTracker metadata]
             # At this point, we proxied a node representing `self[key] = value` into the graph.
@@ -1132,6 +1189,8 @@ class TensorVariable(VariableTracker):
 
             self.synchronize_attributes(tx, type(vt))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config.use_graph_deduplication or config.track_nodes_for_deduplication:
             tx.output.region_tracker.add_node_mutation(proxy.node, 0)
 
@@ -1375,7 +1434,11 @@ class TensorVariable(VariableTracker):
         if (len(args) == 1 and isinstance(args[0], SizeVariable)) or (
             len(args) >= 1
             and all(
+<<<<<<< HEAD
                 isinstance(a, ConstantVariable) and a.python_type() is int for a in args
+=======
+                isinstance(a, ConstantVariable) and a.python_type() == int for a in args
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ):
             from ..symbolic_convert import InstructionTranslator
@@ -1557,7 +1620,11 @@ class NumpyNdarrayVariable(TensorVariable):
                 explanation=f"Dynamo currently does not support tracing `ndarray.{name}`.",
                 hints=[],
             )
+<<<<<<< HEAD
         elif name == "__version__":
+=======
+        elif name in ["__version__"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unimplemented_v2(
                 gb_type="Unsupported ndarray.__version__ access",
                 context=f"var_getattr {self} {name}",
@@ -1582,11 +1649,15 @@ class NumpyNdarrayVariable(TensorVariable):
         args: "list[VariableTracker]",
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
+<<<<<<< HEAD
         from ..exc import unimplemented_v2
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from ..utils import numpy_method_wrapper
 
         args, kwargs = self.patch_args(name, args, kwargs)
 
+<<<<<<< HEAD
         if name == "astype":
             from .builtin import BuiltinVariable
 
@@ -1612,6 +1683,8 @@ class NumpyNdarrayVariable(TensorVariable):
                     ),
                     hints=[*graph_break_hints.FUNDAMENTAL],
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name in ["__len__", "size", "tolist"]:
             # delegate back to TensorVariable
             return super().call_method(tx, name, args, kwargs)
@@ -1762,6 +1835,7 @@ class UntypedStorageVariable(VariableTracker):
         kwargs: dict[str, VariableTracker],
     ) -> VariableTracker:
         if name == "size":
+<<<<<<< HEAD
             if args or kwargs:
                 raise_args_mismatch(
                     tx,
@@ -1769,6 +1843,10 @@ class UntypedStorageVariable(VariableTracker):
                     "0 args and 0 kwargs",
                     f"{len(args)} args and {len(kwargs)} kwargs",
                 )
+=======
+            assert not args
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = self.example_value.size()
             if not has_free_symbols(result):
                 # avoid creating a node in the graph
@@ -1787,8 +1865,12 @@ class UntypedStorageVariable(VariableTracker):
                     ),
                 )
         if name == "resize_" and len(args) == 1:
+<<<<<<< HEAD
             if kwargs:
                 raise_args_mismatch(tx, name, "0 kwargs", f"{len(kwargs)} kwargs")
+=======
+            assert not kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             tx.output.create_proxy(
                 "call_function",
                 torch.ops.inductor.resize_storage_bytes_,

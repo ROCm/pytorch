@@ -1,5 +1,9 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import unittest
 from typing import Literal
 from unittest.mock import MagicMock, patch
@@ -44,6 +48,10 @@ def create_simple_test_model_gpu():
 
 
 class TestConfigFuzzer(TestCase):
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sampling_method_toggle(self):
         toggle = SamplingMethod.dispatch(SamplingMethod.TOGGLE)
         self.assertEqual(toggle("", bool, False), True)
@@ -53,22 +61,38 @@ class TestConfigFuzzer(TestCase):
         self.assertTrue("bar" in toggle("", list[Literal["foo", "bar"]], ["foo"]))
         self.assertTrue("foo" in toggle("", list[Literal["foo", "bar"]], ["bar"]))
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sampling_method_random(self):
         random = SamplingMethod.dispatch(SamplingMethod.RANDOM)
         samp = [random("", bool, False) for i in range(1000)]
         self.assertTrue(not all(samp))
 
     @unittest.skipIf(not HAS_GPU, "requires gpu")
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_inductor_gpu(self):
         fuzzer = ConfigFuzzer(inductor_config, create_simple_test_model_gpu, seed=30)
         self.assertIsNotNone(fuzzer.default)
         fuzzer.reproduce([{"max_fusion_size": 1}])
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_inductor_cpu(self):
         fuzzer = ConfigFuzzer(inductor_config, create_simple_test_model_cpu, seed=100)
         self.assertIsNotNone(fuzzer.default)
         fuzzer.reproduce([{"max_fusion_size": 1}])
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_bisector_exception(self):
         key_1 = {"e_bool": False, "e_optional": None}
 
@@ -89,6 +113,10 @@ class TestConfigFuzzer(TestCase):
         for res in results:
             self.assertEqual(res, key_1)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_bisector_boolean(self):
         key_1 = {"e_bool": False, "e_optional": None}
 
@@ -107,6 +135,10 @@ class TestConfigFuzzer(TestCase):
         for res in results:
             self.assertEqual(res, key_1)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_n_tuple(self):
         key_1 = {"e_bool": False, "e_optional": None}
 
@@ -124,6 +156,10 @@ class TestConfigFuzzer(TestCase):
         self.assertEqual(results.num_ran(), max_combo)
         self.assertEqual(results.lookup(tuple(key_1.keys())), Status.FAILED_RUN_RETURN)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_inductor_bisect(self):
         # these values just chosen randomly, change to different ones if necessary
         key_1 = {"split_reductions": False, "compute_all_bounds": True}
@@ -154,10 +190,15 @@ class TestConfigFuzzer(TestCase):
             - set(MODULE_DEFAULTS["torch._inductor.config"].keys()),
         )
 
+<<<<<<< HEAD
     @unittest.skipIf(not IS_LINUX, "PerfCounters are only supported on Linux")
     @unittest.skip(
         "Need default values for dynamo flags - https://github.com/pytorch/pytorch/issues/164062"
     )
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+    @unittest.skipIf(not IS_LINUX, "PerfCounters are only supported on Linux")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_config_fuzzer_dynamo_bisect(self):
         # these values just chosen randomly, change to different ones if necessary
         key_1 = {"dead_code_elimination": False, "specialize_int": True}
@@ -188,6 +229,10 @@ class TestConfigFuzzer(TestCase):
             - set(MODULE_DEFAULTS["torch._dynamo.config"].keys()),
         )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch("torch.compile")
     def test_fuzzer_inductor_calling_compile(self, compile):
         def create_key_1():
@@ -201,6 +246,10 @@ class TestConfigFuzzer(TestCase):
         fuzzer.bisect(num_attempts=num_attempts, p=0.5)
         self.assertEqual(compile.call_count, num_attempts)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(sys.version_info < (3, 10), "python < 3.10 not supported")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fuzzer_running_test(self):
         def create_key_1():
             def myfn():

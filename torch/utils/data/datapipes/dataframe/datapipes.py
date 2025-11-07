@@ -53,7 +53,11 @@ class ConcatDataFramesPipe(DFIterDataPipe):
             if len(buffer) == self.n_batch:
                 yield df_wrapper.concat(buffer)
                 buffer = []
+<<<<<<< HEAD
         if buffer:
+=======
+        if len(buffer):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield df_wrapper.concat(buffer)
 
 
@@ -78,7 +82,11 @@ class ShuffleDataFramesPipe(DFIterDataPipe):
             if len(buffer) == size:
                 yield df_wrapper.concat(buffer)
                 buffer = []
+<<<<<<< HEAD
         if buffer:
+=======
+        if len(buffer):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield df_wrapper.concat(buffer)
 
 
@@ -92,7 +100,10 @@ class FilterDataFramesPipe(DFIterDataPipe):
         size = None
         all_buffer = []
         filter_res = []
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for df in self.source_datapipe:
             if size is None:
                 size = len(df.index)
@@ -107,7 +118,11 @@ class FilterDataFramesPipe(DFIterDataPipe):
                 if len(buffer) == size:
                     yield df_wrapper.concat(buffer)
                     buffer = []
+<<<<<<< HEAD
         if buffer:
+=======
+        if len(buffer):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield df_wrapper.concat(buffer)
 
 

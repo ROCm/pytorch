@@ -29,7 +29,10 @@ from torch.fx.experimental._backward_state import BackwardState
 
 from .. import compiled_autograd, variables
 from .._trace_wrapped_higher_order_op import trace_wrapped
+<<<<<<< HEAD
 from ..bytecode_transformation import create_call_function
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..exc import unimplemented_v2
 from ..external_utils import call_module_hooks_from_backward_state
 from ..guards import GuardBuilder, install_guard
@@ -143,7 +146,11 @@ class PlacementClassVariable(DistributedVariable):
 
         from torch.distributed.tensor.placement_types import Placement
 
+<<<<<<< HEAD
         return isinstance(value, type) and issubclass(value, Placement)
+=======
+        return type(value) is type and issubclass(value, Placement)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def as_python_constant(self):
         return self.value
@@ -154,10 +161,20 @@ class PlacementClassVariable(DistributedVariable):
         args: "list[VariableTracker]",
         kwargs: "dict[str, VariableTracker]",
     ) -> "VariableTracker":
+<<<<<<< HEAD
         if self.source:
             # NOTE: we don't need to track mutations to the placement class as they
             # are supposed to be immutable.
             new_obj = self.value.__new__(self.value)
+=======
+        if (
+            inspect.getattr_static(self.value, "__new__", None) in (object.__new__,)
+            and self.source
+        ):
+            # NOTE: we don't need to track mutations to the placement class as they
+            # suppose to be immutable.
+            new_obj = object.__new__(self.value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             var = PlacementVariable(new_obj)
             if inspect.getattr_static(self.value, "__init__", None):
                 var.call_method(tx, "__init__", args, kwargs)
@@ -210,6 +227,7 @@ class PlacementVariable(DistributedVariable):
         if name in constant_fold_functions:
             try:
                 value_type = type(self.value)
+<<<<<<< HEAD
                 if inspect.getattr_static(value_type, "__getattr__", None) is not None:
                     unimplemented_v2(
                         gb_type="Placement with custom __getattr__ not supported",
@@ -220,6 +238,11 @@ class PlacementVariable(DistributedVariable):
                             "Move the Placement usage outside the compiled region",
                         ],
                     )
+=======
+                assert (
+                    inspect.getattr_static(value_type, "__getattr__", None) is None
+                ), "no custom getattr allowed!"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 method = inspect.getattr_static(value_type, name)
             except AttributeError:
                 method = None
@@ -236,6 +259,7 @@ class PlacementVariable(DistributedVariable):
 
         return super().call_method(tx, name, args, kwargs)
 
+<<<<<<< HEAD
     def reconstruct(self, codegen):
         # Reconstruct the Placement object by calling its constructor
         # e.g., Shard(0), Replicate(), Partial()
@@ -260,6 +284,8 @@ class PlacementVariable(DistributedVariable):
         else:
             super().reconstruct(codegen)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DeviceMeshVariable(DistributedVariable):
     @staticmethod
@@ -280,11 +306,14 @@ class DeviceMeshVariable(DistributedVariable):
             return ConstantVariable.create(self.value.ndim)
         if name == "device_type":
             return ConstantVariable.create(self.value.device_type)
+<<<<<<< HEAD
         if name == "mesh_dim_names":
             source = self.source
             if source:
                 source = AttrSource(base=source, member="mesh_dim_names")
             return VariableTracker.build(tx, self.value.mesh_dim_names, source)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().var_getattr(tx, name)
 
     def call_method(
@@ -300,6 +329,7 @@ class DeviceMeshVariable(DistributedVariable):
             return ConstantVariable.create(self.value.size(*const_args, **const_kwargs))
         if name == "get_coordinate":
             return ConstantVariable.create(self.value.get_coordinate())
+<<<<<<< HEAD
         if name == "get_rank":
             return ConstantVariable.create(self.value.get_rank())
         if name == "get_local_rank":
@@ -308,6 +338,8 @@ class DeviceMeshVariable(DistributedVariable):
             return ConstantVariable.create(
                 self.value.get_local_rank(*const_args, **const_kwargs)
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name == "get_group":
             const_args = [x.as_python_constant() for x in args]
             const_kwargs = {k: v.as_python_constant() for k, v in kwargs.items()}

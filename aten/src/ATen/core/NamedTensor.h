@@ -27,11 +27,19 @@ struct TORCH_API NamedTensorMeta final : public c10::NamedTensorMetaInterface {
     HasNonWildcard
   };
 
+<<<<<<< HEAD
   explicit NamedTensorMeta(HAS_NON_WILDCARD /*unused*/, DimnameList names)
     : names_(names.vec()) {
     check_invariants();
   }
   explicit NamedTensorMeta(HAS_NON_WILDCARD /*unused*/, std::vector<Dimname>&& names)
+=======
+  explicit NamedTensorMeta(HAS_NON_WILDCARD, DimnameList names)
+    : names_(names.vec()) {
+    check_invariants();
+  }
+  explicit NamedTensorMeta(HAS_NON_WILDCARD, std::vector<Dimname>&& names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : names_(std::move(names)) {
     check_invariants();
   }
@@ -52,13 +60,21 @@ struct TORCH_API NamedTensorMeta final : public c10::NamedTensorMetaInterface {
       std::any_of(names_.begin(), names_.end(), [](const Dimname& n) { return !n.isWildcard(); }));
   }
 
+<<<<<<< HEAD
   void set_names(HAS_NON_WILDCARD /*unused*/, DimnameList new_names) {
+=======
+  void set_names(HAS_NON_WILDCARD, DimnameList new_names) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(new_names.size() == names_.size());
     std::copy(new_names.begin(), new_names.end(), names_.begin());
     check_invariants();
   }
 
+<<<<<<< HEAD
   void set_names(HAS_NON_WILDCARD /*unused*/, std::vector<Dimname>&& new_names) {
+=======
+  void set_names(HAS_NON_WILDCARD, std::vector<Dimname>&& new_names) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_INTERNAL_ASSERT(new_names.size() == names_.size());
     names_ = std::move(new_names);
     check_invariants();

@@ -20,7 +20,10 @@ from torch.optim import (
     AdamW,
     ASGD,
     LBFGS,
+<<<<<<< HEAD
     Muon,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NAdam,
     Optimizer,
     RAdam,
@@ -43,14 +46,21 @@ from torch.testing._internal.common_utils import (
     _TestParametrizer,
     skipIfMPS,
     skipIfTorchDynamo,
+<<<<<<< HEAD
+=======
+    skipIfXpu,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_TORCHDYNAMO,
 )
 from torch.utils._foreach_utils import _get_foreach_kernels_supported_devices
 
 
+<<<<<<< HEAD
 CUDA_CONFIG_GPUS = ["cuda", "xpu"]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OptimizerInput:
     """Contains args / kwargs to be passed to an optimizer constructor."""
 
@@ -248,9 +258,14 @@ class optims(_TestParametrizer):
 # Helper function for generating error inputs for all optimizers, used below.
 def get_error_inputs_for_all_optims(device, dtype):
     if _get_device_type(device) == "cpu":
+<<<<<<< HEAD
         # Creating 2D parameters for compatibility with Muon.
         sample_param = Parameter(torch.randn(1, 1, device=device, dtype=dtype))
         sample_param2 = Parameter(torch.randn(1, 1, device=device, dtype=dtype))
+=======
+        sample_param = Parameter(torch.randn(1, device=device, dtype=dtype))
+        sample_param2 = Parameter(torch.randn(1, device=device, dtype=dtype))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return [
             ErrorOptimizerInput(
                 OptimizerInput(
@@ -371,7 +386,11 @@ def optim_inputs_func_adadelta(device, dtype=None):
         OptimizerInput(
             params=None, kwargs={"rho": 0.95, "weight_decay": 0.9}, desc="rho"
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_adadelta(device, dtype):
@@ -530,7 +549,11 @@ def optim_inputs_func_adam(device, dtype=None):
             params=None,
             kwargs={
                 "lr": torch.tensor(0.001),
+<<<<<<< HEAD
                 "betas": (torch.tensor([[[0.9]]]), torch.tensor([[0.99]])),
+=======
+                "betas": (torch.tensor(0.9), torch.tensor(0.99)),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "amsgrad": True,
                 "capturable": True,
             },
@@ -571,6 +594,7 @@ def optim_inputs_func_adam(device, dtype=None):
                 desc="amsgrad",
             ),
         ]
+<<<<<<< HEAD
         + (
             cuda_supported_configs
             if _get_device_type(device) in CUDA_CONFIG_GPUS
@@ -579,6 +603,12 @@ def optim_inputs_func_adam(device, dtype=None):
         + (mps_supported_configs if _get_device_type(device) == "mps" else [])
     )
     if dtype == torch.float16:
+=======
+        + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+        + (mps_supported_configs if _get_device_type(device) == "mps" else [])
+    )
+    if dtype in (torch.float16,):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for input in total:
             """
             Too small eps will make denom to be zero for low precision dtype
@@ -656,7 +686,11 @@ def optim_error_inputs_func_adam(device, dtype):
                 error_regex=r"betas\[0\] as a Tensor is not supported for capturable=False and foreach=True",
             ),
         ]
+<<<<<<< HEAD
     if _get_device_type(device) in CUDA_CONFIG_GPUS:
+=======
+    if _get_device_type(device) == "cuda":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sample_tensor = torch.empty((), device=device, dtype=dtype)
         error_inputs += [
             ErrorOptimizerInput(
@@ -727,7 +761,11 @@ def optim_inputs_func_adamax(device, dtype=None):
             kwargs={"weight_decay": 0.1, "maximize": True},
             desc="maximize, weight_decay",
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_adamax(device, dtype):
@@ -798,7 +836,11 @@ def optim_inputs_func_asgd(device, dtype=None):
             kwargs={"weight_decay": 0.1, "maximize": True},
             desc="maximize, nonzero weight_decay",
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_asgd(device, dtype):
@@ -841,6 +883,7 @@ def optim_error_inputs_func_lbfgs(device, dtype):
     return error_inputs
 
 
+<<<<<<< HEAD
 def optim_inputs_func_muon(device, dtype=None):
     return [
         OptimizerInput(params=None, kwargs={}, desc="default"),
@@ -916,6 +959,8 @@ def optim_error_inputs_func_muon(device, dtype):
     return error_inputs
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def optim_inputs_func_nadam(device, dtype=None):
     cuda_supported_configs = [
         OptimizerInput(params=None, kwargs={"capturable": True}, desc="capturable"),
@@ -980,7 +1025,11 @@ def optim_inputs_func_nadam(device, dtype=None):
             kwargs={"weight_decay": 0.1, "maximize": True},
             desc="maximize",
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_nadam(device, dtype):
@@ -1058,7 +1107,11 @@ def optim_inputs_func_radam(device=None, dtype=None):
             kwargs={"weight_decay": 0.1, "maximize": True},
             desc="maximize",
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_radam(device, dtype):
@@ -1143,7 +1196,11 @@ def optim_inputs_func_rmsprop(device, dtype=None):
             },
             desc="maximize, centered, weight_decay, w/ momentum",
         ),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_rmsprop(device, dtype):
@@ -1185,7 +1242,11 @@ def optim_inputs_func_rprop(device, dtype=None):
             desc="non-default step_sizes",
         ),
         OptimizerInput(params=None, kwargs={"maximize": True}, desc="maximize"),
+<<<<<<< HEAD
     ] + (cuda_supported_configs if _get_device_type(device) in CUDA_CONFIG_GPUS else [])
+=======
+    ] + (cuda_supported_configs if _get_device_type(device) == "cuda" else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def optim_error_inputs_func_rprop(device, dtype):
@@ -1351,9 +1412,15 @@ def _get_optim_inputs_including_global_cliquey_kwargs(
     trivial. That said, we sometimes want to test for all possible configs on an
     optimizer including all supported flags, so this helper returns all optim inputs.
     """
+<<<<<<< HEAD
     assert all(x in ["foreach", "fused", "differentiable"] for x in skip), (
         "skip must be a subset of ['foreach', 'fused', 'differentiable']"
     )
+=======
+    assert all(
+        x in ["foreach", "fused", "differentiable"] for x in skip
+    ), "skip must be a subset of ['foreach', 'fused', 'differentiable']"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     optim_inputs = optim_info.optim_inputs_func(device)
 
@@ -1677,7 +1744,11 @@ optim_db: list[OptimizerInfo] = [
             "maximize",
             "capturable",
         ),
+<<<<<<< HEAD
         supports_fused_on=("cpu", "cuda", "xpu", "mps"),
+=======
+        supports_fused_on=("cpu", "cuda", "mps"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         decorators=(
             # Expected floating point error between fused and compiled forloop
             DecorateInfo(
@@ -1953,6 +2024,7 @@ optim_db: list[OptimizerInfo] = [
         ),
     ),
     OptimizerInfo(
+<<<<<<< HEAD
         Muon,
         optim_inputs_func=optim_inputs_func_muon,
         optim_error_inputs_func=optim_error_inputs_func_muon,
@@ -1974,6 +2046,8 @@ optim_db: list[OptimizerInfo] = [
         ),
     ),
     OptimizerInfo(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         NAdam,
         optim_inputs_func=optim_inputs_func_nadam,
         optim_error_inputs_func=optim_error_inputs_func_nadam,
@@ -2167,7 +2241,10 @@ optim_db: list[OptimizerInfo] = [
         supports_fused_on=(
             "cpu",
             "cuda",
+<<<<<<< HEAD
             "xpu",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "mps",
         ),
         skips=(
@@ -2186,6 +2263,19 @@ optim_db: list[OptimizerInfo] = [
                 "test_complex_2d",
             ),
             DecorateInfo(
+<<<<<<< HEAD
+=======
+                toleranceOverride(
+                    {  # previously atol=5-05, rtol=0.001, https://github.com/pytorch/pytorch/issues/116202
+                        torch.float32: tol(atol=5e-04, rtol=0.007),
+                    }
+                ),
+                "TestOptimRenewed",
+                "test_mixed_device_dtype",
+                active_if=TEST_WITH_TORCHDYNAMO,
+            ),
+            DecorateInfo(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo(
                     "This test uses mocks, which dynamo does not support"
                 ),
@@ -2209,6 +2299,12 @@ optim_db: list[OptimizerInfo] = [
                 device_type="mps",
             ),
             DecorateInfo(
+<<<<<<< HEAD
+=======
+                skipIfXpu(msg="SparseAdam is not yet supported on the XPU stack"),
+            ),
+            DecorateInfo(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 skipIfTorchDynamo("cannot call to_sparse on p.grad, see #117184"),
                 "TestOptimRenewed",
                 "test_param_groups_lr",

@@ -12,15 +12,23 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
 #if 0 && AT_USE_JITERATOR()
+=======
+#if AT_USE_JITERATOR()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 constexpr char tan_name[] = "tan_impl";
 #endif
 
 void tan_kernel_cuda(TensorIteratorBase& iter) {
   auto common_dtype = iter.common_dtype();
   if (at::isComplexType(common_dtype)) {
+<<<<<<< HEAD
     // Disabled due to accuracy issues
 #if 0 && AT_USE_JITERATOR()
+=======
+#if AT_USE_JITERATOR()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static const auto tan_string = jiterator_stringify(
         template <typename T> T tan_impl(T a) { return std::tan(a); });
     AT_DISPATCH_COMPLEX_TYPES_AND(

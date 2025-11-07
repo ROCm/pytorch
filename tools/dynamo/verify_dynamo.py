@@ -8,7 +8,11 @@ import warnings
 
 MIN_CUDA_VERSION = "11.6"
 MIN_ROCM_VERSION = "5.4"
+<<<<<<< HEAD
 MIN_PYTHON_VERSION = (3, 10)
+=======
+MIN_PYTHON_VERSION = (3, 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class VerifyDynamoError(BaseException):

@@ -178,6 +178,7 @@ class _Formatter:
                     self.int_mode = False
                     break
 
+<<<<<<< HEAD
             self.sci_mode = (
                 nonzero_finite_max / nonzero_finite_min > 1000.0
                 or nonzero_finite_max > 1.0e8
@@ -190,6 +191,16 @@ class _Formatter:
                 # in int_mode for floats, all numbers are integers, and we append a decimal to nonfinites
                 # to indicate that the tensor is of floating type. add 1 to the len to account for this.
                 if self.sci_mode:
+=======
+            if self.int_mode:
+                # in int_mode for floats, all numbers are integers, and we append a decimal to nonfinites
+                # to indicate that the tensor is of floating type. add 1 to the len to account for this.
+                if (
+                    nonzero_finite_max / nonzero_finite_min > 1000.0
+                    or nonzero_finite_max > 1.0e8
+                ):
+                    self.sci_mode = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for value in nonzero_finite_vals:
                         value_str = f"{{:.{PRINT_OPTS.precision}e}}".format(value)
                         self.max_width = max(self.max_width, len(value_str))
@@ -199,7 +210,16 @@ class _Formatter:
                         self.max_width = max(self.max_width, len(value_str) + 1)
             else:
                 # Check if scientific representation should be used.
+<<<<<<< HEAD
                 if self.sci_mode:
+=======
+                if (
+                    nonzero_finite_max / nonzero_finite_min > 1000.0
+                    or nonzero_finite_max > 1.0e8
+                    or nonzero_finite_min < 1.0e-4
+                ):
+                    self.sci_mode = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for value in nonzero_finite_vals:
                         value_str = f"{{:.{PRINT_OPTS.precision}e}}".format(value)
                         self.max_width = max(self.max_width, len(value_str))
@@ -208,6 +228,12 @@ class _Formatter:
                         value_str = f"{{:.{PRINT_OPTS.precision}f}}".format(value)
                         self.max_width = max(self.max_width, len(value_str))
 
+<<<<<<< HEAD
+=======
+        if PRINT_OPTS.sci_mode is not None:
+            self.sci_mode = PRINT_OPTS.sci_mode
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def width(self):
         return self.max_width
 
@@ -247,7 +273,11 @@ def _vector_str(self, indent, summarize, formatter1, formatter2=None):
         element_length += formatter2.width() + 1
 
     elements_per_line = max(
+<<<<<<< HEAD
         1, math.floor((PRINT_OPTS.linewidth - indent) / (element_length))
+=======
+        1, int(math.floor((PRINT_OPTS.linewidth - indent) / (element_length)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     def _val_formatter(val, formatter1=formatter1, formatter2=formatter2):
@@ -307,7 +337,11 @@ def _tensor_str_with_formatter(self, indent, summarize, formatter1, formatter2=N
                 _tensor_str_with_formatter(
                     self[i], indent + 1, summarize, formatter1, formatter2
                 )
+<<<<<<< HEAD
                 for i in range(PRINT_OPTS.edgeitems)
+=======
+                for i in range(0, PRINT_OPTS.edgeitems)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ]
             + ["..."]
             + [
@@ -322,7 +356,11 @@ def _tensor_str_with_formatter(self, indent, summarize, formatter1, formatter2=N
             _tensor_str_with_formatter(
                 self[i], indent + 1, summarize, formatter1, formatter2
             )
+<<<<<<< HEAD
             for i in range(self.size(0))
+=======
+            for i in range(0, self.size(0))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
     tensor_str = ("," + "\n" * (dim - 1) + " " * (indent + 1)).join(slices)
@@ -406,7 +444,11 @@ def get_summarized_data(self):
     if not PRINT_OPTS.edgeitems:
         return self.new_empty([0] * self.dim())
     elif self.size(0) > 2 * PRINT_OPTS.edgeitems:
+<<<<<<< HEAD
         start = [self[i] for i in range(PRINT_OPTS.edgeitems)]
+=======
+        start = [self[i] for i in range(0, PRINT_OPTS.edgeitems)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         end = [self[i] for i in range(len(self) - PRINT_OPTS.edgeitems, len(self))]
         return torch.stack([get_summarized_data(x) for x in (start + end)])
     else:
@@ -657,10 +699,15 @@ def _str_intern(inp, *, tensor_contents=None):
         grad_fn_name = "Invalid"
 
     if grad_fn_name is None and grad_fn is not None:  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
         grad_fn_name = type(grad_fn).__name__
         if grad_fn_name == "CppFunction":
             # pyrefly: ignore [unbound-name]
+=======
+        grad_fn_name = type(grad_fn).__name__
+        if grad_fn_name == "CppFunction":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             grad_fn_name = grad_fn.name().rsplit("::", 1)[-1]
 
     if grad_fn_name is not None:

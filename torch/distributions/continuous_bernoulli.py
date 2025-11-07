@@ -47,7 +47,10 @@ class ContinuousBernoulli(ExponentialFamily):
     https://arxiv.org/abs/1907.06845
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"probs": constraints.unit_interval, "logits": constraints.real}
     support = constraints.unit_interval
     _mean_carrier_measure = 0
@@ -66,19 +69,28 @@ class ContinuousBernoulli(ExponentialFamily):
             )
         if probs is not None:
             is_scalar = isinstance(probs, _Number)
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.probs,) = broadcast_all(probs)
             # validate 'probs' here if necessary as it is later clamped for numerical stability
             # close to 0 and 1, later on; otherwise the clamped 'probs' would always pass
             if validate_args is not None:
                 if not self.arg_constraints["probs"].check(self.probs).all():
                     raise ValueError("The parameter probs has invalid values")
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.probs = clamp_probs(self.probs)
         else:
             assert logits is not None  # helps mypy
             is_scalar = isinstance(logits, _Number)
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (self.logits,) = broadcast_all(logits)
         self._param = self.probs if probs is not None else self.logits
         if is_scalar:
@@ -234,7 +246,10 @@ class ContinuousBernoulli(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor]:
         return (self.logits,)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x):
         """computes the log normalizing constant as a function of the natural parameter"""
         out_unst_reg = torch.max(

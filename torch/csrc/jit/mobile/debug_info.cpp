@@ -76,7 +76,11 @@ std::pair<std::vector<StackEntry>, std::string> getStackTraceWithModuleHierarchy
 // This function construct stacktrace with module hierarchy
 // Module hierarchy will contain information about where in the
 // module hierarchy this source is. For example if conv2d op
+<<<<<<< HEAD
 // exist in hierarchy A->B->C->Conv2d with type annotations of
+=======
+// exist in hierarcy A->B->C->Conv2d with type annotations of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // A -> TopM, B->MyModule, C->SomeModule, then module hierarchy
 // will be TopM(A).MyModule(B).SomeModule(C).Conv2d(conv)
 // Source level stack information will be from model source code.

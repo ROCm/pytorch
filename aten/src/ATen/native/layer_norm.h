@@ -3,9 +3,12 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/native/DispatchStub.h>
 #include <c10/util/accumulate.h>
+<<<<<<< HEAD
 #include <c10/core/SymBool.h>
 #include <c10/util/StringUtil.h>
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::native {
 
@@ -22,6 +25,7 @@ C10_ALWAYS_INLINE void _check_rms_norm_inputs_symint(
       "Expected normalized_shape to be at least 1-dimensional, i.e., ",
       "containing at least one element, but got normalized_shape = ",
       normalized_shape);
+<<<<<<< HEAD
   if (weight.defined()) {
     TORCH_SYM_CHECK(
         sym_equals(weight.sym_sizes(), normalized_shape),
@@ -46,6 +50,30 @@ C10_ALWAYS_INLINE void _check_rms_norm_inputs_symint(
   TORCH_SYM_CHECK(
       sym_equals(input_shape.slice(input_ndim - normalized_ndim), normalized_shape),
       expect_input_shape_msg);
+=======
+  TORCH_CHECK(
+      !weight.defined() || weight.sym_sizes().equals(normalized_shape),
+      "Expected weight to be of same shape as normalized_shape, but got ",
+      "weight of shape ",
+      weight.sym_sizes(),
+      " and normalized_shape = ",
+      normalized_shape);
+
+  const auto input_ndim = input.dim();
+  const auto input_shape = input.sym_sizes();
+  if (input_ndim < normalized_ndim ||
+      !input_shape.slice(input_ndim - normalized_ndim)
+           .equals(normalized_shape)) {
+    std::stringstream ss;
+    ss << "Given normalized_shape=" << normalized_shape
+       << ", expected input with shape [*";
+    for (auto size : normalized_shape) {
+      ss << ", " << size;
+    }
+    ss << "], but got input of size" << input_shape;
+    TORCH_CHECK(false, ss.str());
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 C10_ALWAYS_INLINE std::pair<int64_t, int64_t> _check_layer_norm_inputs(
@@ -111,12 +139,15 @@ void layer_norm_cpu_out(
     int64_t M,
     int64_t N);
 
+<<<<<<< HEAD
 std::tuple<Tensor, Tensor> rms_norm_composite(
     const Tensor& input,
     IntArrayRef normalized_shape,
     const std::optional<Tensor>& weight_opt /* optional */,
     std::optional<double> eps);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor rms_norm_symint(
     const Tensor& input,
     c10::SymIntArrayRef normalized_shape,

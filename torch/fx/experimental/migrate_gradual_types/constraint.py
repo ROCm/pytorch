@@ -164,7 +164,11 @@ class TGreatestUpperBound(Constraint):
 
     def __init__(self, res, rhs1, rhs2):
         """
+<<<<<<< HEAD
         :param res: tensor variable that stores the result of the output
+=======
+        :param res: tensor variable that stores the result of the outout
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :param rhs1: tensor or tensor variable
         :param rhs2: tensor or tensor variabke
         """
@@ -407,7 +411,11 @@ class CalcConv(Constraint):
         """
         :param conv_result: the convolution result
         :param input_var: input to convolution
+<<<<<<< HEAD
         :param c_out: output channel type
+=======
+        :param c_out: output chanel type
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         :param kernel: kernel tuple
         """
         self.conv_result = conv_result

@@ -43,7 +43,10 @@ def _simple_graph_snapshot_restoration(
     # simple fast-forwarding. Therefore, we need to call `reset` twice, because if `SnapshotState` is `Restored`,
     # the first reset will not actually reset.
     datapipe.reset()  # This ensures `SnapshotState` is `Iterating` by this point, even if it was `Restored`.
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     apply_random_seed(datapipe, rng)
 
     remainder = n_iterations

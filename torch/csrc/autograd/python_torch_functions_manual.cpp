@@ -622,6 +622,7 @@ void initTorchFunctions(PyObject* module) {
         return impl->was_inductor_storage_resized();
       });
   py_module.def(
+<<<<<<< HEAD
       "_functionalize_inductor_storage_resized_counter",
       [](const at::Tensor& t) {
         TORCH_INTERNAL_ASSERT(
@@ -630,6 +631,8 @@ void initTorchFunctions(PyObject* module) {
         return impl->inductor_storage_resized_counter();
       });
   py_module.def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "_functionalize_are_all_mutations_hidden_from_autograd",
       [](const at::Tensor& t) {
         TORCH_INTERNAL_ASSERT(
@@ -644,6 +647,18 @@ void initTorchFunctions(PyObject* module) {
             at::functionalization::impl::isFunctionalTensor(t));
         at::functionalization::impl::mark_mutation_hidden_from_autograd(t);
       });
+<<<<<<< HEAD
+=======
+  py_module.def(
+      "_functionalize_apply_view_metas",
+      [](const at::Tensor& tensor, const at::Tensor& base) {
+        TORCH_INTERNAL_ASSERT(
+            at::functionalization::impl::isFunctionalTensor(tensor));
+        auto impl =
+            at::functionalization::impl::unsafeGetFunctionalWrapper(tensor);
+        return impl->apply_view_metas(base);
+      });
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py_module.def("_functionalize_is_symbolic", [](const at::Tensor& t) {
     TORCH_INTERNAL_ASSERT(at::functionalization::impl::isFunctionalTensor(t));
     auto impl = at::functionalization::impl::unsafeGetFunctionalWrapper(t);
@@ -697,11 +712,14 @@ void initTorchFunctions(PyObject* module) {
     auto t_impl = at::functionalization::impl::unsafeGetFunctionalWrapper(t);
     return t_impl->has_data_mutation();
   });
+<<<<<<< HEAD
   py_module.def("_functionalize_mutation_counter", [](const at::Tensor& t) {
     TORCH_INTERNAL_ASSERT(at::functionalization::impl::isFunctionalTensor(t));
     auto t_impl = at::functionalization::impl::unsafeGetFunctionalWrapper(t);
     return t_impl->mutation_counter();
   });
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   py_module.def(
       "_functionalize_get_storage_size", [](const at::Tensor& t, bool before) {
         TORCH_INTERNAL_ASSERT(
@@ -711,10 +729,17 @@ void initTorchFunctions(PyObject* module) {
         auto size = wrapper->get_storage_size(/*before=*/before);
         return size;
       });
+<<<<<<< HEAD
   py_module.def("_functionalize_mark_storage_changed", [](const at::Tensor& t) {
     TORCH_INTERNAL_ASSERT(at::functionalization::impl::isFunctionalTensor(t));
     auto wrapper = at::functionalization::impl::unsafeGetFunctionalWrapper(t);
     wrapper->mark_storage_changed();
+=======
+  py_module.def("_functionalize_set_storage_changed", [](const at::Tensor& t) {
+    TORCH_INTERNAL_ASSERT(at::functionalization::impl::isFunctionalTensor(t));
+    auto wrapper = at::functionalization::impl::unsafeGetFunctionalWrapper(t);
+    wrapper->set_storage_changed();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   });
   py_module.def("_functionalize_was_storage_changed", [](const at::Tensor& t) {
     TORCH_INTERNAL_ASSERT(at::functionalization::impl::isFunctionalTensor(t));
@@ -722,6 +747,7 @@ void initTorchFunctions(PyObject* module) {
     return wrapper->was_storage_changed();
   });
   py_module.def(
+<<<<<<< HEAD
       "_functionalize_storage_changed_counter", [](const at::Tensor& t) {
         TORCH_INTERNAL_ASSERT(
             at::functionalization::impl::isFunctionalTensor(t));
@@ -730,6 +756,8 @@ void initTorchFunctions(PyObject* module) {
         return t_impl->storage_changed_counter();
       });
   py_module.def(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "_functionalize_unsafe_set", [](at::Tensor& dst, const at::Tensor& src) {
         // Forcefully/unsafely dumps src.storage into dst.
         // This API is technically and not specific to functionalization

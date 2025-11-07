@@ -55,7 +55,11 @@ class TestIndexingSimplification(InductorTestCase):
             sizevars.simplify_with_ranges(expr, var_ranges),
             i1 + 128 * i2 + 64 * ModularIndexing(r3, 1, 2),
         )
+<<<<<<< HEAD
         # all the modular indexing should be removed when the body can't be larger than the modulus
+=======
+        # all the modular indexing should be removed when the body cant be larger than the modulus
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var_ranges[r3] = 2
         self.assertEqual(
             sizevars.simplify_with_ranges(expr, var_ranges), i1 + 128 * i2 + 64 * r3
@@ -247,13 +251,18 @@ class TestIndexingSimplification(InductorTestCase):
         x = torch.randint(0, 255, (2, 4096, 5504), dtype=torch.uint8, device=GPU_TYPE)
 
         triton_code = run_and_get_triton_code(f, x)
+<<<<<<< HEAD
         # Make sure the 2 load uses simplified indexing rather than something like
+=======
+        # Make sure the 2 load uses simpified indexing rather than something like
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # tl.load(in_ptr0 + ((5504*x1) + (x0 // 2)),
         self.assertEqual(2, triton_code.count("tl.load(in_ptr0 + (x2 // 2),"))
         if DO_PERF_TEST:
             ms = benchmarker.benchmark_gpu(lambda: f(x))
             print(f"{ms=:.03f}")
 
+<<<<<<< HEAD
     @unittest.skipUnless(HAS_GPU, "Need GPU for this test")
     def test_floordiv_div_sympy_is_integer_bug(self):
         def foo(arg0, arg1, arg2, arg3, arg4, sentinel):
@@ -294,6 +303,8 @@ class TestIndexingSimplification(InductorTestCase):
         out_compiled = compiled_foo(arg0, arg1, arg2, arg3, arg4, sentinel)
         out_compiled.sum().backward()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ExprPrinterTests(InductorTestCase):
     def test_print_pow(self):

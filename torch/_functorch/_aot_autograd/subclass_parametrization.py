@@ -90,7 +90,10 @@ def unwrap_tensor_subclass_parameters(module: torch.nn.Module) -> torch.nn.Modul
     """
     for name, tensor in itertools.chain(
         list(module.named_parameters(recurse=False)),
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         list(module.named_buffers(recurse=False)),
     ):
         if is_traceable_wrapper_subclass(tensor):

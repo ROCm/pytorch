@@ -4,9 +4,12 @@
 
 #include <c10/cuda/CUDACachingAllocator.h>
 #include <c10/cuda/CUDAGuard.h>
+<<<<<<< HEAD
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
 #include <c10/cuda/driver_api.h>
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/Exception.h>
 #include <c10/util/irange.h>
 
@@ -15,7 +18,10 @@
 namespace at::cuda {
 
 static std::vector<int8_t> p2pAccessEnabled_;
+<<<<<<< HEAD
 static std::vector<int8_t> fabricAccessEnabled_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static int64_t num_devices_ = -1;
 
 namespace detail {
@@ -33,15 +39,22 @@ void init_p2p_access_cache(int64_t num_devices) {
   for (const auto i : c10::irange(num_devices)) {
     p2pAccessEnabled_[i * num_devices + i] = 1;
   }
+<<<<<<< HEAD
   fabricAccessEnabled_.clear();
   fabricAccessEnabled_.resize(num_devices, -1);
 }
 
 } // namespace detail
+=======
+}
+
+}  // namespace detail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 bool get_p2p_access(c10::DeviceIndex dev, c10::DeviceIndex dev_to_access) {
   at::globalContext().lazyInitDevice(c10::DeviceType::CUDA);
 
+<<<<<<< HEAD
   TORCH_CHECK(dev >= 0 || dev < num_devices_, dev, " is not a device");
   TORCH_CHECK(
       dev_to_access >= 0 || dev_to_access < num_devices_,
@@ -50,6 +63,15 @@ bool get_p2p_access(c10::DeviceIndex dev, c10::DeviceIndex dev_to_access) {
   TORCH_INTERNAL_ASSERT(num_devices_ >= 0, "p2p access cache not initialized");
 
   auto& cache = p2pAccessEnabled_[dev * num_devices_ + dev_to_access];
+=======
+  TORCH_CHECK(dev >= 0 || dev < num_devices_,
+              dev, " is not a device");
+  TORCH_CHECK(dev_to_access >= 0 || dev_to_access < num_devices_,
+              dev_to_access, " is not a device");
+  TORCH_INTERNAL_ASSERT(num_devices_ >= 0, "p2p access cache not initialized");
+
+  auto &cache = p2pAccessEnabled_[dev * num_devices_ + dev_to_access];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   if (cache != -1) {
     return cache;
@@ -65,6 +87,7 @@ bool get_p2p_access(c10::DeviceIndex dev, c10::DeviceIndex dev_to_access) {
   return cache;
 }
 
+<<<<<<< HEAD
 namespace {
 #if !defined USE_ROCM && defined CUDA_VERSION && CUDA_VERSION >= 12040 && defined PYTORCH_C10_DRIVER_API_SUPPORTED
 
@@ -180,3 +203,6 @@ bool get_fabric_access(c10::DeviceIndex dev) {
 }
 
 } // namespace at::cuda
+=======
+}  // namespace at::cuda::detail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

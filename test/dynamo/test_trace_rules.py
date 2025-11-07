@@ -126,7 +126,11 @@ def gen_allowed_objs_and_ids(record=False, c_binding_only=True) -> AllowedObject
     torch_name_rule_map = {}
 
     # In some platforms, these functions were loaded as classes instead of functions.
+<<<<<<< HEAD
     # To mitigate these weird cases, we need this special check.
+=======
+    # To mitigate these weired cases, we need this special check.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def is_special_functions(obj):
         return hashable(obj) and obj in {
             torch._C._cuda_isCurrentStreamCapturing,

@@ -1,5 +1,9 @@
 #include <torch/csrc/autograd/function.h>
 #include <torch/csrc/profiler/collection.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/profiler/kineto_shim.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/profiler/util.h>
 
 #include <c10/util/ArrayRef.h>

@@ -190,12 +190,20 @@ def map_job_data(jobNames: Any, shaGrid: Any) -> dict[str, Any]:
 
 
 def is_job_failed(job: Any) -> bool:
+<<<<<<< HEAD
     conclusion = job.get("conclusion", None)
+=======
+    conclusion = job["conclusion"] if "conclusion" in job else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return conclusion is not None and conclusion != SUCCESS and conclusion != PENDING
 
 
 def is_job_skipped(job: Any) -> bool:
+<<<<<<< HEAD
     conclusion = job.get("conclusion", None)
+=======
+    conclusion = job["conclusion"] if "conclusion" in job else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return conclusion in (NEUTRAL, SKIPPED) or conclusion is None
 
 

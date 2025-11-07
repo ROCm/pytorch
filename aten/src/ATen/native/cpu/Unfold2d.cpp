@@ -13,7 +13,11 @@ namespace at::native {
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void cadd(
+=======
+static inline void cadd(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* z,
     const scalar_t* x,
     const scalar_t* y,
@@ -34,7 +38,11 @@ inline void cadd(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void unfolded2d_acc(
+=======
+static void unfolded2d_acc(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* finput_data,
     scalar_t* input_data,
     int64_t kH,
@@ -113,7 +121,11 @@ void unfolded2d_acc(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void unfolded2d_acc_channels_last(
+=======
+static void unfolded2d_acc_channels_last(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scalar_t* finput_data,
     scalar_t* input_data,
     int64_t kH,
@@ -169,10 +181,13 @@ void unfolded2d_acc_channels_last(
 
 /* note: due to write issues, this one cannot be parallelized as well as
  * unfolded2d_copy */
+<<<<<<< HEAD
 #if defined(__GNUC__) && __GNUC__ == 14 && defined(__ARM_FEATURE_SVE) && !defined(__ARM_FEATURE_BF16)
 // Workaround for gcc-14.2.0 ICE during RTL pass: vregs when compiling for SVE without BF16
 __attribute__((optimize("no-tree-vectorize")))
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void unfolded2d_acc_kernel(
     ScalarType dtype,
     void *finput_data,
@@ -225,7 +240,11 @@ void unfolded2d_acc_kernel(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void unfolded2d_copy(
+=======
+static void unfolded2d_copy(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const scalar_t* input_data,
     scalar_t* finput_data,
     int64_t kH,
@@ -240,7 +259,11 @@ void unfolded2d_copy(
     int64_t output_height,
     int64_t output_width) {
   at::parallel_for(
+<<<<<<< HEAD
       0, n_input_plane * kH * kW, 0, [&](int64_t start, int64_t end) {
+=======
+      0, (int64_t)n_input_plane * kH * kW, 0, [&](int64_t start, int64_t end) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for (const auto k : c10::irange(start, end)) {
           int64_t nip = k / (kH * kW);
           int64_t rest = k % (kH * kW);
@@ -316,7 +339,11 @@ void unfolded2d_copy(
                 for (int64_t x = 0; x < output_width; x++)
                   memcpy(
                       dst + (size_t)y * output_width + x,
+<<<<<<< HEAD
                       src + (size_t)iy * input_width + ix + x * dW,
+=======
+                      src + (size_t)iy * input_width + ix + (int64_t)x * dW,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                       sizeof(scalar_t) * (1));
               }
             }
@@ -326,7 +353,11 @@ void unfolded2d_copy(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void unfolded2d_copy_channels_last(
+=======
+static void unfolded2d_copy_channels_last(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const scalar_t* input_data,
     scalar_t* finput_data,
     int64_t kH,

@@ -976,7 +976,11 @@ class TestEinsum(TestCase):
         # Test originally added to cover broken float16 path: gh-20305
         # Likely most are covered elsewhere, at least partially.
         dtype = np.dtype(dtype)
+<<<<<<< HEAD
         # Simple test, designed to exercise most specialized code paths,
+=======
+        # Simple test, designed to excersize most specialized code paths,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # note the +0.5 for floats.  This makes sure we use a float value
         # where the results must be exact.
         arr = (np.arange(7) + 0.5).astype(dtype)
@@ -1160,7 +1164,11 @@ class TestEinsum(TestCase):
     @xfail  # (reason="order='F' not supported")
     def test_output_order(self):
         # Ensure output order is respected for optimize cases, the below
+<<<<<<< HEAD
         # contraction should yield a reshaped tensor view
+=======
+        # conraction should yield a reshaped tensor view
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # gh-16415
 
         a = np.ones((2, 3, 5), order="F")

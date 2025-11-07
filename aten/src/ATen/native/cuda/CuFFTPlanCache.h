@@ -223,7 +223,11 @@ inline CuFFTDataLayout as_cufft_embed(IntArrayRef strides, IntArrayRef sizes, bo
 class CuFFTConfig {
 public:
 
+<<<<<<< HEAD
   // Only move semantics is enough for this class. Although we already use
+=======
+  // Only move semantics is enought for this class. Although we already use
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // unique_ptr for the plan, still remove copy constructor and assignment op so
   // we don't accidentally copy and take perf hit.
   CuFFTConfig(const CuFFTConfig&) = delete;

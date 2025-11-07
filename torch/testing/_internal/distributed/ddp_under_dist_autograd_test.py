@@ -192,7 +192,11 @@ class Trainer:
         self.hybrid_module = HybridModel(
             self.remote_em_rref,
             self.remote_net_rref,
+<<<<<<< HEAD
             self.trainer_group if ddp_mode == DdpMode.INSIDE else None,
+=======
+            self.trainer_group if ddp_mode in (DdpMode.INSIDE,) else None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.ddp_params, self.non_ddp_params = (
             self.hybrid_module.ddp_params,
@@ -238,9 +242,13 @@ class Trainer:
             sparse_microbatch = torch.split(sparse_features, 2)
             values_microbatch = torch.split(values, 2)
             batches = []
+<<<<<<< HEAD
             for d, s, v in zip(
                 dense_microbatch, sparse_microbatch, values_microbatch, strict=True
             ):
+=======
+            for d, s, v in zip(dense_microbatch, sparse_microbatch, values_microbatch):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 feature_set = FeatureSet(dense_features=d, sparse_features=s, values=v)
                 batches.append(feature_set)
 
@@ -255,11 +263,15 @@ class Trainer:
             else:
                 input_batches = batches
 
+<<<<<<< HEAD
         with (
             self.hybrid_module.join()
             if simulate_uneven_inputs
             else contextlib.nullcontext()
         ):
+=======
+        with self.hybrid_module.join() if simulate_uneven_inputs else contextlib.nullcontext():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for b in input_batches:
                 with dist_autograd.context() as context_id:
                     output = self.hybrid_module.forward(b)
@@ -267,7 +279,12 @@ class Trainer:
                     dist_autograd.backward(context_id, [loss])
                     grads_dict = dist_autograd.get_gradients(context_id)
                     gLogger.info(
+<<<<<<< HEAD
                         "Loss is %s for mini batch: %s. Grads dict has %s entries: %s",
+=======
+                        "Loss is %s for mini batch: %s. "
+                        "Grads dict has %s entries: %s",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         loss,
                         mini_batch,
                         len(grads_dict),

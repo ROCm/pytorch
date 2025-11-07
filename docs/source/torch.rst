@@ -122,7 +122,10 @@ Indexing, Slicing, Joining, Mutating Ops
     slice_scatter
     scatter_add
     scatter_reduce
+<<<<<<< HEAD
     segment_reduce
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     split
     squeeze
     stack
@@ -146,7 +149,11 @@ Indexing, Slicing, Joining, Mutating Ops
 Accelerators
 ----------------------------------
 Within the PyTorch repo, we define an "Accelerator" as a :class:`torch.device` that is being used
+<<<<<<< HEAD
 alongside a CPU to speed up computation. These devices use an asynchronous execution scheme,
+=======
+alongside a CPU to speed up computation. These device use an asynchronous execution scheme,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 using :class:`torch.Stream` and :class:`torch.Event` as their main way to perform synchronization.
 We also assume that only one such accelerator can be available at once on a given host. This allows
 us to use the current accelerator as the default device for relevant concepts such as pinned memory,
@@ -475,7 +482,10 @@ Reduction Ops
     var
     var_mean
     count_nonzero
+<<<<<<< HEAD
     hash_tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 Comparison Ops
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -806,6 +816,10 @@ Operator Tags
 .. for tracking purposes
 .. py:module:: torch.utils.model_dump
 .. py:module:: torch.utils.viz
+<<<<<<< HEAD
+=======
+.. py:module:: torch.functional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. py:module:: torch.quasirandom
 .. py:module:: torch.return_types
 .. py:module:: torch.serialization
@@ -815,6 +829,7 @@ Operator Tags
 .. py:module:: torch.torch_version
 .. py:module:: torch.types
 .. py:module:: torch.version
+<<<<<<< HEAD
 
 .. Compiler configuration module - documented in torch.compiler.config.md
 .. py:module:: torch.compiler.config
@@ -826,3 +841,5 @@ Operator Tags
     :hidden:
 
     torch.aliases.md
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

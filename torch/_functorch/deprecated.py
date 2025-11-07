@@ -10,8 +10,12 @@ documentation.
 
 import textwrap
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch._functorch.apis as apis
 import torch._functorch.eager_transforms as _impl

@@ -1,7 +1,10 @@
 # Owner(s): ["oncall: distributed"]
 
 import itertools
+<<<<<<< HEAD
 from typing import Any
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.distributed.device_mesh import init_device_mesh
@@ -10,6 +13,7 @@ from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
 from torch.distributed.tensor._utils import (
     _compute_local_shape_and_global_offset,
     _explicit_order_placements,
+<<<<<<< HEAD
     compute_global_tensor_info,
     compute_global_tensor_shape,
     compute_local_shape_and_global_offset,
@@ -23,6 +27,13 @@ from torch.distributed.tensor.placement_types import (
     Replicate,
     Shard,
 )
+=======
+    compute_global_tensor_shape,
+    compute_local_shape_and_global_offset,
+)
+from torch.distributed.tensor.debug import CommDebugMode
+from torch.distributed.tensor.placement_types import _StridedShard, Replicate, Shard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests, TestCase
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
@@ -188,7 +199,11 @@ class UtilTest(DTensorTestBase):
         )
         with self.assertRaisesRegex(
             RuntimeError,
+<<<<<<< HEAD
             "Non-sharded dimensions should have identical size across ranks.",
+=======
+            "Non-sharded dimentions should have identical size across ranks.",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             _ = compute_global_tensor_shape(
                 local_shape,
@@ -451,6 +466,7 @@ class UtilTest(DTensorTestBase):
             )
 
 
+<<<<<<< HEAD
 class UtilSingleDeviceTest(TestCase):
     def test_compute_global_tensor_info_unsupported_placement(self):
         class MockDeviceMesh:
@@ -550,6 +566,8 @@ class UtilSingleDeviceTest(TestCase):
         torch.distributed.destroy_process_group()
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestStridedSharding(DTensorTestBase):
     @property
     def world_size(self):
@@ -746,6 +764,7 @@ class TestStridedSharding(DTensorTestBase):
         )
         self.assertEqual(full_tensor, x)
 
+<<<<<<< HEAD
     @with_comms
     def test_2d_mesh_uneven_strided_shard(self):
         mesh = init_device_mesh(
@@ -765,6 +784,8 @@ class TestStridedSharding(DTensorTestBase):
             )
             self.assertEqual(dtensor.full_tensor(), tensor)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class Test2DStridedLocalShard(DTensorTestBase):
     @property

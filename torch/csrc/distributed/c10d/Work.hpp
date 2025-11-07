@@ -110,6 +110,7 @@ class TORCH_API Work : public torch::CustomClassHolder {
   //
   virtual bool wait(std::chrono::milliseconds timeout = kNoTimeout);
 
+<<<<<<< HEAD
   // Blocks the current stream until the work is completed.
   // This is equivalent to synchronize for CUDA tensors but works for both CPU
   // tensors and CUDA tensors by using a spinlock CUDA kernel.
@@ -117,6 +118,8 @@ class TORCH_API Work : public torch::CustomClassHolder {
   // If no stream is active it will throw an error.
   virtual void blockCurrentStream();
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void abort();
 
   // Returns a Future object that will be associated with the completion of
@@ -135,7 +138,11 @@ class TORCH_API Work : public torch::CustomClassHolder {
   OpType retrieveOpType() const;
 
   static c10::intrusive_ptr<Work> create_from_future(
+<<<<<<< HEAD
       const c10::intrusive_ptr<c10::ivalue::Future>& /*future*/);
+=======
+      const c10::intrusive_ptr<c10::ivalue::Future>&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  protected:
   // Completes the work object and optionally sets the exception in a
@@ -166,8 +173,13 @@ struct TORCH_API WorkInfo {
   WorkInfo(
       const OpType& opType,
       const uint64_t seq,
+<<<<<<< HEAD
       const std::chrono::time_point<std::chrono::steady_clock>& timeStarted,
       const std::chrono::time_point<std::chrono::steady_clock>& timeFinished,
+=======
+      const std::chrono::time_point<std::chrono::system_clock>& timeStarted,
+      const std::chrono::time_point<std::chrono::system_clock>& timeFinished,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const std::chrono::duration<float>& activeDuration)
       : opType(opType),
         seq(seq),
@@ -177,8 +189,13 @@ struct TORCH_API WorkInfo {
 
   OpType opType;
   uint64_t seq;
+<<<<<<< HEAD
   std::chrono::time_point<std::chrono::steady_clock> timeStarted;
   std::chrono::time_point<std::chrono::steady_clock> timeFinished;
+=======
+  std::chrono::time_point<std::chrono::system_clock> timeStarted;
+  std::chrono::time_point<std::chrono::system_clock> timeFinished;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::chrono::duration<float> activeDuration;
 };
 

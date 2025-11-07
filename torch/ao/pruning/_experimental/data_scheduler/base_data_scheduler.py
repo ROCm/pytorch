@@ -158,7 +158,10 @@ class BaseDataScheduler:
                     "initialization. Please, make sure to call `data_sparsifier.step()` before "
                     "`scheduler.step()`.",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             # Just check if there were two first scheduler.step() calls before sparsifier.step()
@@ -168,7 +171,10 @@ class BaseDataScheduler:
                     "You have to make sure you run the data_sparsifier.step() BEFORE any "
                     "calls to the scheduler.step().",
                     UserWarning,
+<<<<<<< HEAD
                     stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
         self._step_count += 1
 

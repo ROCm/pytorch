@@ -103,6 +103,12 @@ def _reparametrize_module(
     strict: bool = False,
     stack_weights: bool = False,
 ):
+<<<<<<< HEAD
+=======
+    parameters_and_buffers = parameters_and_buffers
+    stack_weights = stack_weights
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if tie_weights:
         untied_parameters_and_buffers = _untie_named_tensors_map(
             module, parameters_and_buffers

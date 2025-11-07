@@ -1,5 +1,9 @@
 # Owner(s): ["oncall: distributed"]
 
+<<<<<<< HEAD
+=======
+import re
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 
 import torch
@@ -12,15 +16,22 @@ from torch.testing._internal.common_device_type import (
     dtypes,
     instantiate_device_type_tests,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_distributed import (
     MultiProcContinuousTest,
     skip_if_lt_x_gpu,
 )
+=======
+from torch.testing._internal.common_distributed import MultiProcContinousTest
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     IS_WINDOWS,
     load_tests,
     NoTest,
+<<<<<<< HEAD
     requires_cuda_p2p_access,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     run_tests,
     skip_but_pass_in_sandcastle_if,
     TEST_WITH_ROCM,
@@ -28,9 +39,21 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
 load_tests = load_tests  # noqa: PLW0127
+=======
+HIP_VERSION = (
+    0.0
+    if torch.version.hip is None
+    else float(re.search(r"^\d+\.\d+", torch.version.hip)[0])
+)
+
+# load_tests from common_utils is used to automatically filter tests for
+# sharding on sandcastle. This line silences flake warnings
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 nGPUs = torch.cuda.device_count()
 if not TEST_CUDA:
@@ -59,6 +82,12 @@ class TestNCCL(TestCase):
         self.assertIsInstance(uid, bytes)
         self.assertGreater(len(uid), 1)
 
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5, "Skip NCCL tests for ROCm"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "only one GPU detected")
     @dtypes(*broadcast_dtypes)
@@ -81,6 +110,12 @@ class TestNCCL(TestCase):
         for i in range(torch.cuda.device_count()):
             self.assertEqual(tensors[i], expected)
 
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5, "Skip NCCL tests for ROCm"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "only one GPU detected")
     @dtypes(*datatypes)
@@ -105,6 +140,13 @@ class TestNCCL(TestCase):
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "only one GPU detected")
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5 and dtype == torch.bfloat16,  # noqa: F821
+        "Skip bfloat16 test for ROCm < 3.5",
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(*datatypes)
     def test_all_reduce(self, device, dtype):
         cpu_tensors = [
@@ -134,6 +176,12 @@ class TestNCCL(TestCase):
         for tensor in tensors:
             self.assertEqual(tensor, expected)
 
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5, "Skip NCCL tests for ROCm"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     def test_collective_errors(self, device):
         t = torch.rand(10).cuda(0)
@@ -162,6 +210,12 @@ class TestNCCL(TestCase):
         ):
             nccl.reduce_scatter(t, t)
 
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5, "Skip NCCL tests for ROCm"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "only one GPU detected")
     @dtypes(*datatypes)
@@ -188,6 +242,12 @@ class TestNCCL(TestCase):
         for tensor in outputs:
             self.assertEqual(tensor, expected)
 
+<<<<<<< HEAD
+=======
+    @skip_but_pass_in_sandcastle_if(
+        TEST_WITH_ROCM and HIP_VERSION < 3.5, "Skip NCCL tests for ROCm"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "only one GPU detected")
     @dtypes(*datatypes)
@@ -219,6 +279,7 @@ class TestNCCL(TestCase):
             self.assertEqual(outputs[i], expected[i])
 
 
+<<<<<<< HEAD
 @requires_cuda_p2p_access()
 class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
     @property
@@ -234,6 +295,26 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         # Need this all_reduce to initialize NCCL communicator. Otherwise, the
         # test will hang.  TODO: investigate how NCCLSymmetricMemory can
         # initialize NCCL communicator.
+=======
+device_type = "cuda"
+device_module = torch.get_device_module(device_type)
+
+
+class NCCLSymmetricMemoryTest(MultiProcContinousTest):
+    def _init_device(self) -> None:
+        # TODO: relieve this (seems to hang if without)
+        device_module.set_device(self.device)
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device(device_type, self.rank)
+
+    # To run this test, one needs to TORCH_SYMMMEM=NCCL when running the test.
+    @skip_but_pass_in_sandcastle_if(TEST_WITH_ROCM, "Skip NCCL tests for ROCm")
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    def test_nccl_symmem_alloc(self):
+        self._init_device()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         c10d.all_reduce(torch.ones(1, device=self.device))
         group_name = c10d.group.WORLD.group_name
         symm_mem.enable_symm_mem_for_group(group_name)

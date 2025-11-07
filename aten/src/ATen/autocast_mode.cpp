@@ -36,7 +36,11 @@ namespace {
 using weakref_type = c10::weak_intrusive_ptr<TensorImpl, UndefinedTensorImpl>;
 using val_type = std::tuple<weakref_type, Tensor>;
 
+<<<<<<< HEAD
 ska::flat_hash_map<TensorImpl*, val_type>& get_cached_casts() {
+=======
+static ska::flat_hash_map<TensorImpl*, val_type>& get_cached_casts() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static ska::flat_hash_map<TensorImpl*, val_type> cached_casts;
   return cached_casts;
 }
@@ -148,7 +152,11 @@ Tensor cached_cast(at::ScalarType to_type, const Tensor& arg, DeviceType device_
 Banned functions
 *******************************/
 
+<<<<<<< HEAD
 static Tensor binary_cross_entropy_banned(const Tensor & /*unused*/, const Tensor & /*unused*/, const std::optional<Tensor>& /*unused*/, int64_t /*unused*/) {
+=======
+static Tensor binary_cross_entropy_banned(const Tensor &, const Tensor &, const std::optional<Tensor>&, int64_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "torch.nn.functional.binary_cross_entropy and torch.nn.BCELoss are unsafe to autocast.\n"
            "Many models use a sigmoid layer right before the binary cross entropy layer.\n"
            "In this case, combine the two layers using torch.nn.functional.binary_cross_entropy_with_logits\n"
@@ -216,7 +224,10 @@ TORCH_LIBRARY_IMPL(aten, AutocastMPS, m) {
   KERNEL_MPS(_convolution, lower_precision_fp)
   KERNEL_MPS(conv1d, lower_precision_fp)
   KERNEL_MPS(conv2d, lower_precision_fp)
+<<<<<<< HEAD
   KERNEL_MPS(conv3d, lower_precision_fp)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   KERNEL_MPS(conv_tbc, lower_precision_fp)
   KERNEL_MPS(conv_transpose1d, lower_precision_fp)
   KERNEL_MPS(conv_transpose2d, input, lower_precision_fp)
@@ -240,7 +251,10 @@ TORCH_LIBRARY_IMPL(aten, AutocastMPS, m) {
   KERNEL_MPS(scaled_dot_product_attention, lower_precision_fp)
 
   // fp32
+<<<<<<< HEAD
   KERNEL_MPS(conv_transpose3d, input, fp32)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   KERNEL_MPS(acos, fp32)
   KERNEL_MPS(asin, fp32)
   KERNEL_MPS(cosh, fp32)

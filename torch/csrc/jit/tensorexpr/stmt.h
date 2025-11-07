@@ -586,7 +586,11 @@ class TORCH_API LoopOptions {
     }
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+<<<<<<< HEAD
     static constexpr const char* kBlockIndexNames[] = {
+=======
+    static const char* kBlockIndexNames[] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "blockIdx.x",
         "blockIdx.y",
         "blockIdx.z",
@@ -629,7 +633,11 @@ class TORCH_API LoopOptions {
     }
 
     // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+<<<<<<< HEAD
     static constexpr const char* kThreadIndexNames[] = {
+=======
+    static const char* kThreadIndexNames[] = {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "threadIdx.x", "threadIdx.y", "threadIdx.z", "threadIdx.w"};
 
     if (gpu_thread_index_ < IDX_X || gpu_thread_index_ > IDX_MAX) {

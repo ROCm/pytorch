@@ -1,8 +1,12 @@
 import collections
 import functools
 import inspect
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, final, Optional, Union
+=======
+from typing import Any, Callable, final, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 from ..utils import is_function_or_wrapper
@@ -18,7 +22,10 @@ class LazyCache:
             assert source
         self.value = value
         self.source = source
+<<<<<<< HEAD
         self.name_hint: Optional[str] = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.vt: Optional[VariableTracker] = None
 
     def realize(self) -> None:
@@ -33,6 +40,7 @@ class LazyCache:
         else:
             self.vt = builder.VariableBuilder(tx, self.source)(self.value)
 
+<<<<<<< HEAD
         if self.name_hint is not None:
             # pyrefly: ignore [missing-attribute]
             self.vt.set_name_hint(self.name_hint)
@@ -40,6 +48,10 @@ class LazyCache:
         del self.value
         del self.source
         del self.name_hint
+=======
+        del self.value
+        del self.source
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @final
@@ -99,6 +111,7 @@ class LazyVariableTracker(VariableTracker):
         assert not self.is_realized()
         return self._cache.value
 
+<<<<<<< HEAD
     def set_name_hint(self, name: str) -> None:
         if self.is_realized():
             self._cache.vt.set_name_hint(name)  # type: ignore[union-attr]
@@ -113,6 +126,12 @@ class LazyVariableTracker(VariableTracker):
             variable_info += f"unrealized: {self.peek_type()})"
 
         return variable_info
+=======
+    def __str__(self) -> str:
+        if self.is_realized():
+            return repr(self.unwrap())
+        return super().__repr__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __getattr__(self, item: str) -> Any:
         return getattr(self.realize(), item)

@@ -1,6 +1,9 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/core/Tensor.h>
+<<<<<<< HEAD
 #include <ATen/Dispatch.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ceil_div.h>
 #include <ATen/native/cuda/Loops.cuh>
 #include <c10/cuda/CUDAGuard.h>
@@ -22,11 +25,18 @@
 namespace at::native {
 
 namespace {
+<<<<<<< HEAD
 template <typename T>
 __global__ void ChooseQuantizationParamsKernelImpl(
     const int64_t* fake_quant_on,
     const T* x_min,
     const T* x_max,
+=======
+__global__ void ChooseQuantizationParamsKernelImpl(
+    const int64_t* fake_quant_on,
+    const float* x_min,
+    const float* x_max,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     int32_t qmin,
     int32_t qmax,
     int size,
@@ -95,6 +105,7 @@ __global__ void ChooseQuantizationParamsKernelImpl(
   }
 }
 
+<<<<<<< HEAD
 __device__ inline bool isinf_device(float v) {
   return ::isinf(v);
 }
@@ -105,12 +116,15 @@ __device__ inline bool isinf_device(at::Half v) {
   return ::isinf(static_cast<float>(v));
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // CUDA kernel to compute Moving Average Min/Max of the tensor.
 // It uses the running_min and running_max along with averaging const, c.
 // The formula used to compute the new min/max is as follows
 //
 // running_min = (1 - c) * running_min + c * x_min, if running_min != inf
 // running_min = x_min, if running_min == inf
+<<<<<<< HEAD
 template <typename T>
 __global__ void MovingAverageMinMax(
     const int64_t* observer_on,
@@ -118,12 +132,21 @@ __global__ void MovingAverageMinMax(
     const T* x_max,
     T* running_min,
     T* running_max,
+=======
+__global__ void MovingAverageMinMax(
+    const int64_t* observer_on,
+    const float* x_min,
+    const float* x_max,
+    float* running_min,
+    float* running_max,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const float averaging_const,
     const int size) {
   int i = blockIdx.x * blockDim.x + threadIdx.x;
 
   if (*observer_on == 1) {
     if (i < size) {
+<<<<<<< HEAD
       T curr_min = x_min[i];
       T curr_max = x_max[i];
 
@@ -136,6 +159,18 @@ __global__ void MovingAverageMinMax(
       T adjusted_max = isinf_device(running_max[i]) ? curr_max
                                                     : (running_max[i]) +
               averaging_const_t * (curr_max - (running_max[i]));
+=======
+      float curr_min = x_min[i];
+      float curr_max = x_max[i];
+
+      float adjusted_min = ::isinf(running_min[i])
+          ? curr_min
+          : (running_min[i]) + averaging_const * (curr_min - (running_min[i]));
+
+      float adjusted_max = ::isinf(running_max[i])
+          ? curr_max
+          : (running_max[i]) + averaging_const * (curr_max - (running_max[i]));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       running_min[i] = adjusted_min;
       running_max[i] = adjusted_max;
@@ -157,10 +192,16 @@ void _calculate_moving_average(
   at::Tensor x_min, x_max;
 
   int64_t* observer_on_data = observer_on.data_ptr<int64_t>();
+<<<<<<< HEAD
+=======
+  float* running_min_data = running_min.data_ptr<float>();
+  float* running_max_data = running_max.data_ptr<float>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   cudaStream_t cuda_stream = at::cuda::getCurrentCUDAStream();
 
   if (per_row_fq) {
     std::tie(x_min, x_max) = at::aminmax(x, 1);
+<<<<<<< HEAD
     int num_threads = std::min(size, (int64_t)512);
     const uint64_t num_blocks = ceil_div<uint64_t>(size, num_threads);
     AT_DISPATCH_FLOATING_TYPES_AND2(
@@ -202,6 +243,36 @@ void _calculate_moving_average(
               averaging_const,
               1 /*size*/);
         });
+=======
+    float* x_min_data = x_min.data_ptr<float>();
+    float* x_max_data = x_max.data_ptr<float>();
+    int num_threads = std::min(size, (int64_t)512);
+    const uint64_t num_blocks = ceil_div<uint64_t>(size, num_threads);
+
+    // Moving Average Min/Max observer for activations
+    MovingAverageMinMax<<<num_blocks, num_threads, 0, cuda_stream>>>(
+        observer_on_data,
+        x_min_data,
+        x_max_data,
+        running_min_data,
+        running_max_data,
+        averaging_const,
+        size);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  } else {
+    std::tie(x_min, x_max) = at::aminmax(x);
+    float* x_min_data = x_min.data_ptr<float>();
+    float* x_max_data = x_max.data_ptr<float>();
+    // Moving Average Min/Max observer for activations
+    MovingAverageMinMax<<<1, 1, 0, cuda_stream>>>(
+        observer_on_data,
+        x_min_data,
+        x_max_data,
+        running_min_data,
+        running_max_data,
+        averaging_const,
+        1 /*size*/);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
 }
@@ -224,6 +295,7 @@ void _calc_moving_avg_qparams_helper(
   cudaStream_t cuda_stream = at::cuda::getCurrentCUDAStream();
   int64_t* fake_quant_on_data = fake_quant_on.data_ptr<int64_t>();
   if (per_row_fq) {
+<<<<<<< HEAD
     AT_DISPATCH_FLOATING_TYPES_AND2(
         at::kBFloat16, at::kHalf, x.scalar_type(), "aminmax_kernel", [&] {
           scalar_t* running_min_data = running_min.data_ptr<scalar_t>();
@@ -262,6 +334,36 @@ void _calc_moving_avg_qparams_helper(
               scale_ptr,
               zp_ptr);
         });
+=======
+    float* running_min_data = running_min.data_ptr<float>();
+    float* running_max_data = running_max.data_ptr<float>();
+    int num_threads = std::min(size, (int64_t)512);
+    const uint64_t num_blocks = ceil_div<uint64_t>(size, num_threads);
+    ChooseQuantizationParamsKernelImpl<<<num_blocks, num_threads, 0, cuda_stream>>>(
+        fake_quant_on_data,
+        running_min_data,
+        running_max_data,
+        qmin,
+        qmax,
+        size,
+        symmetric_quant,
+        scale_ptr,
+        zp_ptr);
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+  } else {
+    float* running_min_data = running_min.data_ptr<float>();
+    float* running_max_data = running_max.data_ptr<float>();
+    ChooseQuantizationParamsKernelImpl<<<1, 1, 0, cuda_stream>>>(
+        fake_quant_on_data,
+        running_min_data,
+        running_max_data,
+        qmin,
+        qmax,
+        1, // size
+        symmetric_quant, // preserve_sparsity
+        scale_ptr,
+        zp_ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     C10_CUDA_KERNEL_LAUNCH_CHECK();
   }
 }

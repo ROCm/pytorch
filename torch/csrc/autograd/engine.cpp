@@ -707,8 +707,14 @@ void GraphTask::mark_as_completed_and_run_post_processing() {
 }
 
 void GraphTask::exec_post_processing() {
+<<<<<<< HEAD
   TORCH_CHECK(
       not_ready_.empty(), "could not compute gradients for some functions");
+=======
+  if (!not_ready_.empty()) {
+    throw std::runtime_error("could not compute gradients for some functions");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // set the thread_local current_graph_task_ as more callbacks can be installed
   // by existing final callbacks.
@@ -948,6 +954,7 @@ static void validate_outputs_impl(
     TORCH_CHECK(
         isFloatingType(grad.scalar_type()) ||
         (input_is_complex == grad_is_complex));
+<<<<<<< HEAD
 
     if (metadata.grad_dtype().has_value()) {
       if (grad.scalar_type() != metadata.grad_dtype().value()) {
@@ -959,6 +966,17 @@ static void validate_outputs_impl(
         ss << metadata.grad_dtype().value() << " but got " << grad.dtype();
         TORCH_CHECK(false, format_error(ss.str()));
       }
+=======
+    if (c10::typeMetaToScalarType(metadata.options().dtype()) !=
+        grad.scalar_type()) {
+      grad = grad.to(c10::typeMetaToScalarType(metadata.options().dtype()));
+    }
+    if (grad.dtype() != metadata.dtype()) {
+      std::stringstream ss;
+      ss << "invalid gradient at index " << i << " - expected dtype ";
+      ss << metadata.dtype() << " but got " << grad.dtype();
+      TORCH_CHECK(false, format_error(ss.str()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     if (grad.layout() != metadata.layout()) {
       // TODO: Currently we only support (*, Sparse) combination for
@@ -980,6 +998,7 @@ static void validate_outputs_impl(
     }
 
     if (grad.device() != metadata.device()) {
+<<<<<<< HEAD
       if (grad.dim() == 0) {
         grad = grad.to(metadata.device());
       } else {
@@ -987,6 +1006,15 @@ static void validate_outputs_impl(
         // should be eventually removed
         if (!(metadata.is_tensor_subclass() ||
               grad.unsafeGetTensorImpl()->is_python_dispatch())) {
+=======
+      // quick hack for: https://github.com/pytorch/pytorch/issues/65016 but
+      // should be eventually removed
+      if (!(metadata.is_tensor_subclass() ||
+            grad.unsafeGetTensorImpl()->is_python_dispatch())) {
+        if (grad.dim() == 0) {
+          grad = grad.to(metadata.device());
+        } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           std::stringstream ss;
           ss << "invalid gradient at index " << i << " - expected device ";
           ss << metadata.device() << " but got " << grad.device();
@@ -1150,6 +1178,7 @@ void Engine::evaluate_function(
     for (const auto i : c10::irange(num_outputs)) {
       auto& output = outputs[i];
       at::OptionalDeviceGuard guard(device_of(output));
+<<<<<<< HEAD
       TORCH_CHECK(
           !output.defined() || !isnan(output)._is_any_true().item<bool>(),
           "Function '",
@@ -1157,6 +1186,14 @@ void Engine::evaluate_function(
           "' returned nan values in its ",
           i,
           "th output.");
+=======
+      if (output.defined() && isnan(output)._is_any_true().item<bool>()) {
+        std::stringstream ss;
+        ss << "Function '" << fn.name() << "' returned nan values in its " << i
+           << "th output.";
+        throw std::runtime_error(ss.str());
+      }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -1177,7 +1214,11 @@ void Engine::evaluate_function(
 
     if (it == dependencies.end()) {
       auto name = next.function->name();
+<<<<<<< HEAD
       TORCH_CHECK(false, "dependency not found for ", name);
+=======
+      throw std::runtime_error(std::string("dependency not found for ") + name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else if (--it->second == 0) {
       dependencies.erase(it);
       is_ready = true;

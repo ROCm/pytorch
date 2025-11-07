@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import Tensor
@@ -36,6 +40,7 @@ class APoTFakeQuantize(FakeQuantizeBase):
             self.level_indices = result[3]
 
         if self.fake_quant_enabled[0] == 1:
+<<<<<<< HEAD
             if (
                 self.alpha is None
                 or self.gamma is None
@@ -46,4 +51,17 @@ class APoTFakeQuantize(FakeQuantizeBase):
             X = fake_quantize_function.apply(
                 X, self.alpha, self.gamma, self.quantization_levels, self.level_indices
             )
+=======
+            assert (
+                self.alpha is not None
+                and self.gamma is not None
+                and self.quantization_levels is not None
+                and self.level_indices is not None
+            ), "Must set qparams for fake quant"
+
+            X = fake_quantize_function.apply(
+                X, self.alpha, self.gamma, self.quantization_levels, self.level_indices
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return X

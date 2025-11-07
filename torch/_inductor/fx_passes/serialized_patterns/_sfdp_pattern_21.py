@@ -121,6 +121,7 @@ _sfdp_pattern_21_inference = CallFunction(aten.view.default, bmm_default_1, Igno
 
 permute_default = CallFunction(aten.permute.default, KeywordArg('query'), Ignored())
 expand_default = CallFunction(aten.expand.default, permute_default, Ignored())
+<<<<<<< HEAD
 view_default = CallFunction(aten.view.default, expand_default, Ignored(), _users=2)
 permute_default_1 = CallFunction(aten.permute.default, KeywordArg('key'), Ignored())
 permute_default_2 = CallFunction(aten.permute.default, permute_default_1, Ignored())
@@ -203,6 +204,8 @@ _sfdp_pattern_21_bs1_inference = CallFunction(aten.view.default, bmm_default_1, 
 
 permute_default = CallFunction(aten.permute.default, KeywordArg('query'), Ignored())
 expand_default = CallFunction(aten.expand.default, permute_default, Ignored())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 clone_default = CallFunction(aten.clone.default, expand_default, memory_format=torch.contiguous_format)
 view_default = CallFunction(aten.view.default, clone_default, Ignored(), _users=2)
 permute_default_1 = CallFunction(aten.permute.default, KeywordArg('key'), Ignored())
@@ -297,6 +300,7 @@ clone_default_2 = CallFunction(aten.clone.default, expand_default_3, memory_form
 view_default_6 = CallFunction(aten.view.default, clone_default_2, Ignored())
 bmm_default_1 = CallFunction(aten.bmm.default, view_default_5, view_default_6)
 _sfdp_pattern_21_half_inference = CallFunction(aten.view.default, bmm_default_1, Ignored(), _users=0)
+<<<<<<< HEAD
 
 
 permute_default = CallFunction(aten.permute.default, KeywordArg('query'), Ignored())
@@ -389,3 +393,5 @@ expand_default_3 = CallFunction(aten.expand.default, permute_default_3, Ignored(
 view_default_6 = CallFunction(aten.view.default, expand_default_3, Ignored())
 bmm_default_1 = CallFunction(aten.bmm.default, view_default_5, view_default_6)
 _sfdp_pattern_21_half_bs1_inference = CallFunction(aten.view.default, bmm_default_1, Ignored(), _users=0)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

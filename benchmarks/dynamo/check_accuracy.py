@@ -10,6 +10,7 @@ import pandas as pd
 
 flaky_models = {
     "yolov3",
+<<<<<<< HEAD
     "detectron2_maskrcnn_r_101_c4",
     "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
     "moondream",  # discovered in https://github.com/pytorch/pytorch/pull/159291
@@ -17,6 +18,12 @@ flaky_models = {
     "mobilenetv3_large_100",
     # https://github.com/pytorch/pytorch/issues/163670
     "vision_maskrcnn",
+=======
+    "gluon_inception_v3",
+    "detectron2_maskrcnn_r_101_c4",
+    "timm_efficientnet",  # see https://github.com/pytorch/pytorch/issues/148699
+    "XGLMForCausalLM",  # discovered in https://github.com/pytorch/pytorch/pull/128148
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -34,15 +41,29 @@ def check_accuracy(actual_csv, expected_csv, expected_filename):
     if "rocm" in expected_filename:
         flaky_models.update(
             {
+<<<<<<< HEAD
                 "Background_Matting",
                 "alexnet",
+=======
+                "alexnet",
+                "cait_m36_384",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "demucs",
                 "densenet121",
                 "detectron2_fcos_r_50_fpn",
                 "doctr_det_predictor",
                 "doctr_reco_predictor",
+<<<<<<< HEAD
                 "dpn107",
                 "fbnetv3_b",
+=======
+                "hf_BigBird",
+                "hf_Longformer",
+                "hf_Reformer",
+                "hf_Roberta_base",
+                "hf_T5",
+                "hf_T5_base",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "levit_128",
                 "llava",
                 "microbench_unbacked_tolist_sum",
@@ -60,6 +81,7 @@ def check_accuracy(actual_csv, expected_csv, expected_filename):
                 "squeezenet1_1",
                 "stable_diffusion_text_encoder",
                 "stable_diffusion_unet",
+<<<<<<< HEAD
                 "swsl_resnext101_32x16d",
                 "torchrec_dlrm",
                 "vgg16",
@@ -75,6 +97,16 @@ def check_accuracy(actual_csv, expected_csv, expected_filename):
                 "Qwen/Qwen3-0.6B",
                 "mistralai/Mistral-7B-Instruct-v0.3",
                 "openai/gpt-oss-20b",
+=======
+                "timm_efficientdet",
+                "timm_efficientnet",
+                "timm_nfnet",
+                "timm_regnet",
+                "timm_resnest",
+                "timm_vovnet",
+                "torchrec_dlrm",
+                "vgg16",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             }
         )
 

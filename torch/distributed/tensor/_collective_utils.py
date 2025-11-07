@@ -10,10 +10,13 @@ import torch.distributed._functional_collectives as funcol
 import torch.distributed.tensor._dtensor_spec as dtensor_spec
 from torch._C._distributed_c10d import _resolve_process_group
 from torch._logging import warning_once
+<<<<<<< HEAD
 from torch.distributed._local_tensor import (
     local_tensor_mode,
     maybe_run_for_local_tensor,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import _mesh_resources, DeviceMesh
 from torch.distributed.distributed_c10d import (
     _get_group_size_by_name,
@@ -29,6 +32,7 @@ from torch.distributed.distributed_c10d import (
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 @torch.library.register_fake("_dtensor::shard_dim_alltoall")
 def _shard_dim_alltoall_meta(input, gather_dim, shard_dim, group_name):
     group_size = _get_group_size_by_name(group_name)
@@ -40,11 +44,37 @@ def _shard_dim_alltoall_meta(input, gather_dim, shard_dim, group_name):
         torch.cat(stacked_list, dim=gather_dim)
         .chunk(group_size, dim=shard_dim)[group_rank]
         .contiguous()
+=======
+if not torch._running_with_deploy():
+
+    @torch.library.register_fake("_dtensor::shard_dim_alltoall")
+    def _shard_dim_alltoall_meta(input, gather_dim, shard_dim, group_name):
+        group_size = _get_group_size_by_name(group_name)
+        stacked_list = [torch.empty_like(input) for _ in range(group_size)]
+        group = _resolve_process_group(group_name)
+        group_rank = get_group_rank(group, get_rank())
+
+        return (
+            torch.cat(stacked_list, dim=gather_dim)
+            .chunk(group_size, dim=shard_dim)[group_rank]
+            .contiguous()
+        )
+
+else:
+    import warnings
+
+    warnings.warn(
+        "PyTorch Distributed functional collectives do not work with torch::deploy."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
 def shard_dim_alltoall(input, gather_dim, shard_dim, mesh, mesh_dim):
+<<<<<<< HEAD
     if mesh.device_type == "cpu" and local_tensor_mode() is None:
+=======
+    if mesh.device_type == "cpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Gloo does not support alltoall, so falling back to allgather + chunk
         warning_once(
             logger,
@@ -171,7 +201,10 @@ def mesh_broadcast(
     return broadcast(tensor, group=dim_group, async_op=async_op, group_src=group_src)
 
 
+<<<<<<< HEAD
 @maybe_run_for_local_tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def pad_tensor(tensor: torch.Tensor, pad_dim: int, pad_size: int) -> torch.Tensor:
     if pad_size == 0:
         return tensor
@@ -180,7 +213,10 @@ def pad_tensor(tensor: torch.Tensor, pad_dim: int, pad_size: int) -> torch.Tenso
     return torch.nn.functional.pad(tensor, pad)
 
 
+<<<<<<< HEAD
 @maybe_run_for_local_tensor
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def unpad_tensor(tensor: torch.Tensor, pad_dim: int, pad_size: int) -> torch.Tensor:
     if pad_size == 0:
         return tensor
@@ -322,7 +358,11 @@ def redistribute_cost(
 
     NOTE:
     1. Only consider communication cost here, since computation costs for redistribute
+<<<<<<< HEAD
        are quite trivial (i.e. we only need to narrow or simple division)
+=======
+       are quite trival (i.e. we only need to narrow or simple division)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     2. Only consider redistribute cost on same mesh, cross mesh communication cost is
        not quite needed for operator strategy estimation/selection.
     """

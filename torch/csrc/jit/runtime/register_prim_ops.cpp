@@ -1,6 +1,9 @@
 #include <ATen/autocast_mode.h>
 #include <ATen/core/Generator.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/irange.h>
 #include <torch/csrc/jit/mobile/promoted_prim_ops.h>
 #include <torch/csrc/jit/runtime/custom_operator.h>
@@ -116,8 +119,13 @@ bool isSortableListOfObjectsOrTuples(
   }
 
   auto type = ivalues.get(0).type();
+<<<<<<< HEAD
   // We assume lists have homogeneous types, use first element to determine
   // best sorting methods. If in the future we need to support heterogeneous
+=======
+  // We assume lists have homogenous types, use first element to determine
+  // best sorting methods. If in the future we need to support heterogenous
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // types inside list, then sorting needs to have runtime sortable checks.
   const size_t n = ivalues.size();
   for (const auto i : c10::irange(n)) {
@@ -160,8 +168,14 @@ void sort_op(Stack& stack) {
 
   if (!g_list.empty()) {
     std::stringstream error_str;
+<<<<<<< HEAD
     TORCH_CHECK(
         isSortableListOfObjectsOrTuples(g_list, error_str), error_str.str());
+=======
+    if (!isSortableListOfObjectsOrTuples(g_list, error_str)) {
+      throw std::runtime_error(error_str.str());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     c10::IValueComparator comparator;
     if (reverse) {
@@ -254,7 +268,13 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
           int64_t lo = 0, hi = 0, step = 0;
           pop(stack, lo, hi, step);
           // error handling when step_val = 0 during runtime
+<<<<<<< HEAD
           TORCH_CHECK(step != 0, "range() arg 3 must not be zero");
+=======
+          if (step == 0) {
+            throw std::runtime_error("range() arg 3 must not be zero");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           if (step > 0 && lo < hi) {
             push(stack, 1 + (hi - 1 - lo) / step);
           } else if (step < 0 && lo > hi) {
@@ -380,6 +400,7 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
           auto s = pop(stack).toString();
           std::string::size_type sz = 0;
           int64_t val = static_cast<int64_t>(std::stoll(s->string(), &sz));
+<<<<<<< HEAD
           TORCH_CHECK(
               sz == s->string().size(),
               "invalid literal for int() ",
@@ -387,6 +408,16 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
               s->string(),
               "'");
           push(stack, val);
+=======
+          if (sz == s->string().size()) {
+            push(stack, val);
+          } else {
+            std::stringstream error_str;
+            error_str << "invalid literal for int() "
+                      << "with base 10: '" << s->string() << "'";
+            throw std::runtime_error(error_str.str());
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
         aliasAnalysisFromSchema()),
     OperatorGeneratorArgs(
@@ -433,6 +464,7 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
           auto s = pop(stack).toString();
           std::string::size_type sz = 0;
           double b = std::stod(s->string(), &sz);
+<<<<<<< HEAD
           TORCH_CHECK(
               sz == s->string().size(),
               "could not convert string ",
@@ -440,6 +472,16 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
               s->string(),
               "'");
           push(stack, b);
+=======
+          if (sz == s->string().size()) {
+            push(stack, b);
+          } else {
+            std::stringstream error_str;
+            error_str << "could not convert string "
+                      << "to float: '" << s->string() << "'";
+            throw std::runtime_error(error_str.str());
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         },
         aliasAnalysisFromSchema()),
     OperatorGeneratorArgs(
@@ -1137,7 +1179,11 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs{
     //
     // create a clone of these declarations with a _hacked_twin overload name
     // and nullability scrubbed from TensorList arg types
+<<<<<<< HEAD
     // TODO find out why this exists and how to do it without the hack
+=======
+    // TOOD find out why this exists and how to do it without the hack
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     //
     OperatorGeneratorArgs(
         TORCH_SELECTIVE_SCHEMA(
@@ -1706,7 +1752,11 @@ int64_t stringFindImpl(
     bool reverse = false) {
   int64_t size = string.size();
   if (start < 0) {
+<<<<<<< HEAD
     start = std::max(int64_t(0), size + start);
+=======
+    start = std::max(int64_t(0), int64_t(size + start));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (end < 0) {
     end = std::max(int64_t(0), int64_t(size + end + 1));
@@ -1789,7 +1839,14 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           }
 
           const std::string& separator = ivalue.toStringRef();
+<<<<<<< HEAD
           TORCH_CHECK(!separator.empty(), "ValueError: empty separator");
+=======
+
+          if (separator.empty()) {
+            throw std::runtime_error("ValueError: empty separator");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           auto count = 0;
 
@@ -1912,9 +1969,17 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string fillchar = pop(stack).toStringRef();
           int64_t width = pop(stack).toInt();
           std::string string = pop(stack).toStringRef();
+<<<<<<< HEAD
           TORCH_CHECK(
               fillchar.size() == 1,
               "TypeError: The fill character must be exactly one character long");
+=======
+          if (fillchar.size() != 1) {
+            // TODO: this should be a TypeError
+            throw std::runtime_error(
+                "TypeError: The fill character must be exactly one character long");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           if (string.size() > static_cast<std::string::size_type>(width)) {
             push(stack, string);
             return;
@@ -1955,7 +2020,11 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
             return;
           }
           if (start < 0) {
+<<<<<<< HEAD
             start = std::max(int64_t(0), size + start);
+=======
+            start = std::max(int64_t(0), int64_t(size + start));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           }
           if (end < 0) {
             end = std::max(int64_t(0), int64_t(size + end + 1));
@@ -1984,7 +2053,11 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string string = pop(stack).toStringRef();
           int64_t size = string.size();
           if (start < 0) {
+<<<<<<< HEAD
             start = std::max(int64_t(0), (size + start));
+=======
+            start = std::max(int64_t(0), int64_t(size + start));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           }
           if (end < 0) {
             end = std::max(int64_t(0), int64_t(size + end + 1));
@@ -2010,7 +2083,11 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string string = pop(stack).toStringRef();
           int64_t size = string.size();
           if (start < 0) {
+<<<<<<< HEAD
             start = std::max(int64_t(0), (size + start));
+=======
+            start = std::max(int64_t(0), int64_t(size + start));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           }
           if (end < 0) {
             end = std::max(int64_t(0), int64_t(size + end + 1));
@@ -2083,7 +2160,13 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string substr = pop(stack).toStringRef();
           std::string string = pop(stack).toStringRef();
           auto result = stringFindImpl(string, substr, start, end);
+<<<<<<< HEAD
           TORCH_CHECK(result >= 0, "ValueError: substring not found");
+=======
+          if (result < 0) {
+            throw std::runtime_error("ValueError: substring not found");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           push(stack, result);
         },
         aliasAnalysisFromSchema()),
@@ -2096,7 +2179,13 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string substr = pop(stack).toStringRef();
           std::string string = pop(stack).toStringRef();
           auto result = stringFindImpl(string, substr, start, end, true);
+<<<<<<< HEAD
           TORCH_CHECK(result >= 0, "ValueError: substring not found");
+=======
+          if (result < 0) {
+            throw std::runtime_error("ValueError: substring not found");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           push(stack, result);
         },
         aliasAnalysisFromSchema()),
@@ -2170,9 +2259,17 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string fillchar = pop(stack).toStringRef();
           int64_t width = pop(stack).toInt();
           std::string string = pop(stack).toStringRef();
+<<<<<<< HEAD
           TORCH_CHECK(
               fillchar.size() == 1,
               "TypeError: The fill character must be exactly one character long");
+=======
+          if (fillchar.size() != 1) {
+            // TODO: this should be a TypeError
+            throw std::runtime_error(
+                "TypeError: The fill character must be exactly one character long");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           auto to_append =
               std::max(int64_t(0), width - static_cast<int64_t>(string.size()));
 
@@ -2192,9 +2289,17 @@ static const std::vector<OperatorGeneratorArgs> stringOpGenArgs{
           std::string fillchar = pop(stack).toStringRef();
           int64_t width = pop(stack).toInt();
           std::string string = pop(stack).toStringRef();
+<<<<<<< HEAD
           TORCH_CHECK(
               fillchar.size() == 1,
               "TypeError: The fill character must be exactly one character long");
+=======
+          if (fillchar.size() != 1) {
+            // TODO: this should be a TypeError
+            throw std::runtime_error(
+                "TypeError: The fill character must be exactly one character long");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           auto to_append =
               std::max(int64_t(0), width - static_cast<int64_t>(string.size()));
 
@@ -2822,7 +2927,11 @@ void hashValue(Stack& stack) {
 }
 
 static const std::vector<OperatorGeneratorArgs> opGenArgs2{
+<<<<<<< HEAD
     // registered as Any[] so that heterogeneous tuples can be called with len()
+=======
+    // registered as Any[] so that heterogenous tuples can be called with len()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     OperatorGeneratorArgs(
         TORCH_SELECTIVE_SCHEMA("aten::len.any(Any[] a) -> int"),
         listLen,
@@ -3341,8 +3450,15 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs2{
           int64_t a = 0, b = 0;
           lldiv_t divresult = {};
           pop(stack, a, b);
+<<<<<<< HEAD
           TORCH_CHECK(
               b != 0, "ZeroDivisionError: integer division or modulo by zero");
+=======
+          if (b == 0) {
+            throw std::runtime_error(
+                "ZeroDivisionError: integer division or modulo by zero");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           divresult = lldiv(a, b);
           if (divresult.rem && (a < 0) != (b < 0)) {
             divresult.quot -= 1;
@@ -3360,7 +3476,13 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs2{
         [](Stack& stack) {
           double a = 0, b = 0;
           pop(stack, a, b);
+<<<<<<< HEAD
           TORCH_CHECK(b != 0, "ZeroDivisionError: float divmod()");
+=======
+          if (b == 0) {
+            throw std::runtime_error("ZeroDivisionError: float divmod()");
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           double rem = fmod(a, b);
           // NOLINTNEXTLINE(cppcoreguidelines-narrowing-conversions,bugprone-narrowing-conversions)
           if (rem && (a < 0) != (b < 0)) {
@@ -3405,7 +3527,13 @@ static const std::vector<OperatorGeneratorArgs> opGenArgs2{
         type_a a;                                                            \
         type_b b;                                                            \
         pop(stack, a, b);                                                    \
+<<<<<<< HEAD
         TORCH_CHECK(b != 0, "ZeroDivisionError: float divmod()");            \
+=======
+        if (b == 0) {                                                        \
+          throw std::runtime_error("ZeroDivisionError: float divmod()");     \
+        }                                                                    \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         double quot = floor(a / b);                                          \
         double rem = a - (quot * b);                                         \
         push(stack, quot, rem);                                              \

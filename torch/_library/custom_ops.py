@@ -3,9 +3,15 @@ import collections
 import inspect
 import logging
 import weakref
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Sequence
 from contextlib import contextmanager
 from typing import Any, Optional, overload, Union
+=======
+from collections.abc import Iterable, Sequence
+from contextlib import contextmanager
+from typing import Any, Callable, Literal, Optional, overload, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch import _C, _ops, Tensor
@@ -22,14 +28,23 @@ log = logging.getLogger(__name__)
 @overload
 def custom_op(
     name: str,
+<<<<<<< HEAD
     fn: None = None,
+=======
+    fn: Literal[None] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     /,
     *,
     mutates_args: Union[str, Iterable[str]],
     device_types: device_types_t = None,
     schema: Optional[str] = None,
+<<<<<<< HEAD
     tags: Optional[Sequence[_C.Tag]] = None,
 ) -> Callable[[Callable[..., object]], "CustomOpDef"]: ...
+=======
+) -> Callable[[Callable[..., object]], "CustomOpDef"]:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @overload
@@ -41,8 +56,13 @@ def custom_op(
     mutates_args: Union[str, Iterable[str]],
     device_types: device_types_t = None,
     schema: Optional[str] = None,
+<<<<<<< HEAD
     tags: Optional[Sequence[_C.Tag]] = None,
 ) -> "CustomOpDef": ...
+=======
+) -> "CustomOpDef":
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @exposed_in("torch.library")
@@ -212,7 +232,10 @@ class CustomOpDef:
         self._lib = get_library_allowing_overwrite(self._namespace, self._name)
         self._register_to_dispatcher(self._tags)
         self._disabled_kernel: set = set()
+<<<<<<< HEAD
         self._used_triton_kernels: list[Any] = list()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         OPDEFS[self._qualname] = self
 
     @property
@@ -348,6 +371,7 @@ class CustomOpDef:
                             fn = self._backend_fns[device_type]
                             return inspect.getmodule(fn)
 
+<<<<<<< HEAD
                         schema = self._opoverload._schema
                         if not schema._is_view_op():
                             utils._c_check_aliasing_constraint(
@@ -357,6 +381,15 @@ class CustomOpDef:
                                 result,
                                 get_module,
                             )
+=======
+                        utils._c_check_aliasing_constraint(
+                            self._name,
+                            args,
+                            kwargs,
+                            result,
+                            get_module,
+                        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         return result
 
                     if device_type is None:
@@ -408,7 +441,11 @@ class CustomOpDef:
         (sizes/strides/storage_offset/device), it specifies what the properties of
         the output Tensors are.
 
+<<<<<<< HEAD
         Please see :func:`torch.library.register_fake` for more details.
+=======
+        Please see :func:`torch.library.impl_abstract` for more details.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         Args:
             fn (Callable): The function to register as the FakeTensor
@@ -451,10 +488,17 @@ class CustomOpDef:
             >>>
             >>> @nonzero.register_fake
             >>> def _(x):
+<<<<<<< HEAD
             >>> # Number of nonzero-elements is data-dependent.
             >>> # Since we cannot peek at the data in an abstract impl,
             >>> # we use the ctx object to construct a new symint that
             >>> # represents the data-dependent size.
+=======
+            >>>     # Number of nonzero-elements is data-dependent.
+            >>>     # Since we cannot peek at the data in an abstract impl,
+            >>>     # we use the ctx object to construct a new symint that
+            >>>     # represents the data-dependent size.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>>     ctx = torch.library.get_ctx()
             >>>     nnz = ctx.new_dynamic_size()
             >>>     shape = [nnz, x.dim()]
@@ -564,7 +608,11 @@ class CustomOpDef:
             >>>
             >>> x = torch.randn(3, requires_grad=True)
             >>> y = numpy_sin(x)
+<<<<<<< HEAD
             >>> (grad_x,) = torch.autograd.grad(y, x, torch.ones_like(y))
+=======
+            >>> grad_x, = torch.autograd.grad(y, x, torch.ones_like(y))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> assert torch.allclose(grad_x, x.cos())
             >>>
             >>> # Example with a keyword-only arg
@@ -584,12 +632,20 @@ class CustomOpDef:
             >>>
             >>> x = torch.randn(3, requires_grad=True)
             >>> y = numpy_mul(x, val=3.14)
+<<<<<<< HEAD
             >>> (grad_x,) = torch.autograd.grad(y, x, torch.ones_like(y))
+=======
+            >>> grad_x, = torch.autograd.grad(y, x, torch.ones_like(y))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             >>> assert torch.allclose(grad_x, torch.full_like(x, 3.14))
 
         """
         schema = self._opoverload._schema
+<<<<<<< HEAD
         if not utils.is_functional_schema(schema, allow_valid_view=True):
+=======
+        if not utils.is_functional_schema(schema):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(
                 f"Cannot register autograd formula for non-functional operator "
                 f"{self} with schema {schema}. Please create "
@@ -600,6 +656,13 @@ class CustomOpDef:
         self._setup_context_fn = setup_context
 
     def _register_to_dispatcher(self, tags: Sequence[_C.Tag]) -> None:
+<<<<<<< HEAD
+=======
+        if torch._running_with_deploy():
+            utils.warn_deploy(stacklevel=5)
+            return
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         lib = self._lib
         schema_str = self._name + self._schema
         cpp_schema = _C.parse_schema(schema_str)
@@ -634,6 +697,7 @@ class CustomOpDef:
 
         autograd_impl = autograd.make_autograd_impl(self._opoverload, self)
         lib.impl(self._name, autograd_impl, "Autograd", with_keyset=True)
+<<<<<<< HEAD
         schema = self._opoverload._schema
 
         if schema._is_view_op() or schema.is_mutable:
@@ -649,12 +713,27 @@ class CustomOpDef:
             def adinplaceorview_impl(keyset, *args, **kwargs):
                 # Handle the mutated idx the user gave us explicitly
 
+=======
+
+        schema = self._opoverload._schema
+        if schema.is_mutable:
+            mutated_idxs, mutated_keys = utils.mutated_args_kwargs(schema)
+
+            def adinplaceorview_impl(keyset, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for idx in mutated_idxs:
                     increment_version(args[idx])
                 for key in mutated_keys:
                     increment_version(kwargs[key])
+<<<<<<< HEAD
                 # Handle view + mutation that are in the schema
                 return original_kernel.call_boxed(keyset, *args, **kwargs)
+=======
+                with _C._AutoDispatchBelowADInplaceOrView():
+                    return self._opoverload.redispatch(
+                        keyset & _C._after_ADInplaceOrView_keyset, *args, **kwargs
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             lib.impl(
                 self._name,
@@ -925,7 +1004,11 @@ def get_library_allowing_overwrite(
 
 
 def _maybe_get_opdef(
+<<<<<<< HEAD
     op: Union[CustomOpDef, _ops.OpOverload, str],
+=======
+    op: Union[CustomOpDef, _ops.OpOverload, str]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[CustomOpDef]:
     if isinstance(op, CustomOpDef):
         return op

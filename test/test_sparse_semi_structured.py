@@ -50,8 +50,13 @@ _IS_SM9X = False
 _IS_HIPSPARSELT_AVAILABLE = False
 
 if torch.cuda.is_available():
+<<<<<<< HEAD
     _IS_SM8X = torch.version.cuda is not None and (torch.cuda.get_device_capability(0)[0] == 8)
     _IS_SM9X = torch.version.cuda is not None and (torch.cuda.get_device_capability(0)[0] == 9)
+=======
+    _IS_SM8X = torch.cuda.get_device_capability(0)[0] == 8
+    _IS_SM9X = torch.cuda.get_device_capability(0)[0] == 9
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _IS_HIPSPARSELT_AVAILABLE = torch.version.hip is not None and tuple(int(v) for v in torch.version.hip.split('.')[:2]) > (6, 4)
     # CUTLASS kernels only work for Ampere
     if _IS_SM8X:
@@ -247,10 +252,13 @@ class SparseSemiStructuredTensorCompileTest(torch._dynamo.test_case.TestCase):
     @unittest.skipIf(IS_WINDOWS, "torch.compile not supported on windows")
     @unittest.skipIf("cusparselt" not in SEMI_STRUCTURED_SUPPORTED_BACKENDS, "cusparselt not supported on this machine")
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_compile(self) -> None:
         x = torch.randn([1024, 512], device="cuda", dtype=torch.float16, requires_grad=True)
 
@@ -580,10 +588,13 @@ class TestSparseSemiStructuredTraining(TestCase):
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_prune_dense_static_sort(self, dtype) -> None:
         # Ideally we would like to clone and compare, but that won't work because the sorting order will be different
         # instead we pass the pruned matrix to the CUDA implementation and preserve the sparsity pattern.
@@ -629,10 +640,13 @@ class TestSparseSemiStructuredTraining(TestCase):
     @training_dtypes
     @parametrize_backends
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pruning_algo_largest_abs_values_greedy(self, dtype, backend) -> None:
         inp = torch.tensor(
             [[4, 3, 2, 1], [-1, -3, 0.6, 0.5], [1, 2, 3, 4], [10, 2, -1, 5]],
@@ -670,10 +684,13 @@ class TestSparseSemiStructuredTraining(TestCase):
     @training_dtypes
     @parametrize_backends
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pack_both_ways_meta_correctness(self, dtype, backend) -> None:
         M, N = 128, 256
         # Construct x to make sure we always have exactly 8 elements per 4x4 tile
@@ -708,10 +725,13 @@ class TestSparseSemiStructuredTraining(TestCase):
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pack_both_ways_id(self, dtype) -> None:
         N = 512
         torch.manual_seed(0)
@@ -734,15 +754,21 @@ class TestSparseSemiStructuredTraining(TestCase):
         max_diff = (ref_gemm - pack_gemm).abs().argmax()
         torch.testing.assert_close(
             ref_gemm, pack_gemm,
+<<<<<<< HEAD
             **atol_rtol_kw[dtype],
             msg=f"packed is wrong at pos: ({max_diff // N}, {max_diff % N})",
         )
+=======
+            **atol_rtol_kw[dtype]
+        ), f"packed is wrong at pos: ({max_diff // N}, {max_diff % N})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Test A.t@B
         pack_gemm = torch._sparse_semi_structured_linear(b.t(), packed_t, meta_t)
         max_diff = (ref_gemm - pack_gemm).abs().argmax()
 
         torch.testing.assert_close(
             ref_gemm, pack_gemm,
+<<<<<<< HEAD
             **atol_rtol_kw[dtype],
             msg=f"packed_t is wrong at pos: ({max_diff // N}, {max_diff % N})",
         )
@@ -753,6 +779,13 @@ class TestSparseSemiStructuredTraining(TestCase):
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+            **atol_rtol_kw[dtype]
+        ), f"packed_t is wrong at pos: ({max_diff // N}, {max_diff % N})"
+
+    @training_dtypes
+    @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pack_both_ways_edge_case1(self, dtype) -> None:
         # In this case, the heuristic will keep 7 values out of 16
         # instead of 8. let's see how the kernel handles this
@@ -778,10 +811,13 @@ class TestSparseSemiStructuredTraining(TestCase):
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_apply(self, dtype) -> None:
         M, N = 256, 1024
         x = torch.randn([M, N], dtype=dtype, device="cuda")
@@ -798,10 +834,13 @@ class TestSparseSemiStructuredTraining(TestCase):
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_apply_dense(self, dtype) -> None:
         M, N = 256, 1024
         x = torch.randn([M, N], dtype=dtype, device="cuda")
@@ -840,10 +879,13 @@ class TestSparseSemiStructuredTraining(TestCase):
 
     @training_dtypes
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_matmuls(self, dtype) -> None:
         M, N, K = 64, 256, 1024
         a = torch.randn([M, K], device="cuda", dtype=dtype)
@@ -879,10 +921,13 @@ class TestSparseSemiStructuredTraining(TestCase):
         )
 
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_matmuls_mat_vec(self) -> None:
         a = torch.randn([64, 128], device="cuda", dtype=torch.float16)
         b = torch.randn([128], device="cuda", dtype=torch.float16)
@@ -893,10 +938,13 @@ class TestSparseSemiStructuredTraining(TestCase):
             torch.testing.assert_close(a_s @ b, (a * a_m) @ b, **atol_rtol_kw[a.dtype])
 
     @unittest.skipIf(TEST_WITH_ROCM, "Not supported on ROCm")
+<<<<<<< HEAD
     @unittest.skipIf(
         "RelWithAssert" in torch.__config__.show(),
         "failing in debug build, see https://github.com/pytorch/pytorch/pull/165158 for context",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sp24_matmuls_bmm(self) -> None:
         a = torch.randn([64, 128], device="cuda", dtype=torch.float16)
         b = torch.randn([5, 6, 128], device="cuda", dtype=torch.float16)
@@ -1284,8 +1332,16 @@ class TestSparseSemiStructuredCUSPARSELT(TestCase):
         version = _get_torch_cuda_version()
         assert torch.backends.cusparselt.is_available()
 
+<<<<<<< HEAD
         # PyTorch CUDA 12.4+ using cuSPARSELt v0.6.2+
         if version >= (12, 4):
+=======
+        # CUDA 11.8 has cuSPARSELt v0.4.0 support
+        if version == (11, 8):
+            assert torch.backends.cusparselt.version() == 400
+        # PyTorch CUDA 12.4+ using cuSPARSELt v0.6.2+
+        elif version >= (12, 4):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert torch.backends.cusparselt.version() >= 602
         else:
             assert torch.backends.cusparselt.version() is None

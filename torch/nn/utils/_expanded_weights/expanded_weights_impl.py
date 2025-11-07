@@ -1,7 +1,12 @@
 # mypy: allow-untyped-defs
 import functools
+<<<<<<< HEAD
 from collections.abc import Callable
 from contextlib import contextmanager
+=======
+from contextlib import contextmanager
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._decomp import decomposition_table
@@ -100,7 +105,11 @@ def implements_per_sample_grads(torch_function):
 # This is a __torch_function__ object but it could have also been a Tensor Extension
 # with a dispatch key.
 #
+<<<<<<< HEAD
 # Needs to be a tensor subclass to allow reparameterization
+=======
+# Needs to be a tensor subclass to allow reparamaterization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class ExpandedWeight(torch.Tensor):
     def __init__(self, orig_weight, batch_size, loss_reduction):
         self.batch_size = batch_size
@@ -131,9 +140,13 @@ class ExpandedWeight(torch.Tensor):
             # in aten, choosing the input or data variants is done by parsing logic. This mimics some of that
             decomp_opts = expanded_weights_rnn_decomps[func]
             use_input_variant = isinstance(
+<<<<<<< HEAD
                 # pyrefly: ignore [index-error]
                 args[2],
                 list,
+=======
+                args[2], list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )  # data variant uses a list here
             decomp = decomp_opts[0] if use_input_variant else decomp_opts[1]
 

@@ -63,7 +63,11 @@ class MinifierUtilsTests(TestCase):
         )
 
         model = M()
+<<<<<<< HEAD
         gm = torch.export.export(model, inputs, strict=False).module(check_guards=False)
+=======
+        gm = torch.export.export(model, inputs, strict=False).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TODO: make NNModuleToString.convert() generate string for nested submodules.
         model_string = get_module_string(gm)

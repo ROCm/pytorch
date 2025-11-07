@@ -196,7 +196,11 @@ struct ConvFuncOptions {
   using padding_t = torch::nn::detail::conv_padding_t<D>;
 
   /// optional bias of shape `(out_channels)`. Default: ``None``
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, bias);
+=======
+  TORCH_ARG(torch::Tensor, bias) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /// The stride of the convolving kernel.
   /// For a `D`-dim convolution, must be a single number or a list of `D`
@@ -352,7 +356,11 @@ namespace functional {
 template <size_t D>
 struct ConvTransposeFuncOptions {
   /// optional bias of shape `(out_channels)`. Default: ``None``
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, bias);
+=======
+  TORCH_ARG(torch::Tensor, bias) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   /// The stride of the convolving kernel.
   /// For a `D`-dim convolution, must be a single number or a list of `D`

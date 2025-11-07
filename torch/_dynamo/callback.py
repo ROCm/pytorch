@@ -27,10 +27,17 @@ Example usage:
 
 import enum
 import threading
+<<<<<<< HEAD
 from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass, field  # noqa: F811
 from typing import Any
+=======
+from collections.abc import Generator
+from contextlib import contextmanager
+from dataclasses import dataclass, field  # noqa: F811
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CallbackTrigger(enum.Enum):
@@ -39,7 +46,11 @@ class CallbackTrigger(enum.Enum):
     # backward compilation can be deferred to runtime
     LAZY_BACKWARD = 2
     # some backends autotune at runtime
+<<<<<<< HEAD
     TRITON_AUTOTUNING = 3  # Temporarily disabled due to spam
+=======
+    TRITON_AUTOTUNING = 3
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # cudagraphs record at runtime
     CUDAGRAPH_RECORDING = 4
 
@@ -126,9 +137,15 @@ class CompilationCallbackHandler:
         args = CallbackArgs(trigger, compile_id)
         try:
             with self.__pending_callbacks_counter_lock:
+<<<<<<< HEAD
                 self.__pending_callbacks_counter += 1
                 if self.__pending_callbacks_counter == 1:
                     self.run_start_callbacks(args)
+=======
+                if self.__pending_callbacks_counter == 0:
+                    self.run_start_callbacks(args)
+                self.__pending_callbacks_counter += 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield
         finally:
             with self.__pending_callbacks_counter_lock:

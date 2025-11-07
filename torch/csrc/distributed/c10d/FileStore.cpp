@@ -7,10 +7,17 @@
 #include <cstdint>
 
 #ifdef _WIN32
+<<<<<<< HEAD
 #include <c10/util/FileSystem.h>
 #include <c10/util/win32-headers.h>
 #include <fileapi.h>
 #include <io.h>
+=======
+#include <c10/util/win32-headers.h>
+#include <fileapi.h>
+#include <io.h>
+#include <filesystem>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 #include <sys/file.h>
 #include <unistd.h>
@@ -33,11 +40,15 @@
 #define LOCK_SH 0x00000010
 #define LOCK_UN 0x00000100
 
+<<<<<<< HEAD
 #if defined(_WIN32) && defined(USE_ROCM)
 static
 #endif
     int
     flock_(int fd, int op) {
+=======
+int flock_(int fd, int op) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE hdl = (HANDLE)_get_osfhandle(fd);
   DWORD low = 1, high = 0;
   OVERLAPPED offset = {0, 0, 0, 0, NULL};
@@ -161,7 +172,11 @@ class File {
 #ifdef _WIN32
       // if the parent folder doesn't exist it will never be able to create the
       // file so we can skip the retry
+<<<<<<< HEAD
       if (!c10::filesystem::exists(c10::filesystem::path(path).parent_path())) {
+=======
+      if (!std::filesystem::exists(std::filesystem::path(path).parent_path())) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         break;
       }
 #endif
@@ -225,7 +240,11 @@ class File {
     while (count > 0) {
       auto rv = syscall([this, buf, count] { return ::read(fd_, buf, count); });
       SYSASSERT(rv, "read");
+<<<<<<< HEAD
       buf = static_cast<uint8_t*>(buf) + rv;
+=======
+      buf = (uint8_t*)buf + rv;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       count -= rv;
     }
   }

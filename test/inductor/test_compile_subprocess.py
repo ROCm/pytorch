@@ -9,13 +9,17 @@ import importlib
 import os
 import sys
 import time
+<<<<<<< HEAD
 import unittest
 from unittest import mock
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import torch
 import torch.library
 from torch._inductor.compile_fx import _InProcessFxCompile, FxCompile, FxCompileMode
+<<<<<<< HEAD
 from torch._inductor.graph import GraphLowering
 from torch._inductor.test_case import TestCase
 from torch.testing._internal.common_utils import IS_CI, IS_WINDOWS, TEST_WITH_ASAN
@@ -37,6 +41,11 @@ if IS_WINDOWS and IS_CI:
     if __name__ == "__main__":
         sys.exit(0)
     raise unittest.SkipTest("pass_fds not supported on Windows")
+=======
+from torch._inductor.test_case import TestCase
+from torch.testing._internal.common_utils import TEST_WITH_ASAN
+from torch.testing._internal.inductor_utils import GPU_TYPE, RUN_CPU, RUN_GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Make the helper files in test/ importable
@@ -62,6 +71,12 @@ test_failures = {
     "test_remove_noop_slice_scatter": TestFailure(("xpu"), is_skip=True),
     "test_remove_noop_view_default": TestFailure(("xpu"), is_skip=True),
     "test_remove_noop_view_dtype": TestFailure(("xpu"), is_skip=True),
+<<<<<<< HEAD
+=======
+    # TODO:remove test_upsample_bicubic2d after the following issue resolved:
+    # https://github.com/intel/intel-xpu-backend-for-triton/issues/4184
+    "test_upsample_bicubic2d": TestFailure(("xpu"), is_skip=False),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -92,6 +107,7 @@ class TestSubprocess(TestCase):
         TestCase.tearDown(self)
         torch._dynamo.reset()
 
+<<<<<<< HEAD
     @requires_gpu()
     @requires_triton()
     @unittest.skipIf(
@@ -174,6 +190,8 @@ class TestSubprocess(TestCase):
         )
         self.assertTrue("'max_autotune': True" in source_codes[-1])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch("torch._inductor.compile_fx.fx_compile_async", True)
     def test_async(self):
         # Test that async+subprocess works.
@@ -189,7 +207,11 @@ class TestSubprocess(TestCase):
         _AsyncFxCompile._reset_stats()
 
         with contextlib.ExitStack() as stack:
+<<<<<<< HEAD
             assert torch._inductor.compile_fx_async.BUG_CACHES_DONT_WORK_WITH_ASYNC
+=======
+            # TODO: Turn off local caches - they don't play nice w/ async currently.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             stack.enter_context(
                 torch._inductor.config.patch(
                     autotune_local_cache=False, fx_graph_cache=False
@@ -206,6 +228,7 @@ class TestSubprocess(TestCase):
 
             start = time.time()
             last_report = start
+<<<<<<< HEAD
             while True:
                 start_stat_compiled_runs = _AsyncFxCompile._stat_compiled_runs
                 # Sleep a bit so we don't drive the CPU unnecessarily.
@@ -222,6 +245,15 @@ class TestSubprocess(TestCase):
 
                 if _AsyncFxCompile._stat_compiled_runs - start_stat_compiled_runs == 2:
                     break
+=======
+            while _AsyncFxCompile._stat_compiled_runs < 4:
+                # Sleep a bit so we don't drive the CPU unnecessarily.
+                time.sleep(0.25)
+
+                x = torch.randn(100, 100)
+                y = torch.randn(100, 100)
+                model_add(x, y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # DEBUGGING: Print a periodic message so we know we're still
                 # running...
@@ -235,12 +267,21 @@ class TestSubprocess(TestCase):
                         "Test timed out before producing a compiled artifact."
                     )
 
+<<<<<<< HEAD
             self.assertGreater(_AsyncFxCompile._stat_compiled_runs, 1)
             # Make sure we ran eager at least once. Normally this will be
             # something like 80.
             self.assertGreater(_AsyncFxCompile._stat_eager_runs, 0)
             self.assertEqual(_AsyncFxCompile._stat_bg_started, 2)
             self.assertEqual(_AsyncFxCompile._stat_bg_finished, 2)
+=======
+            self.assertEqual(_AsyncFxCompile._stat_compiled_runs, 4)
+            # Make sure we ran eager at least once. Normally this will be
+            # something like 80.
+            self.assertGreater(_AsyncFxCompile._stat_eager_runs, 0)
+            self.assertEqual(_AsyncFxCompile._stat_bg_started, 1)
+            self.assertEqual(_AsyncFxCompile._stat_bg_finished, 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if RUN_CPU:

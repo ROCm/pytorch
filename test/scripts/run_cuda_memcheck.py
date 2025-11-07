@@ -157,9 +157,15 @@ async def run1(coroutine_id):
         gpuid = coroutine_id % GPUS
     else:
         gpu_assignments = args.gpus.split(":")
+<<<<<<< HEAD
         assert args.nproc == len(gpu_assignments), (
             "Please specify GPU assignment for each process, separated by :"
         )
+=======
+        assert args.nproc == len(
+            gpu_assignments
+        ), "Please specify GPU assignment for each process, separated by :"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gpuid = gpu_assignments[coroutine_id]
 
     while progress < len(ALL_TESTS):

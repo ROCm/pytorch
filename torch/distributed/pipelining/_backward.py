@@ -114,7 +114,11 @@ def get_param_groups(
             "intermediates": intersected,
         }
         for input_node in intersected:
+<<<<<<< HEAD
             existing = param_groups.get(input_node)
+=======
+            existing = param_groups.get(input_node, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if existing is not None:
                 existing["params"] = existing["params"].union(param_group["params"])
                 existing["intermediates"] = existing["intermediates"].union(
@@ -235,6 +239,7 @@ def stage_backward_weight(
         weight_grads.append(weight.grad)
 
     for param_group in param_groups:
+<<<<<<< HEAD
         valid_edges = []
         valid_grad_outputs: list[torch.Tensor] = []
 
@@ -247,6 +252,13 @@ def stage_backward_weight(
                 valid_edges.append(GradientEdge(intermediate, 0))
                 # pyrefly: ignore [bad-argument-type]
                 valid_grad_outputs.append(summed_grad)
+=======
+        # TODO: Handle case where intermediate can have multiple outputs
+        intermediate_edges = tuple(
+            GradientEdge(i, 0) for i in param_group["intermediates"]
+        )
+        weights_edges = tuple(GradientEdge(w, 0) for w in param_group["params"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Break a reference cycle caused inside stage_backward_input->get_hook->hook
         # The summarized cycle is:
@@ -255,6 +267,7 @@ def stage_backward_weight(
         # We need to keep intermediates alive up until backward_weight, but we can free it now.
         del param_group["intermediates"]
 
+<<<<<<< HEAD
         if valid_edges:  # Only call autograd.grad if we have valid gradients
             # [NEW!] Able to pass a GradientEdge to autograd.grad as output
             weights_edges = tuple(GradientEdge(w, 0) for w in param_group["params"])
@@ -274,6 +287,27 @@ def stage_backward_weight(
                     weight.grad = dw
                 else:
                     weight.grad += dw
+=======
+        assert all(len(g) == 1 for g in param_group["grads"])
+        # [NEW!] Able to pass a GradientEdge to autograd.grad as output
+        # We do not need to retain_graph because... guarantee no overlap?
+        # print("trying to execute: ", intermediate_edges, weights_edges)
+        dweights = torch.autograd.grad(
+            intermediate_edges,
+            weights_edges,
+            grad_outputs=sum(param_group["grads"], tuple()),
+            retain_graph=retain_graph,
+        )
+        # release grad memory early after use
+        del param_group["grads"]
+
+        for grad_acc, dw in zip(param_group["params"], dweights):
+            weight, index = grad_acc_to_weight[grad_acc]
+            if weight.grad is None:
+                weight.grad = dw
+            else:
+                weight.grad += dw
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # return grads in the original order weights were provided in
     return tuple(weight_grads)
 
@@ -367,6 +401,7 @@ def stage_backward(
         for val in input_values:
             if isinstance(val, torch.Tensor):
                 grad_inputs.append(val.grad)
+<<<<<<< HEAD
                 # Since gradients that will pass back to previous stages do not require gradient accumulation,
                 # by decrementing the gradients' reference count at this point, the memory of gradients will be
                 # returned to the allocator as soon as the next micro batch's get_bwd_send_ops comes and current
@@ -374,6 +409,8 @@ def stage_backward(
                 # This prevents the gradients from persisting in GPU memory for the entire duration of step_microbatches
                 # until clear_runtime_states() is called.
                 val.grad = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 grad_inputs.append(None)
 

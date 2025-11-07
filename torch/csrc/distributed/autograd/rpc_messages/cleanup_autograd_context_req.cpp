@@ -25,7 +25,11 @@ c10::intrusive_ptr<rpc::Message> CleanupAutogradContextReq::toMessageImpl() && {
 std::unique_ptr<CleanupAutogradContextReq> CleanupAutogradContextReq::
     fromMessage(const rpc::Message& message) {
   // unpickle and get the context_id we need to clean up
+<<<<<<< HEAD
   auto payload = message.payload().data();
+=======
+  auto payload = static_cast<const char*>(message.payload().data());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto payload_size = message.payload().size();
   IValue ivalue_context_id = jit::unpickle(
       payload,

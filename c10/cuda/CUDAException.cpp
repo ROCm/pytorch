@@ -10,9 +10,15 @@ namespace c10::cuda {
 
 void c10_cuda_check_implementation(
     const int32_t err,
+<<<<<<< HEAD
     const char* filename,
     const char* function_name,
     const uint32_t line_number,
+=======
+    const char* /*filename*/,
+    const char* /*function_name*/,
+    const int /*line_number*/,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const bool include_device_assertions) {
   const auto cuda_error = static_cast<cudaError_t>(err);
   const auto cuda_kernel_failure = include_device_assertions
@@ -28,9 +34,13 @@ void c10_cuda_check_implementation(
   std::string check_message;
 #ifndef STRIP_ERROR_MESSAGES
   check_message.append("CUDA error: ");
+<<<<<<< HEAD
   const char* error_string = cudaGetErrorString(cuda_error);
   check_message.append(error_string);
   check_message.append(c10::cuda::get_cuda_error_help(cuda_error));
+=======
+  check_message.append(cudaGetErrorString(cuda_error));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   check_message.append(c10::cuda::get_cuda_check_suffix());
   check_message.append("\n");
   if (include_device_assertions) {
@@ -41,7 +51,11 @@ void c10_cuda_check_implementation(
   }
 #endif
   throw c10::AcceleratorError(
+<<<<<<< HEAD
       {function_name, filename, line_number}, err, check_message);
+=======
+      {__func__, __FILE__, int32_t(__LINE__)}, err, check_message);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 } // namespace c10::cuda

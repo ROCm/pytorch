@@ -118,7 +118,11 @@ gemm_notrans_(
   scale_(m, n, beta, c, ldc);
 
   // c += alpha * (a @ b)
+<<<<<<< HEAD
   const uint64_t unsigned_m = m;
+=======
+  const uint64_t unsigned_m = static_cast<int64_t>(m);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const uint64_t i_m = unsigned_m / 4;
   for (const uint64_t l : c10::irange(k)) {
     for (const uint64_t j : c10::irange(n)) {
@@ -369,7 +373,11 @@ void gemm_notrans_(
 #endif // defined(__aarch64__) && !defined(C10_MOBILE)
 
 #if !defined(C10_MOBILE)
+<<<<<<< HEAD
 float compute_dot(const at::Half* a, const at::Half* b, int64_t len) {
+=======
+static float compute_dot(const at::Half* a, const at::Half* b, int64_t len) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return at::native::CPU_CAPABILITY::fp16_dot_with_fp32_arith(
       a, b, len);
 }
@@ -406,7 +414,11 @@ void gemm_transa_(
   });
 }
 
+<<<<<<< HEAD
 float compute_dot(const at::BFloat16* a, const at::BFloat16* b, int64_t len) {
+=======
+static float compute_dot(const at::BFloat16* a, const at::BFloat16* b, int64_t len) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return at::native::CPU_CAPABILITY::bf16_dot_with_fp32_arith(a, b, len);
 }
 

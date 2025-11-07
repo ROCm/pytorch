@@ -88,7 +88,10 @@ operators:
         self.assertTrue(selector2.is_operator_selected("aten::sub.int"))
 
         selector_legacy_v1 = SelectiveBuilder.from_legacy_op_registration_allow_list(
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["aten::add", "aten::add.int", "aten::mul.int"],
             False,
             False,
@@ -104,7 +107,10 @@ operators:
         )
 
         selector_legacy_v1 = SelectiveBuilder.from_legacy_op_registration_allow_list(
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["aten::add", "aten::add.int", "aten::mul.int"],
             True,
             False,
@@ -120,7 +126,10 @@ operators:
         )
 
         selector_legacy_v1 = SelectiveBuilder.from_legacy_op_registration_allow_list(
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ["aten::add", "aten::add.int", "aten::mul.int"],
             False,
             True,

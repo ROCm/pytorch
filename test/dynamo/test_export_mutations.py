@@ -29,7 +29,11 @@ class MutationExportTests(torch._dynamo.test_case.TestCase):
                 self.a = self.a.to(torch.float64)
                 return x.sum() + self.a.sum()
 
+<<<<<<< HEAD
         self.check_same_with_export(Foo(), torch.randn(3, 2))
+=======
+        self.check_failure_on_export(Foo(), torch.randn(3, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_module_attribute_mutation_violation_negative_1(self):
         # Mutating attribute with a Tensor type inside __init__ but

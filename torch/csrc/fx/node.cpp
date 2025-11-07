@@ -1,5 +1,6 @@
 #include <torch/csrc/fx/node.h>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
 #include <c10/util/SmallVector.h>
 #include <structmember.h>
@@ -10,6 +11,14 @@
 namespace {
 
 using NodeSortKey = c10::SmallVector<int64_t, 4>;
+=======
+#include <structmember.h>
+#include <torch/csrc/utils/object_ptr.h>
+#include <torch/csrc/utils/pythoncapi_compat.h>
+
+namespace {
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct NodeBase;
 
 // Thrown to exit out of a C++ function and return an error to Python.
@@ -167,6 +176,7 @@ struct NodeBase {
   PyObject* users;
   PyObject* _repr_fn;
   PyObject* meta;
+<<<<<<< HEAD
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
   alignas(NodeSortKey) char sort_key_buf[sizeof(NodeSortKey)];
 
@@ -202,6 +212,9 @@ struct NodeBase {
     p->set_next(n);
     n->set_prev(p);
   }
+=======
+  PyObject* _sort_key;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 static PyObject* NodeBase_new(
@@ -211,8 +224,11 @@ static PyObject* NodeBase_new(
   PyObject* self = type->tp_alloc(type, 0);
   if (!self)
     return nullptr;
+<<<<<<< HEAD
   new (reinterpret_cast<NodeBase*>(self)->sort_key_buf)
       NodeSortKey(); // placement new does not allocate
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return self;
 }
 
@@ -241,6 +257,10 @@ static int NodeBase_init_fn(NodeBase* self, PyObject* args, PyObject* kwds) {
   self->users = PyDict_New();
   self->_repr_fn = Py_NewRef(Py_None);
   self->meta = PyDict_New();
+<<<<<<< HEAD
+=======
+  self->_sort_key = PyTuple_New(0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return 0;
 }
 
@@ -260,6 +280,10 @@ static struct PyMemberDef NodeBase_members[] = {
     {"users", T_OBJECT_EX, offsetof(NodeBase, users), 0, nullptr},
     {"_repr_fn", T_OBJECT_EX, offsetof(NodeBase, _repr_fn), 0, nullptr},
     {"meta", T_OBJECT_EX, offsetof(NodeBase, meta), 0, nullptr},
+<<<<<<< HEAD
+=======
+    {"_sort_key", T_OBJECT_EX, offsetof(NodeBase, _sort_key), 0, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr} /* Sentinel */
 };
 
@@ -277,6 +301,10 @@ static int NodeBase_traverse(NodeBase* self, visitproc visit, void* arg) {
   Py_VISIT(self->users);
   Py_VISIT(self->_repr_fn);
   Py_VISIT(self->meta);
+<<<<<<< HEAD
+=======
+  Py_VISIT(self->_sort_key);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return 0;
 }
 
@@ -294,12 +322,19 @@ static int NodeBase_clear(NodeBase* self) {
   Py_CLEAR(self->users);
   Py_CLEAR(self->_repr_fn);
   Py_CLEAR(self->meta);
+<<<<<<< HEAD
+=======
+  Py_CLEAR(self->_sort_key);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return 0;
 }
 
 static void NodeBase_dealloc(PyObject* self) {
   PyObject_GC_UnTrack(self);
+<<<<<<< HEAD
   reinterpret_cast<NodeBase*>(self)->sort_key().~NodeSortKey();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   (void)NodeBase_clear((NodeBase*)self);
   Py_TYPE(self)->tp_free(self);
 }
@@ -358,6 +393,7 @@ static PyObject* NodeBase__update_args_kwargs(
   }
 }
 
+<<<<<<< HEAD
 static PyObject* NodeBase__remove_from_list(
     PyObject* self,
     PyObject* _ignored) {
@@ -541,12 +577,15 @@ static int NodeBase_set_sort_key(
   return 0;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // NOLINTNEXTLINE(cppcoreguidelines-avoid-c-arrays,modernize-avoid-c-arrays)
 static PyMethodDef NodeBase_methods[] = {
     {"_update_args_kwargs",
      (PyCFunction)(void*)(NodeBase__update_args_kwargs),
      METH_FASTCALL,
      "Internal method: do not call directly."},
+<<<<<<< HEAD
     {"_remove_from_list",
      (PyCFunction)(void*)(NodeBase__remove_from_list),
      METH_NOARGS,
@@ -588,6 +627,11 @@ static PyGetSetDef NodeBase_getset[] = {
     {nullptr, nullptr, nullptr, nullptr, nullptr} // Sentinel
 };
 
+=======
+    {nullptr, nullptr, 0, nullptr} // Sentinel
+};
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PyTypeObject NodeBaseType = {
     PyVarObject_HEAD_INIT(nullptr, 0)
     "torch._C._NodeBase", /* tp_name */
@@ -619,7 +663,11 @@ PyTypeObject NodeBaseType = {
     nullptr, /* tp_iternext */
     NodeBase_methods, /* tp_methods */
     NodeBase_members, /* tp_members */
+<<<<<<< HEAD
     NodeBase_getset, /* tp_getset */
+=======
+    nullptr, /* tp_getset */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_base */
     nullptr, /* tp_dict */
     nullptr, /* tp_descr_get */

@@ -81,9 +81,15 @@ class BinaryFoldingTemplate(TestCase):
             out_optimized = torch.compile(mod_eager)
 
             inps = [4, 3, 4]
+<<<<<<< HEAD
             if module is nn.Conv2d:
                 inps.append(inps[-1])
             if module is nn.Conv3d:
+=======
+            if module == nn.Conv2d:
+                inps.append(inps[-1])
+            if module == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
 
@@ -195,9 +201,15 @@ class BinaryFoldingTemplate(TestCase):
             )
 
             inps = [4, 3, 4]
+<<<<<<< HEAD
             if module[0] is nn.Conv2d:
                 inps.append(inps[-1])
             if module[0] is nn.Conv3d:
+=======
+            if module[0] == nn.Conv2d:
+                inps.append(inps[-1])
+            if module[0] == nn.Conv3d:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 inps.append(inps[-1])
                 inps.append(inps[-1])
 

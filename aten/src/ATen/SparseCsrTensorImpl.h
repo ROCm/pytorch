@@ -32,10 +32,17 @@ struct TORCH_API SparseCsrTensorImpl : public TensorImpl {
 
  public:
   explicit SparseCsrTensorImpl(
+<<<<<<< HEAD
       at::DispatchKeySet /*key_set*/,
       at::Device device,
       Layout layout,
       const caffe2::TypeMeta /*data_type*/);
+=======
+      at::DispatchKeySet,
+      at::Device device,
+      Layout layout,
+      const caffe2::TypeMeta);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   void resize_(int64_t nnz, IntArrayRef size);
   void resize_and_clear_(
@@ -86,8 +93,12 @@ struct TORCH_API SparseCsrTensorImpl : public TensorImpl {
  protected:
   IntArrayRef strides_custom() const override;
   SymIntArrayRef sym_strides_custom() const override;
+<<<<<<< HEAD
   SymBool sym_is_contiguous_custom(
       MemoryFormat /*memory_format*/) const override;
+=======
+  bool is_contiguous_custom(MemoryFormat) const override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  public:
   void set_size(int64_t dim, int64_t new_size) override;

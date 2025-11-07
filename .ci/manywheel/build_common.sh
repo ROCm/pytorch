@@ -97,7 +97,11 @@ if [[ -z "$PYTORCH_ROOT" ]]; then
     exit 1
 fi
 pushd "$PYTORCH_ROOT"
+<<<<<<< HEAD
 retry pip install -qUr requirements-build.txt
+=======
+retry pip install -q cmake
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 python setup.py clean
 retry pip install -qr requirements.txt
 case ${DESIRED_PYTHON} in
@@ -138,11 +142,36 @@ fi
 
 echo "Calling setup.py bdist at $(date)"
 
+<<<<<<< HEAD
 time CMAKE_ARGS=${CMAKE_ARGS[@]} \
     EXTRA_CAFFE2_CMAKE_FLAGS=${EXTRA_CAFFE2_CMAKE_FLAGS[@]} \
     BUILD_LIBTORCH_CPU_WITH_DEBUG=$BUILD_DEBUG_INFO \
     USE_NCCL=${USE_NCCL} USE_RCCL=${USE_RCCL} USE_KINETO=${USE_KINETO} \
     python -m build --wheel --no-isolation --outdir /tmp/$WHEELHOUSE_DIR
+=======
+if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+    echo "Calling setup.py bdist_wheel for split build (BUILD_LIBTORCH_WHL)"
+    time EXTRA_CAFFE2_CMAKE_FLAGS=${EXTRA_CAFFE2_CMAKE_FLAGS[@]} \
+    BUILD_LIBTORCH_WHL=1 BUILD_PYTHON_ONLY=0 \
+    BUILD_LIBTORCH_CPU_WITH_DEBUG=$BUILD_DEBUG_INFO \
+    USE_NCCL=${USE_NCCL} USE_RCCL=${USE_RCCL} USE_KINETO=${USE_KINETO} \
+    python setup.py bdist_wheel -d /tmp/$WHEELHOUSE_DIR
+    echo "Finished setup.py bdist_wheel for split build (BUILD_LIBTORCH_WHL)"
+    echo "Calling setup.py bdist_wheel for split build (BUILD_PYTHON_ONLY)"
+    time EXTRA_CAFFE2_CMAKE_FLAGS=${EXTRA_CAFFE2_CMAKE_FLAGS[@]} \
+    BUILD_LIBTORCH_WHL=0 BUILD_PYTHON_ONLY=1 \
+    BUILD_LIBTORCH_CPU_WITH_DEBUG=$BUILD_DEBUG_INFO \
+    USE_NCCL=${USE_NCCL} USE_RCCL=${USE_RCCL} USE_KINETO=${USE_KINETO} \
+    CMAKE_FRESH=1 python setup.py bdist_wheel -d /tmp/$WHEELHOUSE_DIR
+    echo "Finished setup.py bdist_wheel for split build (BUILD_PYTHON_ONLY)"
+else
+    time CMAKE_ARGS=${CMAKE_ARGS[@]} \
+        EXTRA_CAFFE2_CMAKE_FLAGS=${EXTRA_CAFFE2_CMAKE_FLAGS[@]} \
+        BUILD_LIBTORCH_CPU_WITH_DEBUG=$BUILD_DEBUG_INFO \
+        USE_NCCL=${USE_NCCL} USE_RCCL=${USE_RCCL} USE_KINETO=${USE_KINETO} \
+        python setup.py bdist_wheel -d /tmp/$WHEELHOUSE_DIR
+fi
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 echo "Finished setup.py bdist at $(date)"
 
 # Build libtorch packages
@@ -255,6 +284,13 @@ ls /tmp/$WHEELHOUSE_DIR
 mkdir -p "/$WHEELHOUSE_DIR"
 mv /tmp/$WHEELHOUSE_DIR/torch*linux*.whl /$WHEELHOUSE_DIR/
 
+<<<<<<< HEAD
+=======
+if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+    mv /tmp/$WHEELHOUSE_DIR/torch_no_python*.whl /$WHEELHOUSE_DIR/ || true
+fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if [[ -n "$BUILD_PYTHONLESS" ]]; then
     mkdir -p /$LIBTORCH_HOUSE_DIR
     mv /tmp/$LIBTORCH_HOUSE_DIR/*.zip /$LIBTORCH_HOUSE_DIR
@@ -431,8 +467,21 @@ if [[ -z "$BUILD_PYTHONLESS" ]]; then
   pushd $PYTORCH_ROOT/test
 
   # Install the wheel for this Python version
+<<<<<<< HEAD
   pip uninstall -y "$TORCH_PACKAGE_NAME"
 
+=======
+  if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+    pip uninstall -y "$TORCH_NO_PYTHON_PACKAGE_NAME" || true
+  fi
+
+  pip uninstall -y "$TORCH_PACKAGE_NAME"
+
+  if [[ "$USE_SPLIT_BUILD" == "true" ]]; then
+    pip install "$TORCH_NO_PYTHON_PACKAGE_NAME" --no-index -f /$WHEELHOUSE_DIR --no-dependencies -v
+  fi
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   pip install "$TORCH_PACKAGE_NAME" --no-index -f /$WHEELHOUSE_DIR --no-dependencies -v
 
   # Print info on the libraries installed in this wheel

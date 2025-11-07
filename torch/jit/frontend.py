@@ -73,6 +73,17 @@ from torch.jit._dataclass_impls import DATACLASS_MAGIC_METHODS
 from torch.jit._monkeytype_config import get_qualified_name, monkeytype_trace
 
 
+<<<<<<< HEAD
+=======
+_IS_ASTUNPARSE_INSTALLED = False
+try:
+    import astunparse  # type: ignore[import]
+
+    _IS_ASTUNPARSE_INSTALLED = True
+except ImportError:
+    pass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Borrowed from cPython implementation
 # https://github.com/python/cpython/blob/561612d8456cfab5672c9b445521113b847bd6b3/Lib/textwrap.py#L411#
 
@@ -115,7 +126,10 @@ node_start_tokens = {
     ast.Continue: "continue",
 }
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 pretty_node_names.update(
     {
         ast.AsyncFunctionDef: "async function definitions",
@@ -126,7 +140,10 @@ pretty_node_names.update(
     }
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 node_start_tokens.update(
     {
         ast.AsyncFunctionDef: "async def",
@@ -137,7 +154,10 @@ node_start_tokens.update(
     }
 )
 
+<<<<<<< HEAD
 # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 pretty_node_names.update(
     {
         ast.AnnAssign: "annotated assignments",
@@ -433,11 +453,15 @@ def build_def(ctx, py_def, type_line, def_name, self_name=None, pdt_arg_types=No
     is_method = self_name is not None
     if type_line is not None:
         type_comment_decl = torch._C.parse_type_comment(type_line)
+<<<<<<< HEAD
         decl = torch._C.merge_type_from_type_comment(
             decl,  # type: ignore[arg-type]
             type_comment_decl,
             is_method,  # type: ignore[assignment]
         )
+=======
+        decl = torch._C.merge_type_from_type_comment(decl, type_comment_decl, is_method)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return Def(Ident(r, def_name), decl, build_stmts(ctx, body))
 
@@ -586,7 +610,11 @@ def build_ignore_context_manager(ctx, stmt):
 from typing import List, Dict, Tuple
 
 @torch.jit.ignore
+<<<<<<< HEAD
 {ast.unparse(ignore_function)}
+=======
+{astunparse.unparse(ignore_function)}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
     g = copy.copy(globals())
     exec(ignore_func_str, g)  # noqa: P204
@@ -714,7 +742,11 @@ class StmtBuilder(Builder):
 
         # Disallow type annotations on instance attributes outside of __init__
         if (
+<<<<<<< HEAD
             type(stmt.target) is ast.Attribute
+=======
+            type(stmt.target) == ast.Attribute
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and stmt.target.value.id == "self"  # type: ignore[attr-defined]
             and ctx.funcname != "__init__"
         ):
@@ -841,6 +873,14 @@ class StmtBuilder(Builder):
         r = ctx.make_range(stmt.lineno, stmt.col_offset, stmt.col_offset + len("with"))
         # Handle ignore context manager
         if is_torch_jit_ignore_context_manager(stmt):
+<<<<<<< HEAD
+=======
+            if not _IS_ASTUNPARSE_INSTALLED:
+                raise RuntimeError(
+                    "torch.jit._IgnoreContextManager requires installing Python library `astunparse`, \
+                                   please install it in your Python environment"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assign_ast = build_ignore_context_manager(ctx, stmt)
             return build_stmt(ctx, assign_ast)
         return With(r, build_withitems(ctx, stmt.items), build_stmts(ctx, stmt.body))
@@ -862,7 +902,10 @@ class ExprBuilder(Builder):
         ast.RShift: ">>",
     }
 
+<<<<<<< HEAD
     # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     binop_map[ast.MatMult] = "@"
 
     unop_map = {
@@ -1050,12 +1093,20 @@ class ExprBuilder(Builder):
                 in_expr = BinOp("in", lhs, rhs)
                 cmp_expr = UnaryOp(r, "not", in_expr)
             else:
+<<<<<<< HEAD
                 cmp_expr = BinOp(op_token, lhs, rhs)  # type: ignore[assignment]
+=======
+                cmp_expr = BinOp(op_token, lhs, rhs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if result is None:
                 result = cmp_expr
             else:
+<<<<<<< HEAD
                 result = BinOp("and", result, cmp_expr)  # type: ignore[assignment]
+=======
+                result = BinOp("and", result, cmp_expr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return result
 
     @staticmethod
@@ -1130,7 +1181,11 @@ class ExprBuilder(Builder):
             return Subscript(base, [build_SliceExpr(ctx, base, expr.slice)])
         elif sub_type is ast.ExtSlice:
             return Subscript(base, build_ExtSlice(ctx, base, expr.slice))
+<<<<<<< HEAD
         else:  # In Python3.9 array indices are not wrapped in ast.Index
+=======
+        else:  # In Python3.9 array indicies are not wrapped in ast.Index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if sub_type is ast.Tuple:
                 # N-dimensional indexing using Tuple: x[(i, j, k)] is equivalent to x[i, j, k]
                 indices = []
@@ -1224,7 +1279,10 @@ class ExprBuilder(Builder):
                 s += "{}"
                 args.append(build_expr(ctx, value.value))
             elif isinstance(value, ast.Constant):
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 s += value.value
             else:
                 raise NotSupportedError(r, "Unsupported value in JoinedStr")

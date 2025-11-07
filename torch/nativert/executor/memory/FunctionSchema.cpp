@@ -11,16 +11,20 @@ bool FunctionSchema::alias(size_t input_idx, size_t output_idx) const {
     }
   }
 
+<<<<<<< HEAD
   VLOG(1) << "checking aliasing spec for " << c10_fn_schema_.name() << " "
           << (c10_fn_schema_.is_varret() ? "varret" : "non-varret") << " "
           << (c10_fn_schema_.is_vararg() ? "vararg" : "non-vararg");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (!aliasing_spec_.empty()) {
     VLOG(1) << "aliasing spec is not empty but no entry found for ("
             << input_idx << "-->" << output_idx
             << ") -- falling back to schema->may_contain_alias()";
   }
 
+<<<<<<< HEAD
   /*
     varret and vararg will contribute to the input/output idx's
     but because we don't know how many inputs/outputs there are,
@@ -49,6 +53,8 @@ bool FunctionSchema::alias(size_t input_idx, size_t output_idx) const {
     return true;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return c10_fn_schema_.may_contain_alias(
       {c10::SchemaArgType::output, output_idx},
       {c10::SchemaArgType::input, input_idx},

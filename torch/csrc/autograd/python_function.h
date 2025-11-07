@@ -109,10 +109,13 @@ struct THPFunction {
   // Default is true.
   bool materialize_grads;
 
+<<<<<<< HEAD
   // boolean indicating whether the function is a "pure view", meaning that
   // replaying the view is enough to get a correct backward.
   bool pure_view;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // boolean indicating whether to materialize output grad tensors
   // corresponding to non-differentiable outputs. Normally, someone would
   // already get this behavior by switching off materialize_grads,

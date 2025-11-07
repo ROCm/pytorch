@@ -27,7 +27,11 @@ CMAKE_ARGS+=("-DPYTORCH_QNNPACK_LIBRARY_TYPE=static")
 CMAKE_ARGS+=("-DPYTORCH_QNNPACK_BUILD_BENCHMARKS=ON")
 CMAKE_ARGS+=("-DPYTORCH_QNNPACK_BUILD_TESTS=ON")
 
+<<<<<<< HEAD
 # Use-specified CMake arguments go last to allow overriding defaults
+=======
+# Use-specified CMake arguments go last to allow overridding defaults
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CMAKE_ARGS+=($@)
 
 cd build/local && cmake ../.. \

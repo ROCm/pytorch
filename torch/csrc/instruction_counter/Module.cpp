@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/error.h>
 #include <torch/csrc/instruction_counter/Module.h>
 #include <torch/csrc/utils/pybind.h>
@@ -21,7 +24,11 @@ namespace torch::instruction_counter {
 
 static long start() {
 #if !defined(__linux__)
+<<<<<<< HEAD
   TORCH_CHECK(false, "This systems seems not to be Linux");
+=======
+  throw std::runtime_error("This systems seems not to be Linux");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
 
   // Construct base perf_event_attr struct
@@ -52,7 +59,11 @@ static long start() {
 
 static uint64_t end(int fd) {
 #if !defined(__linux__)
+<<<<<<< HEAD
   TORCH_CHECK(false, "This systems seems not to be Linux");
+=======
+  throw std::runtime_error("This systems seems not to be Linux");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   // Disable the event group
   if (ioctl(fd, PERF_EVENT_IOC_DISABLE, PERF_IOC_FLAG_GROUP) == -1) {

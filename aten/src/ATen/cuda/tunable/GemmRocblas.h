@@ -141,7 +141,11 @@ class RocblasGemmOp : public Callable<GemmParams<T>> {
 
     TuningStatus Call(const GemmParams<T>* params) override {
       auto input_output_type = RocBlasDataTypeFor<T>();
+<<<<<<< HEAD
       if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32 && input_output_type == rocblas_datatype_f32_r)
+=======
+      if (at::globalContext().allowTF32CuBLAS() && input_output_type == rocblas_datatype_f32_r)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return FAIL;  // no support for TF32 in rocBLAS
       auto compute_type = RocBlasComputeTypeFor<T>();
       auto h_a = DoCastForHalfOrBfloat16(params->alpha);
@@ -209,7 +213,11 @@ class RocblasGemmStridedBatchedOp : public Callable<GemmStridedBatchedParams<T>>
 
     TuningStatus Call(const GemmStridedBatchedParams<T>* params) override {
       auto input_output_type = RocBlasDataTypeFor<T>();
+<<<<<<< HEAD
       if (at::globalContext().float32Precision(at::Float32Backend::CUDA, at::Float32Op::MATMUL) == at::Float32Precision::TF32 && input_output_type == rocblas_datatype_f32_r)
+=======
+      if (at::globalContext().allowTF32CuBLAS() && input_output_type == rocblas_datatype_f32_r)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return FAIL;  // no support for TF32 in rocBLAS
       auto compute_type = RocBlasComputeTypeFor<T>();
       auto h_a = DoCastForHalfOrBfloat16(params->alpha);

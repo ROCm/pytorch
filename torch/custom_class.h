@@ -90,7 +90,11 @@ class class_ : public ::torch::detail::class_base {
   /// constructor taking an `int` and a `std::string` as argument.
   template <typename... Types>
   class_& def(
+<<<<<<< HEAD
       torch::detail::types<void, Types...> /*unused*/,
+=======
+      torch::detail::types<void, Types...>,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::string doc_string = "",
       std::initializer_list<arg> default_args =
           {}) { // Used in combination with
@@ -287,7 +291,11 @@ class class_ : public ::torch::detail::class_base {
   ///     __getstate__(intrusive_ptr<CurClass>) -> T1
   ///     __setstate__(T2) -> intrusive_ptr<CurClass>
   ///
+<<<<<<< HEAD
   /// `T1` must be an object that is convertible to IValue by the same rules
+=======
+  /// `T1` must be an object that is convertable to IValue by the same rules
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// for custom op/method registration.
   ///
   /// For the common case, T1 == T2. T1 can also be a subtype of T2. An
@@ -444,7 +452,11 @@ c10::IValue make_custom_class(CtorArgs&&... args) {
 }
 
 // Alternative api for creating a torchbind class over torch::class_ this api is
+<<<<<<< HEAD
 // preferred to prevent size regressions on Edge usecases. Must be used in
+=======
+// preffered to prevent size regressions on Edge usecases. Must be used in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // conjunction with TORCH_SELECTIVE_CLASS macro aka
 // selective_class<foo>("foo_namespace", TORCH_SELECTIVE_CLASS("foo"))
 template <class CurClass>
@@ -457,8 +469,13 @@ inline class_<CurClass> selective_class_(
 
 template <class CurClass>
 inline detail::ClassNotSelected selective_class_(
+<<<<<<< HEAD
     const std::string& /*unused*/,
     detail::SelectiveStr<false> /*unused*/) {
+=======
+    const std::string&,
+    detail::SelectiveStr<false>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return detail::ClassNotSelected();
 }
 
@@ -512,7 +529,11 @@ inline class_<CurClass> Library::class_(detail::SelectiveStr<true> className) {
 }
 
 template <class CurClass>
+<<<<<<< HEAD
 inline detail::ClassNotSelected Library::class_(detail::SelectiveStr<false> /*unused*/) {
+=======
+inline detail::ClassNotSelected Library::class_(detail::SelectiveStr<false>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return detail::ClassNotSelected();
 }
 

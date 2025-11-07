@@ -4,8 +4,21 @@
 from __future__ import annotations
 
 import functools
+<<<<<<< HEAD
 from contextlib import contextmanager
 from typing import Any, cast, NoReturn, Optional, overload, TYPE_CHECKING, Union
+=======
+from typing import (
+    Any,
+    Callable,
+    cast,
+    NoReturn,
+    Optional,
+    overload,
+    TYPE_CHECKING,
+    Union,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -13,7 +26,11 @@ import torch.nn as nn
 from torch.distributed._composable import contract
 from torch.distributed.utils import _get_root_modules
 
+<<<<<<< HEAD
 from ._fsdp_api import AllGather, MixedPrecisionPolicy, OffloadPolicy, ReduceScatter
+=======
+from ._fsdp_api import MixedPrecisionPolicy, OffloadPolicy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ._fsdp_common import FSDPMeshInfo, HSDPMeshInfo
 from ._fsdp_init import (
     _get_device_from_mesh,
@@ -28,7 +45,11 @@ from ._fsdp_state import _get_module_fsdp_state, FSDPState
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterable, Iterator
+=======
+    from collections.abc import Iterable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     from torch.distributed.tensor import DeviceMesh, Shard
 
@@ -37,21 +58,28 @@ __all__ = [
     "FSDPModule",
     "UnshardHandle",
     "register_fsdp_forward_method",
+<<<<<<< HEAD
     "get_cls_to_fsdp_cls",
     "disable_fsdp_module_new_init",
     "share_comm_ctx",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
 cls_to_fsdp_cls: dict[type, type] = {}
 
 
+<<<<<<< HEAD
 def get_cls_to_fsdp_cls() -> dict[type, type]:
     return cls_to_fsdp_cls
 
 
 @overload
 # pyrefly: ignore [inconsistent-overload]
+=======
+@overload
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def fully_shard(
     module: nn.Module,
     *,
@@ -65,7 +93,10 @@ def fully_shard(
 
 
 @overload
+<<<<<<< HEAD
 # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def fully_shard(
     module: list[nn.Module],
     *,
@@ -242,7 +273,11 @@ def fully_shard(
     # Place FSDP leftmost for highest priority in the method resolution order
     for module in modules:
         cls = module.__class__
+<<<<<<< HEAD
         new_cls = cls_to_fsdp_cls.get(cls)
+=======
+        new_cls = cls_to_fsdp_cls.get(cls, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not new_cls:
             dct = {"__deepcopy__": _unimplemented_deepcopy}
             new_cls = type(f"FSDP{cls.__name__}", (FSDPModule, cls), dct)
@@ -257,6 +292,7 @@ def _unimplemented_deepcopy(*args: Any, **kwargs: Any) -> NoReturn:
     )
 
 
+<<<<<<< HEAD
 _enable_fsdp_module_new_init: bool = True
 
 
@@ -270,6 +306,8 @@ def disable_fsdp_module_new_init() -> Iterator[None]:
         _enable_fsdp_module_new_init = prev
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class FSDPModule:
     def __new__(cls, *args, **kwargs):
         """
@@ -280,8 +318,12 @@ class FSDPModule:
         # and index 1 is the `FSDPModule` class itself
         orig_cls = cls.__mro__[2]
         self = orig_cls.__new__(orig_cls, *args, **kwargs)
+<<<<<<< HEAD
         if _enable_fsdp_module_new_init:
             self.__init__(*args, **kwargs)
+=======
+        self.__init__(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self
 
     def reshard(self) -> None:
@@ -470,6 +512,7 @@ class FSDPModule:
             module._get_fsdp_state() for module in modules
         ]
 
+<<<<<<< HEAD
     def set_custom_all_gather(self, comm: AllGather) -> None:
         """
         Overrides the default ``all_gather`` communication behavior,
@@ -496,6 +539,8 @@ class FSDPModule:
         if (fsdp_param_group := state._fsdp_param_group) is not None:
             fsdp_param_group._reduce_scatter_comm = comm
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def set_all_reduce_hook(
         self,
         hook: Callable[[torch.Tensor], None],
@@ -599,17 +644,24 @@ class FSDPModule:
         using NCCL, this enables it to leverage zero-copy transfers over SHARP
         (for NVLink and/or InfiniBand).
 
+<<<<<<< HEAD
         This cannot be used together with :meth:`set_custom_all_gather` or
         :meth:`set_custom_reduce_scatter` as those APIs allow for
         finer-grained control over each communication, and this method cannot
         determine their staging buffer allocation strategy.
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Args:
             enable (bool): Whether to turn on ProcessGroup allocation.
         """
         state = self._get_fsdp_state()
         if (fsdp_param_group := state._fsdp_param_group) is not None:
+<<<<<<< HEAD
             fsdp_param_group.set_allocate_memory_from_process_group(enable)
+=======
+            fsdp_param_group.allocate_memory_from_process_group = enable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _set_unshard_async_op(self, async_op: bool):
         """
@@ -712,6 +764,7 @@ def register_fsdp_forward_method(module: nn.Module, method_name: str) -> None:
     )
 
 
+<<<<<<< HEAD
 def share_comm_ctx(modules: list[FSDPModule]) -> None:
     """
     Share cuda streams for multiple FSDPModules
@@ -740,6 +793,8 @@ def share_comm_ctx(modules: list[FSDPModule]) -> None:
             fsdp_param_group.comm_ctx = comm_ctx
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _assert_all_fsdp_modules(modules: Iterable[Any]) -> None:
     for module in modules:
         if not isinstance(module, FSDPModule):

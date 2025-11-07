@@ -128,7 +128,11 @@ typename c10::guts::infer_function_traits_t<Functor>::return_type
 call_torchbind_method_from_stack(
     Functor& functor,
     jit::Stack& stack,
+<<<<<<< HEAD
     std::index_sequence<ivalue_arg_indices...> /*unused*/) {
+=======
+    std::index_sequence<ivalue_arg_indices...>) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   (void)(stack); // when sizeof...(ivalue_arg_indices) == 0, this argument would
                  // be unused and we have to silence the compiler warning.
 

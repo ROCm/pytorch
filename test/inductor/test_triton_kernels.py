@@ -4,7 +4,10 @@
 # Skip do not assign a lambda expression, use a def
 import functools
 import logging
+<<<<<<< HEAD
 import os
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo.testing
@@ -32,12 +35,16 @@ from torch.testing._internal.common_utils import (
     skipIfWindows,
     skipIfXpu,
 )
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CUDA_AND_TRITON,
     HAS_GPU,
     HAS_XPU_AND_TRITON,
 )
+=======
+from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_CUDA, HAS_GPU, HAS_XPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.logging_utils import log_settings, logs_to_string
 
 # Defines all the kernels for tests
@@ -53,7 +60,11 @@ if HAS_GPU:
     import triton
     from triton import language as tl
 
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON:
+=======
+    if HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             from triton.language.extra.libdevice import (  # @manual
                 fast_dividef,
@@ -64,7 +75,11 @@ if HAS_GPU:
                 fast_dividef,
                 fast_dividef as my_fast_dividef,
             )
+<<<<<<< HEAD
     elif HAS_XPU_AND_TRITON:
+=======
+    elif HAS_XPU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from triton.language.extra.intel.libdevice import (  # @manual
             fast_dividef,
             fast_dividef as my_fast_dividef,
@@ -84,12 +99,15 @@ if HAS_GPU:
     BOOL_CONSTANT_C: tl.constexpr = tl.constexpr(True)
     FLOAT_CONSTANT_C = tl.constexpr(3.14)  # intentionally un-annotated
 
+<<<<<<< HEAD
     if hasattr(triton, "constexpr_function"):
 
         @triton.constexpr_function
         def log2(n):
             return len(bin(n)) - 3
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class KernelTests(torch._inductor.test_case.TestCase):
     def _kernel_launched_in_code(self, kernel_name: str, code: str) -> bool:
@@ -1017,7 +1035,11 @@ def forward(self, x_1, output_1):
         def f(x):
             for _ in range(4):
                 # The output of one kernel is the input to the next kernel, but
+<<<<<<< HEAD
                 # at some point we should reuse buffers not allocate new ones.
+=======
+                # at some point we should re-use buffers not allocate new ones.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 x = _mul2(x)
             return x + 1
 
@@ -1035,7 +1057,11 @@ def forward(self, x_1, output_1):
         num_bufs_allocated = code.count(code_string)
         self.assertEqual(num_bufs_allocated, 2)
 
+<<<<<<< HEAD
         # Check we're reusing buffers if not allocating.
+=======
+        # Check we're re-using buffers if not allocating.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         num_bufs_reused = code.count(
             "// reuse" if inductor_config.cpp_wrapper else "# reuse"
         )
@@ -1281,11 +1307,16 @@ def forward(self, x_1, output_1):
         self.assertEqual(compiled_out, eager_out)
 
     @requires_gpu
+<<<<<<< HEAD
     @common_utils.parametrize("dump_launch_params", ["0", "1"])
     @common_utils.parametrize("dynamic", [False, True])
     def test_triton_kernel_equal_to_1_arg(self, dynamic, dump_launch_params):
         os.environ["TORCHINDUCTOR_DUMP_LAUNCH_PARAMS"] = dump_launch_params
 
+=======
+    @common_utils.parametrize("dynamic", [False, True])
+    def test_triton_kernel_equal_to_1_arg(self, dynamic):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @triton.jit
         def add_kernel_half_n_elements(
             in_ptr0,
@@ -1323,10 +1354,17 @@ def forward(self, x_1, output_1):
         else:
             if dynamic:
                 # when half_n_elements passed to the Triton kernel is
+<<<<<<< HEAD
                 # dynamic, equal_to_1 specialization can't be enforced
 
                 # also, equal_to_1 specialization doesn't occur (or appear in the signature)
                 # for newer versions of triton (i.e. the ones where triton_version_uses_attrs_dict() == True)
+=======
+                # dynamic, equal_to_1 specializaiton can't be enforced
+
+                # also, equal_to_1 specialization doesn't occur (or appear in the signature)
+                # for newer versions ofo triton (i.e. the ones where triton_version_uses_attrs_dict() == True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertTrue(_triton_get_ast_equal_to_str(()) in sources[0])
             else:
                 self.assertTrue(_triton_get_ast_equal_to_str((3,)) in sources[0])
@@ -1393,6 +1431,7 @@ def forward(self, x_1, output_1):
 
         self.assertEqual(compiled_out, eager_out)
 
+<<<<<<< HEAD
     @unittest.skipIf(
         not HAS_GPU or not hasattr(triton, "constexpr_function"),
         "newer triton version required",
@@ -1426,6 +1465,8 @@ def forward(self, x_1, output_1):
         self.assertIn("@triton.constexpr_function", triton_code)
         self.assertEqual(compiled_out, eager_out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_gpu
     def test_triton_kernel_with_imported_symbol_with_custom_name(self):
         @triton.jit
@@ -2243,7 +2284,11 @@ def forward(self, arg0_1, arg1_1):
         self.assertEqual(compiled_out, eager_out)
 
     # TODO enable this test case on XPU.
+<<<<<<< HEAD
     @requires_cuda_and_triton
+=======
+    @requires_cuda
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("cfg", ["normal", "cpp_wrapper"])
     def test_triton_kernel_dtype_view(self, cfg):
         # https://github.com/pytorch/pytorch/issues/136159
@@ -2567,6 +2612,7 @@ def forward(self, arg0_1, arg1_1):
         expected = torch.compile(fn, fullgraph=True)(inp)
         self.assertEqual(actual, expected)
 
+<<<<<<< HEAD
     @requires_gpu
     @inductor_config.patch("emulate_precision_casts", True)
     def test_triton_kernel_emulate_precision_unaffected(self):
@@ -2613,6 +2659,8 @@ def forward(self, arg0_1, arg1_1):
                 ) from e
             raise
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def make_mutation_test(fn):
     @requires_gpu
@@ -3005,7 +3053,11 @@ class MutationTests(torch._inductor.test_case.TestCase):
             mask = offsets < n_elements
             x = tl.load(in_ptr0 + offsets, mask=mask)
             y = tl.load(in_ptr1 + offsets, mask=mask)
+<<<<<<< HEAD
             for i in range(BLOCK_SIZE):
+=======
+            for i in range(0, BLOCK_SIZE):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 i = tl.multiple_of(i, 1)
             output = x + y
             tl.store(out_ptr + offsets, output, mask=mask)
@@ -3160,7 +3212,11 @@ class MutationTests(torch._inductor.test_case.TestCase):
             x = tl.load(x_block_ptr)
 
             # Compute gating
+<<<<<<< HEAD
             for c2 in range(tl.cdiv(C2, BLOCK_SIZE_C2)):
+=======
+            for c2 in range(0, tl.cdiv(C2, BLOCK_SIZE_C2)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Compute block pointers
                 offs_c2 = c2 * BLOCK_SIZE_C2 + tl.arange(0, BLOCK_SIZE_C2)
                 o_block_ptr = O_ptr + offs_m[:, None] * C2 + offs_c2[None, :]
@@ -3673,6 +3729,7 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
         self.assertNotIn(opname, code)
 
     @requires_gpu
+<<<<<<< HEAD
     def test_subclass(self):
         libname = "my_cool_namespace"
         opname = "my_triton_operator"
@@ -3707,6 +3764,8 @@ class CustomOpTests(torch._inductor.test_case.TestCase):
         self.assertEqual(out.b, expected.b)
 
     @requires_gpu
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dynamo_config.patch("recompile_limit", 1)
     def test_triton_dynamic_grid_no_recompile(self):
         libname = "my_cool_namespace"

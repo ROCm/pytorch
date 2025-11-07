@@ -35,10 +35,14 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     TEST_WITH_DEV_DBG_ASAN,
+<<<<<<< HEAD
     TEST_XPU,
     TestCase,
     NAVI_ARCH,
     skipIfRocmArch,
+=======
+    TestCase,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -54,8 +58,11 @@ if TEST_WITH_DEV_DBG_ASAN:
     )
     sys.exit(0)
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 params = "cpu_offload,sharding_strategy,mixed_precision,use_orig_params"
 cpu_offload_config = [CPUOffload(offload_params=True), CPUOffload(offload_params=False)]
@@ -81,6 +88,7 @@ subtest_name = functools.partial(subtest_name, test_name_mapping)
 
 class TestShardGradScaler(TestCase):
     @unittest.skipIf(
+<<<<<<< HEAD
         amp_definitely_not_available() and not TEST_XPU,
         "no supported device (cuda, xla, xpu) found",
     )
@@ -89,6 +97,13 @@ class TestShardGradScaler(TestCase):
         scaler = ShardedGradScaler(
             device=device_type, init_scale=2.0, process_group=pg, enabled=True
         )
+=======
+        amp_definitely_not_available(), "no supported device (cuda, xla) found"
+    )
+    def test_grad_scaling(self):
+        pg = DummyProcessGroup(0, 1)
+        scaler = ShardedGradScaler(init_scale=2.0, process_group=pg, enabled=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         t0 = torch.full((1,), 4.0, dtype=torch.float32, device="cpu")
         t1 = torch.full((1,), 8.0, dtype=torch.float32, device="cpu")
         outputs = [t1.clone(), (t0.clone(), t1.clone()), [t0.clone(), t1.clone()]]
@@ -100,6 +115,7 @@ class TestShardGradScaler(TestCase):
         self.assertTrue(scaler._scale.device == t1.device)
 
     @unittest.skipIf(
+<<<<<<< HEAD
         amp_definitely_not_available() and not TEST_XPU,
         "no supported device (cuda, xla, xpu) found",
     )
@@ -108,6 +124,13 @@ class TestShardGradScaler(TestCase):
         scaler = ShardedGradScaler(
             device=device_type, init_scale=2.0, process_group=pg, enabled=True
         )
+=======
+        amp_definitely_not_available(), "no supported device (cuda, xla) found"
+    )
+    def test_scaling_unscaling_sparse(self):
+        pg = DummyProcessGroup(0, 1)
+        scaler = ShardedGradScaler(init_scale=2.0, process_group=pg, enabled=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         inv_scale = torch.full((1,), 0.5, dtype=torch.float, device="cpu")
         found_inf = torch.full((1,), 0, dtype=torch.float, device="cpu")
 
@@ -148,6 +171,7 @@ class TestShardGradScaler(TestCase):
         self.assertEqual(found_inf, 1.0)
 
     @unittest.skipIf(
+<<<<<<< HEAD
         amp_definitely_not_available() and not TEST_XPU,
         "no supported device (cuda, xla, xpu) found",
     )
@@ -156,6 +180,13 @@ class TestShardGradScaler(TestCase):
         scaler = ShardedGradScaler(
             device=device_type, init_scale=2.0, process_group=pg, enabled=True
         )
+=======
+        amp_definitely_not_available(), "no supported device (cuda, xla) found"
+    )
+    def test_inf_gradients_skip_optim_step(self):
+        pg = DummyProcessGroup(0, 1)
+        scaler = ShardedGradScaler(init_scale=2.0, process_group=pg, enabled=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         loss = torch.full((1,), 4.0, dtype=torch.float32, device="cpu")
         t0 = torch.tensor([float("inf")], dtype=torch.float32, device="cpu")
         t0.grad = t0.clone()
@@ -242,16 +273,24 @@ class TestShardedGradScalerParityWithDDP(FSDPTest):
                 {
                     TransformerEncoderLayer,
                     TransformerDecoderLayer,
+<<<<<<< HEAD
                 },
             ),
             "device_id": self.rank,
+=======
+                }
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         model = FSDP(model, **fsdp_kwargs)
         optim = torch.optim.Adam(model.parameters(), lr=1e-2)
         return model, optim, ref_model, ref_optim
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @skipIfRocmArch(NAVI_ARCH)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sharded_grad_scaler_found_inf(self):
         self.run_subtests(
             {
@@ -273,10 +312,17 @@ class TestShardedGradScalerParityWithDDP(FSDPTest):
             cpu_offload=cpu_offload,
             use_orig_params=use_orig_params,
         )
+<<<<<<< HEAD
         grad_scaler = ShardedGradScaler(device=device_type, init_scale=2.0)
         ref_grad_scaler = torch.amp.GradScaler(device=device_type, init_scale=2.0)
         scaled_losses: list[torch.Tensor] = []
         device = torch.device(device_type)
+=======
+        grad_scaler = ShardedGradScaler(init_scale=2.0)
+        ref_grad_scaler = torch.amp.GradScaler(device="cuda", init_scale=2.0)
+        scaled_losses: list[torch.Tensor] = []
+        device = torch.device("cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.manual_seed(42 + self.rank + 1)
 
         for iter in range(10):

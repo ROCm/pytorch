@@ -82,7 +82,11 @@ class MaybeOwned final {
 
   /// Don't use this; use owned() instead.
   template <class... Args>
+<<<<<<< HEAD
   explicit MaybeOwned(std::in_place_t /*unused*/, Args&&... args)
+=======
+  explicit MaybeOwned(std::in_place_t, Args&&... args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : isBorrowed_(false), own_(std::forward<Args>(args)...) {}
 
  public:
@@ -177,7 +181,11 @@ class MaybeOwned final {
   }
 
   template <class... Args>
+<<<<<<< HEAD
   static MaybeOwned owned(std::in_place_t /*unused*/, Args&&... args) {
+=======
+  static MaybeOwned owned(std::in_place_t, Args&&... args) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return MaybeOwned(std::in_place, std::forward<Args>(args)...);
   }
 

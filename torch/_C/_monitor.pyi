@@ -1,9 +1,15 @@
 # Defined in torch/csrc/monitor/python_init.cpp
 
 import datetime
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from types import TracebackType
+=======
+from enum import Enum
+from types import TracebackType
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class Aggregation(Enum):
     VALUE = ...

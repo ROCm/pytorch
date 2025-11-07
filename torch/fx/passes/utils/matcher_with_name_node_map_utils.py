@@ -88,7 +88,11 @@ class SubgraphMatcherWithNameNodeMap(SubgraphMatcher):
             ignore_literals,
         )
 
+<<<<<<< HEAD
     def match(self, graph: Graph, node_name_match: str = "") -> list[InternalMatch]:
+=======
+    def match(self, graph: Graph) -> list[InternalMatch]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """The returned InternalMatch will have name_node_map populated with a map
         from node name (str) to the target node, e.g.
         {"conv": target_conv_ndoe, "relu": target_relu_node}
@@ -107,7 +111,11 @@ class SubgraphMatcherWithNameNodeMap(SubgraphMatcher):
             return relu, {"conv": conv, "relu": relu}
         ``` instead
         """
+<<<<<<< HEAD
         internal_matches = super().match(graph, node_name_match)
+=======
+        internal_matches = super().match(graph)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for internal_match in internal_matches:
             for k, n in self.name_node_map.items():
                 internal_match.name_node_map[k] = internal_match.nodes_map[n]

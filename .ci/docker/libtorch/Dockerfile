@@ -69,6 +69,7 @@ RUN bash ./install_cuda.sh 12.9
 RUN bash ./install_magma.sh 12.9
 RUN ln -sf /usr/local/cuda-12.9 /usr/local/cuda
 
+<<<<<<< HEAD
 FROM cuda as cuda13.0
 RUN bash ./install_cuda.sh 13.0
 RUN bash ./install_magma.sh 13.0
@@ -83,6 +84,10 @@ RUN apt-get update -y && \
     cp /usr/lib/x86_64-linux-gnu/libnl* /usr/local/cuda/lib64/
 
 FROM cpu as rocm
+=======
+FROM cpu as rocm
+ARG ROCM_VERSION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ARG PYTORCH_ROCM_ARCH
 ENV PYTORCH_ROCM_ARCH ${PYTORCH_ROCM_ARCH}
 ENV MKLROOT /opt/intel
@@ -101,7 +106,11 @@ RUN apt-get update -y && \
     apt-get clean
 
 RUN bash ./install_rocm_drm.sh && rm install_rocm_drm.sh
+<<<<<<< HEAD
 RUN bash ./install_rocm_magma.sh && rm install_rocm_magma.sh
+=======
+RUN bash ./install_rocm_magma.sh ${ROCM_VERSION} && rm install_rocm_magma.sh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 FROM ${BASE_TARGET} as final
 COPY --from=openssl            /opt/openssl           /opt/openssl

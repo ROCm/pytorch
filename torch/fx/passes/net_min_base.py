@@ -1,8 +1,13 @@
 # mypy: allow-untyped-defs
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from dataclasses import dataclass
 from typing import Any, cast, Optional
+=======
+from dataclasses import dataclass
+from typing import Any, Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx
@@ -96,7 +101,11 @@ class _MinimizerBase:
 
     Currently we provides two ways to traverse the graph and generate submodules.
         1. Sequential traversal: this will traverse the graph node by node and generate
+<<<<<<< HEAD
            one submodule with one single node.
+=======
+           one submodule with one sigle node.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         2. Binary searching: this will do a binary search style traversal on the graph.
 
     For internal Users, a guide can be found here https://fb.quip.com/HDtuAgiKGfkP.
@@ -396,25 +405,37 @@ class _MinimizerBase:
             report.append(f"Result mismatch for {result_key}")  # type: ignore[possibly-undefined]
             if self.module_exporter:
                 if isinstance(result_key, tuple):  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result_key = result_key[-1]
                 # If the result is still a tuple (happens in non-sequential mode),
                 # we only use the first element as name.
                 if isinstance(result_key, tuple):  # type: ignore[possibly-undefined]
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result_key = str(result_key[0])
                 # pyre-ignore[29]: not a function
                 self.module_exporter(
                     a_input,
                     submodule,
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result_key + "_cpu",
                 )
                 # pyre-ignore[29]: not a function
                 self.module_exporter(
                     b_input,
                     submodule,
+<<<<<<< HEAD
                     # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result_key + "_acc",
                 )
             raise FxNetMinimizerResultMismatchError(f"Result mismatch for {result_key}")  # type: ignore[possibly-undefined]
@@ -653,7 +674,11 @@ class _MinimizerBase:
     ) -> NodeSet:
         """
         Traverse topologically sorted node list
+<<<<<<< HEAD
         Find minimum block (start_idx, end_idx) which contains the culprit
+=======
+        Find minimium block (start_idx, end_idx) which contains the culprit
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         1st pass: search for end_idx by finding the last node in culprit block
         where Numerical accuracy (0, end_idx) > threshold
         2nd pass: search for start_idx by finding the first node in culprit block
@@ -673,7 +698,11 @@ class _MinimizerBase:
         final_start_idx: Optional[int] = start_idx
         final_end_idx: Optional[int] = end_idx
 
+<<<<<<< HEAD
         run_both = find_last_node is None
+=======
+        run_both = True if find_last_node is None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # step 1: find (0, end_idx) of culprit block
         if run_both or find_last_node:

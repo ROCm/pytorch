@@ -17,7 +17,10 @@ __all__ = ["fspath"]
 @substitute_in_graph(os.fspath, can_constant_fold_through=True)
 def fspath(path: AnyStr | os.PathLike[AnyStr]) -> AnyStr:
     if isinstance(path, (str, bytes)):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return path
 
     path_type = type(path)

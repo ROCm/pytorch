@@ -4,6 +4,7 @@ Contains various utils for AOTAutograd, including those for handling collections
 """
 
 import dataclasses
+<<<<<<< HEAD
 import logging
 import operator
 import warnings
@@ -12,6 +13,13 @@ from contextlib import nullcontext
 from functools import wraps
 from typing import Any, Optional, TypeVar, Union
 from typing_extensions import ParamSpec
+=======
+import operator
+import warnings
+from contextlib import nullcontext
+from functools import wraps
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -22,8 +30,11 @@ from torch._subclasses.functional_tensor import FunctionalTensor
 from torch.fx.experimental._backward_state import BackwardState
 from torch.fx.experimental.proxy_tensor import py_sym_types
 
+<<<<<<< HEAD
 from .descriptors import AOTOutput
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 KNOWN_TYPES = [
     torch.Tensor,
@@ -41,7 +52,10 @@ KNOWN_TYPES = [
 original_zip = zip
 
 aot_graphs_effects_log = getArtifactLogger(__name__, "aot_graphs_effects")
+<<<<<<< HEAD
 annotation_log = getArtifactLogger(__name__, "annotation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def strict_zip(*iterables, strict=True, **kwargs):
@@ -102,7 +116,10 @@ def _get_autocast_states():
 
 
 def make_boxed_func(f):
+<<<<<<< HEAD
     @simple_wraps(f)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def g(args):
         return f(*args)
 
@@ -137,8 +154,12 @@ def call_func_at_runtime_with_args(
             warnings.warn(
                 "Your compiler for AOTAutograd is returning a function that doesn't take boxed arguments. "
                 "Please wrap it with functorch.compile.make_boxed_func or handle the boxed arguments yourself. "
+<<<<<<< HEAD
                 "See https://github.com/pytorch/pytorch/pull/83137#issuecomment-1211320670 for rationale.",
                 stacklevel=2,
+=======
+                "See https://github.com/pytorch/pytorch/pull/83137#issuecomment-1211320670 for rationale."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             out = normalize_as_list(f(*args))
     return out
@@ -148,9 +169,15 @@ def call_func_at_runtime_with_args(
 class PytreeThunk:
     spec: Optional[pytree.TreeSpec] = None
     # These are some kinda dumb microoptimizations that save about 3-4 us of overhead.
+<<<<<<< HEAD
     is_simple: Optional[bool] = (
         None  # if the output spec is a tuple/list, we won't bother unflattening it.
     )
+=======
+    is_simple: Optional[
+        bool
+    ] = None  # if the output spec is a tuple/list, we won't bother unflattening it.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     is_really_simple: Optional[bool] = None  # if the output spec is a LeafSpec
 
     def set(self, spec: pytree.TreeSpec) -> None:
@@ -158,7 +185,11 @@ class PytreeThunk:
         assert spec is not None
         self.spec: pytree.TreeSpec = spec
         if self.spec.type in {tuple, list} and all(
+<<<<<<< HEAD
             child.is_leaf() for child in spec.children()
+=======
+            child.is_leaf() for child in spec.children_specs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             self.is_simple = True
         if self.spec.is_leaf():
@@ -331,7 +362,10 @@ def unlift_tokens(fw_module, fw_metadata, aot_config, bw_module=None):
                         and out.args[1] == 0
                         and out.args[0] in with_effect_nodes
                     ):
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         output_token_nodes.append(out)
                     else:
                         other_output_nodes.append(out)
@@ -344,12 +378,21 @@ def unlift_tokens(fw_module, fw_metadata, aot_config, bw_module=None):
 
         num_erased_inputs = len(input_token_nodes)
 
+<<<<<<< HEAD
         assert num_erased_inputs == expected_num_erased, (
             f"{subgraph} num_erased_inputs:{num_erased_inputs} {input_token_nodes}!=expected {expected_num_erased}"
         )
         assert num_erased_outs == expected_num_erased, (
             f"{subgraph} num_erased_outs:{num_erased_outs} {output_token_nodes}!=expected {expected_num_erased}"
         )
+=======
+        assert (
+            num_erased_inputs == expected_num_erased
+        ), f"{subgraph} num_erased_inputs:{num_erased_inputs} {input_token_nodes}!=expected {expected_num_erased}"
+        assert (
+            num_erased_outs == expected_num_erased
+        ), f"{subgraph} num_erased_outs:{num_erased_outs} {output_token_nodes}!=expected {expected_num_erased}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         module.recompile()
 
@@ -407,6 +450,7 @@ def root_module_when_exporting_non_strict(flat_fn):
         return None
 
 
+<<<<<<< HEAD
 def _is_forward_node_with_seq_nr(node: torch.fx.Node) -> bool:
     # For now, assume that if nn_module_stack_metadata is populated, this
     # node is from the forward. Ignore nodes without `seq_nr`.
@@ -429,6 +473,36 @@ def _collect_fwd_nodes_from_subgraph(
     fx_g: torch.fx.GraphModule, fwd_seq_nr_to_node: dict[str, torch.fx.Node]
 ) -> None:
     """Collect forward nodes from a single subgraph into the global mapping."""
+=======
+def copy_fwd_metadata_to_bw_nodes(fx_g):
+    """
+    Input: `fx_g` which contains the joint fwd+bwd FX graph created by
+    aot_autograd.
+
+    This function walks the graph and copies over metadata from forward nodes
+    to backward nodes, using the `seq_nr` field as a one-to-many mapping
+    from forward node to backward node. This metadata is useful for performance
+    profiling and debugging.
+    """
+
+    def _is_forward_node_with_seq_nr(node):
+        # For now, assume that if nn_module_stack_metadata is populated, this
+        # node is from the forward. Ignore nodes without `seq_nr`.
+        # TODO(future): there is likely a less brittle way to do this by walking
+        # the descendants of graph inputs corresponding to fwd inputs, didn't
+        # seem obvious at first glance on how to partition graph inputs into
+        # fwd vs bwd without relying on string names.
+        return "nn_module_stack" in node.meta and "seq_nr" in node.meta
+
+    def _is_backward_node_with_seq_nr(node):
+        # For now, assume that if nn_module_stack_metadata is not populated,
+        # this node is from the backward. Ignore nodes without `seq_nr`.
+        # TODO(future): there is likely a less brittle way to do this, same
+        # as with the forward.
+        return ("nn_module_stack" not in node.meta) and "seq_nr" in node.meta
+
+    fwd_seq_nr_to_node = {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for node in fx_g.graph.nodes:
         if not _is_forward_node_with_seq_nr(node):
             continue
@@ -438,6 +512,7 @@ def _collect_fwd_nodes_from_subgraph(
             # that the current op did not create an autograd node, and there
             # is no corresponding backward node, so we skip.
             continue
+<<<<<<< HEAD
         fwd_seq_nr_to_node[seq_nr] = node
 
 
@@ -494,6 +569,18 @@ def copy_fwd_metadata_to_bw_nodes(fx_g: torch.fx.GraphModule) -> None:
     for submod in fx_g.modules():
         if isinstance(submod, torch.fx.GraphModule):
             _copy_metadata_to_bw_nodes_in_subgraph(submod, fwd_seq_nr_to_node)
+=======
+        fwd_seq_nr_to_node[node.meta["seq_nr"]] = node
+
+    for node in fx_g.graph.nodes:
+        if not _is_backward_node_with_seq_nr(node):
+            continue
+        # fwd_node should always exist, but handle non-existence just in case
+        fwd_node = fwd_seq_nr_to_node.get(node.meta["seq_nr"])
+        if fwd_node is not None:
+            node.meta["fwd_nn_module_stack"] = fwd_node.meta["nn_module_stack"]
+            node.meta["fwd_source_fn_stack"] = fwd_node.meta.get("source_fn_stack")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def register_buffer_assignment_hook(mod, assigned_buffers):
@@ -562,6 +649,7 @@ def saved_tensors_hooks_are_inlineable(hooks) -> bool:
     return isinstance(pack, torch.fx.GraphModule) and isinstance(
         unpack, torch.fx.GraphModule
     )
+<<<<<<< HEAD
 
 
 _P = ParamSpec("_P")
@@ -628,3 +716,5 @@ def fn_wrappers(fn):
         f = f.__wrapped__
         fns.append(f)
     return fns
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

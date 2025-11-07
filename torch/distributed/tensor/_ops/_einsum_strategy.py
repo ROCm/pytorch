@@ -90,6 +90,7 @@ def gen_einsum_strategies(
 ) -> OpStrategy:
     """
     Generate a strategy list for the ops that follow einsum style notation.
+<<<<<<< HEAD
 
     In principle, each mesh dim is independent of other device mesh dim when we
     generate strategies. So we generate strategy over each device mesh dim and
@@ -107,10 +108,13 @@ def gen_einsum_strategies(
 
     3. Linearity (Partial): If enabled, set Partial on output and inputs over
        the same device mesh dim.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     # parse einop equation and extract dims
     input_dims, output_dim = EinsumDims.parse_equation(equation)
     edims = EinsumDims.parse_dims(input_dims, output_dim)
+<<<<<<< HEAD
     all_mesh_dim_strategies = []
 
     # generate strategies for each mesh dim and do cartesian product for final strategy. E.g., for a 2D mesh, we can have [P(),R,R]
@@ -177,6 +181,78 @@ def gen_einsum_strategies(
     # generate strategies for entire mesh
     all_mesh_dim_strategies = [strategies_over_one_mesh_dim] * mesh.ndim
     strategy_combs = itertools.product(*all_mesh_dim_strategies)
+=======
+
+    all_mesh_dim_strategies = []
+
+    # generate strategies for each mesh dim
+    for mesh_dim in range(mesh.ndim):
+        mesh_dim_strategies = []
+
+        # placement list stores placements of [output, input1, input2, ...]
+        # first we always have replicate all for inputs and output
+        placement_list: list[Placement] = [Replicate()] * (len(input_dims) + 1)
+        mesh_dim_strategies.append(placement_list)
+
+        # split batch dim
+        for batch_dim in edims.batch_dims:
+            output_batch_dim = output_dim.index(batch_dim)
+            placement_list = [Shard(output_batch_dim)]
+            for input_dim in input_dims:
+                input_batch_dim = input_dim.index(batch_dim)
+                placement_list.append(Shard(input_batch_dim))
+
+            mesh_dim_strategies.append(placement_list)
+
+        # split contracting dim
+        for contracting_dim in edims.contracting_dims:
+            placement_list = [Partial()]
+            for input_dim in input_dims:
+                input_contracting_dim = input_dim.index(contracting_dim)
+                placement_list.append(Shard(input_contracting_dim))
+
+            mesh_dim_strategies.append(placement_list)
+
+        # split lhs free dim
+        for lhs_dim in edims.lhs_out_only_dims:
+            lhs_free_dim = output_dim.index(lhs_dim)
+            # this means split the lhs input and output
+            # i.e. S(0), R -> S(0)
+            lhs_placement_list: list[Placement] = [
+                Shard(lhs_free_dim),
+                Shard(lhs_free_dim),
+                Replicate(),
+            ]
+            mesh_dim_strategies.append(lhs_placement_list)
+
+        # split rhs free dim
+        for rhs_dim in edims.rhs_out_only_dims:
+            rhs_free_dim = output_dim.index(rhs_dim)
+            rhs_placement_list: list[Placement] = [
+                Shard(rhs_free_dim),
+                Replicate(),
+                Shard(rhs_free_dim),
+            ]
+            mesh_dim_strategies.append(rhs_placement_list)
+
+        # linearity strategy
+        if linearity:
+            linearity_placement_list: list[Placement] = [Partial()]
+            for input_dim in input_dims:
+                linearity_placement_list.append(Partial())
+            mesh_dim_strategies.append(linearity_placement_list)
+
+        all_mesh_dim_strategies.append(mesh_dim_strategies)
+
+    # generate strategies for entire mesh
+    strategy_combs = itertools.product(*all_mesh_dim_strategies)
+
+    # TODO: filter out invalid strategies, at this point we generate
+    # all possible strategies without considering the whether the tensor
+    # dim could be sharded or not, we would need to filter out invalid
+    # strategies base on the actual tensor shape
+    # (i.e. for Shard, tensor dim size must > mesh size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_strategies = []
     for strategy_comb in strategy_combs:
         spec_list = [DTensorSpec(mesh, tuple(specs)) for specs in zip(*strategy_comb)]

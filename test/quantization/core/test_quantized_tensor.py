@@ -97,10 +97,17 @@ def param_search_greedy(x, bit_rate, n_bins=200, ratio=0.16):
             # found a local optima
             solutions.append((cur_min, cur_max, cur_loss))
         if loss1 < loss2:
+<<<<<<< HEAD
             cur_min, cur_loss = cur_min + stepsize, loss1
         else:
             cur_max, cur_loss = cur_max - stepsize, loss2
     if solutions:
+=======
+            cur_min, cur_max, cur_loss = cur_min + stepsize, cur_max, loss1
+        else:
+            cur_min, cur_max, cur_loss = cur_min, cur_max - stepsize, loss2
+    if len(solutions):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         best = solutions[0]
         for solution in solutions:
             if solution[-1] < best[-1]:
@@ -586,7 +593,11 @@ class TestQuantizedTensor(TestCase):
         ]
         axis = 1
         device = torch.device('cuda')
+<<<<<<< HEAD
         for _ in range(20):
+=======
+        for i in range(20):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for dtype, zero_type in dtype_and_zero_types:
                 r = torch.rand(2, 2) * 10
                 r[0, 0] = 2.5
@@ -765,7 +776,11 @@ class TestQuantizedTensor(TestCase):
                 qr = torch.quantize_per_tensor(r, scale, zero_point, dtype=dtype)
                 qr = qr.transpose(0, 1)
                 rqr = qr.dequantize()
+<<<<<<< HEAD
                 # compare transpose + dequantized result with original transposed result
+=======
+                # compare transpose + dequantized result with orignal transposed result
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertTrue(np.allclose(r.cpu().numpy().transpose([1, 0, 2, 3]), rqr.cpu().numpy(), atol=2 / scale))
 
                 qr = torch.quantize_per_tensor(r, scale, zero_point, dtype=dtype)
@@ -1113,7 +1128,11 @@ class TestQuantizedTensor(TestCase):
             zero_point = 10
             types = [torch.qint8, torch.quint8, torch.qint32]
             for qtype in types:
+<<<<<<< HEAD
                 for _ in range(3):
+=======
+                for i in range(3):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     m = random.randint(10, 20)
                     elems = random.randint(20000, 30000)
                     values = torch.rand(elems, device=device)
@@ -1210,7 +1229,11 @@ class TestQuantizedTensor(TestCase):
             if device == 'cpu':
                 self.assertFalse(torch.equal(b, c))
 
+<<<<<<< HEAD
             # a case can't view non-contiguous Tensor
+=======
+            # a case can't view non-contiguos Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a_int = torch.randint(0, 100, [1, 2, 3, 4], device=device, dtype=dtype)
             a = torch._make_per_tensor_quantized_tensor(a_int, scale=scale, zero_point=zero_point)
             b = a.transpose(1, 2)  # swaps 2nd and 3rd dimension
@@ -1409,9 +1432,12 @@ class TestQuantizedTensor(TestCase):
             self.assertEqual(y[0].numpy(), ref[0])
             self.assertEqual(y[1].numpy(), ref[1])
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(ValueError, "input tensor is empty and has no data"):
             torch.choose_qparams_optimized(torch.tensor([]), numel=0, n_bins=200, ratio=0.16, bit_width=8)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_pickle_checkpoint_qtensor(self, device):
         with TemporaryFileName() as fname:
             class M(torch.jit.ScriptModule):

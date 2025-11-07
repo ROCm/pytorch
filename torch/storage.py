@@ -618,7 +618,11 @@ def _get_storage_from_sequence(sequence, dtype, device):
 
 def _isint(x):
     if HAS_NUMPY:
+<<<<<<< HEAD
         return isinstance(x, (int, np.integer))  # pyrefly: ignore [missing-attribute]
+=======
+        return isinstance(x, (int, np.integer))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return isinstance(x, int)
 
@@ -889,9 +893,15 @@ class TypedStorage:
         return self._untyped_storage
 
     def _new_wrapped_storage(self, untyped_storage) -> Self:
+<<<<<<< HEAD
         assert type(untyped_storage) is torch.UntypedStorage
 
         if type(self) is TypedStorage:
+=======
+        assert type(untyped_storage) == torch.UntypedStorage
+
+        if type(self) == TypedStorage:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return cast(
                 Self,
                 TypedStorage(
@@ -913,7 +923,11 @@ class TypedStorage:
                 return 0
 
         else:
+<<<<<<< HEAD
             if type(idx) is not int:
+=======
+            if type(idx) != int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise TypeError(f"can't index a {type(self)} with {type(idx)}")
             if is_stop:
                 if (idx > self._size()) or (idx < -self._size()):
@@ -1513,7 +1527,11 @@ class _LegacyStorageMeta(type):
     dtype: torch.dtype
 
     def __instancecheck__(cls, instance):
+<<<<<<< HEAD
         if type(instance) is TypedStorage:
+=======
+        if type(instance) == TypedStorage:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cls_device = _get_device_from_module(cls.__module__)
             return (cls_device == instance.device.type) and (
                 cls.dtype == instance.dtype

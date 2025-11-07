@@ -3204,7 +3204,11 @@ def _batch_norm_with_update(input: List[int],
 )=====")
 + std::string(R"=====(def broadcast_inplace(a: List[int],
     b: List[int]) -> List[int]:
+<<<<<<< HEAD
   _0 = "The dims of tensor b ({}) must be less than or equal to the dims of tensor a ({}) "
+=======
+  _0 = "The dims of tensor b ({}) must be less than or equal tothe dims of tensor a ({}) "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _1 = "The size of tensor a {} must match the size of tensor b ({}) at non-singleton dimension {}"
   dimsA = torch.len(a)
   dimsB = torch.len(b)

@@ -1,17 +1,32 @@
 #pragma once
 
+<<<<<<< HEAD
 #include <ATen/OpMathType.h>
 #include <ATen/cuda/detail/OffsetCalculator.cuh>
 #include <ATen/detail/FunctionTraits.h>
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/TensorIteratorDynamicCasting.h>
 #include <ATen/native/cuda/thread_constants.h>
+=======
+#include <ATen/detail/FunctionTraits.h>
+#include <ATen/native/TensorIterator.h>
+#include <ATen/native/TensorIteratorDynamicCasting.h>
+#include <ATen/cuda/detail/OffsetCalculator.cuh>
+#include <ATen/OpMathType.h>
+#include <ATen/native/cuda/thread_constants.h>
+
+#include <thrust/tuple.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/cuda/MemoryAccess.cuh>
 
 #include <tuple>
 
+<<<<<<< HEAD
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at::native {
 
 template<int N>
@@ -61,11 +76,15 @@ __device__ inline void elementwise_kernel_helper(func_t f, policy_t policy) {
   #pragma unroll
   for (int i = 0; i < elems_per_thread; i++) {
     if (policy.check_inbounds(i)) {
+<<<<<<< HEAD
 #if defined(__HIP__)
       results[i] = c10::guts::apply(f, args[i]);
 #else
       results[i] = std::apply(f, args[i]);
 #endif
+=======
+      results[i] = c10::guts::apply(f, args[i]);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 

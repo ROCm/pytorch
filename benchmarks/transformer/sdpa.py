@@ -1,8 +1,14 @@
 import itertools
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
 from contextlib import nullcontext
 from dataclasses import asdict, dataclass
+=======
+from contextlib import nullcontext
+from dataclasses import asdict, dataclass
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from tabulate import tabulate
 from tqdm import tqdm

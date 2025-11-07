@@ -21,7 +21,11 @@ enum class fft_norm_mode {
 // NOTE [ Fourier Transform Conjugate Symmetry ]
 //
 // Real-to-complex Fourier transform satisfies the conjugate symmetry. That is,
+<<<<<<< HEAD
 // assuming X is the transformed K-dimensional signal, we have
+=======
+// assuming X is the transformed K-dimensionsal signal, we have
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 //
 //     X[i_1, ..., i_K] = X[j_i, ..., j_K]*,
 //

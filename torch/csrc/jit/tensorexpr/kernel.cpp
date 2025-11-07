@@ -1263,11 +1263,19 @@ Tensor TensorExprKernel::convertSymbolicOutputToCorrectStrides(
     const std::vector<size_t>& sorted_stride_indices_descending,
     const std::vector<ExprPtr>& strides,
     BufPtr& buf) {
+<<<<<<< HEAD
   // We need to convert the output tensor so that its values are laid
   // so that when viewed from the output strides the values are correct.
   // A contiguous Tensor of size(2, 3) with values 0-5 is laid out as:
   // [0] [1] [2] [3] [4] [5]
   // The same valued tensor with strides (1, 2) would be laid out like
+=======
+  // We need to convert the output tensor so that its values are layed
+  // so that when viewed from the output strides the values are correct.
+  // A contiguous Tensor of size(2, 3) with values 0-5 is layed out as:
+  // [0] [1] [2] [3] [4] [5]
+  // The same valued tensor with strides (1, 2) would be layed out like
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // [0] [3] [1] [4] [2] [5]
   // When we are doing the re-ordering of values into the output tensor,
   // we are iterating per-element of the input, and we are fixed
@@ -1378,7 +1386,11 @@ Tensor TensorExprKernel::convertStaticShapeOutputToCorrectStrides(
       tt->strides().concrete_sizes(),
       buildErrorMessage("Output strides are unknown."));
   const std::vector<int64_t> strides = *tt->strides().concrete_sizes();
+<<<<<<< HEAD
   // All Tensors in NNC are laid out in default, contiguous layout.
+=======
+  // All Tensors in NNC are layed out in default, contiguous layout.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // If the output is also default contiguous we don't need to do anything
   if (strides == default_strides) {
     return Tensor(buf, nullptr);
@@ -1482,7 +1494,11 @@ std::vector<BufPtr> TensorExprKernel::preAllocIntermediateBufs(
       remaining_interm_bufs.push_back(buf);
       continue;
     }
+<<<<<<< HEAD
     auto bp = malloc(size);
+=======
+    auto bp = (void*)malloc(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!bp) {
       remaining_interm_bufs.push_back(buf);
       continue;

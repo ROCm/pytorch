@@ -12,7 +12,10 @@ on:
       - landchecks/*
     tags:
       - ciflow/pull/*
+<<<<<<< HEAD
       - ciflow/trunk/*
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   workflow_dispatch:
 
 permissions: read-all
@@ -22,12 +25,17 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
 
+<<<<<<< HEAD
   get-changed-files:
     if: github.repository_owner == 'pytorch'
     name: Get changed files
@@ -59,12 +67,22 @@ jobs:
       timeout: 120
       runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
       docker-image: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3.10-linter
+=======
+  lintrunner-clang:
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+    needs: get-label-type
+    with:
+      timeout: 120
+      runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
+      docker-image: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3.9-linter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # NB: A shallow checkout won't work here because calculate-docker-image requires a full checkout
       # to run git rev-parse HEAD~:.ci/docker when a new image is needed
       fetch-depth: 0
       submodules: true
       ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       script: |
+<<<<<<< HEAD
         CHANGED_FILES="${{ needs.get-changed-files.outputs.changed-files }}"
         if [ "$CHANGED_FILES" = "*" ]; then
           export ADDITIONAL_LINTRUNNER_ARGS="--take CLANGTIDY,CLANGFORMAT --all-files"
@@ -109,12 +127,26 @@ jobs:
       timeout: 120
       runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
       docker-image: ci-image:pytorch-linux-jammy-linter
+=======
+        export ADDITIONAL_LINTRUNNER_ARGS="--take CLANGTIDY,CLANGFORMAT --all-files"
+        export CLANG=1
+        .github/scripts/lintrunner.sh
+
+  lintrunner-noclang:
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+    needs: get-label-type
+    with:
+      timeout: 120
+      runner: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
+      docker-image: ci-image:pytorch-linux-jammy-cuda12.8-cudnn9-py3.9-linter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       # NB: A shallow checkout won't work here because calculate-docker-image requires a full checkout
       # to run git rev-parse HEAD~:.ci/docker when a new image is needed
       fetch-depth: 0
       submodules: true
       ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       script: |
+<<<<<<< HEAD
         CHANGED_FILES="${{ needs.get-changed-files.outputs.changed-files }}"
         echo "Running all other linters"
         if [ "$CHANGED_FILES" = '*' ]; then
@@ -125,6 +157,13 @@ jobs:
 
   quick-checks:
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
+=======
+        export ADDITIONAL_LINTRUNNER_ARGS="--skip CLANGTIDY,CLANGFORMAT --all-files"
+        .github/scripts/lintrunner.sh
+
+  quick-checks:
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     needs: get-label-type
     with:
       timeout: 120
@@ -164,7 +203,11 @@ jobs:
     if: github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-pr-sanity-checks')
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           submodules: false
           fetch-depth: -1
@@ -177,7 +220,11 @@ jobs:
           bash .github/scripts/pr-sanity-check.sh
 
   workflow-checks:
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     needs: get-label-type
     with:
       timeout: 120
@@ -188,6 +235,10 @@ jobs:
       ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
       script: |
         # Regenerate workflows
+<<<<<<< HEAD
+=======
+        export RELEASE_VERSION_TAG=2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .github/scripts/generate_ci_workflows.py
 
         RC=0
@@ -211,7 +262,11 @@ jobs:
         exit $RC
 
   toc:
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     needs: get-label-type
     with:
       timeout: 120
@@ -247,7 +302,11 @@ jobs:
   test-tools:
     name: Test tools
     if: ${{ github.repository == 'pytorch/pytorch' }}
+<<<<<<< HEAD
     uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@main
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     needs: get-label-type
     with:
       timeout: 120
@@ -267,6 +326,7 @@ jobs:
     runs-on: linux.24_04.4x
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
         with:
           submodules: false
@@ -275,6 +335,16 @@ jobs:
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.10'
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+        with:
+          submodules: false
+          fetch-depth: 1
+      - name: Setup Python 3.9
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.9'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           architecture: x64
           cache: pip
       - name: Install dependencies
@@ -304,7 +374,11 @@ jobs:
       # [see note: pytorch repo ref]
       # deep clone (fetch-depth 0) required, to allow us to use git log
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           submodules: false
           fetch-depth: 1
@@ -324,7 +398,10 @@ jobs:
           check-latest: false
           cache: pip
           cache-dependency-path: |
+<<<<<<< HEAD
             **/requirements-build.txt
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **/requirements.txt
       - name: Setup Min Python version
         if: matrix.test_type != 'older_python_version'
@@ -335,7 +412,10 @@ jobs:
           check-latest: false
           cache: pip
           cache-dependency-path: |
+<<<<<<< HEAD
             **/requirements-build.txt
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **/requirements.txt
       - name: Install torch
         if: matrix.test_type == 'with_torch'

@@ -90,10 +90,14 @@ def _default_custom_combo_kernel_horizontal_partition(
         long_reduction = [
             n
             for n in reduction
+<<<<<<< HEAD
             if (
                 V.graph.sizevars.shape_env.has_hint(n.group[-1][-1])
                 and V.graph.sizevars.size_hint(n.group[-1][-1]) > 2048  # type: ignore[arg-type]
             )
+=======
+            if V.graph.sizevars.size_hint(n.group[-1][-1]) > 2048  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         short_reduction = [n for n in reduction if n not in long_reduction]
         if long_reduction:
@@ -106,7 +110,10 @@ def _default_custom_combo_kernel_horizontal_partition(
             for n in not_reduction
             if not kernel_map[n].inside_reduction
             and len(kernel_map[n].numels) == 2
+<<<<<<< HEAD
             and V.graph.sizevars.shape_env.has_hint(kernel_map[n].numels["x"])
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and V.graph.sizevars.size_hint(kernel_map[n].numels["x"]) > LARGE_NUMELS
         ]
         if large_pointwise:
@@ -172,13 +179,22 @@ class PartitionState:
 
 
 class ComboKernel(Kernel):
+<<<<<<< HEAD
+=======
+    MAX_NUM_ARGS = 250  # number where I would no longer get triton errors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @staticmethod
     def _update_partition(
         partition_state: PartitionState,
         node_rw_count: int,
         node_info: BaseSchedulerNode,
     ) -> None:
+<<<<<<< HEAD
         if partition_state.cur_count + node_rw_count > config.combo_kernel_max_num_args:
+=======
+        if partition_state.cur_count + node_rw_count > ComboKernel.MAX_NUM_ARGS:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             partition_state.partitions.append(partition_state.cur_partition)
             partition_state.cur_partition = [node_info]
             partition_state.cur_count = node_rw_count
@@ -377,7 +393,10 @@ class ComboKernel(Kernel):
 
     def create_sub_kernel(self, triton_kernel: TritonKernel) -> TritonKernel:
         sub_kernel = triton_kernel
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metrics.generated_kernel_count -= 1
         sub_kernel.args = self.args
         sub_kernel.iter_vars_count = self.iter_vars_count
@@ -433,12 +452,18 @@ class ComboKernel(Kernel):
                 assert f"{tree.prefix}numel_{num}" in self.dynamic_shape_args
                 uniquify_block_sizes.append(f"{tree.prefix}numel")
 
+<<<<<<< HEAD
             # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not tree.is_reduction:
                 if isinstance(simplified_tree_numel, (Integer, int)):
                     grid.append(int(simplified_tree_numel))
                 else:
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     grid.append(f"{tree.prefix}numel_{num}")
 
             if tree.is_reduction and sub_kernel.persistent_reduction:
@@ -476,10 +501,15 @@ class ComboKernel(Kernel):
                 if sub_kernel.no_x_dim:
                     min_x_blocks = x_numels
                     x_numels = (
+<<<<<<< HEAD
                         # pyrefly: ignore [unsupported-operation]
                         -min_x_blocks
                         if isinstance(x_numels, int)
                         # pyrefly: ignore [redundant-cast]
+=======
+                        -min_x_blocks
+                        if isinstance(x_numels, int)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         else "-" + cast(str, x_numels)
                     )
                 else:
@@ -492,11 +522,15 @@ class ComboKernel(Kernel):
 
     def select_heuristics(self, sub_kernel: TritonKernel) -> tuple[str, dict[str, int]]:
         size_hints = {
+<<<<<<< HEAD
             prefix: next_power_of_2(
                 V.graph.sizevars.size_hint(
                     numel, fallback=config.unbacked_symint_fallback
                 )
             )
+=======
+            prefix: next_power_of_2(V.graph.sizevars.size_hint(numel))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for prefix, numel in sub_kernel.numels.items()
             if not prefix_is_reduction(prefix) or sub_kernel.inside_reduction
         }
@@ -609,7 +643,10 @@ class ComboKernel(Kernel):
             "device": DeviceProperties.create(V.graph.get_current_device_or_throw()),
             "constants": {},
         }
+<<<<<<< HEAD
         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         triton_meta["configs"] = [config_of(signature)]
         mutated_args = self.get_mutated_args_sub_kernels()
         dispatch = self.dispatch_class
@@ -688,7 +725,10 @@ class ComboKernel(Kernel):
         for sub_kernel in self.sub_kernels:
             # TODO: we assume all sub_kernels have the same block size
             for tree in sub_kernel.range_trees:
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if tree.is_reduction and (
                     not sub_kernel.inside_reduction or sub_kernel.persistent_reduction
                 ):
@@ -727,7 +767,10 @@ class ComboKernel(Kernel):
                     expr = V.graph.wrapper_code.generate_numel_expr(
                         name, tree, suffix=str(num)
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if not tree.is_reduction or sub_kernel.inside_reduction:
                     call_args.append(expr)
                     arg_types.append(type(expr))
@@ -739,6 +782,7 @@ class ComboKernel(Kernel):
                 numel_name = f"{tree.prefix}numel_{num}"
                 if numel_name not in self.dynamic_shape_args:
                     continue
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-argument]
                 if not tree.is_reduction or sub_kernel.inside_reduction:
                     extra_args.append(
@@ -748,6 +792,10 @@ class ComboKernel(Kernel):
                             )
                         )
                     )
+=======
+                if not tree.is_reduction or sub_kernel.inside_reduction:
+                    extra_args.append(str(V.graph.sizevars.size_hint(tree.numel)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return extra_args
 
     def codegen_kernel(self, name: Optional[str] = None) -> str:
@@ -771,6 +819,7 @@ class ComboKernel(Kernel):
         if config.benchmark_combo_kernel:
             code.splice(self.imports_for_benchmark_kernel())
 
+<<<<<<< HEAD
         seen_helpers: OrderedSet[str] = OrderedSet()
         for sub_kernel in self.sub_kernels:
             for helper in sub_kernel.helper_functions:
@@ -779,6 +828,8 @@ class ComboKernel(Kernel):
                     code.splice(helper)
                     seen_helpers.add(helper)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         argdefs, _, signature, _ = self.args.python_argdefs()
         argdefs = self.add_numel_to_args(argdefs, signature)
         block_args = self.get_block_args()
@@ -829,6 +880,7 @@ class ComboKernel(Kernel):
         return code.getvalue()
 
     def codegen_kernel_benchmark(self, num_gb: float) -> IndentedBuffer:
+<<<<<<< HEAD
         """
         Generates Python code for benchmarking this combo kernel.
         - Creates example inputs (random tensors, constants, sizes).
@@ -839,6 +891,8 @@ class ComboKernel(Kernel):
         Returns:
             IndentedBuffer: A buffer containing the generated Python benchmark code.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = IndentedBuffer()
         _argdefs, call_args, signature, _ = self.args.python_argdefs()
         result.writelines(["", "", "def get_args():"])
@@ -849,6 +903,7 @@ class ComboKernel(Kernel):
                 var_name = f"arg_{next(name_cnt)}"
                 buf = V.graph.try_get_buffer(arg_name)
                 if buf:
+<<<<<<< HEAD
                     size = V.graph.sizevars.size_hints(
                         buf.get_size(), fallback=config.unbacked_symint_fallback
                     )
@@ -857,10 +912,15 @@ class ComboKernel(Kernel):
                     )
                     result.writeline(
                         f"{var_name} = rand_strided({size}, {stride}, device='{buf.get_device()}', dtype={buf.get_dtype()})"  # noqa: B950 line too long
+=======
+                    result.writeline(
+                        f"{var_name} = rand_strided({V.graph.sizevars.size_hints(buf.get_size())}, {V.graph.sizevars.size_hints(buf.get_stride())}, device='{buf.get_device()}', dtype={buf.get_dtype()})"  # noqa: B950 line too long
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 elif arg_name in V.graph.constants:
                     # note that random seed is put in V.graph.constants
                     const_tensor = V.graph.constants[arg_name]
+<<<<<<< HEAD
                     size = V.graph.sizevars.size_hints(
                         const_tensor.size(), fallback=config.unbacked_symint_fallback
                     )
@@ -869,6 +929,10 @@ class ComboKernel(Kernel):
                     )
                     result.writeline(
                         f"{var_name} = rand_strided({size}, {stride}, device='{const_tensor.device}', dtype={const_tensor.dtype})"  # type: ignore[arg-type]  # noqa: B950 line too long
+=======
+                    result.writeline(
+                        f"{var_name} = rand_strided({V.graph.sizevars.size_hints(const_tensor.size())}, {V.graph.sizevars.size_hints(const_tensor.stride())}, device='{const_tensor.device}', dtype={const_tensor.dtype})"  # type: ignore[arg-type]  # noqa: B950 line too long
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 elif isinstance(arg_sig, SizeArg):
                     symval_hint = V.graph.sizevars.size_hint(arg_sig.expr)
@@ -1019,7 +1083,10 @@ class ComboKernel(Kernel):
         for num, sub_kernel in enumerate(self.sub_kernels):
             meta[f"no_x_dim_{num}"] = sub_kernel.no_x_dim
             for i, tree in enumerate(sub_kernel.range_trees):
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-argument]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if not tree.is_reduction:
                     numel_name = f"{tree.prefix}numel_{num}"
                     if numel_name in self.dynamic_shape_args:

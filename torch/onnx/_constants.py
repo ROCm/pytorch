@@ -6,7 +6,11 @@ ONNX_BASE_OPSET = 9
 ONNX_MIN_OPSET = 7
 ONNX_MAX_OPSET = 23
 ONNX_TORCHSCRIPT_EXPORTER_MAX_OPSET = 20
+<<<<<<< HEAD
 ONNX_DEFAULT_OPSET = 20
+=======
+ONNX_DEFAULT_OPSET = 18
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ONNX_CONSTANT_FOLDING_MIN_OPSET = 9
 
 PYTORCH_GITHUB_ISSUES_URL = "https://github.com/pytorch/pytorch/issues"

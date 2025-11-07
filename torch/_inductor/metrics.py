@@ -7,7 +7,11 @@ import os
 import re
 from dataclasses import dataclass
 from functools import lru_cache
+<<<<<<< HEAD
 from typing import Callable, Optional, TYPE_CHECKING, Union
+=======
+from typing import Callable, cast, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._inductor import config
 from torch._inductor.utils import get_benchmark_name
@@ -16,7 +20,10 @@ from torch.utils._ordered_set import OrderedSet
 
 # Prevent circular import
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from torch._inductor.runtime.triton_compat import Config
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.scheduler import BaseSchedulerNode
 
 # counter for tracking how many kernels have been generated
@@ -55,8 +62,11 @@ num_loop_reordering = 0
 # counter for parallel reduction.
 parallel_reduction_count = 0
 
+<<<<<<< HEAD
 codegen_mix_order_reduction = 0
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # reset all counters
 def reset() -> None:
@@ -70,7 +80,10 @@ def reset() -> None:
     global num_matches_for_scatter_upon_const_tensor
     global num_loop_reordering
     global parallel_reduction_count
+<<<<<<< HEAD
     global codegen_mix_order_reduction
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     generated_kernel_count = 0
     generated_cpp_vec_kernel_count = 0
@@ -84,7 +97,10 @@ def reset() -> None:
     num_matches_for_scatter_upon_const_tensor = 0
     num_loop_reordering = 0
     parallel_reduction_count = 0
+<<<<<<< HEAD
     codegen_mix_order_reduction = 0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -158,8 +174,13 @@ class MetricTable:
         bn = get_benchmark_name()
         # assert bn is not None
         row = [bn] + [row_dict[column_name] for column_name in self.column_names]
+<<<<<<< HEAD
         assert all(isinstance(i, (str, float, type(None))) for i in row)
         self._write_row(row)
+=======
+        assert all(isinstance(i, str) for i in row)
+        self._write_row(cast(list[str], row))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def output_filename(self) -> str:
         return f"metric_table_{self.table_name}.csv"
@@ -170,7 +191,11 @@ class MetricTable:
             writer = csv.writer(fd, lineterminator="\n")
             writer.writerow(["model_name"] + self.column_names)
 
+<<<<<<< HEAD
     def _write_row(self, row: list[str | float | None]) -> None:
+=======
+    def _write_row(self, row: list[str]) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         filename = self.output_filename()
         if self.num_rows_added == 0 and not os.path.exists(filename):
             self.write_header()
@@ -457,6 +482,7 @@ def is_metric_table_enabled(name: str) -> bool:
 def get_metric_table(name: str) -> MetricTable:
     assert name in REGISTERED_METRIC_TABLES, f"Metric table {name} is not defined"
     return REGISTERED_METRIC_TABLES[name]
+<<<<<<< HEAD
 
 
 MetricTable.register_table(
@@ -481,3 +507,5 @@ def log_kernel_autotune_result(
             "latency_ms": latency,
         }
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

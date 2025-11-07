@@ -70,10 +70,17 @@ Tensor constant_pad_nd(const Tensor& self, IntArrayRef pad, const Scalar& value)
         new_shape.emplace_back(input_sizes[i]);
     }
 
+<<<<<<< HEAD
     for (const auto i : c10::irange(l_pad)) {
         auto pad_idx = pad.size() - ((i + 1) * 2);
         auto new_dim = input_sizes[l_diff + i] + pad[pad_idx] + pad[pad_idx + 1];
         TORCH_CHECK(new_dim >= 0, "The input size ", input_sizes[l_diff + i], ", plus negative padding ",
+=======
+    for (const auto i : c10::irange((size_t)l_pad)) {
+        auto pad_idx = pad.size() - ((i + 1) * 2);
+        auto new_dim = input_sizes[l_diff + i] + pad[pad_idx] + pad[pad_idx + 1];
+        TORCH_CHECK(new_dim > 0, "The input size ", input_sizes[l_diff + i], ", plus negative padding ",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                  pad[pad_idx], " and ", pad[pad_idx + 1], " resulted in a negative output size, "
                  "which is invalid. Check dimension ", l_diff + i, " of your input.");
         new_shape.emplace_back(new_dim);
@@ -240,6 +247,7 @@ Tensor _pad_enum_symint(const Tensor &self, c10::SymIntArrayRef pad, int64_t mod
       default: {}
     }
   }
+<<<<<<< HEAD
 
   std::ostringstream error_msg;
   error_msg << "Padding size " << pad.size() << " is not supported for " << input_dim << "D input tensor.\n";
@@ -249,6 +257,10 @@ Tensor _pad_enum_symint(const Tensor &self, c10::SymIntArrayRef pad, int64_t mod
   error_msg << "  - 4D or 5D input: padding size = 6 (pads last 3 dimensions)";
 
   C10_THROW_ERROR(NotImplementedError, error_msg.str());
+=======
+  C10_THROW_ERROR(NotImplementedError,
+      "Only 2D, 3D, 4D, 5D padding with non-constant padding are supported for now");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor pad_symint(const Tensor &self, c10::SymIntArrayRef pad, std::string_view mode, std::optional<double> value) {

@@ -1,10 +1,15 @@
 //  Copyright © 2022 Apple Inc.
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
+<<<<<<< HEAD
 #include <ATen/NamedTensorUtils.h>
 #include <ATen/mps/MPSProfiler.h>
 #include <ATen/native/Pool.h>
 #include <ATen/native/mps/OperationUtils.h>
 #include <ATen/native/mps/kernels/Pooling.h>
+=======
+#include <ATen/native/Pool.h>
+#include <ATen/native/mps/OperationUtils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -14,12 +19,16 @@
 #include <ATen/ops/avg_pool2d_backward.h>
 #include <ATen/ops/avg_pool2d_backward_native.h>
 #include <ATen/ops/avg_pool2d_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/avg_pool3d_backward_native.h>
 #include <ATen/ops/avg_pool3d_native.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/max_pool2d_backward_native.h>
 #include <ATen/ops/max_pool2d_native.h>
 #include <ATen/ops/max_pool2d_with_indices_backward_native.h>
 #include <ATen/ops/max_pool2d_with_indices_native.h>
+<<<<<<< HEAD
 #include <ATen/ops/max_pool3d_with_indices_backward_native.h>
 #include <ATen/ops/max_pool3d_with_indices_native.h>
 #include <ATen/ops/max_unpool2d_native.h>
@@ -34,6 +43,11 @@ static auto& lib = mps::MetalShaderLibrary::getBundledLibrary();
 #include <ATen/native/mps/Pooling_metallib.h>
 #endif
 
+=======
+#endif
+
+namespace at::native {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace mps {
 
 struct PoolingCachedGraph : public MPSCachedGraph {
@@ -256,6 +270,7 @@ static void pool2d_template(const Tensor& input,
   }
 }
 
+<<<<<<< HEAD
 static std::vector<int32_t> copy_and_maybe_expand(IntArrayRef a, int32_t pooling_dims) {
   std::vector<int32_t> b(pooling_dims);
   for (const auto dim : c10::irange(pooling_dims)) {
@@ -584,6 +599,8 @@ static void max_unpool_out_mps_template(const Tensor& input,
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static void avg_pool2d_template(const Tensor& input,
                                 const Tensor& output,
                                 const std::optional<Tensor>& grad_output_opt,
@@ -705,6 +722,7 @@ static void avg_pool2d_template(const Tensor& input,
                   op_name);
 }
 
+<<<<<<< HEAD
 static void avg_pool_out_mps_template(const Tensor& output,
                                       const Tensor& input,
                                       IntArrayRef _kernel_size,
@@ -831,6 +849,10 @@ static bool use_graph_for_max_pool2d(IntArrayRef kernel_size, IntArrayRef stride
   return (stride[0] == 1) && (stride.size() == 1 || stride[1] == 1);
 }
 
+=======
+} // namespace mps
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Tensor mps_max_pool2d(const Tensor& input,
                       IntArrayRef kernel_size,
                       IntArrayRef stride,
@@ -838,6 +860,7 @@ Tensor mps_max_pool2d(const Tensor& input,
                       IntArrayRef dilation,
                       bool ceil_mode) {
   Tensor output = at::empty({0}, input.options(), MemoryFormat::Contiguous);
+<<<<<<< HEAD
   bool use_graph = use_graph_for_max_pool2d(kernel_size, stride);
   if (use_graph) {
     mps::PoolingOpBlock pooling_op_block = ^PoolingOpFn(cachedGraph, desc) {
@@ -869,6 +892,26 @@ Tensor mps_max_pool2d(const Tensor& input,
                                                 /*pooling_dims=*/2,
                                                 "max_pool2d");
   }
+=======
+  mps::PoolingOpBlock pooling_op_block = ^PoolingOpFn(cachedGraph, desc) {
+    MPSGraph* mpsGraph = cachedGraph.graph();
+    return [mpsGraph maxPooling2DWithSourceTensor:cachedGraph.inputTensor descriptor:desc name:nil];
+  };
+  mps::pool2d_template(input,
+                       output,
+                       std::nullopt,
+                       std::nullopt,
+                       kernel_size,
+                       stride,
+                       padding,
+                       dilation,
+                       ceil_mode,
+                       false,
+                       std::nullopt,
+                       pooling_op_block,
+                       "max_pool2d");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return output;
 }
 
@@ -913,6 +956,7 @@ TORCH_IMPL_FUNC(max_pool2d_with_indices_out_mps)
  bool ceil_mode,
  const Tensor& output,
  const Tensor& indices) {
+<<<<<<< HEAD
   bool use_graph = use_graph_for_max_pool2d(kernel_size, stride);
   if (use_graph) {
     auto indices_memory_format = indices.suggest_memory_format();
@@ -952,6 +996,34 @@ TORCH_IMPL_FUNC(max_pool2d_with_indices_out_mps)
                                                 ceil_mode,
                                                 /*pooling_dims=*/2,
                                                 "max_pool2d");
+=======
+  auto indices_memory_format = indices.suggest_memory_format();
+
+  mps::PoolingOpBlock pooling_op_block = ^PoolingOpFn(cachedGraph, desc) {
+    MPSGraph* mpsGraph = cachedGraph.graph();
+    NSArray<MPSGraphTensor*>* poolOutputs = [mpsGraph maxPooling2DReturnIndicesWithSourceTensor:cachedGraph.inputTensor
+                                                                                     descriptor:desc
+                                                                                           name:nil];
+    cachedGraph.indicesTensor = mps::castMPSTensor(mpsGraph, poolOutputs[1], ScalarType::Long);
+    return poolOutputs[0];
+  };
+  mps::pool2d_template(input,
+                       output,
+                       indices,
+                       std::nullopt,
+                       kernel_size,
+                       stride,
+                       padding,
+                       dilation,
+                       ceil_mode,
+                       false,
+                       std::nullopt,
+                       pooling_op_block,
+                       "max_pool2d_indices");
+
+  if (indices_memory_format == MemoryFormat::ChannelsLast) {
+    const_cast<Tensor&>(indices) = indices.to(MemoryFormat::ChannelsLast);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -987,6 +1059,7 @@ TORCH_IMPL_FUNC(max_pool2d_with_indices_backward_out_mps)
                        "max_pool2d_indices_backward");
 }
 
+<<<<<<< HEAD
 std::tuple<Tensor&, Tensor&> max_pool3d_with_indices_out_mps(const Tensor& input,
                                                              IntArrayRef kernel_size,
                                                              IntArrayRef stride,
@@ -1144,6 +1217,8 @@ Tensor max_unpooling3d_forward_mps(const Tensor& self,
   return output;
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_IMPL_FUNC(avg_pool2d_out_mps)
 (const Tensor& input,
  int64_t kH,
@@ -1156,6 +1231,7 @@ TORCH_IMPL_FUNC(avg_pool2d_out_mps)
  bool count_include_pad,
  std::optional<int64_t> divisor_override,
  const Tensor& output) {
+<<<<<<< HEAD
   if (ceil_mode) {
     mps::avg_pool_out_mps_template(output,
                                    input,
@@ -1180,6 +1256,19 @@ TORCH_IMPL_FUNC(avg_pool2d_out_mps)
                              divisor_override,
                              "avg_pool2d");
   }
+=======
+  mps::avg_pool2d_template(input,
+                           output,
+                           std::nullopt,
+                           {kH, kW},
+                           {dH, dW},
+                           {padH, padW},
+                           {1, 1},
+                           ceil_mode,
+                           count_include_pad,
+                           divisor_override,
+                           "avg_pool2d");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 TORCH_IMPL_FUNC(avg_pool2d_backward_out_mps)
@@ -1205,6 +1294,7 @@ TORCH_IMPL_FUNC(avg_pool2d_backward_out_mps)
                            "avg_pool2d_backward");
 }
 
+<<<<<<< HEAD
 TORCH_IMPL_FUNC(avg_pool3d_out_mps)
 (const Tensor& input,
  IntArrayRef kernel_size,
@@ -1248,4 +1338,6 @@ TORCH_IMPL_FUNC(avg_pool3d_backward_out_mps)(const Tensor& grad_output,
                                           "avg_pool3d_backward");
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::native

@@ -28,11 +28,15 @@ from torch.testing._internal.common_fsdp import (
     patch_reduce_scatter,
     reduce_scatter_with_assert,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     run_tests,
     skipIfRocmVersionLessThan,
     TEST_HPU,
 )
+=======
+from torch.testing._internal.common_utils import run_tests, skipIfRocm, TEST_HPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 device_type = torch.device(get_devtype())
@@ -90,7 +94,11 @@ class TestFullyShardMixedPrecisionTraining(FSDPTest):
             use_shard_placement_fn_vals.append(True)
         return use_shard_placement_fn_vals
 
+<<<<<<< HEAD
     @skipIfRocmVersionLessThan((7, 0))
+=======
+    @skipIfRocm  # regressed in ROCm 6.4, but ROCm 6.5 fixes it
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_nccl_version((2, 10), "Need NCCL 2.10+ for bf16 collectives")
     def test_compute_dtype(self):
@@ -170,7 +178,11 @@ class TestFullyShardMixedPrecisionTraining(FSDPTest):
             self.assertEqual(fsdp_loss, ref_loss)
             check_sharded_parity(self, ref_model, model)
 
+<<<<<<< HEAD
     @skipIfRocmVersionLessThan((7, 0))
+=======
+    @skipIfRocm  # regressed in ROCm 6.4, but ROCm 6.5 fixes it
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @requires_nccl_version((2, 10), "Need NCCL 2.10+ for bf16 collectives")
     def test_reduce_dtype(self):
@@ -614,7 +626,11 @@ class TestFullyShardMixedPrecisionCasts(FSDPTestMultiThread):
             torch.bfloat16, torch.bfloat16, torch.bfloat16, True
         )
         model = Model()
+<<<<<<< HEAD
         inp = Input(torch.randn(2, 10).to(device_type))
+=======
+        inp = Input(torch.randn(2, 10).cuda())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fully_shard(model, mp_policy=mp_policy)
         loss = model(inp).sum()

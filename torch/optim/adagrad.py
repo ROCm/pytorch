@@ -54,6 +54,7 @@ class Adagrad(Optimizer):
         if not 0.0 <= eps:
             raise ValueError(f"Invalid epsilon value: {eps}")
 
+<<<<<<< HEAD
         defaults = {
             "lr": lr,
             "lr_decay": lr_decay,
@@ -65,6 +66,19 @@ class Adagrad(Optimizer):
             "differentiable": differentiable,
             "fused": fused,
         }
+=======
+        defaults = dict(
+            lr=lr,
+            lr_decay=lr_decay,
+            eps=eps,
+            weight_decay=weight_decay,
+            initial_accumulator_value=initial_accumulator_value,
+            foreach=foreach,
+            maximize=maximize,
+            differentiable=differentiable,
+            fused=fused,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(params, defaults)
 
         if fused:
@@ -117,7 +131,10 @@ class Adagrad(Optimizer):
                 )
 
     def share_memory(self):
+<<<<<<< HEAD
         """Calls tensor.share_memory_() on the state sum tensors."""
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for group in self.param_groups:
             for p in group["params"]:
                 state = self.state[p]
@@ -337,8 +354,12 @@ def _single_tensor_adagrad(
     differentiable: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
     if grad_scale is not None or found_inf is not None:
         raise AssertionError("Expected grad_scale and found_inf to be None")
+=======
+    assert grad_scale is None and found_inf is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if not torch.jit.is_scripting():
         lr = _to_scalar(lr)
@@ -403,10 +424,15 @@ def _multi_tensor_adagrad(
     differentiable: bool,
     has_complex: bool,
 ):
+<<<<<<< HEAD
     if differentiable:
         raise AssertionError("_foreach ops don't support autograd")
     if grad_scale is not None or found_inf is not None:
         raise AssertionError("Expected grad_scale and found_inf to be None")
+=======
+    assert not differentiable, "_foreach ops don't support autograd"
+    assert grad_scale is None and found_inf is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Foreach functions will throw errors if given empty lists
     if len(params) == 0:
@@ -470,7 +496,11 @@ def _multi_tensor_adagrad(
             torch._foreach_add_(device_state_steps, 1)
 
         if weight_decay != 0:
+<<<<<<< HEAD
             # Reuse the intermediate memory (device_grads) already allocated for maximize
+=======
+            # Re-use the intermediate memory (device_grads) already allocated for maximize
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if maximize:
                 torch._foreach_add_(device_grads, device_params, alpha=weight_decay)
             else:
@@ -488,7 +518,11 @@ def _multi_tensor_adagrad(
         torch._foreach_add_(std, eps)
 
         if weight_decay != 0 or maximize:
+<<<<<<< HEAD
             # Again, reuse the intermediate memory (device_grads) already allocated
+=======
+            # Again, re-use the intermediate memory (device_grads) already allocated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._foreach_mul_(device_grads, minus_clr)
             numerator = device_grads
         else:

@@ -12,12 +12,19 @@ import os
 import time
 from concurrent.futures.thread import ThreadPoolExecutor
 from threading import Event
+<<<<<<< HEAD
 from typing import Callable, Optional, TextIO, TYPE_CHECKING, Union
+=======
+from typing import Optional, TextIO, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if TYPE_CHECKING:
     from concurrent.futures._base import Future
+<<<<<<< HEAD
     from io import TextIOWrapper
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = ["tail_logfile", "TailLog"]
 
@@ -25,12 +32,16 @@ logger = logging.getLogger(__name__)
 
 
 def tail_logfile(
+<<<<<<< HEAD
     header: str,
     file: str,
     dst: TextIO,
     finished: Event,
     interval_sec: float,
     log_line_filter: Optional[Callable[[str], bool]] = None,
+=======
+    header: str, file: str, dst: TextIO, finished: Event, interval_sec: float
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     while not os.path.exists(file):
         if finished.is_set():
@@ -42,8 +53,12 @@ def tail_logfile(
             line = fp.readline()
 
             if line:
+<<<<<<< HEAD
                 if log_line_filter and log_line_filter(line):
                     dst.write(f"{header}{line}")
+=======
+                dst.write(f"{header}{line}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:  # reached EOF
                 if finished.is_set():
                     # log line producer is finished
@@ -97,21 +112,31 @@ class TailLog:
         self,
         name: str,
         log_files: dict[int, str],
+<<<<<<< HEAD
         dst: Union[TextIO, str],
         log_line_prefixes: Optional[dict[int, str]] = None,
         interval_sec: float = 0.1,
         log_line_filter: Callable[[str], bool] = (lambda _: True),
+=======
+        dst: TextIO,
+        log_line_prefixes: Optional[dict[int, str]] = None,
+        interval_sec: float = 0.1,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         n = len(log_files)
         self._threadpool = None
         if n > 0:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._threadpool = ThreadPoolExecutor(
                 max_workers=n,
                 thread_name_prefix=f"{self.__class__.__qualname__}_{name}",
             )
 
         self._name = name
+<<<<<<< HEAD
         self._dst_file: Optional[TextIOWrapper] = None
         self._dst: Optional[Union[TextIO, TextIOWrapper]] = None
         if isinstance(dst, str):
@@ -128,6 +153,11 @@ class TailLog:
         self._log_files = log_files
         self._log_line_prefixes = log_line_prefixes
         self._log_line_filter = log_line_filter
+=======
+        self._dst = dst
+        self._log_files = log_files
+        self._log_line_prefixes = log_line_prefixes
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._finished_events: dict[int, Event] = {
             local_rank: Event() for local_rank in log_files.keys()
         }
@@ -136,7 +166,11 @@ class TailLog:
         self._stopped = False
 
     def start(self) -> "TailLog":
+<<<<<<< HEAD
         if not self._threadpool or not self._dst:
+=======
+        if not self._threadpool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self
 
         for local_rank, file in self._log_files.items():
@@ -151,7 +185,10 @@ class TailLog:
                     dst=self._dst,
                     finished=self._finished_events[local_rank],
                     interval_sec=self._interval_sec,
+<<<<<<< HEAD
                     log_line_filter=self._log_line_filter,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
         return self
@@ -164,19 +201,31 @@ class TailLog:
             try:
                 f.result()
             except Exception as e:
+<<<<<<< HEAD
                 logger.exception(
                     "error in log tailor for %s%s. %s",
                     self._name,
                     local_rank,
                     e.__class__.__qualname__,
+=======
+                logger.error(
+                    "error in log tailor for %s%s. %s: %s",
+                    self._name,
+                    local_rank,
+                    e.__class__.__qualname__,
+                    e,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         if self._threadpool:
             self._threadpool.shutdown(wait=True)
 
+<<<<<<< HEAD
         if self._dst_file:
             self._dst_file.close()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._stopped = True
 
     def stopped(self) -> bool:

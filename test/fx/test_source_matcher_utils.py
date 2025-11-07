@@ -222,7 +222,11 @@ class TestSourceMatcher(JitTestCase):
         class M(torch.nn.Module):
             def forward(self, x, y):
                 b = x.item()
+<<<<<<< HEAD
                 torch._check(b >= 0)
+=======
+                torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(b + 1 < y.size(0))
                 return y[: b + 1]
 

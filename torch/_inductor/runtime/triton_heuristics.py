@@ -18,12 +18,28 @@ import sys
 import threading
 import time
 from collections import namedtuple
+<<<<<<< HEAD
 from typing import Any, Callable, Generic, Literal, TYPE_CHECKING, TypeVar, Union
 
 import torch
 from torch._dynamo.utils import counters, set_feature_use
 from torch._environment import is_fbcode
 from torch._inductor import metrics
+=======
+from typing import (
+    Any,
+    Callable,
+    Generic,
+    Literal,
+    Optional,
+    TYPE_CHECKING,
+    TypeVar,
+    Union,
+)
+
+import torch
+from torch._dynamo.utils import set_feature_use
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._prims_common import compute_required_storage_length
 from torch.utils._ordered_set import OrderedSet
 
@@ -45,6 +61,10 @@ from .hints import (
 )
 from .runtime_utils import (
     ceildiv,
+<<<<<<< HEAD
+=======
+    compilation_callback,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     conditional_product,
     create_bandwidth_info_str,
     dynamo_timed,
@@ -72,6 +92,7 @@ from .triton_compat import (
     PTXASError,
     triton,
 )
+<<<<<<< HEAD
 from .triton_helpers import get_constexprs
 
 
@@ -81,6 +102,8 @@ class InductorConfig(Config):
     def __init__(self, *args, dynamic_scale_rblock=True, **kwargs):
         super().__init__(*args, **kwargs)
         self.dynamic_scale_rblock = dynamic_scale_rblock
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class NoTritonConfigsError(RuntimeError):
@@ -99,6 +122,7 @@ _T = TypeVar("_T", bound=_KernelType)
 
 log = logging.getLogger(__name__)
 
+<<<<<<< HEAD
 triton_name_sub = re.compile(r"^def [^(]+\(")
 
 
@@ -127,6 +151,8 @@ def lookup_autotune_config(size_hints, fn) -> Config | None:
 
     return cached_config
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def get_total_reduction_numel(numels: dict[str, int]) -> int:
     return conditional_product(
@@ -149,7 +175,11 @@ def autotune_hints_to_configs(
     Based on those hints, this function will generate a list of additional autotuning
     configs to try.
     """
+<<<<<<< HEAD
     xyz_options: tuple[tuple[int, int | None, int | None], ...]
+=======
+    xyz_options: tuple[tuple[int, Optional[int], Optional[int]], ...]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     configs: list[Config] = []
     for hint in hints:
         if hint == AutotuneHint.ONE_ELEMENT_PER_THREAD:
@@ -177,6 +207,17 @@ def autotune_hints_to_configs(
     return configs
 
 
+<<<<<<< HEAD
+=======
+def disable_pointwise_autotuning(inductor_meta):
+    # Autotuning can give different benchmarking results from run to run, and
+    # therefore we disable autotuning when use_deterministic flag is on.
+    if inductor_meta.get("are_deterministic_algorithms_enabled"):
+        return True
+    return not inductor_meta.get("autotune_pointwise", True)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _dump_launch_params(args, kwargs, launcher, kernel_name, grid):
     call_args = []
     call_kwargs = {}
@@ -190,7 +231,12 @@ def _dump_launch_params(args, kwargs, launcher, kernel_name, grid):
             call_kwargs[k] = v
         else:
             call_kwargs[k] = v
+<<<<<<< HEAD
     call_kwargs.update(launcher.config.kwargs)
+=======
+    if not triton_version_uses_attrs_dict():
+        call_kwargs.update(launcher.config.kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     call_kwargs["num_warps"] = launcher.config.num_warps
     call_kwargs["num_stages"] = launcher.config.num_stages
     if HAS_WARP_SPEC:
@@ -209,8 +255,13 @@ def _dump_launch_params(args, kwargs, launcher, kernel_name, grid):
 
 
 def check_autotune_cache(
+<<<<<<< HEAD
     configs: list[Config], filename: str | None, inductor_meta: dict[str, Any]
 ) -> tuple[list[Config], AutotuneCache | None, dict[str, Any]]:
+=======
+    configs: list[Config], filename: Optional[str], inductor_meta: dict[str, Any]
+) -> tuple[list[Config], Optional[AutotuneCache], dict[str, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Given a list of configs, checks autotune cache and return metadata
     """
@@ -221,7 +272,11 @@ def check_autotune_cache(
         not disabled
         and filename is not None
         and (len(configs) > 1 or inductor_meta.get("coordinate_descent_tuning"))
+<<<<<<< HEAD
         and os.environ.get("TRITON_INTERPRET", "0") != "1"
+=======
+        and not os.environ.get("TRITON_INTERPRET", "0") == "1"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         configs_hash = hash_configs(configs)
 
@@ -277,9 +332,15 @@ class CachingAutotuner(KernelInterface):
         size_hints=None,
         inductor_meta=None,  # metadata not relevant to triton
         custom_kernel=False,  # whether the kernel is inductor-generated or custom
+<<<<<<< HEAD
         filename: str | None = None,
         reset_to_zero_arg_names: list[str] | None = None,
         autotune_cache_info: dict[str, Any] | None = None,
+=======
+        filename: Optional[str] = None,
+        reset_to_zero_arg_names: Optional[list[str]] = None,
+        autotune_cache_info: Optional[dict[str, Any]] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         super().__init__()
 
@@ -296,17 +357,24 @@ class CachingAutotuner(KernelInterface):
             "device_type": self.device_props.type,
         }
         self.inductor_meta = {} if inductor_meta is None else inductor_meta
+<<<<<<< HEAD
         self.deterministic_mode = self.inductor_meta.get("deterministic", False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.save_cache_hook = save_cache_hook
         self.mutated_arg_names = mutated_arg_names
         self.reset_to_zero_arg_names = (
             [] if reset_to_zero_arg_names is None else reset_to_zero_arg_names
         )
         self.optimize_mem = optimize_mem
+<<<<<<< HEAD
         cached_config = lookup_autotune_config(size_hints, fn)
         self.configs = [cached_config] if cached_config else configs
 
+=======
+        self.configs = configs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.heuristic_type = heuristic_type
         self.custom_kernel = custom_kernel
         self.cuda_kernel_saved = False
@@ -332,7 +400,10 @@ class CachingAutotuner(KernelInterface):
         self.size_hints = size_hints
         self.coordesc_tuner = CoordescTuner(
             is_mm=False,
+<<<<<<< HEAD
             is_native_matmul=triton_meta.get("native_matmul", False),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             name=self.fn.__name__,
             size_hints=size_hints,
             inductor_meta=self.inductor_meta,
@@ -359,12 +430,18 @@ class CachingAutotuner(KernelInterface):
         self.triton_interpret = os.environ.get("TRITON_INTERPRET", "0") == "1"
 
         # Compile-time info included in runtime logginging
+<<<<<<< HEAD
         self.compile_id: CompileId | None = None
         self.is_backward = False
 
         # Mode for launch grid calculation
         self.grid_mode: Literal["python", "cpp"] = "python"
 
+=======
+        self.compile_id: Optional[CompileId] = None
+        self.is_backward = False
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def is_statically_launchable(self):
         """
         Checks if every compiled kernel is statically launchable, which
@@ -411,15 +488,26 @@ class CachingAutotuner(KernelInterface):
                         self.fn = reload_kernel_from_src().fn
                     self.compile_results = [self._precompile_config(best_config)]
 
+<<<<<<< HEAD
     def set_compile_info(self, compile_id: CompileId | None, is_backward: bool) -> None:
+=======
+    def set_compile_info(
+        self, compile_id: Optional[CompileId], is_backward: bool
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.compile_id = compile_id
         self.is_backward = is_backward
 
     def precompile(
         self,
         warm_cache_only=False,
+<<<<<<< HEAD
         reload_kernel: Callable[[], CachingAutotuner] | None = None,
         static_triton_bundle_key: str | None = None,
+=======
+        reload_kernel: Optional[Callable[[], CachingAutotuner]] = None,
+        static_triton_bundle_key: Optional[str] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         if warm_cache_only:
             self._precompile_worker()
@@ -468,8 +556,12 @@ class CachingAutotuner(KernelInterface):
         # Currently it relies on _make_launchers(), which requires a cuda context, to populate nreg.
         device_prop = self.device_props
         if (
+<<<<<<< HEAD
             not self.deterministic_mode
             and self.inductor_meta.get("dynamic_scale_rblock", True)
+=======
+            self.inductor_meta.get("dynamic_scale_rblock", True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and not self.inductor_meta.get("persistent_reduction")
             and self.heuristic_type == HeuristicType.REDUCTION
             and self.size_hints is not None
@@ -482,7 +574,11 @@ class CachingAutotuner(KernelInterface):
             assert device_prop.regs_per_multiprocessor
             assert device_prop.max_threads_per_multi_processor
             assert device_prop.multi_processor_count
+<<<<<<< HEAD
             seen_config_hashes: OrderedSet[Hashable] | None = None
+=======
+            seen_config_hashes: Optional[OrderedSet[Hashable]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             warp_size = device_prop.warp_size or 32
             for result in self.compile_results:
                 triton_config = result.config
@@ -530,7 +626,11 @@ class CachingAutotuner(KernelInterface):
                 #   = regs_per_multiprocessor / (nreg * 32 * num_warps)
                 #   < regs_per_multiprocessor / ((regs_per_multiprocessor / max_threads_per_multi_processor) * 32 * num_warps)
                 #   = max_threads_per_multi_processor / (32 * num_warps)
+<<<<<<< HEAD
                 # Using a tighter upper bound can reveal more optimization opportunities.
+=======
+                # Using a tigher upper bound can reveal more optimization opportunities.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 max_blocks_per_sm = max(
                     device_prop.regs_per_multiprocessor // nreg_per_block, 1
                 )
@@ -572,7 +672,11 @@ class CachingAutotuner(KernelInterface):
                     assert hasattr(self, "_reload_kernel")
                     assert callable(self._reload_kernel)
                     self.fn = self._reload_kernel().fn
+<<<<<<< HEAD
                 self.compile_results.append(self._precompile_config(new_config))  # noqa: B909
+=======
+                self.compile_results.append(self._precompile_config(new_config))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self._make_launchers()
 
@@ -587,6 +691,7 @@ class CachingAutotuner(KernelInterface):
         # load binary to the correct device
         with DeviceGuard(device_interface, self.triton_meta["device"]):
             # need to initialize context
+<<<<<<< HEAD
             with dynamo_timed(
                 "CachingAutotuner.synchronize",
                 # Deliberately avoid overloading pt2_compile_events:
@@ -594,6 +699,9 @@ class CachingAutotuner(KernelInterface):
             ):
                 device_interface.synchronize(device_interface.current_device())
 
+=======
+            device_interface.synchronize(device_interface.current_device())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             launchers = []
             exc = None
             for result in self.compile_results:
@@ -606,7 +714,11 @@ class CachingAutotuner(KernelInterface):
             raise RuntimeError(f"No valid triton configs. {type(exc).__name__}: {exc}")
         self.launchers = launchers
 
+<<<<<<< HEAD
     def prepare_for_pickle(self) -> tuple[Any, Any, Any, Any, Any, Any]:
+=======
+    def prepare_for_pickle(self) -> tuple[Any, Any, Any, Any, Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Drop stuff from triton.JITFunction that does not pickle.
         This must be called after precompile so that these things are no longer needed.
         Returns a tuple of old values
@@ -617,13 +729,17 @@ class CachingAutotuner(KernelInterface):
             self.fn.used_global_vals,
             self.fn.repr,
             self.launchers,
+<<<<<<< HEAD
             getattr(self.fn, "_hash_lock", None),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.fn.fn = None
         self.fn.__globals__ = None
         self.fn.used_global_vals = None
         self.fn.repr = _ConstRepr(self.fn.repr(self.fn))
         self.launchers = []
+<<<<<<< HEAD
         self.fn._hash_lock = None
         return old_values
 
@@ -644,6 +760,10 @@ class CachingAutotuner(KernelInterface):
             # _hash_lock to be a valid RLock
             self.fn._hash_lock = threading.RLock()
 
+=======
+        return old_values
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def prepare_for_caching(self) -> None:
         """
         Statically Launched CUDA Kernels have a raw cubin on them
@@ -673,6 +793,7 @@ class CachingAutotuner(KernelInterface):
 
         return get_interface_for_device(self.device_props.type.replace("hip", "cuda"))
 
+<<<<<<< HEAD
     def _create_compile_meta(self, cfg: Config) -> dict[str, Any]:
         """
         Create compilation metadata for a given autotuner config. This involves
@@ -684,6 +805,11 @@ class CachingAutotuner(KernelInterface):
         compile_meta["num_warps"] = cfg.num_warps
         compile_meta["num_stages"] = cfg.num_stages
 
+=======
+    def _precompile_config(self, cfg: Config) -> CompileResult[_KernelType]:
+        """Ahead of time compile a given autotuner config."""
+        compile_meta = copy.deepcopy(self.triton_meta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cfg_kwargs = cfg.kwargs
         if self.device_props.type == "hip":
             cfg_kwargs = {**cfg_kwargs}
@@ -691,13 +817,22 @@ class CachingAutotuner(KernelInterface):
                 if k in cfg_kwargs:
                     compile_meta[k] = cfg_kwargs.pop(k)
         compile_meta["constants"].update(cfg_kwargs)
+<<<<<<< HEAD
 
         for i in get_constexprs(self.fn):
+=======
+        for i in self.fn.constexprs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg_name = self.fn.arg_names[i]
             if arg_name not in compile_meta["constants"] and (
                 arg_name == "num_warps" or arg_name == "num_stages"
             ):
                 compile_meta["constants"][arg_name] = getattr(cfg, arg_name)
+<<<<<<< HEAD
+=======
+        compile_meta["num_warps"] = cfg.num_warps
+        compile_meta["num_stages"] = cfg.num_stages
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if HAS_WARP_SPEC:
             compile_meta["num_consumer_groups"] = getattr(cfg, "num_consumer_groups", 0)
             compile_meta["num_buffers_warp_spec"] = getattr(
@@ -711,6 +846,7 @@ class CachingAutotuner(KernelInterface):
         compile_meta["device_type"] = self.device_props.type
         compile_meta["cc"] = self.device_props.cc
 
+<<<<<<< HEAD
         return compile_meta
 
     def _create_compile_options(
@@ -758,6 +894,8 @@ class CachingAutotuner(KernelInterface):
         """Ahead of time compile a given autotuner config."""
         compile_meta = self._create_compile_meta(cfg)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.device_props.type == "cpu":
             triton_helpers.set_driver_to_cpu()
         else:
@@ -790,8 +928,31 @@ class CachingAutotuner(KernelInterface):
             cc_warp_size(compile_meta["cc"]),
         )
 
+<<<<<<< HEAD
         options = self._create_compile_options(cfg, compile_meta)
 
+=======
+        options = {
+            "num_warps": compile_meta["num_warps"],
+            "num_stages": compile_meta["num_stages"],
+            "debug": compile_meta["debug"],
+            "sanitize_overflow": False,  # turn off additional asserts added for overflow checks
+        }
+        if HAS_WARP_SPEC:
+            options.update(
+                {
+                    "num_consumer_groups": compile_meta.get("num_consumer_groups", 0),
+                    "num_buffers_warp_spec": compile_meta.get(
+                        "num_buffers_warp_spec", 0
+                    ),
+                }
+            )
+        if self.device_props.type == "hip":
+            if "waves_per_eu" in compile_meta:
+                options["waves_per_eu"] = compile_meta["waves_per_eu"]
+            if "matrix_instr_nonkdim" in compile_meta:
+                options["matrix_instr_nonkdim"] = compile_meta["matrix_instr_nonkdim"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compile_kwargs = {
             "target": target,
             "options": options,
@@ -807,6 +968,7 @@ class CachingAutotuner(KernelInterface):
                 compile_meta,
             )
             raise
+<<<<<<< HEAD
 
         # Simulate JIT Hook call
         if (
@@ -837,6 +999,8 @@ class CachingAutotuner(KernelInterface):
             except Exception:
                 log.exception("jit_post_compile_hook failed")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         TritonBundler.put(
             triton_hash_to_path_key(binary.hash), self.triton_meta.get("device", 0)
         )
@@ -853,6 +1017,31 @@ class CachingAutotuner(KernelInterface):
 
         return TritonCompileResult(binary, cfg, compile_meta, self.inductor_meta)
 
+<<<<<<< HEAD
+=======
+    def _get_args_with_constexprs(self, args, launcher):
+        """
+        `args` is passed in with only the non-constexpr args (because the constexpr arg values
+        depend on the config). However, in later triton versions, the constexpr args need to be
+        added into the args list.
+        """
+        if triton_version_uses_attrs_dict():
+            # first: aggregate the constexpr args in (index, val) pairs
+            # so we can sort them by index.
+            constexpr_args: list[tuple[int, Any]] = []
+            for arg_name, arg_val in launcher.config.kwargs.items():
+                if arg_name in self.fn.arg_names:
+                    constexpr_args.append((self.fn.arg_names.index(arg_name), arg_val))
+
+            constexpr_args.sort()
+            new_args = [*args]
+            for arg_idx, arg_val in constexpr_args:
+                new_args.insert(arg_idx, arg_val)
+
+            return new_args
+        return args
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def bench(self, launcher, *args, with_profiler=False, **kwargs):
         """Measure the performance of a given launcher"""
         # we don't skip configs with spilled registers when auto-tuning custom
@@ -861,7 +1050,11 @@ class CachingAutotuner(KernelInterface):
         # for some (complicated) custom Triton kernels, a register-spilling
         # config may yield the best latency.
         if not self.custom_kernel and launcher.n_spills > self.inductor_meta.get(
+<<<<<<< HEAD
             "spill_threshold", 32 if torch.version.hip else 16
+=======
+            "spill_threshold", 16
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             log.debug(
                 "Skip config %s because of register spilling: %d",
@@ -881,6 +1074,7 @@ class CachingAutotuner(KernelInterface):
             )
             # reset to zero before evaluating any config
             self.reset_to_zero_args(*args, **kwargs)
+<<<<<<< HEAD
             kernel_name = self.inductor_meta.get("kernel_name", "triton kernel")
             if autograd_profiler._is_profiler_enabled:
                 profiler_kwargs = self.get_profiler_kwargs(stream, launcher)
@@ -913,6 +1107,17 @@ class CachingAutotuner(KernelInterface):
 
         # only use profiler when not already in a profiler instance
         if with_profiler and not autograd_profiler._is_profiler_enabled:
+=======
+            args_with_constexprs = self._get_args_with_constexprs(cloned_args, launcher)
+            launcher(
+                *args_with_constexprs,
+                **cloned_kwargs,
+                stream=stream,
+            )
+            self.restore_args_from_cpu(cpu_copies)
+
+        if with_profiler:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch._inductor.utils import do_bench_using_profiling
 
             return do_bench_using_profiling(kernel_call, warmup=10, rep=40)
@@ -920,9 +1125,13 @@ class CachingAutotuner(KernelInterface):
         if self.device_props.type == "cpu":
             return benchmarker.benchmark_cpu(kernel_call)
 
+<<<<<<< HEAD
         return benchmarker.benchmark_gpu(
             kernel_call, rep=40, is_vetted_benchmarking=True
         )
+=======
+        return benchmarker.benchmark_gpu(kernel_call, rep=40)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def copy_args_to_cpu_if_needed(self, *args, **kwargs):
         """
@@ -936,11 +1145,15 @@ class CachingAutotuner(KernelInterface):
             return {}
 
         copies = {}
+<<<<<<< HEAD
         try:
             budget = torch.cuda.max_memory_allocated() - torch.cuda.memory_allocated()
         except RuntimeError:
             # Possibly a custom CUDA allocator, see https://github.com/pytorch/pytorch/issues/163257
             return {}
+=======
+        budget = torch.cuda.max_memory_allocated() - torch.cuda.memory_allocated()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def maybe_copy(name, arg):
             if name in self.mutated_arg_names and arg.is_cuda:
@@ -1051,11 +1264,18 @@ class CachingAutotuner(KernelInterface):
                 log_waitcounter=True,
                 waitcounter_name_override="triton_autotuner",
             ),
+<<<<<<< HEAD
             # Temporarily disable due to spam
             # compilation_callback.callback_handler.install_callbacks(
             #     compilation_callback.CallbackTrigger.TRITON_AUTOTUNING,
             #     str(self.compile_id),
             # ),
+=======
+            compilation_callback.callback_handler.install_callbacks(
+                compilation_callback.CallbackTrigger.TRITON_AUTOTUNING,
+                str(self.compile_id),
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             timings = {
                 launcher: self.bench(launcher, *args, **kwargs)
@@ -1077,6 +1297,7 @@ class CachingAutotuner(KernelInterface):
                         k.shared,
                     )
 
+<<<<<<< HEAD
             if metrics.is_metric_table_enabled("kernel_autotune"):
                 if self.fn.fn is None:
                     self.fn = self._reload_kernel().fn
@@ -1089,6 +1310,8 @@ class CachingAutotuner(KernelInterface):
                         kernel_path, kernel_name, k.config, v
                     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.reset_to_zero_args(*args, **kwargs)
             return timings
 
@@ -1148,6 +1371,7 @@ class CachingAutotuner(KernelInterface):
             "def_args": launcher.def_args,
             "call_args": launcher.call_args,
             "global_scratch": launcher.global_scratch,
+<<<<<<< HEAD
             "profile_scratch": launcher.profile_scratch,
         }
         if self.device_props.type == "xpu":
@@ -1159,6 +1383,9 @@ class CachingAutotuner(KernelInterface):
                 launcher.bin.metadata, "threads_per_warp", 32
             )
 
+=======
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._inductor.codecache import CudaKernelParamCache
 
         bin_type = {"hip": "hsaco", "xpu": "spv"}.get(self.device_props.type, "cubin")
@@ -1183,14 +1410,21 @@ class CachingAutotuner(KernelInterface):
         Then if coordinate desecnt tuning is run with max-autotune disabled, it will start from C1;
         while if coordinate descent tuning is run with max-autotune enabled, it will start from C3.
         """
+<<<<<<< HEAD
         if self.heuristic_type in (
             HeuristicType.TEMPLATE,
             HeuristicType.USER_AUTOTUNE,
             HeuristicType.FIXED,
+=======
+        if (
+            self.heuristic_type == HeuristicType.TEMPLATE
+            or self.heuristic_type == HeuristicType.USER_AUTOTUNE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             # skip triton template
             return launcher
 
+<<<<<<< HEAD
         if self.deterministic_mode and self.heuristic_type in (
             HeuristicType.REDUCTION,
             HeuristicType.PERSISTENT_REDUCTION,
@@ -1217,6 +1451,8 @@ class CachingAutotuner(KernelInterface):
             return self._coordinate_descent_tuning(launcher, *args, **kwargs)
 
     def _coordinate_descent_tuning(self, launcher, *args, **kwargs):
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         config2launcher = {launcher.config: launcher}
 
         # TODO: should we just load the kernels ahead of time if we know we're going to call this?
@@ -1236,7 +1472,10 @@ class CachingAutotuner(KernelInterface):
             config2launcher[config] = launcher
 
             out = self.bench(launcher, *args, **kwargs)
+<<<<<<< HEAD
             counters["inductor"]["coordesc_tuning_bench"] += 1
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             log.debug(
                 "COORDESC: %s: %f, nreg %d, nspill %d, #shared-mem %d",
                 launcher.config,
@@ -1274,6 +1513,7 @@ class CachingAutotuner(KernelInterface):
             config2launcher[best_config] = self._precompile_config(
                 best_config
             ).make_launcher()
+<<<<<<< HEAD
 
         fn_hash = generate_lookup_hash_from_source_code(
             str(self.size_hints), self.fn.src
@@ -1303,6 +1543,10 @@ class CachingAutotuner(KernelInterface):
             ret["kernel_num_gb"] = self.inductor_meta["kernel_num_gb"]
         return ret
 
+=======
+        return config2launcher[best_config]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def run(
         self,
         *args,
@@ -1312,7 +1556,11 @@ class CachingAutotuner(KernelInterface):
     ):  # type:ignore[override]
         if hasattr(triton, "set_allocator"):
 
+<<<<<<< HEAD
             def alloc_fn(size: int, align: int, stream: int | None):
+=======
+            def alloc_fn(size: int, align: int, stream: Optional[int]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.empty(
                     size, dtype=torch.int8, device=self.device_props.type
                 )
@@ -1346,10 +1594,14 @@ class CachingAutotuner(KernelInterface):
         if launcher.store_cubin and (not benchmark_run or not self.cuda_kernel_saved):
             self.save_gpu_kernel(stream, launcher)
 
+<<<<<<< HEAD
         # PyTorch execution trace replay calls CachingAutotuner::run() instead of calls launcher
         # so _RecordFunctionFast need to capture the args into CachingAutotuner::run()
         # make a copy here to avoid mutating the original args
         args_without_constexprs = tuple(args)
+=======
+        args = self._get_args_with_constexprs(args, launcher)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.dump_launch_params:
             new_args, grid = self._interpret_args_grid(args, launcher.config)
@@ -1358,11 +1610,31 @@ class CachingAutotuner(KernelInterface):
         # it is faster than entering and exiting a context manager, even if the context
         # manager is a nullcontext.
         if autograd_profiler._is_profiler_enabled:
+<<<<<<< HEAD
             profiler_kwargs = self.get_profiler_kwargs(stream, launcher)
 
             with torch._C._profiler._RecordFunctionFast(
                 self.inductor_meta.get("kernel_name", "triton kernel"),
                 args_without_constexprs,
+=======
+            kernel_kwargs_str = ",".join(
+                f"{k}={v}" for (k, v) in launcher.config.kwargs.items()
+            )
+
+            profiler_kwargs = {
+                "kernel_file": (self.filename or ""),
+                "kernel_hash": self.kernel_hash,
+                "kernel_backend": "triton",
+                "stream": stream,
+                "num_warps": launcher.config.num_warps,
+                "num_stages": launcher.config.num_stages,
+                "kernel_kwargs": kernel_kwargs_str,
+            }
+
+            with torch._C._profiler._RecordFunctionFast(
+                self.inductor_meta.get("kernel_name", "triton kernel"),
+                args,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 profiler_kwargs,
             ):
                 return launcher(
@@ -1380,6 +1652,7 @@ class CachingAutotuner(KernelInterface):
     def _interpret_args_grid(
         self, args: tuple[Any, ...], cfg: Config
     ) -> tuple[tuple[Any, ...], tuple[int, int, int]]:
+<<<<<<< HEAD
         if triton_version_uses_attrs_dict():
 
             def filtered_signature() -> list[str]:
@@ -1413,6 +1686,13 @@ class CachingAutotuner(KernelInterface):
                 zip(
                     [
                         *filtered_signature(),
+=======
+        grid = GridExpr.from_meta(self.inductor_meta, cfg).eval_slow(
+            dict(
+                zip(
+                    [
+                        *self.triton_meta["signature"].keys(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         *self.inductor_meta.get("extra_launcher_args", ()),
                     ],
                     args,
@@ -1433,10 +1713,13 @@ class _ConstRepr:
 
 
 class CompileResult(Generic[_T]):
+<<<<<<< HEAD
     """
     Base class representing compiled result.
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(
         self,
         kernel: _T,
@@ -1500,6 +1783,7 @@ class CompileResult(Generic[_T]):
         )
         none_args = none_args.difference(OrderedSet(compile_meta["signature"].keys()))
 
+<<<<<<< HEAD
         def _convert_constant(constant):
             if isinstance(constant, str):
                 return "r'" + constant + "'"
@@ -1524,6 +1808,23 @@ class CompileResult(Generic[_T]):
                 repl = {
                     k: _convert_constant(compile_meta["constants"].get(k))
                     for k in implicit_constants
+=======
+        if triton_version_uses_attrs_dict():
+            call_args = arg_names
+            def_args = arg_names
+            if (
+                "num_warps" in compile_meta["constants"]
+                or "num_stages" in compile_meta["constants"]
+            ):
+                # num_warps/num_stages are special implicit args that are not in the signature
+                # see test_triton_kernel_special_params
+                def_args = [
+                    arg for arg in def_args if arg not in ("num_warps", "num_stages")
+                ]
+                repl = {
+                    k: str(compile_meta["constants"].get(k))
+                    for k in ("num_warps", "num_stages")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 }
                 call_args = [repl.get(arg, arg) for arg in call_args]
         else:
@@ -1561,12 +1862,20 @@ class StaticTritonCompileResult(CompileResult[StaticallyLaunchedCudaKernel]):
         inductor_meta: dict[str, Any],
         triton_meta: dict[str, Any],
         heuristic_type: HeuristicType,
+<<<<<<< HEAD
     ) -> StaticallyLaunchedCudaKernel | None:
+=======
+    ) -> Optional[StaticallyLaunchedCudaKernel]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not torch._inductor.config.use_static_cuda_launcher:
             return None
 
         def check_can_launch() -> StaticallyLaunchedCudaKernel:
+<<<<<<< HEAD
             if triton_meta.get("device_type") != "cuda":
+=======
+            if triton_meta.get("device_type", None) != "cuda":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Only cuda kernels
                 raise CannotStaticallyLaunchKernel("Non-cuda device")
 
@@ -1583,6 +1892,7 @@ class StaticTritonCompileResult(CompileResult[StaticallyLaunchedCudaKernel]):
                 # Don't support user defined triton kernels yet
                 raise CannotStaticallyLaunchKernel("User defined triton kernel")
 
+<<<<<<< HEAD
             if inductor_meta.get("store_cubin"):
                 # Requires storing the entire binary
                 raise CannotStaticallyLaunchKernel("store_cubin is enabled")
@@ -1594,6 +1904,12 @@ class StaticTritonCompileResult(CompileResult[StaticallyLaunchedCudaKernel]):
                     "static launch does not support launch attributes"
                 )
 
+=======
+            if inductor_meta.get("store_cubin", None):
+                # Requires storing the entire binary
+                raise CannotStaticallyLaunchKernel("store_cubin is enabled")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             cubin_location = os.path.join(
                 triton_cache_dir(triton_meta.get("device", 0)),
                 triton_hash_to_path_key(kernel.hash),
@@ -1619,7 +1935,11 @@ class StaticTritonCompileResult(CompileResult[StaticallyLaunchedCudaKernel]):
             result = check_can_launch()
             return result
         except CannotStaticallyLaunchKernel as e:
+<<<<<<< HEAD
             log.info("Bypassing StaticallyLaunchedCudaKernel due to %s", str(e))  # noqa: G200
+=======
+            log.info("Bypassing StaticallyLaunchedCudaKernel due to %s", str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if torch._inductor.config.strict_static_cuda_launcher:
                 raise e
             return None
@@ -1795,7 +2115,11 @@ class TritonCompileResult(CompileResult[CompiledKernel]):
         fn = binary.src.fn
         binary._init_handles()
         (call_args, def_args, none_args) = self._get_arg_lists(
+<<<<<<< HEAD
             fn.arg_names, get_constexprs(fn)
+=======
+            fn.arg_names, fn.constexprs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         binary_shared = (
             binary.shared if hasattr(binary, "shared") else binary.metadata.shared
@@ -1810,8 +2134,11 @@ class TritonCompileResult(CompileResult[CompiledKernel]):
 
         import math as math_lib
 
+<<<<<<< HEAD
         import triton as triton_lib
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         import torch as torch_lib
 
         scope = {
@@ -1846,7 +2173,10 @@ class TritonCompileResult(CompileResult[CompiledKernel]):
             "runner": get_first_attr(binary, "run", "c_wrapper"),
             "math": math_lib,
             "torch": torch_lib,
+<<<<<<< HEAD
             "triton": triton_lib,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         if not hasattr(binary, "launch_metadata"):
@@ -1915,6 +2245,7 @@ class TritonCompileResult(CompileResult[CompiledKernel]):
             launcher.def_args = def_args
             launcher.call_args = call_args
             kernel_metadata = getattr(self.kernel, "metadata", None)
+<<<<<<< HEAD
 
             # for the scratch arguments: None indicates that the kernel doesn't
             # take any scratch argument; otherwise a number indicates the number
@@ -1932,6 +2263,11 @@ class TritonCompileResult(CompileResult[CompiledKernel]):
             )
             launcher.global_scratch = global_scratch
             launcher.profile_scratch = profile_scratch
+=======
+            launcher.global_scratch = getattr(
+                kernel_metadata, "global_scratch_size", None
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return launcher
 
 
@@ -1998,11 +2334,19 @@ def end_graph(output_file):
                     )
                     file.write(bw_info_str + "\n")
                 file.write(f"{summary_str}\n\n")
+<<<<<<< HEAD
         except Exception:
             log.warning(
                 "failed to write profile bandwidth result into %s",
                 output_file,
                 exc_info=True,
+=======
+        except Exception as e:
+            log.warning(
+                "failed to write profile bandwidth result into %s: %s",
+                output_file,
+                e,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 
@@ -2030,6 +2374,10 @@ class DebugAutotuner(CachingAutotuner):
             kernel_name = f"{max(possible_names, key=len)}"
             if not re.match(self.regex_filter, kernel_name):
                 return
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if len(self.launchers) != 1:
                 if len(self.launchers) == 0:
                     start_time = time.time_ns()
@@ -2081,7 +2429,11 @@ def hash_configs(configs: list[Config]):
 
 
 def cached_autotune(
+<<<<<<< HEAD
     size_hints: list[int] | None,
+=======
+    size_hints: Optional[list[int]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     configs: list[Config],
     triton_meta,
     heuristic_type,
@@ -2245,9 +2597,12 @@ def triton_config(
     num_stages=1,
     num_elements_per_warp=256,
     min_elem_per_thread=0,
+<<<<<<< HEAD
     num_warps=None,
     matrix_instr=None,
     waves_per_eu=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Config:
     """
     Construct a pointwise triton config with some adjustment heuristics
@@ -2304,11 +2659,17 @@ def triton_config(
     ):
         z *= 2
 
+<<<<<<< HEAD
     # Calculate num_warps if they are not hard passed to config
     if num_warps is None:
         num_warps = _num_warps(
             conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
         )
+=======
+    num_warps = _num_warps(
+        conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # we are going to arrive at 2 warps only if bs was too small due to
     # numel being too small. However to workaround some ptx bugs we still
     # want at least 4 warps if there's enough elements per thread
@@ -2338,6 +2699,7 @@ def triton_config(
         cfg["ZBLOCK"] = z
     check_max_block(cfg)
     check_config(cfg, xnumel=xnumel, ynumel=ynumel, znumel=znumel)
+<<<<<<< HEAD
     config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
 
     if torch.version.hip:
@@ -2347,6 +2709,9 @@ def triton_config(
             config.kwargs["waves_per_eu"] = waves_per_eu
 
     return config
+=======
+    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_nd_reduction_numels(r: int, size_hints: dict[str, int]) -> dict[str, int]:
@@ -2394,9 +2759,12 @@ def triton_config_reduction(
     num_stages=1,
     num_warps=None,
     register_intensive=False,
+<<<<<<< HEAD
     waves_per_eu=None,
     dynamic_scale_rblock=True,
     reduction_hint=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Config:
     """
     Construct a reduction triton config with some adjustment heuristics
@@ -2424,6 +2792,7 @@ def triton_config_reduction(
             rnumels[prefix] *= 2
 
     if num_warps is None:
+<<<<<<< HEAD
         if reduction_hint == ReductionHint.INNER and not is_fbcode():
             # r is contiguous, so ensure that each thread has 8 elements for
             # vectorized loads, assuming bf16/fp16
@@ -2435,6 +2804,11 @@ def triton_config_reduction(
     max_num_warps = 16 if r <= 8192 else 32
     num_warps = _num_warps(
         num_warps, max_num_warps=max_num_warps, register_intensive=register_intensive
+=======
+        num_warps = total_numel() // 128
+    num_warps = _num_warps(
+        num_warps, max_num_warps=16, register_intensive=register_intensive
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     x, _num_blocks = _check_max_grid_x(size_hints, x, num_warps)
@@ -2448,6 +2822,7 @@ def triton_config_reduction(
     cfg = _get_config({"x": x, **rnumels})
     check_max_block(cfg)
     check_config(cfg, xnumel=size_hints["x"])
+<<<<<<< HEAD
     config = InductorConfig(
         cfg,
         num_warps=num_warps,
@@ -2460,6 +2835,9 @@ def triton_config_reduction(
             config.kwargs["waves_per_eu"] = waves_per_eu
 
     return config
+=======
+    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _get_config(numels: dict[str, int]) -> dict[str, int]:
@@ -2471,7 +2849,11 @@ def _get_config(numels: dict[str, int]) -> dict[str, int]:
 
 
 def triton_config_tiled_reduction(
+<<<<<<< HEAD
     size_hints, x, y, r, num_stages=1, register_intensive=False, waves_per_eu=None
+=======
+    size_hints, x, y, r, num_stages=1, register_intensive=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Construct a tile reduction triton config with some adjustment
@@ -2508,6 +2890,7 @@ def triton_config_tiled_reduction(
     )
     check_config(cfg, xnumel=size_hints["x"], ynumel=size_hints["y"])
     check_max_block(cfg)
+<<<<<<< HEAD
     config = Config(cfg, num_warps=num_warps, num_stages=num_stages)
     if torch.version.hip:
         if waves_per_eu is not None:
@@ -2558,6 +2941,9 @@ def _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs: list[Conf
         )
         return new_configs
     return configs
+=======
+    return Config(cfg, num_warps=num_warps, num_stages=num_stages)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def pointwise(
@@ -2590,7 +2976,11 @@ def pointwise(
 
     configs = None
     if len(size_hints) == 1:
+<<<<<<< HEAD
         if not inductor_meta.get("autotune_pointwise", True) and not (
+=======
+        if disable_pointwise_autotuning(inductor_meta) and not (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inductor_meta.get("max_autotune")
             or inductor_meta.get("max_autotune_pointwise")
         ):
@@ -2603,6 +2993,7 @@ def pointwise(
                 ),
                 *hinted_configs,
             ]
+<<<<<<< HEAD
             # Additional configs appended for ROCm builds
             if torch.version.hip:
                 configs.extend(
@@ -2629,6 +3020,11 @@ def pointwise(
         if (
             not inductor_meta.get("autotune_pointwise", True)
             or (torch.version.hip is None and tile_hint == TileHint.SQUARE)
+=======
+    if len(size_hints) == 2:
+        if (
+            disable_pointwise_autotuning(inductor_meta) or tile_hint == TileHint.SQUARE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) and not (
             inductor_meta.get("max_autotune")
             or inductor_meta.get("max_autotune_pointwise")
@@ -2644,6 +3040,7 @@ def pointwise(
                 triton_config_with_settings(size_hints, 1, bs),
                 *hinted_configs,
             ]
+<<<<<<< HEAD
             # Additional configs appended for ROCm builds
             if torch.version.hip:
                 configs.extend(
@@ -2664,6 +3061,10 @@ def pointwise(
                 )
     if len(size_hints) == 3:
         if not inductor_meta.get("autotune_pointwise", True):
+=======
+    if len(size_hints) == 3:
+        if disable_pointwise_autotuning(inductor_meta):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             configs = [triton_config_with_settings(size_hints, 16, 16, 16)]
         else:
             configs = [
@@ -2679,9 +3080,12 @@ def pointwise(
 
     if not configs:
         raise NotImplementedError(f"size_hints: {size_hints}")
+<<<<<<< HEAD
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cached_autotune(
         size_hints,
         configs,
@@ -2692,6 +3096,7 @@ def pointwise(
     )
 
 
+<<<<<<< HEAD
 def make_matmul_triton_config(sizes: dict[str, int], num_warps: int, num_stages: int):
     config = {
         "XBLOCK": sizes.get("x"),
@@ -2756,10 +3161,17 @@ def _reduction_configs(
     num_dynamic=0,
 ) -> list[Config]:
     reduction_hint = inductor_meta.get("reduction_hint")
+=======
+def _reduction_configs(
+    *, size_hints: dict[str, int], inductor_meta: dict[str, Any]
+) -> list[Config]:
+    reduction_hint = inductor_meta.get("reduction_hint", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Convert reductions to 1D, to simplify heuristics.
     rnumel = get_total_reduction_numel(size_hints)
 
+<<<<<<< HEAD
     # Is max autotune enabled
     max_autotune_enabled = inductor_meta.get("max_autotune") or inductor_meta.get(
         "max_autotune_pointwise"
@@ -2771,6 +3183,15 @@ def _reduction_configs(
         "num_reduction", 0
     )
     if size_hints["x"] >= 1024 and loads_and_red >= 10:
+=======
+    register_intensive = False
+    MAX_R0_BLOCK = 2048
+    if (
+        size_hints["x"] >= 1024
+        and inductor_meta.get("num_load", 0) + inductor_meta.get("num_reduction", 0)
+        >= 10
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # A heuristics to reduce R0_BLOCK if a kernel potentially need many registers.
         # Consider load and reduction since load need move data into registers and
         # reduction needs an accumulator.
@@ -2786,6 +3207,7 @@ def _reduction_configs(
         MAX_R0_BLOCK = 1024
         register_intensive = True
 
+<<<<<<< HEAD
     if triton_meta.get("native_matmul"):
         if len(size_hints) == 3:
             return [
@@ -2809,6 +3231,9 @@ def _reduction_configs(
         dynamic_scale_rblock=True,
         waves_per_eu=None,
     ):
+=======
+    def make_config(x, r, num_warps=None, num_stages=1, register_intensive=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # For 3D case with tiling scores, create an adapted version
         if "y" in size_hints:
             assert "tiling_scores" in inductor_meta
@@ -2820,7 +3245,10 @@ def _reduction_configs(
                 num_warps=num_warps,
                 num_stages=num_stages,
                 register_intensive=register_intensive,
+<<<<<<< HEAD
                 waves_per_eu=waves_per_eu,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             # For other cases, use the original function
@@ -2831,6 +3259,7 @@ def _reduction_configs(
                 num_warps=num_warps,
                 num_stages=num_stages,
                 register_intensive=register_intensive,
+<<<<<<< HEAD
                 waves_per_eu=waves_per_eu,
                 dynamic_scale_rblock=dynamic_scale_rblock,
                 reduction_hint=reduction_hint,
@@ -2889,11 +3318,22 @@ def _reduction_configs(
         min(rnumel, MAX_R0_BLOCK),
         register_intensive=register_intensive,
     )
+=======
+            )
+
+    contiguous_config = make_config(
+        1,
+        min(rnumel, MAX_R0_BLOCK),
+        register_intensive=register_intensive,
+    )
+    outer_config = make_config(64, 8, register_intensive=register_intensive)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tiny_config = make_config(
         2 * (256 // rnumel) if rnumel <= 256 else 1,
         min(rnumel, MAX_R0_BLOCK),
         register_intensive=register_intensive,
     )
+<<<<<<< HEAD
 
     outer_config = make_config(64, 8, register_intensive=register_intensive)
     # TODO (paulzhan): Test heuristic on AMD and internal testing
@@ -2931,6 +3371,24 @@ def _reduction_configs(
     # - max_autotune_enabled is True
     # - max_autotune_enabled is False and reduction_hint is NOT one of the above cases
     result_configs = configs + [
+=======
+    # For 3d tiling, default to more autotuning initially
+    if "y" in size_hints:
+        pass
+    elif inductor_meta.get("max_autotune") or inductor_meta.get(
+        "max_autotune_pointwise"
+    ):
+        pass  # skip all these cases
+    elif reduction_hint == ReductionHint.INNER:
+        return [contiguous_config]
+    elif reduction_hint == ReductionHint.OUTER:
+        return [outer_config]
+    elif reduction_hint == ReductionHint.OUTER_TINY:
+        return [tiny_config]
+    if disable_pointwise_autotuning(inductor_meta):
+        return [make_config(32, 128)]
+    return [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         contiguous_config,
         outer_config,
         tiny_config,
@@ -2942,6 +3400,7 @@ def _reduction_configs(
         make_config(64, 4, num_warps=8),
     ]
 
+<<<<<<< HEAD
     if torch.version.hip:
         result_configs.extend(
             [
@@ -2952,6 +3411,8 @@ def _reduction_configs(
 
     return result_configs
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def match_target_block_product(
     size_hints, tiling_scores, target_block_product, min_block_size=1
@@ -2981,7 +3442,11 @@ def match_target_block_product(
         relative_scores[dim] = score / total_score
 
     # Scale up dimensions by their relative scores until we reach the target
+<<<<<<< HEAD
     while curr_block_product < target_block_product and relative_scores:
+=======
+    while curr_block_product < target_block_product and len(relative_scores):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim, score = max(relative_scores.items(), key=lambda item: item[1])
 
         # Check if we've hit the max for this dimension
@@ -3008,7 +3473,10 @@ def adapt_config_for_tiling(
     num_stages=1,
     register_intensive=False,
     persistent_reduction=False,
+<<<<<<< HEAD
     waves_per_eu=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Config:
     """
     Create an adapted configuration based on tiling scores,
@@ -3027,6 +3495,7 @@ def adapt_config_for_tiling(
         block_sizes["r0_"],
         num_stages=num_stages,
         register_intensive=register_intensive,
+<<<<<<< HEAD
         waves_per_eu=waves_per_eu,
     )
 
@@ -3137,6 +3606,11 @@ def filter_reduction_configs_for_determinism(
     return configs
 
 
+=======
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def reduction(
     size_hints,
     reduction_hint=False,
@@ -3152,6 +3626,7 @@ def reduction(
 
     assert triton_meta is not None
 
+<<<<<<< HEAD
     num_dynamic = 0
     for k in triton_meta["signature"].keys():
         if "ks" in k:
@@ -3167,6 +3642,9 @@ def reduction(
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
     configs = filter_reduction_configs_for_determinism(inductor_meta, configs)
 
+=======
+    configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cached_autotune(
         size_hints,
         configs=configs,
@@ -3202,23 +3680,33 @@ def cooperative_reduction(
     assert split <= TRITON_MAX_RSPLIT
     if inductor_meta["persistent_reduction"]:
         configs = _persistent_reduction_configs(
+<<<<<<< HEAD
             {"x": xnumel, "r0_": rnumel // split},
             reduction_hint,
             inductor_meta,
             triton_meta,
+=======
+            {"x": xnumel, "r0_": rnumel // split}, reduction_hint, inductor_meta
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     else:
         configs = _reduction_configs(
             size_hints={"x": xnumel, "r0_": rnumel // split},
             inductor_meta=inductor_meta,
+<<<<<<< HEAD
             triton_meta=triton_meta,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     for config in configs:
         config.kwargs["RSPLIT"] = split
     # TODO(jansel): add more configs in max_autotune
 
+<<<<<<< HEAD
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
     configs = filter_reduction_configs_for_determinism(inductor_meta, configs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cached_autotune(
         size_hints,
         configs=configs,
@@ -3233,6 +3721,7 @@ def _persistent_reduction_configs(
     size_hints,
     reduction_hint=False,
     inductor_meta=None,
+<<<<<<< HEAD
     triton_meta=None,
 ):
     xnumel = size_hints["x"]
@@ -3276,6 +3765,22 @@ def _persistent_reduction_configs(
                 reduction_hint=reduction_hint,
             )
             for xblock in xblock_vals
+=======
+):
+    xnumel = size_hints["x"]
+    rnumel = get_total_reduction_numel(size_hints)
+
+    MAX_PERSISTENT_BLOCK_NUMEL = 4096
+    max_autotune_enabled = not disable_pointwise_autotuning(inductor_meta) or (
+        inductor_meta.get("max_autotune")
+        or inductor_meta.get("max_autotune_pointwise")
+    )
+
+    if "y" not in size_hints:
+        configs = [
+            triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
+            for xblock in (1, 8, 32, 128)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if xblock == 1
             or (rnumel * xblock <= MAX_PERSISTENT_BLOCK_NUMEL and xblock <= xnumel)
         ]
@@ -3283,7 +3788,11 @@ def _persistent_reduction_configs(
         configs = []
         assert "tiling_scores" in inductor_meta
         x_y_scores = {dim: inductor_meta["tiling_scores"][dim] for dim in ("x", "y")}
+<<<<<<< HEAD
         for target_block_size in xblock_vals:
+=======
+        for target_block_size in (1, 8, 32, 64, 128):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if target_block_size * rnumel > MAX_PERSISTENT_BLOCK_NUMEL:
                 continue
 
@@ -3296,6 +3805,10 @@ def _persistent_reduction_configs(
                 )
             )
 
+<<<<<<< HEAD
+=======
+    # defer to more autotuning, initially
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tiny_configs = [
         triton_config_reduction(
             size_hints,
@@ -3304,6 +3817,7 @@ def _persistent_reduction_configs(
         )
     ]
 
+<<<<<<< HEAD
     # defer to more autotuning, initially
     if "y" in size_hints:
         pass
@@ -3326,23 +3840,45 @@ def _persistent_reduction_configs(
                     )
                 ]
 
+=======
+    if "y" in size_hints:
+        pass
+    # TODO(jansel): we should be able to improve these heuristics
+    elif not max_autotune_enabled: # Don't filter if tuning enabled
+        if reduction_hint == ReductionHint.INNER and rnumel >= 256:
+            configs = configs[:1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif reduction_hint == ReductionHint.OUTER:
             configs = configs[-1:]
         elif reduction_hint == ReductionHint.OUTER_TINY:
             configs = tiny_configs
     else:
+<<<<<<< HEAD
         if torch.version.hip:
             # If autotune is enabled append tiny configs
             for conf in tiny_configs:
                 if conf not in configs:
                     configs.append(conf)
 
+=======
+        if max_autotune_enabled:
+            for conf in tiny_configs:
+                if conf not in configs:
+                    configs.append(conf)
+    
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for c in configs:
         # we don't need Rn_BLOCK for persistent reduction
         for prefix in size_hints:
             if prefix_is_reduction(prefix):
                 c.kwargs.pop(f"{prefix.upper()}BLOCK")
 
+<<<<<<< HEAD
+=======
+    if disable_pointwise_autotuning(inductor_meta):
+        configs = configs[:1]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return configs
 
 
@@ -3358,6 +3894,7 @@ def persistent_reduction(
     if inductor_meta.get("no_x_dim"):
         size_hints["x"] = 1
 
+<<<<<<< HEAD
     configs = _persistent_reduction_configs(
         size_hints, reduction_hint, inductor_meta, triton_meta
     )
@@ -3390,6 +3927,10 @@ def persistent_reduction(
         configs = unique_configs(new_configs)
 
     configs = filter_reduction_configs_for_determinism(inductor_meta, configs)
+=======
+    configs = _persistent_reduction_configs(size_hints, reduction_hint, inductor_meta)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cached_autotune(
         size_hints,
         configs,
@@ -3417,9 +3958,13 @@ def split_scan(
     if len(size_hints) != 2:
         raise NotImplementedError(f"size_hints: {size_hints}")
 
+<<<<<<< HEAD
     configs = _reduction_configs(
         size_hints=size_hints, inductor_meta=inductor_meta, triton_meta=triton_meta
     )
+=======
+    configs = _reduction_configs(size_hints=size_hints, inductor_meta=inductor_meta)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Fixup configs to enforce the minimum Rn_BLOCK size
     min_rblock = inductor_meta.get("min_split_scan_rblock", 256)
@@ -3428,8 +3973,11 @@ def split_scan(
             if var.startswith("R") and cfg.kwargs[var] < min_rblock:
                 cfg.kwargs[var] = min_rblock
 
+<<<<<<< HEAD
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
     configs = filter_reduction_configs_for_determinism(inductor_meta, configs)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return cached_autotune(
         size_hints,
         configs=configs,
@@ -3550,6 +4098,7 @@ def user_autotune(
     )
 
 
+<<<<<<< HEAD
 def foreach(triton_meta, num_warps, filename=None, inductor_meta=None):
     """
     Compile a triton foreach kernel
@@ -3557,13 +4106,35 @@ def foreach(triton_meta, num_warps, filename=None, inductor_meta=None):
     return cached_autotune(
         None,
         [triton.Config({}, num_stages=1, num_warps=num_warps)],
+=======
+def foreach(triton_meta, filename=None, inductor_meta=None):
+    """
+    Compile a triton foreach kernel
+    """
+    configs = []
+    if disable_pointwise_autotuning(inductor_meta) and not (
+        inductor_meta.get("max_autotune") or
+        inductor_meta.get("max_autotune_pointwise")
+    ):
+        configs.append(triton.Config({}, num_stages=1, num_warps=8))
+    else:
+        for warps in [1, 2, 4, 8]:
+            configs.append(triton.Config({}, num_stages=1, num_warps=warps))
+
+    return cached_autotune(
+        None,
+        configs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         triton_meta=triton_meta,
         inductor_meta=inductor_meta,
         heuristic_type=HeuristicType.TEMPLATE,
         filename=filename,
     )
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class GridExpr:
     """Generate code for grid size expressions in launcher"""
@@ -3571,9 +4142,15 @@ class GridExpr:
     inductor_meta: dict[str, Any]
     mode: Literal["python", "cpp"] = "python"
     prefix: list[str] = dataclasses.field(default_factory=list)
+<<<<<<< HEAD
     x_grid: str | int = 1
     y_grid: str | int = 1
     z_grid: str | int = 1
+=======
+    x_grid: Union[str, int] = 1
+    y_grid: Union[str, int] = 1
+    z_grid: Union[str, int] = 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self) -> None:
         assert self.mode in ("python", "cpp")
@@ -3581,11 +4158,18 @@ class GridExpr:
     def generate(self, meta: dict[str, int]) -> None:
         raise NotImplementedError
 
+<<<<<<< HEAD
     def ceildiv(self, numel: str | int, block: None | int | str) -> str | int:
+=======
+    def ceildiv(
+        self, numel: Union[str, int], block: Union[None, int, str]
+    ) -> Union[str, int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if block is None or block == 1:
             return numel
         if isinstance(numel, int) and isinstance(block, int):
             return ceildiv(numel, block)  # constant fold
+<<<<<<< HEAD
         # This trick only works in python, where
         # negative integer division is floored
         if self.mode == "python":
@@ -3594,6 +4178,14 @@ class GridExpr:
         return f"(({numel} + ({block} - 1)) / ({block}))"
 
     def maximum(self, seq: list[int | str]) -> int | str:
+=======
+        if self.mode == "python":
+            return f"-(({numel}) // -({block}))"
+        # trick above doesn't work in C++ due to rounding differences
+        return f"(({numel} + ({block} - 1)) / ({block}))"
+
+    def maximum(self, seq: list[Union[int, str]]) -> Union[int, str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Codegen for max function with constant folding, constants are represented as int"""
         items = self._constant_fold(max, seq)
         if len(items) <= 1:
@@ -3602,7 +4194,11 @@ class GridExpr:
             return f"max({', '.join(map(str, items))})"
         return functools.reduce(lambda x, y: f"std::max({x}, {y})", items)
 
+<<<<<<< HEAD
     def summation(self, seq: list[int | str]) -> int | str:
+=======
+    def summation(self, seq: list[Union[int, str]]) -> Union[int, str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Codegen for sum function with constant folding, constants are represented as int"""
         items = self._constant_fold(sum, seq)
         if len(items) <= 1:
@@ -3610,16 +4206,27 @@ class GridExpr:
         return " + ".join(map(str, items))
 
     def _constant_fold(
+<<<<<<< HEAD
         self, fn: Callable[[list[int]], int], seq: list[int | str]
     ) -> list[int | str]:
         """Constant fold through a commutative fn where ints are constants"""
         items: list[int | str] = [x for x in seq if not isinstance(x, int)]
+=======
+        self, fn: Callable[[list[int]], int], seq: list[Union[int, str]]
+    ) -> list[Union[int, str]]:
+        """Constant fold through a commutative fn where ints are constants"""
+        items: list[Union[int, str]] = [x for x in seq if not isinstance(x, int)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         const_items = [x for x in seq if isinstance(x, int)]
         if const_items:
             items.append(fn(const_items))
         return items
 
+<<<<<<< HEAD
     def assign_tmp(self, name: str, expr: str | int) -> str:
+=======
+    def assign_tmp(self, name: str, expr: Union[str, int]) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Grid functions are one per kernel, so name collisions are fine
         if self.mode == "python":
             return f"{name} = {expr}"
@@ -3630,7 +4237,11 @@ class GridExpr:
     @staticmethod
     def from_meta(
         inductor_meta: dict[str, Any],
+<<<<<<< HEAD
         cfg: Config | dict[str, int],
+=======
+        cfg: Union[Config, dict[str, int]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mode: Literal["python", "cpp"] = "python",
     ) -> GridExpr:
         grid_cls = globals()[inductor_meta["grid_type"]]
@@ -3686,6 +4297,7 @@ class Grid2DWithYZOverflow(GridExpr):
         self.z_grid = "y_grid_div_"
 
 
+<<<<<<< HEAD
 class MixOrderReductionGrid(GridExpr):
     def generate(self, meta: dict[str, int]) -> None:
         split_size = meta.get("RSPLIT_SIZE")
@@ -3696,6 +4308,8 @@ class MixOrderReductionGrid(GridExpr):
         self.x_grid = self.ceildiv("xnumel", split_size)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class CooperativeReductionGrid(GridExpr):
     def generate(self, meta: dict[str, int]) -> None:
         self.x_grid = str(meta["RSPLIT"])
@@ -3764,20 +4378,34 @@ class ComboKernelGrid(GridExpr):
 
     def combo_x_grid(
         self,
+<<<<<<< HEAD
         xnumels: list[int | str],
         no_x_dims: list[bool],
         meta: dict[str, int],
     ) -> str | int:
+=======
+        xnumels: list[Union[int, str]],
+        no_x_dims: list[bool],
+        meta: dict[str, int],
+    ) -> Union[str, int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise NotImplementedError
 
 
 class SequentialComboKernelGrid(ComboKernelGrid):
     def combo_x_grid(
         self,
+<<<<<<< HEAD
         xnumels: list[int | str],
         no_x_dims: list[bool],
         meta: dict[str, int],
     ) -> str | int:
+=======
+        xnumels: list[Union[int, str]],
+        no_x_dims: list[bool],
+        meta: dict[str, int],
+    ) -> Union[str, int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(xnumels) == len(no_x_dims)
         return self.summation(
             [
@@ -3790,7 +4418,11 @@ class SequentialComboKernelGrid(ComboKernelGrid):
 class RoundRobinComboKernelGrid(ComboKernelGrid):
     def combo_x_grid(
         self,
+<<<<<<< HEAD
         xnumels: list[int | str],
+=======
+        xnumels: list[Union[int, str]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         no_x_dims: list[bool],
         meta: dict[str, int],
     ) -> str:

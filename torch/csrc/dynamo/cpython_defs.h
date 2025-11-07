@@ -28,6 +28,7 @@ void THP_PyThreadState_PopFrame(
 
 // pointers to _PyOpcode_Caches for C++
 #ifdef __cplusplus
+<<<<<<< HEAD
 extern "C" {
 #endif
 
@@ -37,4 +38,15 @@ void init_THPCaches();
 
 #ifdef __cplusplus
 } // extern "C"
+=======
+
+extern "C" const uint8_t* THP_PyOpcode_Caches;
+extern "C" const int THP_PyOpcode_Caches_size;
+
+#else
+
+extern const uint8_t* THP_PyOpcode_Caches;
+extern const int THP_PyOpcode_Caches_size;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif

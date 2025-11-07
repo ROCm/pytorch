@@ -67,7 +67,11 @@ namespace at::native {
 namespace {
 // dense_to_sparse_{csr,bsr,csc,bsc} common helpers
 
+<<<<<<< HEAD
 // Preparation for the N-D dense -> sparse compressed conversion.
+=======
+// Preparation fo the N-D dense -> sparse compressed conversion.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // The N-D input is converted to 3-D (single batch dim) where we check that the
 // product of batch dims is nonzero and for each batch the sparse matrix
 // contained within has the same number of non-zero elements.

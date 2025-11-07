@@ -70,7 +70,11 @@ enum ZeroBehavior {
 namespace detail {
 template <typename T, std::size_t SizeOfT>
 struct TrailingZerosCounter {
+<<<<<<< HEAD
   static std::size_t count(T Val, ZeroBehavior /*unused*/) {
+=======
+  static std::size_t count(T Val, ZeroBehavior) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!Val)
       return std::numeric_limits<T>::digits;
     if (Val & 0x1)
@@ -147,7 +151,11 @@ std::size_t countTrailingZeros(T Val, ZeroBehavior ZB = ZB_Width) {
 namespace detail {
 template <typename T, std::size_t SizeOfT>
 struct LeadingZerosCounter {
+<<<<<<< HEAD
   static std::size_t count(T Val, ZeroBehavior /*unused*/) {
+=======
+  static std::size_t count(T Val, ZeroBehavior) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (!Val)
       return std::numeric_limits<T>::digits;
 

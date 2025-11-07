@@ -75,6 +75,7 @@ struct IsVecMaskType<at::vec::VecMask<T, N>> : std::true_type {};
 #endif
 
 template <typename T, uint64_t kChunkSize>
+<<<<<<< HEAD
 struct CascadeSumHelper {
   // A data struct to help cascade summation:
   std::vector<T> sum_stk{};
@@ -134,6 +135,8 @@ inline T cascade_sum_final(CascadeSumHelper<T, kChunkSize>* c) {
 }
 
 template <typename T, uint64_t kChunkSize>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct WelfordHelper {
   // A data struct to help welford reduction:
   // 1. Save the reciprocal of weights to avoid redundant divisions.
@@ -270,6 +273,7 @@ Welford<T> welford_combine(
       out.index};
 }
 
+<<<<<<< HEAD
 template <typename T, uint64_t kChunkSize = 0>
 inline T cascade_sum_combine(
     T& data,
@@ -295,6 +299,8 @@ inline T cascade_sum_combine(
   return c->sum_stk[0];
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T>
 T max_masked_reduce(const T& a, const T& b, const int64_t tail_size) {
   auto out = at::vec::maximum(a, b);
@@ -657,8 +663,13 @@ inline at::vec::Vectorized<float> vec_shuffle_down(
     case 4:
       return vec_t(_mm256_permute2f128_ps(x, x, SHUFFLE_MASK(1, 1, 1, 1)));
   }
+<<<<<<< HEAD
 
   TORCH_CHECK(false, "Unhandled vec_shuffle_down value ", n);
+=======
+  throw std::runtime_error(
+      "Unhandled vec_shuffle_down value " + std::to_string(n));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #endif
 
@@ -682,8 +693,13 @@ inline at::vec::Vectorized<float> vec_shuffle_down(
       return vec_t(_mm512_permutexvar_ps(
           _mm512_set_epi32(8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8), x));
   }
+<<<<<<< HEAD
 
   TORCH_CHECK(false, "Unhandled vec_shuffle_down value ", n);
+=======
+  throw std::runtime_error(
+      "Unhandled vec_shuffle_down value " + std::to_string(n));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 #endif
 

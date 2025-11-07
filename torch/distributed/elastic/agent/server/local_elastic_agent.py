@@ -333,10 +333,15 @@ class LocalElasticAgent(SimpleElasticAgent):
                     rank=worker.global_rank,
                     local_rank=local_rank,
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [unsupported-operation]
                 log_line_prefixes[local_rank] = log_line_prefix
 
             # pyrefly: ignore [unsupported-operation]
+=======
+                log_line_prefixes[local_rank] = log_line_prefix
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             envs[local_rank] = worker_env
             worker_args = list(spec.args)
             worker_args = macros.substitute(worker_args, str(local_rank))
@@ -355,9 +360,12 @@ class LocalElasticAgent(SimpleElasticAgent):
             logs_specs=self._logs_specs,
             log_line_prefixes=log_line_prefixes,
             start_method=self._start_method,
+<<<<<<< HEAD
             numa_options=spec.numa_options,
             duplicate_stdout_filters=spec.duplicate_stdout_filters,
             duplicate_stderr_filters=spec.duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         return self._pcontext.pids()

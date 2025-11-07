@@ -137,7 +137,10 @@ ignores = [
     "third_party/nvfuser/runtime/helpers.cu",
     "torch/csrc/jit/codegen/fuser/cuda/resource_strings.h",
     "torch/csrc/jit/tensorexpr/ir_printer.cpp",
+<<<<<<< HEAD
     "torch/csrc/jit/ir/ir.h",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # generated files we shouldn't frob
     "torch/lib/tmp_install/*",
     "torch/include/*",
@@ -201,6 +204,7 @@ for hip_platform_file in hip_platform_files:
                     sources.write(line)
             print(f"{hip_platform_file} updated")
 
+<<<<<<< HEAD
 # NOTE: fbgemm sources needing hipify
 # fbgemm is its own project with its own build system. pytorch uses fbgemm as
 # a submodule to acquire some gpu source files but compiles only those sources
@@ -229,12 +233,15 @@ if not buck_build:
     fbgemm_original = fbgemm_dir / "tuning_cache.cuh"
 
     extra_files.append(fbgemm_original.as_posix())
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 hipify_python.hipify(
     project_directory=proj_dir,
     output_directory=out_dir,
     includes=includes,
     ignores=ignores,
+<<<<<<< HEAD
     extra_files=extra_files,
     out_of_place_only=args.out_of_place_only,
     hip_clang_launch=is_hip_clang(),
@@ -261,3 +268,14 @@ if not buck_build:
             for line in src_lines:
                 dst.write(line)
         print(f"{fbgemm_move_dst} updated")
+=======
+    extra_files=[
+        "torch/_inductor/codegen/cuda/device_op_overrides.py",
+        "torch/_inductor/codegen/cpp_wrapper_cpu.py",
+        "torch/_inductor/codegen/cpp_wrapper_gpu.py",
+        "torch/_inductor/codegen/wrapper.py",
+    ],
+    out_of_place_only=args.out_of_place_only,
+    hip_clang_launch=is_hip_clang(),
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

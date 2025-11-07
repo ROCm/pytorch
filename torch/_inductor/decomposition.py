@@ -34,7 +34,15 @@ from torch._prims_common import (
     ELEMENTWISE_TYPE_PROMOTION_KIND,
     type_to_dtype,
 )
+<<<<<<< HEAD
 from torch.fx.experimental.symbolic_shapes import guard_or_false, statically_known_true
+=======
+from torch.fx.experimental.symbolic_shapes import (
+    guard_or_false,
+    guard_size_oblivious,
+    statically_known_true,
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from . import config, inductor_prims
 from .utils import (
@@ -158,6 +166,22 @@ def _embedding_dense_backward(
     )
 
 
+<<<<<<< HEAD
+=======
+# TODO: for now, inductor doesn't handle asserts
+# because the condition is symbol -> tensor in the graph.
+@register_decomposition([aten._assert_async.msg])
+def assert_async_msg_decomp(tensor: torch.Tensor, msg: str) -> None:
+    return
+
+
+# Following `assert_async_msg_decomp` and implement as non-op.
+@register_decomposition([aten._functional_assert_async.msg])
+def functional_assert_async_msg_decomp(tensor: torch.Tensor, msg: str) -> None:
+    return
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_decomposition([aten.sym_constrain_range_for_size.default])
 def sym_constrain_range_for_size(
     symbol: torch.SymInt,
@@ -350,7 +374,11 @@ def mm(
             and guard_or_false((torch.numel(self) + torch.numel(input2)) <= 32)
         ):
             counters["inductor"]["decompose_mm"] += 1
+<<<<<<< HEAD
             return self * input2
+=======
+            return torch.cat([self[i, :] * input2 for i in range(self.size(0))])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if statically_known_true(self.size(0) == 1) and statically_known_true(
             input2.size(-1) == 1
         ):
@@ -387,10 +415,17 @@ def cat(
         # runtime assert forcing u0 to be zero.  So if this hasn't happened,
         # we know that the unbacked SymInt has appropriate size and there are
         # no problems.
+<<<<<<< HEAD
         if len(x.shape) == 1 and guard_or_false(x.shape[0] == 0):
             return False
 
         if dim < len(x.shape) and guard_or_false(x.shape[dim] == 0):
+=======
+        if len(x.shape) == 1 and guard_size_oblivious(x.shape[0] == 0):
+            return False
+
+        if dim < len(x.shape) and guard_size_oblivious(x.shape[dim] == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
         return True
@@ -459,6 +494,7 @@ def add(
     y_is_complex_tensor = torch.is_tensor(y) and y.is_complex()
     if not x_is_complex_tensor or not y_is_complex_tensor:
         return NotImplemented
+<<<<<<< HEAD
 
     def _requires_fallback(tensor: torch.Tensor) -> bool:
         if tensor.ndim == 0:
@@ -475,14 +511,19 @@ def add(
     if y.ndim == 0:
         y = y.reshape(1)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     z = y
     if alpha is not None:
         z = alpha * y
     complex_type = torch.promote_types(x.dtype, y.dtype)
 
+<<<<<<< HEAD
     if _requires_fallback(x) or _requires_fallback(z):
         return NotImplemented
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # For complex typed `x`, `x.view(x.real.dtype)` doubles the last dimension and can cause problem
     # when broadcasting the add.
     def reshape_tensor_complex(tensor: torch.Tensor) -> torch.Tensor:
@@ -509,9 +550,12 @@ def add(
     x_reshaped = reshape_tensor_complex(x.view(x.real.dtype))
     z_reshaped = reshape_tensor_complex(z.view(y.real.dtype))
     result = torch.flatten(x_reshaped + z_reshaped, start_dim=-2).view(complex_type)
+<<<<<<< HEAD
 
     if output_size_zero:
         return result[0]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result
 
 
@@ -585,6 +629,7 @@ def view_copy_dtype(
     return self.to(dtype).clone()
 
 
+<<<<<<< HEAD
 def _get_shape_permutation_like(
     self: torch.Tensor,
 ) -> tuple[utils.ShapeType, utils.StrideType]:
@@ -596,6 +641,51 @@ def _get_shape_permutation_like(
         permutation[l] = p
 
     return (shape, permutation)
+=======
+def get_like_layout(
+    tensor: torch.Tensor,
+    memory_format: Optional[torch.memory_format] = None,
+) -> torch.memory_format:
+    # TODO: _to_copy tensor to stride permutation
+    if memory_format is torch.preserve_format or memory_format is None:
+        return utils.suggest_memory_format(tensor)
+    else:
+        return memory_format
+
+
+@register_decomposition(aten.rand_like)
+def rand_like(
+    self: torch.Tensor,
+    *,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    memory_format: Optional[torch.memory_format] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return torch.rand(
+        [*self.size()],
+        dtype=dtype or self.dtype,
+        device=device or self.device,
+        **kwargs,
+    ).to(memory_format=get_like_layout(self, memory_format))
+
+
+@register_decomposition(aten.randn_like)
+def randn_like(
+    self: torch.Tensor,
+    *,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    memory_format: Optional[torch.memory_format] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return torch.randn(
+        [*self.size()],
+        dtype=dtype or self.dtype,
+        device=device or self.device,
+        **kwargs,
+    ).to(memory_format=get_like_layout(self, memory_format))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_decomposition(aten.full_like)
@@ -610,6 +700,7 @@ def full_like(
     requires_grad: bool = False,
     memory_format: torch.memory_format = torch.preserve_format,
 ) -> torch.Tensor:
+<<<<<<< HEAD
     dtype = self.dtype if dtype is None else dtype
     layout = self.layout if layout is None else layout
     device = self.device if device is None else device
@@ -688,13 +779,63 @@ def randn_like(self: torch.Tensor, **kwargs: Any) -> torch.Tensor:
 @register_decomposition(aten.randint_like.default)
 def randint_like(self: torch.Tensor, high: int, **kwargs: Any) -> torch.Tensor:
     return _rand_like(functools.partial(aten.randint.low, 0, high), self, **kwargs)
+=======
+    return torch.full(
+        [*self.size()],
+        fill_value,
+        dtype=dtype or self.dtype,
+        layout=layout or self.layout,
+        device=device or self.device,
+        requires_grad=requires_grad,
+    ).to(memory_format=get_like_layout(self, memory_format))
+
+
+@register_decomposition(aten.randint_like.default)
+def randint_like(
+    self: torch.Tensor,
+    high: int,
+    *,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    memory_format: Optional[torch.memory_format] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return aten.randint.low(
+        0,
+        high,
+        [*self.size()],
+        dtype=dtype or self.dtype,
+        device=device or self.device,
+        **kwargs,
+    ).to(memory_format=get_like_layout(self, memory_format))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_decomposition(aten.randint_like.low_dtype)
 def randint_like_low(
+<<<<<<< HEAD
     self: torch.Tensor, low: int, high: int, **kwargs: Any
 ) -> torch.Tensor:
     return _rand_like(functools.partial(aten.randint.low, low, high), self, **kwargs)
+=======
+    self: torch.Tensor,
+    low: int,
+    high: int,
+    *,
+    dtype: Optional[torch.dtype] = None,
+    device: Optional[torch.device] = None,
+    memory_format: Optional[torch.memory_format] = None,
+    **kwargs: Any,
+) -> torch.Tensor:
+    return aten.randint.low(
+        low,
+        high,
+        [*self.size()],
+        dtype=dtype or self.dtype,
+        device=device or self.device,
+        **kwargs,
+    ).to(memory_format=get_like_layout(self, memory_format))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @register_decomposition(aten.randint.default)
@@ -710,7 +851,11 @@ def randint(
 def linear_dynamic_fp16_unpacked_weight(
     input: torch.Tensor,
     weight: torch.Tensor,
+<<<<<<< HEAD
     bias: Optional[torch.Tensor] = None,
+=======
+    bias: torch.Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> torch.Tensor:
     packed_weight = torch.ops._quantized.wrapped_fbgemm_pack_gemm_matrix_fp16(weight)
     return torch.ops._quantized.wrapped_fbgemm_linear_fp16_weight(
@@ -885,10 +1030,13 @@ def select_decomp_table() -> dict[Any, Callable[..., Any]]:
     """decomps can change based on config"""
     if config.fallback_random:
         return decompositions
+<<<<<<< HEAD
     if config.fallback_embedding_bag_byte_unpack:
         # remove q_embedding_bag_byte_unpack_decomp from decompositions
         decompositions.pop(torch.ops.quantized.embedding_bag_byte_unpack.default, None)
         return decompositions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return fast_random_decomps()
 
 
@@ -1045,6 +1193,7 @@ def _max_pool_with_indices(
     if not stride:
         stride = kernel_size
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
     kernel_size = pad_listlike(kernel_size, dim)
     # pyrefly: ignore [bad-assignment]
@@ -1052,6 +1201,11 @@ def _max_pool_with_indices(
     # pyrefly: ignore [bad-assignment]
     padding = pad_listlike(padding, dim)
     # pyrefly: ignore [bad-assignment]
+=======
+    kernel_size = pad_listlike(kernel_size, dim)
+    dilation = pad_listlike(dilation, dim)
+    padding = pad_listlike(padding, dim)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     stride = pad_listlike(stride, dim)
 
     window_size = functools.reduce(operator.mul, kernel_size)
@@ -1167,6 +1321,7 @@ def rrelu_with_noise_functional(
     else:
         negative_slope = (lower + upper) / 2
         return aten.leaky_relu(self, negative_slope), torch.Tensor()
+<<<<<<< HEAD
 
 
 @register_decomposition(aten.repeat_interleave.Tensor)
@@ -1235,3 +1390,5 @@ def conv1d_to_conv2d(
 
     # Squeeze dummy dimension back out: (N,C_out,L_out,1) -> (N,C_out,L_out)
     return out_2d.squeeze(-1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

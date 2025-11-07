@@ -1,17 +1,24 @@
+<<<<<<< HEAD
 import itertools
 from collections import defaultdict
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from typing import Any, cast, NamedTuple, Optional
 
 import torch
 from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor.placement_types import (
+<<<<<<< HEAD
     _StridedShard,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Partial,
     Placement,
     Replicate,
     Shard,
 )
+<<<<<<< HEAD
 from torch.utils._debug_mode import _stringify_shape
 from torch.utils._dtype_abbrs import dtype_abbrs
 
@@ -51,6 +58,8 @@ class ShardOrderEntry(NamedTuple):
 #     - Tensor dimension 0 is sharded on mesh dimension 1
 #     - Tensor dimension 2 is sharded on mesh dimension 0 first, then mesh dimension 3
 ShardOrder = tuple[ShardOrderEntry, ...]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TensorMeta(NamedTuple):
@@ -71,6 +80,7 @@ class DTensorSpec:
     # tensor meta will only be set during sharding propagation
     tensor_meta: Optional[TensorMeta] = None
 
+<<<<<<< HEAD
     # When a tensor dimension is sharded across multiple mesh axes,
     # `shard_order` specifies the sequence in which these shardings are applied.
     # This order determines how tensor shards are mapped and distributed across
@@ -178,6 +188,19 @@ class DTensorSpec:
             # test/distributed/tensor/experimental/test_tp_transform.py::TensorParallelTest::test_tp_transform_e2e
             # but I actually can't reproduce it, maybe it is also a bug!
             assert isinstance(value, TensorMeta | TensorMetadata), value
+=======
+    def __post_init__(self) -> None:
+        if not isinstance(self.placements, tuple):
+            self.placements = tuple(self.placements)
+        self._hash: Optional[int] = None
+
+    def __setattr__(self, attr: str, value: Any) -> None:
+        super().__setattr__(attr, value)
+        # Make sure to recompute the hash in case any of the hashed attributes
+        # change (though we do not expect `mesh` or `placements` to change)
+        if hasattr(self, "_hash") and attr in ("mesh", "placements", "tensor_meta"):
+            self._hash = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _hash_impl(self) -> int:
         # hashing and equality check for DTensorSpec are used to cache the sharding
@@ -190,13 +213,20 @@ class DTensorSpec:
                 (
                     self.mesh,
                     self.placements,
+<<<<<<< HEAD
                     self.shard_order,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.tensor_meta.shape,
                     self.tensor_meta.stride,
                     self.tensor_meta.dtype,
                 )
             )
+<<<<<<< HEAD
         return hash((self.mesh, self.placements, self.shard_order))
+=======
+        return hash((self.mesh, self.placements))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __hash__(self) -> int:
         # We lazily cache the spec to avoid recomputing the hash upon each
@@ -207,32 +237,46 @@ class DTensorSpec:
             self._hash = self._hash_impl()
         return self._hash
 
+<<<<<<< HEAD
     def _check_equals(self, other: object, skip_shapes: bool = False) -> bool:
+=======
+    def __eq__(self, other: object, /) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not (
             isinstance(other, DTensorSpec)
             and self.mesh == other.mesh
             and self.placements == other.placements
+<<<<<<< HEAD
             and self.shard_order == other.shard_order
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ):
             return False
         if self.tensor_meta is None or other.tensor_meta is None:
             return self.tensor_meta == other.tensor_meta
 
+<<<<<<< HEAD
         if skip_shapes:
             return self.tensor_meta.dtype == other.tensor_meta.dtype
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             self.tensor_meta.shape == other.tensor_meta.shape  # type: ignore[union-attr]
             and self.tensor_meta.stride == other.tensor_meta.stride  # type: ignore[union-attr]
             and self.tensor_meta.dtype == other.tensor_meta.dtype  # type: ignore[union-attr]
         )
 
+<<<<<<< HEAD
     def __eq__(self, other: object, /) -> bool:
         return self._check_equals(other)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __str__(self) -> str:
         """
         human readable representation of the DTensorSpec
         """
+<<<<<<< HEAD
         placement_str = self.format_shard_order_str(self.placements, self.shard_order)
         if self.tensor_meta is not None:
             tensor_shape = _stringify_shape(self.tensor_meta.shape)
@@ -324,6 +368,19 @@ class DTensorSpec:
             else:
                 out_str += str(placement)
         return out_str
+=======
+        if len(self.placements) == 1:
+            placement_str = str(self.placements[0])
+        else:
+            placement_str = str(self.placements)
+
+        if self.tensor_meta is not None:
+            tensor_shape = str(tuple(self.tensor_meta.shape))
+        else:
+            tensor_shape = "unknown shape"
+
+        return f"Spec({placement_str} on {tensor_shape})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def shape(self) -> torch.Size:
@@ -465,7 +522,11 @@ class DTensorSpec:
                 if placement.is_shard():
                     placement = cast(Shard, placement)
                     raise RuntimeError(
+<<<<<<< HEAD
                         f"DeviceMesh dimension can't be mapped to two dimension of the same tensor: {i} and {placement.dim}"
+=======
+                        f"DeviceMesh dimension cann't be mapped to two dimension of the same tensor: {i} and {placement.dim}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 elif placement.is_partial():
                     raise RuntimeError(

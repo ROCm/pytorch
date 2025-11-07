@@ -4,7 +4,10 @@ from . import (
     net_min_base,
     operator_support,
     param_fetch,
+<<<<<<< HEAD
     regional_inductor,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     reinplace,
     runtime_assert,
     shape_prop,

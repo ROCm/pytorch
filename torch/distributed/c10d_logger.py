@@ -9,8 +9,12 @@
 
 import functools
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, TypeVar
+=======
+from typing import Any, Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -45,7 +49,10 @@ def _get_logging_handler(
     return (log_handler, log_handler_name)
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [unknown-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 global _c10d_logger
 _c10d_logger = _get_or_create_logger()
 

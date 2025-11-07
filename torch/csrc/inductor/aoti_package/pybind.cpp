@@ -86,11 +86,15 @@ void initAOTIPackageBindings(PyObject* module) {
           py::arg("tensor_map"),
           py::arg("use_inactive"),
           py::arg("validate_full_updates"),
+<<<<<<< HEAD
           py::arg("user_managed") = false)
       .def_static(
           "load_metadata_from_package",
           &AOTIModelPackageLoaderPybind::load_metadata_from_package,
           py::arg("model_package_path"),
           py::arg("model_name"));
+=======
+          py::arg("user_managed") = false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 } // namespace torch::inductor

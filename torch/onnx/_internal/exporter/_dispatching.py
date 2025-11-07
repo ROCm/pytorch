@@ -2,8 +2,13 @@
 from __future__ import annotations
 
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any
+=======
+from collections.abc import Sequence
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from onnxscript import ir
 

@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import warnings
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
+=======
+from collections.abc import Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from dataclasses import dataclass
 from typing import Any, get_args, Optional, Union
 
@@ -239,7 +243,11 @@ def write_view_information_to_args(
             write_single_view(
                 f"_{arg_name}",
                 kwargs[arg_name],
+<<<<<<< HEAD
                 arg_to_base_index.get(arg_name),  # type: ignore[arg-type]
+=======
+                arg_to_base_index.get(arg_name, None),  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             raise RuntimeError(f"Unsupported type {arg_type}")
@@ -390,7 +398,11 @@ class AutoFunctionalizedV2(HigherOrderOperator):
         if isinstance(_mutable_op, HigherOrderOperator):
             _op_to_check = HopInstance(
                 _mutable_op,
+<<<<<<< HEAD
                 SchemaHolder.from_tree_spec(kwargs.get("_op_schema")).schema,  # type: ignore[arg-type]
+=======
+                SchemaHolder.from_tree_spec(kwargs.get("_op_schema", None)).schema,  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             _op_to_check = _mutable_op
@@ -508,7 +520,11 @@ def do_auto_functionalize(
             normalized_kwargs[arg.name] = kwargs[arg.name]
         elif idx < len(args):
             # if its out of bounds we don't need to do anything
+<<<<<<< HEAD
             # as it means the optional arg was passed with its default
+=======
+            # as it means the the optional arg was passed with its default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # value
             normalized_kwargs[arg.name] = args[idx]
         else:
@@ -518,6 +534,7 @@ def do_auto_functionalize(
     if "self" in unwrapped_kwargs or "self_" in unwrapped_kwargs:
         warnings.warn(
             "Using `self` or `self_` as an argument in the definition of custom ops may lead to ambiguous parsing. "
+<<<<<<< HEAD
             "Please consider using a different name for this argument to avoid potential issues.",
             stacklevel=2,
         )
@@ -525,6 +542,13 @@ def do_auto_functionalize(
         unwrapped_outs = auto_functionalized(
             op,
             **unwrapped_kwargs,  # type: ignore[arg-type]
+=======
+            "Please consider using a different name for this argument to avoid potential issues."
+        )
+    with ctx.redispatch_to_next():
+        unwrapped_outs = auto_functionalized(
+            op, **unwrapped_kwargs  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     # List of the name of args that get mutated (according to the schema)
@@ -573,6 +597,7 @@ def do_auto_functionalize(
     return ctx.wrap_tensors(unwrapped_actual_out)  # type: ignore[arg-type]
 
 
+<<<<<<< HEAD
 # Wrapper for GraphModule that applies functionalization during execution to enable
 # epilogue graph inlining and better fusion opportunities in subgraphs
 # When tracing this wrapper, we'll get a graph module with epilogue.
@@ -595,6 +620,8 @@ class FunctionalCallableWithEpilogue:
         return id(self.orig_callable)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def do_auto_functionalize_v2(
     mode: "torch._subclasses.functional_tensor.FunctionalTensorMode",
     op: Union[OpOverload, HopInstance],
@@ -610,13 +637,32 @@ def do_auto_functionalize_v2(
     normalized_kwargs = {}
 
     schema = op._schema
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     op = op._op if isinstance(op, HopInstance) else op
     assert isinstance(op, get_args(_MutableOpType))
 
     def _functionalize_callable(arg: Any):
         if callable(arg):
+<<<<<<< HEAD
             return FunctionalCallableWithEpilogue(arg)
+=======
+
+            def functional_fn(*args, **kwargs):
+                # We call torch.func.functionalize. This allows us to inline the epilogue graph.
+                # Inlining has the benefit of allowing easiser fusion inside subgraph.
+                # Though the epilogue graph contains copy_, it is OK becuase inductor can handle it
+                # and this is also how we have been supporting top-level graph input mutation.
+                return tuple(
+                    pytree.tree_leaves(torch.func.functionalize(arg)(*args, **kwargs))
+                )
+
+            return torch._higher_order_ops.base_hop.FunctionWithNoFreeVars(
+                functional_fn
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return arg
 
     args, kwargs = pytree.tree_map(_functionalize_callable, (args, kwargs))
@@ -627,7 +673,11 @@ def do_auto_functionalize_v2(
             normalized_kwargs[arg.name] = kwargs[arg.name]
         elif idx < len(args):
             # if its out of bounds we don't need to do anything
+<<<<<<< HEAD
             # as it means the optional arg was passed with its default
+=======
+            # as it means the the optional arg was passed with its default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # value
             normalized_kwargs[arg.name] = args[idx]
         else:
@@ -692,8 +742,12 @@ def do_auto_functionalize_v2(
     if "self" in unwrapped_kwargs or "self_" in unwrapped_kwargs:
         warnings.warn(
             "Using `self` or `self_` as an argument in the definition of custom ops may lead to ambiguous parsing. "
+<<<<<<< HEAD
             "Please consider using a different name for this argument to avoid potential issues.",
             stacklevel=2,
+=======
+            "Please consider using a different name for this argument to avoid potential issues."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     all_basis_unwrapped = ctx.unwrap_tensors(all_bases)
 
@@ -708,8 +762,12 @@ def do_auto_functionalize_v2(
 
     with ctx.redispatch_to_next():
         unwrapped_outs = auto_functionalized_v2(
+<<<<<<< HEAD
             op,
             **auto_func_kwargs,  # type: ignore[arg-type]
+=======
+            op, **auto_func_kwargs  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     unwrapped_actual_out: Union[Any, tuple[Any]] = (
@@ -721,9 +779,15 @@ def do_auto_functionalize_v2(
     )
 
     if isinstance(op, HigherOrderOperator):
+<<<<<<< HEAD
         assert len(schema.returns) > 0, (
             f"hop is expected to return at least one output {schema}."
         )
+=======
+        assert (
+            len(schema.returns) > 0
+        ), f"hop is expected to return at least one output {schema}."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert len(unwrapped_actual_out) == len(schema.returns)
     else:
         if len(schema.returns) == 0:
@@ -947,7 +1011,11 @@ def auto_functionalized_v2_proxy(
         # Below code materializes the callable inputs to the hop as graph modules.
         # kwargs may contain general callables, that are not proxable e.g. FunctionWithNoFreeVars
         # this could happen when we auto_functionalize the backward of the hop,
+<<<<<<< HEAD
         # where backward fn is a callablle that wraps forward graph module.
+=======
+        # where backward fn is a callablle that wrapps forward graph module.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This function materialize the callable args according to the schema of the hop.
 
         # We cannot materialize the callables in kwargs directly because the inputs to callable
@@ -960,11 +1028,19 @@ def auto_functionalized_v2_proxy(
         # hop node in the traced graph and graph module inputs to the hop. Finally, we replace the
         # original kwarg's callable with the graph module.
         all_bases = kwargs.get("_all_bases", [])
+<<<<<<< HEAD
         _only_clone_these_bases = kwargs.get("_only_clone_these_bases")
         if _only_clone_these_bases is None:
             _only_clone_these_bases = tuple(range(len(all_bases)))
 
         schema = pytree.tree_unflatten([], kwargs.get("_op_schema")).schema  # type: ignore[arg-type]
+=======
+        _only_clone_these_bases = kwargs.get("_only_clone_these_bases", None)
+        if _only_clone_these_bases is None:
+            _only_clone_these_bases = tuple(range(len(all_bases)))
+
+        schema = pytree.tree_unflatten([], kwargs.get("_op_schema", None)).schema  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_kwargs, _ = _generate_new_op_kwargs_from_bases(
             schema,
             {k: v for k, v in kwargs.items() if k not in ("_all_bases", "_op_schema")},

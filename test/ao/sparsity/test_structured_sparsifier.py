@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 # Owner(s): ["module: sparse"]
+=======
+# Owner(s): ["module: unknown"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import copy
 import random
 
@@ -158,7 +162,11 @@ class TestBaseStructuredSparsifier(TestCase):
             assert parametrize.is_parametrized(module)
             assert hasattr(module, "parametrizations")
             # Assume that this is the 1st/only parametrization
+<<<<<<< HEAD
             assert type(module.parametrizations.weight[0]) is FakeStructuredSparsity
+=======
+            assert type(module.parametrizations.weight[0]) == FakeStructuredSparsity
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _check_pruner_valid_before_step(self, model, pruner, device):
         for config in pruner.groups:

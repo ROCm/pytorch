@@ -1,17 +1,27 @@
 diff --git a/test/dynamo/cpython/3_13/test_set.py b/test/dynamo/cpython/3_13/test_set.py
+<<<<<<< HEAD
 index d9102eb98a5..c8ee5ca451f 100644
 --- a/test/dynamo/cpython/3_13/test_set.py
 +++ b/test/dynamo/cpython/3_13/test_set.py
 @@ -1,3 +1,56 @@
+=======
+index d9102eb98a5..0b8e99a04c4 100644
+--- a/test/dynamo/cpython/3_13/test_set.py
++++ b/test/dynamo/cpython/3_13/test_set.py
+@@ -1,3 +1,53 @@
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +# ======= BEGIN Dynamo patch =======
 +# Owner(s): ["module: dynamo"]
 +
 +# ruff: noqa
 +# flake8: noqa
 +
+<<<<<<< HEAD
 +# Test copied from
 +# https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_set.py
 +
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 +import sys
 +import torch
 +import torch._dynamo.test_case
@@ -59,6 +69,7 @@ index d9102eb98a5..c8ee5ca451f 100644
  import unittest
  from test import support
  from test.support import warnings_helper
+<<<<<<< HEAD
 @@ -38,7 +91,7 @@ class HashCountingInt(int):
          self.hash_count += 1
          return int.__hash__(self)
@@ -69,10 +80,23 @@ index d9102eb98a5..c8ee5ca451f 100644
 
      def setUp(self):
 @@ -47,6 +100,7 @@ class TestJointOps:
+=======
+@@ -38,7 +88,7 @@ class HashCountingInt(int):
+         self.hash_count += 1
+         return int.__hash__(self)
+ 
+-class TestJointOps:
++class _TestJointOps:
+     # Tests common to both set and frozenset
+ 
+     def setUp(self):
+@@ -47,6 +97,7 @@ class TestJointOps:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
          self.s = self.thetype(word)
          self.d = dict.fromkeys(word)
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_new_or_init(self):
          self.assertRaises(TypeError, self.thetype, [], 2)
@@ -140,10 +164,20 @@ index d9102eb98a5..c8ee5ca451f 100644
      def test_free_after_iterating(self):
          support.check_free_after_iterating(self, iter, self.thetype)
 
+=======
+ 
+     def test_new_or_init(self):
+         self.assertRaises(TypeError, self.thetype, [], 2)
+@@ -355,7 +406,7 @@ class TestJointOps:
+     def test_free_after_iterating(self):
+         support.check_free_after_iterating(self, iter, self.thetype)
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSet(TestJointOps, unittest.TestCase):
 +class TestSet(_TestJointOps, __TestCase):
      thetype = set
      basetype = set
+<<<<<<< HEAD
 
 @@ -600,19 +658,20 @@ class TestSet(TestJointOps, unittest.TestCase):
          self.assertRaises(ReferenceError, str, p)
@@ -226,10 +260,18 @@ index d9102eb98a5..c8ee5ca451f 100644
              subclass_with_new([1, 2], newarg=3)
 
 
+=======
+ 
+@@ -675,7 +726,7 @@ class TestSetSubclass(TestSet):
+             subclass_with_new([1, 2], newarg=3)
+ 
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestFrozenSet(TestJointOps, unittest.TestCase):
 +class TestFrozenSet(_TestJointOps, __TestCase):
      thetype = frozenset
      basetype = frozenset
+<<<<<<< HEAD
 
 @@ -756,27 +818,30 @@ class TestFrozenSetSubclass(TestFrozenSet):
      basetype = frozenset
@@ -276,6 +318,13 @@ index d9102eb98a5..c8ee5ca451f 100644
  class SetSubclassWithSlots(set):
      __slots__ = ('x', 'y', '__dict__')
 
+=======
+ 
+@@ -811,10 +862,17 @@ class TestFrozenSetSubclass(TestFrozenSet):
+ class SetSubclassWithSlots(set):
+     __slots__ = ('x', 'y', '__dict__')
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSetSubclassWithSlots(unittest.TestCase):
 +class TestSetSubclassWithSlots(__TestCase):
      thetype = SetSubclassWithSlots
@@ -290,6 +339,7 @@ index d9102eb98a5..c8ee5ca451f 100644
 +        self.s = self.thetype(word)
 +        self.d = dict.fromkeys(word)
 +        super().setUp()
+<<<<<<< HEAD
 
  class FrozenSetSubclassWithSlots(frozenset):
      __slots__ = ('x', 'y', '__dict__')
@@ -306,29 +356,62 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ class FrozenSetSubclassWithSlots(frozenset):
+     __slots__ = ('x', 'y', '__dict__')
+@@ -828,7 +886,7 @@ empty_set = set()
+ 
+ #==============================================================================
+ 
+-class TestBasicOps:
++class _TestBasicOps:
+ 
+     def test_repr(self):
+         if self.repr is not None:
+@@ -934,7 +992,7 @@ class TestBasicOps:
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsEmpty(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsEmpty(_TestBasicOps, __TestCase):
      def setUp(self):
          self.case   = "empty set"
          self.values = []
+<<<<<<< HEAD
 @@ -942,10 +1014,11 @@ class TestBasicOpsEmpty(TestBasicOps, unittest.TestCase):
+=======
+@@ -942,10 +1000,11 @@ class TestBasicOpsEmpty(TestBasicOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.dup    = set(self.values)
          self.length = 0
          self.repr   = "set()"
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsSingleton(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsSingleton(_TestBasicOps, __TestCase):
      def setUp(self):
          self.case   = "unit set (number)"
          self.values = [3]
+<<<<<<< HEAD
 @@ -953,6 +1026,7 @@ class TestBasicOpsSingleton(TestBasicOps, unittest.TestCase):
+=======
+@@ -953,6 +1012,7 @@ class TestBasicOpsSingleton(TestBasicOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.dup    = set(self.values)
          self.length = 1
          self.repr   = "{3}"
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_in(self):
          self.assertIn(3, self.set)
@@ -336,16 +419,30 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+     def test_in(self):
+         self.assertIn(3, self.set)
+@@ -962,7 +1022,7 @@ class TestBasicOpsSingleton(TestBasicOps, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsTuple(_TestBasicOps, __TestCase):
      def setUp(self):
          self.case   = "unit set (tuple)"
          self.values = [(0, "zero")]
+<<<<<<< HEAD
 @@ -970,6 +1044,7 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
+=======
+@@ -970,6 +1030,7 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.dup    = set(self.values)
          self.length = 1
          self.repr   = "{(0, 'zero')}"
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_in(self):
          self.assertIn((0, "zero"), self.set)
@@ -353,19 +450,38 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+     def test_in(self):
+         self.assertIn((0, "zero"), self.set)
+@@ -979,7 +1040,7 @@ class TestBasicOpsTuple(TestBasicOps, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsTriple(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsTriple(_TestBasicOps, __TestCase):
      def setUp(self):
          self.case   = "triple set"
          self.values = [0, "zero", operator.add]
+<<<<<<< HEAD
 @@ -987,36 +1062,39 @@ class TestBasicOpsTriple(TestBasicOps, unittest.TestCase):
+=======
+@@ -987,36 +1048,39 @@ class TestBasicOpsTriple(TestBasicOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.dup    = set(self.values)
          self.length = 3
          self.repr   = None
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsString(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsString(_TestBasicOps, __TestCase):
      def setUp(self):
@@ -375,12 +491,21 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.dup    = set(self.values)
          self.length = 3
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_repr(self):
          self.check_repr_against_values()
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+     def test_repr(self):
+         self.check_repr_against_values()
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsBytes(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsBytes(_TestBasicOps, __TestCase):
      def setUp(self):
@@ -390,22 +515,36 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.dup    = set(self.values)
          self.length = 3
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_repr(self):
          self.check_repr_against_values()
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+     def test_repr(self):
+         self.check_repr_against_values()
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBasicOpsMixedStringBytes(TestBasicOps, unittest.TestCase):
 +class TestBasicOpsMixedStringBytes(_TestBasicOps, __TestCase):
      def setUp(self):
          self.enterContext(warnings_helper.check_warnings())
          warnings.simplefilter('ignore', BytesWarning)
+<<<<<<< HEAD
 @@ -1025,6 +1103,7 @@ class TestBasicOpsMixedStringBytes(TestBasicOps, unittest.TestCase):
+=======
+@@ -1025,6 +1089,7 @@ class TestBasicOpsMixedStringBytes(TestBasicOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.set    = set(self.values)
          self.dup    = set(self.values)
          self.length = 4
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_repr(self):
          self.check_repr_against_values()
@@ -422,20 +561,46 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #==============================================================================
 
+=======
+ 
+     def test_repr(self):
+         self.check_repr_against_values()
+@@ -1038,7 +1103,7 @@ def baditer():
+ def gooditer():
+     yield True
+ 
+-class TestExceptionPropagation(unittest.TestCase):
++class TestExceptionPropagation(__TestCase):
+     """SF 628246:  Set constructor should not trap iterator TypeErrors"""
+ 
+     def test_instanceWithException(self):
+@@ -1065,7 +1130,7 @@ class TestExceptionPropagation(unittest.TestCase):
+ 
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSetOfSets(unittest.TestCase):
 +class TestSetOfSets(__TestCase):
      def test_constructor(self):
          inner = frozenset([1])
          outer = set([inner])
+<<<<<<< HEAD
 @@ -1078,9 +1157,10 @@ class TestSetOfSets(unittest.TestCase):
 
  #==============================================================================
 
+=======
+@@ -1078,9 +1143,10 @@ class TestSetOfSets(unittest.TestCase):
+ 
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBinaryOps(unittest.TestCase):
 +class TestBinaryOps(__TestCase):
      def setUp(self):
          self.set = set((2, 4, 6))
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_eq(self):              # SF bug 643115
          self.assertEqual(self.set, set({2:1,4:3,6:5}))
@@ -443,11 +608,21 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #==============================================================================
 
+=======
+ 
+     def test_eq(self):              # SF bug 643115
+         self.assertEqual(self.set, set({2:1,4:3,6:5}))
+@@ -1151,9 +1217,10 @@ class TestBinaryOps(unittest.TestCase):
+ 
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestUpdateOps(unittest.TestCase):
 +class TestUpdateOps(__TestCase):
      def setUp(self):
          self.set = set((2, 4, 6))
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_union_subset(self):
          self.set |= set([2])
@@ -455,12 +630,22 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #==============================================================================
 
+=======
+ 
+     def test_union_subset(self):
+         self.set |= set([2])
+@@ -1237,10 +1304,11 @@ class TestUpdateOps(unittest.TestCase):
+ 
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMutate(unittest.TestCase):
 +class TestMutate(__TestCase):
      def setUp(self):
          self.values = ["a", "b", "c"]
          self.set = set(self.values)
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_add_present(self):
          self.set.add("c")
@@ -474,6 +659,21 @@ index d9102eb98a5..c8ee5ca451f 100644
      case2method = {"<=": "issubset",
                     ">=": "issuperset",
 @@ -1334,22 +1416,22 @@ class TestSubsets:
+=======
+ 
+     def test_add_present(self):
+         self.set.add("c")
+@@ -1311,7 +1379,7 @@ class TestMutate(unittest.TestCase):
+ 
+ #==============================================================================
+ 
+-class TestSubsets:
++class _TestSubsets:
+ 
+     case2method = {"<=": "issubset",
+                    ">=": "issuperset",
+@@ -1334,22 +1402,22 @@ class TestSubsets:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              result = eval("x" + case + "y", locals())
              self.assertEqual(result, expected)
              # Test the "friendly" method-name spelling, if one exists.
@@ -483,7 +683,11 @@ index d9102eb98a5..c8ee5ca451f 100644
 +                method = getattr(x, _TestSubsets.case2method[case])
                  result = method(y)
                  self.assertEqual(result, expected)
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              # Now do the same for the operands reversed.
 -            rcase = TestSubsets.reverse[case]
 +            rcase = _TestSubsets.reverse[case]
@@ -496,48 +700,81 @@ index d9102eb98a5..c8ee5ca451f 100644
                  result = method(x)
                  self.assertEqual(result, expected)
  #------------------------------------------------------------------------------
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSubsetEqualEmpty(TestSubsets, unittest.TestCase):
 +class TestSubsetEqualEmpty(_TestSubsets, __TestCase):
      left  = set()
      right = set()
      name  = "both empty"
+<<<<<<< HEAD
 @@ -1357,7 +1439,7 @@ class TestSubsetEqualEmpty(TestSubsets, unittest.TestCase):
 
  #------------------------------------------------------------------------------
 
+=======
+@@ -1357,7 +1425,7 @@ class TestSubsetEqualEmpty(TestSubsets, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSubsetEqualNonEmpty(TestSubsets, unittest.TestCase):
 +class TestSubsetEqualNonEmpty(_TestSubsets, __TestCase):
      left  = set([1, 2])
      right = set([1, 2])
      name  = "equal pair"
+<<<<<<< HEAD
 @@ -1365,7 +1447,7 @@ class TestSubsetEqualNonEmpty(TestSubsets, unittest.TestCase):
 
  #------------------------------------------------------------------------------
 
+=======
+@@ -1365,7 +1433,7 @@ class TestSubsetEqualNonEmpty(TestSubsets, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSubsetEmptyNonEmpty(TestSubsets, unittest.TestCase):
 +class TestSubsetEmptyNonEmpty(_TestSubsets, __TestCase):
      left  = set()
      right = set([1, 2])
      name  = "one empty, one non-empty"
+<<<<<<< HEAD
 @@ -1373,7 +1455,7 @@ class TestSubsetEmptyNonEmpty(TestSubsets, unittest.TestCase):
 
  #------------------------------------------------------------------------------
 
+=======
+@@ -1373,7 +1441,7 @@ class TestSubsetEmptyNonEmpty(TestSubsets, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSubsetPartial(TestSubsets, unittest.TestCase):
 +class TestSubsetPartial(_TestSubsets, __TestCase):
      left  = set([1])
      right = set([1, 2])
      name  = "one a non-empty proper subset of other"
+<<<<<<< HEAD
 @@ -1381,7 +1463,7 @@ class TestSubsetPartial(TestSubsets, unittest.TestCase):
 
  #------------------------------------------------------------------------------
 
+=======
+@@ -1381,7 +1449,7 @@ class TestSubsetPartial(TestSubsets, unittest.TestCase):
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestSubsetNonOverlap(TestSubsets, unittest.TestCase):
 +class TestSubsetNonOverlap(_TestSubsets, __TestCase):
      left  = set([1])
      right = set([2])
      name  = "neither empty, neither contains"
+<<<<<<< HEAD
 @@ -1389,7 +1471,7 @@ class TestSubsetNonOverlap(TestSubsets, unittest.TestCase):
 
  #==============================================================================
@@ -551,6 +788,21 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #------------------------------------------------------------------------------
 
+=======
+@@ -1389,7 +1457,7 @@ class TestSubsetNonOverlap(TestSubsets, unittest.TestCase):
+ 
+ #==============================================================================
+ 
+-class TestOnlySetsInBinaryOps:
++class _TestOnlySetsInBinaryOps:
+ 
+     def test_eq_ne(self):
+         # Unlike the others, this is testing that == and != *are* allowed.
+@@ -1505,47 +1573,52 @@ class TestOnlySetsInBinaryOps:
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsNumeric(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsNumeric(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
@@ -558,9 +810,15 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.other = 19
          self.otherIsIterable = False
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsDict(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsDict(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
@@ -568,9 +826,15 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.other = {1:2, 3:4}
          self.otherIsIterable = True
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsOperator(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsOperator(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
@@ -578,9 +842,15 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.other = operator.add
          self.otherIsIterable = False
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsTuple(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsTuple(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
@@ -588,9 +858,15 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.other = (2, 4, 6)
          self.otherIsIterable = True
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsString(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsString(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
@@ -598,19 +874,30 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.other = 'abc'
          self.otherIsIterable = True
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestOnlySetsGenerator(TestOnlySetsInBinaryOps, unittest.TestCase):
 +class TestOnlySetsGenerator(_TestOnlySetsInBinaryOps, __TestCase):
      def setUp(self):
          def gen():
              for i in range(0, 10, 2):
+<<<<<<< HEAD
 @@ -1553,10 +1640,11 @@ class TestOnlySetsGenerator(TestOnlySetsInBinaryOps, unittest.TestCase):
+=======
+@@ -1553,10 +1626,11 @@ class TestOnlySetsGenerator(TestOnlySetsInBinaryOps, unittest.TestCase):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
          self.set   = set((1, 2, 3))
          self.other = gen()
          self.otherIsIterable = True
 +        super().setUp()
+<<<<<<< HEAD
 
  #==============================================================================
 
@@ -623,52 +910,97 @@ index d9102eb98a5..c8ee5ca451f 100644
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #==============================================================================
+ 
+-class TestCopying:
++class _TestCopying:
+ 
+     def test_copy(self):
+         dup = self.set.copy()
+@@ -1577,40 +1651,46 @@ class TestCopying:
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestCopyingEmpty(TestCopying, unittest.TestCase):
 +class TestCopyingEmpty(_TestCopying, __TestCase):
      def setUp(self):
          self.set = set()
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestCopyingSingleton(TestCopying, unittest.TestCase):
 +class TestCopyingSingleton(_TestCopying, __TestCase):
      def setUp(self):
          self.set = set(["hello"])
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestCopyingTriple(TestCopying, unittest.TestCase):
 +class TestCopyingTriple(_TestCopying, __TestCase):
      def setUp(self):
          self.set = set(["zero", 0, None])
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestCopyingTuple(TestCopying, unittest.TestCase):
 +class TestCopyingTuple(_TestCopying, __TestCase):
      def setUp(self):
          self.set = set([(1, 2)])
 +        super().setUp()
+<<<<<<< HEAD
 
  #------------------------------------------------------------------------------
 
+=======
+ 
+ #------------------------------------------------------------------------------
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestCopyingNested(TestCopying, unittest.TestCase):
 +class TestCopyingNested(_TestCopying, __TestCase):
      def setUp(self):
          self.set = set([((1, 2), (3, 4))])
 +        super().setUp()
+<<<<<<< HEAD
 
  #==============================================================================
 
+=======
+ 
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestIdentities(unittest.TestCase):
 +class TestIdentities(__TestCase):
      def setUp(self):
          self.a = set('abracadabra')
          self.b = set('alacazam')
 +        super().setUp()
+<<<<<<< HEAD
 
      def test_binopsVsSubsets(self):
          a, b = self.a, self.b
@@ -685,11 +1017,30 @@ index d9102eb98a5..c8ee5ca451f 100644
      def __hash__(self):
          return 0
 
+=======
+ 
+     def test_binopsVsSubsets(self):
+         a, b = self.a, self.b
+@@ -1727,7 +1807,7 @@ def L(seqn):
+     'Test multiple tiers of iterators'
+     return chain(map(lambda x:x, R(Ig(G(seqn)))))
+ 
+-class TestVariousIteratorArgs(unittest.TestCase):
++class TestVariousIteratorArgs(__TestCase):
+ 
+     def test_constructor(self):
+         for cons in (set, frozenset):
+@@ -1785,7 +1865,7 @@ class bad_dict_clear:
+     def __hash__(self):
+         return 0
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestWeirdBugs(unittest.TestCase):
 +class TestWeirdBugs(__TestCase):
      def test_8420_set_merge(self):
          # This used to segfault
          global be_bad, set2, dict2
+<<<<<<< HEAD
 @@ -1813,12 +1907,13 @@ class TestWeirdBugs(unittest.TestCase):
          list(si)
 
@@ -761,25 +1112,62 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.check_set_op_does_not_crash(f3)
 
 
+=======
+@@ -1826,7 +1906,7 @@ class TestWeirdBugs(unittest.TestCase):
+         s.update(other)
+ 
+ 
+-class TestOperationsMutating:
++class _TestOperationsMutating:
+     """Regression test for bpo-46615"""
+ 
+     constructor1 = None
+@@ -1862,7 +1942,7 @@ class TestOperationsMutating:
+                 self.assertIn("changed size during iteration", str(e))
+ 
+ 
+-class TestBinaryOpsMutating(TestOperationsMutating):
++class _TestBinaryOpsMutating(_TestOperationsMutating):
+ 
+     def test_eq_with_mutation(self):
+         self.check_set_op_does_not_crash(lambda a, b: a == b)
+@@ -1933,24 +2013,24 @@ class TestBinaryOpsMutating(TestOperationsMutating):
+         self.check_set_op_does_not_crash(f3)
+ 
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBinaryOpsMutating_Set_Set(TestBinaryOpsMutating, unittest.TestCase):
 +class TestBinaryOpsMutating_Set_Set(_TestBinaryOpsMutating, __TestCase):
      constructor1 = set
      constructor2 = set
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBinaryOpsMutating_Subclass_Subclass(TestBinaryOpsMutating, unittest.TestCase):
 +class TestBinaryOpsMutating_Subclass_Subclass(_TestBinaryOpsMutating, __TestCase):
      constructor1 = SetSubclass
      constructor2 = SetSubclass
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBinaryOpsMutating_Set_Subclass(TestBinaryOpsMutating, unittest.TestCase):
 +class TestBinaryOpsMutating_Set_Subclass(_TestBinaryOpsMutating, __TestCase):
      constructor1 = set
      constructor2 = SetSubclass
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestBinaryOpsMutating_Subclass_Set(TestBinaryOpsMutating, unittest.TestCase):
 +class TestBinaryOpsMutating_Subclass_Set(_TestBinaryOpsMutating, __TestCase):
      constructor1 = SetSubclass
      constructor2 = set
+<<<<<<< HEAD
 
 
 -class TestMethodsMutating(TestOperationsMutating):
@@ -791,35 +1179,69 @@ index d9102eb98a5..c8ee5ca451f 100644
          self.check_set_op_does_not_crash(set.update)
 
 
+=======
+ 
+ 
+-class TestMethodsMutating(TestOperationsMutating):
++class _TestMethodsMutating(_TestOperationsMutating):
+ 
+     def test_issubset_with_mutation(self):
+         self.check_set_op_does_not_crash(set.issubset)
+@@ -1986,27 +2066,27 @@ class TestMethodsMutating(TestOperationsMutating):
+         self.check_set_op_does_not_crash(set.update)
+ 
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Set_Set(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Set_Set(_TestMethodsMutating, __TestCase):
      constructor1 = set
      constructor2 = set
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Subclass_Subclass(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Subclass_Subclass(_TestMethodsMutating, __TestCase):
      constructor1 = SetSubclass
      constructor2 = SetSubclass
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Set_Subclass(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Set_Subclass(_TestMethodsMutating, __TestCase):
      constructor1 = set
      constructor2 = SetSubclass
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Subclass_Set(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Subclass_Set(_TestMethodsMutating, __TestCase):
      constructor1 = SetSubclass
      constructor2 = set
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Set_Dict(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Set_Dict(_TestMethodsMutating, __TestCase):
      constructor1 = set
      constructor2 = dict.fromkeys
+<<<<<<< HEAD
 
+=======
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 -class TestMethodsMutating_Set_List(TestMethodsMutating, unittest.TestCase):
 +class TestMethodsMutating_Set_List(_TestMethodsMutating, __TestCase):
      constructor1 = set
      constructor2 = list
+<<<<<<< HEAD
 
 @@ -2068,7 +2164,7 @@ def faces(G):
      return f
@@ -833,6 +1255,21 @@ index d9102eb98a5..c8ee5ca451f 100644
 @@ -2118,4 +2214,4 @@ class TestGraphs(unittest.TestCase):
  #==============================================================================
 
+=======
+ 
+@@ -2068,7 +2148,7 @@ def faces(G):
+     return f
+ 
+ 
+-class TestGraphs(unittest.TestCase):
++class TestGraphs(__TestCase):
+ 
+     def test_cube(self):
+ 
+@@ -2118,4 +2198,4 @@ class TestGraphs(unittest.TestCase):
+ #==============================================================================
+ 
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  if __name__ == "__main__":
 -    unittest.main()
 +    run_tests()

@@ -27,7 +27,10 @@ class Exponential(ExponentialFamily):
         rate (float or Tensor): rate = 1 / scale of the distribution
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {"rate": constraints.positive}
     support = constraints.nonnegative
     has_rsample = True
@@ -90,6 +93,9 @@ class Exponential(ExponentialFamily):
     def _natural_params(self) -> tuple[Tensor]:
         return (-self.rate,)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _log_normalizer(self, x):
         return -torch.log(-x)

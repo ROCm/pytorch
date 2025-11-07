@@ -33,6 +33,7 @@
 
 #  Args passed via stack.
 #  TOS
+<<<<<<< HEAD
 #  |------------|
 #  |a_stride    | 0
 #  |w           | 4
@@ -41,10 +42,21 @@
 #  |out ch index| 16
 #  |params      | 20
 #  |------------|
+=======
+#  |-----------|
+#  |a_stride   | 0
+#  |w          | 4
+#  |c          | 8
+#  |c_stride   | 12
+#  |out ch indx| 16
+#  |params     | 20
+#  |-----------|
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #
 
 #  After loading w pointer in ip reg.
 #  And after pushing r4-r8 and d8-d15 on stack
+<<<<<<< HEAD
 #  |------------|
 #  |d8 - d15    | 0
 #  |r4 - r7     | 64
@@ -56,6 +68,19 @@
 #  |out ch index| 100
 #  |params      | 104
 #  |------------|
+=======
+#  |-----------|
+#  |d8 - d15   | 0
+#  |r4 - r7    | 64
+#  |a_stride   | 80
+#  |w          | 84
+#  |b          | 88
+#  |c          | 92
+#  |c_stride   | 96
+#  |out ch indx| 100
+#  |params     | 104
+#  |-----------|
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #
 
 # void pytorch_q8gemm_ukernel_4x8__aarch32_neon(

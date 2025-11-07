@@ -238,6 +238,12 @@ struct Vectorized {
     Vectorized vector;
     int_same_size_t<T> buffer[size()];
     mask.store(buffer);
+<<<<<<< HEAD
+=======
+#if defined(__clang__) && __ARM_FEATURE_SVE
+#pragma clang loop vectorize(disable)
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (const auto i : c10::irange(size())) {
       if (buffer[i] & 0x01) {
         vector[i] = b[i];
@@ -544,9 +550,12 @@ struct Vectorized {
   Vectorized<T> exp_u20() const {
     return map(std::exp);
   }
+<<<<<<< HEAD
   Vectorized<T> fexp_u20() const {
     return map(std::exp);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorized<T> frac() const {
     return *this - this->trunc();
   }
@@ -634,7 +643,11 @@ struct Vectorized {
   }
   Vectorized<T> neg() const {
     // NB: the trailing return type is needed because we need to coerce the
+<<<<<<< HEAD
     // return value back to T in the case of unary operator- incurring a
+=======
+    // return value back to T in the case of unary operator- incuring a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // promotion
     return map([](T x) -> T { return -x; });
   }
@@ -1248,6 +1261,7 @@ inline Vectorized<T> fmadd(
 VECTORIZED_SUPPORT_SCALARS_FOR_TERNARY_FUNC(fmadd)
 
 template <typename T>
+<<<<<<< HEAD
 inline Vectorized<T> fnmadd(
     const Vectorized<T>& a,
     const Vectorized<T>& b,
@@ -1258,6 +1272,8 @@ inline Vectorized<T> fnmadd(
 VECTORIZED_SUPPORT_SCALARS_FOR_TERNARY_FUNC(fnmadd)
 
 template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline Vectorized<T> fmsub(
     const Vectorized<T>& a,
     const Vectorized<T>& b,
@@ -1268,6 +1284,7 @@ inline Vectorized<T> fmsub(
 VECTORIZED_SUPPORT_SCALARS_FOR_TERNARY_FUNC(fmsub)
 
 template <typename T>
+<<<<<<< HEAD
 inline Vectorized<T> fnmsub(
     const Vectorized<T>& a,
     const Vectorized<T>& b,
@@ -1278,6 +1295,8 @@ inline Vectorized<T> fnmsub(
 VECTORIZED_SUPPORT_SCALARS_FOR_TERNARY_FUNC(fnmsub)
 
 template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Vectorized<T> inline operator&&(
     const Vectorized<T>& a,
     const Vectorized<T>& b) {

@@ -68,7 +68,11 @@ def get_filenames(self, subname):
 
 
 class TestSerialization(TestCase):
+<<<<<<< HEAD
     """Test backward compatibility for serialization and numerics"""
+=======
+    """Test backward compatiblity for serialization and numerics"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Copy and modified from TestCase.assertExpected
     def _test_op(

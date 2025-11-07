@@ -38,7 +38,10 @@ def mock_get_comments() -> list[GitHubComment]:
             body_text="mock_body_text",
             created_at="",
             author_login="",
+<<<<<<< HEAD
             author_url=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             author_association="",
             editor_login=None,
             database_id=1,
@@ -49,7 +52,10 @@ def mock_get_comments() -> list[GitHubComment]:
             body_text=" #" + LABEL_ERR_MSG_TITLE.replace("`", ""),
             created_at="",
             author_login=BOT_AUTHORS[1],
+<<<<<<< HEAD
             author_url=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             author_association="",
             editor_login=None,
             database_id=2,

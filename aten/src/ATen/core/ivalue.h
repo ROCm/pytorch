@@ -12,7 +12,10 @@
 #include <c10/macros/Export.h>
 #include <c10/util/MaybeOwned.h>
 #include <c10/util/intrusive_ptr.h>
+<<<<<<< HEAD
 #include <limits>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <type_traits>
 #include <unordered_map>
 #include <unordered_set>
@@ -161,7 +164,10 @@ struct Capsule {
   _(Double)                  \
   _(ComplexDouble)           \
   _(Int)                     \
+<<<<<<< HEAD
   _(UInt)                    \
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   _(SymInt)                  \
   _(SymFloat)                \
   _(SymBool)                 \
@@ -624,6 +630,7 @@ struct TORCH_API IValue final {
   IValue(const c10::SymBool& i) {
     if (auto mi = i.maybe_as_bool()) {
       tag = Tag::Bool;
+<<<<<<< HEAD
 #if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
       payload.u.as_int = *mi;
 #elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
@@ -632,6 +639,9 @@ struct TORCH_API IValue final {
 #else
 #error Unexpected or undefined __BYTE_ORDER__
 #endif
+=======
+      payload.u.as_int = *mi;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       tag = Tag::SymBool;
       payload.u.as_intrusive_ptr = i.toSymNodeImpl().release();
@@ -662,6 +672,7 @@ struct TORCH_API IValue final {
     }
   }
 
+<<<<<<< HEAD
   // Unsigned
   IValue(uint64_t u) : tag( u <= std::numeric_limits<int64_t>::max() ? Tag::Int : Tag::UInt) {
     payload.u.as_uint = u;
@@ -685,6 +696,8 @@ struct TORCH_API IValue final {
   }
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Bool
   IValue(bool b) : tag(Tag::Bool) {
 #if defined(__clang__) && defined(__x86_64__)
@@ -854,7 +867,11 @@ struct TORCH_API IValue final {
   IValue(std::optional<T> v);
   template <class T, enable_if_list_is_ivalue_constructible<T> = nullptr>
   IValue(c10::OptionalArrayRef<T> v);
+<<<<<<< HEAD
   IValue(std::nullopt_t /*unused*/);
+=======
+  IValue(std::nullopt_t);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // ClassType
   IValue(c10::intrusive_ptr<ivalue::Object> v);
@@ -925,6 +942,7 @@ struct TORCH_API IValue final {
     } else {
       TORCH_INTERNAL_ASSERT_DEBUG_ONLY(
           s.isIntegral(false), "Unknown type in Scalar");
+<<<<<<< HEAD
       if (s.isUnsigned()) {
         const auto val = s.toUInt64();
         payload.u.as_uint = val;
@@ -933,6 +951,10 @@ struct TORCH_API IValue final {
         payload.u.as_int = s.toLong();
         tag = Tag::Int;
       }
+=======
+      tag = Tag::Int;
+      payload.u.as_int = s.toLong();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -956,8 +978,11 @@ struct TORCH_API IValue final {
       return toSymFloat();
     else if (isSymBool())
       return toSymBool();
+<<<<<<< HEAD
     else if (isUnsigned())
       return toUInt();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TORCH_CHECK(false, "IValue is not a Scalar");
   }
 
@@ -1176,7 +1201,11 @@ struct TORCH_API IValue final {
   using HashIdentityIValueMap =
       std::unordered_map<IValue, IValue, HashIdentityIValue, CompIdentityIValues>;
 
+<<<<<<< HEAD
   // Checks if this and rhs has a subvalues in common.
+=======
+  // Chechs if this and rhs has a subvalues in common.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // [t1,t2] and [t2, t3] returns true.
   bool overlaps(const IValue& rhs) const;
 
@@ -1287,8 +1316,11 @@ struct TORCH_API IValue final {
         return true;
       case Tag::Int:
         return false;
+<<<<<<< HEAD
       case Tag::UInt:
         return false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       case Tag::SymInt:
         return true;
       case Tag::SymFloat:
@@ -1385,8 +1417,11 @@ struct TORCH_API IValue final {
     union TriviallyCopyablePayload {
       TriviallyCopyablePayload() : as_int(0) {}
       int64_t as_int;
+<<<<<<< HEAD
       // See Note [Meaning of HAS_u]
       uint64_t as_uint;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       double as_double;
       bool as_bool;
       // Invariant: never nullptr; null state is represented as

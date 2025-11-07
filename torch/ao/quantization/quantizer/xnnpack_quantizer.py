@@ -4,7 +4,11 @@ from __future__ import annotations
 import copy
 import functools
 import typing_extensions
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo as torchdynamo
@@ -35,8 +39,11 @@ from torch.fx._compatibility import compatibility
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.ao.quantization.qconfig import _ObserverOrFakeQuantizeConstructor
     from torch.fx import Node
 
@@ -247,7 +254,11 @@ def _get_not_module_type_or_name_filter(
 class XNNPACKQuantizer(Quantizer):
     """
     !!! DEPRECATED !!!
+<<<<<<< HEAD
     XNNPACKQuantizer is a marked as deprecated. It will be removed in the future.
+=======
+    XNNPACKQuantizer is a marked as deprected. It will be removed in the future.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     It has been moved to executorch.backends.xnnpack.quantizer.xnnpack_quantizer.XNNPACKQuantizer.
     Please use the new quantizer instead.
     """

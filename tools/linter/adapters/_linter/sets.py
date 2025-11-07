@@ -41,7 +41,10 @@ class LineWithSets:
         t = self.tokens[i]
         after = i < len(self.tokens) - 1 and self.tokens[i + 1]
         if t.string == "Set" and t.type == token.NAME:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return after and after.string == "[" and after.type == token.OP
         return (
             (t.string == "set" and t.type == token.NAME)

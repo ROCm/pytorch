@@ -1,39 +1,72 @@
 #include <torch/nativert/kernels/HigherOrderKernel.h>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+#include <fmt/format.h>
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/string_view.h>
 
 namespace torch::nativert {
 
+<<<<<<< HEAD
+=======
+using torch::nativert::Graph;
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 HigherOrderKernel::HigherOrderKernel(
     const Node* node,
     std::vector<std::unique_ptr<GraphExecutorBase>> graphExecutors)
     : OpKernel(node), graphExecutors_(std::move(graphExecutors)) {
   static constexpr std::string_view prefix = "torch.ops.higher_order.";
+<<<<<<< HEAD
   TORCH_CHECK(c10::starts_with(node->target(), prefix));
+=======
+  CHECK(c10::starts_with(node->target(), prefix));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto opName = node->target().substr(prefix.size());
   if (opName == "cond") {
     opType_ = OpType::COND;
     // Checking torch.cond schema is as expected:
     // torch.cond(Tensor predicate, Graph graph1, Graph graph2, Tensor[] args)
     // -> Tensor[]
+<<<<<<< HEAD
     TORCH_CHECK(node_->attributes().size() == 2);
     TORCH_CHECK(node_->inputs().size() == 2);
+=======
+    TORCH_CHECK_EQ(node_->attributes().size(), 2);
+    TORCH_CHECK_EQ(node_->inputs().size(), 2);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (opName == "while_loop") {
     opType_ = OpType::WHILE_LOOP;
     // Checking torch.while_loop schema is as expected:
     // torch.while_loop(Graph cond, Graph body, Tensor[] args, Tensor[]
+<<<<<<< HEAD
     // additional) -> Tensor[]
     TORCH_CHECK(node_->attributes().size() == 2);
     TORCH_CHECK(node_->inputs().size() == 2);
+=======
+    // additonal) -> Tensor[]
+    TORCH_CHECK_EQ(node_->attributes().size(), 2);
+    TORCH_CHECK_EQ(node_->inputs().size(), 2);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else if (opName == "run_const_graph") {
     opType_ = OpType::RUN_CONST_GRAPH;
     // Checking torch.run_const_graph schema is as expected:
     // torch.run_const_graph(Graph graph, Tensor[] args) -> Tensor[]
+<<<<<<< HEAD
     TORCH_CHECK(!node_->attributes().empty());
     TORCH_CHECK(node_->inputs().size() == 1);
   } else {
     TORCH_CHECK(false, "Unknown higher order op: ", opName);
+=======
+    TORCH_CHECK_GE(node_->attributes().size(), 1);
+    TORCH_CHECK_EQ(node_->inputs().size(), 1);
+  } else {
+    throw std::runtime_error(
+        fmt::format("Unknown higher order op: {}", opName));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -51,7 +84,11 @@ void HigherOrderKernel::computeInternal(ExecutionFrame& executionFrame) const {
       } else if (cond.isBool()) {
         branchIdx = cond.toBool() ? 0 : 1;
       } else {
+<<<<<<< HEAD
         TORCH_CHECK(false, "Unsupported type for cond predicate");
+=======
+        throw std::runtime_error("Unsupported type for cond predicate");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
       ExecutionFrame branchFrame(*std::get<std::unique_ptr<Graph>>(
           node_->attributes()[branchIdx].value));

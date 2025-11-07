@@ -58,7 +58,10 @@ def _register_sharded_op_on_local_tensor(
     @custom_sharding_spec_op(ChunkShardingSpec, op)
     @_sharded_op_common(op, early_stop_func, extra_check)
     def sharded_tensor_op_on_local_tensor(types, args=(), kwargs=None, pg=None):
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         st = args[0]
         sharding_spec = st.sharding_spec()
         if len(st.local_shards()) != 1:

@@ -1,8 +1,12 @@
 # mypy: allow-untyped-defs
 import contextlib
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, cast, NamedTuple, Optional
+=======
+from typing import Any, Callable, cast, NamedTuple, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -16,6 +20,7 @@ from torch.utils.hooks import RemovableHandle
 
 from ._fsdp_api import CPUOffloadPolicy, MixedPrecisionPolicy, OffloadPolicy
 from ._fsdp_collectives import (
+<<<<<<< HEAD
     AllGather,
     AllGatherResult,
     DefaultAllGather,
@@ -26,15 +31,27 @@ from ._fsdp_collectives import (
     ProcessGroupAllocAllGather,
     ProcessGroupAllocReduceScatter,
     ReduceScatter,
+=======
+    AllGatherResult,
+    foreach_all_gather,
+    foreach_all_gather_copy_out,
+    foreach_reduce,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from ._fsdp_common import (
     compiled_autograd_enabled,
     FSDPMeshInfo,
     HSDPMeshInfo,
+<<<<<<< HEAD
     is_bw,
     TrainingState,
 )
 from ._fsdp_param import alloc_storage, FSDPParam, ParamModuleInfo, ShardedState
+=======
+    TrainingState,
+)
+from ._fsdp_param import FSDPParam, ParamModuleInfo, ShardedState
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 logger = logging.getLogger("torch.distributed.fsdp.fully_shard")
@@ -151,7 +168,10 @@ class FSDPParamGroup:
         ]
         self.mesh_info = mesh_info
         self.post_forward_mesh_info = post_forward_mesh_info
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = device
         self.device_handle = _get_device_handle(device.type)
         self.mp_policy = mp_policy
@@ -168,9 +188,12 @@ class FSDPParamGroup:
         self._module_to_pre_save_state_dict_hook_handle: _ModuleToHandleDict = {}
         self._module_to_pre_load_state_dict_hook_handle: _ModuleToHandleDict = {}
         self._all_reduce_hook: Optional[Callable[[torch.Tensor], None]] = None
+<<<<<<< HEAD
         self._all_gather_comm: AllGather = DefaultAllGather()
         self._all_gather_output = torch.empty(0, device=self.device)
         self._reduce_scatter_comm: ReduceScatter = DefaultReduceScatter()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Optional stream to run the user-defined all-reduce hook in
         # Saved here and not in the comm. context because we allow the user to
         # specify it, possibly at construction time before lazy init
@@ -202,6 +225,12 @@ class FSDPParamGroup:
         # Whether to unshard in backward: can be overridden by the user if the
         # parameters in this group are not needed for backward (e.g. embedding)
         self.unshard_in_backward: bool = True
+<<<<<<< HEAD
+=======
+        # Whether to (try to) use the ProcessGroup's allocate_tensor method for
+        # the staging buffers for collective comms.
+        self.allocate_memory_from_process_group = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # - CUDA events for stream synchronization
         # Holds the all-gather output buffer, sync objects, and metadata
@@ -237,7 +266,11 @@ class FSDPParamGroup:
             raise AssertionError(
                 f"FSDP expects uniform original parameter dtype but got {orig_dtypes}"
             )
+<<<<<<< HEAD
         self._orig_dtype = next(iter(orig_dtypes)) if trainable_params else None
+=======
+        self._orig_dtype = next(iter(orig_dtypes)) if len(trainable_params) else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(trainable_params) > 0 and len(reduce_dtypes) != 1:
             # This can be relaxed if we issue one reduce-scatter per reduce
             # dtype (but we would need a way for users to specify multiple
@@ -245,7 +278,13 @@ class FSDPParamGroup:
             raise AssertionError(
                 f"FSDP expects uniform reduce dtype but got {reduce_dtypes}"
             )
+<<<<<<< HEAD
         self._reduce_dtype = next(iter(reduce_dtypes)) if trainable_params else None
+=======
+        self._reduce_dtype = (
+            next(iter(reduce_dtypes)) if len(trainable_params) else None
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def lazy_init(self):
         # Lazy init should be idempotent
@@ -266,6 +305,7 @@ class FSDPParamGroup:
         self._init_mp_dtypes()
         self._register_state_dict_hooks()
 
+<<<<<<< HEAD
     def set_allocate_memory_from_process_group(self, enable: bool) -> None:
         """
         Whether to (try to) use the ProcessGroup's allocate_tensor method for
@@ -298,6 +338,8 @@ class FSDPParamGroup:
             else DefaultReduceScatter()
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Runtime #
     def unshard(self, async_op: bool = False):
         if self._all_gather_result is not None:  # already called, pending wait
@@ -314,6 +356,7 @@ class FSDPParamGroup:
             # used in the all-gather streams
             self._wait_all_gather_streams_on_event(self._reshard_after_forward_event)
             self._reshard_after_forward_event = None
+<<<<<<< HEAD
 
         world_size = self._all_gather_process_group.size()
         if world_size == 1:
@@ -330,6 +373,8 @@ class FSDPParamGroup:
 
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with record_function(self._with_fqn("FSDP::all_gather")):
             self._all_gather_result = foreach_all_gather(
                 self.fsdp_params,
@@ -337,7 +382,11 @@ class FSDPParamGroup:
                 async_op,
                 *self.comm_ctx.get_all_gather_streams(async_op, self._training_state),
                 self.device,
+<<<<<<< HEAD
                 self._all_gather_comm,
+=======
+                self.allocate_memory_from_process_group,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def wait_for_unshard(self):
@@ -356,6 +405,7 @@ class FSDPParamGroup:
             if prev_all_gather_state := self.comm_ctx.all_gather_state:
                 self._wait_all_gather_streams_on_event(prev_all_gather_state.event)
                 self.comm_ctx.all_gather_state = None  # free the all-gather result
+<<<<<<< HEAD
         world_size = self._all_gather_process_group.size()
         if world_size == 1:
             # directly initialize unsharded parameters from sharded parameters
@@ -402,6 +452,20 @@ class FSDPParamGroup:
             and self._training_state == TrainingState.FORWARD
             and world_size > 1
         ):
+=======
+        with record_function(self._with_fqn("FSDP::all_gather_copy_out")):
+            foreach_all_gather_copy_out(
+                self._all_gather_result,
+                self.fsdp_params,
+                self._all_gather_process_group,
+            )
+        for fsdp_param in self.fsdp_params:
+            fsdp_param.init_unsharded_param()
+        self._to_unsharded()
+        all_gather_copy_out_event = self.device_handle.Event()
+        all_gather_copy_out_event.record()
+        if not async_op and self._training_state == TrainingState.FORWARD:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Defer free to allow for overlap of this copy-out with next
             # all-gather collective
             self.comm_ctx.all_gather_state = AllGatherState(
@@ -409,7 +473,10 @@ class FSDPParamGroup:
             )
         else:
             self._wait_all_gather_streams_on_event(all_gather_copy_out_event)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._all_gather_result = None  # free unless saved in `all_gather_state`
 
     def _wait_all_gather_streams_on_event(self, event: Optional[torch.Event]):
@@ -447,6 +514,7 @@ class FSDPParamGroup:
         if not compiled_autograd_enabled():
             logger.debug("%s", self._with_fqn("FSDP::post_forward"))
         with record_function(self._with_fqn("FSDP::post_forward")):
+<<<<<<< HEAD
             if not compiled_autograd_enabled():
                 # for AC(fully_shard(model)), AC runs fsdp's _pre_forward
                 # it shouldn't change post_forward_order
@@ -456,6 +524,10 @@ class FSDPParamGroup:
             else:
                 self.reshard()
                 self._record_post_forward()
+=======
+            self.reshard()
+            self._record_post_forward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._training_state = TrainingState.IDLE
             return output
 
@@ -536,10 +608,16 @@ class FSDPParamGroup:
             if all_reduce_pg is None and self._all_reduce_hook_stream is not None:
                 # this means the native HSDP is not enabled,
                 # but user may want to have a custom HSDP setup
+<<<<<<< HEAD
                 if self._all_reduce_hook is None:
                     raise AssertionError(
                         "all reduce hook stream is specified but hook itself is missing."
                     )
+=======
+                assert self._all_reduce_hook is not None, (
+                    "all reduce hook stream is specified but hook itself is missing."
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 all_reduce_stream = self._all_reduce_hook_stream
             else:
                 all_reduce_stream = self.comm_ctx.all_reduce_stream
@@ -557,7 +635,10 @@ class FSDPParamGroup:
                 unsharded_grads,
                 self._reduce_scatter_process_group,
                 self.comm_ctx.reduce_scatter_stream,
+<<<<<<< HEAD
                 self._reduce_scatter_comm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._orig_dtype,
                 self._reduce_dtype,
                 self.device,
@@ -567,6 +648,10 @@ class FSDPParamGroup:
                 self.all_reduce_grads,
                 self._partial_reduce_output,
                 self._all_reduce_hook,
+<<<<<<< HEAD
+=======
+                self.allocate_memory_from_process_group,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.force_sum_reduction_for_comms,
             )
             self.comm_ctx.reduce_scatter_state = ReduceScatterState(
@@ -574,10 +659,14 @@ class FSDPParamGroup:
             )
             if all_reduce_input is not None:
                 if self.device.type != "cpu":
+<<<<<<< HEAD
                     if all_reduce_event is None:
                         raise AssertionError(
                             "Expected all_reduce_event to be set for non-CPU device"
                         )
+=======
+                    assert all_reduce_event is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._all_reduce_state = AllReduceState(
                     all_reduce_input, all_reduce_event
                 )
@@ -621,7 +710,10 @@ class FSDPParamGroup:
             # Prefetch naively using the reverse post-forward order, which may
             # have mistargeted prefetches if not all modules used in forward
             # are used in this backward
+<<<<<<< HEAD
             # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             target_fsdp_param_group = self.comm_ctx.post_forward_order[target_index]
             self._prefetch_unshard(target_fsdp_param_group, "backward")
 
@@ -716,10 +808,16 @@ class FSDPParamGroup:
     def _register_state_dict_hooks(self) -> None:
         num_pre_save_hooks = len(self._module_to_pre_save_state_dict_hook_handle)
         num_pre_load_hooks = len(self._module_to_pre_load_state_dict_hook_handle)
+<<<<<<< HEAD
         if num_pre_save_hooks != num_pre_load_hooks:
             raise AssertionError(
                 f"Pre-save: {num_pre_save_hooks} pre-load: {num_pre_load_hooks}"
             )
+=======
+        assert num_pre_save_hooks == num_pre_load_hooks, (
+            f"Pre-save: {num_pre_save_hooks} pre-load: {num_pre_load_hooks}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if num_pre_save_hooks > 0:
             return  # already registered
         modules_with_fsdp_params: set[nn.Module] = {
@@ -760,26 +858,38 @@ class FSDPParamGroup:
             if self.is_sharded_post_forward
             else self.mesh_info
         )
+<<<<<<< HEAD
         if not isinstance(mesh_info, FSDPMeshInfo):
             raise AssertionError(
                 f"Expected mesh_info to be FSDPMeshInfo, got {type(mesh_info)}"
             )
+=======
+        assert isinstance(mesh_info, FSDPMeshInfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return mesh_info.shard_process_group
 
     @property
     def _reduce_scatter_process_group(self) -> dist.ProcessGroup:
+<<<<<<< HEAD
         if not isinstance(self.mesh_info, FSDPMeshInfo):
             raise AssertionError(
                 f"Expected mesh_info to be FSDPMeshInfo, got {type(self.mesh_info)}"
             )
+=======
+        assert isinstance(self.mesh_info, FSDPMeshInfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.mesh_info.shard_process_group
 
     @property
     def _all_reduce_process_group(self) -> dist.ProcessGroup:
+<<<<<<< HEAD
         if not isinstance(self.mesh_info, HSDPMeshInfo):
             raise AssertionError(
                 f"Expected mesh_info to be HSDPMeshInfo, got {type(self.mesh_info)}"
             )
+=======
+        assert isinstance(self.mesh_info, HSDPMeshInfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.mesh_info.replicate_process_group
 
     def _with_fqn(self, label: str) -> str:
@@ -848,7 +958,11 @@ def _get_param_module_infos(
                             param_name
                         )
     if len(param_to_module_info) != len(params):
+<<<<<<< HEAD
         raise AssertionError(f"Some parameters are not in the module tree of {modules}")
+=======
+        raise AssertionError(f"Some parameters are not in the module tree of {module}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return [param_to_module_info[param] for param in params]
 
 
@@ -868,7 +982,10 @@ compile the forward part if you want to use Traceable FSDP2."""
             raise RuntimeError(msg)
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, param_group: FSDPParamGroup, *inputs: torch.Tensor):
         # All tensors in `inputs` should require gradient
         RegisterPostBackwardFunction._assert_not_tracing_fsdp()

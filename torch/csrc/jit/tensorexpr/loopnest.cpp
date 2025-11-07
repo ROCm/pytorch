@@ -987,7 +987,11 @@ void LoopNest::inlineIntermediateBufs(bool allow_duplicated_work) {
         }
       }
 
+<<<<<<< HEAD
       // all bufs will have at least one store (if they have > 1 they can't be
+=======
+      // all bufs will have at least one store (if they have > 1 they cant be
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // inlined anyway)
       size_t reads = uses.size() - 1;
       // if only one read, we can inline it without duplicating work

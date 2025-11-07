@@ -437,7 +437,11 @@ class TestLiteScriptModule(TestCase):
         # additional context to the exception message and preserve the correct
         #  C++ stack trace for symbolication. i.e. it isn't possible to add
         # the debug handle string to show where in the Python code the exception
+<<<<<<< HEAD
         # occurred w/o first changing
+=======
+        # occured w/o first changing
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # torch::jit::JITException to extend c10::Error.
         self.assertTrue("self.val and val are same" in error_message)
 
@@ -486,9 +490,23 @@ class TestLiteScriptModule(TestCase):
                 "Traceback of TorchScript"
             ).check("self.b.forwardError").check_next(
                 "~~~~~~~~~~~~~~~~~~~ <--- HERE"
+<<<<<<< HEAD
             ).check("return self.call").check_next("~~~~~~~~~ <--- HERE").check(
                 "return torch.ones"
             ).check_next("~~~~~~~~~~ <--- HERE").run(str(exp))
+=======
+            ).check(
+                "return self.call"
+            ).check_next(
+                "~~~~~~~~~ <--- HERE"
+            ).check(
+                "return torch.ones"
+            ).check_next(
+                "~~~~~~~~~~ <--- HERE"
+            ).run(
+                str(exp)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestLiteScriptQuantizedModule(QuantizationLiteTestCase):

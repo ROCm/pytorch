@@ -437,13 +437,21 @@ class TestAutocast(TestCase):
                 if isinstance(first, torch.Tensor):
                     return torch.equal(first, second)
                 elif isinstance(first, collections.abc.Iterable):
+<<<<<<< HEAD
                     return all(compare(f, s) for f, s in zip(first, second, strict=False))
+=======
+                    return all(compare(f, s) for f, s in zip(first, second))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     return first == second
 
             # If both torch.* and Tensor.* variants were found, check outputs are identical
             if (output is not None) and (output_method is not None):
+<<<<<<< HEAD
                 self.assertTrue(type(output) is type(output_method))
+=======
+                self.assertTrue(type(output) == type(output_method))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 comparison = compare(output, output_method)
                 self.assertTrue(
                     comparison, f"torch.{op} result did not match Tensor.{op} result"
@@ -465,7 +473,11 @@ class TestAutocast(TestCase):
                     control = getattr(args[0].to(run_as_type), op)(
                         *cast(args[1:], run_as_type), **add_kwargs
                     )
+<<<<<<< HEAD
                 self.assertTrue(type(output_to_compare) is type(control))
+=======
+                self.assertTrue(type(output_to_compare) == type(control))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 comparison = compare(output_to_compare, control)
                 self.assertTrue(comparison, f"torch.{op} result did not match control")
             self.assertTrue(torch.is_autocast_enabled(device_type=device))

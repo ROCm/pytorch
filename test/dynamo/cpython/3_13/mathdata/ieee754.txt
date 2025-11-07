@@ -51,7 +51,11 @@ nan
 >>> INF / INF
 nan
 
+<<<<<<< HEAD
 However unambiguous operations with inf return inf:
+=======
+However unambigous operations with inf return inf:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 >>> INF * INF
 inf
 >>> 1.5 * INF

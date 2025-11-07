@@ -7,6 +7,10 @@ from urllib.request import urlretrieve
 
 
 MIRRORS = [
+<<<<<<< HEAD
+=======
+    "http://yann.lecun.com/exdb/mnist/",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "https://ossci-datasets.s3.amazonaws.com/mnist/",  # @lint-ignore
 ]
 
@@ -24,7 +28,10 @@ def report_download_progress(
     file_size: int,
 ) -> None:
     if file_size != -1:
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         percent = min(1, (chunk_number * chunk_size) / file_size)
         bar = "#" * int(64 * percent)
         sys.stdout.write(f"\r0% |{bar:<64}| {int(percent * 100)}%")

@@ -1,5 +1,9 @@
 import operator
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.intrinsic as nni
@@ -19,10 +23,13 @@ from torch.ao.quantization.backend_config import get_native_backend_config
 from .ns_types import NSNodeTargetType
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 toq = torch.ops.quantized
 
 
@@ -419,7 +426,10 @@ def get_base_name_to_sets_of_related_ops() -> dict[str, set[NSNodeTargetType]]:
         target2,
     ) in _lower_to_native_backend.STATIC_LOWER_FUNCTIONAL_MAP.items():
         new_connections.append((source, target1))
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_connections.append((source, target2))
 
     for source_to_target in (
@@ -428,7 +438,10 @@ def get_base_name_to_sets_of_related_ops() -> dict[str, set[NSNodeTargetType]]:
         quantization_mappings.DEFAULT_FLOAT_TO_QUANTIZED_OPERATOR_MAPPINGS,
     ):
         for source, target in source_to_target.items():  # type:ignore[assignment]
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             new_connections.append((source, target))
 
     #

@@ -298,7 +298,10 @@ def update_in(d, keys, func, default=None, factory=dict):
     rv = inner = factory()
     rv.update(d)
 
+<<<<<<< HEAD
     # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for key in ks:
         if k in d:
             d = d[k]

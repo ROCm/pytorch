@@ -2,12 +2,19 @@ import math
 import os
 import re
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import nullcontext
 from copy import deepcopy
 from enum import auto, Enum
 from functools import partial, wraps
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, Union
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import torch
@@ -143,7 +150,10 @@ class _WeakRefInfo:
         self.size = size
         self.element_size = element_size
         self.reftype = reftype
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = device
         self.mem_consumed = self._calculate_mem_consumed()
 
@@ -405,7 +415,10 @@ class MemTracker(TorchDispatchMode):
         # Initialize a flag to track if the total memory might drop to zero after updates.
         maybe_zero = False
         # Ensure the device entry exists in the current memory snapshot, initializing if necessary.
+<<<<<<< HEAD
         # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dev_snap = self._curr_mem_snap.setdefault(
             winfo.device, dict.fromkeys(self._ref_class, 0)
         )
@@ -917,7 +930,10 @@ class MemTracker(TorchDispatchMode):
         self._depth += 1
         return self
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __exit__(self, *args: Any) -> None:
         self._depth -= 1
         if self._depth == 0:
@@ -935,7 +951,10 @@ class MemTracker(TorchDispatchMode):
         ):
             # N.B: This is a hacky way to override the Meta IMPL of wait_tensor. The original impl returns
             # a new tensor which does not happen in eager mode, when a wait_tensor is called.
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             res = args[0]
         else:
             res = func(*args, **kwargs or {})

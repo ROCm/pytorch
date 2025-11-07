@@ -15,6 +15,7 @@ namespace cuda::detail {
 namespace {
 
 // Total number of gpus in the system.
+<<<<<<< HEAD
 int64_t num_gpus;
 
 // Ensures default_gens_cuda is initialized once.
@@ -22,12 +23,25 @@ std::deque<c10::once_flag> cuda_gens_init_flag;
 
 // Default, global CUDA generators, one per GPU.
 std::vector<Generator> default_gens_cuda;
+=======
+static int64_t num_gpus;
+
+// Ensures default_gens_cuda is initialized once.
+static std::deque<c10::once_flag> cuda_gens_init_flag;
+
+// Default, global CUDA generators, one per GPU.
+static std::vector<Generator> default_gens_cuda;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 /*
  * Populates the global variables related to CUDA generators
  * Warning: this function must only be called once!
  */
+<<<<<<< HEAD
 void initCUDAGenVector() {
+=======
+static void initCUDAGenVector() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Ensures we only call cudaGetDeviceCount only once.
   static bool num_gpu_init_flag [[maybe_unused]] = []() {
     num_gpus = static_cast<int32_t>(c10::cuda::device_count());
@@ -109,7 +123,11 @@ void CUDAGeneratorState::increase(uint64_t increment) {
         offset_intragraph_ % 4 == 0, "RNG offset must be a multiple of 4.");
     // Ensures the increment does not cause overflow.
     TORCH_INTERNAL_ASSERT(
+<<<<<<< HEAD
         offset_intragraph_ <= std::numeric_limits<uint64_t>::max() - increment,
+=======
+        offset_intragraph_ <= std::numeric_limits<uint32_t>::max() - increment,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Increment causes overflow in the offset value.");
     offset_intragraph_ += increment;
   } else {
@@ -266,6 +284,7 @@ CUDAGeneratorImpl::CUDAGeneratorImpl(
  * See Note [Acquire lock when using random generators]
  */
 void CUDAGeneratorImpl::set_current_seed(uint64_t seed) {
+<<<<<<< HEAD
   if (C10_LIKELY(at::cuda::currentStreamCaptureStatus() == at::cuda::CaptureStatus::None)) {
     state_->seed_ = seed;
     state_->philox_offset_per_thread_ = 0;
@@ -274,6 +293,13 @@ void CUDAGeneratorImpl::set_current_seed(uint64_t seed) {
     TORCH_CHECK(state_->seed_ == seed, "CUDAGeneratorImpl::set_current_seed can be called during stream capture only if new seed is the same as the original seed.");
     // no-op case
   }
+=======
+  at::cuda::assertNotCapturing(
+      "Cannot call CUDAGeneratorImpl::set_current_seed");
+  state_->seed_ = seed;
+  state_->philox_offset_per_thread_ = 0;
+  no_reset_rnn_state_.clear();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 /**
@@ -302,6 +328,12 @@ uint64_t CUDAGeneratorImpl::get_offset() const {
  * Gets the current seed of CUDAGeneratorImpl.
  */
 uint64_t CUDAGeneratorImpl::current_seed() const {
+<<<<<<< HEAD
+=======
+  // Debatable if current_seed() should be allowed in captured regions.
+  // Conservatively disallow it for now.
+  at::cuda::assertNotCapturing("Cannot call CUDAGeneratorImpl::current_seed");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return state_->seed_;
 }
 
@@ -325,9 +357,15 @@ uint64_t CUDAGeneratorImpl::seed() {
  */
 c10::intrusive_ptr<c10::TensorImpl> CUDAGeneratorImpl::get_state() const {
   // The RNG state comprises the seed, and an offset used for Philox.
+<<<<<<< HEAD
   constexpr size_t seed_size = sizeof(uint64_t);
   constexpr size_t offset_size = sizeof(int64_t);
   constexpr size_t total_size = seed_size + offset_size;
+=======
+  static const size_t seed_size = sizeof(uint64_t);
+  static const size_t offset_size = sizeof(int64_t);
+  static const size_t total_size = seed_size + offset_size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto state_tensor = at::detail::empty_cpu({(int64_t)total_size}, ScalarType::Byte, std::nullopt, std::nullopt, std::nullopt, std::nullopt);
   auto rng_state = state_tensor.data_ptr<uint8_t>();
@@ -346,9 +384,17 @@ c10::intrusive_ptr<c10::TensorImpl> CUDAGeneratorImpl::get_state() const {
  * and size of the internal state.
  */
 void CUDAGeneratorImpl::set_state(const c10::TensorImpl& new_state) {
+<<<<<<< HEAD
   constexpr size_t seed_size = sizeof(uint64_t);
   constexpr size_t offset_size = sizeof(int64_t);
   constexpr size_t total_size = seed_size + offset_size;
+=======
+  at::cuda::assertNotCapturing(
+      "Please ensure to utilize the CUDAGeneratorImpl::set_state_index method during capturing.");
+  static const size_t seed_size = sizeof(uint64_t);
+  static const size_t offset_size = sizeof(int64_t);
+  static const size_t total_size = seed_size + offset_size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   detail::check_rng_state(new_state);
 
@@ -400,6 +446,7 @@ c10::intrusive_ptr<c10::GeneratorImpl> CUDAGeneratorImpl::graphsafe_get_state()
  */
 void CUDAGeneratorImpl::set_philox_offset_per_thread(uint64_t offset) {
   // see Note [Why enforce RNG offset % 4 == 0?]
+<<<<<<< HEAD
 
   // Note: If you use CUDNN RNN's, calling
   // set_philox_offset_per_thread instead of set_offset will cause the
@@ -410,17 +457,25 @@ void CUDAGeneratorImpl::set_philox_offset_per_thread(uint64_t offset) {
   } else {
     state_->offset_intragraph_ = offset;
   }
+=======
+  TORCH_CHECK(offset % 4 == 0, "offset must be a multiple of 4");
+  state_->philox_offset_per_thread_ = offset;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 /**
  * Gets the current philox_offset_per_thread_ of CUDAGeneratorImpl.
  */
 uint64_t CUDAGeneratorImpl::philox_offset_per_thread() const {
+<<<<<<< HEAD
   if (C10_LIKELY(at::cuda::currentStreamCaptureStatus() == at::cuda::CaptureStatus::None)) {
     return state_->philox_offset_per_thread_;
   } else {
     return state_->offset_intragraph_;
   }
+=======
+  return state_->philox_offset_per_thread_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 /**
@@ -461,7 +516,11 @@ void CUDAGeneratorImpl::unregister_graph(cuda::CUDAGraph* graph) {
  */
 PhiloxCudaState CUDAGeneratorImpl::philox_cuda_state(uint64_t increment) {
   if (at::cuda::currentStreamCaptureStatus() != at::cuda::CaptureStatus::None) {
+<<<<<<< HEAD
     uint64_t offset = state_->offset_intragraph_;
+=======
+    uint32_t offset = state_->offset_intragraph_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     state_->increase(increment);
     return PhiloxCudaState(
         state_->seed_extragraph_.data_ptr<int64_t>(),

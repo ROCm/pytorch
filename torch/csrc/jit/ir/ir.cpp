@@ -842,7 +842,14 @@ bool Value::isValidName(const std::string& name) {
 }
 
 Value* Value::setDebugName(const std::string& name) {
+<<<<<<< HEAD
   TORCH_CHECK(isValidName(name), "Invalid name: '", name, "'")
+=======
+  if (!isValidName(name)) {
+    throw std::runtime_error("Invalid name: '" + name + "'");
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto& names = node()->owningGraph()->unique_names_;
 
   // clear any old name from the map
@@ -967,7 +974,12 @@ static size_t findArgument(
       return i;
     }
   }
+<<<<<<< HEAD
   TORCH_CHECK(false, "Couldn't find an argument called ", unqualName);
+=======
+  throw std::runtime_error(
+      std::string("Couldn't find an argument called ") + unqualName);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static size_t findArgument(const FunctionSchema& the_schema, Symbol name) {
@@ -1139,7 +1151,11 @@ bool Node::isNondeterministic() const {
   if (!kind().is_aten()) {
     return false;
   }
+<<<<<<< HEAD
   // All aten ops are expected to have a schema. However this is left as a
+=======
+  // All aten ops are expecte to have a schema. However this is left as a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // warning instead of an assert to ensure that previous use cases do not
   // break.
   if (!schema) {
@@ -1175,10 +1191,18 @@ bool Node::hasSideEffects() const {
     case prim::rpc_sync: // It represents RPC message sent.
     case prim::rpc_remote: // It represents RPC message sent.
     case aten::wait: // It can represent RPC message received.
+<<<<<<< HEAD
+=======
+#if !defined(USE_ROCM)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case cuda::set_stream:
     case cuda::_set_device:
     case cuda::_current_device:
     case cuda::synchronize:
+<<<<<<< HEAD
+=======
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     case prim::Enter:
     case prim::Exit:
       return true;
@@ -1642,7 +1666,11 @@ Block* Node::findCommonAncestorBlockWith(Node* n) {
     n2 = n2->owningBlock()->owningNode();
   }
 
+<<<<<<< HEAD
   // Now they are the same number of blocks from the graph block,
+=======
+  // Now they are the same numer of blocks from the graph block,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // recurse upwards, checking if they are on the same block
   while (true) {
     if (n1->owningBlock() == n2->owningBlock()) {
@@ -1767,7 +1795,11 @@ Node* Graph::createTupleSlice(
 
   int64_t i = beg;
   for ([[maybe_unused]] const auto j : c10::irange(num_values)) {
+<<<<<<< HEAD
     auto idx = insertConstant(IValue(i));
+=======
+    auto idx = insertConstant(IValue(static_cast<int64_t>(i)));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto tupleIndex = insertNode(createTupleIndex(tup, idx, tt->elements()[i]));
 
     new_vals.push_back(tupleIndex->output());

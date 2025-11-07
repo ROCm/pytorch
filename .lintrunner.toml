@@ -13,12 +13,19 @@ exclude_patterns = [
     '**/fb/**',
     'functorch/docs/**',
     'functorch/examples/**',
+<<<<<<< HEAD
     'functorch/docs/source/tutorials/**',
+=======
+    'functorch/notebooks/**',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'torch/_inductor/fx_passes/serialized_patterns/**',
     'torch/_inductor/autoheuristic/artifacts/**',
     'scripts/**',
     'test/generated_type_hints_smoketest.py',
+<<<<<<< HEAD
     'test/test_torchfuzz_repros.py',
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # CPython tests
     'test/dynamo/cpython/**',
     # Tests from the NumPy test suite
@@ -28,7 +35,10 @@ exclude_patterns = [
     'torch/lib/**',
     'venv/**',
     '**/*.pyi',
+<<<<<<< HEAD
     "tools/experimental/torchfuzz/**",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'tools/test/test_selective_build.py',
 ]
 command = [
@@ -41,6 +51,7 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'flake8==7.3.0',
     'flake8-bugbear==24.12.12',
     'flake8-comprehensions==3.16.0',
@@ -52,6 +63,19 @@ init_command = [
     'pycodestyle==2.14.0',
     'pyflakes==3.4.0',
     'torchfix==0.4.0 ; python_version >= "3.10" and python_version < "3.13"',
+=======
+    'flake8==6.1.0',
+    'flake8-bugbear==23.3.23',
+    'flake8-comprehensions==3.15.0',
+    'flake8-executable==2.1.3',
+    'flake8-logging-format==0.9.0',
+    'flake8-pyi==23.3.1',
+    'flake8-simplify==0.19.3',
+    'mccabe==0.7.0',
+    'pycodestyle==2.11.1',
+    'pyflakes==3.1.0',
+    'torchfix==0.4.0 ; python_version >= "3.9" and python_version < "3.13"',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 
@@ -124,8 +148,11 @@ is_formatter = true
 [[linter]]
 code = 'MYPY'
 include_patterns = [
+<<<<<<< HEAD
     'setup.py',
     'functorch/dim/**/*.py',
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'torch/**/*.py',
     'torch/**/*.pyi',
     'caffe2/**/*.py',
@@ -135,7 +162,11 @@ include_patterns = [
     'test/test_complex.py',
     'test/test_datapipe.py',
     'test/test_futures.py',
+<<<<<<< HEAD
     'test/test_numpy_interop.py',
+=======
+    # 'test/test_numpy_interop.py',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'test/test_torch.py',
     'test/test_type_hints.py',
     'test/test_type_info.py',
@@ -155,22 +186,37 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'numpy==1.26.4 ; python_version >= "3.10" and python_version <= "3.11"',
+=======
+    'numpy==1.26.4 ; python_version >= "3.9" and python_version <= "3.11"',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'numpy==2.1.0 ; python_version >= "3.12"',
     'expecttest==0.3.0',
     'mypy==1.16.0',
     'sympy==1.13.3',
     'types-requests==2.27.25',
+<<<<<<< HEAD
     'types-pyyaml==6.0.2',
+=======
+    'types-pyyaml==6.0.1',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'types-tabulate==0.8.8',
     'types-protobuf==5.29.1.20250403',
     'types-setuptools==79.0.0.20250422',
     'types-jinja2==2.11.9',
     'types-colorama==0.4.6',
+<<<<<<< HEAD
     'filelock==3.18.0',
     'junitparser==2.1.1',
     'rich==14.1.0',
     'pyyaml==6.0.2',
+=======
+    'filelock==3.13.1',
+    'junitparser==2.1.1',
+    'rich==10.9.0',
+    'pyyaml==6.0.1',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'optree==0.13.0',
     'dataclasses-json==0.6.7',
     'pandas==2.2.3',
@@ -198,7 +244,10 @@ exclude_patterns = [
     'tools/test/gen_operators_yaml_test.py',
     'tools/test/gen_oplist_test.py',
     'tools/test/test_selective_build.py',
+<<<<<<< HEAD
     'tools/experimental/torchfuzz/**',
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 command = [
     'python3',
@@ -209,6 +258,7 @@ command = [
     '@{{PATHSFILE}}'
 ]
 
+<<<<<<< HEAD
 
 [[linter]]
 code = 'PYREFLY'
@@ -249,6 +299,8 @@ init_command = [
     'types-python-dateutil==2.9.0.20251008'
 ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 [[linter]]
 code = 'CLANGTIDY'
 include_patterns = [
@@ -275,8 +327,12 @@ include_patterns = [
     'c10/**/*.cpp',
     'c10/**/*.h',
     'torch/*.h',
+<<<<<<< HEAD
     'torch/_inductor/codegen/aoti_runtime/*.h',
     'torch/_inductor/codegen/aoti_runtime/*.cpp',
+=======
+    'torch/_inductor/codegen/aoti_runtime/interface.cpp',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'torch/csrc/*.h',
     'torch/csrc/*.cpp',
     'torch/csrc/**/*.h',
@@ -544,7 +600,11 @@ include_patterns = [
     '**/*.h',
 ]
 exclude_patterns = [
+<<<<<<< HEAD
     'torch/headeronly/macros/Macros.h',
+=======
+    'c10/macros/Macros.h',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 command = [
     'python3',
@@ -567,7 +627,11 @@ include_patterns = [
     '**/*.h',
 ]
 exclude_patterns = [
+<<<<<<< HEAD
     'torch/headeronly/macros/Macros.h',
+=======
+    'c10/macros/Macros.h',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 command = [
     'python3',
@@ -627,7 +691,11 @@ exclude_patterns = [
 command = [
     'python3',
     'tools/linter/adapters/grep_linter.py',
+<<<<<<< HEAD
     '--pattern=#include <pybind11\/(^|[^(gil_simple\.h)])',
+=======
+    '--pattern=#include <pybind11\/(^|[^(gil\.h)])',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     '--allowlist-pattern=#include <torch\/csrc\/utils\/pybind.h>',
     '--linter-name=PYBIND11_INCLUDE',
     '--match-first-only',
@@ -833,7 +901,12 @@ exclude_patterns = [
 command = [
     'python3',
     'tools/linter/adapters/grep_linter.py',
+<<<<<<< HEAD
     '--pattern=(cudaSetDevice|cudaGetDevice)\\(',
+=======
+    '--pattern=cudaSetDevice(',
+    '--pattern=cudaGetDevice(',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     '--linter-name=RAWCUDADEVICE',
     '--error-name=raw CUDA API usage',
     """--error-description=\
@@ -1007,6 +1080,10 @@ exclude_patterns = [
     'test/jit/**',  # should be run through test/test_jit.py
     'test/ao/sparsity/**',  # should be run through test/test_ao_sparsity.py
     'test/fx/**',  # should be run through test/test_fx.py
+<<<<<<< HEAD
+=======
+    'test/bottleneck_test/**',  # excluded by test/run_test.py
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'test/package/**',  # excluded by test/run_test.py
     'test/distributed/argparse_util_test.py',
     'test/distributed/bin/test_script.py',
@@ -1137,8 +1214,16 @@ command = [
 [[linter]]
 code = 'WORKFLOWSYNC'
 include_patterns = [
+<<<<<<< HEAD
     '.github/workflows/*.yml',
     '.github/workflows/*.yaml',
+=======
+    '.github/workflows/pull.yml',
+    '.github/workflows/trunk.yml',
+    '.github/workflows/periodic.yml',
+    '.github/workflows/mac-mps.yml',
+    '.github/workflows/slow.yml',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 command = [
     'python3',
@@ -1150,7 +1235,11 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'pyyaml==6.0.2',
+=======
+    'PyYAML==6.0.1',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 [[linter]]
@@ -1172,7 +1261,11 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'pyyaml==6.0.2',
+=======
+    'PyYAML==6.0.1',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 
 [[linter]]
@@ -1197,6 +1290,7 @@ exclude_patterns = [
     'torch/_vendor/**',
     'torch/_inductor/fx_passes/serialized_patterns/**',
     'torch/_inductor/autoheuristic/artifacts/**',
+<<<<<<< HEAD
     'torch/utils/model_dump/preact.mjs',
     # These files are all grandfathered in, feel free to remove from this list
     # as necessary
@@ -1204,6 +1298,31 @@ exclude_patterns = [
     'aten/src/ATen/native/[a-pA-P]*/**',
     'aten/src/ATen/[a-mA-M]*/**',
     'test/**',
+=======
+    # These files are all grandfathered in, feel free to remove from this list
+    # as necessary
+    # NOTE: remove the patterns in the order they are listed
+    'aten/**',
+    'aten/src/ATen/native/**',
+    'aten/src/ATen/native/q*/**',
+    'aten/src/ATen/native/[a-pA-P]*/**',
+    'aten/src/ATen/[a-mA-M]*/**',
+    'test/**',
+    'test/test_*',
+    'test/[a-hA-h]*/**',
+    'test/inductor/**',
+    'test/dynamo/**',
+    'test/distributed/**',
+    'torch/**',
+    'torch/_*/**',
+    'torch/ao/**',
+    'torch/fx/**',
+    'torch/distributed/tensor/**',
+    'torch/[j-o]*/**',
+    'torch/utils/**',
+    'torch/csrc/jit/**',
+    'torch/csrc/jit/[a-o]*/**',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 init_command = [
     'python3',
@@ -1298,7 +1417,10 @@ exclude_patterns = [
     'test/test_masked.py',
     'test/test_maskedtensor.py',
     'test/test_matmul_cuda.py',
+<<<<<<< HEAD
     'test/test_scaled_matmul_cuda.py',
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'test/test_meta.py',
     'test/test_metal.py',
     'test/test_mkl_verbose.py',
@@ -1450,6 +1572,11 @@ exclude_patterns = [
     'torch/utils/benchmark/utils/timer.py',
     'torch/utils/benchmark/utils/valgrind_wrapper/__init__.py',
     'torch/utils/benchmark/utils/valgrind_wrapper/timer_interface.py',
+<<<<<<< HEAD
+=======
+    'torch/utils/bottleneck/__init__.py',
+    'torch/utils/bottleneck/__main__.py',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'torch/utils/bundled_inputs.py',
     'torch/utils/checkpoint.py',
     'torch/utils/collect_env.py',
@@ -1490,13 +1617,22 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'usort==1.0.8.post1',
     'isort==6.0.1',
     'ruff==0.13.1',  # sync with RUFF
+=======
+    '--no-black-binary',
+    'black==23.12.1',
+    'usort==1.0.8.post1',
+    'isort==6.0.1',
+    'ruff==0.11.13',  # sync with RUFF
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 is_formatter = true
 
 [[linter]]
+<<<<<<< HEAD
 code = 'PYPROJECT'
 command = [
     'python3',
@@ -1541,6 +1677,8 @@ init_command = [
 ]
 
 [[linter]]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 code = 'COPYRIGHT'
 include_patterns = ['**']
 exclude_patterns = [
@@ -1606,10 +1744,17 @@ include_patterns = [
 exclude_patterns = [
     'caffe2/**',
     'functorch/docs/**',
+<<<<<<< HEAD
     'torch/_inductor/fx_passes/serialized_patterns/**',
     'torch/_inductor/autoheuristic/artifacts/**',
     'test/dynamo/cpython/**',
     'test/test_torchfuzz_repros.py',
+=======
+    'functorch/notebooks/**',
+    'torch/_inductor/fx_passes/serialized_patterns/**',
+    'torch/_inductor/autoheuristic/artifacts/**',
+    'test/dynamo/cpython/**',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     'scripts/**',
     'third_party/**',
     'fb/**',
@@ -1627,7 +1772,11 @@ init_command = [
     'python3',
     'tools/linter/adapters/pip_init.py',
     '--dry-run={{DRYRUN}}',
+<<<<<<< HEAD
     'ruff==0.13.1',  # sync with PYFMT
+=======
+    'ruff==0.11.13',  # sync with PYFMT
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 is_formatter = true
 
@@ -1636,10 +1785,14 @@ is_formatter = true
 # the same line, merge conflicts should not arise in git or hg
 [[linter]]
 code = 'MERGE_CONFLICTLESS_CSV'
+<<<<<<< HEAD
 include_patterns = [
     'benchmarks/dynamo/ci_expected_accuracy/*.csv',
     'benchmarks/dynamo/pr_time_benchmarks/expected_results.csv',
 ]
+=======
+include_patterns = ['benchmarks/dynamo/ci_expected_accuracy/*.csv']
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 command = [
     'python3',
     'tools/linter/adapters/no_merge_conflict_csv_linter.py',
@@ -1830,6 +1983,7 @@ include_patterns = [
     'torch/header_only_apis.txt',
 ]
 is_formatter = false
+<<<<<<< HEAD
 
 
 [[linter]]
@@ -1839,3 +1993,5 @@ command = [
   "python3",
   "tools/linter/adapters/gb_registry_linter.py",
 ]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

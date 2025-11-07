@@ -22,9 +22,12 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
 from torch.testing._internal.distributed.checkpoint_utils import with_temp_dir
 
 
+<<<<<<< HEAD
 device_type = acc.type if (acc := torch.accelerator.current_accelerator()) else "cpu"
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class SimpleModelUneven(nn.Module):
     def __init__(self) -> None:
         super().__init__()
@@ -43,7 +46,11 @@ class SimpleModelUneven(nn.Module):
         return x
 
     def get_input(self):
+<<<<<<< HEAD
         return torch.rand(4, 5, device=device_type)
+=======
+        return torch.rand(4, 5, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestFormatUtils(DTensorTestBase):
@@ -90,7 +97,11 @@ class TestFormatUtils(DTensorTestBase):
 
         # Load into a sharded model
         device_mesh = init_device_mesh(self.device_type, (self.world_size,))
+<<<<<<< HEAD
         model = SimpleModelUneven().to(self.device_type)
+=======
+        model = SimpleModelUneven().cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         model = FSDP(
             model,
             device_mesh=device_mesh,

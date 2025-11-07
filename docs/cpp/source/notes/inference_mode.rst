@@ -64,7 +64,11 @@ users should pay additional attention to:
 
   - Both guards affects tensor execution process to skip work not related to inference, but ``InferenceMode``
     also affects tensor creation while ``AutoNonVariableTypeMode`` doesn't. In other words, tensors created
+<<<<<<< HEAD
     inside ``InferenceMode`` are marked as inference tensors so that certain limitations can be applied after
+=======
+    inside ``InferenceMode`` are marked as inference tensors so that certain limitation can be applied after
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     exiting ``InferenceMode``.
   - Enabled/disabled ``InferenceMode`` states can be nested while ``AutoNonVariableTypeMode`` only allows enabled state.
 

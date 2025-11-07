@@ -26,7 +26,10 @@ if [[ "${SHARD_NUMBER:-2}" == "2" ]]; then
     time python test/run_test.py --verbose -i distributed/test_c10d_spawn_gloo
     time python test/run_test.py --verbose -i distributed/test_c10d_spawn_nccl
     time python test/run_test.py --verbose -i distributed/test_compute_comm_reordering
+<<<<<<< HEAD
     time python test/run_test.py --verbose -i distributed/test_aten_comm_compute_reordering
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     time python test/run_test.py --verbose -i distributed/test_store
     time python test/run_test.py --verbose -i distributed/test_symmetric_memory
     time python test/run_test.py --verbose -i distributed/test_pg_wrapper
@@ -46,7 +49,10 @@ if [[ "${SHARD_NUMBER:-2}" == "2" ]]; then
     # DTensor tests
     time python test/run_test.py --verbose -i distributed/tensor/test_random_ops
     time python test/run_test.py --verbose -i distributed/tensor/test_dtensor_compile
+<<<<<<< HEAD
     time python test/run_test.py --verbose -i distributed/tensor/test_utils.py
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # DeviceMesh test
     time python test/run_test.py --verbose -i distributed/test_device_mesh

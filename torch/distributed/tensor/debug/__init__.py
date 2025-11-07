@@ -19,6 +19,7 @@ def _get_sharding_prop_cache_info():
     )
 
 
+<<<<<<< HEAD
 def _clear_sharding_prop_cache():
     """
     Clears the cache for the sharding propagation cache, used for debugging purpose only.
@@ -30,6 +31,8 @@ def _clear_sharding_prop_cache():
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Set namespace for exposed private names
 CommDebugMode.__module__ = "torch.distributed.tensor.debug"
 visualize_sharding.__module__ = "torch.distributed.tensor.debug"

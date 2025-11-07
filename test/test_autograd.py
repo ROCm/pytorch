@@ -109,10 +109,13 @@ def graph_desc(fn):
 
 
 class TestAutograd(TestCase):
+<<<<<<< HEAD
     def tearDown(self):
         torch.autograd._force_original_view_tracking(False)
         super(TestCase, self).tearDown()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_copy_slices_graph_task_updates(self):
         def f1(x, y):
             out = x.clone().view(-1)
@@ -1196,6 +1199,7 @@ class TestAutograd(TestCase):
                 tmp_edge, inputs=(x,), grad_tensors=torch.tensor([1.0, 2.0, 3.0, 4.0])
             )
 
+<<<<<<< HEAD
     def test_gradient_edge_graph_ownership(self):
         # Ensure we own the graph properly
         class Clone(torch.autograd.Function):
@@ -1223,6 +1227,8 @@ class TestAutograd(TestCase):
         del out
         torch.autograd.backward(edge)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_grad_nonleaf(self):
         x_init = torch.randn(2, 2, requires_grad=True)
         x = x_init
@@ -3694,6 +3700,7 @@ class TestAutograd(TestCase):
     def test_sparse_gather_both_scalar(self):
         self._test_sparse_gather((), (), 0)
 
+<<<<<<< HEAD
     @skipIfTorchDynamo("grad_dtype not supported in compile")
     def test_grad_dtype(self):
         leaf = torch.tensor([1.0, 2.0], requires_grad=True)
@@ -3818,6 +3825,8 @@ class TestAutograd(TestCase):
         z2.sum().backward()
         self.assertEqual(l.grad.dtype, torch.float32)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_gc_in_destructor(self):
         """
         Previously, if a Function destructor triggered a garbage collection,
@@ -4012,6 +4021,7 @@ class TestAutograd(TestCase):
         torch.autograd.grad(y, x, create_graph=True)
         torch.autograd.grad(y, x)  # should not error!
 
+<<<<<<< HEAD
     def test_custom_autograd_ac_early_stop(self):
         refs = []
 
@@ -4044,6 +4054,8 @@ class TestAutograd(TestCase):
             for ref in refs:
                 self.assertIsNone(ref())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_detach(self):
         x = torch.randn(10, 10, requires_grad=True)
         y = x + 2
@@ -4316,7 +4328,11 @@ class TestAutograd(TestCase):
         self.assertIsNone(y.grad_fn)
 
     def test_backward_copy(self):
+<<<<<<< HEAD
         # This tests checks backward engine for a very subtle bug that appeared
+=======
+        # This tests checks backward engine for a very subtle bug that appreared
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # in one of the initial versions of autograd. Gradients tensors were
         # simply stored in lists while the function waited for all its gradients
         # to be computed. However, sometimes an output was used multiple times,
@@ -4499,7 +4515,11 @@ class TestAutograd(TestCase):
                     ctx.output_var.sum().backward()
                 return ctx.x.grad * grad_output
 
+<<<<<<< HEAD
         # Reentrant starts on CPU thread, finishes on GPU thread
+=======
+        # Reentrant starts on CPU thread, finishs on GPU thread
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(2, 2, requires_grad=True)
         out = Reenter.apply(x)
         out.sum().backward()
@@ -5050,6 +5070,10 @@ Running aten.expand.default from within SumBackward0
 Running aten.div.Tensor from within DivBackward0
 Running aten.mul.Tensor from within MulBackward0
 Running aten.detach.default from within AccumulateGrad
+<<<<<<< HEAD
+=======
+Running aten.detach.default from within AccumulateGrad
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Done""",
         )
 
@@ -5896,7 +5920,11 @@ Done""",
 
             @staticmethod
             def backward(ctx, grad):
+<<<<<<< HEAD
                 # Create a sparse tensor with non-contiguous indices and values
+=======
+                # Create a sparse tensor with non-contigous indices and values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # and return as grad.
                 v = torch.rand(1, 3)
                 i = torch.ones(1, 1, dtype=torch.long)
@@ -7322,7 +7350,13 @@ for shape in [(1,), ()]:
             lambda x: x.exp(), x, use_reentrant=False, context_fn=context_fn
         )
         out.backward()
+<<<<<<< HEAD
         self.assertEqual(verbose_mode.operators, ["exp.default", "detach.default"])
+=======
+        self.assertEqual(
+            verbose_mode.operators, ["exp.default", "detach.default", "detach.default"]
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with self.assertRaisesRegex(
             Exception, "only supported when use_reentrant=False"
@@ -8073,6 +8107,7 @@ for shape in [(1,), ()]:
         for t in results:
             self.assertEqual(t.grad_fn._saved_scalars, scalars)
 
+<<<<<<< HEAD
     def test_get_data_and_hooks_from_raw_saved_variable(self):
         def pack_hook(t):
             return t
@@ -8102,6 +8137,8 @@ for shape in [(1,), ()]:
         self.assertTrue(pow2_sv.data is c)
         self.assertIsNone(pow2_sv.unpack_hook)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_cant_create_saved_tensors(self):
         with self.assertRaisesRegex(
             RuntimeError,
@@ -8344,8 +8381,12 @@ for shape in [(1,), ()]:
 
         class IdOneOutput(Function):
             @staticmethod
+<<<<<<< HEAD
             def forward(ctx, a, make_view, pure_view):
                 ctx._is_pure_view = pure_view
+=======
+            def forward(ctx, a, b, make_view):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if make_view:
                     a = a.narrow(0, 0, 2)
                 else:
@@ -8359,8 +8400,12 @@ for shape in [(1,), ()]:
 
         class IdTwoOutput(Function):
             @staticmethod
+<<<<<<< HEAD
             def forward(ctx, a, b, make_view, pure_view):
                 ctx._is_pure_view = pure_view
+=======
+            def forward(ctx, a, b, make_view):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if make_view:
                     a = a.narrow(0, 0, 2)
                 else:
@@ -8374,12 +8419,20 @@ for shape in [(1,), ()]:
                     ga_nz[0] = False
                 else:
                     ga_nz[0] = True
+<<<<<<< HEAD
                 return ga + gab, gab, None, None
 
         class ViewOfTemp(Function):
             @staticmethod
             def forward(ctx, a, make_view, pure_view):
                 ctx._is_pure_view = pure_view
+=======
+                return ga + gab, gab, None
+
+        class ViewOfTemp(Function):
+            @staticmethod
+            def forward(ctx, a, make_view):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ctx.save_for_backward(a)
                 if make_view:
                     a = a.narrow(0, 0, 2)
@@ -8394,7 +8447,11 @@ for shape in [(1,), ()]:
                 (a,) = ctx.saved_tensors
                 res = torch.zeros_like(a)
                 res.select(0, 0).copy_(grad)
+<<<<<<< HEAD
                 return res, None, None
+=======
+                return res, None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         fn_id_to_inplace_on_view_err_msg = {
             "one_output": (
@@ -8403,6 +8460,7 @@ for shape in [(1,), ()]:
             ),
             "two_output": (
                 "Output 0 of IdTwoOutputBackward is a view and is being modified inplace."
+<<<<<<< HEAD
                 " This view is the output of a function that returns multiple views.",
                 "Pure view custom Function can only have one input Tensor and one output Tensor."
                 " Open an issue if you need to support more.",
@@ -8411,12 +8469,20 @@ for shape in [(1,), ()]:
                 "Output 0 of ViewOfTempBackward is a view and is being "
                 "modified inplace. This view was created inside a custom Function",
                 "a view of a leaf Variable that requires grad is being used in an in-place operation",
+=======
+                " This view is the output of a function that returns multiple views."
+            ),
+            "view_of_temp": (
+                "Output 0 of ViewOfTempBackward is a view and is being "
+                "modified inplace. This view was created inside a custom Function"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
         }
 
         for fn_id in ["one_output", "two_output", "view_of_temp"]:
             for inplace in [True, False]:
                 for make_view in [True, False]:
+<<<<<<< HEAD
                     for pure_view in [True, False]:
                         # Used for special casing the tests below
                         output_is_a_view = make_view or fn_id == "view_of_temp"
@@ -8493,6 +8559,62 @@ for shape in [(1,), ()]:
 
                         self.assertTrue(bw_called[0] == expected_called)
                         self.assertTrue(ga_nz[0] == expected_ga_nz)
+=======
+                    # Used for special casing the tests below
+                    output_is_a_view = make_view or fn_id == "view_of_temp"
+
+                    def fn(a, b):
+                        # never modify a, b inplace for gracheck
+                        a = a.clone()
+                        b = b.clone()
+                        if fn_id == "two_output":
+                            tmp1, tmp2 = IdTwoOutput.apply(a, b, make_view)
+                            if inplace:
+                                tmp1 += 3
+                                tmp2 += 3
+                            else:
+                                tmp1 = tmp1 + 3
+                                tmp2 = tmp2 + 3
+                            tmp = tmp1 * tmp2
+                        else:
+                            if fn_id == "one_output":
+                                tmp = IdOneOutput.apply(a, b, make_view)
+                            else:
+                                tmp = ViewOfTemp.apply(a + b, make_view)
+                            if inplace:
+                                tmp += 3
+                            else:
+                                tmp = tmp + 3
+
+                        return tmp.sum()
+
+                    a = torch.ones(2, dtype=dtype, requires_grad=True)
+                    b = torch.ones(2, dtype=dtype, requires_grad=True)
+
+                    err_msg = fn_id_to_inplace_on_view_err_msg[fn_id]
+
+                    if not inplace or not output_is_a_view:
+                        gradcheck(fn, (a, b), check_batched_grad=False)
+
+                    # Was the custom backward called properly
+                    bw_called[0] = 0
+                    ga_nz[0] = True  # For the case where the backward is called
+
+                    if inplace and output_is_a_view:
+                        with self.assertRaisesRegex(RuntimeError, err_msg):
+                            fn(a, b)
+                    else:
+                        fn(a, b).abs().backward()
+
+                    expected_called = 1
+                    expected_ga_nz = True
+
+                    if output_is_a_view and inplace:
+                        expected_called = 0
+
+                    self.assertTrue(bw_called[0] == expected_called)
+                    self.assertTrue(ga_nz[0] == expected_ga_nz)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_autograd_simple_views_python(self):
         self._do_test_autograd_simple_views_python(torch.double)
@@ -8956,6 +9078,7 @@ for shape in [(1,), ()]:
         expected.fill_(complex(abs_1_1j / 2, abs_1_1j / 2))
         self.assertEqual(z.grad, torch.view_as_real(expected))
 
+<<<<<<< HEAD
     def test_custom_function_saving_mutated_view_no_leak(self):
         class Test(torch.autograd.Function):
             @staticmethod
@@ -8977,6 +9100,8 @@ for shape in [(1,), ()]:
         ref = scope()
         self.assertIsNone(ref())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_custom_function_return_view_in_nograd(self):
         class Alias(Function):
             @staticmethod
@@ -10990,7 +11115,11 @@ class TestAutogradForwardMode(TestCase):
             dual = fwAD.make_dual(foo, tangent)
             self.assertFalse(tangent_ref.expired())
 
+<<<<<<< HEAD
             # Make sure that the tangent we provided has been reused as is
+=======
+            # Make sure that the tangent we provided has been re-used as is
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertTrue(fwAD.unpack_dual(dual)[1] is tangent)
 
             # Make sure that dual is keeping the tangent alive
@@ -11349,7 +11478,11 @@ class TestAutogradForwardMode(TestCase):
             self.assertEqual(
                 dual_tangent.storage().data_ptr(), bar.storage().data_ptr()
             )
+<<<<<<< HEAD
             # And the tangent is actually reused as-is so it is still the same Tensor
+=======
+            # And the tangent is actually re-used as-is so it is still the same Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIs(dual_tangent, bar)
 
             # Ensure we properly share the version counter
@@ -11861,7 +11994,11 @@ class TestAutogradDeviceType(TestCase):
             def test_nonzero(tensor, value, expected):
                 tensor[0] = value
                 self.assertEqual(expected, bool(tensor))
+<<<<<<< HEAD
                 self.assertEqual(expected, bool(tensor))
+=======
+                self.assertEqual(expected, True if tensor else False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             test_nonzero(l, 0, False)
             test_nonzero(l, -2, True)
@@ -12231,19 +12368,31 @@ class TestAutogradDeviceType(TestCase):
                         (new_param**2).sum().backward()
                 return grad_output
 
+<<<<<<< HEAD
         # Reentrant starts on GPU thread, finishes on GPU thread
+=======
+        # Reentrant starts on GPU thread, finishs on GPU thread
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(2, 2, device=device, requires_grad=True)
         out = ReentrantFunc.apply(x)
         out.sum().backward()
 
+<<<<<<< HEAD
         # Reentrant starts on CPU thread, finishes on GPU thread
+=======
+        # Reentrant starts on CPU thread, finishs on GPU thread
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(2, 2, requires_grad=True)
         # set ReentrantFunc node to GPU to emit tasks to GPU queue
         ReentrantFunc._cpu_mode = False
         out = ReentrantFunc.apply(x)
         out.sum().backward()
 
+<<<<<<< HEAD
         # Reentrant starts on GPU thread, finishes on CPU thread
+=======
+        # Reentrant starts on GPU thread, finishs on CPU thread
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = torch.randn(2, 2, device=device, requires_grad=True)
         # set ReentrantFunc node to CPU to emit tasks to CPU queue
         ReentrantFunc._cpu_mode = True
@@ -12654,6 +12803,7 @@ class TestAutogradDeviceType(TestCase):
         x.resize_as_(y)
         self.assertEqual(x._version, 2)
 
+<<<<<<< HEAD
     @unittest.skipIf(not torch.accelerator.is_available(), "requires accelerator")
     def test_zero_dim_param_mixed_device_grad(self, device):
         # cpu 0-dim params with an accelerator device grad
@@ -12677,6 +12827,8 @@ class TestAutogradDeviceType(TestCase):
         self.assertEqual(model.a.grad.device, torch.device("cpu"))
         self.assertEqual(model.b.grad.device, torch.device("cpu"))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestAllowMutationOnSaved(TestCase):
     def assertClonedLenEqual(self, ctx, n):
@@ -13950,7 +14102,11 @@ class TestMultithreadAutograd(TestCase):
                     y = x * x
                     if torch.cuda.device_count() >= 2:
                         # DataParallel is calling the forward in different threads
+<<<<<<< HEAD
                         # without propagating TLS, so hooks should not be called here
+=======
+                        # without progating TLS, so hooks should not be called here
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         _self.assertEqual(len(w), 0)
                     else:
                         # DataParallel only uses one thread
@@ -14372,13 +14528,17 @@ class TestNestedCheckpoint(TestCase):
             # early stop is enabled.
             return clone(x.sin().cos())
 
+<<<<<<< HEAD
         # Test default
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Early stopping is enabled by default
         a = torch.tensor(1.0, requires_grad=True)
         out = checkpoint(fn, a, use_reentrant=False)
         out.backward()
         self.assertEqual(counter[0], 1)
 
+<<<<<<< HEAD
         # Test local setting
         counter = [0]
         a = torch.tensor(1.0, requires_grad=True)
@@ -14393,6 +14553,9 @@ class TestNestedCheckpoint(TestCase):
         self.assertEqual(counter[0], 1)
 
         # Test context manager
+=======
+        # Try using the context manager to set early stopping to False.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Expect early stopping to be disabled for all checkpoints ran under
         # the context manager, even though context manager is no longer active
         # when backward/recomputation is performed.
@@ -14400,6 +14563,7 @@ class TestNestedCheckpoint(TestCase):
         a = torch.tensor(1.0, requires_grad=True)
         with torch.utils.checkpoint.set_checkpoint_early_stop(False):
             out = checkpoint(fn, a, use_reentrant=False)
+<<<<<<< HEAD
         out.backward()
         self.assertEqual(counter[0], 2)
 
@@ -14434,6 +14598,12 @@ class TestNestedCheckpoint(TestCase):
         out.backward()
         self.assertEqual(counter[0], 1)
 
+=======
+
+        out.backward()
+        self.assertEqual(counter[0], 2)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nested_checkpoint_set_early_stop_no_recompution_needed(self):
         # Case 1: We have one tensor saved and its the input
 

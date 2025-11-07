@@ -131,14 +131,20 @@ class ComputeCodegenUnboxedKernels:
                 else:
                     arg_cpp = f"c10::IValue({arg_default})"
             args_code.append(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"""c10::Argument("{arg.name}", nullptr, ::std::nullopt, {arg_cpp})"""
             )
 
         returns = f.func.returns
         returns_code = []
         for ret in returns:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             returns_code.append(f"""c10::Argument("{ret.name if ret.name else ""}")""")
         return f"""
 // aten::{schema}

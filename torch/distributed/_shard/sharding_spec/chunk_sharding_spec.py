@@ -167,7 +167,10 @@ class ChunkShardingSpec(ShardingSpec):
                     )
 
                 tensors_to_scatter[
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dist.get_group_rank(process_group, remote_global_rank)
                 ] = tensor_to_scatter
 

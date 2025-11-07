@@ -76,6 +76,10 @@ std::tuple<Tensor, Tensor> _cudnn_ctc_loss_tensor(
 
 #else // AT_CUDNN_ENABLED
 
+<<<<<<< HEAD
+=======
+#include <ATen/cudnn/Descriptors.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/cudnn/Types.h>
 #include <ATen/cudnn/Utils.h>
 
@@ -283,9 +287,15 @@ std::tuple<Tensor, Tensor> _cudnn_ctc_loss_tensor(
   checkBackend(c, {*targets}, Backend::CUDA);
   const auto batch_size = log_probs->size(1);
   int64_t input_lengths_size =
+<<<<<<< HEAD
       !input_lengths_.sizes().empty() ? input_lengths_.size(0) : 1;
   int64_t target_lengths_size =
       !target_lengths_.sizes().empty() ? target_lengths_.size(0) : 1;
+=======
+      input_lengths_.sizes().size() ? input_lengths_.size(0) : 1;
+  int64_t target_lengths_size =
+      target_lengths_.sizes().size() ? target_lengths_.size(0) : 1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       input_lengths_size == batch_size,
       "input_lengths needs to have size to match batch_size");

@@ -1,15 +1,22 @@
 # Owner(s): ["module: fx"]
 
+<<<<<<< HEAD
 import dataclasses
 from collections import defaultdict
 
 import torch
 import torch.fx.passes.operator_support as op_support
 import torch.fx.passes.splitter_base as splitter_base
+=======
+from collections import defaultdict
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.passes.split_utils import split_by_tags
 from torch.testing._internal.common_utils import TestCase
 
 
+<<<<<<< HEAD
 @torch.jit.script
 @dataclasses.dataclass
 class DummyDataClass:
@@ -23,6 +30,8 @@ def wrapped_add(_dataclass, y):
     return _dataclass.c + y
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestFXSplit(TestCase):
     def test_split_preserve_node_meta(self):
         class TestModule(torch.nn.Module):
@@ -54,6 +63,7 @@ class TestFXSplit(TestCase):
                 self.assertIn("name", node.meta)
                 self.assertEqual(node.meta["name"], node.name)
 
+<<<<<<< HEAD
     def test_dataclass_as_graph_entry(self):
         """
         Test that splitting works when the graph entry is a dataclass instance
@@ -113,6 +123,8 @@ class TestFXSplit(TestCase):
         split_module_result = split_result(test_input)
         self.assertTrue(torch.equal(original_result, split_module_result))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestSplitByTags(TestCase):
     class TestModule(torch.nn.Module):
@@ -296,7 +308,11 @@ class TestSplitOutputType(TestCase):
         gm_output = module(inputs)
         split_gm_output = split_gm(inputs)
 
+<<<<<<< HEAD
         self.assertTrue(type(gm_output) is type(split_gm_output))
+=======
+        self.assertTrue(type(gm_output) == type(split_gm_output))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(torch.equal(gm_output, split_gm_output))
 
 

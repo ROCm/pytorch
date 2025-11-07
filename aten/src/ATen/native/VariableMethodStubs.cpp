@@ -25,11 +25,19 @@
 namespace at::native {
 
 void _backward(const Tensor& self, TensorList inputs, const std::optional<Tensor>& gradient_opt, std::optional<bool> keep_graph, bool create_graph) {
+<<<<<<< HEAD
   self._backward(inputs, gradient_opt, keep_graph, create_graph);
 }
 
 void set_data(Tensor& self, const Tensor& new_data) {
   self.set_data(new_data);
+=======
+  return self._backward(inputs, gradient_opt, keep_graph, create_graph);
+}
+
+void set_data(Tensor& self, const Tensor& new_data) {
+  return self.set_data(new_data);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 Tensor data(const Tensor& self) {
@@ -54,7 +62,11 @@ Tensor& requires_grad_(Tensor& self, bool _requires_grad) {
 }
 
 void retain_grad(Tensor& self) {
+<<<<<<< HEAD
   self.retain_grad();
+=======
+  return self.retain_grad();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 bool retains_grad(const Tensor& self) {

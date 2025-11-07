@@ -261,7 +261,11 @@ std::ostream& operator<<(std::ostream& out, const FunctionSchema& schema) {
     //
     // There are 2 cases
     // 1. something like 'aten::items.str(Dict(str, t) self) -> ((str, t)[])'.
+<<<<<<< HEAD
     // without the extra parenthesis, the c++ scheme parser can not parse it.
+=======
+    // without the extra parenthesis, the c++ schem parser can not parse it.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // 2. something like '-> ((str, str))'. Need extra parenthesis so the return
     // type is a single tuple rather than two strings.
     // PR (https://github.com/pytorch/pytorch/pull/23204) has more context about

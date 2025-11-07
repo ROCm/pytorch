@@ -12,7 +12,10 @@
     :nosignatures:
 
     StreamContext
+<<<<<<< HEAD
     can_device_access_peer
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     current_device
     current_stream
     device
@@ -26,9 +29,13 @@
     get_stream_from_external
     init
     is_available
+<<<<<<< HEAD
     is_bf16_supported
     is_initialized
     is_tf32_supported
+=======
+    is_initialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_device
     set_stream
     stream
@@ -85,6 +92,7 @@
      memory_stats_as_nested_dict
      reset_accumulated_memory_stats
      reset_peak_memory_stats
+<<<<<<< HEAD
      set_per_process_memory_fraction
 ```
 
@@ -94,3 +102,13 @@
 
     xpu.aliases.md
 ```
+=======
+```
+
+<!-- This module needs to be documented. Adding here in the meantime
+for tracking purposes -->
+```{eval-rst}
+.. py:module:: torch.xpu.random
+.. py:module:: torch.xpu.streams
+```
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

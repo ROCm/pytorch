@@ -72,8 +72,12 @@ def _set_SIGCHLD_handler():
         # Python can still get and update the process status successfully.
         _error_if_any_worker_fails()
         if previous_handler is not None:
+<<<<<<< HEAD
             if not callable(previous_handler):
                 raise AssertionError("previous_handler is not callable")
+=======
+            assert callable(previous_handler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             previous_handler(signum, frame)
 
     signal.signal(signal.SIGCHLD, handler)

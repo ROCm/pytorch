@@ -22,7 +22,11 @@ bool deviceSupportsMulticast(int device_idx) {
   // - Device support: Determined by querying
   // CU_DEVICE_ATTRIBUTE_MULTICAST_SUPPORTED at runtime.
   auto driver_api = c10::cuda::DriverAPI::get();
+<<<<<<< HEAD
   int multicast_supported = 0;
+=======
+  int multicast_supported;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   C10_CUDA_DRIVER_CHECK(driver_api->cuDeviceGetAttribute_(
       &multicast_supported,
       CU_DEVICE_ATTRIBUTE_MULTICAST_SUPPORTED,

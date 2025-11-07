@@ -1,5 +1,8 @@
 #pragma once
+<<<<<<< HEAD
 #include <c10/core/MemoryFormat.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/core/SymBool.h>
 #include <c10/core/SymInt.h>
 #include <c10/macros/Export.h>
@@ -83,6 +86,7 @@ class C10_API SymbolicShapeMeta {
     return numel_;
   }
 
+<<<<<<< HEAD
   const SymBool& is_contiguous(at::MemoryFormat memory_format) const {
     if (memory_format == at::MemoryFormat::ChannelsLast) {
       return this->is_channels_last_contiguous();
@@ -92,6 +96,8 @@ class C10_API SymbolicShapeMeta {
     return this->is_contiguous();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const SymBool& is_contiguous() const {
     if (C10_UNLIKELY(!has_is_contiguous())) {
       init_is_contiguous();
@@ -204,7 +210,10 @@ class C10_API SymbolicShapeMeta {
   // Lazily initialized variables, with the corresponding available_ flag
   // indicating whether the value has been initialized
   mutable std::atomic<int> available_{0};
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   enum avail {
     numel_avail = 1 << 0,
     is_contiguous_avail = 1 << 1,

@@ -14,12 +14,15 @@
 ```{eval-rst}
 .. autofunction:: flex_attention
 ```
+<<<<<<< HEAD
 ```{eval-rst}
 .. autoclass:: AuxOutput
 ```
 ```{eval-rst}
 .. autoclass:: AuxRequest
 ```
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 ## BlockMask Utilities
 
@@ -30,6 +33,12 @@
 .. autofunction:: create_mask
 ```
 ```{eval-rst}
+<<<<<<< HEAD
+=======
+.. autofunction:: create_nested_block_mask
+```
+```{eval-rst}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. autofunction:: and_masks
 ```
 ```{eval-rst}
@@ -39,6 +48,7 @@
 .. autofunction:: noop_mask
 ```
 
+<<<<<<< HEAD
 ## FlexKernelOptions
 
 ```{eval-rst}
@@ -47,6 +57,8 @@
     :undoc-members:
 ```
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ## BlockMask
 
 ```{eval-rst}

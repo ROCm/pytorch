@@ -45,7 +45,11 @@ namespace at::cuda::jit {
 // Copied from aten/src/ATen/cuda/llvm_basic.cpp, then modified as above.
 // If not compiling for ROCm, return the original get_traits_string().
 std::string get_traits_string_but_hiprtc_safe() {
+<<<<<<< HEAD
 #if defined(USE_ROCM) && HIP_VERSION_MAJOR < 7
+=======
+#if defined(USE_ROCM) && ROCM_VERSION < 70000
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return R"ESCAPE(
 namespace std {
 
@@ -1041,8 +1045,13 @@ std::string generate_code(
   // and `extra_args` for computation call if
   // extra arguments to capture runtime state are passed.
   // (look at polygamma for example).
+<<<<<<< HEAD
   std::string extra_params;
   std::string extra_args;
+=======
+  std::string extra_params = "";
+  std::string extra_args = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (size_t i = 0; i < extra_args_typenames.size(); i++) {
     auto type = std::string(extra_args_typenames[i]);
     auto name = "extra_arg_" + std::to_string(i);
@@ -1352,7 +1361,11 @@ std::string generate_reduction_code(
     int vec_size,
     int max_threads_codegen) {
   TORCH_INTERNAL_ASSERT(desc.nInputs == 1);
+<<<<<<< HEAD
   TORCH_INTERNAL_ASSERT(desc.extra_args_types.empty());
+=======
+  TORCH_INTERNAL_ASSERT(desc.extra_args_types.size() == 0);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return generate_reduction_code(
       desc.nOutputs,
@@ -1451,7 +1464,11 @@ std::optional<std::string> get_cache_dir() {
   std::string cache_dir;
   char* ptkcp = std::getenv("PYTORCH_KERNEL_CACHE_PATH");
   // Create kernel_cache_dir if needed as we do not want to create the base directory passed by the user
+<<<<<<< HEAD
   std::string kernels_cache_dir;
+=======
+  std::string kernels_cache_dir = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (ptkcp != nullptr) {
     cache_dir = std::string(ptkcp);
   } else {
@@ -1532,7 +1549,11 @@ NvrtcFunction jit_pwise_function(
 
   std::string file_path;
   if (cache_dir.has_value()) {
+<<<<<<< HEAD
     // Attempts to read from the cache.
+=======
+    // Attemps to read from the cache.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Cubin name is <kernel name>_arch<major>.<minor>_nvrtc<major>.<minor>_<ptx or sass>_<program length>_<string hash>
     // Note that the SHA1 hash used in the file name is NOT the SHA1 hash of the file's contents,
     //   because we hash on the CUDA code, but we save the compiled ptx or sass

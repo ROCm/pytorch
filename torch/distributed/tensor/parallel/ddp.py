@@ -36,7 +36,11 @@ def _update_module_param(param_list: list[tuple[nn.Module, str, nn.Parameter]]):
 
 def _reconstruct_dtensor(module: nn.Module, _input: Any):
     """
+<<<<<<< HEAD
     Reconstruct DTensor parameters from local tensors
+=======
+    Recontruct DTensor parameters from local tensors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     param_list = []
     # TODO: To add perf optimizations to this iterations

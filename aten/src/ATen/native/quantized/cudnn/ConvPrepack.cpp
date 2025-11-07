@@ -12,6 +12,10 @@
 #include <ATen/quantized/Quantizer.h>
 #include <c10/core/QScheme.h>
 #include <c10/util/irange.h>
+<<<<<<< HEAD
+=======
+#include <torch/library.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <utility>
 

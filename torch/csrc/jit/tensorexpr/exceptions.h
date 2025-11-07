@@ -14,10 +14,15 @@ class Stmt;
 
 // Forward declarations of functions
 namespace std {
+<<<<<<< HEAD
 TORCH_API std::string to_string(
     const torch::jit::tensorexpr::ExprPtr& /*expr*/);
 TORCH_API std::string to_string(
     const torch::jit::tensorexpr::StmtPtr& /*stmt*/);
+=======
+TORCH_API std::string to_string(const torch::jit::tensorexpr::ExprPtr&);
+TORCH_API std::string to_string(const torch::jit::tensorexpr::StmtPtr&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace std
 
 namespace torch::jit::tensorexpr {

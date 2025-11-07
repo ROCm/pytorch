@@ -1,16 +1,27 @@
+<<<<<<< HEAD
 import math
 from collections.abc import Callable, Sequence
 from itertools import chain
 from typing import Any, cast, NamedTuple, Optional, Union
+=======
+from itertools import chain
+from typing import Callable, cast, NamedTuple, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
 from torch.distributed.device_mesh import _get_device_handle
+<<<<<<< HEAD
 from torch.distributed.distributed_c10d import ReduceOp
 from torch.distributed.fsdp._fully_shard._fsdp_api import AllGather, ReduceScatter
 from torch.distributed.tensor import DTensor
 
 from ._fsdp_api import _ReduceOp
+=======
+from torch.distributed.distributed_c10d import _resolve_process_group, ReduceOp
+from torch.distributed.tensor import DTensor
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ._fsdp_common import (
     _get_dim0_padded_size,
     _raise_assert_with_print,
@@ -33,21 +44,50 @@ class AllGatherResult(NamedTuple):
     all_gather_input_split_sizes: list[int]
 
 
+<<<<<<< HEAD
+=======
+def allocate_memory(
+    size: int,
+    dtype: torch.dtype,
+    device: torch.device,
+    group: dist.ProcessGroup,
+    from_process_group: bool,
+) -> torch.Tensor:
+    if from_process_group:
+        backend = group._get_backend(device)
+        if backend.supports_tensor_alloc(device):
+            return backend.allocate_tensor(size, dtype=dtype, device=device)
+    return torch.empty((size,), dtype=dtype, device=device)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 lib = torch.library.Library("fsdp", "FRAGMENT")  # noqa: TOR901
 
 lib.define(
     """
     all_gather_copy_in(
         Tensor[] all_gather_inputs,
+<<<<<<< HEAD
         Tensor all_gather_output,
         SymInt[] inp_split_sizes,
         SymInt all_gather_input_numel,
         SymInt rank
+=======
+        SymInt[] inp_split_sizes,
+        SymInt all_gather_input_numel,
+        SymInt world_size,
+        SymInt rank,
+        ScalarType dtype,
+        Device device,
+        str group_name,
+        bool allocate_memory_from_process_group
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> (Tensor, Tensor)
     """
 )
 
 
+<<<<<<< HEAD
 class DefaultAllocMixin:
     def allocate(
         self,
@@ -160,6 +200,23 @@ def all_gather_copy_in_meta(
     all_gather_input_numel: int,
     rank: int,
 ) -> tuple[torch.Tensor, torch.Tensor]:
+=======
+@torch.library.impl(lib, "all_gather_copy_in", "Meta")
+def all_gather_copy_in_meta(
+    all_gather_inputs: list[torch.Tensor],
+    inp_split_sizes: list[int],
+    all_gather_input_numel: int,
+    world_size: int,
+    rank: int,
+    dtype: torch.dtype,
+    device: torch.device,
+    group_name: str,
+    allocate_memory_from_process_group: bool,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    all_gather_output = torch.empty(
+        (all_gather_input_numel * world_size,), dtype=dtype, device="meta"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_gather_input = all_gather_output.narrow(
         0, all_gather_input_numel * rank, all_gather_input_numel
     )
@@ -174,11 +231,30 @@ def all_gather_copy_in_meta(
 @torch.library.impl(lib, "all_gather_copy_in", "PrivateUse1")
 def all_gather_copy_in_cuda(
     all_gather_inputs: list[torch.Tensor],
+<<<<<<< HEAD
     all_gather_output: torch.Tensor,
     inp_split_sizes: list[int],
     all_gather_input_numel: int,
     rank: int,
 ) -> tuple[torch.Tensor, torch.Tensor]:
+=======
+    inp_split_sizes: list[int],
+    all_gather_input_numel: int,
+    world_size: int,
+    rank: int,
+    dtype: torch.dtype,
+    device: torch.device,
+    group_name: str,
+    allocate_memory_from_process_group: bool,
+) -> tuple[torch.Tensor, torch.Tensor]:
+    all_gather_output = allocate_memory(
+        all_gather_input_numel * world_size,
+        dtype=dtype,
+        device=device,
+        group=_resolve_process_group(group_name),
+        from_process_group=allocate_memory_from_process_group,
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     all_gather_input = all_gather_output.narrow(
         0, all_gather_input_numel * rank, all_gather_input_numel
     )
@@ -240,7 +316,11 @@ def foreach_all_gather(
     all_gather_copy_in_stream: torch.Stream,
     all_gather_stream: torch.Stream,
     device: torch.device,
+<<<<<<< HEAD
     all_gather_comm: AllGather,
+=======
+    allocate_memory_from_process_group: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Optional[AllGatherResult]:
     world_size, rank = group.size(), group.rank()
     device_handle = _get_device_handle(device.type)
@@ -259,6 +339,7 @@ def foreach_all_gather(
             all_gather_inputs = [*chain.from_iterable(param_all_gather_inputs)]
         inp_split_sizes = [t.numel() for t in all_gather_inputs]
         all_gather_input_numel = sum(inp_split_sizes)
+<<<<<<< HEAD
         all_gather_output = all_gather_comm.allocate(
             (all_gather_input_numel * world_size,), dtype=dtype, device=device
         )
@@ -268,11 +349,27 @@ def foreach_all_gather(
             inp_split_sizes,
             all_gather_input_numel,
             rank,
+=======
+        all_gather_input, all_gather_output = torch.ops.fsdp.all_gather_copy_in(
+            all_gather_inputs,
+            inp_split_sizes,
+            all_gather_input_numel,
+            world_size,
+            rank,
+            dtype,
+            device,
+            group.group_name,
+            allocate_memory_from_process_group,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         del param_all_gather_inputs
     all_gather_stream.wait_stream(all_gather_copy_in_stream)
     with device_handle.stream(all_gather_stream):
+<<<<<<< HEAD
         all_gather_work = all_gather_comm(
+=======
+        all_gather_work = dist.all_gather_into_tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_tensor=all_gather_output,
             input_tensor=all_gather_input,
             group=group,
@@ -449,7 +546,10 @@ def foreach_reduce(
     unsharded_grads: list[torch.Tensor],
     reduce_scatter_group: dist.ProcessGroup,
     reduce_scatter_stream: torch.Stream,
+<<<<<<< HEAD
     reduce_scatter_comm: ReduceScatter,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     orig_dtype: Optional[torch.dtype],
     reduce_dtype: Optional[torch.dtype],
     device: torch.device,
@@ -459,6 +559,10 @@ def foreach_reduce(
     all_reduce_grads: bool,
     partial_reduce_output: Optional[torch.Tensor],  # only used for HSDP
     all_reduce_hook: Optional[Callable[[torch.Tensor], None]],
+<<<<<<< HEAD
+=======
+    allocate_memory_from_process_group: bool = False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     force_sum_reduction_for_comms: bool = False,
 ) -> tuple[
     torch.Tensor,
@@ -472,7 +576,10 @@ def foreach_reduce(
     ``unsharded_grads`` owns the references to the gradients computed by
     autograd, so clearing the list frees the gradients.
     """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grad_dtypes = {grad.dtype for grad in unsharded_grads}
     if len(grad_dtypes) != 1:
         # Check this at runtime since it could be a real runtime error if e.g.
@@ -493,6 +600,7 @@ def foreach_reduce(
         )
     )
     world_size = reduce_scatter_group.size()
+<<<<<<< HEAD
     device_handle = _get_device_handle(device.type)
     current_stream = device_handle.current_stream()
 
@@ -509,11 +617,22 @@ def foreach_reduce(
             chunks = torch.chunk(unsharded_grad, world_size, dim=shard_dim)
             unsharded_grads[i] = torch.cat(chunks, dim=0)
 
+=======
+    for i, (fsdp_param, unsharded_grad) in enumerate(zip(fsdp_params, unsharded_grads)):
+        if (shard_dim := fsdp_param.fsdp_placement.dim) == 0:
+            continue
+        assert unsharded_grad.size(shard_dim) % world_size == 0, (
+            f"Shard({shard_dim}) requires even sharding: {unsharded_grad.size()=} {world_size=}"
+        )
+        chunks = torch.chunk(unsharded_grad, world_size, dim=shard_dim)
+        unsharded_grads[i] = torch.cat(chunks, dim=0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     padded_unsharded_sizes = tuple(
         _get_dim0_padded_size(grad.size(), world_size) for grad in unsharded_grads
     )
     reduce_scatter_input_numel = sum(s.numel() for s in padded_unsharded_sizes)
     reduce_scatter_output_numel = reduce_scatter_input_numel // world_size
+<<<<<<< HEAD
     reduce_scatter_input = reduce_scatter_comm.allocate(
         (reduce_scatter_input_numel,),
         dtype=reduce_dtype,
@@ -522,11 +641,24 @@ def foreach_reduce(
 
     foreach_reduce_scatter_copy_in(unsharded_grads, reduce_scatter_input, world_size)
 
+=======
+    reduce_scatter_input = allocate_memory(
+        reduce_scatter_input_numel,
+        dtype=reduce_dtype,
+        device=device,
+        group=reduce_scatter_group,
+        from_process_group=allocate_memory_from_process_group,
+    )
+    device_handle = _get_device_handle(device.type)
+    foreach_reduce_scatter_copy_in(unsharded_grads, reduce_scatter_input, world_size)
+    current_stream = device_handle.current_stream()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Only after the copy-in finishes can we free the gradients
     unsharded_grads.clear()
     reduce_scatter_stream.wait_stream(current_stream)
     all_reduce_input = None
     all_reduce_event = None
+<<<<<<< HEAD
 
     with device_handle.stream(reduce_scatter_stream):
         reduce_output = reduce_scatter_comm.allocate(
@@ -545,6 +677,23 @@ def foreach_reduce(
         else:
             # For single GPU, just copy the input to output (no actual reduce-scatter needed)
             reduce_output.copy_(reduce_scatter_input)
+=======
+    with device_handle.stream(reduce_scatter_stream):
+        reduce_output = allocate_memory(
+            reduce_scatter_output_numel,
+            dtype=reduce_dtype,
+            device=device,
+            group=reduce_scatter_group,
+            from_process_group=allocate_memory_from_process_group,
+        )
+        _div_if_needed(reduce_scatter_input, predivide_factor)
+        dist.reduce_scatter_tensor(
+            output=reduce_output,
+            input=reduce_scatter_input,
+            group=reduce_scatter_group,
+            op=reduce_scatter_op,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reduce_scatter_event = reduce_scatter_stream.record_event()
         post_reduce_stream = reduce_scatter_stream
         if all_reduce_group is not None:  # HSDP
@@ -565,10 +714,14 @@ def foreach_reduce(
             if partial_reduce_output is not None:
                 reduce_output += partial_reduce_output
             post_reduce_stream = all_reduce_stream
+<<<<<<< HEAD
             if world_size >= 1:
                 all_reduce_stream.wait_stream(reduce_scatter_stream)
             else:
                 all_reduce_stream.wait_stream(current_stream)
+=======
+            all_reduce_stream.wait_stream(reduce_scatter_stream)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with device_handle.stream(all_reduce_stream):
                 dist.all_reduce(
                     reduce_output,
@@ -620,12 +773,18 @@ def foreach_reduce(
                 if non_blocking:
                     # Record an event on which to block the CPU thread to
                     # ensure that the D2H copy finishes before the optimizer
+<<<<<<< HEAD
                     fsdp_param.grad_offload_event = post_reduce_stream.record_event()
             if to_accumulate_grad:
                 if not isinstance(fsdp_param.sharded_param.grad, DTensor):
                     raise AssertionError(
                         f"Expected fsdp_param.sharded_param.grad to be DTensor, got {type(fsdp_param.sharded_param.grad)}"
                     )
+=======
+                    fsdp_param.grad_offload_event = reduce_scatter_stream.record_event()
+            if to_accumulate_grad:
+                assert isinstance(fsdp_param.sharded_param.grad, DTensor)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fsdp_param.sharded_param.grad._local_tensor += new_sharded_grad
             else:
                 new_sharded_dtensor_grad = fsdp_param.to_sharded_dtensor(
@@ -721,8 +880,11 @@ def _get_gradient_divide_factors(
         if factor == data_parallel_size:
             # Warning: NCCL ReduceOp.AVG may produce incorrect results with
             # world size 1.
+<<<<<<< HEAD
             if data_parallel_size == 1:
                 return None, None, ReduceOp.SUM, ReduceOp.SUM
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None, None, ReduceOp.AVG, ReduceOp.AVG
         else:
             reduce_scatter_op = torch.distributed._make_nccl_premul_sum(1 / factor)

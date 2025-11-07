@@ -15,7 +15,11 @@ from torch._dispatch.python import enable_python_dispatcher
 from torch._export.utils import _is_cia_op
 from torch._ops import DispatchKey
 from torch.testing import make_tensor
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import SM70OrLater, tf32_off
+=======
+from torch.testing._internal.common_cuda import tf32_off
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     onlyCPU,
@@ -220,8 +224,11 @@ def op_assert_ref(test_case, op, test_dtype, i, orig, decomp, ref, args, kwargs)
         (torch.bfloat16, torch.ops.aten.reflection_pad2d_backward.default): 5e-3,
         (torch.float16, torch.ops.aten.reflection_pad3d_backward.default): 5e-3,
         (torch.bfloat16, torch.ops.aten.reflection_pad3d_backward.default): 5e-2,
+<<<<<<< HEAD
         (torch.float16, torch.ops.aten._batch_norm_with_update.default): 2e-7,
         (torch.bfloat16, torch.ops.aten._batch_norm_with_update.default): 2e-7,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # see https://github.com/pytorch/pytorch/pull/96264
         (torch.float16, torch.ops.aten.mv.default): 1e-5,
         (torch.bfloat16, torch.ops.aten.mv.default): 1e-5,
@@ -297,7 +304,10 @@ def op_assert_equal(test_case, op, test_dtype, orig, decomp, args, kwargs):
         rtol, atol = tol_table[(decomp.dtype, op)]
     else:
         rtol, atol = _getDefaultRtolAndAtol(orig.dtype, decomp.dtype)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     test_case.assertEqual(
         orig,
         decomp,
@@ -857,13 +867,18 @@ def forward(self, scores_1, mask_1, value_1):
             #  de-functionalise the graph, as that would break AoTAutograd
             # We run the real function *after* the decomposition to make sure that the
             # decomposition does not modify any of the inputs in-place. If it does
+<<<<<<< HEAD
             # real_out should be different than decom_out so we should catch this
+=======
+            # real_out should be differen than decom_out so we should catch this
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             real_out_unflat = func(*args, **kwargs)
             real_out = pytree.tree_leaves(real_out_unflat)
 
             assert len(real_out) == len(decomp_out)
 
             if do_relative_check:
+<<<<<<< HEAD
                 device_arg = kwargs.get("device", None)
 
                 def upcast(x):
@@ -874,6 +889,9 @@ def forward(self, scores_1, mask_1, value_1):
                     else:
                         return upcast_tensor(x, dtype=torch.float64)
 
+=======
+                upcast = partial(upcast_tensor, dtype=torch.float64)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 real_out_double, _ = tree_flatten(
                     func(*tree_map(upcast, args), **tree_map(upcast, kwargs))
                 )
@@ -881,7 +899,11 @@ def forward(self, scores_1, mask_1, value_1):
                     zip(real_out, decomp_out, real_out_double)
                 ):
                     if not isinstance(orig, torch.Tensor):
+<<<<<<< HEAD
                         assert type(orig) is type(decomp)
+=======
+                        assert type(orig) == type(decomp)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         assert orig == decomp
                         continue
                     op_assert_ref(
@@ -898,7 +920,11 @@ def forward(self, scores_1, mask_1, value_1):
             else:
                 for orig, decomp in zip(real_out, decomp_out):
                     if not isinstance(orig, torch.Tensor):
+<<<<<<< HEAD
                         assert type(orig) is type(decomp)
+=======
+                        assert type(orig) == type(decomp)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         assert orig == decomp
                         continue
                     op_assert_equal(
@@ -945,7 +971,11 @@ def forward(self, scores_1, mask_1, value_1):
             # not exercised in test_ops_gradients atm.  The problem is not
             # complex32 per-se (which is supported by data movement only ops)
             # but that when we do backwards we expect other ops like add to work
+<<<<<<< HEAD
             and dtype != torch.complex32
+=======
+            and not dtype == torch.complex32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         samples = op.sample_inputs(device, dtype, requires_grad=requires_grad)
 
@@ -1238,6 +1268,7 @@ class DecompOneOffTests(TestCase):
         for o_ref, o in zip(out_ref, out):
             self.assertEqual(o_ref.dtype, o.dtype)
 
+<<<<<<< HEAD
     @onlyCUDA
     @unittest.skipIf(not SM70OrLater, "triton")
     def test_rms_norm_decomp_cuda(self, device):
@@ -1265,6 +1296,8 @@ class DecompOneOffTests(TestCase):
             "triton_per_fused__fused_rms_norm_backward_cosh_mul" in generated_codes[1]
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(DecompOneOffTests, globals())
 
@@ -1346,6 +1379,7 @@ class HasDecompTest(TestCase):
         core_aten_ops = useful_decomps - core_decomps
         self.assertExpected("".join(sorted(op.name() + "\n" for op in core_aten_ops)))
 
+<<<<<<< HEAD
     def test_conv1d_decomposition(self):
         from torch._inductor.decomposition import conv1d_to_conv2d
 
@@ -1395,6 +1429,8 @@ class HasDecompTest(TestCase):
         check_case(groups=1, C_in=8, C_out=12)  # groups=1 bigger
         check_case(groups=2, C_in=8, C_out=12)  # grouped conv
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

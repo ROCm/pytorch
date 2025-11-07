@@ -206,7 +206,11 @@ class ConstantFolder(torch.fx.Interpreter):
         # contains a ScriptObject, equality checking results in a type error if
         # the types are different.
         if any(
+<<<<<<< HEAD
             type(self.unknown_value) is type(input_) and self.unknown_value == input_
+=======
+            type(self.unknown_value) == type(input_) and self.unknown_value == input_
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for input_ in flattened_inputs
         ):
             return self.unknown_value

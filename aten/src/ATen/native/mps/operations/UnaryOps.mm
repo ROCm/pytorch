@@ -2,6 +2,11 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/native/UnaryOps.h>
 #include <ATen/native/mps/Copy.h>
+<<<<<<< HEAD
+=======
+#include <ATen/native/mps/MPSGraphSonomaOps.h>
+#include <ATen/native/mps/MPSGraphVenturaOps.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/native/mps/OperationUtils.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -12,6 +17,10 @@
 #include <ATen/ops/_copy_from_and_resize.h>
 #include <ATen/ops/acos_native.h>
 #include <ATen/ops/acosh_native.h>
+<<<<<<< HEAD
+=======
+#include <ATen/ops/angle_native.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <ATen/ops/asin_native.h>
 #include <ATen/ops/asinh_native.h>
 #include <ATen/ops/atan_native.h>
@@ -181,6 +190,10 @@ TORCH_IMPL_FUNC(sign_out_mps)(const Tensor& self, const Tensor& output) {
 
 REGISTER_MPS_UNARY_STUB(ceil, ceil);
 REGISTER_MPS_UNARY_STUB(floor, floor);
+<<<<<<< HEAD
+=======
+REGISTER_MPS_UNARY_STUB(round, round);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_MPS_UNARY_STUB(trunc, truncate);
 
 #define CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(func_out, func_stub)                                         \
@@ -203,6 +216,42 @@ Tensor& logical_not_out_mps(const Tensor& self, Tensor& output) {
   return output;
 }
 
+<<<<<<< HEAD
+=======
+Tensor& angle_out_mps(const Tensor& self, Tensor& output) {
+  if (mps::supportsComplex()) {
+    mps::unary_op(self, output, "angle_out_mps", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
+      auto realPart = [mpsGraph realPartOfTensor:inputTensor name:nil];
+      auto imagPart = [mpsGraph imaginaryPartOfTensor:inputTensor name:nil];
+      return [mpsGraph atan2WithPrimaryTensor:imagPart secondaryTensor:realPart name:nil];
+    });
+    return output;
+  } else {
+    TORCH_CHECK(!self.is_complex(), "MPS does not support angle with complex input on macOS13")
+    mps::unary_op(self, output, "angle_out_mps", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
+      // On macOS 13 with non-complex input, realPartOfTensor and imaginaryPartOfTensor are
+      // not available, and NaN is not propagated correctly:
+      auto imagPart = [mpsGraph constantWithScalar:0.0 shape:inputTensor.shape dataType:inputTensor.dataType];
+      auto result = [mpsGraph atan2WithPrimaryTensor:imagPart secondaryTensor:inputTensor name:nil];
+      auto nanMask = [mpsGraph isNaNWithTensor:inputTensor name:nil];
+      return [mpsGraph selectWithPredicateTensor:nanMask
+                             truePredicateTensor:inputTensor
+                            falsePredicateTensor:result
+                                            name:nil];
+    });
+    return output;
+  }
+}
+
+Tensor angle_mps(const Tensor& self) {
+  const auto float_type = c10::isIntegralType(self.scalar_type(), /*includeBool=*/true)
+      ? c10::typeMetaToScalarType(c10::get_default_dtype())
+      : c10::toRealValueType(self.scalar_type());
+  Tensor result = at::empty({0}, self.options().dtype(float_type));
+  return angle_out_mps(self, result);
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TORCH_IMPL_FUNC(frac_out_mps)(const Tensor& self, const Tensor& output) {
   TORCH_CHECK(isFloatingType(self.scalar_type()), "frac_out_mps is only implemented for floating types");
   mps::unary_op(self, output, "frac_out_mps", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
@@ -325,6 +374,10 @@ static void cumulative_op_impl(const Tensor& self,
                                const Tensor& result,
                                MPSCumulativeOpType cumulativeOpType,
                                const std::string& op_name) {
+<<<<<<< HEAD
+=======
+  bool macOS13_3_plus = is_macos_13_or_newer(MacOSVersion::MACOS_VER_13_3_PLUS);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto nDims = self.dim();
   auto wrapped_dim = maybe_wrap_dim(dim, nDims);
   TORCH_CHECK(wrapped_dim >= 0 && wrapped_dim < std::max(1LL, self.ndimension()),
@@ -343,6 +396,14 @@ static void cumulative_op_impl(const Tensor& self,
   bool castInputData = (isIntegralType(input.scalar_type(), true) && input.scalar_type() != ScalarType::Int &&
                         input.scalar_type() != ScalarType::Long);
 
+<<<<<<< HEAD
+=======
+  TORCH_CHECK(macOS13_3_plus || input.scalar_type() != ScalarType::Long,
+              "MPS does not support ",
+              op_name,
+              " op with int64 input. Support has been added in macOS 13.3");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   mps::unary_op(
       input, result, op_name + std::to_string(dim), ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
         if (castInputData) {
@@ -397,10 +458,24 @@ TORCH_IMPL_FUNC(sgn_out_mps)(const Tensor& self, const Tensor& output) {
 
 Tensor& conj_physical_out_mps(const Tensor& self, Tensor& result) {
   TORCH_CHECK(self.is_complex());
+<<<<<<< HEAD
   TORCH_CHECK(self.dtype() != at::kComplexDouble);
   mps::unary_op(self, result, "conj", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
     return [mpsGraph conjugateWithTensor:inputTensor name:nil];
   });
+=======
+  if (!mps::supportsComplex()) {
+    if (!result.is_same_size(self)) {
+      result.resize_(self.sizes());
+    }
+    at::real(result).copy_(at::real(self));
+    at::imag(result).copy_(at::neg(at::imag(self)));
+  } else {
+    mps::unary_op(self, result, "conj", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
+      return [mpsGraph conjugateWithTensor:inputTensor name:nil];
+    });
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return result;
 }
 

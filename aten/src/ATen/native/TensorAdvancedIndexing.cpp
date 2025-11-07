@@ -145,6 +145,15 @@
 #include <utility>
 #include <vector>
 
+<<<<<<< HEAD
+=======
+namespace at::native {
+
+AdvancedIndex make_info(Tensor self, IOptTensorListRef orig);
+
+} // namespace at::native
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace at::meta {
 
 TORCH_META_FUNC(gather)
@@ -469,7 +478,11 @@ static void build_index_op(
     TensorIteratorBase& iter,
     const at::native::AdvancedIndex& info,
     const Tensor& result) {
+<<<<<<< HEAD
   // 'TensorIterator' needs to own the things coming from 'info', since
+=======
+  // 'TensorIterator' needs to own the things comming from 'info', since
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // 'info' will be destroyed after the META function.
   TensorIteratorConfig config;
   // info.src is a restrided view of result
@@ -1906,9 +1919,17 @@ Tensor& index_fill_(
         "This also applies to advanced indexing e.g. tensor[mask] = scalar");
   }
 
+<<<<<<< HEAD
   TORCH_CHECK(
       self.is_complex() || !source.isComplex(),
       "index_fill_(): Converting complex Scalar to non-complex type is not supported");
+=======
+  if (!self.is_complex() && source.isComplex()) {
+    TORCH_CHECK(
+        false,
+        "index_fill_(): Converting complex Scalar to non-complex type is not supported");
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Handle the case when `self` is 0-dim
   Tensor self_nonzero_dim = (self.dim() == 0) ? self.unsqueeze(-1) : self;
@@ -2145,6 +2166,7 @@ static void _scatter_via_index_put(
     const Tensor& src,
     const Tensor& mut_out,
     bool accumulate) {
+<<<<<<< HEAD
   // If index is expanded with zero strides across non-scatter dimensions,
   // advanced indexing with the index tensor alone achieves the desired
   // semantics and avoids creating large intermediate tensors.
@@ -2192,6 +2214,83 @@ static void _scatter_via_index_put(
     }
   }
   mut_out.index_put_(indices, src_view, accumulate);
+=======
+  if (self.dim() == 1) {
+    torch::List<std::optional<Tensor>> indices;
+    indices.reserve(1);
+    indices.push_back(index);
+    mut_out.index_put_(indices, src, accumulate);
+  } else {
+    Tensor mut_out_contig = mut_out.contiguous();
+
+    auto index_coords_sizes = index.sizes().vec();
+    index_coords_sizes.push_back(self.dim());
+    auto index_coords = at::empty(
+        index_coords_sizes,
+        at::TensorOptions().dtype(at::ScalarType::Long).device(self.device()));
+
+    for (int64_t dim_other = 0; dim_other < self.dim(); dim_other++) {
+      if (dim_other == dim) {
+        continue;
+      }
+      auto dim_coord_vals = at::arange(
+          index.size(dim_other), at::TensorOptions().device(self.device()));
+
+      for (int64_t dim_unsqueeze = 0; dim_unsqueeze < self.dim() - 1;
+           dim_unsqueeze++) {
+        dim_coord_vals =
+            dim_coord_vals.unsqueeze((dim_unsqueeze >= dim_other) ? -1 : 0);
+      }
+
+      auto view_sizes = index.sizes().vec();
+      view_sizes.push_back(1);
+      auto view_strides = index_coords.strides().vec();
+      view_strides[self.dim()] = self.dim();
+
+      at::as_strided(index_coords, view_sizes, view_strides, dim_other)
+          .copy_(dim_coord_vals.unsqueeze(-1));
+    }
+
+    auto view_sizes = index.sizes().vec();
+    view_sizes.push_back(1);
+    auto view_strides = index_coords.strides().vec();
+    view_strides[self.dim()] = self.dim();
+
+    at::as_strided(index_coords, view_sizes, view_strides, dim)
+        .copy_(index.unsqueeze(-1));
+
+    Tensor index_coords_flat = index_coords.flatten(0, -2);
+
+    // Copy mut_out_contig's strides into a tensor
+    // TODO: Is there a utility function that already does this?
+    IntArrayRef mut_out_contig_strides = mut_out_contig.strides();
+    Tensor coord_strides = at::empty(
+        {mut_out_contig.dim()},
+        TensorOptions().dtype(at::ScalarType::Long).device(at::kCPU));
+    std::memcpy(
+        coord_strides.mutable_data_ptr(),
+        mut_out_contig_strides.data(),
+        coord_strides.nbytes());
+    coord_strides = coord_strides.to(mut_out_contig.device());
+
+    // `index_flat` contains the 1-D indices corresponding with the
+    // flattened `mut_out`
+    Tensor index_flat = (index_coords_flat * coord_strides).sum({-1});
+    Tensor mut_out_flat = mut_out_contig.flatten();
+    Tensor src_flat =
+        at::as_strided(src, index.sizes(), src.strides()).flatten();
+
+    torch::List<std::optional<Tensor>> indices;
+    indices.reserve(1);
+    indices.push_back(index_flat);
+
+    mut_out_flat.index_put_(indices, src_flat, accumulate);
+
+    if (!mut_out.is_contiguous()) {
+      mut_out.copy_(mut_out_flat.reshape(mut_out.sizes()));
+    }
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 template <
@@ -2674,7 +2773,11 @@ inline std::tuple<Tensor, Tensor, int64_t> _take_along_dim_helper(
       std::move(dim));
 }
 
+<<<<<<< HEAD
 inline void checkDevice(CheckedFrom c, const Tensor& t, Device device) {
+=======
+static inline void checkDevice(CheckedFrom c, const Tensor& t, Device device) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       !t.defined() || t.device() == device,
       "Expected tensor to have ",
@@ -2687,7 +2790,11 @@ inline void checkDevice(CheckedFrom c, const Tensor& t, Device device) {
       ")");
 }
 
+<<<<<<< HEAD
 inline void checkDevice(
+=======
+static inline void checkDevice(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     CheckedFrom c,
     at::ArrayRef<Tensor> tensors,
     Device device) {

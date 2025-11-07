@@ -8,9 +8,14 @@ from __future__ import annotations
 __all__ = ["onnx_impl", "get_torchlib_ops"]
 
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, TypeVar
 from typing_extensions import ParamSpec
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import onnxscript
 
@@ -18,9 +23,13 @@ import torch
 from torch.onnx._internal.exporter import _constants, _registration
 
 
+<<<<<<< HEAD
 # Use ParamSpec for better type preservation instead of bound Callable TypeVar
 _P = ParamSpec("_P")
 _R = TypeVar("_R")
+=======
+_T = TypeVar("_T", bound=Callable)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 logger = logging.getLogger("__name__")
 
@@ -36,7 +45,11 @@ def onnx_impl(
     opset_introduced: int = 18,
     no_compile: bool = False,
     private: bool = False,
+<<<<<<< HEAD
 ) -> Callable[[Callable[_P, _R]], Callable[_P, _R]]:
+=======
+) -> Callable[[_T], _T]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Register an ONNX implementation of a torch op."""
 
     if isinstance(target, torch._ops.OpOverloadPacket):
@@ -47,8 +60,13 @@ def onnx_impl(
         )
 
     def wrapper(
+<<<<<<< HEAD
         func: Callable[_P, _R],
     ) -> Callable[_P, _R]:
+=======
+        func: _T,
+    ) -> _T:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         processed_func: Any
         if no_compile:
             processed_func = func

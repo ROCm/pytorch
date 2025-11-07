@@ -105,7 +105,11 @@ def load_package(
     run_single_threaded: bool = False,
     num_runners: int = 1,
     device_index: int = -1,
+<<<<<<< HEAD
 ) -> AOTICompiledModel:
+=======
+) -> AOTICompiledModel:  # type: ignore[type-arg]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         pt2_contents = load_pt2(
             path,

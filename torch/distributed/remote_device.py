@@ -36,14 +36,20 @@ class _remote_device:
         elif isinstance(remote_device, str):
             fields = remote_device.split("/")
             if len(fields) == 2:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._worker_name, self._device = fields
             elif len(fields) == 1:
                 # Check if this is a valid device.
                 if _remote_device._is_valid_local_device(fields[0]):
                     self._device = fields[0]
                 else:
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self._worker_name = fields[0]
                     self._device = "cpu"
             else:
@@ -65,7 +71,10 @@ class _remote_device:
                 # rank:<rank>/device format, extract rank
                 if fields[0] == "rank" and fields[1].isdigit():
                     self._rank = int(fields[1])  # type: ignore[assignment]
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self._worker_name = None
                 else:
                     raise ValueError(PARSE_ERROR)

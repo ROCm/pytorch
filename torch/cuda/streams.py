@@ -32,9 +32,12 @@ class Stream(torch._C._CudaStreamBase):
     """
 
     def __new__(cls, device=None, priority=0, **kwargs):
+<<<<<<< HEAD
         # Check CUDA availability
         if not torch.backends.cuda.is_built():
             raise RuntimeError("torch.cuda.Stream requires CUDA support")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # setting device manager is expensive, so we avoid it unless necessary
         if device is None or ("stream_id" in kwargs and "device_index" in kwargs):
             return super().__new__(cls, priority=priority, **kwargs)
@@ -119,6 +122,7 @@ class Stream(torch._C._CudaStreamBase):
     def __repr__(self):
         return f"<torch.cuda.Stream device={self.device} cuda_stream={self.cuda_stream:#x}>"
 
+<<<<<<< HEAD
     def __cuda_stream__(self):
         """Implements the CUDA Stream Protocol:
         https://nvidia.github.io/cuda-python/cuda-core/latest/interoperability.html#cuda-stream-protocol
@@ -129,6 +133,8 @@ class Stream(torch._C._CudaStreamBase):
         """
         return (0, self.cuda_stream)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ExternalStream(Stream):
     r"""Wrapper around an externally allocated CUDA stream.

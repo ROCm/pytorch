@@ -15,12 +15,20 @@ namespace at::native {
 inline namespace CPU_CAPABILITY {
 
 namespace {
+<<<<<<< HEAD
 bool reduced_input(ScalarType input_t, ScalarType output_t) {
+=======
+static bool reduced_input(ScalarType input_t, ScalarType output_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return !at::isFloat8Type(input_t) && at::isReducedFloatingType(input_t) &&
       output_t == kFloat;
 }
 
+<<<<<<< HEAD
 bool reduced_output(ScalarType input_t, ScalarType output_t) {
+=======
+static bool reduced_output(ScalarType input_t, ScalarType output_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return !at::isFloat8Type(output_t) && at::isReducedFloatingType(output_t) &&
       input_t == kFloat;
 }

@@ -7,7 +7,11 @@ import dataclasses
 import difflib
 import io
 import sys
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING
+=======
+from typing import Any, Callable, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx
@@ -15,8 +19,11 @@ from torch._subclasses.fake_tensor import unset_fake_temporarily
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._subclasses import fake_tensor
 
 

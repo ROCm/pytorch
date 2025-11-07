@@ -3,12 +3,19 @@ name: Build Triton wheels
 on:
   push:
     branches:
+<<<<<<< HEAD
       - main
+=======
+      - release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tags:
       # NOTE: Binary build pipelines should only get triggered on release candidate builds
       # Release candidate tags look like: v1.11.0-rc1
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
+<<<<<<< HEAD
       - 'ciflow/triton_binaries/*'
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     paths:
       - .github/workflows/build-triton-wheel.yml
       - .github/scripts/build_triton_wheel.py
@@ -36,7 +43,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -50,12 +61,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         py_vers: [ "3.10", "3.11", "3.12", "3.13", "3.13t", "3.14", "3.14t" ]
+=======
+        py_vers: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device: ["cuda", "rocm", "xpu", "aarch64"]
         docker-image: ["pytorch/manylinux2_28-builder:cpu"]
         include:
           - device: "rocm"
+<<<<<<< HEAD
             rocm_version: "7.0"
+=======
+            rocm_version: "6.4"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             runs_on: "${{ needs.get-label-type.outputs.label-type }}linux.4xlarge"
           - device: "cuda"
             rocm_version: ""
@@ -74,12 +93,20 @@ jobs:
       PLATFORM: 'manylinux_2_28_x86_64'
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@main
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           submodules: false
 
@@ -87,7 +114,11 @@ jobs:
         uses: ./.github/actions/setup-linux
 
       - name: Pull Docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@main
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with:
           docker-image: ${{ env.DOCKER_IMAGE }}
 
@@ -108,6 +139,12 @@ jobs:
 
           # Determine python executable for given version
           case $PY_VERS in
+<<<<<<< HEAD
+=======
+          3.9)
+            PYTHON_EXECUTABLE=/opt/python/cp39-cp39/bin/python
+            ;;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           3.10)
             PYTHON_EXECUTABLE=/opt/python/cp310-cp310/bin/python
             ;;
@@ -123,12 +160,15 @@ jobs:
           3.13t)
             PYTHON_EXECUTABLE=/opt/python/cp313-cp313t/bin/python
             ;;
+<<<<<<< HEAD
           3.14)
             PYTHON_EXECUTABLE=/opt/python/cp314-cp314/bin/python
             ;;
           3.14t)
             PYTHON_EXECUTABLE=/opt/python/cp314-cp314t/bin/python
             ;;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           *)
             echo "Unsupported python version ${PY_VERS}"
             exit 1
@@ -142,7 +182,11 @@ jobs:
           fi
 
           docker exec -t "${container_name}" yum install -y zlib-devel zip
+<<<<<<< HEAD
           docker exec -t "${container_name}" "${PYTHON_EXECUTABLE}"  -m pip install -U setuptools==78.1.0 pybind11==3.0.1 auditwheel wheel
+=======
+          docker exec -t "${container_name}" "${PYTHON_EXECUTABLE}"  -m pip install -U setuptools==78.1.0 pybind11==2.13.1 auditwheel wheel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           set +e
           docker exec -t "${container_name}" command -v pip
           has_pip=$?
@@ -181,7 +225,11 @@ jobs:
           path: ${{ runner.temp }}/artifacts/wheelhouse/*
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@main
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if: always()
 
   build-wheel-win:
@@ -191,7 +239,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+<<<<<<< HEAD
         py_vers: [ "3.10", "3.11", "3.12", "3.13", "3.13t", "3.14", "3.14t" ]
+=======
+        py_vers: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.13t" ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device: ["xpu"]
     timeout-minutes: 40
     env:
@@ -214,7 +266,11 @@ jobs:
           echo "instance-type: $(get_ec2_metadata instance-type)"
           echo "system info $(uname -a)"
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@main
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.8
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         continue-on-error: true
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}

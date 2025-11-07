@@ -333,12 +333,20 @@ bool isBlockListedSchema(const FunctionSchema& schema) {
   // Currently JIT does not distinguish ScalarType vs int, so there is really
   // no way to distinguish x.view(1) vs x.view(torch.int8). So we have to
   // hardcode the aten::view.dtype here to block this overload. This blocklist
+<<<<<<< HEAD
   // should be removed when JIT fully supports ScalarType as its own type.
+=======
+  // should be removed when JIT fully suports ScalarType as its own type.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (schema.name() == "aten::view" && schema.overload_name() == "dtype") {
     return true;
   }
   // Note (@tugsbayasgalan)
+<<<<<<< HEAD
   // TorchScript doesn't support kwargs so this op collides with aten.max.others
+=======
+  // TorchScript doesn't suport kwargs so this op collides with aten.max.others
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // since both of them have 2 Tensor inputs. Since we don't expect users to
   // use this op in TS, we just skip it
   if (schema.name() == "aten::max" && schema.overload_name() == "unary_out") {

@@ -78,7 +78,10 @@ class ModuleWrapper(nn.Module):
 
     # nn.Module defines training as a boolean
     @property  # type: ignore[override]
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def training(self):
         return self.cpp_module.training
 

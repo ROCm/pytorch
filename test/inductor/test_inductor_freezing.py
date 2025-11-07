@@ -34,7 +34,11 @@ from inductor.test_torchinductor import (  # @manual=fbcode//caffe2/test/inducto
     check_model_gpu,
     copy_tests,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import TEST_WITH_ASAN, TEST_WITH_ROCM, skipIfRocm
+=======
+from torch.testing._internal.common_utils import TEST_WITH_ROCM
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 importlib.import_module("functorch")

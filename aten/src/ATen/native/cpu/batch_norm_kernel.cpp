@@ -318,7 +318,11 @@ batch_norm_cpu_collect_stats_channels_last_impl(
     //
     // The optimal THRESHOLD to tile was found empirically.
     // When C > THRESHOLD, C is large enough that the benefit from tiling and vectorization outweigh the synchronization overhead.
+<<<<<<< HEAD
     // When C <= TILE_SIZE, the problem size is small enough (C <= TILE_SIZE && NHW <= max_threads) that it's better to launch single thread with vectorization than C threads without vectorization.
+=======
+    // Wehn C <= TILE_SIZE, the problem size is small enough (C <= TILE_SIZE && NHW <= max_threads) that it's better to launch single thread with vectorization than C threads without vectorization.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     //
     // When num_threads == 1, always use Method 2 as there is no synchronization overhead.
     //

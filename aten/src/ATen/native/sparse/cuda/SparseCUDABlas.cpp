@@ -65,7 +65,11 @@ void _csrmm2(
     csrvala,                    /* values of the sparse matrix, size = nnz */
     CUSPARSE_INDEX_32I,         /* data type of row offsets index */
     CUSPARSE_INDEX_32I,         /* data type of col indices */
+<<<<<<< HEAD
     CUSPARSE_INDEX_BASE_ZERO,   /* base index of row offset and col index */
+=======
+    CUSPARSE_INDEX_BASE_ZERO,   /* base index of row offset and col indes */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cusparse_value_type         /* data type of values */
   ));
 

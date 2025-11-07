@@ -5,9 +5,14 @@ import copy
 import functools
 import inspect
 import textwrap
+<<<<<<< HEAD
 from collections.abc import Callable
 from types import FunctionType
 from typing import Any, cast, Optional, Union
+=======
+from types import FunctionType
+from typing import Any, Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._sources import normalize_source_lines

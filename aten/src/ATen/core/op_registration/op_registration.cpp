@@ -73,7 +73,11 @@ c10::FunctionSchema RegisterOperators::inferSchemaFromKernels_(
 
   std::optional<FunctionSchema> inferred_schema = std::nullopt;
   for (const auto& kernel : options.kernels) {
+<<<<<<< HEAD
     if (nullptr != kernel.inferred_function_schema) {
+=======
+    if (nullptr != kernel.inferred_function_schema.get()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (!inferred_schema.has_value()) {
         inferred_schema = *kernel.inferred_function_schema;
         break;

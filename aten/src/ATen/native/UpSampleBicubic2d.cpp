@@ -105,7 +105,11 @@ namespace at::native {
 namespace {
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void upsample_bicubic2d_backward_out_frame(
+=======
+static void upsample_bicubic2d_backward_out_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const scalar_t* odata,
     scalar_t* idata,
     int64_t input_height,
@@ -177,7 +181,11 @@ void upsample_bicubic2d_backward_out_frame(
   });
 }
 
+<<<<<<< HEAD
 void upsample_bicubic2d_backward_kernel(
+=======
+static void upsample_bicubic2d_backward_kernel(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& grad_input,
     const Tensor& grad_output_,
     IntArrayRef output_size,

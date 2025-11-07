@@ -282,7 +282,11 @@ static std::tuple<Tensor, std::optional<int64_t>> _softmax_backward_batch_rule(
 
   dim = getPhysicalDim(output_, /*has_batch_dim*/true, dim);
 
+<<<<<<< HEAD
   // Not sure why output_ needs to be marked as .contiguous(). Something must
+=======
+  // Not sure why output_ needs to be marked as .contiguous(). Someting must
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // have changed in PyTorch (and output of softmax is probably always contiguous)
   return std::make_tuple(at::_softmax_backward_data(grad_output_, output_.contiguous(), dim, input_dtype), 0);
 }

@@ -19,6 +19,10 @@
 
 namespace at::native {
 
+<<<<<<< HEAD
+=======
+// TODO: remove this when CUDA <11.6 is no longer supported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 void topk_out_with_sort(
   const Tensor& self,
   int64_t k, int64_t dim, bool largest,
@@ -30,12 +34,28 @@ void topk_out_with_sort(
   indices.copy_(sorted_indices.narrow(dim, 0, k));
 }
 
+<<<<<<< HEAD
+=======
+// TODO: remove this when CUDA <11.6 is no longer supported
+bool disable_sort_for_topk();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 bool should_use_sort(const Tensor& self, int64_t dim) {
 #if defined(USE_ROCM)
   if (self.dtype() == kBool) return false; // Bool sort not supported in ROCm: https://github.com/pytorch/pytorch/issues/139972
   return (self.numel() >= 10000 && self.numel() == self.size(dim)); // based on the experiments in https://github.com/pytorch/pytorch/pull/146387
 #else
+<<<<<<< HEAD
   return false;
+=======
+  if (disable_sort_for_topk()) return false;
+  // This heuristics is based on the experiment in https://github.com/pytorch/pytorch/pull/68632
+  if (self.dim() == 0) return false;
+  if (self.dtype() == kBool) return false; // Bool is not support by topk
+  int64_t slice_size = self.size(dim);
+  if (slice_size == 0) return false;
+  int64_t num_slices = self.numel() / slice_size;
+  return num_slices <= 10 && slice_size >= 100000;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 }
 

@@ -15,10 +15,17 @@ class CudaGraphsSupport(OperatorSupport):
         if node.op not in CALLABLE_NODE_OPS:
             return False
 
+<<<<<<< HEAD
         if node.target == torch.ops.aten.embedding_dense_backward.default:
             return False
 
         if node.target == operator.getitem:
+=======
+        if node.target in [torch.ops.aten.embedding_dense_backward.default]:
+            return False
+
+        if node.target in [operator.getitem]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return True
 
         found_not_cuda = False

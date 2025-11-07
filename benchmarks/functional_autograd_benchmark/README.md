@@ -17,8 +17,13 @@ export DEBUG=0
 export OMP_NUM_THREADS=10
 
 # Compile pytorch with the base revision
+<<<<<<< HEAD
 git checkout main
 python -m pip install --no-build-isolation -v -e .
+=======
+git checkout master
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Install dependencies:
 # Scipy is required by detr
@@ -32,7 +37,11 @@ python functional_autograd_benchmark.py --output before.txt
 # Compile pytorch with your change
 popd
 git checkout your_feature_branch
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Run the benchmark for the new version
 pushd benchmarks/functional_autograd_benchmark

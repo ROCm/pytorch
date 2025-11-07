@@ -127,7 +127,11 @@ To raw_bitcast(const From& src) {
   TORCH_CHECK(sizeof(To) == sizeof(From), "Invalid bitcast invocation");
   To storage;
   std::memcpy(&storage, &src, sizeof(To));
+<<<<<<< HEAD
   return storage;
+=======
+  return reinterpret_cast<To&>(storage);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 class SimpleIREvaluatorImpl;

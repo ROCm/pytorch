@@ -78,9 +78,15 @@ def read_dir(args: argparse.Namespace) -> tuple[dict[str, dict[str, Any]], str]:
         if prefix is None:
             prefix = _determine_prefix(files)
         for f in files:
+<<<<<<< HEAD
             if (offset := f.find(prefix)) == -1:
                 continue
             details[f] = read_dump(f[:offset] + prefix, os.path.join(root, f))
+=======
+            if f.find(prefix) != 0:
+                continue
+            details[f] = read_dump(prefix, os.path.join(root, f))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             filecount += 1
             if not version:
                 version = str(details[f]["version"])

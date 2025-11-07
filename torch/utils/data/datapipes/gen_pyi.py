@@ -8,7 +8,11 @@ from typing_extensions import deprecated
 
 try:
     from torchgen.api.python import format_function_signature
+<<<<<<< HEAD
     from torchgen.utils import FileManager
+=======
+    from torchgen.utils import FileManager as FileManager
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 except ImportError:
     import sys
 

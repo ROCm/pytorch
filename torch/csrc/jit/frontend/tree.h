@@ -5,7 +5,10 @@
 #include <unordered_map>
 #include <vector>
 
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/util/SmallVector.h>
 #include <c10/util/intrusive_ptr.h>
 #include <torch/csrc/jit/frontend/lexer.h>
@@ -38,10 +41,17 @@ struct Tree : c10::intrusive_ptr_target {
     return true;
   }
   virtual const SourceRange& range() const {
+<<<<<<< HEAD
     TORCH_CHECK(false, "is an Atom");
   }
   virtual const std::string& stringValue() const {
     TORCH_CHECK(false, "stringValue can only be called on TK_STRING");
+=======
+    throw std::runtime_error("is an Atom");
+  }
+  virtual const std::string& stringValue() const {
+    throw std::runtime_error("stringValue can only be called on TK_STRING");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   virtual const TreeList& trees() const {
     static const TreeList empty_trees = {};
@@ -80,6 +90,7 @@ struct Tree : c10::intrusive_ptr_target {
       int lineno,
       size_t expected_subtrees,
       bool allow_more) const {
+<<<<<<< HEAD
     TORCH_CHECK(
         kind() == k,
         filename,
@@ -90,6 +101,15 @@ struct Tree : c10::intrusive_ptr_target {
         "' but found '",
         kindToString(kind()),
         "'\n");
+=======
+    if (kind() != k) {
+      std::stringstream ss;
+      ss << filename << ":" << lineno << ": expecting kind '" << kindToString(k)
+         << "' but found '" << kindToString(kind()) << "'\n";
+      range().highlight(ss);
+      throw std::runtime_error(ss.str());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (trees().size() < expected_subtrees ||
         (!allow_more && trees().size() != expected_subtrees)) {
       std::stringstream ss;
@@ -97,7 +117,11 @@ struct Tree : c10::intrusive_ptr_target {
          << expected_subtrees << " subtrees, but found only " << trees().size()
          << "\n";
       range().highlight(ss);
+<<<<<<< HEAD
       TORCH_CHECK(false, ss.str());
+=======
+      throw std::runtime_error(ss.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   ~Tree() override = default;

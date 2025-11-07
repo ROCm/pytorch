@@ -172,10 +172,17 @@ class DispatchKeySet final {
   // use of DispatchKeySet in TLS requires this.
   constexpr DispatchKeySet() = default;
 
+<<<<<<< HEAD
   constexpr DispatchKeySet(Full /*unused*/)
       : repr_((1ULL << (num_backends + num_functionality_keys - 1)) - 1) {}
 
   constexpr DispatchKeySet(FullAfter /*unused*/, DispatchKey t)
+=======
+  constexpr DispatchKeySet(Full)
+      : repr_((1ULL << (num_backends + num_functionality_keys - 1)) - 1) {}
+
+  constexpr DispatchKeySet(FullAfter, DispatchKey t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // LSB after t are OK, but not t itself.
       // "functionalities" have a notion of ordering (e.g. Autograd > Sparse >
       // Quantized > Dense). But backends don't really have an ordering.
@@ -191,7 +198,11 @@ class DispatchKeySet final {
 
   // Public version of DispatchKeySet(uint64_t) API; external users
   // must be explicit when they do this!
+<<<<<<< HEAD
   constexpr DispatchKeySet(Raw /*unused*/, uint64_t x) : repr_(x) {}
+=======
+  constexpr DispatchKeySet(Raw, uint64_t x) : repr_(x) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   constexpr explicit DispatchKeySet(BackendComponent k) {
     if (k == BackendComponent::InvalidBit) {
@@ -631,10 +642,17 @@ class DispatchKeySet final {
   }
 };
 
+<<<<<<< HEAD
 C10_API std::string toString(DispatchKeySet /*ts*/);
 C10_API std::ostream& operator<<(std::ostream& /*os*/, DispatchKeySet /*ts*/);
 
 inline int getDispatchTableIndexForDispatchKey(DispatchKey k) {
+=======
+C10_API std::string toString(DispatchKeySet);
+C10_API std::ostream& operator<<(std::ostream&, DispatchKeySet);
+
+C10_API inline int getDispatchTableIndexForDispatchKey(DispatchKey k) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return DispatchKeySet(k).getDispatchTableIndexForDispatchKeySet();
 }
 

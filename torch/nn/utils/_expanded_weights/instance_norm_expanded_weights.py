@@ -17,7 +17,10 @@ from .expanded_weights_utils import (
 @implements_per_sample_grads(F.instance_norm)
 class InstanceNormPerSampleGrad(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, kwarg_names, _, *expanded_args_and_kwargs):
         instance_norm = partial(torch.instance_norm, cudnn_enabled=True)
         expanded_args, expanded_kwargs = standard_kwargs(
@@ -37,7 +40,10 @@ class InstanceNormPerSampleGrad(torch.autograd.Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         input, running_mean, running_var = ctx.input, ctx.running_mean, ctx.running_var
         weight, bias, eps = ctx.weight, ctx.bias, ctx.eps

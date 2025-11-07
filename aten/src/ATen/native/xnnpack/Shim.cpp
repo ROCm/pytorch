@@ -29,6 +29,7 @@ bool available() {
 }
 
 bool use_convolution2d(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
     const at::OptionalIntArrayRef /*unused*/,
@@ -37,10 +38,21 @@ bool use_convolution2d(
     const IntArrayRef /*unused*/,
     const int64_t /*unused*/,
     bool /*unused*/) {
+=======
+    const Tensor&,
+    const Tensor&,
+    const at::OptionalIntArrayRef,
+    const IntArrayRef,
+    const IntArrayRef,
+    const IntArrayRef,
+    const int64_t,
+    bool) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return false;
 }
 
 Tensor convolution2d(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
@@ -48,24 +60,46 @@ Tensor convolution2d(
     const IntArrayRef /*unused*/,
     const IntArrayRef /*unused*/,
     const int64_t /*unused*/) {
+=======
+    const Tensor&,
+    const Tensor&,
+    const Tensor&,
+    const IntArrayRef,
+    const IntArrayRef,
+    const IntArrayRef,
+    const int64_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, internal::kError);
 }
 
 bool use_linear(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
     const Tensor& /*unused*/) {
+=======
+    const Tensor&,
+    const Tensor&,
+    const Tensor&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return false;
 }
 
 Tensor linear(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const Tensor& /*unused*/,
     const Tensor& /*unused*/) {
+=======
+    const Tensor&,
+    const Tensor&,
+    const Tensor&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, internal::kError);
 }
 
 bool use_max_pool2d(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const IntArrayRef /*unused*/,
     const IntArrayRef /*unused*/,
@@ -74,10 +108,21 @@ bool use_max_pool2d(
     const bool /*unused*/,
     const float /*unused*/,
     const float /*unused*/) {
+=======
+    const Tensor&,
+    const IntArrayRef,
+    const IntArrayRef,
+    IntArrayRef,
+    const IntArrayRef,
+    const bool,
+    const float,
+    const float) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return false;
 }
 
 Tensor max_pool2d(
+<<<<<<< HEAD
     const Tensor& /*unused*/,
     const IntArrayRef /*unused*/,
     const IntArrayRef /*unused*/,
@@ -86,6 +131,16 @@ Tensor max_pool2d(
     const bool /*unused*/,
     const float /*unused*/,
     const float /*unused*/) {
+=======
+    const Tensor&,
+    const IntArrayRef,
+    const IntArrayRef,
+    IntArrayRef,
+    const IntArrayRef,
+    const bool,
+    const float,
+    const float) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, internal::kError);
 }
 

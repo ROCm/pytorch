@@ -17,16 +17,25 @@ import sys
 import threading
 import traceback
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from functools import lru_cache
 from typing import Any, cast, NewType, Optional, TYPE_CHECKING, Union
+=======
+from functools import lru_cache
+from typing import Any, Callable, cast, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._C
 from torch import device as _device
 from torch._utils import _dummy_type, _LazySeedTracker, classproperty
 
+<<<<<<< HEAD
 from . import _device_limits, gds
+=======
+from . import gds
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ._utils import _get_device_index
 from .graphs import (
     CUDAGraph,
@@ -35,7 +44,10 @@ from .graphs import (
     is_current_stream_capturing,
     make_graphed_callables,
 )
+<<<<<<< HEAD
 from .green_contexts import GreenContext
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .streams import Event, ExternalStream, Stream
 
 
@@ -238,10 +250,17 @@ def _sleep(cycles):
     torch._C._cuda_sleep(cycles)
 
 
+<<<<<<< HEAD
 def _extract_arch_version(arch_string: str) -> int:
     """Extracts the architecture string from a CUDA version"""
     base = arch_string.split("_", maxsplit=2)[1]
     base = base.removesuffix("a").removesuffix("f")
+=======
+def _extract_arch_version(arch_string: str):
+    """Extracts the architecture string from a CUDA version"""
+    base = arch_string.split("_")[1]
+    base = base.removesuffix("a")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return int(base)
 
 
@@ -261,7 +280,11 @@ def _check_capability():
     CUDA_ARCHES_SUPPORTED = {
         "12.6": {"min": 50, "max": 90},
         "12.8": {"min": 70, "max": 120},
+<<<<<<< HEAD
         "13.0": {"min": 75, "max": 120},
+=======
+        "12.9": {"min": 70, "max": 120},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     if (
@@ -293,8 +316,12 @@ def _check_capability():
                         min_arch % 10,
                         max_arch // 10,
                         max_arch % 10,
+<<<<<<< HEAD
                     ),
                     stacklevel=2,
+=======
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 matched_arches = ""
                 for arch, arch_info in CUDA_ARCHES_SUPPORTED.items():
@@ -304,9 +331,13 @@ def _check_capability():
                     ):
                         matched_arches += f" {arch}"
                 if matched_arches != "":
+<<<<<<< HEAD
                     warnings.warn(
                         matched_cuda_warn.format(matched_arches), stacklevel=2
                     )
+=======
+                    warnings.warn(matched_cuda_warn.format(matched_arches))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_cubins():
@@ -331,8 +362,12 @@ If you want to use the {} GPU with PyTorch, please check the instructions at htt
             warnings.warn(
                 incompatible_device_warn.format(
                     device_name, capability, " ".join(arch_list), device_name
+<<<<<<< HEAD
                 ),
                 stacklevel=2,
+=======
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 
@@ -413,6 +448,11 @@ def _lazy_init():
             )
         # This function throws if there's a driver initialization error, no GPUs
         # are found or any other error occurs
+<<<<<<< HEAD
+=======
+        if "CUDA_MODULE_LOADING" not in os.environ:
+            os.environ["CUDA_MODULE_LOADING"] = "LAZY"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._C._cuda_init()
         # Some of the queued calls may reentrantly call _lazy_init();
         # we need to just return without initializing in that case.
@@ -459,7 +499,11 @@ def cudart():
         >>> from torch.cuda import cudart, check_error
         >>> import os
         >>>
+<<<<<<< HEAD
         >>> os.environ["CUDA_PROFILE"] = "1"
+=======
+        >>> os.environ['CUDA_PROFILE'] = '1'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         >>>
         >>> def perform_cuda_operations_with_streams():
         >>>     stream = torch.cuda.Stream()
@@ -501,14 +545,20 @@ class cudaStatus:
 
 class CudaError(RuntimeError):
     def __init__(self, code: int) -> None:
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         msg = _cudart.cudaGetErrorString(_cudart.cudaError(code))
         super().__init__(f"{msg} ({code})")
 
 
 def check_error(res: int) -> None:
+<<<<<<< HEAD
     r"""Raise an error if the result of a CUDA runtime API call is not success."""
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if res != _cudart.cudaError.success:
         raise CudaError(res)
 
@@ -608,7 +658,10 @@ def get_device_capability(device: "Device" = None) -> tuple[int, int]:
     return prop.major, prop.minor
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [not-a-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_device_properties(device: "Device" = None) -> _CudaDeviceProperties:
     r"""Get the properties of a device.
 
@@ -659,7 +712,10 @@ class StreamContext:
         self.idx = _get_device_index(None, True)
         if not torch.jit.is_scripting():
             if self.idx is None:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.idx = -1
 
         self.src_prev_stream = (
@@ -822,9 +878,13 @@ def _raw_device_count_amdsmi() -> int:
     try:
         amdsmi.amdsmi_init()
     except amdsmi.AmdSmiException as e:
+<<<<<<< HEAD
         warnings.warn(
             f"Can't initialize amdsmi - Error code: {e.err_code}", stacklevel=2
         )
+=======
+        warnings.warn(f"Can't initialize amdsmi - Error code: {e.err_code}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return -1
     socket_handles = amdsmi.amdsmi_get_processor_handles()
     return len(socket_handles)
@@ -837,12 +897,20 @@ def _raw_device_count_nvml() -> int:
     nvml_h = CDLL("libnvidia-ml.so.1")
     rc = nvml_h.nvmlInit()
     if rc != 0:
+<<<<<<< HEAD
         warnings.warn("Can't initialize NVML", stacklevel=2)
+=======
+        warnings.warn("Can't initialize NVML")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return -1
     dev_count = c_int(-1)
     rc = nvml_h.nvmlDeviceGetCount_v2(byref(dev_count))
     if rc != 0:
+<<<<<<< HEAD
         warnings.warn("Can't get nvml device count", stacklevel=2)
+=======
+        warnings.warn("Can't get nvml device count")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return -1
     del nvml_h
     return dev_count.value
@@ -856,27 +924,43 @@ def _raw_device_uuid_amdsmi() -> Optional[list[str]]:
     try:
         amdsmi.amdsmi_init()
     except amdsmi.AmdSmiException:
+<<<<<<< HEAD
         warnings.warn("Can't initialize amdsmi", stacklevel=2)
+=======
+        warnings.warn("Can't initialize amdsmi")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
     try:
         socket_handles = amdsmi.amdsmi_get_processor_handles()
         dev_count = len(socket_handles)
     except amdsmi.AmdSmiException:
+<<<<<<< HEAD
         warnings.warn("Can't get amdsmi device count", stacklevel=2)
+=======
+        warnings.warn("Can't get amdsmi device count")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
     uuids: list[str] = []
     for idx in range(dev_count):
         try:
             handler = amdsmi.amdsmi_get_processor_handles()[idx]
         except amdsmi.AmdSmiException:
+<<<<<<< HEAD
             warnings.warn("Cannot get amd device handler", stacklevel=2)
+=======
+            warnings.warn("Cannot get amd device handler")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         try:
             uuid = amdsmi.amdsmi_get_gpu_asic_info(handler)["asic_serial"][
                 2:
             ]  # Removes 0x prefix from serial
         except amdsmi.AmdSmiException:
+<<<<<<< HEAD
             warnings.warn("Cannot get uuid for amd device", stacklevel=2)
+=======
+            warnings.warn("Cannot get uuid for amd device")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         uuids.append(
             str(uuid).lower()
@@ -891,25 +975,41 @@ def _raw_device_uuid_nvml() -> Optional[list[str]]:
     nvml_h = CDLL("libnvidia-ml.so.1")
     rc = nvml_h.nvmlInit()
     if rc != 0:
+<<<<<<< HEAD
         warnings.warn("Can't initialize NVML", stacklevel=2)
+=======
+        warnings.warn("Can't initialize NVML")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
     dev_count = c_int(-1)
     rc = nvml_h.nvmlDeviceGetCount_v2(byref(dev_count))
     if rc != 0:
+<<<<<<< HEAD
         warnings.warn("Can't get nvml device count", stacklevel=2)
+=======
+        warnings.warn("Can't get nvml device count")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
     uuids: list[str] = []
     for idx in range(dev_count.value):
         dev_id = c_void_p()
         rc = nvml_h.nvmlDeviceGetHandleByIndex_v2(idx, byref(dev_id))
         if rc != 0:
+<<<<<<< HEAD
             warnings.warn("Can't get device handle", stacklevel=2)
+=======
+            warnings.warn("Can't get device handle")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         buf_len = 96
         buf = create_string_buffer(buf_len)
         rc = nvml_h.nvmlDeviceGetUUID(dev_id, buf, buf_len)
         if rc != 0:
+<<<<<<< HEAD
             warnings.warn("Can't get device UUID", stacklevel=2)
+=======
+            warnings.warn("Can't get device UUID")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
         uuids.append(buf.raw.decode("ascii").strip("\0"))
     del nvml_h
@@ -964,9 +1064,13 @@ def _device_count_amdsmi() -> int:
             if raw_cnt <= 0:
                 return raw_cnt
             # Trim the list up to a maximum available device
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             for idx, val in enumerate(visible_devices):
                 # pyrefly: ignore [redundant-cast]
+=======
+            for idx, val in enumerate(visible_devices):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if cast(int, val) >= raw_cnt:
                     return idx
     except OSError:
@@ -1000,9 +1104,13 @@ def _device_count_nvml() -> int:
             if raw_cnt <= 0:
                 return raw_cnt
             # Trim the list up to a maximum available device
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             for idx, val in enumerate(visible_devices):
                 # pyrefly: ignore [redundant-cast]
+=======
+            for idx, val in enumerate(visible_devices):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if cast(int, val) >= raw_cnt:
                     return idx
     except OSError:
@@ -1038,7 +1146,11 @@ def device_count() -> int:
     r"""
     Return the number of GPUs available.
 
+<<<<<<< HEAD
     .. note:: This API will NOT poison fork if NVML discovery succeeds.
+=======
+    .. note:: This API will NOT posion fork if NVML discovery succeeds.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         See :ref:`multiprocessing-poison-fork-note` for more details.
     """
     global _cached_device_count
@@ -1217,10 +1329,15 @@ def get_sync_debug_mode() -> int:
 def _get_pynvml_handler(device: "Device" = None):
     if not _HAS_PYNVML:
         raise ModuleNotFoundError(
+<<<<<<< HEAD
             "nvidia-ml-py does not seem to be installed or it can't be imported."
             # pyrefly: ignore [invalid-inheritance]
         ) from _PYNVML_ERR
     # pyrefly: ignore [import-error]
+=======
+            "pynvml does not seem to be installed or it can't be imported."
+        ) from _PYNVML_ERR
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from pynvml import NVMLError_DriverNotLoaded
 
     try:
@@ -1237,7 +1354,10 @@ def _get_amdsmi_handler(device: "Device" = None):
     if not _HAS_PYNVML:
         raise ModuleNotFoundError(
             "amdsmi does not seem to be installed or it can't be imported."
+<<<<<<< HEAD
             # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) from _PYNVML_ERR
     try:
         amdsmi.amdsmi_init()
@@ -1501,7 +1621,10 @@ def _get_rng_state_offset(device: Union[int, str, torch.device] = "cuda") -> int
     return default_generator.get_offset()
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [deprecated]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .memory import *  # noqa: F403
 from .random import *  # noqa: F403
 
@@ -1714,11 +1837,20 @@ class _WrappedTritonKernel:
 
 
 def _register_triton_kernels():
+<<<<<<< HEAD
+=======
+    if torch._running_with_deploy():
+        return
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @_WrappedTritonKernel
     def kernel_impl(*args, **kwargs):
         from torch.sparse._triton_ops import bsr_dense_mm
 
+<<<<<<< HEAD
         # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return bsr_dense_mm(*args, skip_checks=True, **kwargs)
 
     @_WrappedTritonKernel
@@ -1754,6 +1886,10 @@ def _compile_kernel(
     kernel_source: str,
     kernel_name: str,
     compute_capability: Optional[str] = None,
+<<<<<<< HEAD
+=======
+    header_code: str = "",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cuda_include_dirs: Optional[list] = None,
     nvcc_options: Optional[list] = None,
 ):
@@ -1770,6 +1906,10 @@ def _compile_kernel(
         kernel_name (str): The name of the kernel function to compile
         compute_capability (str, optional): The compute capability to target (e.g., "86").
                                            If None, will detect from current device.
+<<<<<<< HEAD
+=======
+        header_code (str, optional): Additional header code to prepend to the kernel source
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cuda_include_dirs (list, optional): List of directories containing CUDA headers
         nvcc_options (list, optional): Additional options to pass to NVRTC
 
@@ -1790,6 +1930,7 @@ def _compile_kernel(
         >>> a = torch.randn(1024, device="cuda")
         >>> b = torch.randn(1024, device="cuda")
         >>> c = torch.empty_like(a)
+<<<<<<< HEAD
         >>> add_kernel(grid=(4, 1, 1), block=(256, 1, 1), args=[a, b, c, a.numel()])
     """
     from torch.cuda._utils import _cuda_load_module, _nvrtc_compile
@@ -1799,11 +1940,26 @@ def _compile_kernel(
         kernel_source,
         kernel_name,
         compute_capability,
+=======
+        >>> add_kernel(grid=(4,1,1), block=(256,1,1), args=[a, b, c, a.numel()])
+    """
+    import ctypes
+
+    from torch.cuda._utils import _cuda_load_module, _nvrtc_compile
+
+    # Compile the kernel to PTX
+    ptx = _nvrtc_compile(
+        kernel_source,
+        kernel_name,
+        compute_capability,
+        header_code,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cuda_include_dirs,
         nvcc_options,
     )
 
     # Load the module and get the kernel
+<<<<<<< HEAD
     result = _cuda_load_module(ptx, [mangled_name])
 
     if isinstance(result, dict):
@@ -1812,14 +1968,27 @@ def _compile_kernel(
         # This branch shouldn't be executed if kernel_names is provided,
         # but MyPy needs this to understand type narrowing
         return getattr(result, mangled_name)
+=======
+    result = _cuda_load_module(ptx, [kernel_name])
+
+    if isinstance(result, dict):
+        return result[kernel_name]
+    else:
+        # This branch shouldn't be executed if kernel_names is provided,
+        # but MyPy needs this to understand type narrowing
+        return getattr(result, kernel_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from . import amp, jiterator, nvtx, profiler, sparse, tunable
 
 
+<<<<<<< HEAD
 _POOL_HANDLE = NewType("_POOL_HANDLE", tuple[int, int])
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 __all__ = [
     # Typed storage and tensors
     "BFloat16Storage",
@@ -1851,7 +2020,10 @@ __all__ = [
     "ExternalStream",
     "Stream",
     "StreamContext",
+<<<<<<< HEAD
     "GreenContext",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "amp",
     "caching_allocator_alloc",
     "caching_allocator_delete",

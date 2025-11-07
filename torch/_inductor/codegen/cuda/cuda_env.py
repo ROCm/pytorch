@@ -22,13 +22,19 @@ def get_cuda_arch() -> Optional[str]:
             major, minor = torch.cuda.get_device_capability(0)
             return str(major * 10 + minor)
         return str(cuda_arch)
+<<<<<<< HEAD
     except Exception:
         log.exception("Error getting cuda arch")
+=======
+    except Exception as e:
+        log.error("Error getting cuda arch: %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
 
 @clear_on_fresh_cache
 @functools.lru_cache(1)
+<<<<<<< HEAD
 def is_datacenter_blackwell_arch() -> bool:
     arch = get_cuda_arch()
     if arch is None:
@@ -39,14 +45,21 @@ def is_datacenter_blackwell_arch() -> bool:
 
 @clear_on_fresh_cache
 @functools.lru_cache(1)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_cuda_version() -> Optional[str]:
     try:
         cuda_version = config.cuda.version
         if cuda_version is None:
             cuda_version = torch.version.cuda
         return cuda_version
+<<<<<<< HEAD
     except Exception:
         log.exception("Error getting cuda version")
+=======
+    except Exception as e:
+        log.error("Error getting cuda version: %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return None
 
 

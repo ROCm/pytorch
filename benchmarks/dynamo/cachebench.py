@@ -6,7 +6,11 @@ import os
 import subprocess
 import sys
 import tempfile
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._inductor.utils import fresh_cache
 
@@ -23,6 +27,10 @@ TORCHBENCH_MODELS: list[str] = [
     "resnet50",
     "moco",
     "llama",
+<<<<<<< HEAD
+=======
+    "hf_T5",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ]
 HUGGINGFACE_MODELS: list[str] = [
     "AllenaiLongformerBase",

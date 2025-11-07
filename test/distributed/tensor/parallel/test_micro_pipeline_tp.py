@@ -352,7 +352,11 @@ class MicroPipelineTPTest(TestCase):
     @parametrize("scatter_dim", [0, 1, 2])
     @fresh_cache()
     def test_fuse_scaled_matmul_reduce_scatter(self, A_dims, scatter_dim):
+<<<<<<< HEAD
         if scatter_dim >= A_dims - 1:
+=======
+        if scatter_dim >= A_dims:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         group = dist.group.WORLD
@@ -402,7 +406,11 @@ class MicroPipelineTPTest(TestCase):
 
     @runOnRocmArch(MI300_ARCH)
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+<<<<<<< HEAD
     @parametrize("scatter_dim", [0, 1])
+=======
+    @parametrize("scatter_dim", [0, 1, 2])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @fresh_cache()
     def test_fuse_scaled_matmul_reduce_scatter_rowwise_scales_reshape_mm_reshape(
         self, scatter_dim

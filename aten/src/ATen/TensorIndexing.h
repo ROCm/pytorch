@@ -112,10 +112,17 @@ TORCH_API std::ostream& operator<<(std::ostream& stream, const Slice& slice);
 // `torch.tensor([1, 2])`) | `torch::tensor({1, 2})`
 struct TORCH_API TensorIndex final {
   // Case 1: `at::indexing::None`
+<<<<<<< HEAD
   TensorIndex(std::nullopt_t /*unused*/) : type_(TensorIndexType::None) {}
 
   // Case 2: "..." / `at::indexing::Ellipsis`
   TensorIndex(at::indexing::EllipsisIndexType /*unused*/)
+=======
+  TensorIndex(std::nullopt_t) : type_(TensorIndexType::None) {}
+
+  // Case 2: "..." / `at::indexing::Ellipsis`
+  TensorIndex(at::indexing::EllipsisIndexType)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : type_(TensorIndexType::Ellipsis) {}
   TensorIndex(const char* str) : TensorIndex(at::indexing::Ellipsis) {
     TORCH_CHECK_VALUE(
@@ -214,7 +221,11 @@ inline Tensor applySlice(
       "step must be greater than zero");
 
   // See NOTE [nested tensor size for indexing]
+<<<<<<< HEAD
   if (self_sizes.has_value() && !self_sizes.value().empty()) {
+=======
+  if (self_sizes.has_value()) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Skip this optimization if we are tracing, as the trace may be polymorphic
     // over the shape of the `self` tensor, and we still want to record
     // the slice.
@@ -223,7 +234,11 @@ inline Tensor applySlice(
         : self.sym_size(dim);
     if (!disable_slice_optimization &&
         TORCH_STATICALLY_KNOWN_TRUE(start.sym_eq(0)) &&
+<<<<<<< HEAD
         TORCH_STATICALLY_KNOWN_TRUE(length.sym_le(stop)) && step == 1) {
+=======
+        TORCH_STATICALLY_KNOWN_TRUE(length.sym_eq(stop)) && step == 1) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return self;
     }
   }
@@ -252,7 +267,11 @@ inline Tensor applySelect(
     // Note: `size >= -index` is not equivalent to `size > -1 - index` if index
     // is INT64_MIN For std::numeric_limits<int64_t>::min() result of unary
     // minus is undefined by the standard but in practice is equal to self. On
+<<<<<<< HEAD
     // the other hand, indexing wrapping is valid for all negative int64_t
+=======
+    // the other hand, indexing wraping is valid for all negative int64_t
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // values, as x[INT64_MIN] is the same as x[INT64_MAX]
     TORCH_CHECK_INDEX(
         size.sym_gt(-1 - index)
@@ -315,6 +334,7 @@ inline void recordTensorIndex(
     const Tensor& tensor,
     std::vector<Tensor>& outIndices,
     int64_t* dim_ptr) {
+<<<<<<< HEAD
   if (outIndices.empty()) {
     outIndices.resize(*dim_ptr + 1);
     outIndices[*dim_ptr] = tensor;
@@ -326,6 +346,12 @@ inline void recordTensorIndex(
   } else {
     *dim_ptr += 1;
   }
+=======
+  // TODO: check scalarType
+  outIndices.resize(*dim_ptr + 1);
+  outIndices[*dim_ptr] = tensor;
+  (*dim_ptr)++;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline c10::List<::std::optional<Tensor>> typeConvertIndices(
@@ -465,6 +491,7 @@ inline Tensor handleDimInMultiDimIndexing(
         original_tensor_device,
         prev_dim_result_sizes);
     (*dim_ptr)++;
+<<<<<<< HEAD
     if (!outIndices.empty()) {
       outIndices.resize(outIndices.size() + 1);
     }
@@ -475,13 +502,21 @@ inline Tensor handleDimInMultiDimIndexing(
     if (!outIndices.empty()) {
       outIndices.resize(outIndices.size() + ellipsis_ndims);
     }
+=======
+    return result;
+  } else if (index.is_ellipsis()) {
+    (*dim_ptr) += original_tensor.dim() - (*specified_dims_ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return prev_dim_result;
   } else if (index.is_none()) {
     Tensor result = prev_dim_result.unsqueeze(*dim_ptr);
     (*dim_ptr)++;
+<<<<<<< HEAD
     if (!outIndices.empty()) {
       outIndices.resize(outIndices.size() + 1);
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return result;
   } else if (index.is_boolean()) {
     Tensor result = prev_dim_result.unsqueeze(*dim_ptr);
@@ -577,10 +612,13 @@ inline Tensor applySlicing(
 inline Tensor dispatch_index(
     const Tensor& self,
     std::vector<Tensor>&& indices) {
+<<<<<<< HEAD
   // Remove trailing null elements from indices
   while (!indices.empty() && !indices.back().defined()) {
     indices.pop_back();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return self.index(impl::typeConvertIndices(self, std::move(indices)));
 }
 
@@ -588,10 +626,13 @@ inline Tensor dispatch_index_put_(
     Tensor& self,
     std::vector<Tensor>&& indices,
     const Tensor& value) {
+<<<<<<< HEAD
   // Remove trailing null elements from indices
   while (!indices.empty() && !indices.back().defined()) {
     indices.pop_back();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return self.index_put_(
       impl::typeConvertIndices(self, std::move(indices)), value);
 }

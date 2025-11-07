@@ -1,1 +1,5 @@
+<<<<<<< HEAD
 3.5.0
+=======
+3.4.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

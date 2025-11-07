@@ -14,7 +14,11 @@ from enum import auto
 from typing import Any, NamedTuple, Optional
 
 import torch
+<<<<<<< HEAD
 import torch.utils._pytree as python_pytree
+=======
+import torch.utils._pytree as py_pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.immutable_collections import immutable_dict, immutable_list
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
@@ -26,6 +30,7 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
 pytree_modules = {
     "python": python_pytree,
 }
@@ -43,6 +48,13 @@ parametrize_pytree_module = parametrize(
     [subtest(module, name=name) for name, module in pytree_modules.items()],
 )
 
+=======
+if IS_FBCODE:
+    # optree is not yet enabled in fbcode, so just re-test the python implementation
+    cxx_pytree = py_pytree
+else:
+    import torch.utils._cxx_pytree as cxx_pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 GlobalPoint = namedtuple("GlobalPoint", ["x", "y"])
 
@@ -67,12 +79,17 @@ class TestEnum(enum.Enum):
 
 class TestGenericPytree(TestCase):
     def test_aligned_public_apis(self):
+<<<<<<< HEAD
         public_apis = python_pytree.__all__
+=======
+        public_apis = py_pytree.__all__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(public_apis, cxx_pytree.__all__)
 
         for name in public_apis:
             cxx_api = getattr(cxx_pytree, name)
+<<<<<<< HEAD
             python_api = getattr(python_pytree, name)
 
             self.assertEqual(inspect.isclass(cxx_api), inspect.isclass(python_api))
@@ -88,6 +105,20 @@ class TestGenericPytree(TestCase):
                 cxx_param_names = list(cxx_signature.parameters)
                 python_param_names = list(python_signature.parameters)
                 self.assertEqual(cxx_param_names, python_param_names)
+=======
+            py_api = getattr(py_pytree, name)
+
+            self.assertEqual(inspect.isclass(cxx_api), inspect.isclass(py_api))
+            self.assertEqual(inspect.isfunction(cxx_api), inspect.isfunction(py_api))
+            if inspect.isfunction(cxx_api):
+                cxx_signature = inspect.signature(cxx_api)
+                py_signature = inspect.signature(py_api)
+
+                # Check the parameter names are the same.
+                cxx_param_names = list(cxx_signature.parameters)
+                py_param_names = list(py_signature.parameters)
+                self.assertEqual(cxx_param_names, py_param_names)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # Check the positional parameters are the same.
                 cxx_positional_param_names = [
@@ -101,9 +132,15 @@ class TestGenericPytree(TestCase):
                         }
                     )
                 ]
+<<<<<<< HEAD
                 python_positional_param_names = [
                     n
                     for n, p in python_signature.parameters.items()
+=======
+                py_positional_param_names = [
+                    n
+                    for n, p in py_signature.parameters.items()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if (
                         p.kind
                         in {
@@ -112,6 +149,7 @@ class TestGenericPytree(TestCase):
                         }
                     )
                 ]
+<<<<<<< HEAD
                 self.assertEqual(
                     cxx_positional_param_names,
                     python_positional_param_names,
@@ -128,6 +166,21 @@ class TestGenericPytree(TestCase):
                     # Check parameter annotations are the same.
                     if "TreeSpec" in str(cxx_param.annotation):
                         self.assertIn("TreeSpec", str(python_param.annotation))
+=======
+                self.assertEqual(cxx_positional_param_names, py_positional_param_names)
+
+                for py_name, py_param in py_signature.parameters.items():
+                    self.assertIn(py_name, cxx_signature.parameters)
+                    cxx_param = cxx_signature.parameters[py_name]
+
+                    # Check parameter kinds and default values are the same.
+                    self.assertEqual(cxx_param.kind, py_param.kind)
+                    self.assertEqual(cxx_param.default, py_param.default)
+
+                    # Check parameter annotations are the same.
+                    if "TreeSpec" in str(cxx_param.annotation):
+                        self.assertIn("TreeSpec", str(py_param.annotation))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.assertEqual(
                             re.sub(
                                 r"(?:\b)([\w\.]*)TreeSpec(?:\b)",
@@ -137,33 +190,60 @@ class TestGenericPytree(TestCase):
                             re.sub(
                                 r"(?:\b)([\w\.]*)TreeSpec(?:\b)",
                                 "TreeSpec",
+<<<<<<< HEAD
                                 str(python_param.annotation),
                             ),
                             msg=(
                                 f"C++ parameter {cxx_param} "
                                 f"does not match Python parameter {python_param} "
+=======
+                                str(py_param.annotation),
+                            ),
+                            msg=(
+                                f"C++ parameter {cxx_param} "
+                                f"does not match Python parameter {py_param} "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 f"for API `{name}`"
                             ),
                         )
                     else:
                         self.assertEqual(
                             cxx_param.annotation,
+<<<<<<< HEAD
                             python_param.annotation,
                             msg=(
                                 f"C++ parameter {cxx_param} "
                                 f"does not match Python parameter {python_param} "
+=======
+                            py_param.annotation,
+                            msg=(
+                                f"C++ parameter {cxx_param} "
+                                f"does not match Python parameter {py_param} "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 f"for API `{name}`"
                             ),
                         )
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_register_pytree_node(self, pytree):
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_register_pytree_node(self, pytree_impl):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         class MyDict(UserDict):
             pass
 
         d = MyDict(a=1, b=2, c=3)
 
         # Custom types are leaf nodes by default
+<<<<<<< HEAD
         values, spec = pytree.tree_flatten(d)
         self.assertEqual(values, [d])
         self.assertIs(values[0], d)
@@ -172,11 +252,22 @@ class TestGenericPytree(TestCase):
 
         # Register MyDict as a pytree node
         pytree.register_pytree_node(
+=======
+        values, spec = pytree_impl.tree_flatten(d)
+        self.assertEqual(values, [d])
+        self.assertIs(values[0], d)
+        self.assertEqual(d, pytree_impl.tree_unflatten(values, spec))
+        self.assertTrue(spec.is_leaf())
+
+        # Register MyDict as a pytree node
+        pytree_impl.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             MyDict,
             lambda d: (list(d.values()), list(d.keys())),
             lambda values, keys: MyDict(zip(keys, values)),
         )
 
+<<<<<<< HEAD
         values, spec = pytree.tree_flatten(d)
         self.assertEqual(values, [1, 2, 3])
         self.assertEqual(d, pytree.tree_unflatten(values, spec))
@@ -184,11 +275,21 @@ class TestGenericPytree(TestCase):
         # Do not allow registering the same type twice
         with self.assertRaisesRegex(ValueError, "already registered"):
             pytree.register_pytree_node(
+=======
+        values, spec = pytree_impl.tree_flatten(d)
+        self.assertEqual(values, [1, 2, 3])
+        self.assertEqual(d, pytree_impl.tree_unflatten(values, spec))
+
+        # Do not allow registering the same type twice
+        with self.assertRaisesRegex(ValueError, "already registered"):
+            pytree_impl.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 MyDict,
                 lambda d: (list(d.values()), list(d.keys())),
                 lambda values, keys: MyDict(zip(keys, values)),
             )
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_flatten_unflatten_leaf(self, pytree):
         def run_test_with_leaf(leaf):
@@ -197,6 +298,22 @@ class TestGenericPytree(TestCase):
             self.assertEqual(treespec, pytree.treespec_leaf())
 
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_flatten_unflatten_leaf(self, pytree_impl):
+        def run_test_with_leaf(leaf):
+            values, treespec = pytree_impl.tree_flatten(leaf)
+            self.assertEqual(values, [leaf])
+            self.assertEqual(treespec, pytree_impl.LeafSpec())
+
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, leaf)
 
         run_test_with_leaf(1)
@@ -206,6 +323,7 @@ class TestGenericPytree(TestCase):
         run_test_with_leaf(torch.randn(3, 3))
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -216,6 +334,18 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda tup: py_pytree.TreeSpec(
+                        tuple, None, [py_pytree.LeafSpec() for _ in tup]
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (cxx_pytree, lambda tup: cxx_pytree.tree_structure((0,) * len(tup))),
@@ -223,15 +353,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_tuple(self, pytree, gen_expected_fn):
         def run_test(tup):
             expected_spec = gen_expected_fn(tup)
             values, treespec = pytree.tree_flatten(tup)
+=======
+    def test_flatten_unflatten_tuple(self, pytree_impl, gen_expected_fn):
+        def run_test(tup):
+            expected_spec = gen_expected_fn(tup)
+            values, treespec = pytree_impl.tree_flatten(tup)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(tup))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, tup)
             self.assertIsInstance(unflattened, tuple)
 
@@ -241,6 +382,7 @@ class TestGenericPytree(TestCase):
         run_test((torch.tensor([1.0, 2]), 2, 10, 9, 11))
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -251,6 +393,18 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda lst: py_pytree.TreeSpec(
+                        list, None, [py_pytree.LeafSpec() for _ in lst]
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (cxx_pytree, lambda lst: cxx_pytree.tree_structure([0] * len(lst))),
@@ -258,15 +412,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_list(self, pytree, gen_expected_fn):
         def run_test(lst):
             expected_spec = gen_expected_fn(lst)
             values, treespec = pytree.tree_flatten(lst)
+=======
+    def test_flatten_unflatten_list(self, pytree_impl, gen_expected_fn):
+        def run_test(lst):
+            expected_spec = gen_expected_fn(lst)
+            values, treespec = pytree_impl.tree_flatten(lst)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, lst)
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, lst)
             self.assertIsInstance(unflattened, list)
 
@@ -275,6 +440,7 @@ class TestGenericPytree(TestCase):
         run_test([torch.tensor([1.0, 2]), 2, 10, 9, 11])
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -287,6 +453,20 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda dct: py_pytree.TreeSpec(
+                        dict,
+                        list(dct.keys()),
+                        [py_pytree.LeafSpec() for _ in dct.values()],
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (
@@ -297,15 +477,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_dict(self, pytree, gen_expected_fn):
         def run_test(dct):
             expected_spec = gen_expected_fn(dct)
             values, treespec = pytree.tree_flatten(dct)
+=======
+    def test_flatten_unflatten_dict(self, pytree_impl, gen_expected_fn):
+        def run_test(dct):
+            expected_spec = gen_expected_fn(dct)
+            values, treespec = pytree_impl.tree_flatten(dct)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(dct.values()))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, dct)
             self.assertIsInstance(unflattened, dict)
 
@@ -316,6 +507,7 @@ class TestGenericPytree(TestCase):
         run_test({"a": 1, "b": 2, "c": torch.randn(2, 3)})
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -328,6 +520,20 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda odict: py_pytree.TreeSpec(
+                        OrderedDict,
+                        list(odict.keys()),
+                        [py_pytree.LeafSpec() for _ in odict.values()],
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (
@@ -340,15 +546,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_ordereddict(self, pytree, gen_expected_fn):
         def run_test(odict):
             expected_spec = gen_expected_fn(odict)
             values, treespec = pytree.tree_flatten(odict)
+=======
+    def test_flatten_unflatten_ordereddict(self, pytree_impl, gen_expected_fn):
+        def run_test(odict):
+            expected_spec = gen_expected_fn(odict)
+            values, treespec = pytree_impl.tree_flatten(odict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(odict.values()))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, odict)
             self.assertIsInstance(unflattened, OrderedDict)
 
@@ -360,6 +577,7 @@ class TestGenericPytree(TestCase):
         run_test(od)
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -372,6 +590,20 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda ddct: py_pytree.TreeSpec(
+                        defaultdict,
+                        [ddct.default_factory, list(ddct.keys())],
+                        [py_pytree.LeafSpec() for _ in ddct.values()],
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (
@@ -384,15 +616,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_defaultdict(self, pytree, gen_expected_fn):
         def run_test(ddct):
             expected_spec = gen_expected_fn(ddct)
             values, treespec = pytree.tree_flatten(ddct)
+=======
+    def test_flatten_unflatten_defaultdict(self, pytree_impl, gen_expected_fn):
+        def run_test(ddct):
+            expected_spec = gen_expected_fn(ddct)
+            values, treespec = pytree_impl.tree_flatten(ddct)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(ddct.values()))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, ddct)
             self.assertEqual(unflattened.default_factory, ddct.default_factory)
             self.assertIsInstance(unflattened, defaultdict)
@@ -404,6 +647,7 @@ class TestGenericPytree(TestCase):
         run_test(defaultdict(int, {"a": 1, "b": 2, "c": torch.randn(2, 3)}))
 
     @parametrize(
+<<<<<<< HEAD
         "pytree,gen_expected_fn",
         [
             subtest(
@@ -414,6 +658,20 @@ class TestGenericPytree(TestCase):
                     ),
                 ),
                 name="python",
+=======
+        "pytree_impl,gen_expected_fn",
+        [
+            subtest(
+                (
+                    py_pytree,
+                    lambda deq: py_pytree.TreeSpec(
+                        deque,
+                        deq.maxlen,
+                        [py_pytree.LeafSpec() for _ in deq],
+                    ),
+                ),
+                name="py",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             subtest(
                 (
@@ -426,15 +684,26 @@ class TestGenericPytree(TestCase):
             ),
         ],
     )
+<<<<<<< HEAD
     def test_flatten_unflatten_deque(self, pytree, gen_expected_fn):
         def run_test(deq):
             expected_spec = gen_expected_fn(deq)
             values, treespec = pytree.tree_flatten(deq)
+=======
+    def test_flatten_unflatten_deque(self, pytree_impl, gen_expected_fn):
+        def run_test(deq):
+            expected_spec = gen_expected_fn(deq)
+            values, treespec = pytree_impl.tree_flatten(deq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(deq))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, deq)
             self.assertEqual(unflattened.maxlen, deq.maxlen)
             self.assertIsInstance(unflattened, deque)
@@ -443,6 +712,7 @@ class TestGenericPytree(TestCase):
         run_test(deque([1.0, 2]))
         run_test(deque([torch.tensor([1.0, 2]), 2, 10, 9, 11], maxlen=8))
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_flatten_unflatten_namedtuple(self, pytree):
         Point = namedtuple("Point", ["x", "y"])
@@ -455,11 +725,35 @@ class TestGenericPytree(TestCase):
             else:
                 expected_spec = cxx_pytree.tree_structure(Point(0, 1))
             values, treespec = pytree.tree_flatten(tup)
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_flatten_unflatten_namedtuple(self, pytree_impl):
+        Point = namedtuple("Point", ["x", "y"])
+
+        def run_test(tup):
+            if pytree_impl is py_pytree:
+                expected_spec = py_pytree.TreeSpec(
+                    namedtuple, Point, [py_pytree.LeafSpec() for _ in tup]
+                )
+            else:
+                expected_spec = cxx_pytree.tree_structure(Point(0, 1))
+            values, treespec = pytree_impl.tree_flatten(tup)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(values, list(tup))
             self.assertEqual(treespec, expected_spec)
 
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(unflattened, tup)
             self.assertIsInstance(unflattened, Point)
 
@@ -473,6 +767,7 @@ class TestGenericPytree(TestCase):
             subtest(torch.min, name="min"),
         ],
     )
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_flatten_unflatten_return_types(self, pytree, op):
         x = torch.randn(3, 3)
@@ -483,21 +778,57 @@ class TestGenericPytree(TestCase):
         for value in values:
             self.assertIsInstance(value, torch.Tensor)
         result = pytree.tree_unflatten(values, spec)
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_flatten_unflatten_return_types(self, pytree_impl, op):
+        x = torch.randn(3, 3)
+        expected = op(x, dim=0)
+
+        values, spec = pytree_impl.tree_flatten(expected)
+        # Check that values is actually List[Tensor] and not (ReturnType(...),)
+        for value in values:
+            self.assertIsInstance(value, torch.Tensor)
+        result = pytree_impl.tree_unflatten(values, spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(type(result), type(expected))
         self.assertEqual(result, expected)
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_flatten_unflatten_nested(self, pytree):
         def run_test(tree):
             values, treespec = pytree.tree_flatten(tree)
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_flatten_unflatten_nested(self, pytree_impl):
+        def run_test(pytree):
+            values, treespec = pytree_impl.tree_flatten(pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertIsInstance(values, list)
             self.assertEqual(len(values), treespec.num_leaves)
 
             # NB: python basic data structures (dict list tuple) all have
             # contents equality defined on them, so the following works for them.
+<<<<<<< HEAD
             unflattened = pytree.tree_unflatten(values, treespec)
             self.assertEqual(unflattened, tree)
+=======
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+            self.assertEqual(unflattened, pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cases = [
             [()],
@@ -509,11 +840,25 @@ class TestGenericPytree(TestCase):
         for case in cases:
             run_test(case)
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_flatten_with_is_leaf(self, pytree):
         def run_test(tree, one_level_leaves):
             values, treespec = pytree.tree_flatten(
                 tree, is_leaf=lambda x: x is not tree
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_flatten_with_is_leaf(self, pytree_impl):
+        def run_test(pytree, one_level_leaves):
+            values, treespec = pytree_impl.tree_flatten(
+                pytree, is_leaf=lambda x: x is not pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             self.assertIsInstance(values, list)
             self.assertEqual(len(values), treespec.num_nodes - 1)
@@ -523,6 +868,7 @@ class TestGenericPytree(TestCase):
 
             self.assertEqual(
                 treespec,
+<<<<<<< HEAD
                 pytree.tree_structure(
                     pytree.tree_unflatten([0] * treespec.num_leaves, treespec)
                 ),
@@ -530,6 +876,15 @@ class TestGenericPytree(TestCase):
 
             unflattened = pytree.tree_unflatten(values, treespec)
             self.assertEqual(unflattened, tree)
+=======
+                pytree_impl.tree_structure(
+                    pytree_impl.tree_unflatten([0] * treespec.num_leaves, treespec)
+                ),
+            )
+
+            unflattened = pytree_impl.tree_unflatten(values, treespec)
+            self.assertEqual(unflattened, pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         cases = [
             ([()], [()]),
@@ -548,6 +903,7 @@ class TestGenericPytree(TestCase):
         for case in cases:
             run_test(*case)
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_tree_map(self, pytree):
         def run_test(tree):
@@ -556,14 +912,35 @@ class TestGenericPytree(TestCase):
 
             sm1 = sum(map(f, pytree.tree_leaves(tree)))
             sm2 = sum(pytree.tree_leaves(pytree.tree_map(f, tree)))
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_tree_map(self, pytree_impl):
+        def run_test(pytree):
+            def f(x):
+                return x * 3
+
+            sm1 = sum(map(f, pytree_impl.tree_leaves(pytree)))
+            sm2 = sum(pytree_impl.tree_leaves(pytree_impl.tree_map(f, pytree)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(sm1, sm2)
 
             def invf(x):
                 return x // 3
 
             self.assertEqual(
+<<<<<<< HEAD
                 pytree.tree_map(invf, pytree.tree_map(f, tree)),
                 tree,
+=======
+                pytree_impl.tree_map(invf, pytree_impl.tree_map(f, pytree)),
+                pytree,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         cases = [
@@ -576,6 +953,7 @@ class TestGenericPytree(TestCase):
         for case in cases:
             run_test(case)
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_tree_map_multi_inputs(self, pytree):
         def run_test(tree):
@@ -589,6 +967,29 @@ class TestGenericPytree(TestCase):
             self.assertEqual(
                 pytree.tree_map(f, tree_x, tree_y, tree_z),
                 pytree.tree_map(lambda x: f(x, (x + 1,), {"a": x * 2, "b": 2}), tree),
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_tree_map_multi_inputs(self, pytree_impl):
+        def run_test(pytree):
+            def f(x, y, z):
+                return x, [y, (z, 0)]
+
+            pytree_x = pytree
+            pytree_y = pytree_impl.tree_map(lambda x: (x + 1,), pytree)
+            pytree_z = pytree_impl.tree_map(lambda x: {"a": x * 2, "b": 2}, pytree)
+
+            self.assertEqual(
+                pytree_impl.tree_map(f, pytree_x, pytree_y, pytree_z),
+                pytree_impl.tree_map(
+                    lambda x: f(x, (x + 1,), {"a": x * 2, "b": 2}), pytree
+                ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         cases = [
@@ -601,6 +1002,7 @@ class TestGenericPytree(TestCase):
         for case in cases:
             run_test(case)
 
+<<<<<<< HEAD
     @parametrize_pytree_module
     def test_tree_map_only(self, pytree):
         self.assertEqual(pytree.tree_map_only(int, lambda x: x + 2, [0, "a"]), [2, "a"])
@@ -624,6 +1026,57 @@ class TestGenericPytree(TestCase):
 
     @parametrize_pytree_module
     def test_broadcast_to_and_flatten(self, pytree):
+=======
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_tree_map_only(self, pytree_impl):
+        self.assertEqual(
+            pytree_impl.tree_map_only(int, lambda x: x + 2, [0, "a"]), [2, "a"]
+        )
+
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_tree_map_only_predicate_fn(self, pytree_impl):
+        self.assertEqual(
+            pytree_impl.tree_map_only(lambda x: x == 0, lambda x: x + 2, [0, 1]), [2, 1]
+        )
+
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_tree_all_any(self, pytree_impl):
+        self.assertTrue(pytree_impl.tree_all(lambda x: x % 2, [1, 3]))
+        self.assertFalse(pytree_impl.tree_all(lambda x: x % 2, [0, 1]))
+        self.assertTrue(pytree_impl.tree_any(lambda x: x % 2, [0, 1]))
+        self.assertFalse(pytree_impl.tree_any(lambda x: x % 2, [0, 2]))
+        self.assertTrue(pytree_impl.tree_all_only(int, lambda x: x % 2, [1, 3, "a"]))
+        self.assertFalse(pytree_impl.tree_all_only(int, lambda x: x % 2, [0, 1, "a"]))
+        self.assertTrue(pytree_impl.tree_any_only(int, lambda x: x % 2, [0, 1, "a"]))
+        self.assertFalse(pytree_impl.tree_any_only(int, lambda x: x % 2, [0, 2, "a"]))
+
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_broadcast_to_and_flatten(self, pytree_impl):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cases = [
             (1, (), []),
             # Same (flat) structures
@@ -656,6 +1109,7 @@ class TestGenericPytree(TestCase):
             ((1, 2), ([0, [0, 0], 0], [0, 0]), [1, 1, 1, 1, 2, 2]),
             (([1, 2, 3], 4), ([0, [0, 0], 0], [0, 0]), [1, 2, 2, 3, 4, 4]),
         ]
+<<<<<<< HEAD
         for tree, to_tree, expected in cases:
             _, to_spec = pytree.tree_flatten(to_tree)
             result = pytree._broadcast_to_and_flatten(tree, to_spec)
@@ -667,6 +1121,31 @@ class TestGenericPytree(TestCase):
             pytree.treespec_dumps("random_blurb")
 
     @parametrize_pytree_module
+=======
+        for pytree, to_pytree, expected in cases:
+            _, to_spec = pytree_impl.tree_flatten(to_pytree)
+            result = pytree_impl._broadcast_to_and_flatten(pytree, to_spec)
+            self.assertEqual(result, expected, msg=str([pytree, to_spec, expected]))
+
+    @parametrize(
+        "pytree_impl",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+    def test_pytree_serialize_bad_input(self, pytree_impl):
+        with self.assertRaises(TypeError):
+            pytree_impl.treespec_dumps("random_blurb")
+
+    @parametrize(
+        "pytree",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_is_namedtuple(self, pytree):
         DirectNamedTuple1 = namedtuple("DirectNamedTuple1", ["x", "y"])
 
@@ -707,7 +1186,17 @@ class TestGenericPytree(TestCase):
         self.assertFalse(pytree.is_namedtuple_class(tuple))
         self.assertFalse(pytree.is_namedtuple_class(list))
 
+<<<<<<< HEAD
     @parametrize_pytree_module
+=======
+    @parametrize(
+        "pytree",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_is_structseq(self, pytree):
         class FakeStructSeq(tuple):
             n_fields = 2
@@ -781,7 +1270,17 @@ class TestGenericPytree(TestCase):
                 self.assertFalse(pytree.is_namedtuple(cls))
                 self.assertFalse(pytree.is_namedtuple_class(cls))
 
+<<<<<<< HEAD
     @parametrize_pytree_module
+=======
+    @parametrize(
+        "pytree",
+        [
+            subtest(py_pytree, name="py"),
+            subtest(cxx_pytree, name="cxx"),
+        ],
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_enum_treespec_roundtrip(self, pytree):
         data = {TestEnum.A: 5}
         spec = pytree.tree_structure(data)
@@ -801,14 +1300,22 @@ class TestPythonPytree(TestCase):
         with self.assertWarnsRegex(
             FutureWarning, "torch.utils._pytree._register_pytree_node"
         ):
+<<<<<<< HEAD
             python_pytree._register_pytree_node(
+=======
+            py_pytree._register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 DummyType,
                 lambda dummy: ([dummy.x, dummy.y], None),
                 lambda xs, _: DummyType(*xs),
             )
 
         with self.assertWarnsRegex(UserWarning, "already registered"):
+<<<<<<< HEAD
             python_pytree._register_pytree_node(
+=======
+            py_pytree._register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 DummyType,
                 lambda dummy: ([dummy.x, dummy.y], None),
                 lambda xs, _: DummyType(*xs),
@@ -845,6 +1352,7 @@ if "optree" in sys.modules:
 
     def test_treespec_equality(self):
         self.assertEqual(
+<<<<<<< HEAD
             python_pytree.treespec_leaf(),
             python_pytree.treespec_leaf(),
         )
@@ -863,12 +1371,35 @@ if "optree" in sys.modules:
         self.assertTrue(
             python_pytree.TreeSpec(tuple, None, [])
             != python_pytree.TreeSpec(list, None, []),
+=======
+            py_pytree.LeafSpec(),
+            py_pytree.LeafSpec(),
+        )
+        self.assertEqual(
+            py_pytree.TreeSpec(list, None, []),
+            py_pytree.TreeSpec(list, None, []),
+        )
+        self.assertEqual(
+            py_pytree.TreeSpec(list, None, [py_pytree.LeafSpec()]),
+            py_pytree.TreeSpec(list, None, [py_pytree.LeafSpec()]),
+        )
+        self.assertFalse(
+            py_pytree.TreeSpec(tuple, None, []) == py_pytree.TreeSpec(list, None, []),
+        )
+        self.assertTrue(
+            py_pytree.TreeSpec(tuple, None, []) != py_pytree.TreeSpec(list, None, []),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def test_treespec_repr(self):
         # Check that it looks sane
+<<<<<<< HEAD
         tree = (0, [0, 0, [0]])
         spec = python_pytree.tree_structure(tree)
+=======
+        pytree = (0, [0, 0, [0]])
+        _, spec = py_pytree.tree_flatten(pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             repr(spec),
             (
@@ -882,6 +1413,7 @@ if "optree" in sys.modules:
     @parametrize(
         "spec",
         [
+<<<<<<< HEAD
             # python_pytree.tree_structure([])
             python_pytree.TreeSpec(list, None, []),
             # python_pytree.tree_structure(())
@@ -934,10 +1466,71 @@ if "optree" in sys.modules:
                             python_pytree.treespec_leaf(),
                             python_pytree.treespec_leaf(),
                             python_pytree.treespec_leaf(),
+=======
+            # py_pytree.tree_structure([])
+            py_pytree.TreeSpec(list, None, []),
+            # py_pytree.tree_structure(())
+            py_pytree.TreeSpec(tuple, None, []),
+            # py_pytree.tree_structure({})
+            py_pytree.TreeSpec(dict, [], []),
+            # py_pytree.tree_structure([0])
+            py_pytree.TreeSpec(list, None, [py_pytree.LeafSpec()]),
+            # py_pytree.tree_structure([0, 1])
+            py_pytree.TreeSpec(
+                list,
+                None,
+                [
+                    py_pytree.LeafSpec(),
+                    py_pytree.LeafSpec(),
+                ],
+            ),
+            # py_pytree.tree_structure((0, 1, 2))
+            py_pytree.TreeSpec(
+                tuple,
+                None,
+                [
+                    py_pytree.LeafSpec(),
+                    py_pytree.LeafSpec(),
+                    py_pytree.LeafSpec(),
+                ],
+            ),
+            # py_pytree.tree_structure({"a": 0, "b": 1, "c": 2})
+            py_pytree.TreeSpec(
+                dict,
+                ["a", "b", "c"],
+                [
+                    py_pytree.LeafSpec(),
+                    py_pytree.LeafSpec(),
+                    py_pytree.LeafSpec(),
+                ],
+            ),
+            # py_pytree.tree_structure(OrderedDict([("a", (0, 1)), ("b", 2), ("c", {"a": 3, "b": 4, "c": 5})])
+            py_pytree.TreeSpec(
+                OrderedDict,
+                ["a", "b", "c"],
+                [
+                    py_pytree.TreeSpec(
+                        tuple,
+                        None,
+                        [
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+                        ],
+                    ),
+                    py_pytree.LeafSpec(),
+                    py_pytree.TreeSpec(
+                        dict,
+                        ["a", "b", "c"],
+                        [
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ],
                     ),
                 ],
             ),
+<<<<<<< HEAD
             # python_pytree.tree_structure([(0, 1, [2, 3])])
             python_pytree.TreeSpec(
                 list,
@@ -955,12 +1548,32 @@ if "optree" in sys.modules:
                                 [
                                     python_pytree.treespec_leaf(),
                                     python_pytree.treespec_leaf(),
+=======
+            # py_pytree.tree_structure([(0, 1, [2, 3])])
+            py_pytree.TreeSpec(
+                list,
+                None,
+                [
+                    py_pytree.TreeSpec(
+                        tuple,
+                        None,
+                        [
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+                            py_pytree.TreeSpec(
+                                list,
+                                None,
+                                [
+                                    py_pytree.LeafSpec(),
+                                    py_pytree.LeafSpec(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 ],
                             ),
                         ],
                     ),
                 ],
             ),
+<<<<<<< HEAD
             # python_pytree.tree_structure(defaultdict(list, {"a": [0, 1], "b": [1, 2], "c": {}}))
             python_pytree.TreeSpec(
                 defaultdict,
@@ -977,6 +1590,30 @@ if "optree" in sys.modules:
                         [python_pytree.treespec_leaf(), python_pytree.treespec_leaf()],
                     ),
                     python_pytree.TreeSpec(dict, [], []),
+=======
+            # py_pytree.tree_structure(defaultdict(list, {"a": [0, 1], "b": [1, 2], "c": {}}))
+            py_pytree.TreeSpec(
+                defaultdict,
+                [list, ["a", "b", "c"]],
+                [
+                    py_pytree.TreeSpec(
+                        list,
+                        None,
+                        [
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+                        ],
+                    ),
+                    py_pytree.TreeSpec(
+                        list,
+                        None,
+                        [
+                            py_pytree.LeafSpec(),
+                            py_pytree.LeafSpec(),
+                        ],
+                    ),
+                    py_pytree.TreeSpec(dict, [], []),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             ),
         ],
@@ -985,6 +1622,7 @@ if "optree" in sys.modules:
         # Ensure that the spec is valid
         self.assertEqual(
             spec,
+<<<<<<< HEAD
             python_pytree.tree_structure(
                 python_pytree.tree_unflatten([0] * spec.num_leaves, spec)
             ),
@@ -1004,10 +1642,32 @@ if "optree" in sys.modules:
                     None,
                     [
                         python_pytree.treespec_leaf(),
+=======
+            py_pytree.tree_structure(
+                py_pytree.tree_unflatten([0] * spec.num_leaves, spec)
+            ),
+        )
+
+        serialized_spec = py_pytree.treespec_dumps(spec)
+        self.assertIsInstance(serialized_spec, str)
+        self.assertEqual(spec, py_pytree.treespec_loads(serialized_spec))
+
+    def test_pytree_serialize_defaultdict_enum(self):
+        spec = py_pytree.TreeSpec(
+            defaultdict,
+            [list, [TestEnum.A]],
+            [
+                py_pytree.TreeSpec(
+                    list,
+                    None,
+                    [
+                        py_pytree.LeafSpec(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ],
                 ),
             ],
         )
+<<<<<<< HEAD
         serialized_spec = python_pytree.treespec_dumps(spec)
         self.assertIsInstance(serialized_spec, str)
 
@@ -1015,62 +1675,109 @@ if "optree" in sys.modules:
         spec = python_pytree.TreeSpec(dict, TestEnum.A, [python_pytree.treespec_leaf()])
 
         serialized_spec = python_pytree.treespec_dumps(spec)
+=======
+        serialized_spec = py_pytree.treespec_dumps(spec)
+        self.assertIsInstance(serialized_spec, str)
+
+    def test_pytree_serialize_enum(self):
+        spec = py_pytree.TreeSpec(dict, TestEnum.A, [py_pytree.LeafSpec()])
+
+        serialized_spec = py_pytree.treespec_dumps(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertIsInstance(serialized_spec, str)
 
     def test_pytree_serialize_namedtuple(self):
         Point1 = namedtuple("Point1", ["x", "y"])
+<<<<<<< HEAD
         python_pytree._register_namedtuple(
+=======
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Point1,
             serialized_type_name="test_pytree.test_pytree_serialize_namedtuple.Point1",
         )
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(Point1(1, 2))
         self.assertIs(spec.type, namedtuple)
         roundtrip_spec = python_pytree.treespec_loads(
             python_pytree.treespec_dumps(spec)
         )
+=======
+        spec = py_pytree.tree_structure(Point1(1, 2))
+        self.assertIs(spec.type, namedtuple)
+        roundtrip_spec = py_pytree.treespec_loads(py_pytree.treespec_dumps(spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(spec, roundtrip_spec)
 
         class Point2(NamedTuple):
             x: int
             y: int
 
+<<<<<<< HEAD
         python_pytree._register_namedtuple(
+=======
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Point2,
             serialized_type_name="test_pytree.test_pytree_serialize_namedtuple.Point2",
         )
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(Point2(1, 2))
         self.assertIs(spec.type, namedtuple)
         roundtrip_spec = python_pytree.treespec_loads(
             python_pytree.treespec_dumps(spec)
         )
+=======
+        spec = py_pytree.tree_structure(Point2(1, 2))
+        self.assertIs(spec.type, namedtuple)
+        roundtrip_spec = py_pytree.treespec_loads(py_pytree.treespec_dumps(spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(spec, roundtrip_spec)
 
         class Point3(Point2):
             pass
 
+<<<<<<< HEAD
         python_pytree._register_namedtuple(
+=======
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Point3,
             serialized_type_name="test_pytree.test_pytree_serialize_namedtuple.Point3",
         )
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(Point3(1, 2))
         self.assertIs(spec.type, namedtuple)
         roundtrip_spec = python_pytree.treespec_loads(
             python_pytree.treespec_dumps(spec)
         )
+=======
+        spec = py_pytree.tree_structure(Point3(1, 2))
+        self.assertIs(spec.type, namedtuple)
+        roundtrip_spec = py_pytree.treespec_loads(py_pytree.treespec_dumps(spec))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(spec, roundtrip_spec)
 
     def test_pytree_serialize_namedtuple_bad(self):
         DummyType = namedtuple("DummyType", ["x", "y"])
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(DummyType(1, 2))
+=======
+        spec = py_pytree.tree_structure(DummyType(1, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with self.assertRaisesRegex(
             NotImplementedError, "Please register using `_register_namedtuple`"
         ):
+<<<<<<< HEAD
             python_pytree.treespec_dumps(spec)
+=======
+            py_pytree.treespec_dumps(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_pytree_custom_type_serialize_bad(self):
         class DummyType:
@@ -1078,17 +1785,29 @@ if "optree" in sys.modules:
                 self.x = x
                 self.y = y
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             DummyType,
             lambda dummy: ([dummy.x, dummy.y], None),
             lambda xs, _: DummyType(*xs),
         )
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(DummyType(1, 2))
         with self.assertRaisesRegex(
             NotImplementedError, "No registered serialization name"
         ):
             python_pytree.treespec_dumps(spec)
+=======
+        spec = py_pytree.tree_structure(DummyType(1, 2))
+        with self.assertRaisesRegex(
+            NotImplementedError, "No registered serialization name"
+        ):
+            py_pytree.treespec_dumps(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_pytree_custom_type_serialize(self):
         class DummyType:
@@ -1096,7 +1815,11 @@ if "optree" in sys.modules:
                 self.x = x
                 self.y = y
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             DummyType,
             lambda dummy: ([dummy.x, dummy.y], None),
             lambda xs, _: DummyType(*xs),
@@ -1104,10 +1827,17 @@ if "optree" in sys.modules:
             to_dumpable_context=lambda context: "moo",
             from_dumpable_context=lambda dumpable_context: None,
         )
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(DummyType(1, 2))
         serialized_spec = python_pytree.treespec_dumps(spec, 1)
         self.assertIn("moo", serialized_spec)
         roundtrip_spec = python_pytree.treespec_loads(serialized_spec)
+=======
+        spec = py_pytree.tree_structure(DummyType(1, 2))
+        serialized_spec = py_pytree.treespec_dumps(spec, 1)
+        self.assertIn("moo", serialized_spec)
+        roundtrip_spec = py_pytree.treespec_loads(serialized_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(roundtrip_spec, spec)
 
     def test_pytree_serialize_register_bad(self):
@@ -1119,7 +1849,11 @@ if "optree" in sys.modules:
         with self.assertRaisesRegex(
             ValueError, "Both to_dumpable_context and from_dumpable_context"
         ):
+<<<<<<< HEAD
             python_pytree.register_pytree_node(
+=======
+            py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 DummyType,
                 lambda dummy: ([dummy.x, dummy.y], None),
                 lambda xs, _: DummyType(*xs),
@@ -1133,7 +1867,11 @@ if "optree" in sys.modules:
                 self.x = x
                 self.y = y
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             DummyType,
             lambda dummy: ([dummy.x, dummy.y], None),
             lambda xs, _: DummyType(*xs),
@@ -1142,31 +1880,51 @@ if "optree" in sys.modules:
             from_dumpable_context=lambda dumpable_context: None,
         )
 
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(DummyType(1, 2))
+=======
+        spec = py_pytree.tree_structure(DummyType(1, 2))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with self.assertRaisesRegex(
             TypeError, "Object of type type is not JSON serializable"
         ):
+<<<<<<< HEAD
             python_pytree.treespec_dumps(spec)
+=======
+            py_pytree.treespec_dumps(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_pytree_serialize_bad_protocol(self):
         import json
 
         Point = namedtuple("Point", ["x", "y"])
+<<<<<<< HEAD
         spec = python_pytree.tree_structure(Point(1, 2))
         python_pytree._register_namedtuple(
+=======
+        spec = py_pytree.tree_structure(Point(1, 2))
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             Point,
             serialized_type_name="test_pytree.test_pytree_serialize_bad_protocol.Point",
         )
 
         with self.assertRaisesRegex(ValueError, "Unknown protocol"):
+<<<<<<< HEAD
             python_pytree.treespec_dumps(spec, -1)
 
         serialized_spec = python_pytree.treespec_dumps(spec)
+=======
+            py_pytree.treespec_dumps(spec, -1)
+
+        serialized_spec = py_pytree.treespec_dumps(spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _, data = json.loads(serialized_spec)
         bad_protocol_serialized_spec = json.dumps((-1, data))
 
         with self.assertRaisesRegex(ValueError, "Unknown protocol"):
+<<<<<<< HEAD
             python_pytree.treespec_loads(bad_protocol_serialized_spec)
 
     def test_saved_serialized(self):
@@ -1188,6 +1946,27 @@ if "optree" in sys.modules:
                         python_pytree.treespec_leaf(),
                         python_pytree.treespec_leaf(),
                         python_pytree.treespec_leaf(),
+=======
+            py_pytree.treespec_loads(bad_protocol_serialized_spec)
+
+    def test_saved_serialized(self):
+        # py_pytree.tree_structure(OrderedDict([(1, (0, 1)), (2, 2), (3, {4: 3, 5: 4, 6: 5})]))
+        complicated_spec = py_pytree.TreeSpec(
+            OrderedDict,
+            [1, 2, 3],
+            [
+                py_pytree.TreeSpec(
+                    tuple, None, [py_pytree.LeafSpec(), py_pytree.LeafSpec()]
+                ),
+                py_pytree.LeafSpec(),
+                py_pytree.TreeSpec(
+                    dict,
+                    [4, 5, 6],
+                    [
+                        py_pytree.LeafSpec(),
+                        py_pytree.LeafSpec(),
+                        py_pytree.LeafSpec(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ],
                 ),
             ],
@@ -1195,14 +1974,23 @@ if "optree" in sys.modules:
         # Ensure that the spec is valid
         self.assertEqual(
             complicated_spec,
+<<<<<<< HEAD
             python_pytree.tree_structure(
                 python_pytree.tree_unflatten(
+=======
+            py_pytree.tree_structure(
+                py_pytree.tree_unflatten(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     [0] * complicated_spec.num_leaves, complicated_spec
                 )
             ),
         )
 
+<<<<<<< HEAD
         serialized_spec = python_pytree.treespec_dumps(complicated_spec)
+=======
+        serialized_spec = py_pytree.treespec_dumps(complicated_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         saved_spec = (
             '[1, {"type": "collections.OrderedDict", "context": "[1, 2, 3]", '
             '"children_spec": [{"type": "builtins.tuple", "context": "null", '
@@ -1215,11 +2003,19 @@ if "optree" in sys.modules:
             '[]}, {"type": null, "context": null, "children_spec": []}]}]}]'
         )
         self.assertEqual(serialized_spec, saved_spec)
+<<<<<<< HEAD
         self.assertEqual(complicated_spec, python_pytree.treespec_loads(saved_spec))
 
     def test_tree_map_with_path(self):
         tree = [{i: i for i in range(10)}]
         all_zeros = python_pytree.tree_map_with_path(
+=======
+        self.assertEqual(complicated_spec, py_pytree.treespec_loads(saved_spec))
+
+    def test_tree_map_with_path(self):
+        tree = [{i: i for i in range(10)}]
+        all_zeros = py_pytree.tree_map_with_path(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             lambda kp, val: val - kp[1].key + kp[0].idx, tree
         )
         self.assertEqual(all_zeros, [dict.fromkeys(range(10), 0)])
@@ -1232,14 +2028,22 @@ if "optree" in sys.modules:
             c: Optional[str] = None
             d: str = field(init=False, default="")
 
+<<<<<<< HEAD
         python_pytree.register_dataclass(Data)
         old_data = Data(torch.tensor(3), "b", "c")
         old_data.d = "d"
         new_data = python_pytree.tree_map(lambda x: x, old_data)
+=======
+        py_pytree.register_dataclass(Data)
+        old_data = Data(torch.tensor(3), "b", "c")
+        old_data.d = "d"
+        new_data = py_pytree.tree_unflatten(*py_pytree.tree_flatten(old_data))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(new_data.a, torch.tensor(3))
         self.assertEqual(new_data.b, "b")
         self.assertEqual(new_data.c, "c")
         self.assertEqual(new_data.d, "")
+<<<<<<< HEAD
         python_pytree._deregister_pytree_node(Data)
 
         with self.assertRaisesRegex(ValueError, "Missing fields"):
@@ -1260,6 +2064,28 @@ if "optree" in sys.modules:
         self.assertEqual(new_data.b, "moo")
         self.assertEqual(new_data.c, None)
         python_pytree._deregister_pytree_node(Data)
+=======
+        py_pytree._deregister_pytree_node(Data)
+
+        with self.assertRaisesRegex(ValueError, "Missing fields"):
+            py_pytree.register_dataclass(Data, field_names=["a", "b"])
+
+        with self.assertRaisesRegex(ValueError, "Unexpected fields"):
+            py_pytree.register_dataclass(Data, field_names=["a", "b", "e"])
+
+        with self.assertRaisesRegex(ValueError, "Unexpected fields"):
+            py_pytree.register_dataclass(Data, field_names=["a", "b", "c", "d"])
+
+        py_pytree.register_dataclass(
+            Data, field_names=["a"], drop_field_names=["b", "c"]
+        )
+        old_data = Data(torch.tensor(3), "b", "c")
+        new_data = py_pytree.tree_unflatten(*py_pytree.tree_flatten(old_data))
+        self.assertEqual(new_data.a, torch.tensor(3))
+        self.assertEqual(new_data.b, "moo")
+        self.assertEqual(new_data.c, None)
+        py_pytree._deregister_pytree_node(Data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_register_dataclass_class(self):
         class CustomClass:
@@ -1268,11 +2094,19 @@ if "optree" in sys.modules:
                 self.y = y
 
         with self.assertRaisesRegex(ValueError, "field_names must be specified"):
+<<<<<<< HEAD
             python_pytree.register_dataclass(CustomClass)
 
         python_pytree.register_dataclass(CustomClass, field_names=["x", "y"])
         c = CustomClass(torch.tensor(0), torch.tensor(1))
         mapped = python_pytree.tree_map(lambda x: x + 1, c)
+=======
+            py_pytree.register_dataclass(CustomClass)
+
+        py_pytree.register_dataclass(CustomClass, field_names=["x", "y"])
+        c = CustomClass(torch.tensor(0), torch.tensor(1))
+        mapped = py_pytree.tree_map(lambda x: x + 1, c)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(mapped.x, torch.tensor(1))
         self.assertEqual(mapped.y, torch.tensor(2))
 
@@ -1283,10 +2117,17 @@ if "optree" in sys.modules:
         class Config:
             norm: str
 
+<<<<<<< HEAD
         python_pytree.register_constant(Config)
 
         config = Config("l1")
         elements, spec = python_pytree.tree_flatten(config)
+=======
+        py_pytree.register_constant(Config)
+
+        config = Config("l1")
+        elements, spec = py_pytree.tree_flatten(config)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(elements, [])
         self.assertEqual(spec.context.value, config)
 
@@ -1296,7 +2137,11 @@ if "optree" in sys.modules:
                 self.norm = norm
 
         try:
+<<<<<<< HEAD
             python_pytree.register_constant(Config)
+=======
+            py_pytree.register_constant(Config)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertFalse(True)  # must raise error before this
         except TypeError as e:
             msg = "register_constant(cls) expects `cls` to have a non-default `__eq__` implementation."
@@ -1311,7 +2156,11 @@ if "optree" in sys.modules:
                 return self.norm == other.norm
 
         try:
+<<<<<<< HEAD
             python_pytree.register_constant(Config)
+=======
+            py_pytree.register_constant(Config)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertFalse(True)  # must raise error before this
         except TypeError as e:
             msg = "register_constant(cls) expects `cls` to have a non-default `__hash__` implementation."
@@ -1327,23 +2176,40 @@ if "optree" in sys.modules:
         tree1 = [ACustomPytree(x=12, y={"cin": [1, 4, 10], "bar": 18}, z="leaf"), 5]
         tree2 = [ACustomPytree(x=2, y={"cin": [2, 2, 2], "bar": 2}, z="leaf"), 2]
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ACustomPytree,
             flatten_fn=lambda f: ([f.x, f.y], f.z),
             unflatten_fn=lambda xy, z: ACustomPytree(xy[0], xy[1], z),
             flatten_with_keys_fn=lambda f: ((("x", f.x), ("y", f.y)), f.z),
         )
+<<<<<<< HEAD
         from_two_trees = python_pytree.tree_map_with_path(
             lambda kp, a, b: a + b, tree1, tree2
         )
         from_one_tree = python_pytree.tree_map(lambda a: a + 2, tree1)
+=======
+        from_two_trees = py_pytree.tree_map_with_path(
+            lambda kp, a, b: a + b, tree1, tree2
+        )
+        from_one_tree = py_pytree.tree_map(lambda a: a + 2, tree1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(from_two_trees, from_one_tree)
 
     def test_tree_flatten_with_path_is_leaf(self):
         leaf_dict = {"foo": [(3)]}
+<<<<<<< HEAD
         tree = (["hello", [1, 2], leaf_dict],)
         key_leaves, _ = python_pytree.tree_flatten_with_path(
             tree, is_leaf=lambda x: isinstance(x, dict)
+=======
+        pytree = (["hello", [1, 2], leaf_dict],)
+        key_leaves, _ = py_pytree.tree_flatten_with_path(
+            pytree, is_leaf=lambda x: isinstance(x, dict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.assertTrue(key_leaves[-1][1] is leaf_dict)
 
@@ -1359,7 +2225,11 @@ if "optree" in sys.modules:
             y: Any
             z: Any
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ACustomPytree,
             flatten_fn=lambda f: ([f.x, f.y], f.z),
             unflatten_fn=lambda xy, z: ACustomPytree(xy[0], xy[1], z),
@@ -1372,12 +2242,19 @@ if "optree" in sys.modules:
             [ANamedTuple(x=torch.rand(2, 3), y=1, z="foo")],
             [ACustomPytree(x=12, y={"cin": [1, 4, 10], "bar": 18}, z="leaf"), 5],
         ]
+<<<<<<< HEAD
         for tree in SOME_PYTREES:
             key_leaves, spec = python_pytree.tree_flatten_with_path(tree)
             actual = python_pytree.tree_unflatten(
                 [leaf for _, leaf in key_leaves], spec
             )
             self.assertEqual(actual, tree)
+=======
+        for pytree in SOME_PYTREES:
+            key_leaves, spec = py_pytree.tree_flatten_with_path(pytree)
+            actual = py_pytree.tree_unflatten([leaf for _, leaf in key_leaves], spec)
+            self.assertEqual(actual, pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_tree_leaves_with_path(self):
         class ANamedTuple(NamedTuple):
@@ -1391,7 +2268,11 @@ if "optree" in sys.modules:
             y: Any
             z: Any
 
+<<<<<<< HEAD
         python_pytree.register_pytree_node(
+=======
+        py_pytree.register_pytree_node(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ACustomPytree,
             flatten_fn=lambda f: ([f.x, f.y], f.z),
             unflatten_fn=lambda xy, z: ACustomPytree(xy[0], xy[1], z),
@@ -1404,9 +2285,15 @@ if "optree" in sys.modules:
             [ANamedTuple(x=torch.rand(2, 3), y=1, z="foo")],
             [ACustomPytree(x=12, y={"cin": [1, 4, 10], "bar": 18}, z="leaf"), 5],
         ]
+<<<<<<< HEAD
         for tree in SOME_PYTREES:
             flat_out, _ = python_pytree.tree_flatten_with_path(tree)
             leaves_out = python_pytree.tree_leaves_with_path(tree)
+=======
+        for pytree in SOME_PYTREES:
+            flat_out, _ = py_pytree.tree_flatten_with_path(pytree)
+            leaves_out = py_pytree.tree_leaves_with_path(pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.assertEqual(flat_out, leaves_out)
 
     def test_key_str(self):
@@ -1415,8 +2302,13 @@ if "optree" in sys.modules:
             y: int
 
         tree = (["hello", [1, 2], {"foo": [(3)], "bar": [ANamedTuple(x="baz", y=10)]}],)
+<<<<<<< HEAD
         flat, _ = python_pytree.tree_flatten_with_path(tree)
         paths = [f"{python_pytree.keystr(kp)}: {val}" for kp, val in flat]
+=======
+        flat, _ = py_pytree.tree_flatten_with_path(tree)
+        paths = [f"{py_pytree.keystr(kp)}: {val}" for kp, val in flat]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             paths,
             [
@@ -1431,7 +2323,11 @@ if "optree" in sys.modules:
 
     def test_flatten_flatten_with_key_consistency(self):
         """Check that flatten and flatten_with_key produces consistent leaves/context."""
+<<<<<<< HEAD
         reg = python_pytree.SUPPORTED_NODES
+=======
+        reg = py_pytree.SUPPORTED_NODES
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         EXAMPLE_TREE = {
             list: [1, 2, 3],
@@ -1450,8 +2346,13 @@ if "optree" in sys.modules:
             example = EXAMPLE_TREE.get(typ)
             if example is None:
                 continue
+<<<<<<< HEAD
             flat_with_path, spec1 = python_pytree.tree_flatten_with_path(example)
             flat, spec2 = python_pytree.tree_flatten(example)
+=======
+            flat_with_path, spec1 = py_pytree.tree_flatten_with_path(example)
+            flat, spec2 = py_pytree.tree_flatten(example)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.assertEqual(flat, [x[1] for x in flat_with_path])
             self.assertEqual(spec1, spec2)
@@ -1462,9 +2363,15 @@ if "optree" in sys.modules:
             y: int
 
         tree = (["hello", [1, 2], {"foo": [(3)], "bar": [ANamedTuple(x="baz", y=10)]}],)
+<<<<<<< HEAD
         flat, _ = python_pytree.tree_flatten_with_path(tree)
         for kp, val in flat:
             self.assertEqual(python_pytree.key_get(tree, kp), val)
+=======
+        flat, _ = py_pytree.tree_flatten_with_path(tree)
+        for kp, val in flat:
+            self.assertEqual(py_pytree.key_get(tree, kp), val)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class TestCxxPytree(TestCase):
@@ -1473,12 +2380,21 @@ class TestCxxPytree(TestCase):
             raise unittest.SkipTest("C++ pytree tests are not supported in fbcode")
 
     def test_treespec_equality(self):
+<<<<<<< HEAD
         self.assertEqual(cxx_pytree.treespec_leaf(), cxx_pytree.treespec_leaf())
 
     def test_treespec_repr(self):
         # Check that it looks sane
         tree = (0, [0, 0, [0]])
         spec = cxx_pytree.tree_structure(tree)
+=======
+        self.assertEqual(cxx_pytree.LeafSpec(), cxx_pytree.LeafSpec())
+
+    def test_treespec_repr(self):
+        # Check that it looks sane
+        pytree = (0, [0, 0, [0]])
+        _, spec = cxx_pytree.tree_flatten(pytree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(
             repr(spec), "PyTreeSpec((*, [*, *, [*]]), NoneIsLeaf, namespace='torch')"
         )
@@ -1515,7 +2431,11 @@ class TestCxxPytree(TestCase):
         self.assertEqual(spec, cxx_pytree.treespec_loads(serialized_spec))
 
     def test_pytree_serialize_namedtuple(self):
+<<<<<<< HEAD
         python_pytree._register_namedtuple(
+=======
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             GlobalPoint,
             serialized_type_name="test_pytree.test_pytree_serialize_namedtuple.GlobalPoint",
         )
@@ -1525,7 +2445,11 @@ class TestCxxPytree(TestCase):
         self.assertEqual(roundtrip_spec.type._fields, spec.type._fields)
 
         LocalPoint = namedtuple("LocalPoint", ["x", "y"])
+<<<<<<< HEAD
         python_pytree._register_namedtuple(
+=======
+        py_pytree._register_namedtuple(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             LocalPoint,
             serialized_type_name="test_pytree.test_pytree_serialize_namedtuple.LocalPoint",
         )

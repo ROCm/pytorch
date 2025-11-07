@@ -155,10 +155,15 @@ def xlog1py(a: Union[TensorLikeType, NumberType], b: Union[TensorLikeType, Numbe
 
     # Operations like eq and log do not handle scalar values, so we convert them to scalar_tensors.
     if isinstance(a, TensorLike) and isinstance(b, Number):
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         b = refs.scalar_tensor(b, dtype=a.dtype, device=a.device)
     elif isinstance(b, TensorLike) and isinstance(a, Number):
         # pyrefly: ignore [bad-argument-type]
+=======
+        b = refs.scalar_tensor(b, dtype=a.dtype, device=a.device)
+    elif isinstance(b, TensorLike) and isinstance(a, Number):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         a = refs.scalar_tensor(a, dtype=b.dtype, device=b.device)
 
     # mypy: expected "Tensor"

@@ -3,13 +3,19 @@
 import contextlib
 import os
 import unittest
+<<<<<<< HEAD
 from unittest import skipUnless
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 import sympy
 
 import torch
+<<<<<<< HEAD
 import torch.nn.functional as F
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch import nn
 from torch._dynamo.testing import rand_strided
 from torch._dynamo.utils import same
@@ -19,13 +25,21 @@ from torch._inductor.graph import GraphLowering
 from torch._inductor.scheduler import SchedulerNode
 from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.test_operators import realize
+<<<<<<< HEAD
 from torch._inductor.utils import is_big_gpu, run_and_get_code, sympy_index_symbol
+=======
+from torch._inductor.utils import run_and_get_code, sympy_index_symbol
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.virtualized import ops, V
 from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import PLATFORM_SUPPORTS_FP8
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 from torch.utils._ordered_set import OrderedSet
@@ -231,7 +245,11 @@ class LoopOrderingTest(TestCase):
                     return x.to(torch.float32)
                 return x
 
+<<<<<<< HEAD
             # Workaround the issue that call allclose on fp8 tensor triggers error
+=======
+            # Wordaround the issue that call allclose on fp8 tensor triggers error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             #   RuntimeError: "mul_cuda" not implemented for 'Float8_e4m3fn'
             expect = tree_map(_cast, expect)
             actual = tree_map(_cast, actual)
@@ -414,11 +432,16 @@ class LoopOrderingTest(TestCase):
         self.do_acc_test(f, x)
         self.assertEqual(1, metrics.generated_kernel_count)
 
+<<<<<<< HEAD
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
     @skipIfRocm
     # Related PR: https://github.com/pytorch/pytorch/pull/149369
     # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
     # in eager mode that is required here to check vs compiled results
+=======
+    @skipIfRocm
+    @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fp8_cast_and_t(self):
         """
         This test repros the not able to fuses issue in
@@ -440,11 +463,16 @@ class LoopOrderingTest(TestCase):
         self.do_acc_test(f, x, scale)
         self.assertEqual(1, metrics.generated_kernel_count)
 
+<<<<<<< HEAD
     @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
     @skipIfRocm
     # Related PR: https://github.com/pytorch/pytorch/pull/149369
     # This test can't function for ROCm because fp8 'mul_cuda' op is not supported
     # in eager mode that is required here to check vs compiled results
+=======
+    @skipIfRocm
+    @unittest.skipIf(not PLATFORM_SUPPORTS_FP8, "FP8 requires H100+ and MI300+")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fp8_pattern_2(self):
         """
         This test repros the fp8 fusion relation issue here:
@@ -483,6 +511,7 @@ class LoopOrderingTest(TestCase):
         expected_numbytes += tensor_fp8.nbytes + tensor_fp8_t.nbytes  # output
         self.assertEqual(expected_numbytes, metrics.num_bytes_accessed)
 
+<<<<<<< HEAD
     def test_outer_dimension_softmax(self):
         """
         This test repros the not able to fuse problem for outer dimension
@@ -524,6 +553,8 @@ class LoopOrderingTest(TestCase):
             optf = torch.compile(f)
             print(f"ms={do_bench(lambda: optf(x))}")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Disable split reduction to make it easier to calculate the expected
     # number of bytes accessed. In this case, split reduction does not
     # help perf much.
@@ -555,7 +586,11 @@ class LoopOrderingTest(TestCase):
 
         # A small amount of extra memory access for:
         # - store output for the first reduction
+<<<<<<< HEAD
         # - load input for the second reduction
+=======
+        # - load input for the second redution
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # - store output for the second reduction
         expected_numbytes += (M * 2 + 1) * x.itemsize
 
@@ -568,6 +603,7 @@ class LoopOrderingTest(TestCase):
             ms = do_bench(lambda: opt_f(x))
             print(f"{ms=:.3f}")
 
+<<<<<<< HEAD
     @inductor_config.patch(
         {
             "max_autotune": True,
@@ -670,6 +706,8 @@ class LoopOrderingTest(TestCase):
         self.do_acc_test(f, x)
         self.assertEqual(0, metrics.num_loop_reordering)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @inductor_config.patch(
     {
@@ -1152,7 +1190,11 @@ class TestTiling(TestCase):
         x = torch.rand([2000, 1], device=GPU_TYPE)
         y = torch.rand([4, 1], device=GPU_TYPE).T
 
+<<<<<<< HEAD
         # don't tile when it doesn't affect total coalesced mem accesses much
+=======
+        # dont tile when it doesnt affect total coalesced mem accesses much
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def f(x, y):
             return x + y
 

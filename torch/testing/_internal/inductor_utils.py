@@ -1,5 +1,6 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 import contextlib
 import functools
 import logging
@@ -14,10 +15,29 @@ import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncComp
 from torch._inductor.codecache import CppCodeCache
 from torch._inductor.codegen.common import (
     get_custom_backend_config_for_device,
+=======
+import logging
+import torch
+import re
+import unittest
+import functools
+import contextlib
+import os
+from subprocess import CalledProcessError
+import sys
+import torch._inductor.async_compile  # noqa: F401 required to warm up AsyncCompile pools
+from torch.fx.experimental.proxy_tensor import make_fx
+from torch._inductor.graph import GraphLowering
+from torch._inductor.compile_fx import shape_env_from_inputs
+from torch._inductor.codecache import CppCodeCache
+from torch._inductor.custom_graph_pass import CustomGraphModulePass
+from torch._inductor.codegen.common import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_custom_backend_pass_for_device,
     get_scheduling_for_device,
     get_wrapper_codegen_for_device,
     init_backend_registration,
+<<<<<<< HEAD
     register_backend_for_device,
 )
 from torch._inductor.codegen.wrapper import PythonWrapperCodegen
@@ -33,10 +53,20 @@ from torch._inductor.utils import (
     OrderedSet,
 )
 from torch.fx.experimental.proxy_tensor import make_fx
+=======
+    register_backend_for_device
+)
+from torch._inductor.codegen.wrapper import PythonWrapperCodegen
+from torch._inductor.utils import get_gpu_shared_memory, is_big_gpu
+from torch._inductor.utils import GPU_TYPES, get_gpu_type, is_gpu
+from torch.utils._helion import has_helion
+from torch.utils._triton import has_triton
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_device_type import (
     get_desired_device_type_test_bases,
 )
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     IS_CI,
     IS_FBCODE,
     IS_WINDOWS,
@@ -50,6 +80,19 @@ from torch.utils._triton import has_triton
 log: logging.Logger = logging.getLogger(__name__)
 
 
+=======
+    LazyVal,
+    IS_FBCODE,
+)
+from torch.testing._internal.common_utils import (
+    TestCase,
+    IS_CI,
+    IS_WINDOWS,
+)
+
+log: logging.Logger = logging.getLogger(__name__)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def test_cpu():
     try:
         CppCodeCache.load("")
@@ -62,7 +105,10 @@ def test_cpu():
     ):
         return False
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 HAS_CPU = LazyVal(test_cpu)
 
 HAS_TRITON = has_triton()
@@ -71,12 +117,16 @@ HAS_HELION = has_helion()
 
 if HAS_TRITON:
     import triton
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TRITON_HAS_CPU = "cpu" in triton.backends.backends
 else:
     TRITON_HAS_CPU = False
 
 
+<<<<<<< HEAD
 HAS_CUDA_AND_TRITON = torch.cuda.is_available() and HAS_TRITON
 
 HAS_XPU_AND_TRITON = torch.xpu.is_available() and HAS_TRITON
@@ -85,6 +135,15 @@ HAS_MPS = torch.mps.is_available()
 
 HAS_GPU = HAS_CUDA_AND_TRITON or HAS_XPU_AND_TRITON
 HAS_GPU_AND_TRITON = HAS_GPU
+=======
+HAS_CUDA = torch.cuda.is_available() and HAS_TRITON
+
+HAS_XPU = torch.xpu.is_available() and HAS_TRITON
+
+HAS_MPS = torch.mps.is_available()
+
+HAS_GPU = HAS_CUDA or HAS_XPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 GPU_TYPE = get_gpu_type()
 
@@ -94,6 +153,7 @@ HAS_MULTIGPU = any(
 )
 
 _desired_test_bases = get_desired_device_type_test_bases(allow_xpu=True)
+<<<<<<< HEAD
 RUN_GPU = HAS_GPU and any(
     is_gpu(getattr(x, "device_type", "")) for x in _desired_test_bases
 )
@@ -103,6 +163,18 @@ RUN_CPU = HAS_CPU and any(
 )
 
 
+=======
+RUN_GPU = (
+    HAS_GPU
+    and any(is_gpu(getattr(x, "device_type", "")) for x in _desired_test_bases)
+)
+
+RUN_CPU = (
+    HAS_CPU
+    and any(getattr(x, "device_type", "") == "cpu" for x in _desired_test_bases)
+)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _check_has_dynamic_shape(
     self: TestCase,
     code,
@@ -124,31 +196,46 @@ def _check_has_dynamic_shape(
 
 def skipDeviceIf(cond, msg, *, device):
     if cond:
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def decorate_fn(fn):
             @functools.wraps(fn)
             def inner(self, *args, **kwargs):
                 if not hasattr(self, "device"):
+<<<<<<< HEAD
                     warn_msg = (
                         "Expect the test class to have attribute device but not found. "
                     )
+=======
+                    warn_msg = "Expect the test class to have attribute device but not found. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if hasattr(self, "device_type"):
                         warn_msg += "Consider using the skip device decorators in common_device_type.py"
                     log.warning(warn_msg)
                 if self.device == device:
                     raise unittest.SkipTest(msg)
                 return fn(self, *args, **kwargs)
+<<<<<<< HEAD
 
             return inner
 
     else:
 
+=======
+            return inner
+    else:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def decorate_fn(fn):
             return fn
 
     return decorate_fn
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def skip_windows_ci(name: str, file: str) -> None:
     if IS_WINDOWS and IS_CI:
         module = os.path.basename(file).strip(".py")
@@ -159,6 +246,7 @@ def skip_windows_ci(name: str, file: str) -> None:
             sys.exit(0)
         raise unittest.SkipTest("requires sympy/functorch/filelock")
 
+<<<<<<< HEAD
 
 # TODO: Remove HAS_MPS condition  when `HAS_GPU` includes HAS_MPS
 requires_gpu = functools.partial(
@@ -177,22 +265,50 @@ def requires_cuda_with_enough_memory(min_mem_required):
             return unittest.skip(
                 f"Only if the CUDA device has at least {min_mem_required / 1e9:.3f}GB memory to be safe"
             )(fn)
+=======
+# TODO: Remove HAS_MPS condition  when `HAS_GPU` includes HAS_MPS
+requires_gpu = functools.partial(unittest.skipIf, not (HAS_GPU or HAS_MPS), "requires gpu")
+requires_triton = functools.partial(unittest.skipIf, not HAS_TRITON, "requires triton")
+requires_helion = functools.partial(unittest.skipIf, not HAS_HELION, "requires helion")
+
+def requires_cuda_with_enough_memory(min_mem_required):
+    def inner(fn):
+        if not torch.cuda.is_available() or torch.cuda.get_device_properties().total_memory < min_mem_required:
+            return unittest.skip(f"Only if the CUDA device has at least {min_mem_required / 1e9:.3f}GB memory to be safe")(fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             return fn
 
     return inner
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 skipCUDAIf = functools.partial(skipDeviceIf, device="cuda")
 skipXPUIf = functools.partial(skipDeviceIf, device="xpu")
 skipCPUIf = functools.partial(skipDeviceIf, device="cpu")
 
+<<<<<<< HEAD
 IS_A100 = LazyVal(lambda: HAS_CUDA_AND_TRITON and get_gpu_shared_memory() == 166912)
 
 IS_H100 = LazyVal(lambda: HAS_CUDA_AND_TRITON and get_gpu_shared_memory() == 232448)
 
 IS_BIG_GPU = LazyVal(lambda: HAS_GPU_AND_TRITON and is_big_gpu())
 
+=======
+IS_A100 = LazyVal(
+    lambda: HAS_CUDA
+    and get_gpu_shared_memory() == 166912
+)
+
+IS_H100 = LazyVal(
+    lambda: HAS_CUDA
+    and get_gpu_shared_memory() == 232448
+)
+
+IS_BIG_GPU = LazyVal(lambda: HAS_CUDA and is_big_gpu())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def dummy_graph() -> GraphLowering:
     """
@@ -209,7 +325,10 @@ def dummy_graph() -> GraphLowering:
 
     return graph
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def maybe_skip_size_asserts(op):
     """
     For certain ops, there meta and eager implementation returns different
@@ -246,6 +365,7 @@ def maybe_skip_size_asserts(op):
     else:
         return contextlib.nullcontext()
 
+<<<<<<< HEAD
 
 def get_func_call() -> str:
     return (
@@ -254,11 +374,18 @@ def get_func_call() -> str:
         else "def call("
     )
 
+=======
+def get_func_call() -> str:
+    return "void inductor_entry_impl(" if torch._inductor.config.cpp_wrapper else "def call("
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def get_kernel_launch() -> str:
     return "call_triton_" if torch._inductor.config.cpp_wrapper else ".run("
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def clone_preserve_strides_offset(x, device=None):
     if not isinstance(x, torch.Tensor):
         return x
@@ -272,7 +399,10 @@ def clone_preserve_strides_offset(x, device=None):
     out = torch.as_strided(buffer, x.size(), x.stride(), x.storage_offset())
     return out
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # define the e4m3/e5m2 constants
 E4M3_MAX_POS = torch.finfo(torch.float8_e4m3fn).max
 E5M2_MAX_POS = torch.finfo(torch.float8_e5m2).max
@@ -284,7 +414,10 @@ EPS: float = 1e-12
 
 Tensor = torch.Tensor
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _to_fp8_saturated(x: Tensor, float8_dtype: torch.dtype) -> Tensor:
     # The default behavior in PyTorch for casting to `float8_e4m3fn`
     # and `e5m2` is to not saturate. In this context, we should saturate.
@@ -304,7 +437,10 @@ def _to_fp8_saturated(x: Tensor, float8_dtype: torch.dtype) -> Tensor:
         raise TypeError(f"Unsupported float8_dtype: {float8_dtype}")
     return x.to(float8_dtype)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @torch.no_grad()
 def _amax_to_scale(
     amax: torch.Tensor, float8_dtype: torch.dtype, orig_dtype: torch.dtype
@@ -323,7 +459,10 @@ def _amax_to_scale(
         res = torch.clamp(res, max=FP16_MAX_POS)
     return res
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _quantize_tensorwise(x: Tensor, float8_dtype: torch.dtype):
     amax = torch.max(torch.abs(x))
     scale = _amax_to_scale(amax, float8_dtype, x.dtype)
@@ -331,7 +470,10 @@ def _quantize_tensorwise(x: Tensor, float8_dtype: torch.dtype):
     inverse_scale = scale.reciprocal()
     return x_fp8, inverse_scale
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _quantize_rowwise(x: Tensor, float8_dtype: torch.dtype):
     amax = torch.max(torch.abs(x), dim=1, keepdim=True).values
     scale = _amax_to_scale(amax, float8_dtype, x.dtype)
@@ -339,6 +481,7 @@ def _quantize_rowwise(x: Tensor, float8_dtype: torch.dtype):
     inverse_scale = scale.reciprocal()
     return x_fp8, inverse_scale
 
+<<<<<<< HEAD
 
 def _quantize_blockwise(
     x: Tensor, float8_dtype: torch.dtype, block_outer: int, block_inner: int
@@ -380,12 +523,18 @@ class MockGraphHandler(GraphLowering):
         return torch.float32
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextlib.contextmanager
 def patch_inductor_backend(
     device: str,
     python_wrapper_codegen: PythonWrapperCodegen = None,
+<<<<<<< HEAD
     custom_pass: CustomGraphModulePass = None,
     custom_backend_config: ConfigModule = None,
+=======
+    custom_pass: CustomGraphModulePass = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Patch the inductor backend for a specific device.
@@ -397,15 +546,20 @@ def patch_inductor_backend(
     original_scheduling = get_scheduling_for_device(device)
     original_python_wrapper = get_wrapper_codegen_for_device(device, False)
     original_cpp_wrapper = get_wrapper_codegen_for_device(device, True)
+<<<<<<< HEAD
     original_fx_wrapper = get_wrapper_codegen_for_device(device, fx_wrapper=True)
     original_custom_pass = get_custom_backend_pass_for_device(device)
     original_custom_backend_config = get_custom_backend_config_for_device(device)
+=======
+    original_custom_pass = get_custom_backend_pass_for_device(device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     try:
         # Register modified backend for the device
         register_backend_for_device(
             device,
             original_scheduling,
+<<<<<<< HEAD
             (
                 python_wrapper_codegen
                 if python_wrapper_codegen is not None
@@ -419,6 +573,11 @@ def patch_inductor_backend(
                 if custom_backend_config is not None
                 else original_custom_backend_config
             ),
+=======
+            python_wrapper_codegen if python_wrapper_codegen is not None else original_python_wrapper,
+            original_cpp_wrapper,
+            custom_pass if custom_pass is not None else original_custom_pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         yield
     finally:
@@ -428,7 +587,11 @@ def patch_inductor_backend(
             original_scheduling,
             original_python_wrapper,
             original_cpp_wrapper,
+<<<<<<< HEAD
             original_fx_wrapper,
             original_custom_pass,
             original_custom_backend_config,
+=======
+            original_custom_pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )

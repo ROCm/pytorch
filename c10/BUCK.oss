@@ -37,6 +37,11 @@ cxx_library(
     ),
     exported_linker_flags = [],
     exported_preprocessor_flags = [
+<<<<<<< HEAD
+=======
+        '-DC10_USING_CUSTOM_GENERATED_MACROS',
+        '-DC10_USE_GLOG',
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         '-DC10_USE_MINIMAL_GLOG',
         '-DC10_MOBILE',
         '-fexceptions',

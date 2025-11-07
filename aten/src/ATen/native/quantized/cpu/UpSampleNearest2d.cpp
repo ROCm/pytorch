@@ -17,7 +17,10 @@
 #include <c10/util/irange.h>
 
 #include <cstring>
+<<<<<<< HEAD
 #include <vector>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 namespace at::native {
@@ -54,8 +57,13 @@ static void upsample_nearest2d_out_frame(
     return;
   }
 
+<<<<<<< HEAD
   std::vector<int64_t> input_offset_arr(output_width);
   int64_t* input_offset = input_offset_arr.data();
+=======
+  std::unique_ptr<int64_t []> input_offset_arr(new int64_t[output_width]);
+  int64_t* input_offset = input_offset_arr.get();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   for (const auto w2 : c10::irange(output_width)) {
     const int64_t w1 = nn_compute_source_index_fn(width_scale, w2, input_width);

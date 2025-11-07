@@ -14,6 +14,10 @@ from torch.testing._internal.common_utils import (
     run_tests,
     gradcheck,
     parametrize,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 
@@ -129,7 +133,11 @@ class TestSegmentReductions(TestCase):
 
         for reduction in reductions:
             for initial in [0, None]:
+<<<<<<< HEAD
                 check_backward = initial is not None
+=======
+                check_backward = True if initial is not None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 initial_value = initial
                 default_value = get_default_value(initial_value, reduction)
                 if reduction == "max":
@@ -186,7 +194,11 @@ class TestSegmentReductions(TestCase):
 
         for reduction in reductions:
             for initial in [0, None]:
+<<<<<<< HEAD
                 check_backward = initial is not None
+=======
+                check_backward = True if initial is not None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 initial_value = initial
                 default_value = get_default_value(initial_value, reduction)
                 if reduction == "max":
@@ -230,6 +242,10 @@ class TestSegmentReductions(TestCase):
                             length_type,
                         )
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dtypes(
         *product(
             (torch.half, torch.bfloat16, torch.float, torch.double),
@@ -244,7 +260,11 @@ class TestSegmentReductions(TestCase):
 
         for reduction in reductions:
             for initial in [0, None]:
+<<<<<<< HEAD
                 check_backward = initial is not None
+=======
+                check_backward = True if initial is not None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 initial_value = initial
                 default_value = get_default_value(initial_value, reduction)
                 if reduction == "max":
@@ -556,7 +576,11 @@ class TestSegmentReductions(TestCase):
         lengths = torch.tensor([0, 2, 3, 0], device=device, dtype=length_type)
         data = torch.arange(6, dtype=torch.float, device=device)
 
+<<<<<<< HEAD
         # test for error on 1-D lengths
+=======
+        # test for error on 1-D lenghts
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaisesRegex(RuntimeError, "Expected all rows of lengths along axis"):
             torch._segment_reduce(data, 'sum', lengths=lengths, axis=0, unsafe=False)
 

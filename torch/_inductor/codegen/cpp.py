@@ -24,7 +24,10 @@ from torch.utils._sympy.symbol import free_symbol_is_type, symbol_is_type, SymT
 
 from ..._dynamo.utils import counters
 from .. import config, cpp_builder, cpu_vec_isa, ir, metrics
+<<<<<<< HEAD
 from ..debug import set_kernel_post_grad_provenance_tracing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..loop_body import LoopBody
 from ..scheduler import (
     BaseSchedulerNode,
@@ -44,6 +47,10 @@ from ..utils import (
     is_welford_reduction,
     parallel_num_threads,
     Placeholder,
+<<<<<<< HEAD
+=======
+    set_kernel_post_grad_provenance_tracing,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     sympy_index_symbol,
     sympy_index_symbol_with_prefix,
     sympy_product,
@@ -159,7 +166,10 @@ VECTORIZABLE_DTYPES: list[torch.dtype] = [
 ]
 
 MASKED_VECTORIZABLE_DTYPES: list[torch.dtype] = [
+<<<<<<< HEAD
     torch.float64,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     torch.float,
     torch.bfloat16,
     torch.float16,
@@ -217,17 +227,25 @@ def reduction_combine(
     reduction_type,
     var,
     next_value,
+<<<<<<< HEAD
     helper_val=None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     index: Optional[sympy.Symbol] = None,
     src_dtype=None,
 ):
     is_bool = src_dtype == torch.bool
     if reduction_type == "sum":
+<<<<<<< HEAD
         if helper_val:
             return f"cascade_sum_combine({next_value}, &{helper_val})"
         else:
             conjunction = "|" if is_bool else "+"
             return f"{var} {conjunction} {next_value}"
+=======
+        conjunction = "|" if is_bool else "+"
+        return f"{var} {conjunction} {next_value}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if reduction_type == "prod":
         return f"{var} * {next_value}"
     if reduction_type == "xor_sum":
@@ -367,6 +385,7 @@ def replace_acc_name(buffer: IndentedBuffer, name: str, new_name: str):
             buffer._lines[i] = re.sub(r"\b" + f"{name}" + r"\b", f"{new_name}", line)
 
 
+<<<<<<< HEAD
 def replace_cascade_sum_with_add(buffer: IndentedBuffer):
     """
     Replaces `acc = cascade_sum_combine(value, ...)` with `acc = acc + value;`
@@ -392,6 +411,8 @@ def replace_cascade_sum_with_add(buffer: IndentedBuffer):
                 buffer._lines[i] = new_content
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @functools.lru_cache
 def stride_at(index: sympy.Expr, var: sympy.Symbol):
     if not index.has(var):
@@ -505,7 +526,10 @@ class OuterLoopFusedSchedulerNode(FusedSchedulerNode):
         if any(type(node) is OuterLoopFusedSchedulerNode for node in (node1, node2)):
             return cls(
                 node1.scheduler,
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (
                     list(node1.get_outer_nodes())
                     if type(node1) is OuterLoopFusedSchedulerNode
@@ -935,8 +959,13 @@ class CppOverrides(OpOverrides):
             return tuple(V.kernel.cse.try_get(cache_key) for cache_key in cache_keys)
 
         code = BracesBuffer()
+<<<<<<< HEAD
         exponent = V.kernel.cse.newvar(dtype=torch.int32, shape=x.shape)
         mantissa = V.kernel.cse.newvar(dtype=x.dtype, shape=x.shape)
+=======
+        exponent = V.kernel.cse.newvar(dtype=torch.int32)
+        mantissa = V.kernel.cse.newvar(dtype=x.dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code.writeline(f"int32_t {exponent};")
         code.writeline(f"auto {mantissa} = std::frexp({x}, &{exponent});")
         V.kernel.compute.splice(code)
@@ -1121,6 +1150,7 @@ class CppOverrides(OpOverrides):
         code.writeline("()")
         return code
 
+<<<<<<< HEAD
     def partial_accumulate(
         self,
         name: str,
@@ -1129,6 +1159,8 @@ class CppOverrides(OpOverrides):
     ) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 CppOverrides._initialize_pointwise_overrides("cpp")
 
@@ -1221,7 +1253,11 @@ class CppVecOverrides(CppOverrides):
             return wrapper
 
         for name, method in vars(CppVecOverrides).items():
+<<<<<<< HEAD
             if getattr(method, "__class__", None) is staticmethod and name not in [
+=======
+            if getattr(method, "__class__", None) == staticmethod and name not in [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "masked",
                 "index_expr",
             ]:
@@ -1726,7 +1762,10 @@ class CppVecOverrides(CppOverrides):
                     body_vec_var.dtype = dtype
                     other_vec_var.dtype = dtype
                     overrides: type[Union[CppOverrides, CppVecOverrides]] = (
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         V.kernel.overrides
                     )  # type: ignore[has-type]
                     code.writeline(
@@ -1770,7 +1809,10 @@ class CppVecOverrides(CppOverrides):
             csevar = V.kernel._load_or_store_non_contiguous(  # type: ignore[assignment]
                 None, index, dtype, V.kernel.compute
             )
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         csevar.update_on_args("index_expr", (expr, dtype), {})
         return csevar
 
@@ -1915,6 +1957,7 @@ class CppTile2DOverrides(CppVecOverrides):
 
 
 class CppKernel(Kernel):
+<<<<<<< HEAD
     """
     Base class for C++ kernel code generation in PyTorch Inductor.
     This class is responsible for generating C++ code from the intermediate representation.
@@ -1924,6 +1967,8 @@ class CppKernel(Kernel):
         num_threads: Number of threads for parallel execution
     """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     overrides = CppOverrides  # type: ignore[assignment]
     sexpr = cexpr
     newvar_prefix = "auto "
@@ -1961,9 +2006,12 @@ class CppKernel(Kernel):
         self.welford_helper_cse = CSE(
             self.newvar_prefix, self.suffix, name_prefix="welford_helper"
         )
+<<<<<<< HEAD
         self.cascade_helper_cse = CSE(
             self.newvar_prefix, self.suffix, name_prefix="cascade_helper"
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.preloads = IndentedBuffer()
         self.poststores = IndentedBuffer()
         self.num_threads = num_threads  # num_threads the kernel specialized for
@@ -2048,7 +2096,10 @@ class CppKernel(Kernel):
                 # mask's dtype should be bool
                 mask.dtype = torch.bool
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._load_mask = mask
         try:
             yield mask
@@ -2147,11 +2198,14 @@ class CppKernel(Kernel):
             raise NotImplementedError(f"store mode={mode}")
         self.stores.writeline(DeferredLine(name, line))
 
+<<<<<<< HEAD
     def device_assert_async(self, cond, msg):
         self.compute.writeline(
             f'({cond} ? 0 : (throw std::runtime_error("{msg}"), 0));'
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _gen_reduction_prefix(
         self,
         acc: Union[CSEVariable, str],
@@ -2185,6 +2239,7 @@ class CppKernel(Kernel):
         for gen_fn in self.reduction_prefix_generators:
             self.reduction_prefix.splice(gen_fn(size))
 
+<<<<<<< HEAD
     def need_use_acc_helper(self, reduction_type, dtype, use_scalar):
         # Check if we need accumulate helper for the reduction operation.
         # using accumulate helper generates the necessary code to improve precision for
@@ -2302,6 +2357,8 @@ class CppKernel(Kernel):
                 f"{result}_local = cascade_sum_final(&{helper_val});"
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reduction(self, dtype, src_dtype, reduction_type, value):
         argmax_or_argmin = reduction_type in ("argmax", "argmin")
         reduction_key = src_dtype, reduction_type, value
@@ -2320,6 +2377,7 @@ class CppKernel(Kernel):
                 acc, acc_type, reduction_type, init_dtype, reduction_init
             )
         )
+<<<<<<< HEAD
 
         if self.need_use_acc_helper(reduction_type, dtype, True):
             # use cascade_helper for vec kernel
@@ -2350,6 +2408,15 @@ class CppKernel(Kernel):
             self.stores.writeline(
                 f"{acc} = {reduction_combine(reduction_type, acc, value, index=index)};"
             )
+=======
+        assert self.reduction_depth is not None
+        index = self.itervars[self.reduction_depth]
+        for i in range(self.reduction_depth + 1, len(self.itervars)):
+            index = index * self.ranges[i] + self.itervars[i]
+        self.stores.writeline(
+            f"{acc} = {reduction_combine(reduction_type, acc, value, index)};"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self._gen_parallel_reduction_buffers(acc, acc_type, reduction_type, init_dtype)
         result = reduction_project(reduction_type, acc)
@@ -2376,7 +2443,10 @@ class CppKernel(Kernel):
                 sympy_index_symbol_with_prefix(SymT.XBLOCK, n)
                 for n in range(len(self.ranges))
             ]
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.reduction_depth = len(lengths)
         return (
             self.itervars[: self.reduction_depth],
@@ -2618,15 +2688,23 @@ class CppKernel(Kernel):
                     var_id = i
                     break
             if (
+<<<<<<< HEAD
                 type(self) is CppKernel
+=======
+                type(self) == CppKernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 and var_id
                 and start == 0
                 and end == self.ranges[var_id]
             ):
                 end = 1
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             conditions.append(f"{var} >= {cexpr_index(start)}")
             # pyrefly: ignore [bad-argument-type]
+=======
+            conditions.append(f"{var} >= {cexpr_index(start)}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             conditions.append(f"{var} < {cexpr_index(end)}")
             return True
 
@@ -2989,6 +3067,7 @@ class CppVecKernel(CppKernel):
             raise NotImplementedError(f"store mode={mode}")
 
     def reduction(self, dtype, src_dtype, reduction_type, value):
+<<<<<<< HEAD
         """
         Perform vectorized reduction operation.
 
@@ -3005,6 +3084,8 @@ class CppVecKernel(CppKernel):
         Returns:
             The result of the reduction operation
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Note: For argmax and argmin on bool type, we always convert bool to float.
         # Fix issue: https://github.com/pytorch/pytorch/issues/143568
         assert reduction_type in VECTORIZABLE_RTYPES
@@ -3030,7 +3111,10 @@ class CppVecKernel(CppKernel):
         )
         assert isinstance(acc, CppCSEVariable)
         acc_vec = f"{acc}_vec"
+<<<<<<< HEAD
         masked_acc = f"masked_{acc}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         masked_acc_vec = f"masked_{acc_vec}"
         self.reduction_var_names += [f"{acc}", acc_vec, masked_acc_vec]
         self.is_reduction = True
@@ -3048,9 +3132,13 @@ class CppVecKernel(CppKernel):
                 self.reduction_init_vec,
             )
         )
+<<<<<<< HEAD
 
         use_acc_helper = self.need_use_acc_helper(reduction_type, dtype, False)
         if use_acc_helper:
+=======
+        if reduction_type == "welford_reduce":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # use masked acc_vec for tail vec kernel
             self.reduction_prefix_generators.append(
                 self._gen_reduction_prefix(
@@ -3062,11 +3150,16 @@ class CppVecKernel(CppKernel):
                 )
             )
 
+<<<<<<< HEAD
             # use welford_helper/cascade_helper for vec kernel
+=======
+            # use welford_helper for vec kernel
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert self.reduction_depth is not None
             reduction_size = functools.reduce(
                 operator.mul, self.ranges[self.reduction_depth :]
             )
+<<<<<<< HEAD
             if reduction_type == "welford_reduce":
                 helper_val = self.welford_helper_cse.generate(
                     self.compute, f"reduction {reduction_key}", write=False
@@ -3077,6 +3170,13 @@ class CppVecKernel(CppKernel):
                 )
             masked_helper_val = f"masked_{helper_val}"
             helper_vec_range = (
+=======
+            welford_helper_val = self.welford_helper_cse.generate(
+                self.compute, f"reduction {reduction_key}", write=False
+            )
+            masked_welford_helper_val = f"masked_{welford_helper_val}"
+            welford_helper_vec_range = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (
                     FloorDiv(reduction_size, self.ranges[self.tiling_idx])
                     * FloorDiv(self.ranges[self.tiling_idx], self.tiling_factor)
@@ -3086,7 +3186,11 @@ class CppVecKernel(CppKernel):
                 if FloorDiv(self.ranges[self.tiling_idx], self.tiling_factor)
                 else sympy.Integer(0)
             )
+<<<<<<< HEAD
             masked_helper_vec_range = (
+=======
+            masked_welford_helper_vec_range = (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 (
                     FloorDiv(reduction_size, self.ranges[self.tiling_idx])
                     if self.tiling_idx >= self.reduction_depth
@@ -3095,6 +3199,7 @@ class CppVecKernel(CppKernel):
                 if self.ranges[self.tiling_idx] % self.tiling_factor
                 else sympy.Integer(0)
             )
+<<<<<<< HEAD
             # scalar helper for scalar sum is also needed when vec kernel is included
             # Note: is it different from welford reduction as welford reduction of scalar version
             # does not need helper, and the helper needs the information of reduction size to initialize
@@ -3116,11 +3221,21 @@ class CppVecKernel(CppKernel):
                 masked_acc,
                 masked_helper_val,
                 masked_helper_vec_range,
+=======
+            self._use_welford_helper(
+                acc_vec, welford_helper_val, welford_helper_vec_range, dtype
+            )
+            self._use_welford_helper(
+                masked_acc_vec,
+                masked_welford_helper_val,
+                masked_welford_helper_vec_range,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dtype,
             )
 
             # use masked acc_vec for tail vec kernel
             acc_vec_ = masked_acc_vec if self.tail_size else acc_vec
+<<<<<<< HEAD
             helper_val_ = masked_helper_val if self.tail_size else helper_val
             if reduction_type == "sum":
                 self.stores.writeline(
@@ -3130,6 +3245,14 @@ class CppVecKernel(CppKernel):
                 self.stores.writeline(
                     f"{acc_vec_} = {self.reduction_combine_vec(reduction_type, acc_vec_, value, helper_val_)};"
                 )
+=======
+            welford_helper_val_ = (
+                masked_welford_helper_val if self.tail_size else welford_helper_val
+            )
+            self.stores.writeline(
+                f"{acc_vec_} = {self.reduction_combine_vec(reduction_type, acc_vec_, value, welford_helper_val_)};"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             assert self.reduction_depth is not None
             index = self.itervars[self.reduction_depth]
@@ -3160,7 +3283,11 @@ class CppVecKernel(CppKernel):
             reduction_combine_fn=reduction_combine,
             reduction_init_fn=reduction_init,
         )
+<<<<<<< HEAD
         if use_acc_helper:
+=======
+        if reduction_type == "welford_reduce":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # use masked acc_vec for tail vec kernel
             self._gen_parallel_reduction_buffers(
                 masked_acc_vec,
@@ -3207,11 +3334,15 @@ class CppVecKernel(CppKernel):
                 vec_dtype = torch.float if is_bool else dtype
                 vec = f"at::vec::Vectorized<{DTYPE_TO_CPP[vec_dtype]}>"
                 vec_reduce_all_func = f"at::vec::vec_reduce_all<{DTYPE_TO_CPP[vec_dtype]}, {self._get_num_vectors(vec_dtype)}>"
+<<<<<<< HEAD
                 result_vec = f"{acc_vec}"
                 if use_acc_helper:
                     assert reduction_type == "sum"
                     result_vec = f"{acc_vec} + {masked_acc_vec}"
                 next_value = f"{vec_reduce_all_func}([]({vec}& x, {vec}& y) {reduce_all_body}, {result_vec})"
+=======
+                next_value = f"{vec_reduce_all_func}([]({vec}& x, {vec}& y) {reduce_all_body}, {acc_vec})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.reduction_suffix.writeline(
                 f"{acc} = {reduction_combine(reduction_type, acc, next_value, src_dtype=src_dtype)};"
@@ -3224,12 +3355,15 @@ class CppVecKernel(CppKernel):
                 self.reduction_suffix.writeline(
                     f"{tmpvar} = {reduction_combine(reduction_type, tmpvar, masked_tmpvar)};"
                 )
+<<<<<<< HEAD
             elif use_acc_helper:
                 assert reduction_type == "sum"
                 masked_tmpvar = f"masked_{tmpvar}"
                 self.reduction_suffix.writeline(
                     f"{tmpvar} = {tmpvar} + {masked_tmpvar};"
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         result = reduction_project(reduction_type, tmpvar)
         self.reduction_cse.reduction_cache[reduction_key] = result
@@ -3239,10 +3373,18 @@ class CppVecKernel(CppKernel):
         index = self.rename_indexing(index)
         var = self.args.output(name)
         out_dtype = V.graph.get_dtype(name)
+<<<<<<< HEAD
         if out_dtype.is_floating_point and out_dtype != torch.double:
             dtype = torch.float
         else:
             dtype = out_dtype
+=======
+        dtype = (
+            (out_dtype if out_dtype == torch.double else torch.float)
+            if out_dtype.is_floating_point
+            else torch.int64
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         out_num_vectors = V.kernel._get_num_vectors(out_dtype)
         src_num_vectors = V.kernel._get_num_vectors(dtype)
         code = IndentedBuffer()
@@ -3354,12 +3496,66 @@ class CppVecKernel(CppKernel):
             return f"{self._get_mask_type()}"
         return vec_type
 
+<<<<<<< HEAD
+=======
+    def _welford_helper_init(
+        self, welford_helper_val, welford_helper_vec_range, dtype, num_threads=None
+    ):
+        vec_num_range_thread = (
+            CeilDiv(welford_helper_vec_range, num_threads)
+            if num_threads
+            else welford_helper_vec_range
+        )
+        vec_num_range_thread_expr = cexpr_index(vec_num_range_thread)
+        chunk_size = 4096
+        num_chunks = CeilDiv(vec_num_range_thread, chunk_size)
+        welford_helper_init_line = (
+            f"WelfordHelper<{self._get_vec_type(dtype)}, {chunk_size}> {welford_helper_val}"
+            f"("
+            f"{vec_num_range_thread_expr}"
+            f");"
+        )
+        if isinstance(num_chunks, sympy.Integer) and num_chunks <= 1:
+            # When the number of chunks <= 1, there is no need to use cascade summation to improve
+            # reduction accuracy. We can initialize a static WelfordHelper to improve performance.
+            return f"static {welford_helper_init_line}"
+        else:
+            return welford_helper_init_line
+
+    def _use_welford_helper(
+        self, acc_vec, welford_helper_val, welford_helper_vec_range, dtype
+    ):
+        num_threads = (
+            "max_threads" if config.cpp.dynamic_threads else parallel_num_threads()
+        )
+        self.non_parallel_reduction_prefix.writeline(
+            self._welford_helper_init(
+                welford_helper_val, welford_helper_vec_range, dtype
+            )
+        )
+        self.local_reduction_init.writeline(
+            self._welford_helper_init(
+                welford_helper_val, welford_helper_vec_range, dtype, num_threads
+            )
+        )
+        self.non_parallel_reduction_suffix.writeline(
+            f"{acc_vec} = welford_combine({acc_vec}, &{welford_helper_val});"
+        )
+        self.local_reduction_stores.writeline(
+            f"{acc_vec}_local = welford_combine({acc_vec}_local, &{welford_helper_val});"
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reduction_combine_vec(
         self,
         reduction_type,
         var,
         next_value,
+<<<<<<< HEAD
         helper_val=None,
+=======
+        welford_helper_val=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         index: Optional[sympy.Symbol] = None,
         horizontal_reduction: Optional[bool] = None,
         src_dtype: Optional[torch.dtype] = torch.float32,
@@ -3384,6 +3580,7 @@ class CppVecKernel(CppKernel):
                     else f"at::vec::minimum({var}, {next_value})"
                 )
         elif reduction_type == "sum":
+<<<<<<< HEAD
             if helper_val:
                 if self.tail_size:
                     return f"cascade_sum_combine({next_value}, {cexpr_index(self.tail_size)}, &{helper_val})"
@@ -3395,6 +3592,13 @@ class CppVecKernel(CppKernel):
                 else:
                     conjunction = "|" if is_bool else "+"
                     return f"{var} {conjunction} {next_value}"
+=======
+            if self.tail_size:
+                return f"sum_masked_reduce({var}, {next_value}, {cexpr_index(self.tail_size)})"
+            else:
+                conjunction = "|" if is_bool else "+"
+                return f"{var} {conjunction} {next_value}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif reduction_type == "prod":
             if self.tail_size:
                 return f"prod_masked_reduce({var}, {next_value}, {cexpr_index(self.tail_size)})"
@@ -3406,11 +3610,21 @@ class CppVecKernel(CppKernel):
             else:
                 return f"{var} ^ {next_value}"
         elif reduction_type == "welford_reduce":
+<<<<<<< HEAD
             if helper_val:
                 if self.tail_size:
                     return f"welford_combine({var}, {next_value}, {cexpr_index(self.tail_size)}, &{helper_val})"
                 else:
                     return f"welford_combine({var}, {next_value}, &{helper_val})"
+=======
+            if welford_helper_val:
+                if self.tail_size:
+                    return f"welford_combine({var}, {next_value}, {cexpr_index(self.tail_size)}, &{welford_helper_val})"
+                else:
+                    return (
+                        f"welford_combine({var}, {next_value}, &{welford_helper_val})"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 if self.tail_size:
                     return f"welford_combine({var}, {next_value}, {cexpr_index(self.tail_size)})"
@@ -3944,7 +4158,11 @@ class TilingSelect:
                             call_ranges[tiling_indice], fallback=0
                         )
                         if call_range < factor_lowp:
+<<<<<<< HEAD
                             V.graph.sizevars.check_lt(call_range, factor_lowp)  # type: ignore[arg-type]
+=======
+                            V.graph.sizevars.guard_lt(call_range, factor_lowp)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             tiling_factor = factor_lowp // 2
                             break
                     elif call_ranges[tiling_indice] < factor_lowp:
@@ -4101,7 +4319,10 @@ class CppKernelProxy(CppKernel):
                     and (dt := get_output_dtype(_node)) in DTYPE_LOWP_FP
                 ):
                     # No need to promote to float if all users are ops that accepts lowp fp input
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if all(is_lowp_fp_sink(user, dt) for user in _node.users):
                         continue
                     ops = _node.args[0]
@@ -4112,14 +4333,20 @@ class CppKernelProxy(CppKernel):
                         _node.replace_all_uses_with(
                             to_type_node, lambda n: n is not to_type_node
                         )
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         metrics.cpp_to_dtype_count += 1
                 elif (
                     _node.target == "store"
                     and (dt := get_input_dtype(_node)) in DTYPE_LOWP_FP
                 ):
                     ops, name, _, value_var, _ = _node.args
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if is_lowp_fp_source_no_promote(value_var, dt):
                         continue
                     dtype = V.graph.get_dtype(name)
@@ -4128,7 +4355,10 @@ class CppKernelProxy(CppKernel):
                             "to_dtype", args=(ops, value_var, dtype)
                         )
                         _node.replace_input_with(value_var, to_type_node)
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         metrics.cpp_to_dtype_count += 1
                 elif _node.target == "reduction":
                     (
@@ -4198,7 +4428,10 @@ class CppKernelProxy(CppKernel):
                                     "to_dtype", args=(ops, value_var, src_dtype)
                                 )
                                 _node.replace_input_with(value_var, to_type_node)
+<<<<<<< HEAD
                                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 metrics.cpp_to_dtype_count += 1
 
                     # to_dtype_bitcast act as a lowp fp source:
@@ -4217,8 +4450,14 @@ class CppKernelProxy(CppKernel):
                                 _node.replace_all_uses_with(
                                     to_type_node, lambda n: n is not to_type_node
                                 )
+<<<<<<< HEAD
                                 # pyrefly: ignore [bad-assignment]
                                 metrics.cpp_to_dtype_count += 1
+=======
+                                metrics.cpp_to_dtype_count += 1
+                else:
+                    pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def eliminate_to_dtype(sub_graph: torch.fx.Graph):
                 def _eliminate_duplicate_to_node(sub_graph: torch.fx.Graph):
@@ -4311,7 +4550,10 @@ class CppKernelProxy(CppKernel):
             with kernel_group.new_kernel(cls, *args) as kernel:
                 # Ugly hack to maintain the metrics kernel count since
                 # we only count in CppKernelProxy, not those contained in it
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 metrics.generated_kernel_count -= 1
 
                 run(kernel)
@@ -4383,7 +4625,10 @@ class CppKernelProxy(CppKernel):
                     )
 
             if len(tiling_indices) == 1:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 metrics.generated_cpp_vec_kernel_count += 1
                 loop = self.loop_nest.tile(tiling_indices[0], factor=tiling_factors[0])
                 vec_kernel = codegen_kernel(
@@ -4410,7 +4655,10 @@ class CppKernelProxy(CppKernel):
                     and tiling_factors[0] == tiling_factors[1]
                 )
 
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 metrics.generated_cpp_vec_kernel_count += 2
                 outer_loop = self.loop_nest.tile(
                     tiling_indices[0], factor=tiling_factors[0]
@@ -4546,12 +4794,18 @@ class CppKernelProxy(CppKernel):
     def aggregate_reduction_buffers(
         self, inner_loop_reduction_outer_not: bool, outer_loop: Optional["LoopLevel"]
     ):
+<<<<<<< HEAD
         """
         CppKernel/CppVecKernel/CppTile2dKernel have reduction buffers themselves.
         Here, we decide how to aggregate them together and place new reduction buffers
         under CppKernelProxy.
         """
 
+=======
+        # CppKernel/CppVecKernel/CppTile2dKernel have reduction buffers themselves.
+        # Here, we decide how to aggregate them together and place new reduction buffers
+        # under CppKernelProxy.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def aggregate_reduction_prefix_suffix(outer_loop: "LoopLevel"):
             assert len(self.kernels) >= 2
             main_loop_kernel = self.kernels[0]
@@ -4559,7 +4813,11 @@ class CppKernelProxy(CppKernel):
             assert isinstance(main_loop_kernel, self.vec_kernel_cls)
 
             # Prefix
+<<<<<<< HEAD
             if type(tail_loop_kernel) is self.kernel_cls:
+=======
+            if type(tail_loop_kernel) == self.kernel_cls:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # if tail loop kernel is a scalar kernel, we need to extend tmp_acc -> tmp_acc_arr[] to
                 # hold the temporary inner loop acc result for outer tail loop
                 tail_loop_kernel.finalize_reduction_prefix(
@@ -4587,7 +4845,11 @@ class CppKernelProxy(CppKernel):
                     suffix_buf, "C10_UNLIKELY", outer_loop.var
                 ):
                     stack.enter_context(suffix_buf.indent())
+<<<<<<< HEAD
                     if type(tail_loop_kernel) is self.kernel_cls:
+=======
+                    if type(tail_loop_kernel) == self.kernel_cls:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         reduction_vars = tail_loop_kernel.reduction_var_names
                         for name in reduction_vars:
                             new_name = f"{name}_arr[{outer_loop.var}_tail - {cexpr_index(outer_loop.tiled_size)}]"
@@ -4595,9 +4857,12 @@ class CppKernelProxy(CppKernel):
                             replace_acc_name(
                                 tail_loop_kernel.reduction_suffix, name, new_name
                             )
+<<<<<<< HEAD
                         # If tail loop kernel is a scalar kernel, use direct sum instead of cascade_sum_combine
                         # as the reduction vars are extended: tmp_acc -> tmp_acc_arr[].
                         replace_cascade_sum_with_add(tail_loop_kernel.stores)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         suffix_buf.splice(
                             move_code_under_inner_loop(
                                 tail_loop_kernel.reduction_suffix,
@@ -4886,7 +5151,11 @@ class CppScheduling(BaseScheduling):
                 isinstance(template_buf.layout, ir.MultiOutputLayout)
                 and isinstance(node2.node, ir.MultiOutput)
                 and len(node2.node.inputs) == 1
+<<<<<<< HEAD
                 and node2.node.inputs[0].get_name() == template_buf.name  # type: ignore[union-attr]
+=======
+                and node2.node.inputs[0].get_name() == template_buf.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return False
 
@@ -5159,12 +5428,18 @@ class CppScheduling(BaseScheduling):
                             contiguous_index_expr = 0
                             stride = 1
                             for var, range in reversed(
+<<<<<<< HEAD
                                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 scheduler_node._body.var_ranges.items()
                             ):
                                 contiguous_index_expr += stride * var
                                 stride *= range
+<<<<<<< HEAD
                             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             write_index_expr = scheduler_node._body.get_write_expr(
                                 scheduler_buffer.get_name()
                             )
@@ -5188,6 +5463,7 @@ class CppScheduling(BaseScheduling):
                         ):
                             continue
                         # Local Buffer is a view of global buffer
+<<<<<<< HEAD
                         local_buffer_stride: list[int] = []
                         stride = global_buffer_layout.stride[-1]
                         local_buffer_size = get_call_ranges(scheduler_node)[
@@ -5201,6 +5477,13 @@ class CppScheduling(BaseScheduling):
                             global_buffer_layout.dtype,
                             local_buffer_size,
                             local_buffer_stride,
+=======
+                        local_buffer_layout = ir.FixedLayout(
+                            global_buffer_layout.device,
+                            global_buffer_layout.dtype,
+                            global_buffer_layout.size[size_offset:],
+                            global_buffer_layout.stride[size_offset:],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
                         def try_share_local_buffer(local_buffer_layout, local_buffers):
@@ -5233,7 +5516,10 @@ class CppScheduling(BaseScheduling):
                             )
                             local_buffers.append(local_buffer_used)
                             local_to_global_buffers[local_buffer_used.name] = []  # type: ignore[index]
+<<<<<<< HEAD
                         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         local_to_global_buffers[local_buffer_used.name].append(
                             global_buffer,
                         )
@@ -5371,7 +5657,11 @@ class CppScheduling(BaseScheduling):
         flag_template_buffer_has_other_users = template_buffer_has_other_users(
             ctb, template_node.outputs_by_name, epilogue_ir_nodes
         )
+<<<<<<< HEAD
         kernel, render = ctb.make_kernel_render(  # type: ignore[misc]
+=======
+        kernel, render = ctb.make_kernel_render(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ctb,
             flag_template_buffer_has_other_users=flag_template_buffer_has_other_users,
             epilogue_nodes=epilogue_ir_nodes,
@@ -5402,7 +5692,10 @@ class CppScheduling(BaseScheduling):
                 )
                 user.node.mark_run()
 
+<<<<<<< HEAD
         self.codegen_comment(node_schedule, kernel_name)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         kernel.call_kernel(kernel_name, ctb)
         V.graph.removed_buffers |= kernel.removed_buffers
         self.free_buffers_in_scheduler()
@@ -5418,6 +5711,7 @@ class CppScheduling(BaseScheduling):
 
     def define_kernel(self, src_code, nodes, kernel_args=None):
         wrapper = V.graph.wrapper_code
+<<<<<<< HEAD
         if src_code in wrapper.src_to_kernel:
             kernel_name = wrapper.src_to_kernel[src_code]
         else:
@@ -5460,6 +5754,48 @@ class CppScheduling(BaseScheduling):
                 gpu=False,
                 cpp_definition=kernel_definition,
             )
+=======
+        fused_name = (
+            get_fused_kernel_name(nodes, config.cpp.descriptive_names)
+            if config.cpp.descriptive_names
+            else ""
+        )
+        kernel_name = "_".join(["cpp", fused_name, wrapper.next_kernel_suffix()])
+        # below add provenance tracing info for cpu CppKernel types
+        if config.trace.enabled:
+            set_kernel_post_grad_provenance_tracing(nodes, kernel_name)
+
+        kernel_decl_name = kernel_name if V.graph.cpp_wrapper else "kernel"
+        src_code = src_code.replace(str(Placeholder.KERNEL_NAME), kernel_decl_name)
+        src_code = src_code.replace(str(Placeholder.DESCRIPTIVE_NAME), kernel_name)
+        # TODO(voz): Ostensibly, we should not need this. But there are cases where C++ codegen does
+        # not use BracesBuffer, so we have no good indicator of a C++ buffer atm.
+        src_code = src_code.replace("#pragma CMT", "//")
+
+        # Get the lines in the source code representing the function definition,
+        # excluding the the first line including cpp_prefix.h.
+        first_char = src_code.rfind('extern "C"')
+        last_char = src_code.find(")", first_char)
+        if _IS_WINDOWS:
+            # get_export_declaration introduced one more ')' in Windows
+            last_char = src_code.find(")", last_char + 1)
+        kernel_definition = f"{src_code[first_char : last_char + 1]};\n"
+
+        compile_wrapper = IndentedBuffer()
+        args = self.kernel_group.args if kernel_args is None else kernel_args
+        _, _, arg_types = args.cpp_argdefs()
+        if not V.graph.cpp_wrapper:
+            compile_wrapper.writeline(f"async_compile.cpp_pybinding({arg_types!r}, '''")
+        compile_wrapper.splice(src_code, strip=True)
+        if not V.graph.cpp_wrapper:
+            compile_wrapper.writeline("''')")
+        wrapper.define_kernel(
+            kernel_name,
+            compile_wrapper.getvalue(),
+            gpu=False,
+            cpp_definition=kernel_definition,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return kernel_name
 
     def flush(self):
@@ -5468,11 +5804,15 @@ class CppScheduling(BaseScheduling):
             kernel_name = self.define_kernel(
                 src_code, self.kernel_group.scheduled_nodes
             )
+<<<<<<< HEAD
             self.codegen_comment(self.kernel_group.scheduled_nodes, kernel_name)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.kernel_group.call_kernel(V.graph.wrapper_code, kernel_name)
         self.reset_kernel_group()
         self._set_flush_status(False)
 
+<<<<<<< HEAD
     def codegen_comment(self, node_schedule, kernel_name=None):
         # below add provenance tracing info for cpu CppKernel types
         wrapper = V.graph.wrapper_code
@@ -5483,6 +5823,8 @@ class CppScheduling(BaseScheduling):
         )
         wrapper.write_provenance_debug_handle(kernel_name, debug_handle)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class KernelGroup:
     def __init__(self):
@@ -5520,7 +5862,11 @@ class KernelGroup:
             "win32",
         ]
         if enable_kernel_profile:
+<<<<<<< HEAD
             code.writelines(["#include <torch/csrc/inductor/aoti_runtime/utils.h>"])
+=======
+            code.writelines(["#include <ATen/record_function.h>"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code.writeline("#include <torch/csrc/inductor/cpp_prefix.h>")
 
         # 2. Function definition
@@ -5529,11 +5875,16 @@ class KernelGroup:
         arg_defs, _, _ = self.args.cpp_argdefs()
         arg_defs = ",\n".ljust(25).join(arg_defs)
         func_export_decl = get_export_declaration()
+<<<<<<< HEAD
         inline_attr = (
             "C10_ALWAYS_INLINE_ATTRIBUTE" if config.cpp.force_inline_kernel else ""
         )
         code.writeline(
             f'extern "C" {func_export_decl} void {inline_attr} {kernel_decl_name}({arg_defs})'
+=======
+        code.writeline(
+            f'extern "C" {func_export_decl} void {kernel_decl_name}({arg_defs})'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # 3. Function body
@@ -5543,10 +5894,14 @@ class KernelGroup:
                 prefix = "graph_" + str(graph_id) + "_" if graph_id is not None else ""
                 code.writelines(
                     [
+<<<<<<< HEAD
                         (
                             "torch::aot_inductor::RAIIAtenRecordFunctionHandle "
                             f'record_{prefix + kernel_name}_("{prefix + kernel_name}", nullptr);'
                         )
+=======
+                        f'RECORD_FUNCTION("{prefix + kernel_name}", c10::ArrayRef<c10::IValue>({{}}));'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ]
                 )
             for old, new in self.args.aliases():
@@ -5557,10 +5912,14 @@ class KernelGroup:
     def call_kernel(self, wrapper, kernel_name):
         _, call_args, arg_types = self.args.cpp_argdefs()
         wrapper.generate_kernel_call(
+<<<<<<< HEAD
             kernel_name,
             call_args,
             triton=False,
             arg_types=arg_types,
+=======
+            kernel_name, call_args, triton=False, arg_types=arg_types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -5759,6 +6118,7 @@ class LoopNest:
 
         simd_vec_depth = get_simd_vec_depth(self.loops)
 
+<<<<<<< HEAD
         def has_scalar_kernel(loop_nest: LoopNest):
             assert isinstance(loop_nest.kernel, CppKernelProxy)
             return any(
@@ -5766,6 +6126,8 @@ class LoopNest:
                 for kernel in loop_nest.kernel.kernels
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # When the number of steps of the first inner loop is much larger than the number of steps of
         # all outer loops, change `start_depth` to the first inner loop and recalculate `max_depth`.
         if (
@@ -5779,7 +6141,10 @@ class LoopNest:
                 simd_vec_depth is not None
                 and max_depth > simd_vec_depth
                 and self.loops[max_depth].is_reduction
+<<<<<<< HEAD
                 and has_scalar_kernel(self)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ):
             start_depth = max_depth
@@ -5800,7 +6165,10 @@ class LoopNest:
         loop = self.loops[par_depth.start_depth]
         loop.parallel = par_depth.parallel_depth
         if loop.is_reduction:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             metrics.parallel_reduction_count += 1
         for i in range(par_depth.start_depth + 1, par_depth.parallel_depth):
             self.loops[i].collapsed = True

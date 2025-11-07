@@ -14,7 +14,11 @@ class TestNonUniformObserver(unittest.TestCase):
         # weight: fp tensor
         weight = 1000 * torch.rand(4, 4)
 
+<<<<<<< HEAD
         # activation: fp32 tensor with ~ integer values
+=======
+        # activtion: fp32 tensor with ~ integer values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         activation = torch.randint(low=0, high=255, size=(4, 4), dtype=torch.float)
 
         # calculate result from calling linear forward method
@@ -41,7 +45,11 @@ class TestNonUniformObserver(unittest.TestCase):
         # weight: fp tensor
         weight = 1000 * torch.rand(5, 3)
 
+<<<<<<< HEAD
         # activation: fp32 tensor with ~ integer values
+=======
+        # activtion: fp32 tensor with ~ integer values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # note: transpose of activation matrix will have dimension (3, 5)
         activation = torch.randint(low=0, high=255, size=(5, 3), dtype=torch.float)
 

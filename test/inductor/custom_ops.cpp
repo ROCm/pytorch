@@ -1,7 +1,12 @@
 #include <torch/csrc/api/include/torch/types.h>  // @manual=fbcode//caffe2:libtorch
 
+<<<<<<< HEAD
 #include <torch/csrc/inductor/aoti_torch/c/shim.h> // @manual
 #include <torch/csrc/inductor/aoti_torch/utils.h> // @manual
+=======
+#include <torch/csrc/inductor/aoti_torch/c/shim.h>
+#include <torch/csrc/inductor/aoti_torch/utils.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #include <cstdint>
 #include <iostream>

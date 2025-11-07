@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/Stream.h>
 #include <torch/csrc/cuda/THCP.h>
 #include <torch/csrc/python_headers.h>
@@ -9,6 +12,7 @@
 // whatever the current stream of the device the input is associated with was.
 std::vector<std::optional<at::cuda::CUDAStream>>
 THPUtils_PySequence_to_CUDAStreamList(PyObject* obj) {
+<<<<<<< HEAD
   TORCH_CHECK(
       PySequence_Check(obj),
       "Expected a sequence in THPUtils_PySequence_to_CUDAStreamList");
@@ -20,6 +24,20 @@ THPUtils_PySequence_to_CUDAStreamList(PyObject* obj) {
   std::vector<std::optional<at::cuda::CUDAStream>> streams;
   Py_ssize_t length = PySequence_Fast_GET_SIZE(seq.get());
   streams.reserve(length);
+=======
+  if (!PySequence_Check(obj)) {
+    throw std::runtime_error(
+        "Expected a sequence in THPUtils_PySequence_to_CUDAStreamList");
+  }
+  THPObjectPtr seq = THPObjectPtr(PySequence_Fast(obj, nullptr));
+  if (seq.get() == nullptr) {
+    throw std::runtime_error(
+        "expected PySequence, but got " + std::string(THPUtils_typename(obj)));
+  }
+
+  std::vector<std::optional<at::cuda::CUDAStream>> streams;
+  Py_ssize_t length = PySequence_Fast_GET_SIZE(seq.get());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (Py_ssize_t i = 0; i < length; i++) {
     PyObject* stream = PySequence_Fast_GET_ITEM(seq.get(), i);
 
@@ -34,8 +52,12 @@ THPUtils_PySequence_to_CUDAStreamList(PyObject* obj) {
     } else if (stream == Py_None) {
       streams.emplace_back();
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(
           false,
+=======
+      throw std::runtime_error(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           "Unknown data type found in stream list. Need torch.cuda.Stream or None");
     }
   }

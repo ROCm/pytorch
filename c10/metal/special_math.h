@@ -1,7 +1,10 @@
 // Implementation of specal math functions for Metal
 #pragma once
 #include <c10/metal/expm1f.h>
+<<<<<<< HEAD
 #include <c10/metal/igamma.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/metal/utils.h>
 #include <metal_stdlib>
 
@@ -49,11 +52,14 @@ inline float erf(T x) {
 }
 
 template <typename T>
+<<<<<<< HEAD
 float erfc(T x) {
   return 1.0 - erf(x);
 }
 
 template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 inline float erfinv(T y) {
   /* coefficients in rational expansion */
   constexpr float a[4] = {0.886226899, -1.645349621, 0.914624893, -0.140543331};
@@ -1565,7 +1571,11 @@ float chebyshev_polynomial_t_forward(T x, int64_t n) {
   float q = x;
   float r;
 
+<<<<<<< HEAD
   for (int64_t k = 2; (k <= n) && !::metal::isnan(q); k++) {
+=======
+  for (int64_t k = 2; k <= n; k++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r = (x + x) * q - p;
     p = q;
     q = r;
@@ -1609,7 +1619,11 @@ float chebyshev_polynomial_u_forward(T x, int64_t n) {
   auto p = 1.0;
   float r;
 
+<<<<<<< HEAD
   for (int64_t k = 2; (k <= n) && !::metal::isnan(q); k++) {
+=======
+  for (int64_t k = 2; k <= n; k++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r = 2 * x * q - p;
     p = q;
     q = r;
@@ -1662,7 +1676,11 @@ float chebyshev_polynomial_v_forward(T x, int64_t n) {
   auto p = 1.0;
   float r;
 
+<<<<<<< HEAD
   for (int64_t k = 2; (k <= n) && !::metal::isnan(q); k++) {
+=======
+  for (int64_t k = 2; k <= n; k++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r = 2 * x * q - p;
     p = q;
     q = r;
@@ -1719,7 +1737,11 @@ float chebyshev_polynomial_w_forward(T x, int64_t n) {
   auto p = 1.0;
   float r;
 
+<<<<<<< HEAD
   for (int64_t k = 2; (k <= n) && !::metal::isnan(q); k++) {
+=======
+  for (int64_t k = 2; k <= n; k++) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     r = 2.0 * x * q - p;
     p = q;
     q = r;
@@ -1729,6 +1751,7 @@ float chebyshev_polynomial_w_forward(T x, int64_t n) {
 } // chebyshev_polynomial_w_forward(T x, int64_t n)
 
 template <typename T>
+<<<<<<< HEAD
 float shifted_chebyshev_polynomial_t_forward(T x, int64_t n) {
   if (n < 0) {
     return 0.0;
@@ -1930,6 +1953,8 @@ float shifted_chebyshev_polynomial_w_forward(T x, int64_t n) {
 } // shifted_chebyshev_polynomial_w_forward(T x, int64_t n)
 
 template <typename T>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // TODO: Add 512 if/when double will be supported in Metal
 inline constexpr int getHermitianLimit() {
   return 128;

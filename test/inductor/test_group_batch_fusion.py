@@ -286,6 +286,7 @@ class TestMathOps(torch.nn.Module):
         return torch.stack((stack_input, stack_other), dim=0)
 
 
+<<<<<<< HEAD
 class TestDropout(torch.nn.Module):
     def __init__(self, device):
         super().__init__()
@@ -318,6 +319,26 @@ class TestDropout(torch.nn.Module):
         return (dropout, dropout_1, dropout_2, dropout_3, dropout_4)
 
 
+=======
+@requires_gpu()
+@torch._inductor.config.patch(
+    pre_grad_fusion_options={
+        "batch_linear": {},
+        "batch_linear_lhs": {},
+        "batch_layernorm": {},
+        "batch_tanh": {},
+        "batch_relu": {},
+        "batch_sigmoid": {},
+    },
+    post_grad_fusion_options={
+        "batch_aten_add": {},
+        "batch_aten_mul": {},
+        "batch_aten_sub": {},
+        "batch_aten_div": {},
+        "group_linear": {"require_fbgemm": True},
+    },
+)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestGroupBatchFusion(TestCase):
     def compare_dict_tensors(self, ref_dict, res_dict, rtol=1e-3, atol=1e-3):
         if len(set(ref_dict.keys())) != len(set(res_dict.keys())):
@@ -346,6 +367,7 @@ class TestGroupBatchFusion(TestCase):
             self.compare_dict_tensors(ref_grad, res_grad, rtol=rtol, atol=atol)
         )
 
+<<<<<<< HEAD
     @requires_gpu()
     @unittest.skipIf(not has_fbgemm, "requires fbgemm")
     @torch._inductor.config.patch(
@@ -354,6 +376,9 @@ class TestGroupBatchFusion(TestCase):
             "group_linear": {"require_fbgemm": True},
         },
     )
+=======
+    @unittest.skipIf(not has_fbgemm, "requires fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_group_linear_fusion(self):
         z = 10
         for has_bias in [True, False]:
@@ -376,6 +401,7 @@ class TestGroupBatchFusion(TestCase):
                 counters["inductor"]["group_linear"],
                 4,
             )
+<<<<<<< HEAD
             counters.clear()
 
     @requires_gpu()
@@ -386,6 +412,15 @@ class TestGroupBatchFusion(TestCase):
             "group_linear": {"require_fbgemm": True},
         },
     )
+=======
+            self.assertEqual(
+                counters["inductor"]["batch_aten_add"],
+                0,
+            )
+            counters.clear()
+
+    @unittest.skipIf(not has_fbgemm, "requires fbgemm")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_group_linear_fusion_different_shapes(self):
         counters.clear()
         module = MyModule2().eval().to(GPU_TYPE)
@@ -410,6 +445,7 @@ class TestGroupBatchFusion(TestCase):
             counters["inductor"]["group_linear"],
             2,
         )
+<<<<<<< HEAD
         counters.clear()
 
     @requires_gpu()
@@ -418,6 +454,15 @@ class TestGroupBatchFusion(TestCase):
         pre_grad_fusion_options={"batch_layernorm": {}},
         post_grad_fusion_options={},
     )
+=======
+        self.assertEqual(
+            counters["inductor"]["batch_aten_mul"],
+            1,
+        )
+        counters.clear()
+
+    @unittest.skipIf(GPU_TYPE == "mps", "welford_reduce is yet not implemented for MPS")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_batch_layer_norm_fusion(self):
         for has_weight in [True, False]:
             for has_bias in [True, False]:
@@ -435,11 +480,14 @@ class TestGroupBatchFusion(TestCase):
                 self.compare_gradients(module, traced, rtol=1e-8, atol=1e-8)
                 counters.clear()
 
+<<<<<<< HEAD
     @requires_gpu()
     @torch._inductor.config.patch(
         pre_grad_fusion_options={"batch_linear_lhs": {}},
         post_grad_fusion_options={},
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_batch_linear_lhs_fusion(self):
         z = 10
         for has_bias in [True, False]:
@@ -457,11 +505,14 @@ class TestGroupBatchFusion(TestCase):
             self.compare_gradients(module, traced, rtol=1e-8, atol=1e-8)
             counters.clear()
 
+<<<<<<< HEAD
     @requires_gpu()
     @torch._inductor.config.patch(
         pre_grad_fusion_options={"batch_linear": {}},
         post_grad_fusion_options={},
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_batch_linear_pre_grad_fusion(self):
         for has_bias in [True, False]:
             counters.clear()
@@ -478,6 +529,7 @@ class TestGroupBatchFusion(TestCase):
             self.compare_gradients(module, traced, rtol=1e-8, atol=1e-8)
             counters.clear()
 
+<<<<<<< HEAD
     @requires_gpu()
     @torch._inductor.config.patch(
         pre_grad_fusion_options={
@@ -491,6 +543,8 @@ class TestGroupBatchFusion(TestCase):
             "batch_aten_div": {},
         },
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pointwise_op_fusion(self):
         counters.clear()
         module = TestPoitwiseOps(GPU_TYPE)
@@ -613,6 +667,7 @@ class TestGroupBatchFusion(TestCase):
         self.assertTrue(torch.allclose(ref, res))
         counters.clear()
 
+<<<<<<< HEAD
     @requires_gpu()
     @torch._inductor.config.patch(
         pre_grad_fusion_options={
@@ -631,6 +686,8 @@ class TestGroupBatchFusion(TestCase):
         self.assertEqual(counters["inductor"]["batch_dropout"], 1)
         counters.clear()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestBMMFusionModule(torch.nn.Module):
     def __init__(self) -> None:
@@ -686,7 +743,11 @@ class TestFindIndependentSubsetGreedy(TestCase):
             unsatisfied += 1
             assert unsatisfied <= len(desc)  # cycle or bad input?
             name, v = desc.popleft()
+<<<<<<< HEAD
             args = tuple(lookup.get(n) for n in v)
+=======
+            args = tuple(lookup.get(n, None) for n in v)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if None in args:
                 desc.append((name, v))
                 continue
@@ -1280,7 +1341,11 @@ class TestFindIndependentSubsetGreedy(TestCase):
         )
         self.assertEqual(next(i), [lookup[n] for n in ["n2", "n3", "n5"]])
 
+<<<<<<< HEAD
         # fuse n2 and n3 which makes n4 now dependent on n1.
+=======
+        # fuse n2 and n3 which makes n4 now dependant on n1.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         args = tuple(lookup[n] for n in ["n0", "n1"])
         fused = g.create_node("placeholder", "target", name="n2+n3", args=args)
         lookup["n2"].replace_all_uses_with(fused)

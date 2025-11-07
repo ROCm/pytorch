@@ -39,7 +39,11 @@ from torch.ao.quantization.quantizer.xnnpack_quantizer_utils import (
     OP_TO_ANNOTATOR,
     QuantizationConfig,
 )
+<<<<<<< HEAD
 from torch.export import export
+=======
+from torch.export import export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx import Node
 from torch.testing._internal.common_quantization import (
     NodeSpec as ns,
@@ -254,6 +258,7 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                         maxpool_node = node
                         input_act = maxpool_node.args[0]
                         assert isinstance(input_act, Node)
+<<<<<<< HEAD
                         maxpool_node.meta["quantization_annotation"] = (
                             QuantizationAnnotation(
                                 input_qspec_map={
@@ -264,6 +269,18 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                                 ),
                                 _annotated=True,
                             )
+=======
+                        maxpool_node.meta[
+                            "quantization_annotation"
+                        ] = QuantizationAnnotation(
+                            input_qspec_map={
+                                input_act: act_qspec,
+                            },
+                            output_qspec=SharedQuantizationSpec(
+                                (input_act, maxpool_node)
+                            ),
+                            _annotated=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             def validate(self, model: torch.fx.GraphModule) -> None:
@@ -339,9 +356,15 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                         def derive_qparams_fn(
                             obs_or_fqs: list[ObserverOrFakeQuantize],
                         ) -> tuple[Tensor, Tensor]:
+<<<<<<< HEAD
                             assert len(obs_or_fqs) == 2, (
                                 f"Expecting two obs/fqs, one for activation and one for weight, got: {len(obs_or_fqs)}"
                             )
+=======
+                            assert (
+                                len(obs_or_fqs) == 2
+                            ), f"Expecting two obs/fqs, one for activation and one for weight, got: {len(obs_or_fqs)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             act_obs_or_fq = obs_or_fqs[0]
                             weight_obs_or_fq = obs_or_fqs[1]
                             act_scale, act_zp = act_obs_or_fq.calculate_qparams()
@@ -442,9 +465,15 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                         def derive_qparams_fn(
                             obs_or_fqs: list[ObserverOrFakeQuantize],
                         ) -> tuple[Tensor, Tensor]:
+<<<<<<< HEAD
                             assert len(obs_or_fqs) == 1, (
                                 f"Expecting one weight obs/fq, got: {len(obs_or_fqs)}"
                             )
+=======
+                            assert (
+                                len(obs_or_fqs) == 1
+                            ), f"Expecting one weight obs/fq, got: {len(obs_or_fqs)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             weight_obs_or_fq = obs_or_fqs[0]
                             (
                                 weight_scale,
@@ -748,6 +777,7 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                             (first_input_node, cat_node)
                         )
                         for input_node in input_nodes[1:]:
+<<<<<<< HEAD
                             input_qspec_map[input_node] = (
                                 share_qparams_with_input_act0_qspec
                             )
@@ -758,6 +788,18 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                                 output_qspec=share_qparams_with_input_act0_qspec,
                                 _annotated=True,
                             )
+=======
+                            input_qspec_map[
+                                input_node
+                            ] = share_qparams_with_input_act0_qspec
+
+                        cat_node.meta[
+                            "quantization_annotation"
+                        ] = QuantizationAnnotation(
+                            input_qspec_map=input_qspec_map,
+                            output_qspec=share_qparams_with_input_act0_qspec,
+                            _annotated=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             def validate(self, model: torch.fx.GraphModule) -> None:
@@ -767,7 +809,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         example_inputs = (torch.randn(1, 3, 5, 5), torch.randn(1, 3, 5, 5))
 
         # program capture
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, BackendAQuantizer())
         # make sure the two observers for input are shared
         conv_output_obs = []
@@ -783,9 +829,15 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                 obs_ins0 = getattr(m, input0.target)
                 obs_ins1 = getattr(m, input1.target)
                 assert obs_ins0 == obs_ins1
+<<<<<<< HEAD
         assert len(conv_output_obs) == 2, (
             "expecting two observer that follows conv2d ops"
         )
+=======
+        assert (
+            len(conv_output_obs) == 2
+        ), "expecting two observer that follows conv2d ops"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # checking that the output observers for the two convs are shared as well
         assert conv_output_obs[0] == conv_output_obs[1]
 
@@ -827,7 +879,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         )
 
         # program capture
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         m(*example_inputs)
         # make sure the two input observers and output are shared
@@ -850,9 +906,15 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                 obs_ins2 = getattr(m, output_obs.target)
                 assert obs_ins0 == obs_ins2, "input observer does not match output"
 
+<<<<<<< HEAD
         assert len(conv_output_obs) == 2, (
             "expecting two observer that follows conv2d ops"
         )
+=======
+        assert (
+            len(conv_output_obs) == 2
+        ), "expecting two observer that follows conv2d ops"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # checking that the output observers for the two convs are shared as well
         assert conv_output_obs[0] == conv_output_obs[1]
 
@@ -967,6 +1029,7 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                             (first_input_node, cat_node)
                         )
                         for input_node in input_nodes[1:]:
+<<<<<<< HEAD
                             input_qspec_map[input_node] = (
                                 share_qparams_with_input_act0_qspec
                             )
@@ -977,6 +1040,18 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                                 output_qspec=share_qparams_with_input_act0_qspec,
                                 _annotated=True,
                             )
+=======
+                            input_qspec_map[
+                                input_node
+                            ] = share_qparams_with_input_act0_qspec
+
+                        cat_node.meta[
+                            "quantization_annotation"
+                        ] = QuantizationAnnotation(
+                            input_qspec_map=input_qspec_map,
+                            output_qspec=share_qparams_with_input_act0_qspec,
+                            _annotated=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             def validate(self, model: torch.fx.GraphModule) -> None:
@@ -1063,6 +1138,7 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                         share_qparams_with_input_act1_qspec = SharedQuantizationSpec(
                             (second_input_node, cat_node)
                         )
+<<<<<<< HEAD
                         input_qspec_map[first_input_node] = (
                             share_qparams_with_input_act1_qspec
                         )
@@ -1073,6 +1149,18 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                                 output_qspec=share_qparams_with_input_act1_qspec,
                                 _annotated=True,
                             )
+=======
+                        input_qspec_map[
+                            first_input_node
+                        ] = share_qparams_with_input_act1_qspec
+
+                        cat_node.meta[
+                            "quantization_annotation"
+                        ] = QuantizationAnnotation(
+                            input_qspec_map=input_qspec_map,
+                            output_qspec=share_qparams_with_input_act1_qspec,
+                            _annotated=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             def validate(self, model: torch.fx.GraphModule) -> None:
@@ -1121,6 +1209,7 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                         share_qparams_with_input_act1_qspec = SharedQuantizationSpec(
                             (second_input_node, add_node)
                         )
+<<<<<<< HEAD
                         input_qspec_map[first_input_node] = (
                             share_qparams_with_input_act1_qspec
                         )
@@ -1132,6 +1221,19 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                                 allow_implicit_sharing=False,
                                 _annotated=True,
                             )
+=======
+                        input_qspec_map[
+                            first_input_node
+                        ] = share_qparams_with_input_act1_qspec
+
+                        add_node.meta[
+                            "quantization_annotation"
+                        ] = QuantizationAnnotation(
+                            input_qspec_map=input_qspec_map,
+                            output_qspec=share_qparams_with_input_act1_qspec,
+                            allow_implicit_sharing=False,
+                            _annotated=True,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             def validate(self, model: torch.fx.GraphModule) -> None:
@@ -1146,7 +1248,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         )
 
         # program capture
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = BackendAQuantizer()
         m = prepare_pt2e(m, quantizer)
         m(*example_inputs)
@@ -1296,7 +1402,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
 
         m = M().eval()
         example_inputs = torch.randn(1, 2, 3, 3)
+<<<<<<< HEAD
         m = export(m, (example_inputs,), strict=True).module()
+=======
+        m = export_for_training(m, (example_inputs,), strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(Exception):
             m = prepare_pt2e(m, BackendAQuantizer())
 
@@ -1419,7 +1529,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         quantizer.set_global(operator_config)
         example_inputs = (torch.randn(2, 2),)
         m = M().eval()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         weight_meta = None
         for n in m.graph.nodes:
             if (
@@ -1506,7 +1620,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         m = M().eval()
         quantizer = TestQuantizer()
         example_inputs = (torch.randn(1, 2, 3, 3),)
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         m(*example_inputs)
         node_occurrence = {
@@ -1557,7 +1675,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
             torch.randn(1, 2, 3, 3),
             torch.randn(1, 2, 3, 3),
         )
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         m(*example_inputs)
         node_occurrence = {
@@ -1682,7 +1804,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         qconfig_mapping.set_object_type(torch.nn.Linear, dynamic_qconfig)
         # Had to turn off check against fx because fx quant workflow does not seem
         # to propagate observers for permute node for this model.
+<<<<<<< HEAD
         # Surprisingly it does propagate it for EmbeddingConvLinearModule
+=======
+        # Suprisingly it does propagate it for EmbeddingConvLinearModule
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Figure out the right behavior for propagation
         self._test_quantizer(
             m_eager,
@@ -1812,7 +1938,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
 
         example_inputs = (torch.randn(1),)
         m = M().train()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if inplace:
             target = torch.ops.aten.dropout_.default
         else:
@@ -1877,7 +2007,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
             m = M().train()
             example_inputs = (torch.randn(1, 3, 3, 3),)
         bn_train_op, bn_eval_op = self._get_bn_train_eval_ops()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Assert that batch norm op exists and is in train mode
         bn_node = self._get_node(m, bn_train_op)
@@ -1908,7 +2042,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         m.train()
 
         # After export: this is not OK
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self.assertRaises(NotImplementedError):
             m.eval()
         with self.assertRaises(NotImplementedError):
@@ -1949,7 +2087,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
             m = M().train()
             example_inputs = (torch.randn(1, 3, 3, 3),)
         bn_train_op, bn_eval_op = self._get_bn_train_eval_ops()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def _assert_ops_are_correct(m: torch.fx.GraphModule, train: bool):
             targets = [n.target for n in m.graph.nodes]
@@ -2015,7 +2157,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
 
         m = M().train()
         example_inputs = (torch.randn(1, 3, 3, 3),)
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.ao.quantization.allow_exported_model_train_eval(m)
 
         # Mock m.recompile() to count how many times it's been called
@@ -2047,7 +2193,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
     def test_model_is_exported(self):
         m = TestHelperModules.ConvWithBNRelu(relu=True)
         example_inputs = (torch.rand(3, 3, 5, 5),)
+<<<<<<< HEAD
         exported_gm = export(m, example_inputs, strict=True).module()
+=======
+        exported_gm = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fx_traced_gm = torch.fx.symbolic_trace(m, example_inputs)
         self.assertTrue(
             torch.ao.quantization.pt2e.export_utils.model_is_exported(exported_gm)
@@ -2065,7 +2215,13 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         quantizer = XNNPACKQuantizer().set_global(
             get_symmetric_quantization_config(is_per_channel=True, is_qat=True)
         )
+<<<<<<< HEAD
         m.conv_bn_relu = export(m.conv_bn_relu, example_inputs, strict=True).module()
+=======
+        m.conv_bn_relu = export_for_training(
+            m.conv_bn_relu, example_inputs, strict=True
+        ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m.conv_bn_relu = prepare_qat_pt2e(m.conv_bn_relu, quantizer)
         m(*example_inputs)
         m.conv_bn_relu = convert_pt2e(m.conv_bn_relu)
@@ -2073,7 +2229,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         quantizer = XNNPACKQuantizer().set_module_type(
             torch.nn.Linear, get_symmetric_quantization_config(is_per_channel=False)
         )
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         m = prepare_pt2e(m, quantizer)
         m = convert_pt2e(m)
 
@@ -2121,9 +2281,20 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
         m(*example_inputs)
 
     def test_observer_callback(self):
+<<<<<<< HEAD
         from torch.library import custom_op
 
         @custom_op("test_int4::quantize_per_tensor_int4", mutates_args=())
+=======
+        from torch.library import impl, Library
+
+        test_lib = Library("test_int4", "DEF")  # noqa: TOR901
+        test_lib.define(
+            "quantize_per_tensor_int4(Tensor input, float scale, int zero_point) -> Tensor"
+        )
+
+        @impl(test_lib, "quantize_per_tensor_int4", "CompositeExplicitAutograd")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def quantize_per_tensor_int4(
             input: torch.Tensor,
             scale: float,
@@ -2136,7 +2307,15 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                 .view(torch.bits8)
             )
 
+<<<<<<< HEAD
         @custom_op("test_int4::dequantize_per_tensor_int4", mutates_args=())
+=======
+        test_lib.define(
+            "dequantize_per_tensor_int4(Tensor input, float scale, int zero_point) -> Tensor"
+        )
+
+        @impl(test_lib, "dequantize_per_tensor_int4", "CompositeExplicitAutograd")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def dequantize_per_tensor_int4(
             input: torch.Tensor,
             scale: float,
@@ -2236,7 +2415,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
 
         def dynamic_quantize_pt2e(model, example_inputs):
             torch._dynamo.reset()
+<<<<<<< HEAD
             model = export(model, example_inputs, strict=True).module()
+=======
+            model = export_for_training(model, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Per channel quantization for weight
             # Dynamic quantization for activation
             # Please read a detail: https://fburl.com/code/30zds51q
@@ -2253,7 +2436,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
             model = prepare_qat_pt2e(model, composed_quantizer)
             cur = time.time()
             # print("prepare time:", cur - prev)
+<<<<<<< HEAD
             # Without Calibration, scale/zero value will have an initialized value of 1.0
+=======
+            # Without Calibraiton, scale/zero value will have an initialized value of 1.0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Per channel quantization needs a proper scale/zero shape/value to work properly.
             # So we need to run calibration before converting to quantized model.
             model(*example_inputs)
@@ -2451,7 +2638,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
 
         example_inputs = (torch.randn(1, 3, 5, 5),)
         m = M()
+<<<<<<< HEAD
         m = export(m, example_inputs, strict=True).module()
+=======
+        m = export_for_training(m, example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         quantizer = XNNPACKQuantizer().set_global(
             get_symmetric_quantization_config(),
         )
@@ -2533,7 +2724,11 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                     edge_or_node_to_obs_or_fq[x] = new_observer
 
         example_inputs = (torch.rand(1, 32, 16, 16),)
+<<<<<<< HEAD
         gm = export(Model().eval(), example_inputs, strict=True).module()
+=======
+        gm = export_for_training(Model().eval(), example_inputs, strict=True).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         gm = prepare_pt2e(gm, BackendAQuantizer())
         gm = convert_pt2e(gm)
         for n in gm.graph.nodes:
@@ -2560,7 +2755,13 @@ class TestQuantizePT2E(PT2EQuantizationTestCase):
                 "ConvWithBNRelu" in node.meta["nn_module_stack"]["L__self__"][1]
             )
 
+<<<<<<< HEAD
         m.conv_bn_relu = export(m.conv_bn_relu, example_inputs, strict=True).module()
+=======
+        m.conv_bn_relu = export_for_training(
+            m.conv_bn_relu, example_inputs, strict=True
+        ).module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for node in m.conv_bn_relu.graph.nodes:
             if node.op not in ["placeholder", "output", "get_attr"]:
                 check_nn_module(node)

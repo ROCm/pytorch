@@ -9,11 +9,18 @@ import sys
 import warnings
 import weakref
 from collections import defaultdict, deque
+<<<<<<< HEAD
 from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, fields, is_dataclass
 from enum import auto, Enum
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from contextlib import contextmanager
+from dataclasses import dataclass, fields, is_dataclass
+from enum import auto, Enum
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -218,7 +225,11 @@ def _dump_DDP_relevant_env_vars():
     ]
     formatted_output = ""
     for var in relevant_env_vars:
+<<<<<<< HEAD
         value = os.environ.get(var, "N/A")
+=======
+        value = os.environ[var] if var in os.environ else "N/A"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         formatted_output += f"env:{var}={value}\n"
     print(formatted_output)
 
@@ -241,7 +252,10 @@ class _BufferCommHook:
 # is completed.
 class _DDPSink(Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, ddp_weakref, *inputs):
         # set_materialize_grads(False) will ensure that None gradients stay as
         # None and are not filled with zeros.
@@ -349,20 +363,28 @@ class DistributedDataParallel(Module, Joinable):
     To use ``DistributedDataParallel`` on a host with N GPUs, you should spawn
     up ``N`` processes, ensuring that each process exclusively works on a single
     GPU from 0 to N-1. This can be done by either setting
+<<<<<<< HEAD
     ``CUDA_VISIBLE_DEVICES`` for every process or by calling the following API for GPUs,
+=======
+    ``CUDA_VISIBLE_DEVICES`` for every process or by calling:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         >>> # xdoctest: +SKIP("undefined variables")
         >>> torch.cuda.set_device(i)
 
+<<<<<<< HEAD
     or calling the unified API for :ref:`accelerator<accelerators>`,
 
         >>> # xdoctest: +SKIP("undefined variables")
         >>> torch.accelerator.set_device_index(i)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     where i is from 0 to N-1. In each process, you should refer the following
     to construct this module:
 
         >>> # xdoctest: +SKIP("undefined variables")
+<<<<<<< HEAD
         >>> if torch.accelerator.is_available():
         >>>     device_type = torch.accelerator.current_accelerator().type
         >>>     vendor_backend = torch.distributed.get_default_backend_for_device(device_type)
@@ -376,6 +398,13 @@ class DistributedDataParallel(Module, Joinable):
 
         >>> torch.distributed.init_process_group(device_id=i)
 
+=======
+        >>> torch.distributed.init_process_group(
+        >>>     backend='nccl', world_size=N, init_method='...'
+        >>> )
+        >>> model = DistributedDataParallel(model, device_ids=[i], output_device=i)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     In order to spawn up multiple processes per node, you can use either
     ``torch.distributed.launch`` or ``torch.multiprocessing.spawn``.
 
@@ -692,7 +721,10 @@ class DistributedDataParallel(Module, Joinable):
         elif process_group is None and device_mesh is None:
             self.process_group = _get_default_group()
         elif device_mesh is None:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.process_group = process_group
         else:
             if device_mesh.ndim != 1:
@@ -701,8 +733,14 @@ class DistributedDataParallel(Module, Joinable):
                 )
             self.device_mesh = device_mesh
             self.process_group = device_mesh.get_group(mesh_dim=0)
+<<<<<<< HEAD
 
             root_mesh = device_mesh._get_root_mesh()
+=======
+            from torch.distributed.device_mesh import _mesh_resources
+
+            root_mesh = _mesh_resources.get_root_mesh(device_mesh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # if a root mesh is not the same as device_mesh,
             # meaning the device_mesh is sliced out from the root mesh.
             if root_mesh != device_mesh:
@@ -774,19 +812,29 @@ class DistributedDataParallel(Module, Joinable):
                     "DistributedDataParallel device_ids and output_device arguments "
                     "only work with single-device/multiple-device GPU modules or CPU modules, "
                     f"but got device_ids {device_ids}, output_device {output_device}, "
+<<<<<<< HEAD
                     f"and module parameters { ({p.device for p in self._module_parameters}) }.",
+=======
+                    f"and module parameters { ({p.device for p in self._module_parameters}) }.",  # noqa: E201,E202
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             self.device_ids = None
             self.output_device = None
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.device_ids = [_get_device_index(x, True) for x in device_ids]
 
             if output_device is None:
                 output_device = device_ids[0]
 
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.output_device = _get_device_index(output_device, True)
 
         self.static_graph = False
@@ -822,7 +870,11 @@ class DistributedDataParallel(Module, Joinable):
                     "Run a dummy forward pass to correctly initialize the modules",
                 )
         # used for intra-node param sync and inter-node sync as well
+<<<<<<< HEAD
         self.broadcast_bucket_size = 250 * 1024 * 1024
+=======
+        self.broadcast_bucket_size = int(250 * 1024 * 1024)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # reduction bucket size
         if bucket_cap_mb is None:
@@ -936,7 +988,10 @@ class DistributedDataParallel(Module, Joinable):
         # enabled.
         self._accum_grad_hooks: list[RemovableHandle] = []
         if self._use_python_reducer:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._inductor.config._fuse_ddp_communication = True
             torch._inductor.config._fuse_ddp_bucket_size = bucket_cap_mb
             # Directly adding this to the trace rule will disturb the users
@@ -2189,7 +2244,11 @@ class DistributedDataParallel(Module, Joinable):
             else:
                 # The process with rank 0 is considered the authoritative copy.
                 authoritative_rank = 0
+<<<<<<< HEAD
             # Update self.modules_buffers in case any buffers were
+=======
+            # Update self.modules_buffers incase any buffers were
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # reassigned.
             self._assign_modules_buffers()
             self._sync_module_buffers(authoritative_rank)
@@ -2365,8 +2424,12 @@ class DistributedDataParallel(Module, Joinable):
         # If self.static_graph has been set, no need to set it again
         if self.static_graph:
             warnings.warn(
+<<<<<<< HEAD
                 "You've set static_graph to be True, no need to set it again.",
                 stacklevel=2,
+=======
+                "You've set static_graph to be True, no need to set it again."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return
         self.static_graph = True
@@ -2380,8 +2443,12 @@ class DistributedDataParallel(Module, Joinable):
                 "`_set_static_graph` will detect unused parameters automatically, so "
                 "you do not need to set find_unused_parameters=true, just be sure these "
                 "unused parameters will not change during training loop while calling "
+<<<<<<< HEAD
                 "`_set_static_graph`.",
                 stacklevel=2,
+=======
+                "`_set_static_graph`."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def _remove_autograd_hooks(self):

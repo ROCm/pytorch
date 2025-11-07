@@ -63,7 +63,11 @@ class ModelReportVisualizer:
     1.) Initialize ModelReport object with reports of interest by passing in initialized detector objects
     2.) Prepare your model with prepare_fx
     3.) Call model_report.prepare_detailed_calibration on your model to add relevant observers
+<<<<<<< HEAD
     4.) Calibrate your model with data
+=======
+    4.) Callibrate your model with data
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     5.) Call model_report.generate_report on your model to generate report and optionally remove added observers
     6.) Use output of model_report.generate_report to initialize ModelReportVisualizer instance
     7.) Use instance to view different views of data as desired, applying filters as needed
@@ -132,7 +136,11 @@ class ModelReportVisualizer:
                 # if we need plottable, ensure type of val is tensor
                 if (
                     not plottable_features_only
+<<<<<<< HEAD
                     or type(feature_dict[feature_name]) is torch.Tensor
+=======
+                    or type(feature_dict[feature_name]) == torch.Tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     unique_feature_names.add(feature_name)
 
@@ -223,7 +231,10 @@ class ModelReportVisualizer:
                         feature_val = feature_val.item()
 
                     # we add to our list of values
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     tensor_table_row.append(feature_val)
 
                 tensor_table.append(tensor_table_row)
@@ -284,7 +295,10 @@ class ModelReportVisualizer:
                             feature_val = feature_val.item()
 
                         # add value to channel specific row
+<<<<<<< HEAD
                         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         new_channel_row.append(feature_val)
 
                     # add to table and increment row index counter
@@ -520,7 +534,11 @@ class ModelReportVisualizer:
                 # the index of the feature will the 0 + num non feature columns
                 tensor_feature_index = feature_column_offset
                 row_value = row[tensor_feature_index]
+<<<<<<< HEAD
                 if type(row_value) is not str:
+=======
+                if not type(row_value) == str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     x_data.append(x_val_to_append)
                     y_data.append(row_value)
         elif is_valid_per_channel_plot:
@@ -543,7 +561,11 @@ class ModelReportVisualizer:
                 # the index of the feature will the 0 + num non feature columns
                 tensor_feature_index = feature_column_offset
                 row_value = row[tensor_feature_index]
+<<<<<<< HEAD
                 if type(row_value) is not str:
+=======
+                if not type(row_value) == str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # only append if new index we are appending
                     if len(x_data) == 0 or x_data[-1] != x_val_to_append:
                         x_data.append(x_val_to_append)

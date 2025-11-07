@@ -15,4 +15,8 @@ pip install --no-use-pep517 -e "$tp2_dir/onnx"
 # Install caffe2 and pytorch
 pip install -r "$top_dir/caffe2/requirements.txt"
 pip install -r "$top_dir/requirements.txt"
+<<<<<<< HEAD
 python -m pip install --no-build-isolation -v -e .
+=======
+python setup.py develop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

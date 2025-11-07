@@ -19,6 +19,10 @@ TORCH_PYTHON_API PyObject* THPStorage_Wrap(c10::Storage storage);
 TORCH_PYTHON_API PyObject* THPStorage_NewWithStorage(
     PyTypeObject* type,
     c10::Storage _storage,
+<<<<<<< HEAD
+=======
+    c10::impl::PyInterpreterStatus status,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     bool allow_preexisting_pyobj = false);
 TORCH_PYTHON_API extern PyTypeObject* THPStorageClass;
 

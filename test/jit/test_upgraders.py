@@ -151,7 +151,11 @@ class TestUpgraders(JitTestCase):
         version = self._load_model_version(loaded_func)
         self.assertTrue(version == 5)
 
+<<<<<<< HEAD
         # make sure we preserve old behaviour
+=======
+        # make sure we preserve old behaviou
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch._C._calculate_package_version_based_on_upgraders(current_flag_value)
 
     def test_aten_linspace(self):

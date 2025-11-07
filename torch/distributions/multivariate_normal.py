@@ -123,7 +123,10 @@ class MultivariateNormal(Distribution):
         the corresponding lower triangular matrices using a Cholesky decomposition.
     """
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     arg_constraints = {
         "loc": constraints.real_vector,
         "covariance_matrix": constraints.positive_definite,
@@ -157,7 +160,10 @@ class MultivariateNormal(Distribution):
                     "with optional leading batch dimensions"
                 )
             batch_shape = torch.broadcast_shapes(scale_tril.shape[:-2], loc.shape[:-1])
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.scale_tril = scale_tril.expand(batch_shape + (-1, -1))
         elif covariance_matrix is not None:
             if covariance_matrix.dim() < 2:
@@ -168,7 +174,10 @@ class MultivariateNormal(Distribution):
             batch_shape = torch.broadcast_shapes(
                 covariance_matrix.shape[:-2], loc.shape[:-1]
             )
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.covariance_matrix = covariance_matrix.expand(batch_shape + (-1, -1))
         else:
             assert precision_matrix is not None  # helps mypy
@@ -180,7 +189,10 @@ class MultivariateNormal(Distribution):
             batch_shape = torch.broadcast_shapes(
                 precision_matrix.shape[:-2], loc.shape[:-1]
             )
+<<<<<<< HEAD
             # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.precision_matrix = precision_matrix.expand(batch_shape + (-1, -1))
         self.loc = loc.expand(batch_shape + (-1,))
 

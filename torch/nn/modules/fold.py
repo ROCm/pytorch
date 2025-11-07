@@ -147,9 +147,12 @@ class Fold(Module):
         self.stride = stride
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.fold(
             input,
             self.output_size,
@@ -160,9 +163,12 @@ class Fold(Module):
         )
 
     def extra_repr(self) -> str:
+<<<<<<< HEAD
         """
         Return the extra representation of the module.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             "output_size={output_size}, kernel_size={kernel_size}, "
             "dilation={dilation}, padding={padding}, stride={stride}".format(
@@ -318,17 +324,23 @@ class Unfold(Module):
         self.stride = stride
 
     def forward(self, input: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.unfold(
             input, self.kernel_size, self.dilation, self.padding, self.stride
         )
 
     def extra_repr(self) -> str:
+<<<<<<< HEAD
         """
         Return the extra representation of the module.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             "kernel_size={kernel_size}, dilation={dilation}, padding={padding},"
             " stride={stride}".format(**self.__dict__)

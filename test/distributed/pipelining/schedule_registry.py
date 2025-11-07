@@ -2,8 +2,12 @@
 # Owner(s): ["oncall: distributed"]
 # This file is a Schedule zoo for testing torch.distributed.pipelining.
 # It includes schedules designed purely for testing purposes
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed.pipelining.schedules import (
     _Action,
@@ -46,7 +50,11 @@ class ScheduleVShaped(PipelineScheduleMulti):
         )
 
         # Go through one microbatch
+<<<<<<< HEAD
         # Note(whc) - it might be easier to work with this schedules by writing them as a list of
+=======
+        # Note(whc) - it might be easier to work with thes schedules by writing them as a list of
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # ["0F0", ...] and then parsing them in the test infra to turn them into actions.
         self.pipeline_order = {
             0: [

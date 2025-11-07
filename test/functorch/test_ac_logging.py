@@ -37,7 +37,10 @@ class TestAcLogging(TestCase):
         self.recomputable_node_idxs: list[int] = []
         self.expected_runtime: int = 100
         self.memories_banned_nodes: list[int] = [50]
+<<<<<<< HEAD
         self.normalized_memories_banned_nodes: list[float] = [0.10344827586206896]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.runtimes_banned_nodes: list[int] = [10]
         self.min_cut_saved_values: list[Node] = [self.node1]
 
@@ -94,12 +97,17 @@ class TestAcLogging(TestCase):
             "Expected Runtime": self.expected_runtime,
             "Knapsack Saved Nodes": self.saved_node_idxs,
             "Knapsack Recomputed Nodes": self.recomputable_node_idxs,
+<<<<<<< HEAD
             "Knapsack Input Memories": self.normalized_memories_banned_nodes,
             "Absolute Memories": self.memories_banned_nodes,
+=======
+            "Knapsack Input Memories": self.memories_banned_nodes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "Knapsack Input Runtimes": self.runtimes_banned_nodes,
             "Min Cut Solution Saved Values": ["node1"],
         }
         result = create_activation_checkpointing_logging_structure_payload(
+<<<<<<< HEAD
             joint_graph=self.graph,
             joint_graph_node_information=input_joint_graph_node_information,
             joint_graph_edges=joint_graph_edges,
@@ -111,6 +119,18 @@ class TestAcLogging(TestCase):
             normalized_memories_banned_nodes=self.normalized_memories_banned_nodes,
             runtimes_banned_nodes=self.runtimes_banned_nodes,
             min_cut_saved_values=self.min_cut_saved_values,
+=======
+            self.graph,
+            input_joint_graph_node_information,
+            joint_graph_edges,
+            self.all_recomputable_banned_nodes,
+            self.expected_runtime,
+            self.saved_node_idxs,
+            self.recomputable_node_idxs,
+            self.memories_banned_nodes,
+            self.runtimes_banned_nodes,
+            self.min_cut_saved_values,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         self.assertEqual(result, expected_payload)
 
@@ -122,6 +142,7 @@ class TestAcLogging(TestCase):
         self, mock_json_dumps: MagicMock, mock_trace_structured: MagicMock
     ) -> None:
         create_structured_trace_for_min_cut_info(
+<<<<<<< HEAD
             joint_graph=self.graph,
             all_recomputable_banned_nodes=self.all_recomputable_banned_nodes,
             saved_node_idxs=self.saved_node_idxs,
@@ -131,6 +152,16 @@ class TestAcLogging(TestCase):
             normalized_memories_banned_nodes=self.normalized_memories_banned_nodes,
             runtimes_banned_nodes=self.runtimes_banned_nodes,
             min_cut_saved_values=self.min_cut_saved_values,
+=======
+            self.graph,
+            self.all_recomputable_banned_nodes,
+            self.saved_node_idxs,
+            self.recomputable_node_idxs,
+            self.expected_runtime,
+            self.memories_banned_nodes,
+            self.runtimes_banned_nodes,
+            self.min_cut_saved_values,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.assertEqual(mock_trace_structured.call_count, 1)

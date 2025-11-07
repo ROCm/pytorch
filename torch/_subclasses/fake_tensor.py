@@ -15,6 +15,7 @@ import typing
 import weakref
 from collections import defaultdict
 from dataclasses import dataclass
+<<<<<<< HEAD
 from typing import (
     Any,
     cast,
@@ -26,6 +27,10 @@ from typing import (
     Union,
 )
 from typing_extensions import Self
+=======
+from typing import Any, Callable, cast, Literal, Optional, TYPE_CHECKING, TypeVar, Union
+from typing_extensions import Self, TypeGuard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from weakref import ReferenceType
 
 import torch
@@ -49,6 +54,10 @@ from torch.fx.operator_schemas import normalize_function
 from torch.multiprocessing.reductions import StorageWeakRef
 from torch.overrides import TorchFunctionMode
 from torch.types import IntLikeType, py_sym_types
+<<<<<<< HEAD
+=======
+from torch.utils._backport_slots import dataclass_slots
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._mode_utils import no_dispatch
 from torch.utils._python_dispatch import (
     is_traceable_wrapper_subclass,
@@ -62,7 +71,11 @@ from ._fake_tensor_utils import _CacheKeyState, _PySymInputStub, _SymIntOutputSt
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Generator, Iterable, Mapping, Sequence
+=======
+    from collections.abc import Generator, Iterable, Mapping, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from types import TracebackType
 
     from torch._guards import Source
@@ -143,11 +156,17 @@ class FakeTensorTLS(threading.local):
     # Default to None, otherwise it'll be used to override _all_
     # `FakeTensorMode.allow_non_fake_inputs` in this thread.
     allow_non_fake_inputs_override: Optional[bool]
+<<<<<<< HEAD
     non_strict_export_fake_tensor_tracker: weakref.WeakSet
 
     def __init__(self) -> None:
         self.allow_non_fake_inputs_override = None
         self.non_strict_export_fake_tensor_tracker = weakref.WeakSet()
+=======
+
+    def __init__(self) -> None:
+        self.allow_non_fake_inputs_override = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 fake_tensor_tls = FakeTensorTLS()
@@ -404,9 +423,13 @@ class FakeTensorConverter:
             with no_dispatch():
                 return FakeTensor(
                     fake_mode,
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
                     make_meta_t(),
                     # pyrefly: ignore [bad-argument-type]
+=======
+                    make_meta_t(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     device,
                     # TODO: callback might be used in recursive contexts, in
                     # which case using t is wrong!  BUG!
@@ -508,9 +531,15 @@ class FakeTensorConverter:
         pytype: Optional[type[torch.Tensor]] = None,
         dispatch_keys: Optional[torch.DispatchKeySet] = None,
     ) -> FakeTensor:
+<<<<<<< HEAD
         assert t.device.type == "meta", (
             f"tensor's device must be `meta`, got {t.device.type} instead"
         )
+=======
+        assert (
+            t.device.type == "meta"
+        ), f"tensor's device must be `meta`, got {t.device.type} instead"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This is a bit abusive (this is not the "real" tensor) but whatever,
         # the meta tensor should be fresh so there's no way to get it wrong
         maybe_memo = self._get_memo(t)
@@ -681,7 +710,10 @@ class FakeTensor(Tensor):
     _mode_key = torch._C._TorchDispatchModeKey.FAKE
 
     @property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def device(self) -> torch.device:
         if self.fake_mode.in_kernel_invocation:
             return torch.device("meta")
@@ -709,7 +741,10 @@ class FakeTensor(Tensor):
 
     # We don't support named tensors; graph break
     @property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def names(self) -> list[str]:
         raise UnsupportedFakeTensorException(
             "torch.compile doesn't support named tensors"
@@ -768,7 +803,10 @@ class FakeTensor(Tensor):
                 )
             else:
                 device = torch.device(f"{device.type}:0")
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.fake_device = device
         self.fake_mode = fake_mode
         self.constant = constant
@@ -806,11 +844,14 @@ class FakeTensor(Tensor):
     #
     def __init__(self, *args: object, **kwargs: object) -> None:
         super().__init__()
+<<<<<<< HEAD
         if (
             torch.compiler.is_exporting()
             and torch._export.config.detect_non_strict_fake_tensor_leaks
         ):
             fake_tensor_tls.non_strict_export_fake_tensor_tracker.add(self)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def from_tensor(t: Tensor, fake_mode: FakeTensorMode) -> FakeTensor:
@@ -909,11 +950,14 @@ class FakeTensor(Tensor):
             aten._foreach_copy.default,
         )
 
+<<<<<<< HEAD
         # list of ops not using zero dim cpu tensor logic to align with the eager mode.
         bypass_zero_dim_cpu_tensor_check_ops = ordered_set(
             aten.nextafter.default,
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def check_cpu_device(device: torch.device) -> bool:
             return device.type == "cpu"
 
@@ -937,6 +981,7 @@ class FakeTensor(Tensor):
                     is_cpu_zero_dim = t_is_cpu_zero_dim
                 return
 
+<<<<<<< HEAD
             is_bypass_zero_dim_cpu_tensor_check_op = (
                 func in bypass_zero_dim_cpu_tensor_check_ops
             )
@@ -948,6 +993,15 @@ class FakeTensor(Tensor):
 
             # current device is from cpu 0 dim tensor, overwrite
             if is_cpu_zero_dim and not is_bypass_zero_dim_cpu_tensor_check_op:
+=======
+            # mismatching devices !
+            # if current tensor is cpu 0 dim, defer to existing device
+            if t_is_cpu_zero_dim:
+                return
+
+            # current device is from cpu 0 dim tensor, overwrite
+            if is_cpu_zero_dim:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 common_device = t.device
                 is_cpu_zero_dim = t_is_cpu_zero_dim
                 return
@@ -960,6 +1014,7 @@ class FakeTensor(Tensor):
                 if any(map(check_cpu_device, (common_device, t.device))):
                     return
 
+<<<<<<< HEAD
             # if prefer_device_type is set, prefer that device type over others
             prefer_device_type = torch._functorch.config.fake_tensor_prefer_device_type
             if prefer_device_type is not None:
@@ -975,6 +1030,8 @@ class FakeTensor(Tensor):
                     # Keep the existing preferred device type
                     return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # mismatching devices of non-zero dim tensors, throw
             # This might be valid behavior and need to be explicitly modeled, e.g. reshape_as
             raise RuntimeError(
@@ -1021,7 +1078,12 @@ class FakeTensor(Tensor):
 _MetadataIntLike = Union[IntLikeType, "_PySymInputStub", "_SymIntOutputStub"]
 
 
+<<<<<<< HEAD
 @dataclass(slots=True)
+=======
+@dataclass_slots
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TensorMetadata:
     """
     The Tensor metadata relevant to hashing FakeTensors when caching.
@@ -1105,7 +1167,12 @@ def extract_tensor_metadata(t: Tensor) -> TensorMetadata:
     )
 
 
+<<<<<<< HEAD
 @dataclass(slots=True)
+=======
+@dataclass_slots
+@dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DispatchCacheKey:
     """
     Key for the FakeTensor dispatch cache.
@@ -1138,7 +1205,12 @@ class SingletonConstant:
     pass
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DispatchCacheEntryOutputInfo:
     """
     Entry type for the FakeTensor dispatch cache for an output. Accounts for three
@@ -1157,7 +1229,12 @@ class _DispatchCacheEntryOutputInfo:
     constant_value: Optional[Any] = SingletonConstant
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DispatchCacheValidEntry:
     """
     Entry type for the FakeTensor dispatch cache. It supports two types of outputs
@@ -1171,7 +1248,12 @@ class _DispatchCacheValidEntry:
     is_output_tuple: bool = False
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _DispatchCacheBypassEntry:
     """
     Entry type for a negative cache entry.
@@ -1184,7 +1266,12 @@ if TYPE_CHECKING:
     _DispatchCacheEntry = Union[_DispatchCacheValidEntry, _DispatchCacheBypassEntry]
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _BypassDispatchCache(Exception):
     """
     Signals cases that should skip FakeTensor caching.
@@ -1193,7 +1280,12 @@ class _BypassDispatchCache(Exception):
     reason: str
 
 
+<<<<<<< HEAD
 @dataclass(frozen=True, slots=True)
+=======
+@dataclass_slots
+@dataclass(frozen=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class DispatchCacheInfo:
     """
     Information about the state of the FakeTensor dispatch cache.
@@ -1374,7 +1466,10 @@ class FakeTensorMode(TorchDispatchMode):
         return self._stack
 
     @count
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __torch_dispatch__(
         self,
         func: OpOverload,
@@ -1401,12 +1496,15 @@ class FakeTensorMode(TorchDispatchMode):
             # See NOTE: [torch.tensor, lift_fresh, and device movement]
             prev_only_lift_cpu_tensors = torch._C._only_lift_cpu_tensors()
             torch._C._set_only_lift_cpu_tensors(True)
+<<<<<<< HEAD
 
             # In the case of CPU-only build or cuda device unavailable,
             # we patch the cuda device guard to use NoOpDeviceGuardImpl.
             # This enables us to trace over cuda kernels under FakeTensorMode.
             torch._C._ensureCUDADeviceGuardSet()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         maybe_prev_fake_mode = torch._C._unset_dispatch_mode(self._mode_key)
         if self is not maybe_prev_fake_mode:
             self.enter_stack.append(
@@ -1417,7 +1515,10 @@ class FakeTensorMode(TorchDispatchMode):
             # no-op (still need to re-set the fake mode though since we unset it)
             torch._C._set_dispatch_mode(self)
             self.enter_stack.append((False, None, prev_only_lift_cpu_tensors))
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self
 
     def __exit__(
@@ -1499,7 +1600,10 @@ class FakeTensorMode(TorchDispatchMode):
             # Do this dispatch outside the above except handler so if it
             # generates its own exception there won't be a __context__ caused by
             # the caching mechanism.
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return self._dispatch_impl(func, types, args, kwargs)
 
         assert state is not None
@@ -1517,28 +1621,44 @@ class FakeTensorMode(TorchDispatchMode):
                 # This represents a negative cache entry - we already saw that the
                 # output is uncachable. Compute it from first principals.
                 FakeTensorMode.cache_bypasses[entry.reason] += 1
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 return self._dispatch_impl(func, types, args, kwargs)
 
             # We have a cache entry.
             # pyrefly: ignore [bad-argument-type]
+=======
+                return self._dispatch_impl(func, types, args, kwargs)
+
+            # We have a cache entry.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output = self._output_from_cache_entry(state, entry, key, func, args)
             FakeTensorMode.cache_hits += 1
             if self.cache_crosscheck_enabled:
                 # For debugging / testing: Validate that the output synthesized
                 # from the cache matches the output created by normal dispatch.
                 with disable_fake_tensor_cache(self):
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self._crosscheck_cache_output(output, func, types, args, kwargs)
             return output
 
         # We don't have a cache entry.
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         output = self._dispatch_impl(func, types, args, kwargs)
 
         try:
             # pyrefly: ignore [bad-argument-type]
             entry = self._make_cache_entry(state, key, func, args, kwargs, output)
+=======
+        output = self._dispatch_impl(func, types, args, kwargs)
+
+        try:
+            self._validate_cache_key(func, args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except _BypassDispatchCache as e:
             # We ran "extra" checks on the cache key and determined that it's no
             # good. Record the reason and mark it so we don't bother validating
@@ -1556,6 +1676,18 @@ class FakeTensorMode(TorchDispatchMode):
             set_cache_key(cache, key, _DispatchCacheBypassEntry(e.reason))
             return output
 
+<<<<<<< HEAD
+=======
+        try:
+            entry = self._make_cache_entry(state, key, func, args, kwargs, output)
+        except _BypassDispatchCache as e:
+            # We had trouble making the cache entry. Record the reason and mark
+            # it.
+            FakeTensorMode.cache_bypasses[e.reason] += 1
+            set_cache_key(cache, key, _DispatchCacheBypassEntry(e.reason))
+            return output
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         set_cache_key(cache, key, entry)
         FakeTensorMode.cache_misses += 1
         return output
@@ -1571,7 +1703,10 @@ class FakeTensorMode(TorchDispatchMode):
         Create a cache key given the dispatch args. Raises _BypassDispatchCache
         for any situation that precludes caching.
         """
+<<<<<<< HEAD
         is_tracing = torch.fx.experimental.proxy_tensor.get_proxy_mode() is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         key_values = [
             func,
             # Capture the default_dtype mode since that can affect the output tensor,
@@ -1587,24 +1722,35 @@ class FakeTensorMode(TorchDispatchMode):
             # Disallowing dynamic shapes can introduce a DynamicOutputShapeException
             # where it wasn't seen on a previous instance of the same op.
             self.shape_env.settings if self.shape_env else None,
+<<<<<<< HEAD
             # ProxyTorchDispatchMode needs to track how SymNodes are constructed
             # so we need to handle things a little different depending on
             # whether we're tracing or not.
             is_tracing,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         if state.known_symbols:
             # If there are symbols then include the epoch - this is really more
             # of a Shape env var which lives on the FakeTensorMode.
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             key_values.append(self.epoch)
         # Collect the id_hashed objects to attach a weakref finalize later
         id_hashed_objects: list[object] = []
         # Translate any FakeTensor args to metadata.
         if args:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
             self._prep_args_for_hash(key_values, args, state, id_hashed_objects)
         if kwargs:
             # pyrefly: ignore [bad-argument-type]
+=======
+            self._prep_args_for_hash(key_values, args, state, id_hashed_objects)
+        if kwargs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._prep_args_for_hash(key_values, kwargs, state, id_hashed_objects)
         key = _DispatchCacheKey(tuple(key_values))
 
@@ -1644,10 +1790,14 @@ class FakeTensorMode(TorchDispatchMode):
         if torch.Tag.dynamic_output_shape in func.tags:
             if func is aten.index.Tensor:
                 _, new_kwargs = normalize_function(  # type: ignore[misc]
+<<<<<<< HEAD
                     func,
                     args=args,  # type: ignore[arg-type]
                     kwargs=kwargs,  # type: ignore[arg-type]
                     normalize_to_only_use_kwargs=True,
+=======
+                    func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for index in new_kwargs["indices"]:
                     # index calls nonzero for bool or int8 tensors, and
@@ -1698,6 +1848,7 @@ class FakeTensorMode(TorchDispatchMode):
         convert FakeTensors into metadata. Raises _BypassDispatchCache to signal
         unsupported cases that should bypass caching.
         """
+<<<<<<< HEAD
         from torch._higher_order_ops.auto_functionalize import (
             FunctionalCallableWithEpilogue,
         )
@@ -1707,6 +1858,10 @@ class FakeTensorMode(TorchDispatchMode):
             result.append(type(args))
             result.append(f"length_{len(args)}")
 
+=======
+        from torch._higher_order_ops.utils import FunctionalizeCtxWrapper
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(args, dict):
             self._prep_args_for_hash(result, args.keys(), state, id_hashed_objects)
             self._prep_args_for_hash(result, args.values(), state, id_hashed_objects)
@@ -1745,10 +1900,13 @@ class FakeTensorMode(TorchDispatchMode):
                 # functional wrapper is destroyed after fake tensor prop. We
                 # need to put the finalizer on the subgraph.
                 id_hashed_objects.append(arg.subgraph)
+<<<<<<< HEAD
             elif isinstance(arg, FunctionalCallableWithEpilogue):
                 result.append(type(arg))
                 result.append(hash(arg))
                 id_hashed_objects.append(arg.orig_callable)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 # It's important to capture the type of the arg since, e.g., 1 and 1.0
                 # hash to the same value, but can produce different dtypes for the
@@ -1771,9 +1929,17 @@ class FakeTensorMode(TorchDispatchMode):
         if isinstance(output, (int, type(None))):
             return
 
+<<<<<<< HEAD
         # Check for symbolic content that should bypass caching - raises
         # _BypassDispatchCache if necessary.
         _validate_symbolic_output_for_caching(state, output)
+=======
+        if _has_unrepresented_symbols(state, output):
+            # Unbacked symbols are fine - but only if they're also represented
+            # in the input. If there are any new unbacked symbols then we can't
+            # cache this output.
+            raise _BypassDispatchCache("unrepresented symbol in output")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Some ops return tuples of Tensors, but it's rare, so avoid
         # the complexity of caching other types.
@@ -1889,8 +2055,11 @@ class FakeTensorMode(TorchDispatchMode):
         from torch._higher_order_ops.utils import registered_hop_fake_fns
         from torch.fx.experimental.symbolic_shapes import has_free_unbacked_symbols
 
+<<<<<<< HEAD
         self._validate_cache_key(func, args, kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # For hops, lets look at the output tensor to find any unbacked symints.
         # If there are none, then we rely on the existing checks to validate
         # caching.
@@ -1920,6 +2089,7 @@ class FakeTensorMode(TorchDispatchMode):
         if isinstance(output, tuple):
             for out_element in output:
                 self._validate_output_for_cache_entry(
+<<<<<<< HEAD
                     state,
                     key,
                     # pyrefly: ignore [bad-argument-type]
@@ -1937,11 +2107,19 @@ class FakeTensorMode(TorchDispatchMode):
                 args,
                 kwargs,
                 output,
+=======
+                    state, key, func, args, kwargs, out_element
+                )
+        else:
+            self._validate_output_for_cache_entry(
+                state, key, func, args, kwargs, output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if isinstance(output, tuple):
             output_infos = [
                 self._get_output_info_for_cache_entry(
+<<<<<<< HEAD
                     state,
                     key,
                     # pyrefly: ignore [bad-argument-type]
@@ -1949,17 +2127,25 @@ class FakeTensorMode(TorchDispatchMode):
                     args,
                     kwargs,
                     out_elem,
+=======
+                    state, key, func, args, kwargs, out_elem
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for out_elem in output
             ]
             return _DispatchCacheValidEntry(
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 output_infos=tuple(output_infos),
                 is_output_tuple=True,
+=======
+                output_infos=tuple(output_infos), is_output_tuple=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         else:
             output_info = self._get_output_info_for_cache_entry(
+<<<<<<< HEAD
                 state,
                 key,
                 # pyrefly: ignore [bad-argument-type]
@@ -1967,6 +2153,9 @@ class FakeTensorMode(TorchDispatchMode):
                 args,
                 kwargs,
                 output,
+=======
+                state, key, func, args, kwargs, output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return _DispatchCacheValidEntry(
                 output_infos=(output_info,), is_output_tuple=False
@@ -2094,7 +2283,11 @@ class FakeTensorMode(TorchDispatchMode):
             elif a is None:
                 assert b is None
             elif isinstance(a, py_sym_types):
+<<<<<<< HEAD
                 assert type(a) is type(b) and a.node is b.node
+=======
+                assert type(a) == type(b) and a.node is b.node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             elif isinstance(a, torch.Tensor):
                 assert isinstance(b, torch.Tensor)
                 assert_metadata_eq(assert_eq, a, b)
@@ -2219,7 +2412,13 @@ class FakeTensorMode(TorchDispatchMode):
                 try:
                     _check_fake_real_vals(s_fake, s_real)
                 except MetadataMismatchError as exc:
+<<<<<<< HEAD
                     if torch._functorch.config.generate_fake_kernels_from_real_mismatches:
+=======
+                    if (
+                        torch._functorch.config.generate_fake_kernels_from_real_mismatches
+                    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         dtrace_structured(
                             "mismatched_fake_kernel",
                             metadata_fn=lambda: {
@@ -2372,6 +2571,7 @@ class FakeTensorMode(TorchDispatchMode):
         converter = self.fake_tensor_converter
 
         is_lift_func = func in self.lift_fns
+<<<<<<< HEAD
 
         # If we are trying to avoid device init, then we need to avoid constant
         # prop on constant tensors for ops that change devices.
@@ -2389,11 +2589,17 @@ class FakeTensorMode(TorchDispatchMode):
         # skip const prop for aten._to_copy if
         # 1. input tensor is on "meta" device
         # 2. destination device is unavailable, captured by `avoiding_device_init`
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device_conversion_skip_const_prop = (
             func is torch.ops.aten._to_copy.default
             and isinstance(args[0], torch.Tensor)
             and args[0].device.type == "meta"
+<<<<<<< HEAD
         ) or avoiding_device_init
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # To constant propagate through these functions:
         # 1, If this is a lift due to a torch.tensor call,
@@ -2409,9 +2615,15 @@ class FakeTensorMode(TorchDispatchMode):
             and not flat_arg_fake_tensors
             and not device_conversion_skip_const_prop
         ):
+<<<<<<< HEAD
             assert all(t.constant is not None for t in flat_arg_fake_tensors), (
                 f"{func} should not have fake inputs without constants"
             )
+=======
+            assert all(
+                t.constant is not None for t in flat_arg_fake_tensors
+            ), f"{func} should not have fake inputs without constants"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             const_flat_args = [
                 a.constant if self.is_our_fake(a) else a for a in flat_args
             ]
@@ -2439,6 +2651,22 @@ class FakeTensorMode(TorchDispatchMode):
             if type(args[0]) is Tensor:
                 return converter.from_real_tensor(self, args[0])
 
+<<<<<<< HEAD
+=======
+        # If we are trying to avoid device init, then we need to avoid constant
+        # prop on constant tensors for ops that change devices.
+        avoiding_device_init = False
+        if self.avoid_device_init:
+            if (
+                func == torch.ops.aten._to_copy.default
+                and "device" in kwargs
+                and kwargs["device"] != "cpu"
+            ):
+                avoiding_device_init = True
+            if func == torch.ops.prims.device_put.default:
+                avoiding_device_init = True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Recompute flat_arg_fake_tensors here again in case some of the inputs
         # were real tensors and fakified in validate_and_convert_non_fake_tensors
         (flat_args, flat_arg_fake_tensors) = self.validate_and_convert_non_fake_tensors(
@@ -2450,7 +2678,11 @@ class FakeTensorMode(TorchDispatchMode):
         # (aot autograd, torchdynamo) where each operation is run consecutively.
         # Because each operation is run in order, we can trace out and support
         # sequences like: x = torch.tensor(0.); y = x.add_(1)
+<<<<<<< HEAD
         # Whenever a constant is written to but with inputs that cannot be evaluated
+=======
+        # Whenver a constant is written to but with inputs that cannot be evaluated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # statically, such as random_(), we invalidate all constants that alias the input
         # We will rely on functionalization for use of fake tensors constants as persistent
         # objects on an FX Graph.
@@ -2509,7 +2741,10 @@ class FakeTensorMode(TorchDispatchMode):
             )
 
             with self, maybe_ignore_fresh_unbacked_symbols():
+<<<<<<< HEAD
                 # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return registered_hop_fake_fns[func](*args, **kwargs)
 
         self.invalidate_written_to_constants(func, flat_arg_fake_tensors, args, kwargs)
@@ -2568,7 +2803,11 @@ class FakeTensorMode(TorchDispatchMode):
                 # we shouldn't broadly catch all errors here;
                 # some come from real-kernel mutation/aliasing checks we want to run.
                 # add more exception types as needed.
+<<<<<<< HEAD
                 log.debug(  # noqa: G200
+=======
+                log.debug(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "real-tensor fallback failed for %s: %s; silently ignoring",
                     func,
                     exc,
@@ -2620,12 +2859,21 @@ class FakeTensorMode(TorchDispatchMode):
                         and s.rhs == 1
                     ):
                         assert self.shape_env is not None
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.shape_env.set_unbacked_var_to_val(s, int(real_t))
 
             if real_out is not nil:
                 # cross check fake/real outputs, and optionally override fake kernel mismatches
+<<<<<<< HEAD
                 if not torch._functorch.config.generate_fake_kernels_from_real_mismatches:
+=======
+                if (
+                    not torch._functorch.config.generate_fake_kernels_from_real_mismatches
+                ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self._maybe_infer_fake_kernel_from_pytree_out(
                         func,
                         (args, kwargs),
@@ -2647,7 +2895,11 @@ class FakeTensorMode(TorchDispatchMode):
                 if (
                     not isinstance(fake_out, Tensor)
                     and not isinstance(real_out, Tensor)
+<<<<<<< HEAD
                     and type(fake_out) is not type(real_out)
+=======
+                    and type(fake_out) != type(real_out)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     # This can happen when decompositions have different return types,
                     # e.g. namedtuple vs. tuple vs. list.
@@ -2664,7 +2916,10 @@ class FakeTensorMode(TorchDispatchMode):
                 # TODO: Is this really needed?
                 compute_unbacked_bindings(self.shape_env, fake_out, peek=True)
 
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return fake_out
 
         # Try for fastpath
@@ -2674,6 +2929,7 @@ class FakeTensorMode(TorchDispatchMode):
                 return maybe_propagate_real_tensors(fast_impl(self, *args, **kwargs))
 
         # If there's a Python meta, prefer that over the decomposition
+<<<<<<< HEAD
         from torch._decomp import meta_table
 
         if (
@@ -2683,6 +2939,11 @@ class FakeTensorMode(TorchDispatchMode):
                 has_symbolic_sizes and func in self._unbacked_special_fake_handling_ops
             )
         ):
+=======
+        from torch._decomp import meta_table as meta_table
+
+        if func not in meta_table and not self.cpp_meta_supports_symint(func):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from torch._decomp import decomposition_table
 
             # Prefer Python decompositions over C++ ones
@@ -2946,7 +3207,10 @@ class FakeTensorMode(TorchDispatchMode):
                         self, e, device or common_device
                     )
             else:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return e
 
         return tree_map(wrap, r)
@@ -2991,12 +3255,15 @@ class FakeTensorMode(TorchDispatchMode):
         aten._sparse_coo_tensor_with_dims_and_tensors.default,
     )
 
+<<<<<<< HEAD
     _unbacked_special_fake_handling_ops = ordered_set(
         aten.view.default,
         aten._unsafe_view.default,
         aten.slice.Tensor,
     )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def cpp_meta_supports_symint(self, func: OpOverload) -> bool:
         if torch.Tag.view_copy in func.tags:
             return True
@@ -3009,7 +3276,11 @@ class FakeTensorMode(TorchDispatchMode):
             t.numel() <= CONSTANT_NUMEL_LIMIT
             and not is_sparse_any(t)
             and not self.is_our_fake(t)
+<<<<<<< HEAD
             and t.device.type != "meta"
+=======
+            and not t.device.type == "meta"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def invalidate_written_to_constants(
@@ -3023,10 +3294,14 @@ class FakeTensorMode(TorchDispatchMode):
         schema_info = get_schema_info(func)
         if any_constant and schema_info.is_mutable():
             _, new_kwargs = normalize_function(  # type: ignore[misc]
+<<<<<<< HEAD
                 func,
                 args=args,  # type: ignore[arg-type]
                 kwargs=kwargs,  # type: ignore[arg-type]
                 normalize_to_only_use_kwargs=True,
+=======
+                func, args=args, kwargs=kwargs, normalize_to_only_use_kwargs=True  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for k, v in new_kwargs.items():
                 k = k if (k != "input" or schema_info.has_argument(k)) else "self"
@@ -3050,9 +3325,15 @@ class FakeTensorMode(TorchDispatchMode):
         if static_shapes is None:
             static_shapes = self.static_shapes
         if static_shapes:
+<<<<<<< HEAD
             assert symbolic_context is None, (
                 "cannot set both static_shapes and symbolic_context"
             )
+=======
+            assert (
+                symbolic_context is None
+            ), "cannot set both static_shapes and symbolic_context"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shape_env = None
         return self.fake_tensor_converter.from_real_tensor(
             self,
@@ -3067,6 +3348,7 @@ class FakeTensorMode(TorchDispatchMode):
 _StoragePointer = object
 
 
+<<<<<<< HEAD
 def _validate_symbolic_output_for_caching(
     state: _CacheKeyState, output: FakeTensor
 ) -> None:
@@ -3126,6 +3408,19 @@ def _validate_symbolic_output_for_caching(
             for symbol in s.free_symbols:
                 if symbol not in state.known_symbols:
                     raise _BypassDispatchCache("unrepresented symbol in output")
+=======
+def _has_unrepresented_symbols(
+    state: _CacheKeyState, output: Optional[FakeTensor]
+) -> bool:
+    from torch.fx.experimental.symbolic_shapes import _iterate_exprs
+
+    for s in _iterate_exprs(output):
+        for symbol in s.free_symbols:
+            if symbol not in state.known_symbols:
+                return True
+
+    return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # NB: returns fake tensors

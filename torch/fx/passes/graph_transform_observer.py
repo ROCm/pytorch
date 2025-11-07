@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 import os
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, TypeVar
+=======
+from typing import Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.fx import Graph, Node
 from torch.fx._compatibility import compatibility
@@ -32,13 +36,18 @@ class GraphTransformObserver:
         """
         log_url is inferred to be torch._inductor.config.trace.log_url_for_graph_xform unless otherwise specified
         """
+<<<<<<< HEAD
         from torch._inductor import config as inductor_config
+=======
+        from torch._inductor.config import trace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.gm = gm
         self.passname = passname
         self.subsystem = subsystem
 
         if log_url is None:
+<<<<<<< HEAD
             log_url = inductor_config.trace.log_url_for_graph_xform
 
         self.log_url = log_url
@@ -47,12 +56,23 @@ class GraphTransformObserver:
             self.log_url is not None
             or inductor_config.trace.provenance_tracking_level == 1
         )
+=======
+            log_url = trace.log_url_for_graph_xform
+
+        self.log_url = log_url
+
+        self.active = trace.enabled or self.log_url is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.active:
             self.erased_nodes: set[str] = set()
             self.created_nodes: set[str] = set()
             self.name_to_node: dict[str, Node] = {}
+<<<<<<< HEAD
             # record graph modules deepcopied from self.gm, so we can remove hooks on them when exiting the context
+=======
+            # record graph modules deepcopied from self.gm, so we can remove hoooks on them when exiting the context
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.copied_gms: list[GraphModule] = []
 
             self._node_creation_hook = self.get_node_creation_hook()
@@ -194,12 +214,15 @@ class GraphTransformObserver:
 
             assert isinstance(new_node, Node)
 
+<<<<<<< HEAD
             # replace hook is called once for each user of old
             # this avoids adding duplicated source nodes
             added_nodes = {s.name for s in new_node.meta.get("from_node", [])}
             if old.name in added_nodes:
                 return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             action = [NodeSourceAction.REPLACE]
             if new_node.name in self.created_nodes:
                 action.append(NodeSourceAction.CREATE)

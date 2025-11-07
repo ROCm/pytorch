@@ -6,7 +6,10 @@ If you are adding a new entry/functionality, please, add it to the
 appropriate files under `torch/ao/quantization/fx/`, while adding an import statement
 here.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.ao.quantization.fx._equalize import (
     _convert_equalization_ref,
     _InputEqualizationObserver,

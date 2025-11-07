@@ -1,14 +1,18 @@
+<<<<<<< HEAD
 # Skip on windows
 if(WIN32)
   return()
 endif()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 set(AOTI_ABI_CHECK_TEST_ROOT ${TORCH_ROOT}/test/cpp/aoti_abi_check)
 
 # Build the cpp gtest binary containing the cpp-only tests.
 set(AOTI_ABI_CHECK_TEST_SRCS
   ${AOTI_ABI_CHECK_TEST_ROOT}/main.cpp
   ${AOTI_ABI_CHECK_TEST_ROOT}/test_cast.cpp
+<<<<<<< HEAD
   ${AOTI_ABI_CHECK_TEST_ROOT}/test_devicetype.cpp
   ${AOTI_ABI_CHECK_TEST_ROOT}/test_dtype.cpp
   ${AOTI_ABI_CHECK_TEST_ROOT}/test_exception.cpp
@@ -24,6 +28,13 @@ set(AOTI_ABI_CHECK_TEST_SRCS
 # You may think test_vec.cpp needs to be in there, but it does not.
 set(AOTI_ABI_CHECK_VEC_TEST_SRCS
   ${AOTI_ABI_CHECK_TEST_ROOT}/test_vec_half.cpp
+=======
+  ${AOTI_ABI_CHECK_TEST_ROOT}/test_dtype.cpp
+  ${AOTI_ABI_CHECK_TEST_ROOT}/test_macros.cpp
+  ${AOTI_ABI_CHECK_TEST_ROOT}/test_math.cpp
+  ${AOTI_ABI_CHECK_TEST_ROOT}/test_rand.cpp
+  ${AOTI_ABI_CHECK_TEST_ROOT}/test_vec.cpp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 add_executable(test_aoti_abi_check
@@ -34,6 +45,7 @@ add_executable(test_aoti_abi_check
 target_compile_definitions(test_aoti_abi_check PRIVATE USE_GTEST)
 
 # WARNING: DO NOT LINK torch!!!
+<<<<<<< HEAD
 # The purpose is to check if the used aten/c10 headers are written in a header-only way
 target_link_libraries(test_aoti_abi_check PRIVATE gtest_main sleef)
 target_include_directories(test_aoti_abi_check PRIVATE ${ATen_CPU_INCLUDE})
@@ -66,6 +78,11 @@ foreach(test_src ${AOTI_ABI_CHECK_VEC_TEST_SRCS})
     target_compile_options_if_supported(${test_name}_${CPU_CAPABILITY} -Wno-unused-but-set-variable)
   endforeach()
 endforeach()
+=======
+# The purpose is to check if the used aten/c10 headers are writtern in a header-only way
+target_link_libraries(test_aoti_abi_check PRIVATE gtest_main)
+target_include_directories(test_aoti_abi_check PRIVATE ${ATen_CPU_INCLUDE})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if(INSTALL_TEST)
   install(TARGETS test_aoti_abi_check DESTINATION bin)

@@ -4,6 +4,7 @@
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
 
+<<<<<<< HEAD
 from typing import Callable
 
 
@@ -11,6 +12,11 @@ from typing import Callable
 Global flags for aot autograd
 """
 
+=======
+"""
+Global flags for aot autograd
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import os
 import sys
 from typing import Literal, Optional, TYPE_CHECKING
@@ -18,6 +24,7 @@ from typing import Literal, Optional, TYPE_CHECKING
 from torch.utils._config_module import Config, install_config_module
 
 
+<<<<<<< HEAD
 # [@compile_ignored: debug]
 _save_config_ignore = [
     # callable not serializeable
@@ -25,6 +32,8 @@ _save_config_ignore = [
 ]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Converts torch rng ops to their functional philox rng equivalents. Note that
 # we functionalize only CUDA rng ops today.
 functionalize_rng_ops = False
@@ -71,10 +80,13 @@ autograd_cache_allow_custom_autograd_functions: bool = Config(
 # need to add env vars or make it configurable
 bundled_autograd_cache: bool = False
 
+<<<<<<< HEAD
 # Whether or not to normalize placeholder names in graphs
 # from dynaom in AOTAutogradCache
 autograd_cache_normalize_inputs = not is_fbcode()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def remote_autograd_cache_default() -> Optional[bool]:
     if os.environ.get("TORCHINDUCTOR_AUTOGRAD_REMOTE_CACHE") == "1":
@@ -244,6 +256,7 @@ fake_tensor_crossref = False
 # of tensors in question.
 fake_tensor_propagate_real_tensors = False
 
+<<<<<<< HEAD
 # AOTDispatcher traces out a backward graph at the time of the forward pass.
 # This flags controls whether or not that backward graph gets autocast behavior
 # applied to it.
@@ -281,6 +294,11 @@ backward_pass_autocast = "same_as_forward"
 # This controls whether we collect donated buffer. This flag must be set
 # False if a user wants to retain_graph=True for backward.
 donated_buffer = not is_fbcode()
+=======
+# This controls whether we collect donated buffer. This flag must be set
+# False if a user wants to retain_graph=True for backward.
+donated_buffer = False if is_fbcode() else True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Controls the default graph output format used by draw_graph
 # Supported formats are defined here https://graphviz.org/docs/outputs/
@@ -291,6 +309,7 @@ torch_compile_graph_format = os.environ.get("TORCH_COMPILE_GRAPH_FORMAT", "svg")
 # real tensor outputs.
 generate_fake_kernels_from_real_mismatches = False
 
+<<<<<<< HEAD
 # When there are device mismatches in FakeTensor device propagation,
 # prefer a specific device type over others. This is particularly useful
 # in full compiled mode where intermediate tensors with device mismatches
@@ -302,10 +321,13 @@ generate_fake_kernels_from_real_mismatches = False
 # CPU, or "cuda" to prefer CUDA devices over CPU.
 fake_tensor_prefer_device_type: Optional[str] = None
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # CUDAGraph save run_with_rng functionalization.
 # TODO: turn on by default
 graphsafe_rng_functionalization = True
 
+<<<<<<< HEAD
 # Whether or not to eagerly compile the backward
 # used by AOT compile and other settings
 # TODO: once AOT compile calls aot autograd directly instead of
@@ -314,6 +336,8 @@ force_non_lazy_backward_lowering = False
 
 # only for testing, used to turn functionalization off in AOTDispatcher
 _test_disable_functionalization = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Error on BypassAOTAutogradCache instead of just a warning
 # Used for tests
@@ -325,7 +349,11 @@ strict_autograd_cache = False
 #   which can reorder or ,delete duplicate nodes in the graph
 # - If any of these passes reorder/delete/duplicate a collective
 #   in a setting where the compiler is being run independently on multiple
+<<<<<<< HEAD
 #   ranks, we run the risk that the compiler will make a different decision on
+=======
+#   ranks, we run the risk that the compiler will make a different decison on
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #   different ranks, resulting in a NCCL hang when using torch.compile
 # To handle this, we will (by default) ensure that collectives are not modified
 # by the compiler.
@@ -356,7 +384,11 @@ guess_tangent_strides_as_outputs = False
 
 # This is a temporary config to ensure all ranks take the same decision in the partitioner
 # it will untimately be removed once we share size_hints across ranks through compiler collectives
+<<<<<<< HEAD
 _sync_decision_cross_ranks = False
+=======
+_broadcast_rank0_decision = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # By default apply inlined saved_tensors_hooks only for "donated" buffers.
 # "donated" buffers are invisible to the user, they are intermediates of the forward graph.
@@ -371,10 +403,13 @@ _sync_decision_cross_ranks = False
 saved_tensors_hooks_filtering_mode = "donated"
 
 
+<<<<<<< HEAD
 # This callback is invoked on the joint graph before partitioning
 joint_custom_pass: Callable = None  # type: ignore[assignment]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if TYPE_CHECKING:
     from torch.utils._config_typing import *  # noqa: F401, F403
 

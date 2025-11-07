@@ -74,7 +74,11 @@ it to sum up the entire array into a single value.
 
 `ReduceOpsKernel.cpp` uses the `CPU_CAPABILITY_*` macros to "know" under which
 compiler flags it is currently compiled. This allows the programmer to write
+<<<<<<< HEAD
 generic code, which will be compiled under multiplied compilation settings.
+=======
+generic code, which will be compiled under multipled compilation settings.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 `../ReduceOps.cpp` now includes the header `ReduceOpsKernel.h`, which contains
 a generic definition of `sumImplAll`. This function allows the user to reduce

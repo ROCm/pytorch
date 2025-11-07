@@ -1106,8 +1106,12 @@ struct IValuePacker {
   // That's what the TypePtr is for: it contains the information to do the
   // parsing. See torch::jit::toIValue for more information.
   static at::TypePtr packed_type() {
+<<<<<<< HEAD
     // On windows CPU is support compiled autograd.
 #if defined(_WIN32) && (defined(USE_CUDA) || defined(USE_ROCM))
+=======
+#ifdef _WIN32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // NB: the if-constexpr usage triggers compilation errors on Windows
     // with certain compiler settings
     // (see https://github.com/pytorch/pytorch/pull/144707 for examples).
@@ -1385,8 +1389,12 @@ struct IValuePacker<std::vector<T>> {
     }
     std::vector<T> result;
     auto lst = t.toList();
+<<<<<<< HEAD
     for (size_t i = 0; i < lst.size(); ++i) {
       const at::IValue& elt = lst.get(i);
+=======
+    for (const at::IValue& elt : lst) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       result.emplace_back(IValuePacker<T>::unpack(elt));
     }
     return result;
@@ -1458,6 +1466,7 @@ struct IValuePacker<InputMetadata> {
     auto tuple = std::make_tuple(
         pack_TensorOptions(t.options()),
         t.shape_as_dim_vector().vec(),
+<<<<<<< HEAD
         t.is_tensor_subclass(),
         t.grad_dtype());
     return tuple;
@@ -1468,20 +1477,36 @@ struct IValuePacker<InputMetadata> {
         std::vector<at::SymInt>,
         bool,
         std::optional<c10::ScalarType>>>();
+=======
+        t.is_tensor_subclass());
+    return tuple;
+  }
+  static InputMetadata unpack(const at::IValue& t) {
+    auto tuple = t.to<
+        std::tuple<packed_tensoroptions_t, std::vector<at::SymInt>, bool>>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return InputMetadata(
         unpack_TensorOptions(std::get<0>(tuple)),
         SymIntSmallVec(std::get<1>(tuple)),
         std::get<2>(tuple),
+<<<<<<< HEAD
         false,
         std::get<3>(tuple));
+=======
+        false);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   static at::TypePtr packed_type() {
     return at::TupleType::create(
         {IValuePacker<at::TensorOptions>::packed_type(),
          IValuePacker<std::vector<at::SymInt>>::packed_type(),
+<<<<<<< HEAD
          at::BoolType::get(),
          IValuePacker<std::optional<at::ScalarType>>::packed_type()});
+=======
+         at::BoolType::get()});
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 

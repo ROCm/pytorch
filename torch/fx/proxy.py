@@ -10,14 +10,23 @@ import operator
 import sys
 import traceback
 from collections import OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from dataclasses import fields, is_dataclass
 from typing import Any, Optional
+=======
+from collections.abc import Iterator
+from dataclasses import fields, is_dataclass
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx.traceback as fx_traceback
 from torch._C import _fx_map_aggregate as map_aggregate, _fx_map_arg as map_arg
+<<<<<<< HEAD
 from torch._logging import getArtifactLogger
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._traceback import CapturedTraceback
 
 from ._compatibility import compatibility
@@ -41,7 +50,10 @@ __all__ = [
 
 
 log = logging.getLogger(__name__)
+<<<<<<< HEAD
 annotation_log = getArtifactLogger(__name__, "annotation")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @compatibility(is_backward_compatible=False)
@@ -126,10 +138,13 @@ _COPY_META_FIELDS = [
 class TracerBase:
     graph: Graph
     record_stack_traces: bool = False
+<<<<<<< HEAD
     # When record_stack_traces is True, only reocrd stack traces
     # with forward function names.
     # This helps when we want stack trace back to model code
     _record_forward_stack_traces_only: bool = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Feature flag for mutable schema checking
     # Enableby default in 1.12
     check_mutable_operations: bool = False
@@ -204,6 +219,7 @@ class TracerBase:
             # BWD pass we retrieve the sequence_nr stored on the current
             # executing autograd Node. See NOTE [ Sequence Number ].
             if current_meta.get("in_grad_fn", 0) > 0:
+<<<<<<< HEAD
                 annotation_log.debug("seq_nr from current_meta")
                 new_seq_nr = current_meta["grad_fn_seq_nr"][-1]
 
@@ -222,11 +238,15 @@ class TracerBase:
                     node.stack_trace = replay_node.meta.get("stack_trace")
 
             annotation_log.debug("Assigning new_seq_nr %s to %s", new_seq_nr, node.name)
+=======
+                new_seq_nr = current_meta["grad_fn_seq_nr"][-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node.meta["seq_nr"] = new_seq_nr
 
         elif self.module_stack:
             node.meta["nn_module_stack"] = copy.copy(self.module_stack)
 
+<<<<<<< HEAD
         if self.record_stack_traces and not node.stack_trace:
             user_stack_summary = CapturedTraceback.extract().summary()
             if user_stack_summary:
@@ -275,6 +295,11 @@ class TracerBase:
 
         return traceback.StackSummary.from_list(user_frames)
 
+=======
+        log.debug("create_node %s", node)
+        return node
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @compatibility(is_backward_compatible=True)
     def proxy(self, node: Node) -> "Proxy":
         return Proxy(node, self)
@@ -313,6 +338,34 @@ class TracerBase:
         else:
             proxy = proxy_factory_fn(node)
 
+<<<<<<< HEAD
+=======
+        if self.record_stack_traces and not proxy.node.stack_trace:
+            from torch.fx.experimental.symbolic_shapes import uninteresting_files
+
+            user_frame_summary = CapturedTraceback.extract().summary()
+            if user_frame_summary:
+                first_forward = -1
+                for i, frame in enumerate(user_frame_summary):
+                    if frame.name == "forward":
+                        user_frame_summary = user_frame_summary[i:]
+                        first_forward = i
+                        break
+
+                # Not having a "forward" call in the stacktrace implies the
+                # stacktrace will probably be irrelevant
+                if first_forward == -1:
+                    user_frame_summary = []
+
+                stack_trace = [
+                    frame
+                    for frame in user_frame_summary
+                    if frame.filename not in uninteresting_files()
+                ]
+                stack_trace = traceback.StackSummary.from_list(stack_trace)
+                proxy.node.stack_trace = "".join(stack_trace.format()).strip()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return proxy
 
     def _find_user_frame(self):
@@ -835,7 +888,11 @@ _create_arg_bypass = {
     ]
 }
 _create_arg_bypass[Proxy] = lambda self, a: a.node
+<<<<<<< HEAD
 _create_arg_bypass[tuple] = lambda self, a: tuple(self.create_arg(elem) for elem in a)
+=======
+_create_arg_bypass[tuple] = lambda self, a: tuple([self.create_arg(elem) for elem in a])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _create_arg_bypass[list] = lambda self, a: [self.create_arg(elem) for elem in a]
 _create_arg_bypass[dict] = _create_arg_dict
 _create_arg_bypass[immutable_list] = _create_arg_bypass[list]

@@ -1,7 +1,10 @@
 # Owner(s): ["module: dynamo"]
 # ruff: noqa: F841
 import abc
+<<<<<<< HEAD
 import builtins
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import collections
 import collections.abc
 import copy
@@ -17,13 +20,19 @@ import logging
 import math
 import operator
 import os
+<<<<<<< HEAD
 import pickle
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import random
 import sys
 import tempfile
 import threading
 import traceback
+<<<<<<< HEAD
 import types
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import typing
 import unittest
 import unittest.mock as mock
@@ -50,13 +59,20 @@ from torch._dynamo.testing import (
     CompileCounter,
     CompileCounterWithBackend,
     expectedFailureDynamic,
+<<<<<<< HEAD
+=======
+    requiresPy310,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     same,
     skipIfNotPy311,
     unsupported,
 )
 from torch._dynamo.utils import call_size, counters, ifdynstaticdefault
 from torch._dynamo.variables import builder
+<<<<<<< HEAD
 from torch._inductor.codecache import WritableTempFile
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.utils import fresh_cache, run_and_get_code
 from torch.ao.quantization import MinMaxObserver
 from torch.ao.quantization.fake_quantize import FakeQuantize
@@ -86,23 +102,32 @@ from torch.testing._internal.common_methods_invocations import (
 )
 from torch.testing._internal.common_utils import (
     freeze_rng_state,
+<<<<<<< HEAD
     instantiate_parametrized_tests,
     IS_FBCODE,
     parametrize,
+=======
+    IS_FBCODE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scoped_load_inline,
     set_default_dtype,
     skipIfHpu,
     skipIfNNModuleInlined,
     skipIfWindows,
+<<<<<<< HEAD
     subtest,
     TEST_HPU,
     TEST_XPU,
+=======
+    TEST_HPU,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     wrapDeterministicFlagAPITest,
 )
 from torch.testing._internal.jit_utils import JitTestCase
 from torch.testing._internal.logging_utils import logs_to_string
 
 
+<<<<<<< HEAD
 pytree_modules = {
     "python": python_pytree,
 }
@@ -119,6 +144,13 @@ parametrize_pytree_module = parametrize(
     [subtest(module, name=name) for name, module in pytree_modules.items()],
 )
 
+=======
+if python_pytree._cxx_pytree_dynamo_traceable:
+    import torch.utils._cxx_pytree as cxx_pytree
+else:
+    cxx_pytree = None
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MyTuple = collections.namedtuple("MyTuple", ["a", "b", "ab"])
 T = typing.TypeVar("T")
 
@@ -243,6 +275,7 @@ class MiscTests(torch._inductor.test_case.TestCase):
         self.assertTrue(same(val4, correct1))
         self.assertEqual(counter.frame_count, 3)
 
+<<<<<<< HEAD
     def test_dynamo_inside_custom_op(self):
         cnt = torch._dynamo.testing.InductorAndRecordGraphs()
         cnt1 = torch._dynamo.testing.InductorAndRecordGraphs()
@@ -294,6 +327,8 @@ graph():
     return (foo,)""",
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._dynamo.config.patch(accumulated_recompile_limit=1)
     def test_dynamo_disabled_in_custom_op_kernels(self):
         counters.clear()
@@ -658,6 +693,7 @@ graph():
         fn = torch.compile(f, backend="eager", dynamic=True, fullgraph=True)
         fn(torch.tensor([5]), 5)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     @torch._dynamo.config.patch(capture_dynamic_output_shape_ops=True)
     def test_cond_runtime_assert_generation(self):
@@ -683,6 +719,8 @@ graph():
         ):
             foo(torch.randn(5, 5))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tensor_setattr_getset_descriptor(self):
         # Tensor attribute `real` has special getter/setter for complex dtype.
         def f(x):
@@ -1330,7 +1368,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
     def test_bound_shape_checks(self):
         def f1(x, y):
             b = x.item()
+<<<<<<< HEAD
             torch._check(b >= 0)
+=======
+            torch._check_is_size(b)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._check(b < y.shape[0])
             return y[:b]
 
@@ -1353,6 +1395,10 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         @torch.compile(fullgraph=True)
         def f(x):
             y = x.item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             r = torch.arange(y, dtype=torch.float32)
 
             if r.size(0) == y:
@@ -1399,13 +1445,21 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     # Translation validation changes the exception type, don't run with it
     @torch.fx.experimental._config.patch(translation_validation=False)
+<<<<<<< HEAD
     def test_torch_check_nonnegative(self):
+=======
+    def test_torch_check_is_size(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cnts = torch._dynamo.testing.CompileCounter()
 
         @torch.compile(backend=cnts, fullgraph=True)
         def f(x):
             y = x.item()
+<<<<<<< HEAD
             torch._check(y >= 0)
+=======
+            torch._check_is_size(y)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Cannot conditional on unbacked SymInt
             if y == 0:
                 assert False
@@ -1794,17 +1848,27 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             if hasattr(packed, "b"):
                 b = packed.b + 1
             c = packed[2]
+<<<<<<< HEAD
             d = len(packed._fields)
             return a + b + c + d
+=======
+            return a + b + c
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         v1 = torch.Tensor([1])
         v2 = torch.Tensor([2])
         v3 = torch.Tensor([3])
         cnts = torch._dynamo.testing.CompileCounter()
         opt_fn = torch.compile(fn, backend=cnts)
+<<<<<<< HEAD
         self.assertEqual(opt_fn(MyTuple(v1, v2, v3))[0], 10)
         self.assertEqual(cnts.frame_count, 1)
         self.assertEqual(cnts.op_count, 4)
+=======
+        self.assertEqual(opt_fn(MyTuple(v1, v2, v3))[0], 7)
+        self.assertEqual(cnts.frame_count, 1)
+        self.assertEqual(cnts.op_count, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_namedtuple3(self):
         def fn(x, packed):
@@ -1842,6 +1906,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         out = f(MyTuple(a, b))
         self.assertTrue(same(a + 1, out))
 
+<<<<<<< HEAD
     def test_namedtuple_source_dynamic_attributes(self):
         class MyNamedTuple(typing.NamedTuple):
             a: torch.Tensor
@@ -1888,6 +1953,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertTrue(hasattr(result, "c"))
         self.assertEqual(result.c, torch.tensor(3.0))
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_structseq1(self):
         def fn(x, y):
             return torch.return_types.max((x, y))
@@ -2097,6 +2164,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
 
         self.assertEqual(exp, act)
 
+<<<<<<< HEAD
     def test_class_binop(self):
         class Foo:
             def __init__(self, x):
@@ -2122,6 +2190,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         opt_fn = torch.compile(fn, backend=cnts, fullgraph=True)
         self.assertRaises(torch._dynamo.exc.Unsupported, opt_fn, a, b)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_user_getattr1(self):
         class MyConfig(dict):
             def __getattr__(self, name):
@@ -2667,7 +2737,10 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             y = fn(x)
         self.assertTrue(y.flags.writeable)  # XXX: differs from numpy
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_numpy_tolist(self):
         def fn(x):
             return x.tolist()
@@ -3440,16 +3513,26 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
     def test_global_state_guard_serialization(self):
         GlobalStateGuard = torch._C._dynamo.guards.GlobalStateGuard
         guards = GlobalStateGuard()
+<<<<<<< HEAD
         serialized_guards = guards.__getstate__()
+=======
+        serialized_guards = guards.dump()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         json_guards = json.loads(serialized_guards)
 
         samples = []
         # Test on non autocast state and autocast cache states.
         self.assertIn("autocast_state", json_guards)
         for key, value in json_guards.items():
+<<<<<<< HEAD
             if type(value) is int:
                 variant = value + 1
             elif type(value) is bool:
+=======
+            if type(value) == int:
+                variant = value + 1
+            elif type(value) == bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 variant = not value
             elif isinstance(value, dict) and key == "autocast_state":
                 variant = value.copy()
@@ -3462,17 +3545,28 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             samples.append(new_dict)
 
         for sample in samples:
+<<<<<<< HEAD
             guards.__setstate__(json.dumps(sample))
             self.assertFalse(guards.check())
 
         guards.__setstate__(json.dumps(json_guards))
+=======
+            guards.load(json.dumps(sample))
+            self.assertFalse(guards.check())
+
+        guards.load(json.dumps(json_guards))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(guards.check())
 
         # Test on autocast states.
         def _test_autocast(dtype):
             with torch.autocast("cpu", dtype):
                 guards = GlobalStateGuard()
+<<<<<<< HEAD
                 serialized_guards = guards.__getstate__()
+=======
+                serialized_guards = guards.dump()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 json_guards = json.loads(serialized_guards)
 
                 for i, enabled in enumerate(json_guards["autocast_state"]["enabled"]):
@@ -3481,7 +3575,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
                             type(json_guards["autocast_state"]["dtype"][i]), int
                         )
                         json_guards["autocast_state"]["dtype"][i] += 1
+<<<<<<< HEAD
                         guards.__setstate__(json.dumps(json_guards))
+=======
+                        guards.load(json.dumps(json_guards))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.assertFalse(guards.check())
 
         _test_autocast(torch.float16)
@@ -4217,7 +4315,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         y = x
 
         def make_x_get_set():
+<<<<<<< HEAD
             # NOTE: this `x` is a different cell object than the outer `x`.
+=======
+            # NOTE: this `x` is a different cell object than the outter `x`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x = y
 
             def set_x(v):
@@ -5009,7 +5111,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertEqual(cnts.frame_count, 2)
 
     def test_id_guarded_object(self):
+<<<<<<< HEAD
         class UserDefinedObject:
+=======
+        class UDO:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             @torch.compile(backend="eager")
             def call(self, x, ref_id):
                 self_id = id(self)
@@ -5022,11 +5128,19 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         # Make sure we do recompile when id(self) is executed on
         # different self objects.
         x = torch.ones(2)
+<<<<<<< HEAD
         obj1 = UserDefinedObject()
         obj1_id = id(obj1)
         self.assertEqual(obj1.call(x, obj1_id), torch.ones(2))
 
         obj2 = UserDefinedObject()
+=======
+        obj1 = UDO()
+        obj1_id = id(obj1)
+        self.assertEqual(obj1.call(x, obj1_id), torch.ones(2))
+
+        obj2 = UDO()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # if we do not install ID_MATCH: ___check_obj_id(L['self'], xxx) this fails.
         self.assertEqual(obj2.call(x, obj1_id), torch.zeros(2))
 
@@ -5305,9 +5419,12 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
 
         self.assertTrue(same(ref, res))
 
+<<<<<<< HEAD
     @skipIfWindows(
         msg="TODO(xuhancn): confirm, AssertionError: tensor([0.0290, 0.4019, 0.2598, 0.3666]) is not None"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_release_input_memory(self):
         x = torch.rand([4])
         x_ref = weakref.ref(x)
@@ -5323,9 +5440,12 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         del x
         self.assertIs(x_ref(), None)
 
+<<<<<<< HEAD
     @skipIfWindows(
         msg="TODO: (xuhancn) conform, AssertionError: Linear(in_features=10, out_features=10, bias=True) is not None"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_release_module_memory(self):
         mod = torch.nn.Linear(10, 10)
         x = torch.rand([10, 10])
@@ -5357,7 +5477,10 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertIsNone(mod_ref(), None)
         self.assertIsNone(mod_weight_ref(), None)
 
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) conform, AssertionError: False is not true")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_release_scope_memory(self):
         def inner(y):
             y
@@ -6527,6 +6650,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertTrue(same(ref, res))
         self.assertTrue(same(x, x1))
 
+<<<<<<< HEAD
     def test_inference_mode_param(self):
         def fn(x):
             p = torch.nn.Parameter(x, requires_grad=False)
@@ -6540,6 +6664,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             res = opt_fn(x)
             self.assertEqual(ref, res)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_if_cond_nn_mod1(self):
         class MockModule(torch.nn.Module):
             def __init__(self, output_relu=True):
@@ -6903,10 +7029,20 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
 
         self.assertTrue(guard_failure is not None)
         first_guard_failure = guard_failure[0].partition("\n")[0]
+<<<<<<< HEAD
         self.assertIn(
             """tensor 'x' size mismatch at index 0. expected 2, actual 5""",
             first_guard_failure,
         )
+=======
+        if torch._dynamo.config.assume_static_by_default:
+            self.assertIn(
+                """tensor 'x' size mismatch at index 0. expected 2, actual 5""",
+                first_guard_failure,
+            )
+        else:
+            self.assertIn("""x.size()[0] < 3""", first_guard_failure)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_guard_failure_fn2(self):
         def fn(x, y):
@@ -7005,7 +7141,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             # assign fstring to a variable causes the fstring to be used,
             # which realizes the variable tracker.
             f_str = f"{x.shape[0]}"
+<<<<<<< HEAD
             return x.sin(), f_str
+=======
+            return x.sin()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         guard_failure = None
 
@@ -7087,7 +7227,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertTrue(guard_failure is not None)
         self.assertIn("""tensor 'rank' size mismatch at index 0""", guard_failure[0])
 
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA and not TEST_XPU, "Test requires CUDA or XPU.")
+=======
+    @unittest.skipIf(not torch.cuda.is_available(), "Test requires CUDA.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_symint_as_device_kwarg_non_strict_export(self):
         class Mod(torch.nn.Module):
             def forward(self, x):
@@ -7391,6 +7535,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         with torch.compiler.set_stance("fail_on_recompile"):
             self.assertEqual(compiled_fn(*args), injected(*args))
 
+<<<<<<< HEAD
     def test_fail_on_recompile_error_message(self):
         from torch._C._dynamo.eval_frame import (
             _load_precompile_entry,
@@ -7426,6 +7571,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         finally:
             _reset_precompile_entries(fn.__code__)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_shape_and_tuple_equality(self):
         def fn(x, y, t):
             z = x * y
@@ -7779,6 +7926,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         opt_fn = torch.compile(fn, backend="eager")
         self.assertEqual(opt_fn(torch.ones(1)), torch.tensor([3.0]))
 
+<<<<<<< HEAD
     def test_sparse_output_inductor_should_break(self) -> None:
         # See https://github.com/pytorch/pytorch/issues/164823
         # We want consistent semantics here
@@ -7792,6 +7940,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertEqual(pt, aot_eager)
         inductor = torch.compile(forward, backend="inductor")(test_tensor)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nested_sequential_try_with(self):
         def fn(x):
             with torch.set_grad_enabled(True):
@@ -8054,7 +8204,10 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertEqual(fn(torch.tensor([4])).size(0), 1)
         self.assertEqual(fn(torch.tensor([1])).size(0), 0)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_sym_and_terms(self):
         from torch.fx.experimental.symbolic_shapes import sym_and
 
@@ -8093,11 +8246,16 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         torch._dynamo.decorators.mark_unbacked(b, 1)
         func(a, b)
         func(torch.rand(4, 5), torch.rand(4, 5))
+<<<<<<< HEAD
         # This does not raise an error right now because of a recompilation.
         # https://github.com/pytorch/pytorch/issues/163785
         # with self.assertRaises(AssertionError):
         #     func(torch.rand(1, 1), torch.rand(2, 1))
         func(torch.rand(1, 1), torch.rand(2, 1))
+=======
+        with self.assertRaises(RuntimeError):
+            func(torch.rand(1, 1), torch.rand(2, 1))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_sym_constrain_range_on_replaced_unbacked_symbol(self):
@@ -8157,6 +8315,10 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         @torch.compile(fullgraph=True)
         def f(x):
             u0, u1 = x.tolist()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # The condition should fold to true.
             if ((u0 + 10) * (u0 + 10)) % (u0 + 10) == 0:
                 return torch.tensor(True)
@@ -8224,6 +8386,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         torch._dynamo.reset()
         torch.compile(my_dyn_fn, backend="eager")(y, y)
 
+<<<<<<< HEAD
     def test_tolist(self):
         # This should compile with no faluire.
         cnt = CompileCounterWithBackend("inductor")
@@ -8237,6 +8400,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         func(torch.tensor([1, 2, 3, 4, 5]))
         self.assertEqual(cnt.frame_count, 2)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Sadly, this does not throw - we do not prop correctly across the graph break
     @unittest.expectedFailure
     def test_raise_guard_partial_constraint_across_break(self):
@@ -8569,6 +8734,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         def fn(x):
             return x + 1
 
+<<<<<<< HEAD
         initial_state = read_state()
         y = torch.randn(10)
         try:
@@ -8587,6 +8753,45 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
                         assert cnt == len(initial_state)
         finally:
             write_state(initial_state)
+=======
+        import contextlib
+
+        @contextlib.contextmanager
+        def _hip_allow_tf32():
+            # for HIP/AMDGPU, tf32 is behind a flag because the TF32 support is new
+            # and only for MI300+
+            hip_allow_tf32 = os.environ.get("HIPBLASLT_ALLOW_TF32", None)
+            os.environ["HIPBLASLT_ALLOW_TF32"] = "1"
+
+            try:
+                yield
+            finally:
+                if hip_allow_tf32 is not None:
+                    os.environ["HIPBLASLT_ALLOW_TF32"] = hip_allow_tf32
+                else:
+                    del os.environ["HIPBLASLT_ALLOW_TF32"]
+
+        tf32_ctx = _hip_allow_tf32 if torch.version.hip else contextlib.nullcontext
+        with tf32_ctx():
+            initial_state = read_state()
+            y = torch.randn(10)
+            try:
+                for round in range(3):
+                    for i in range(len(initial_state)):
+                        new_state = [False] * len(initial_state)
+                        new_state[i] = True
+                        write_state(new_state)
+                        assert read_state() == new_state
+                        last_state.clear()
+                        fn(y)
+                        assert last_state == new_state
+                        if round == 0:
+                            assert cnt == i + 1
+                        else:
+                            assert cnt == len(initial_state)
+            finally:
+                write_state(initial_state)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_grad_state_mutated(self):
         prior = torch.is_grad_enabled()
@@ -8704,6 +8909,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertEqual(seen_frames[0].name, "fn")
         self.assertEqual(seen_frames[0].line, "r, r2 = uwu_inline_me(x, y, z)")
 
+<<<<<<< HEAD
     def test_fullgraph_capture(self):
         from torch._dynamo.convert_frame import fullgraph_capture
         from torch._dynamo.utils import dynamo_timed, get_metrics_context
@@ -8769,6 +8975,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             )(x),
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_torch_guards_stack_frame_register_inlining_deep(self):
         x = torch.tensor([0.5, 0.5])
         y = torch.tensor([0.75, 0.75, 0.75, 0.75])
@@ -8806,6 +9014,7 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
         self.assertEqual(seen_frames[1].name, "uwu_inline_me")
         self.assertEqual(seen_frames[2].line, "r2 = uwu_inline_me_deep(y, z)")
 
+<<<<<<< HEAD
     def test_recompile_on_disable_1(self):
         # fix https://github.com/pytorch/pytorch/issues/157399
         @torch.compile(backend="eager")
@@ -8842,6 +9051,8 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             # there will be a resume function here
             return f(x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_error_on_recompile(self):
         @torch.compile(backend="eager")
         def fn(a, b):
@@ -8991,7 +9202,11 @@ utils_device.CURRENT_DEVICE == None""".split("\n"):
             ),
             testcase(expr="f(m.n[0], '1').x.y.z", expected="f(_var3, '1').x.y.z"),
             testcase(expr="f(m.n[0], '2').x.y.z", expected="f(_var3, '2').x.y.z"),
+<<<<<<< HEAD
             # The whole expression gets CSE-d, as well as all of its sub-expressions.
+=======
+            # The whole expressiong gets CSE-d, as well as all of its sub-expressions.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             testcase(
                 expr="self.g(a, b).k",
                 preface=["_var4 = self.g", "_var5 = _var4(a, b)", "_var6 = _var5.k"],
@@ -9266,6 +9481,74 @@ def ___make_guard_fn():
         opt = torch.compile(fn, backend="eager")
         opt()
 
+<<<<<<< HEAD
+=======
+    def test_tracing_py_tree(self):
+        def fn(xs):
+            flat_xs, spec = python_pytree.tree_flatten(xs)
+            res = [x.clone() for x in flat_xs]
+            return python_pytree.tree_unflatten(res, spec)
+
+        xs = [torch.tensor(i) for i in range(3)]
+
+        counter = CompileCounter()
+        torch.compile(fn, backend=counter, fullgraph=True)(xs)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 3)
+
+    def test_tracing_nested_py_tree(self):
+        def fn(xs):
+            flat_xs, spec = python_pytree.tree_flatten(xs)
+            res = [x.clone() for x in flat_xs]
+            return python_pytree.tree_unflatten(res, spec)
+
+        xs = [torch.tensor(i) for i in range(3)]
+        xsl = [xs, xs, xs, xs]
+
+        counter = CompileCounter()
+        comp_out = torch.compile(fn, backend=counter, fullgraph=True)(xsl)
+        real_out = fn(xsl)
+        self.assertEqual(comp_out, real_out)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 12)
+
+    def test_tracing_nested_py_tree_tuples(self):
+        def fn(xs):
+            flat_xs, spec = python_pytree.tree_flatten(xs)
+            res = [x.clone() for x in flat_xs]
+            return python_pytree.tree_unflatten(res, spec)
+
+        xs = [torch.tensor(i) for i in range(3)]
+        xsl = (xs, xs, xs, xs)
+
+        counter = CompileCounter()
+        comp_out = torch.compile(fn, backend=counter, fullgraph=True)(xsl)
+        real_out = fn(xsl)
+        self.assertEqual(comp_out, real_out)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 12)
+
+    def test_tracing_nested_py_tree_dicts(self):
+        def fn(xs):
+            flat_xs, spec = python_pytree.tree_flatten(xs)
+            res = [x.clone() for x in flat_xs]
+            return python_pytree.tree_unflatten(res, spec)
+
+        xs = [torch.tensor(i) for i in range(3)]
+        xsl = {
+            "a": xs,
+            "b": xs,
+            "c": xs,
+        }
+
+        counter = CompileCounter()
+        comp_out = torch.compile(fn, backend=counter, fullgraph=True)(xsl)
+        real_out = fn(xsl)
+        self.assertEqual(comp_out, real_out)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 9)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_one_hot(self):
         def fn(x):
             x = x + 1
@@ -9282,6 +9565,7 @@ def ___make_guard_fn():
         self.assertEqual(counter.frame_count, 2)
         self.assertEqual(counter.op_count, 2)
 
+<<<<<<< HEAD
     def test_jacfwd_one_hot_dynamic_compile(self):
         import torch.nn.functional as F
 
@@ -9301,6 +9585,8 @@ def ___make_guard_fn():
         out_comp = compiled(x, idxs)
         self.assertEqual(eager[0], out_comp[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tracing_nested_py_tree_mixed_all(self):
         def fn(xs):
             flat_xs, spec = python_pytree.tree_flatten(xs)
@@ -9349,6 +9635,7 @@ def ___make_guard_fn():
         self.assertEqual(fn(y3), y3 - 3)
         self.assertEqual(cnt.frame_count, 2)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(
         capture_scalar_outputs=True, capture_dynamic_output_shape_ops=True
     )
@@ -9356,6 +9643,59 @@ def ___make_guard_fn():
         @torch.compile(backend="eager")
         def f(lengths, values):
             sizes = lengths.tolist()
+=======
+    def test_tracing_py_tree_tensor_subclass(self):
+        from torch.testing._internal.two_tensor import TwoTensor
+        from torch.utils.checkpoint import checkpoint
+
+        def fn(xs):
+            nested_xs = [[xs]]
+            flat_xs, spec = python_pytree.tree_flatten(xs)
+            return flat_xs[0].clone()
+
+        # use checkpoint to trigger a "sourceless" tensor subclass
+        def checkpoint_fn(xs):
+            return checkpoint(fn, xs, use_reentrant=True)
+
+        xs = TwoTensor(torch.ones(2, 2), torch.ones(2, 2))
+
+        counter = CompileCounter()
+        torch.compile(checkpoint_fn, backend=counter, fullgraph=True)(xs)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 2)
+
+    def test_tracing_tree_map_only(self):
+        def fn(xs):
+            def mapper(x):
+                return x.clone()
+
+            y = python_pytree.tree_map_only(torch.Tensor, mapper, xs)
+            return y
+
+        xs = [torch.tensor(i) for i in range(3)] + ["hi"]
+        xsa = (xs, xs)
+        xsb = {"aa": xsa, "ab": xs}
+
+        counter = CompileCounter()
+        comp_out = torch.compile(fn, backend=counter, fullgraph=True)(xsb)
+        real_out = fn(xsb)
+
+        self.assertEqual(comp_out, real_out)
+        self.assertEqual(counter.frame_count, 1)
+        self.assertEqual(counter.op_count, 9)
+
+    @torch._dynamo.config.patch(
+        capture_scalar_outputs=True, capture_dynamic_output_shape_ops=True
+    )
+    def test_unbacked_symint(self):
+        @torch.compile(backend="eager")
+        def f(lengths, values):
+            sizes = lengths.tolist()
+            for s in sizes:
+                torch._check_is_size(s)
+                torch._check(s >= 2)
+                torch._check(s <= 100)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return torch.split(values, sizes)
 
         f(torch.tensor([2, 3, 4]), torch.randn(9))
@@ -9524,6 +9864,34 @@ def ___make_guard_fn():
         self.assertEqual(counter.frame_count, 1)
         self.assertEqual(result, eager_result)
 
+<<<<<<< HEAD
+=======
+    def test_input_set_graph_break(self):
+        def foo(x):
+            return x.pop() * x.pop()
+
+        x = torch.randn(10, 10)
+        y = torch.randn(10, 10)
+
+        counter = CompileCounter()
+
+        inp = {x, x, x, x, y, y}
+        foo = torch.compile(foo, backend=counter, fullgraph=True)
+
+        # There's a lot of stuff about sets that cannot work without a good deal of exertion on our part.
+        # Specifically, getting a set as input won't ever work with how GetItemSource works (Can't arbitrary access set contents)
+        # and so the guard story for the objects passed into input just isn't there atm.
+        with self.assertRaisesRegex(
+            torch._dynamo.exc.Unsupported,
+            "Unsupported method call",
+        ):
+            foo(inp)
+
+        foo = torch.compile(foo, backend=counter, fullgraph=False)
+        foo(inp)
+        self.assertEqual(counter.frame_count, 1)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_reconstruct_set_across_graph_break(self):
         def foo(x, y):
             setty = set()
@@ -9730,6 +10098,7 @@ def ___make_guard_fn():
 
             f(torch.randn(9, requires_grad=True), torch.tensor([3, 6]))
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_dim_order(self):
         @torch.compile(dynamic=False, fullgraph=True, backend="eager")
@@ -9793,6 +10162,8 @@ def ___make_guard_fn():
         ):
             h1(xs, ambiguity_check=True)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_str_format_assert1(self):
         @torch.compile(backend="eager", fullgraph=True)
         def fn(img):
@@ -9825,7 +10196,10 @@ def ___make_guard_fn():
         img2 = torch.randn(1, 3, 8, 15)
         self.assertRaises(AssertionError, lambda: fn(img2))
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tolist_scalar(self):
         def fn(x):
             new_list = []
@@ -9840,7 +10214,10 @@ def ___make_guard_fn():
         self.assertEqual(eager, compiled)
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tolist_1d(self):
         def fn(x):
             new_list = []
@@ -9855,7 +10232,10 @@ def ___make_guard_fn():
         self.assertEqual(eager, compiled)
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_tolist_kd(self):
         def fn(x):
             new_list = []
@@ -9870,7 +10250,10 @@ def ___make_guard_fn():
         self.assertEqual(eager, compiled)
         self.assertEqual(counter.frame_count, 1)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @patch.object(torch._dynamo.config, "specialize_int", True)
     def test_tolist_0d(self):
         def fn(x):
@@ -9893,12 +10276,20 @@ def ___make_guard_fn():
             new_list = []
             i = x.tolist()
             new_list.append(i * 4)
+<<<<<<< HEAD
             return new_list, x * 10
+=======
+            return new_list
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.randint(3, 5, [5, 5])
         eager = fn(x)
         counter = CompileCounter()
+<<<<<<< HEAD
         compiled_fn = torch.compile(fn, backend=counter, fullgraph=False)
+=======
+        compiled_fn = torch.compile(fn, backend=counter, fullgraph=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled = compiled_fn(x)
         self.assertEqual(eager, compiled)
         self.assertEqual(counter.frame_count, 1)
@@ -10649,7 +11040,11 @@ def ___make_guard_fn():
         expected_fqn = {
             "L__self___test_param": "test_param",
             "L__self___test_buf": "test_buf",
+<<<<<<< HEAD
             "L__self___foo_bar_0": "foo_bar.0",
+=======
+            "getattr_L__self___foo_bar___0__": "foo_bar.0",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "L__self___foo_bar_test_param": "foo_bar.test_param",
             "L__self___foo_bar_test_buf": "foo_bar.test_buf",
         }
@@ -10758,6 +11153,10 @@ def ___make_guard_fn():
 
         self.assertEqual(actual, expected)
 
+<<<<<<< HEAD
+=======
+    @requiresPy310
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_frozen_dataclass_kw_only(self):
         @dataclasses.dataclass(frozen=True)
         class TestDataClass:
@@ -10781,6 +11180,7 @@ def ___make_guard_fn():
 
         self.assertEqual(actual, expected)
 
+<<<<<<< HEAD
     def test_frozen_dataclass_attr_access(self):
         @dataclasses.dataclass(frozen=True)
         class TestDataClass:
@@ -10852,6 +11252,140 @@ def ___make_guard_fn():
         actual = fn_opt(*inps)
         expected = fn(*inps)
         self.assertEqual(actual, expected)
+=======
+    def test_pytree_tree_leaves(self):
+        implemtations = [("python", python_pytree)]
+        if cxx_pytree is not None:
+            implemtations.append(("cxx", cxx_pytree))
+
+        for name, module in implemtations:
+            with self.subTest(f"pytree implement: {name}"):
+
+                def fn(x):
+                    tree = {
+                        "a": [x, x - 1],
+                        "b": x + 2,
+                        "c": (
+                            x,
+                            3.0,
+                            collections.deque([0.0, -x, 1, 2], maxlen=3),
+                        ),
+                        "d": collections.OrderedDict(
+                            {
+                                "e": torch.return_types.qr((2 * x, None)),
+                                "f": MyTuple(x, x + 1, torch.zeros(4, 3)),
+                            },
+                        ),
+                    }
+                    leaves = module.tree_leaves(tree)
+                    return leaves
+
+                x = torch.randn(3, 2)
+                expected = fn(x)
+                fn_opt = torch.compile(fullgraph=True)(fn)
+                actual = fn_opt(x)
+
+                self.assertEqual(actual, expected)
+
+    def test_pytree_tree_flatten_unflatten(self):
+        implemtations = [("python", python_pytree)]
+        if cxx_pytree is not None:
+            implemtations.append(("cxx", cxx_pytree))
+
+        for name, module in implemtations:
+            with self.subTest(f"pytree implement: {name}"):
+
+                def fn(x, y):
+                    tree = {
+                        "a": [x, x - 1],
+                        "b": x + 2,
+                        "c": (
+                            x,
+                            3.0,
+                            collections.deque([0.0, -x, 1, 2], maxlen=3),
+                        ),
+                        "d": collections.OrderedDict(
+                            {
+                                "e": torch.return_types.qr((2 * x, None)),
+                                "f": MyTuple(x, x + 1, torch.zeros(4, 3)),
+                            },
+                        ),
+                    }
+                    leaves, treespec = module.tree_flatten(tree)
+                    new_leaves = [
+                        x - 1,
+                        y,
+                        x * y,
+                        3.0,
+                        y - 2,
+                        1,
+                        torch.zeros(2, 2),
+                        2 * y,
+                        -y,
+                        x + y,
+                        x - y,
+                        torch.ones(3, 2),
+                        1,
+                    ]
+                    new_tree = module.tree_unflatten(new_leaves, treespec)
+                    return leaves, new_tree
+
+            x = torch.randn(3, 2)
+            y = torch.randn(3, 2)
+            expected = fn(x, y)
+            fn_opt = torch.compile(fullgraph=True)(fn)
+            actual = fn_opt(x, y)
+
+            self.assertEqual(actual, expected)
+
+    def test_pytree_tree_map(self):
+        implemtations = [("python", python_pytree)]
+        if cxx_pytree is not None:
+            implemtations.append(("cxx", cxx_pytree))
+
+        for name, module in implemtations:
+            with self.subTest(f"pytree implement: {name}"):
+
+                def fn(x, y):
+                    tree1 = {
+                        "a": [x, x - 1],
+                        "b": x + 2,
+                        "c": (
+                            x,
+                            3.0,
+                            collections.deque([0.0, -x, 1, 2], maxlen=3),
+                        ),
+                        "d": collections.OrderedDict(
+                            {
+                                "e": torch.return_types.qr((2 * x, None)),
+                                "f": MyTuple(x, x + 1, torch.zeros(4, 3)),
+                            },
+                        ),
+                    }
+                    tree2 = collections.OrderedDict(
+                        [
+                            ("c", (y, 3.0, collections.deque([1, -y, 10.0]))),
+                            ("a", [y, y + 1]),
+                            ("b", y + 2),
+                            (
+                                "d",
+                                {
+                                    "f": MyTuple(torch.ones(4, 3), -y, y + 1),
+                                    "e": torch.return_types.qr((2 * y, None)),
+                                },
+                            ),
+                        ],
+                    )
+                    return module.tree_map(lambda u, v: (u, v), tree1, tree2)
+
+                x = torch.randn(3, 2)
+                y = torch.randn(3, 2)
+                expected = fn(x, y)
+                fn_opt = torch.compile(fullgraph=True)(fn)
+                actual = fn_opt(x, y)
+
+                self.assertEqual(actual, expected)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_shape_env_no_recording(self):
         main = ShapeEnv(should_record_events=False)
@@ -10905,8 +11439,13 @@ def ___make_guard_fn():
 ShapeEnv not equal: field values don't match:
 
 ==> settings: values don't match.
+<<<<<<< HEAD
   >  Left: ShapeEnvSettings(allow_scalar_outputs=False, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, trace_asserts=False)
   > Right: ShapeEnvSettings(allow_scalar_outputs=True, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, trace_asserts=False)
+=======
+  >  Left: ShapeEnvSettings(allow_scalar_outputs=False, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False, trace_asserts=False)
+  > Right: ShapeEnvSettings(allow_scalar_outputs=True, allow_dynamic_output_shape_ops=True, assume_static_by_default=False, specialize_zero_one=True, duck_shape=True, prefer_deferred_runtime_asserts_over_guards=False, allow_complex_guards_as_runtime_asserts=False, trace_asserts=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
         )
         self._replay_and_check(main)
@@ -11372,7 +11911,11 @@ class AAA:
 def fn():
     return 3
 """
+<<<<<<< HEAD
         with WritableTempFile(mode="w") as f:
+=======
+        with tempfile.NamedTemporaryFile(mode="w") as f:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f.write(src)
             f.flush()
             from torch._dynamo.funcname_cache import get_funcname
@@ -11440,6 +11983,7 @@ fn
         c2 = _debug_get_cache_entry_list(fn.__code__)
         self.assertEqual(len(c2), 0)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_check_simplification(self):
         @torch.compile(backend="eager", fullgraph=True)
@@ -11447,6 +11991,17 @@ fn
             u0, u1 = x.tolist()
             torch._check((2 * u0) // (u0 + u1) != 0)
             if (2 * u0) // (u0 + u1) == 0:
+=======
+    def test_guard_size_oblivious_simplification(self):
+        @torch.compile(backend="eager", fullgraph=True)
+        def fn(x):
+            u0, u1 = x.tolist()
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+            torch._check((2 * u0) % (u0 + u1) == 0)
+            torch._check((2 * u0) // (u0 + u1) != 0)
+            if guard_size_oblivious((2 * u0) // (u0 + u1) == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return torch.tensor(True)
             else:
                 return torch.tensor(False)
@@ -11467,13 +12022,42 @@ fn
         with self.assertRaisesRegex(RuntimeError, "specialized"):
             fn(x, y)
 
+<<<<<<< HEAD
     @torch._dynamo.config.patch(capture_scalar_outputs=True)
     def test_infer_unbacked_size_gt_zero(self):
+=======
+    def test_sym_max_unbacked_sizelike_simplification(self):
+        @torch.compile(fullgraph=True, backend="eager")
+        def cf(x):
+            u0, u1 = x.tolist()
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+            torch._check(u0 + u1 == 20)
+
+            y = 0
+            if guard_size_oblivious(torch.sym_max(1, u0 + u1) == 20):
+                y += 1
+            if guard_size_oblivious(torch.sym_max(1, u0**2 + u1 + 2) != 1):
+                y += 1
+            if guard_size_oblivious(torch.sym_min(1, u0) == 1):
+                y += 1
+            return y
+
+        # Previously would have thrown guard on data dependent
+        self.assertEqual(cf(torch.tensor([10, 10])), 3)
+
+    @torch._dynamo.config.patch(capture_scalar_outputs=True)
+    def test_guard_size_oblivious(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This code, in fact, does NOT work in eager
         @torch.compile(backend="eager", fullgraph=True)
         def fn(x):
             y = torch.zeros(x.item())
+<<<<<<< HEAD
             if y.size(0) < 0:
+=======
+            if guard_size_oblivious(y.size(0) == 0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert False
             return y
 
@@ -11743,7 +12327,10 @@ fn
         self.assertIs(c1[1], c2[0])
 
     @torch._dynamo.config.patch(inline_inbuilt_nn_modules=False)
+<<<<<<< HEAD
     @skipIfWindows(msg="TODO: (xuhancn) conform, AssertionError: False is not true")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamo_cache_invalidate(self):
         DeletedGuardManagerWrapper = torch._dynamo.guards.DeletedGuardManagerWrapper
 
@@ -11938,7 +12525,11 @@ fn
 
         # Ensure that the generated graph returns only one output. We want the
         # add_ on the grad to be part of the graph itself, so that inductor can
+<<<<<<< HEAD
         # theoretically move the add_ and resulting copy_ nodes at the right
+=======
+        # theoretically move the add_ and resutling copy_ nodes at the right
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # place to free memory.
         self.assertEqual(len(list(cnt.graphs[0].graph.nodes)[-1].all_input_nodes), 1)
         self.assertEqual(z, ref_y)
@@ -12051,6 +12642,7 @@ fn
         with unittest.mock.patch("torch._dynamo.config.error_on_recompile", True):
             fn(torch.randn(4), d)
 
+<<<<<<< HEAD
     def test_hash_hop(self):
         associative_scan = importlib.import_module(
             "torch._higher_order_ops.associative_scan"
@@ -12064,6 +12656,8 @@ fn
 
         fn(torch.ones(2, 2, device="cpu"), associative_scan.AssociativeScanOp())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_iter_type(self):
         @torch.compile(fullgraph=True)
         def fn(y):
@@ -12513,7 +13107,11 @@ fn
                 self.ne_called = False
 
             def __ne__(self, other):
+<<<<<<< HEAD
                 # ne_called attr is later checked to ensure that overridden
+=======
+                # ne_called attr is later checked to ensure that overrideen
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # `__ne__` is traced
                 self.ne_called = True
                 return not self.__eq__(other)
@@ -12834,6 +13432,7 @@ fn
         res = opt_f(x)
         self.assertEqual(ref, res)
 
+<<<<<<< HEAD
     def test_builtin_complex(self):
         def f(x):
             c = (
@@ -13157,6 +13756,8 @@ class MiscTestsPyTree(torch._inductor.test_case.TestCase):
         self.assertEqual(counter.frame_count, 1)
         self.assertEqual(counter.op_count, 9)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TestTracer(JitTestCase):
     def test_jit_save(self):
@@ -13325,7 +13926,11 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
 
     def test_torch_device_is_available(self, device):
         def fn(x):
+<<<<<<< HEAD
             if torch.accelerator.is_available():
+=======
+            if TEST_HPU or TEST_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return x + 1
             else:
                 return x - 1
@@ -13425,6 +14030,7 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
         self.assertEqual(out, opt_out)
 
     @unittest.skipIf(not TEST_MULTIGPU, "need multiple GPU")
+<<<<<<< HEAD
     def test_gpu_set_device(self, device):
         def fn():
             a = torch.ones(2, device=device)
@@ -13445,6 +14051,32 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
             ("cpu", "cpu", None),
             (device, device_type, 0),
         ]:
+=======
+    def test_cuda_set_device(self, device):
+        def fn():
+            a = torch.ones(2, device=device)
+            torch.cuda.set_device(1)
+            return a + 1
+
+        with torch.cuda.device(0):
+            counter = CompileCounter()
+            opt_fn = torch.compile(fn, backend=counter)
+            res = opt_fn()
+            self.assertEqual(res.device.type, "cuda")
+            self.assertEqual(res.device.index, 0)
+            self.assertEqual(counter.frame_count, 2)
+
+    def test_torch_device_python_type(self):
+        for device, device_type, index in [
+            ("cpu", "cpu", None),
+            ("cuda:0", "cuda", 0),
+            ("hpu:0", "hpu", 0),
+        ]:
+            if (device == "cuda:0" and not TEST_CUDA) or (
+                device == "hpu:0" and not TEST_HPU
+            ):
+                continue
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             def fn(target):
                 target_device = target.device
@@ -13505,6 +14137,7 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
         y = torch.tensor(5)
         f(x, y)
 
+<<<<<<< HEAD
     def test_full_graph_capture_scalar_outputs(self):
         @torch.compile(fullgraph=True)
         def foo(a):
@@ -13533,6 +14166,8 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
         x = torch.zeros(4, 4)
         f(x)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dynamic_float_scalar_tensor_coersion(self):
         # Minified version of https://github.com/pytorch/pytorch/issues/158376#issuecomment-3079591367
         class Foo:
@@ -13566,6 +14201,7 @@ class MiscTestsDevice(torch._inductor.test_case.TestCase):
         #   RuntimeError: value cannot be converted to type at::Half without overflow
 
 
+<<<<<<< HEAD
 instantiate_parametrized_tests(MiscTestsPyTree)
 
 devices = ("cuda", "hpu", "xpu")
@@ -13574,6 +14210,10 @@ instantiate_device_type_tests(
 )
 
 
+=======
+devices = ("cuda", "hpu")
+instantiate_device_type_tests(MiscTestsDevice, globals(), only_for=devices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
 

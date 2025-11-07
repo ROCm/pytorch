@@ -18,7 +18,10 @@ from .expanded_weights_utils import (
 @implements_per_sample_grads(F.group_norm)
 class GroupNormPerSampleGrad(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, kwarg_names, _, *expanded_args_and_kwargs):
         expanded_args, expanded_kwargs = standard_kwargs(
             kwarg_names, expanded_args_and_kwargs
@@ -47,7 +50,10 @@ class GroupNormPerSampleGrad(torch.autograd.Function):
         return output
 
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def backward(ctx, grad_output):
         input, num_groups = ctx.input, ctx.num_groups
         weight, bias, eps = ctx.weight, ctx.bias, ctx.eps
@@ -96,9 +102,13 @@ class GroupNormPerSampleGrad(torch.autograd.Function):
             set_grad_sample_if_exists(
                 weight,
                 lambda _: torch.einsum(
+<<<<<<< HEAD
                     "ni...->ni",
                     # pyrefly: ignore [unsupported-operation]
                     F.group_norm(input, num_groups, eps=eps) * grad_output,
+=======
+                    "ni...->ni", F.group_norm(input, num_groups, eps=eps) * grad_output
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             )
         if hasattr(ctx, "bias"):

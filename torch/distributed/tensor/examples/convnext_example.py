@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 """
 The following example demonstrates how to train a ConvNeXt model
+<<<<<<< HEAD
 with intermediate activations sharded across multiple GPUs via DTensor
+=======
+with intermediate activations sharded across mutliple GPUs via DTensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 To run the example, use the following command:
 torchrun --standalone --nnodes=1 --nproc-per-node=4 convnext_example.py
@@ -34,7 +38,11 @@ class LayerNorm(nn.Module):
         self.bias = nn.Parameter(torch.zeros(normalized_shape))
         self.eps = eps
         self.data_format = data_format
+<<<<<<< HEAD
         if self.data_format != torch.contiguous_format:
+=======
+        if self.data_format not in [torch.contiguous_format]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise NotImplementedError
         self.normalized_shape = (normalized_shape,)
 
@@ -110,7 +118,11 @@ class DownSampling(nn.Module):
 
 @torch.no_grad()
 def init_weights(m):
+<<<<<<< HEAD
     if type(m) is nn.Conv2d or type(m) is nn.Linear:
+=======
+    if type(m) == nn.Conv2d or type(m) == nn.Linear:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         nn.init.ones_(m.weight)
         if m.bias is not None:
             nn.init.zeros_(m.bias)

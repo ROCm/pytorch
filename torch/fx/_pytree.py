@@ -1,6 +1,10 @@
 from collections import namedtuple
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import NamedTuple
 
 import torch.return_types
@@ -43,13 +47,21 @@ def tree_flatten_spec(
     # I guess these exist for BC, FC reasons.
     # In general, we should be able to directly
     # use pytree tree flattener to flatten them,
+<<<<<<< HEAD
     # as export serializes the pytree separately.
+=======
+    # as export serializes the pytree seperately.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Will remove it in follow up PR.
     if spec.type in SUPPORTED_NODES:
         flatten_fn_spec = SUPPORTED_NODES[spec.type]
         child_pytrees = flatten_fn_spec(pytree, spec)
         result = []
+<<<<<<< HEAD
         for child, child_spec in zip(child_pytrees, spec.children()):
+=======
+        for child, child_spec in zip(child_pytrees, spec.children_specs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             flat = tree_flatten_spec(child, child_spec)
             result += flat
         return result

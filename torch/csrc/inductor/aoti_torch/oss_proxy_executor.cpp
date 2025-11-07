@@ -4,7 +4,10 @@
 #include <vector>
 
 #include <c10/util/Exception.h>
+<<<<<<< HEAD
 #include <c10/util/FileSystem.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/inductor/aoti_torch/oss_proxy_executor.h>
 #include <torch/csrc/jit/serialization/pickle.h>
 
@@ -19,6 +22,15 @@ bool has_key(
   return map.find(key) != map.end();
 }
 
+<<<<<<< HEAD
+=======
+#ifdef _WIN32
+const std::string k_separator = "\\";
+#else
+const std::string k_separator = "/";
+#endif
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 namespace torch::aot_inductor {
@@ -418,7 +430,11 @@ void OSSProxyExecutor::get_input_info_from_serialized(
     const auto& arg = named_argument["arg"];
     const auto& name = named_argument["name"].get<std::string>();
 
+<<<<<<< HEAD
     std::string custom_obj_name;
+=======
+    std::string custom_obj_name = "";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (arg.contains("as_custom_obj")) {
       custom_obj_name = arg["as_custom_obj"]["name"].get<std::string>();
     }
@@ -619,8 +635,15 @@ OSSProxyExecutor::OSSProxyExecutor(
     // Load custom objects from custom_objs_config.json file
     // Get the constants json path from the extern_kernel_nodes .json file
 
+<<<<<<< HEAD
     auto folder_path = c10::filesystem::path(json_path).parent_path();
     auto custom_objs_json_path = folder_path / "custom_objs_config.json";
+=======
+    size_t lastSlash = json_path.find_last_of("/\\");
+    std::string folder_path = json_path.substr(0, lastSlash);
+    std::string custom_objs_json_path =
+        folder_path + k_separator + "custom_objs_config.json";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     LOG(INFO) << "Loading custom_objs_config .json file from "
               << custom_objs_json_path;
 
@@ -635,7 +658,12 @@ OSSProxyExecutor::OSSProxyExecutor(
       custom_objs_json_file >> custom_objs_json;
       // Load custom objects from binary torchbind file
       for (auto& [customObjName, file_name] : custom_objs_json.items()) {
+<<<<<<< HEAD
         auto customObjPath = folder_path / file_name.get<std::string>();
+=======
+        std::string customObjPath =
+            folder_path + k_separator + file_name.get<std::string>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         LOG(INFO) << "Loading custom object to FbProxyExecutor from: "
                   << customObjPath;
 

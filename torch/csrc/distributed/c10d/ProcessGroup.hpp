@@ -11,6 +11,10 @@
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <c10/macros/Macros.h>
 
+<<<<<<< HEAD
+=======
+#include <torch/csrc/distributed/c10d/Work.hpp>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // *************************************************************************
 // PROCESS GROUP collective communication API IS BEING CHANGED BETWEEN
 // versions 1.7 and 1.8.
@@ -70,6 +74,7 @@ C10_EXPORT bool allow_inflight_collective_as_graph_input();
 //
 class TORCH_API ProcessGroup : public torch::CustomClassHolder {
  public:
+<<<<<<< HEAD
   struct TORCH_API MergeOptions : torch::CustomClassHolder {
     explicit MergeOptions(
         const std::chrono::milliseconds timeout = kProcessGroupDefaultTimeout,
@@ -85,6 +90,8 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
     std::optional<std::string> group_desc;
   };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   enum BackendType : uint8_t {
     UNDEFINED = 0,
     GLOO = 1,
@@ -178,6 +185,7 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
     return false;
   }
 
+<<<<<<< HEAD
   virtual void setTimeout(std::chrono::milliseconds timeout) {
     for (auto& backend : backendTypeToBackend_) {
       backend.second->setTimeout(timeout);
@@ -188,6 +196,8 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
     return splitCounter_++;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual void startCoalescing(c10::DeviceType deviceType) {
     // only nccl has implemented startCoalescing so only execute for nccl
     // backends
@@ -966,10 +976,13 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
     return bound_device_id_;
   }
 
+<<<<<<< HEAD
   c10::intrusive_ptr<c10d::Store> getStore() const {
     return store_;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void setBoundDeviceId(std::optional<at::Device> device) {
     if (device) {
       TORCH_CHECK(device->has_index(), "setBoundDeviceId must have an index");
@@ -977,6 +990,7 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
     bound_device_id_ = device;
   }
 
+<<<<<<< HEAD
   // This creates a new subgroup using the specified ranks.
   // The current rank must be included in the list of new_ranks.
   virtual c10::intrusive_ptr<ProcessGroup> splitGroup(
@@ -993,6 +1007,8 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
       const MergeOptions& opts,
       const int& size);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
  protected:
   // Implementations of this interface need to call this to setup
   // appropriate logging etc.
@@ -1006,7 +1022,10 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
   // NOLINTNEXTLINE(cppcoreguidelines-avoid-const-or-ref-data-members)
   BackendType backendType_;
   std::string pg_desc_;
+<<<<<<< HEAD
   int64_t splitCounter_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Debug level setting. It is parsed once when ProcessGroup is constructed and
   // remains the same across use of this process group.
@@ -1014,9 +1033,13 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
 
   // Backend classes for this ProcessGroup
   std::unordered_set<c10::DeviceType> deviceTypes_;
+<<<<<<< HEAD
   // This mapping is ordered, as splitGroup must call split on the underlying
   // backends in a consistent order.
   std::map<c10::DeviceType, BackendType> deviceTypeToBackendType_;
+=======
+  std::unordered_map<c10::DeviceType, BackendType> deviceTypeToBackendType_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::unordered_map<c10::DeviceType, c10::intrusive_ptr<Backend>>
       deviceTypeToBackend_;
   std::unordered_map<BackendType, c10::intrusive_ptr<Backend>>
@@ -1025,8 +1048,11 @@ class TORCH_API ProcessGroup : public torch::CustomClassHolder {
   std::optional<at::Device> bound_device_id_;
 };
 
+<<<<<<< HEAD
 // Thread local functions for managing the currently active process group.
 TORCH_API c10::intrusive_ptr<ProcessGroup>& currentProcessGroup();
 TORCH_API void setProcessGroup(c10::intrusive_ptr<ProcessGroup> processGroup);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace c10d

@@ -3,10 +3,17 @@ import contextlib
 import functools
 import gc
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Generator, Iterable
 from dataclasses import asdict, dataclass, field
 from itertools import chain
 from typing import Any, cast, no_type_check, Optional, Union
+=======
+from collections.abc import Generator, Iterable
+from dataclasses import asdict, dataclass, field
+from itertools import chain
+from typing import Any, Callable, cast, no_type_check, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -186,8 +193,12 @@ def _get_fqns(
     curr_obj = model
     for i, curr_obj_name in enumerate(obj_names):
         if isinstance(curr_obj, DDP):
+<<<<<<< HEAD
             if curr_obj_name != "module":
                 raise AssertionError(f"Expected 'module', got '{curr_obj_name}'")
+=======
+            assert curr_obj_name == "module"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             curr_obj = curr_obj.module
             if not skip_ddp_prefix:
                 fqn_obj_names.append(curr_obj_name)
@@ -200,12 +211,19 @@ def _get_fqns(
                 return {f"{prefix}{fqn}" for fqn in flat_param._fqns}
             curr_obj = getattr(curr_obj, FSDP_WRAPPED_MODULE)
             if curr_obj_name != FSDP_WRAPPED_MODULE:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 fqn_obj_names.append(curr_obj_name)
                 curr_obj = getattr(curr_obj, curr_obj_name)
         elif isinstance(curr_obj, torch._dynamo.eval_frame.OptimizedModule):
             if curr_obj_name != "_orig_mod":
                 raise AssertionError(f"Expected '_orig_mod', got '{curr_obj_name}'")
+=======
+                fqn_obj_names.append(curr_obj_name)
+                curr_obj = getattr(curr_obj, curr_obj_name)
+        elif isinstance(curr_obj, torch._dynamo.eval_frame.OptimizedModule):
+            assert curr_obj_name == "_orig_mod"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             curr_obj = curr_obj._orig_mod
             if not skip_compiler_prefix:
                 fqn_obj_names.append(curr_obj_name)
@@ -218,7 +236,10 @@ def _get_fqns(
                 ):
                     if hasattr(curr_obj, removed_fqn):
                         curr_obj = getattr(curr_obj, removed_fqn)
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fqn_obj_names.append(curr_obj_name)
             if curr_obj_name == nn.modules.module._EXTRA_STATE_KEY_SUFFIX:
                 if i != len(obj_names) - 1:
@@ -290,7 +311,10 @@ def _verify_options(
             "will be removed in 2.5. This feature can be achieved by manually "
             "filtering out the state_dict returned from get_state_dict.",
             FutureWarning,
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if optim_only and not optims:
         raise RuntimeError(
@@ -310,7 +334,11 @@ def _verify_options(
             continue
 
         fqns = _get_fqns(model, name)
+<<<<<<< HEAD
         fqn = fqn_param_mapping.get(param)
+=======
+        fqn = fqn_param_mapping.get(param, None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if fqn is not None:
             cast(set[str], fqn_param_mapping[param]).update(fqns)
             shared_params_mapping[param] = fqn_param_mapping[param]
@@ -332,8 +360,12 @@ def _verify_options(
             if module not in submodules:
                 continue
             fqns = _get_fqns(model, name)
+<<<<<<< HEAD
             if len(fqns) != 1:
                 raise AssertionError("Submodule FQN should only have 1 instance")
+=======
+            assert len(fqns) == 1, "Submodule FQN should only have 1 instance"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             submodule_prefixes.update(f"{fqn}." for fqn in fqns)
 
     if options.broadcast_from_rank0 and not options.full_state_dict:
@@ -412,8 +444,12 @@ def _verify_state_dict(
 ) -> None:
     for module in info.fsdp_modules:
         fsdp_state = _get_module_fsdp_state_if_fully_sharded_module(module)
+<<<<<<< HEAD
         if fsdp_state is None:
             raise AssertionError("Expected a fsdp_state with a fsdp module.")
+=======
+        assert fsdp_state is not None, "Expected a fsdp_state with a fsdp module."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Verify if the model_state_dict and optim_state_dict are valid. This API
     # should give the users an explicit error message to debug or report.
@@ -488,10 +524,14 @@ def _get_model_state_dict(
 
     for key in list(state_dict.keys()):
         fqns = _get_fqns(model, key)
+<<<<<<< HEAD
         if len(fqns) != 1:
             raise AssertionError(
                 f"Expected 1 FQN for key '{key}', got {len(fqns)}: {fqns}"
             )
+=======
+        assert len(fqns) == 1, (key, fqns)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fqn = next(iter(fqns))
         if fqn != key:
             # As we only support FSDP, DDP, and TP, the only cases are
@@ -669,7 +709,11 @@ def _flatten_optim_state_dict(state_dict: OptimizerStateType) -> dict[str, Value
                 "step": 10, "exp_avg": SomeTensor, "exp_avg_sq": SomeTensor
             },
         },
+<<<<<<< HEAD
         "param_groups": [
+=======
+        "param_group": [
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             {
                 "lr": 0.0,
                 "betas": (0.9, 0.95), ...,
@@ -686,6 +730,7 @@ def _flatten_optim_state_dict(state_dict: OptimizerStateType) -> dict[str, Value
         "state.layer2.weight.exp_avg": SomeTensor,
         "state.layer1.weight.exp_avg_sq": SomeTensor,
         "state.layer2.weight.exp_avg_sq": SomeTensor,
+<<<<<<< HEAD
         "param_groups.layer1.weight.lr": 0.1,
         "param_groups.layer2.weight.lr": 0.1,
         "param_groups.layer1.weight.betas": (0.9, 0.95),
@@ -730,10 +775,28 @@ def _flatten_optim_state_dict(state_dict: OptimizerStateType) -> dict[str, Value
             raise NotImplementedError(
                 "Flattening optimizer state_dict only supports "
                 "tensor, int, float, dict states now. "
+=======
+        "param_group.layer1.weight.lr" : 0.1,
+        "param_group.layer2.weight.lr" : 0.1,
+        "param_group.layer1.weight.betas" : (0.9, 0.95),
+        "param_group.layer2.weight.betas" : (0.9, 0.95),
+    }
+
+    Note that if any of the value is a container, like the betas in the example,
+    this API won't flattent it.
+    """
+
+    def _raise_if_type_not_supported(v):
+        if not isinstance(v, (torch.Tensor, int, float)):
+            raise NotImplementedError(
+                "Flattening optimizer state_dict only supports "
+                "tensor, int, float states now. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"Type is {type(v)}."
             )
 
     ret: dict[str, ValueType] = {}
+<<<<<<< HEAD
 
     # Handle the "state" section with recursive flattening
     for fqn, state in cast(DictValueType, state_dict[_STATE]).items():
@@ -743,12 +806,22 @@ def _flatten_optim_state_dict(state_dict: OptimizerStateType) -> dict[str, Value
         )
 
     # Handle the "param_groups" section with two-level flattening
+=======
+    for fqn, state in cast(DictValueType, state_dict[_STATE]).items():
+        for k, v in cast(DictValueType, state).items():
+            _raise_if_type_not_supported(v)
+            ret[f"{_STATE}.{fqn}.{k}"] = v
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for param_group in cast(ListDictValueType, state_dict[_PG]):
         fqns = param_group.pop(_PARAMS)
         for fqn in cast(list[str], fqns):
             for k, v in param_group.items():
                 ret[f"{_PG}.{fqn}.{k}"] = v
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ret
 
 
@@ -759,6 +832,7 @@ def _unflatten_optim_state_dict(
 ) -> OptimizerStateType:
     """
     This API unflattens the state_dict generated by _flatten_optim_state_dict().
+<<<<<<< HEAD
     Supports arbitrary levels of nesting in the state section through recursive reconstruction.
 
     See the docstring of _flatten_optim_state_dict() for more detail.
@@ -813,6 +887,10 @@ def _unflatten_optim_state_dict(
         # Return the reconstructed nested dictionary (empty dict if no keys matched at all)
         return nested_dict
 
+=======
+    See the docstring of _flatten_optim_state_dict() for more detail.
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     state: DictValueType = {}
     pg_state: ListDictValueType = []
     return_osd: OptimizerStateType = {_STATE: state, _PG: pg_state}
@@ -840,6 +918,7 @@ def _unflatten_optim_state_dict(
                     continue
 
                 params = pg_state[-1][_PARAMS]
+<<<<<<< HEAD
                 if not isinstance(params, list):
                     raise AssertionError(f"Expected list, got {type(params)}")
                 params.append(fqn)
@@ -866,6 +945,17 @@ def _unflatten_optim_state_dict(
                         cast(DictValueType, state[fqn])[state_name] = state_dict[
                             flattened_state_key
                         ]
+=======
+                assert isinstance(params, list)  # typing
+                params.append(fqn)
+                if not param.requires_grad:
+                    continue
+                state[fqn] = {}
+                for state_name in optim.state[param].keys():
+                    cast(DictValueType, state[fqn])[state_name] = state_dict[
+                        f"{_STATE}.{fqn}.{state_name}"
+                    ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         first_param_fqn = cast(list[str], pg_state[-1][_PARAMS])[0]
         for k in param_group.keys():
@@ -919,10 +1009,14 @@ def _get_optim_state_dict(
             fqn_pid_mapping = {}
             for key, param in model.named_parameters():
                 fqns = _get_fqns(model, key)
+<<<<<<< HEAD
                 if len(fqns) != 1:
                     raise AssertionError(
                         f"Expected 1 FQN for key '{key}', got {len(fqns)}"
                     )
+=======
+                assert len(fqns) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fqn = next(iter(fqns))
                 if param not in param_pid_mapping:
                     continue
@@ -930,11 +1024,16 @@ def _get_optim_state_dict(
                 fqn_pid_mapping[fqn] = pid
                 fqn_pid_mapping[pid] = fqn
 
+<<<<<<< HEAD
             # Only convert top-level parameter IDs to FQNs, preserve nested key types
             for key in list(osd[_STATE].keys()):
                 fqn = fqn_pid_mapping[key]
                 # Move the entire state dict value (which may contain nested integer keys)
                 # without modifying its internal structure
+=======
+            for key in list(osd[_STATE].keys()):
+                fqn = fqn_pid_mapping[key]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 osd[_STATE][fqn] = osd[_STATE].pop(key)
 
             for group in osd[_PG]:
@@ -1003,8 +1102,12 @@ def _split_optim_state_dict(
                     continue
 
                 params = pg_state[-1][_PARAMS]
+<<<<<<< HEAD
                 if not isinstance(params, list):
                     raise AssertionError(f"Expected list, got {type(params)}")
+=======
+                assert isinstance(params, list)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 params.append(fqn)
                 if param.requires_grad:
                     state[fqn] = cast(DictValueType, optim_state_dict[_STATE])[fqn]
@@ -1083,10 +1186,14 @@ def _load_optim_state_dict(
                 if fqns == fqns_with_compiler:
                     continue
 
+<<<<<<< HEAD
                 if len(fqns) != 1:
                     raise AssertionError(
                         f"Expected 1 FQN for '{original_fqn}', got {len(fqns)}"
                     )
+=======
+                assert len(fqns) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 fqn = fqns.pop()
                 fqn_with_compiler = fqns_with_compiler.pop()
                 for g in optim_state_dict[_PG]:
@@ -1120,8 +1227,12 @@ def _load_optim_state_dict(
                 return t
 
             _ = tree_map_only(torch.Tensor, _device, local_state_dict)
+<<<<<<< HEAD
             if device is None:
                 raise AssertionError("Expected device to be set")
+=======
+            assert device is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             flatten_osd, osd_mapping = _flatten_state_dict(optim_state_dict)
             flatten_local_osd, local_osd_mapping = _flatten_state_dict(local_state_dict)
             if info.broadcast_from_rank0:
@@ -1134,10 +1245,14 @@ def _load_optim_state_dict(
             # having additional parameters ultimately.
             for optim_key in flatten_osd.keys():
                 if optim_key not in flatten_local_osd:
+<<<<<<< HEAD
                     if optim_key not in osd_mapping:
                         raise AssertionError(
                             f"Expected key '{optim_key}' in osd_mapping"
                         )
+=======
+                    assert optim_key in osd_mapping
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     flatten_local_osd[optim_key] = flatten_osd[optim_key]
                     local_osd_mapping[optim_key] = osd_mapping[optim_key]
             optim_state_dict = _unflatten_state_dict(
@@ -1340,7 +1455,10 @@ def _unflatten_model_state_dict(
             "feature, please preprocessing the model_state_dict to achieve the "
             "same functionality.",
             FutureWarning,
+<<<<<<< HEAD
             stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         cast_state_dict = cast(dict[nn.Module, dict[str, ValueType]], state_dict)
         new_state_dict: dict[str, ValueType] = {}
@@ -1350,10 +1468,14 @@ def _unflatten_model_state_dict(
                     continue
 
                 fqns = _get_fqns(model, name)
+<<<<<<< HEAD
                 if len(fqns) != 1:
                     raise AssertionError(
                         "FQNs for a submodule should only have 1 element"
                     )
+=======
+                assert len(fqns) == 1, "FQNs for a submodule should only have 1 element"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 prefix = f"{next(iter(fqns))}."
                 new_state_dict.update(
                     {prefix + subfqn: value for subfqn, value in sub_state_dict.items()}

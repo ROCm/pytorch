@@ -86,7 +86,11 @@ def broadcast_inplace(a: list[int], b: list[int]):
     dimsB = len(b)
     if dimsB > dimsA:
         raise AssertionError(
+<<<<<<< HEAD
             f"The dims of tensor b ({dimsB}) must be less than or equal to the dims of tensor a ({dimsA}) "
+=======
+            f"The dims of tensor b ({dimsB}) must be less than or equal tothe dims of tensor a ({dimsA}) "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     for dimA in range(dimsA):
         dimB = dimsB - dimsA + dimA
@@ -1172,7 +1176,11 @@ Currently deferring the enabling of this, as part of the propoasal to suspend
 adding ops.
 There are currently cases in the test case where this is being called
 in the SSA opinfo tests with with unexpected values (eg list of two ints, see the first
+<<<<<<< HEAD
 opinfo test). The behavior of index is significantly dependent on the inputs.
+=======
+opinfo test). The behavoir of index is significantly dependent on the inputs.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 This could be an error with how we are matching up shape functions, or that this
 function needs to just implement everything.
@@ -1452,7 +1460,11 @@ add_shape_compute_mapping(
 # add_shape_compute_mapping("aten::index.Tensor(Tensor self, Tensor?[] indices) -> Tensor", index_Tensor)
 
 # TODO: migrate over all of symbolic_shape_registry_util.cpp
+<<<<<<< HEAD
 # These are duplicated here so that the functions will be serialized
+=======
+# These are duplicated here so that the functions will be serialiazed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 add_shape_compute_mapping(
     "aten::lerp.Tensor(Tensor self, Tensor end, Tensor weight) -> Tensor",
     broadcast_three,

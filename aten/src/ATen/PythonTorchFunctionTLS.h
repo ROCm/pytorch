@@ -27,7 +27,10 @@ struct TORCH_API PythonTorchFunctionTLS {
   TorchFunctionDisabledState disabled_state_ =
       TorchFunctionDisabledState::ENABLED;
   std::vector<std::shared_ptr<c10::SafePyObject>> stack_;
+<<<<<<< HEAD
   friend TORCH_API bool torch_function_mode_enabled();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 TORCH_API bool torch_function_mode_enabled();

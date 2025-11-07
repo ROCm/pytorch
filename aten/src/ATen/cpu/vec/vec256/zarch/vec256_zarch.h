@@ -1023,9 +1023,12 @@ struct Vectorized<T, std::enable_if_t<is_zarch_implemented<T>()>> {
   Vectorized<T> exp_u20() const {
     return exp();
   }
+<<<<<<< HEAD
   Vectorized<T> fexp_u20() const {
     return exp();
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   Vectorized<T> log() const {
     return mapSleef(Sleef_logf4_u10, Sleef_logd2_u10);

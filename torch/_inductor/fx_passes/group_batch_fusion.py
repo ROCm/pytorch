@@ -4,7 +4,11 @@ import logging
 import operator
 from collections import OrderedDict
 from collections.abc import Iterable, Iterator
+<<<<<<< HEAD
 from typing import Any
+=======
+from typing import Any, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._dynamo.utils import counters, is_node_meta_valid
@@ -185,7 +189,13 @@ class PostGradBatchLinearFusion(BatchFusion):
             and isinstance(input_shapes[1], int)
         )
 
+<<<<<<< HEAD
     def match(self, node: torch.fx.Node) -> tuple[str, int, int, int, bool, str] | None:
+=======
+    def match(
+        self, node: torch.fx.Node
+    ) -> Optional[tuple[str, int, int, int, bool, str]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if CallFunctionVarArgs(aten.mm).match(node):
             input_m, weight_m = node.args
             bias_m = None
@@ -323,7 +333,11 @@ class GroupLinearFusion(GroupFusion):
             )
         )
 
+<<<<<<< HEAD
     def match(self, node: torch.fx.Node) -> tuple[str, bool] | None:
+=======
+    def match(self, node: torch.fx.Node) -> Optional[tuple[str, bool]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if CallFunctionVarArgs(aten.mm.default).match(
             node
         ) and self._mm_node_can_be_fused(node):
@@ -491,7 +505,11 @@ class BatchLinearLHSFusion(BatchFusion):
     We have a separate pass to eliminate contiguous transpose in a generic way.
     """
 
+<<<<<<< HEAD
     def match(self, node: torch.fx.Node) -> tuple[str, bool, Any] | None:
+=======
+    def match(self, node: torch.fx.Node) -> Optional[tuple[str, bool, Any]]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if CallFunctionVarArgs(torch.nn.functional.linear).match(
             node
         ) and is_linear_node_can_be_fused(node):
@@ -838,7 +856,10 @@ class BatchLayernormFusion(BatchFusion):
                 )
                 update_pointwise_example_value(
                     batch_layer_norm,
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     stack_weight.meta["example_value"],
                     previous_batch_layer_norm_meta,
                     torch.mul,
@@ -849,33 +870,48 @@ class BatchLayernormFusion(BatchFusion):
                 )
                 update_pointwise_example_value(
                     batch_layer_norm,
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     stack_bias.meta["example_value"],
                     previous_batch_layer_norm_meta,
                     torch.add,
                 )
             elif group_weights is not None and group_biases is None:
                 previous_batch_layer_norm_meta = batch_layer_norm.meta["example_value"]
+<<<<<<< HEAD
                 # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 batch_layer_norm = graph.call_function(
                     torch.mul, args=(stack_weight, batch_layer_norm)
                 )
                 update_pointwise_example_value(
                     batch_layer_norm,
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     stack_weight.meta["example_value"],
                     previous_batch_layer_norm_meta,
                     torch.mul,
                 )
             elif group_weights is None and group_biases is not None:
                 previous_batch_layer_norm_meta = batch_layer_norm.meta["example_value"]
+<<<<<<< HEAD
                 # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 batch_layer_norm = graph.call_function(
                     torch.add, args=(stack_bias, batch_layer_norm)
                 )
                 update_pointwise_example_value(
                     batch_layer_norm,
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     stack_bias.meta["example_value"],
                     previous_batch_layer_norm_meta,
                     torch.add,
@@ -1145,12 +1181,15 @@ class BatchClampPreGradFusion(BatchMathOpsPreGradFusion):
         super().__init__(torch.clamp, **kwargs)
 
 
+<<<<<<< HEAD
 @register_fusion("batch_dropout")
 class BatchDropoutPreGradFusion(BatchMathOpsPreGradFusion):
     def __init__(self, **kwargs):
         super().__init__(torch.nn.functional.dropout, **kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @register_fusion("batch_aten_tanh", pre_grad=False)
 class BatchTanhPostGradFusion(BatchPointwiseOpsPostGradFusion):
     def __init__(self, **kwargs) -> None:
@@ -1375,6 +1414,7 @@ def apply_group_batch_fusion(graph: torch.fx.GraphModule, rule: GroupBatchFusion
             print_output=False, include_stride=True, include_device=True
         )
 
+<<<<<<< HEAD
         name = f"optimus_{str(rule.__class__.__name__)}"
         if "MTIA" in name:
             name = f"cff_{str(rule.__class__.__name__)}"
@@ -1382,6 +1422,12 @@ def apply_group_batch_fusion(graph: torch.fx.GraphModule, rule: GroupBatchFusion
             "artifact",
             metadata_fn=lambda: {
                 "name": name,
+=======
+        trace_structured(
+            "artifact",
+            metadata_fn=lambda: {
+                "name": f"optimus_{str(rule.__class__.__name__)}",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "encoding": "string",
             },
             payload_fn=lambda: graph_str,

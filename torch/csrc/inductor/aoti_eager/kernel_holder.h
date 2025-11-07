@@ -105,7 +105,11 @@ class AOTIPythonKernelHolder : public c10::OperatorKernel {
   void init_aoti_kernel_cache();
   // Load the AOTIModelContainerRunner object from the given file path.
   std::shared_ptr<AOTIModelContainerRunner> load_aoti_model_runner(
+<<<<<<< HEAD
       const std::string& /*so_path*/);
+=======
+      const std::string&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace torch::inductor

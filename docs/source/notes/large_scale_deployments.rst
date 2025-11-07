@@ -7,6 +7,12 @@ This note talks about several extension points and tricks that might be useful
 when running PyTorch within a larger system or operating multiple systems using
 PyTorch in a larger organization.
 
+<<<<<<< HEAD
+=======
+It doesn't cover topics of deploying models to production. Check
+:mod:`torch.jit` or one of the corresponding tutorials.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 The note assumes that you either build PyTorch from source in your
 organization or have an ability to statically link additional code to be loaded
 when PyTorch is used. Therefore, many of the hooks are exposed as C++ APIs that
@@ -83,7 +89,12 @@ scripts, the callback fires only once for a given process for each of the APIs.
 
 ``c10::SetAPIUsageHandler`` can be used to register API usage instrumentation
 handler. Passed argument is going to be an "api key" identifying used point, for
+<<<<<<< HEAD
 example ``python.import`` for PyTorch extension import.
+=======
+example ``python.import`` for PyTorch extension import or
+``torch.script.compile`` if TorchScript compilation was triggered.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 .. code-block:: cpp
 
@@ -95,6 +106,45 @@ Note for developers: new API trigger points can be added in code with
 ``C10_LOG_API_USAGE_ONCE("my_api")`` in C++ or
 ``torch._C._log_api_usage_once("my.api")`` in Python.
 
+<<<<<<< HEAD
+=======
+Attaching metadata to saved TorchScript models
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TorchScript modules can be saved as an archive file that bundles serialized
+parameters and module code as TorchScript (see :meth:`torch.jit.save`). It's
+often convenient to bundle additional information together with the model, for
+example, description of model producer or auxiliary artifacts.
+
+It can be achieved by passing the ``_extra_files`` argument to
+:meth:`torch.jit.save` and ``torch::jit::load`` to store and retrieve
+arbitrary binary blobs during saving process. Since TorchScript files are
+regular ZIP archives, extra information gets stored as regular files inside
+archive's ``extra/`` directory.
+
+There's also a global hook allowing to attach extra files to any TorchScript
+archive produced in the current process. It might be useful to tag models with
+producer metadata, akin to JPEG metadata produced by digital cameras. Example
+usage might look like:
+
+.. code-block:: cpp
+
+    SetExportModuleExtraFilesHook([](const Module&) {
+        ExtraFilesMap files;
+        files["producer_info.json"] = "{\"user\": \"" + getenv("USER") + "\"}";
+        return files;
+    });
+
+
+Build environment considerations
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TorchScript's compilation needs to have access to the original python files as
+it uses python's ``inspect.getsource`` call. In certain production environments
+it might require explicitly deploying ``.py`` files along with precompiled
+``.pyc``.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Common extension points
 ^^^^^^^^^^^^^^^^^^^^^^^
 

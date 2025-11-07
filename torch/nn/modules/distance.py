@@ -55,9 +55,12 @@ class PairwiseDistance(Module):
         self.keepdim = keepdim
 
     def forward(self, x1: Tensor, x2: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.pairwise_distance(x1, x2, self.norm, self.eps, self.keepdim)
 
 
@@ -94,7 +97,10 @@ class CosineSimilarity(Module):
         self.eps = eps
 
     def forward(self, x1: Tensor, x2: Tensor) -> Tensor:
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return F.cosine_similarity(x1, x2, self.dim, self.eps)

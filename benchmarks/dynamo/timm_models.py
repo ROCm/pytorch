@@ -39,6 +39,7 @@ finally:
     from timm.models import create_model
 
 TIMM_MODELS = {}
+<<<<<<< HEAD
 
 # Run only this selected group of models, leave this empty to run everything
 TORCHBENCH_ONLY_MODELS = [
@@ -46,13 +47,20 @@ TORCHBENCH_ONLY_MODELS = [
 ]
 
 filename = os.path.join(os.path.dirname(__file__), "timm_models_list.txt")
+=======
+filename = os.path.join(os.path.dirname(__file__), "timm_models_list.txt")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 with open(filename) as fh:
     lines = fh.readlines()
     lines = [line.rstrip() for line in lines]
     for line in lines:
         model_name, batch_size = line.split(" ")
+<<<<<<< HEAD
         if TORCHBENCH_ONLY_MODELS and model_name not in TORCHBENCH_ONLY_MODELS:
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         TIMM_MODELS[model_name] = int(batch_size)
 
 
@@ -60,6 +68,7 @@ with open(filename) as fh:
 
 BATCH_SIZE_DIVISORS = {
     "beit_base_patch16_224": 2,
+<<<<<<< HEAD
     "deit_base_distilled_patch16_224": 2,
     "gluon_xception65": 2,
     "mobilevit_s": 2,
@@ -91,10 +100,89 @@ SCALED_COMPUTE_LOSS = {
 FORCE_AMP_FOR_FP16_BF16_MODELS = {}
 
 SKIP_ACCURACY_CHECK_AS_EAGER_NON_DETERMINISTIC_MODELS = {}
+=======
+    "convit_base": 2,
+    "convmixer_768_32": 2,
+    "convnext_base": 2,
+    "cspdarknet53": 2,
+    "deit_base_distilled_patch16_224": 2,
+    "gluon_xception65": 2,
+    "mobilevit_s": 2,
+    "pnasnet5large": 2,
+    "poolformer_m36": 2,
+    "resnest101e": 2,
+    "swin_base_patch4_window7_224": 2,
+    "swsl_resnext101_32x16d": 2,
+    "vit_base_patch16_224": 2,
+    "volo_d1_224": 2,
+    "jx_nest_base": 4,
+}
+
+REQUIRE_HIGHER_TOLERANCE = {
+    "crossvit_9_240",
+    "fbnetv3_b",
+    "gmixer_24_224",
+    "hrnet_w18",
+    "inception_v3",
+    "mixer_b16_224",
+    "mobilenetv3_large_100",
+    "sebotnet33ts_256",
+    "selecsls42b",
+    "convnext_base",
+    "cait_m36_384",
+}
+
+REQUIRE_HIGHER_TOLERANCE_AMP = {
+    "poolformer_m36",
+}
+
+REQUIRE_EVEN_HIGHER_TOLERANCE = {
+    "levit_128",
+    "sebotnet33ts_256",
+    "beit_base_patch16_224",
+    "cspdarknet53",
+}
+
+# These models need higher tolerance in MaxAutotune mode
+REQUIRE_EVEN_HIGHER_TOLERANCE_MAX_AUTOTUNE = {
+    "gluon_inception_v3",
+}
+
+REQUIRE_HIGHER_TOLERANCE_FOR_FREEZING = {
+    "adv_inception_v3",
+    "botnet26t_256",
+    "gluon_inception_v3",
+    "selecsls42b",
+    "swsl_resnext101_32x16d",
+}
+
+SCALED_COMPUTE_LOSS = {
+    "ese_vovnet19b_dw",
+    "fbnetc_100",
+    "mnasnet_100",
+    "mobilevit_s",
+    "sebotnet33ts_256",
+}
+
+FORCE_AMP_FOR_FP16_BF16_MODELS = {
+    "convit_base",
+    "xcit_large_24_p8_224",
+}
+
+SKIP_ACCURACY_CHECK_AS_EAGER_NON_DETERMINISTIC_MODELS = {
+    "xcit_large_24_p8_224",
+}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 REQUIRE_LARGER_MULTIPLIER_FOR_SMALLER_TENSOR = {
     "inception_v3",
     "mobilenetv3_large_100",
+<<<<<<< HEAD
+=======
+    "cspdarknet53",
+    "gluon_inception_v3",
+    "cait_m36_384",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -195,6 +283,7 @@ class TimmRunner(BenchmarkRunner):
         return self._config["skip"]
 
     @property
+<<<<<<< HEAD
     def skip_models_for_cpu(self):
         return self._skip["device"]["cpu"]
 
@@ -203,6 +292,8 @@ class TimmRunner(BenchmarkRunner):
         return self._skip["device"]["cpu_aarch64"]
 
     @property
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def skip_models(self):
         return self._skip["all"]
 
@@ -226,11 +317,23 @@ class TimmRunner(BenchmarkRunner):
 
     @property
     def guard_on_nn_module_models(self):
+<<<<<<< HEAD
         return {}
 
     @property
     def inline_inbuilt_nn_modules_models(self):
         return {}
+=======
+        return {
+            "convit_base",
+        }
+
+    @property
+    def inline_inbuilt_nn_modules_models(self):
+        return {
+            "lcnet_050",
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @download_retry_decorator
     def _download_model(self, model_name):
@@ -271,6 +374,11 @@ class TimmRunner(BenchmarkRunner):
             memory_format=torch.channels_last if channels_last else None,
         )
 
+<<<<<<< HEAD
+=======
+        self.num_classes = model.num_classes
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         data_config = resolve_data_config(
             vars(self._args) if timmversion >= "0.8.0" else self._args,
             model=model,
@@ -300,6 +408,10 @@ class TimmRunner(BenchmarkRunner):
         example_inputs = [
             example_inputs,
         ]
+<<<<<<< HEAD
+=======
+        self.target = self._gen_target(batch_size, device)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.loss = torch.nn.CrossEntropyLoss().to(device)
 
@@ -367,6 +479,14 @@ class TimmRunner(BenchmarkRunner):
                 tolerance = 1e-2
         return tolerance, cosine
 
+<<<<<<< HEAD
+=======
+    def _gen_target(self, batch_size, device):
+        return torch.empty((batch_size,) + (), device=device, dtype=torch.long).random_(
+            self.num_classes
+        )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def compute_loss(self, pred):
         # High loss values make gradient checking harder, as small changes in
         # accumulation order upsets accuracy checks.

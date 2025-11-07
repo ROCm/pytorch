@@ -290,8 +290,12 @@ class MemoryEstimator:
             )
 
             for dep in rw._reads:
+<<<<<<< HEAD
                 if not isinstance(dep, MemoryDep):
                     continue
+=======
+                assert isinstance(dep, MemoryDep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dep = dep.simplify_with_ranges()
                 if not self.persistent.writes.get(dep.name):  # cache miss?
                     self.persistent.reads[dep.name].add(dep)
@@ -309,8 +313,12 @@ class MemoryEstimator:
                         self.must_keep_buffers.add(dep.name)
 
             for dep in rw._writes:
+<<<<<<< HEAD
                 if not isinstance(dep, MemoryDep):
                     continue
+=======
+                assert isinstance(dep, MemoryDep)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 dep = dep.simplify_with_ranges()
                 self.store_buffer_names.add(dep.name)
                 self.persistent.writes[dep.name].add(dep)

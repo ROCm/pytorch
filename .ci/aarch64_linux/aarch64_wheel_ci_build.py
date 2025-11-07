@@ -13,6 +13,52 @@ def list_dir(path: str) -> list[str]:
     return check_output(["ls", "-1", path]).decode().split("\n")
 
 
+<<<<<<< HEAD
+=======
+def build_ArmComputeLibrary() -> None:
+    """
+    Using ArmComputeLibrary for aarch64 PyTorch
+    """
+    print("Building Arm Compute Library")
+    acl_build_flags = [
+        "debug=0",
+        "neon=1",
+        "opencl=0",
+        "os=linux",
+        "openmp=1",
+        "cppthreads=0",
+        "arch=armv8a",
+        "multi_isa=1",
+        "fixed_format_kernels=1",
+        "build=native",
+    ]
+    acl_install_dir = "/acl"
+    acl_checkout_dir = os.getenv("ACL_SOURCE_DIR", "ComputeLibrary")
+    if os.path.isdir(acl_install_dir):
+        shutil.rmtree(acl_install_dir)
+    if not os.path.isdir(acl_checkout_dir) or not len(os.listdir(acl_checkout_dir)):
+        check_call(
+            [
+                "git",
+                "clone",
+                "https://github.com/ARM-software/ComputeLibrary.git",
+                "-b",
+                "v25.02",
+                "--depth",
+                "1",
+                "--shallow-submodules",
+            ]
+        )
+
+    check_call(
+        ["scons", "Werror=1", f"-j{os.cpu_count()}"] + acl_build_flags,
+        cwd=acl_checkout_dir,
+    )
+    for d in ["arm_compute", "include", "utils", "support", "src", "build"]:
+        shutil.copytree(f"{acl_checkout_dir}/{d}", f"{acl_install_dir}/{d}")
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def replace_tag(filename) -> None:
     with open(filename) as f:
         lines = f.readlines()
@@ -26,6 +72,7 @@ def replace_tag(filename) -> None:
         f.writelines(lines)
 
 
+<<<<<<< HEAD
 def patch_library_rpath(
     folder: str,
     lib_name: str,
@@ -88,11 +135,14 @@ def copy_and_patch_library(
         patch_library_rpath(folder, lib_name, use_nvidia_pypi_libs, desired_cuda)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def package_cuda_wheel(wheel_path, desired_cuda) -> None:
     """
     Package the cuda wheel libraries
     """
     folder = os.path.dirname(wheel_path)
+<<<<<<< HEAD
     os.mkdir(f"{folder}/tmp")
     os.system(f"unzip {wheel_path} -d {folder}/tmp")
     # Delete original wheel since it will be repackaged
@@ -206,6 +256,57 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
         # Copy libraries to unzipped_folder/torch/lib
         for lib_path in libs_to_copy:
             copy_and_patch_library(lib_path, folder, use_nvidia_pypi_libs, desired_cuda)
+=======
+    wheelname = os.path.basename(wheel_path)
+    os.mkdir(f"{folder}/tmp")
+    os.system(f"unzip {wheel_path} -d {folder}/tmp")
+    libs_to_copy = [
+        "/usr/local/cuda/extras/CUPTI/lib64/libcupti.so.12",
+        "/usr/local/cuda/lib64/libcudnn.so.9",
+        "/usr/local/cuda/lib64/libcublas.so.12",
+        "/usr/local/cuda/lib64/libcublasLt.so.12",
+        "/usr/local/cuda/lib64/libcudart.so.12",
+        "/usr/local/cuda/lib64/libcufft.so.11",
+        "/usr/local/cuda/lib64/libcusparse.so.12",
+        "/usr/local/cuda/lib64/libcusparseLt.so.0",
+        "/usr/local/cuda/lib64/libcusolver.so.11",
+        "/usr/local/cuda/lib64/libcurand.so.10",
+        "/usr/local/cuda/lib64/libnccl.so.2",
+        "/usr/local/cuda/lib64/libnvJitLink.so.12",
+        "/usr/local/cuda/lib64/libnvrtc.so.12",
+        "/usr/local/cuda/lib64/libcudnn_adv.so.9",
+        "/usr/local/cuda/lib64/libcudnn_cnn.so.9",
+        "/usr/local/cuda/lib64/libcudnn_graph.so.9",
+        "/usr/local/cuda/lib64/libcudnn_ops.so.9",
+        "/usr/local/cuda/lib64/libcudnn_engines_runtime_compiled.so.9",
+        "/usr/local/cuda/lib64/libcudnn_engines_precompiled.so.9",
+        "/usr/local/cuda/lib64/libcudnn_heuristic.so.9",
+        "/lib64/libgomp.so.1",
+        "/usr/lib64/libgfortran.so.5",
+        "/acl/build/libarm_compute.so",
+        "/acl/build/libarm_compute_graph.so",
+        "/usr/local/lib/libnvpl_lapack_lp64_gomp.so.0",
+        "/usr/local/lib/libnvpl_blas_lp64_gomp.so.0",
+        "/usr/local/lib/libnvpl_lapack_core.so.0",
+        "/usr/local/lib/libnvpl_blas_core.so.0",
+    ]
+
+    if "129" in desired_cuda:
+        libs_to_copy += [
+            "/usr/local/cuda/lib64/libnvrtc-builtins.so.12.9",
+            "/usr/local/cuda/lib64/libcufile.so.0",
+            "/usr/local/cuda/lib64/libcufile_rdma.so.1",
+        ]
+
+    # Copy libraries to unzipped_folder/a/lib
+    for lib_path in libs_to_copy:
+        lib_name = os.path.basename(lib_path)
+        shutil.copy2(lib_path, f"{folder}/tmp/torch/lib/{lib_name}")
+        os.system(
+            f"cd {folder}/tmp/torch/lib/; "
+            f"patchelf --set-rpath '$ORIGIN' --force-rpath {folder}/tmp/torch/lib/{lib_name}"
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Make sure the wheel is tagged with manylinux_2_28
     for f in os.scandir(f"{folder}/tmp/"):
@@ -213,8 +314,19 @@ def package_cuda_wheel(wheel_path, desired_cuda) -> None:
             replace_tag(f"{f.path}/WHEEL")
             break
 
+<<<<<<< HEAD
     os.system(f"wheel pack {folder}/tmp/ -d {folder}")
     os.system(f"rm -rf {folder}/tmp/")
+=======
+    os.mkdir(f"{folder}/cuda_wheel")
+    os.system(f"cd {folder}/tmp/; zip -r {folder}/cuda_wheel/{wheelname} *")
+    shutil.move(
+        f"{folder}/cuda_wheel/{wheelname}",
+        f"{folder}/{wheelname}",
+        copy_function=shutil.copy2,
+    )
+    os.system(f"rm -rf {folder}/tmp/ {folder}/cuda_wheel/")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def complete_wheel(folder: str) -> str:
@@ -237,7 +349,18 @@ def complete_wheel(folder: str) -> str:
             f"/{folder}/dist/{repaired_wheel_name}",
         )
     else:
+<<<<<<< HEAD
         repaired_wheel_name = list_dir(f"/{folder}/dist")[0]
+=======
+        repaired_wheel_name = wheel_name.replace(
+            "linux_aarch64", "manylinux_2_28_aarch64"
+        )
+        print(f"Renaming {wheel_name} wheel to {repaired_wheel_name}")
+        os.rename(
+            f"/{folder}/dist/{wheel_name}",
+            f"/{folder}/dist/{repaired_wheel_name}",
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     print(f"Copying {repaired_wheel_name} to artifacts")
     shutil.copy2(
@@ -274,6 +397,7 @@ if __name__ == "__main__":
     ).decode()
 
     print("Building PyTorch wheel")
+<<<<<<< HEAD
     build_vars = ""
     # MAX_JOB=5 is not required for CPU backend (see commit 465d98b)
     if enable_cuda:
@@ -288,6 +412,12 @@ if __name__ == "__main__":
         else:
             print("Configuring build for bundled NVIDIA libraries")
             # Keep existing static linking approach - already configured above
+=======
+    build_vars = "CMAKE_SHARED_LINKER_FLAGS=-Wl,-z,max-page-size=0x10000 "
+    # MAX_JOB=5 is not required for CPU backend (see commit 465d98b)
+    if enable_cuda:
+        build_vars = "MAX_JOBS=5 " + build_vars
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     override_package_version = os.getenv("OVERRIDE_PACKAGE_VERSION")
     desired_cuda = os.getenv("DESIRED_CUDA")
@@ -313,6 +443,7 @@ if __name__ == "__main__":
         build_vars += f"BUILD_TEST=0 PYTORCH_BUILD_VERSION={branch[1 : branch.find('-')]} PYTORCH_BUILD_NUMBER=1 "
 
     if enable_mkldnn:
+<<<<<<< HEAD
         print("build pytorch with mkldnn+acl backend")
         build_vars += "USE_MKLDNN=ON USE_MKLDNN_ACL=ON "
         build_vars += "ACL_ROOT_DIR=/acl "
@@ -324,6 +455,25 @@ if __name__ == "__main__":
         print("build pytorch without mkldnn backend")
 
     os.system(f"cd /pytorch; {build_vars} python3 -m build --wheel --no-isolation")
+=======
+        build_ArmComputeLibrary()
+        print("build pytorch with mkldnn+acl backend")
+        build_vars += (
+            "USE_MKLDNN=ON USE_MKLDNN_ACL=ON "
+            "ACL_ROOT_DIR=/acl "
+            "LD_LIBRARY_PATH=/pytorch/build/lib:/acl/build:$LD_LIBRARY_PATH "
+            "ACL_INCLUDE_DIR=/acl/build "
+            "ACL_LIBRARY=/acl/build "
+        )
+        if enable_cuda:
+            build_vars += "BLAS=NVPL "
+        else:
+            build_vars += "BLAS=OpenBLAS OpenBLAS_HOME=/OpenBLAS "
+    else:
+        print("build pytorch without mkldnn backend")
+
+    os.system(f"cd /pytorch; {build_vars} python3 setup.py bdist_wheel")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if enable_cuda:
         print("Updating Cuda Dependency")
         filename = os.listdir("/pytorch/dist/")

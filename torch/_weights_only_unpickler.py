@@ -27,7 +27,10 @@ import warnings
 
 from _codecs import encode
 from collections import Counter, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from pickle import (
     APPEND,
     APPENDS,
@@ -69,7 +72,11 @@ from pickle import (
 )
 from struct import unpack
 from sys import maxsize
+<<<<<<< HEAD
 from typing import Any, Union
+=======
+from typing import Any, Callable, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._utils import _sparse_tensors_to_validate, IMPORT_MAPPING, NAME_MAPPING
@@ -404,12 +411,18 @@ class Unpickler:
                     func not in _get_allowed_globals().values()
                     and func not in _get_user_allowed_globals().values()
                 ):
+<<<<<<< HEAD
                     error_msg = (
                         f"Trying to call reduce for unrecognized function {func}"
                     )
                     if hasattr(func, "__self__"):
                         error_msg += f" which belongs to {func.__self__}"
                     raise UnpicklingError(error_msg)
+=======
+                    raise UnpicklingError(
+                        f"Trying to call reduce for unrecognized function {func}"
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 result = func(*args)
                 if func in torch._tensor_classes and "sparse" in func.__module__:
                     _sparse_tensors_to_validate.append(result)
@@ -419,7 +432,10 @@ class Unpickler:
                 inst = self.stack[-1]
                 if type(inst) is torch.Tensor:
                     # Legacy unpickling
+<<<<<<< HEAD
                     # pyrefly: ignore [not-iterable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     inst.set_(*state)
                 elif type(inst) is torch.nn.Parameter:
                     inst.__setstate__(state)
@@ -522,7 +538,11 @@ class Unpickler:
             elif key[0] == BINPERSID[0]:
                 pid = self.stack.pop()
                 # Only allow persistent load of storage
+<<<<<<< HEAD
                 if type(pid) is not tuple and type(pid) is not int:
+=======
+                if type(pid) is not tuple and not type(pid) is not int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise UnpicklingError(
                         f"persistent_load id must be tuple or int, but got {type(pid)}"
                     )
@@ -555,8 +575,12 @@ class Unpickler:
                         f"Detected pickle protocol {self.proto} in the checkpoint, which was "
                         "not the default pickle protocol used by `torch.load` (2). The weights_only "
                         "Unpickler might not support all instructions implemented by this protocol, "
+<<<<<<< HEAD
                         "please file an issue for adding support if you encounter this.",
                         stacklevel=2,
+=======
+                        "please file an issue for adding support if you encounter this."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
             elif key[0] == STOP[0]:
                 rc = self.stack.pop()

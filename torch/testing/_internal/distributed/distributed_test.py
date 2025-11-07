@@ -13,12 +13,19 @@ import tempfile
 import time
 import unittest
 from collections import defaultdict, namedtuple, OrderedDict
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import contextmanager, nullcontext
 from dataclasses import dataclass
 from datetime import timedelta
 from functools import reduce
+<<<<<<< HEAD
 from typing import Any, NamedTuple, Union
+=======
+from typing import Any, Callable, NamedTuple, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import numpy as np
 
@@ -138,6 +145,7 @@ class Foo:
 f = Foo(10)
 f.bar = 1
 
+<<<<<<< HEAD
 
 # Defer instantiation until the seed is set so that randn() returns the same
 # values in all processes.
@@ -150,6 +158,18 @@ def create_collectives_object_test_list():
         [1, 2, True, "string", [4, 5, "nested"]],
     ]
 
+=======
+foo_cpu_tensor = Foo(torch.randn(3, 3))
+
+
+COLLECTIVES_OBJECT_TEST_LIST = [
+    {"key1": 3, "key2": 4, "key3": {"nested": True}},
+    f,
+    foo_cpu_tensor,
+    "foo",
+    [1, 2, True, "string", [4, 5, "nested"]],
+]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # Allowlist of distributed backends where profiling collectives is supported.
 PROFILING_SUPPORTED_BACKENDS = [
@@ -399,6 +419,15 @@ class ControlFlowToyModel(nn.Module):
             return F.relu(self.lin1(x))
 
 
+<<<<<<< HEAD
+=======
+DDP_NET = Net()
+BN_NET = BatchNormNet()
+BN_NET_NO_AFFINE = BatchNormNet(affine=False)
+ONLY_SBN_NET = nn.SyncBatchNorm(2, momentum=0.99)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_timeout(test_id):
     test_name = test_id.split(".")[-1]
     if test_name in CUSTOMIZED_TIMEOUT:
@@ -456,6 +485,7 @@ def require_world_size(world_size):
     return lambda func: func
 
 
+<<<<<<< HEAD
 def require_exact_world_size(world_size):
     if int(os.environ["WORLD_SIZE"]) != world_size:
         return skip_but_pass_in_sandcastle(
@@ -464,6 +494,8 @@ def require_exact_world_size(world_size):
     return lambda func: func
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @contextmanager
 def _lock():
     TEMP_DIR = os.environ["TEMP_DIR"]
@@ -658,13 +690,21 @@ class DistributedTest:
             return (group, group_id, rank)
 
         def _init_full_group_test(self, **kwargs):
+<<<<<<< HEAD
             group = list(range(dist.get_world_size()))
+=======
+            group = list(range(0, dist.get_world_size()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             group_id = dist.new_group(**kwargs)
             rank = dist.get_rank()
             return (group, group_id, rank)
 
         def _init_global_test(self):
+<<<<<<< HEAD
             group = list(range(dist.get_world_size()))
+=======
+            group = list(range(0, dist.get_world_size()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             group_id = dist.group.WORLD
             rank = dist.get_rank()
             return (group, group_id, rank)
@@ -678,7 +718,11 @@ class DistributedTest:
             # Verify buffers across ranks.
             m1_buffers = list(m1.buffers())
             m2_buffers = list(m2.buffers())
+<<<<<<< HEAD
             for buf1, buf2 in zip(m1_buffers, m2_buffers, strict=True):
+=======
+            for buf1, buf2 in zip(m1_buffers, m2_buffers):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 gathered_bufs = [
                     torch.empty_like(buf1) for _ in range(dist.get_world_size())
                 ]
@@ -704,7 +748,11 @@ class DistributedTest:
                 self.assertNotEqual(args.get("dtype", ""), "")
 
                 per_coll_meta[collname].append(args)
+<<<<<<< HEAD
                 if collname == "wait":
+=======
+                if collname in {"wait"}:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
 
                 self.assertEqual(args["Process Group Description"], "default_pg")
@@ -725,7 +773,11 @@ class DistributedTest:
                 lines = out.getvalue().splitlines()
 
             def format_line(var):
+<<<<<<< HEAD
                 return f"env:{var}={os.environ.get(var, 'N/A')}"
+=======
+                return f"env:{var}={os.environ[var] if var in os.environ else 'N/A'}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Check relevant env vars
             vars = [
@@ -855,6 +907,11 @@ class DistributedTest:
                 with exception_ctx:
                     dist.barrier(group_id)
                 self.assertGreaterAlmostEqual(time.time(), expected_time, delta=0.1)
+<<<<<<< HEAD
+=======
+            else:
+                pass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         @skip_but_pass_in_sandcastle_if(
             BACKEND != "gloo", "Only gloo backend supports timeouts"
@@ -924,7 +981,12 @@ class DistributedTest:
             BACKEND not in DistTestCases.backend_feature["subgroup"],
             f"The {BACKEND} backend does not support creating subgroups on CUDA devices",
         )
+<<<<<<< HEAD
         @require_exact_world_size(4)
+=======
+        @require_world_size(4)
+        @skip_if_lt_x_gpu(4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_new_subgroups_with_group_param(self):
             # Initialize global test environment
             self._init_global_test()
@@ -969,10 +1031,16 @@ class DistributedTest:
         @require_world_size(4)
         @skip_if_lt_x_gpu(4)
         def test_new_subgroups_world_size_not_divisible_by_group_size(self):
+<<<<<<< HEAD
             expected_msg = f"The world size ({dist.get_world_size()}) must be divisible by 'group_size=3'"
             with self.assertRaisesRegex(
                 ValueError,
                 re.escape(expected_msg),
+=======
+            with self.assertRaisesRegex(
+                ValueError,
+                re.escape("The world size (4) must be divisible by 'group_size=3'"),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 dist.new_subgroups(3)
 
@@ -1114,7 +1182,11 @@ class DistributedTest:
                 averager = averagers.PeriodicModelAverager(
                     period=period, warmup_steps=warmup_steps
                 )
+<<<<<<< HEAD
                 for step in range(20):
+=======
+                for step in range(0, 20):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Reset the parameters at every step.
                     param.data = copy.deepcopy(tensor)
                     for params in model.parameters():
@@ -1143,7 +1215,11 @@ class DistributedTest:
                 averager = averagers.PeriodicModelAverager(
                     period=period, warmup_steps=warmup_steps
                 )
+<<<<<<< HEAD
                 for step in range(20):
+=======
+                for step in range(0, 20):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Reset the parameters at every step.
                     for param_group in opt.param_groups:
                         for params in param_group["params"]:
@@ -1203,7 +1279,11 @@ class DistributedTest:
                 averager = averagers.PeriodicModelAverager(
                     period=period, warmup_steps=warmup_steps
                 )
+<<<<<<< HEAD
                 for step in range(20):
+=======
+                for step in range(0, 20):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     # Reset the parameters at every step.
                     param.data = copy.deepcopy(tensor)
                     for params in model.parameters():
@@ -1220,7 +1300,11 @@ class DistributedTest:
             BACKEND not in DistTestCases.backend_feature["subgroup"],
             f"The {BACKEND} backend does not support creating subgroups on CUDA devices",
         )
+<<<<<<< HEAD
         @require_exact_world_size(4)
+=======
+        @require_world_size(4)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         @skip_if_lt_x_gpu(4)
         def test_3_level_hierarchical_model_averager(self):
             rank = dist.get_rank()
@@ -1284,7 +1368,11 @@ class DistributedTest:
             expected_global_avg_tensor = (
                 torch.ones_like(param.data) * sum(range(world_size)) / world_size
             )
+<<<<<<< HEAD
             for step in range(25):
+=======
+            for step in range(0, 25):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Reset the parameters at every step.
                 param.data = copy.deepcopy(tensor)
                 for params in model.parameters():
@@ -1390,7 +1478,11 @@ class DistributedTest:
 
             for val in ["1", "0"]:
                 os.environ["TORCH_NCCL_BLOCKING_WAIT"] = val
+<<<<<<< HEAD
                 for src in range(world_size):
+=======
+                for src in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     send_tensor = _build_tensor(rank + 1, device_id=device_id).fill_(
                         src
                     )
@@ -1409,7 +1501,11 @@ class DistributedTest:
                 for req in reqs:
                     req.wait()
 
+<<<<<<< HEAD
                 for src in range(world_size):
+=======
+                for src in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(recv_tensors[src], expected_tensors[src])
 
             self._barrier()
@@ -1505,7 +1601,11 @@ class DistributedTest:
             rank = dist.get_rank()
             p2p_op_list = []
 
+<<<<<<< HEAD
             for src in range(dist.get_world_size()):
+=======
+            for src in range(0, dist.get_world_size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if src == rank:
                     continue
                 send_tensor = _build_tensor(rank + 1)
@@ -1528,7 +1628,11 @@ class DistributedTest:
             rank = dist.get_rank()
             p2p_op_list = []
 
+<<<<<<< HEAD
             for src in range(dist.get_world_size()):
+=======
+            for src in range(0, dist.get_world_size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if src == rank:
                     continue
                 send_tensor = _build_tensor(rank + 1)
@@ -1602,10 +1706,17 @@ class DistributedTest:
             tensor = _build_tensor(rank + 1, device_id=device_id)
             profiler_cls = profiler_ctx if profiler_ctx is not None else nullcontext()
             with profiler_cls as prof:
+<<<<<<< HEAD
                 for src in range(world_size):
                     if src == rank:
                         # Send mode
                         for dst in range(world_size):
+=======
+                for src in range(0, world_size):
+                    if src == rank:
+                        # Send mode
+                        for dst in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if dst == rank:
                                 continue
                             dist.send(tensor, dst)
@@ -1674,10 +1785,17 @@ class DistributedTest:
             tensor = _build_tensor(send_size)
             ctx = profiler_ctx if profiler_ctx is not None else nullcontext()
             with ctx as prof:
+<<<<<<< HEAD
                 for src in range(dist.get_world_size()):
                     if src == rank:
                         # Send mode
                         for dst in range(dist.get_world_size()):
+=======
+                for src in range(0, dist.get_world_size()):
+                    if src == rank:
+                        # Send mode
+                        for dst in range(0, dist.get_world_size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if dst == rank:
                                 continue
                             dist.send(tensor, dst)
@@ -1742,10 +1860,17 @@ class DistributedTest:
 
             ctx = profiler_ctx if profiler_ctx is not None else nullcontext()
             with ctx as prof:
+<<<<<<< HEAD
                 for dst in range(dist.get_world_size()):
                     if dst == rank:
                         # Recv mode
                         for dst in range(dist.get_world_size()):
+=======
+                for dst in range(0, dist.get_world_size()):
+                    if dst == rank:
+                        # Recv mode
+                        for dst in range(0, dist.get_world_size()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if dst == rank:
                                 continue
 
@@ -1846,10 +1971,17 @@ class DistributedTest:
             tensor = _build_tensor(send_recv_size, value=rank)
             ctx = profiler_ctx if profiler_ctx is not None else nullcontext()
             with ctx as prof:
+<<<<<<< HEAD
                 for dst in range(world_size):
                     if dst == rank:
                         # Recv mode
                         for src in range(world_size):
+=======
+                for dst in range(0, world_size):
+                    if dst == rank:
+                        # Recv mode
+                        for src in range(0, world_size):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             if src == rank:
                                 continue
                             output_tensor = _build_tensor(send_recv_size, value=-1)
@@ -2108,7 +2240,10 @@ class DistributedTest:
             "Only NCCL backend supports high priority stream",
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_nccl_high_priority_stream(self):
             group, _, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -3046,7 +3181,11 @@ class DistributedTest:
                 curr_values = master_values if rank == src else worker_values
                 tensors = [
                     _build_tensor(src + 1, val, dtype=dtype)
+<<<<<<< HEAD
                     for dtype, val in zip(dtypes, curr_values, strict=True)
+=======
+                    for dtype, val in zip(dtypes, curr_values)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
                 if cuda:
                     tensors = [t.cuda(rank_to_GPU[rank][0]) for t in tensors]
@@ -3067,9 +3206,13 @@ class DistributedTest:
                 )
                 expected_tensors = [
                     _build_tensor(src + 1, expected_value, dtype=dtype)
+<<<<<<< HEAD
                     for dtype, expected_value in zip(
                         dtypes, expected_values, strict=True
                     )
+=======
+                    for dtype, expected_value in zip(dtypes, expected_values)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ]
                 self.assertEqual(tensors, expected_tensors)
 
@@ -3269,7 +3412,10 @@ class DistributedTest:
             BACKEND != "nccl", "Only Nccl supports CUDA gather"
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_scatter_cuda(self):
             group, group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -3342,7 +3488,11 @@ class DistributedTest:
                 )
                 if rank == dest:
                     expected_tensors = [_build_tensor(dest + 1, i) for i in group]
+<<<<<<< HEAD
                     for t1, t2 in zip(tensors, expected_tensors, strict=True):
+=======
+                    for t1, t2 in zip(tensors, expected_tensors):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.assertEqual(t1, t2)
 
             self._barrier()
@@ -3444,7 +3594,11 @@ class DistributedTest:
                 expected_tensors = [
                     _build_tensor(dest + 1, i, dtype=dtype) for i in group
                 ]
+<<<<<<< HEAD
                 for t1, t2 in zip(tensors, expected_tensors, strict=True):
+=======
+                for t1, t2 in zip(tensors, expected_tensors):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(t1, t2)
 
             self._barrier()
@@ -3460,7 +3614,10 @@ class DistributedTest:
             BACKEND != "nccl", "Only Nccl supports CUDA all gather"
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_all_gather_cuda(self):
             group, group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -3477,7 +3634,10 @@ class DistributedTest:
             BACKEND != "nccl", "Only Nccl supports CUDA all gather"
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_all_gather_cuda_complex(self):
             group, group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -3590,7 +3750,10 @@ class DistributedTest:
             BACKEND != "nccl", "Only Nccl supports CUDA all_gather_into_tensor"
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_all_gather_into_stack_tensor_cuda(self):
             group, group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -3631,8 +3794,13 @@ class DistributedTest:
                 tensor_shapes=tensor_shapes,
             )
 
+<<<<<<< HEAD
             for l1, l2 in zip(output_tensor_lists, expected_tensors, strict=True):
                 for t1, t2 in zip(l1, l2, strict=True):
+=======
+            for l1, l2 in zip(output_tensor_lists, expected_tensors):
+                for t1, t2 in zip(l1, l2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if not torch.equal(t1, t2):
                         return False
             return True
@@ -3831,7 +3999,11 @@ class DistributedTest:
                     ]
                     out_tensors = [t.cuda(rank_to_GPU[rank][0]) for t in out_tensors]
                 dist.all_to_all(out_tensors, in_tensors, group=group_id)
+<<<<<<< HEAD
                 for t1, t2 in zip(out_tensors, expected_tensors, strict=True):
+=======
+                for t1, t2 in zip(out_tensors, expected_tensors):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(t1, t2)
             self._barrier()
 
@@ -3846,7 +4018,10 @@ class DistributedTest:
             BACKEND != "nccl", "Only Nccl supports CUDA all_to_all_single"
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_all_to_all_single_equal_split_cuda(self):
             group, group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -4211,7 +4386,11 @@ class DistributedTest:
 
         def _assert_equal_param(self, param_gpu, param_DDP):
             self.assertEqual(len(param_gpu), len(param_DDP))
+<<<<<<< HEAD
             for p_gpu, p_DDP in zip(param_gpu, param_DDP, strict=True):
+=======
+            for p_gpu, p_DDP in zip(param_gpu, param_DDP):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(p_gpu, p_DDP)
 
         def _test_DDP_niter(
@@ -4298,7 +4477,11 @@ class DistributedTest:
             # as baseline
 
             # cpu training setup
+<<<<<<< HEAD
             model = Net()
+=======
+            model = DDP_NET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # single gpu training setup
             model_gpu = copy.deepcopy(model)
@@ -4353,7 +4536,11 @@ class DistributedTest:
             _group, _group_id, rank = self._init_global_test()
 
             # cpu training setup
+<<<<<<< HEAD
             model_base = Net()
+=======
+            model_base = DDP_NET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # DDP-CPU training setup
             model_DDP = copy.deepcopy(model_base)
@@ -4626,7 +4813,10 @@ class DistributedTest:
                     for hook_param, allreduce_param in zip(
                         ddp_model_with_optimizer_hook.parameters(),
                         ddp_model_with_no_hook.parameters(),
+<<<<<<< HEAD
                         strict=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertEqual(hook_param, allreduce_param)
 
@@ -4658,7 +4848,10 @@ class DistributedTest:
                     for hook_param, allreduce_param in zip(
                         ddp_model_with_optimizer_hook.parameters(),
                         ddp_model_with_no_hook.parameters(),
+<<<<<<< HEAD
                         strict=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertEqual(hook_param, allreduce_param)
 
@@ -4835,9 +5028,13 @@ class DistributedTest:
                         optimizer_kwargs=optim_kwargs,
                     )
 
+<<<<<<< HEAD
                 for p1, p2 in zip(
                     model.parameters(), model_optim_in_bwd.parameters(), strict=True
                 ):
+=======
+                for p1, p2 in zip(model.parameters(), model_optim_in_bwd.parameters()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(p1, p2, "Parameters not initially equal!")
                 # Enable determinism in cudnn operators
                 with torch.backends.cudnn.flags(
@@ -4855,9 +5052,13 @@ class DistributedTest:
                             inp
                         ).sum().backward()  # runs optimizer as well
                         for p1, p2 in zip(
+<<<<<<< HEAD
                             model.parameters(),
                             model_optim_in_bwd.parameters(),
                             strict=True,
+=======
+                            model.parameters(), model_optim_in_bwd.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         ):
                             self.assertEqual(
                                 p1, p2, f"Params not equal at iteration {i}"
@@ -5337,9 +5538,13 @@ class DistributedTest:
                     # sync grads
                     step_model(ddp_model, ddp_input, ddp_target)
 
+<<<<<<< HEAD
                 for i, j in zip(
                     model.parameters(), ddp_model.parameters(), strict=True
                 ):
+=======
+                for i, j in zip(model.parameters(), ddp_model.parameters()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if not i.requires_grad:
                         continue
                     if iteration % 2 == 0:
@@ -5464,7 +5669,10 @@ class DistributedTest:
             f"The {BACKEND} backend does not support DistributedDataParallel",
         )
         @skip_if_no_gpu
+<<<<<<< HEAD
         @skip_if_rocm_multiprocess #enable via https://github.com/ROCm/frameworks-internal/issues/13115
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_DistributedDataParallel(self):
             _group, _group_id, rank = self._init_global_test()
             rank_to_GPU = init_multigpu_helper(dist.get_world_size(), BACKEND)
@@ -5511,7 +5719,11 @@ class DistributedTest:
         def _test_DistributedDataParallel_with_amp(self, grad_is_view=False):
             torch.manual_seed(31415)
             # Creates model and optimizer in default precision
+<<<<<<< HEAD
             model = Net().cuda()
+=======
+            model = copy.deepcopy(DDP_NET).cuda()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             optimizer = torch.optim.SGD(model.parameters(), lr=0.03)
 
             # Creates a GradScaler once at the beginning of training.
@@ -5579,7 +5791,10 @@ class DistributedTest:
             for i, j in zip(
                 ddp_model_grad_not_view.parameters(),
                 ddp_model_grad_is_view.parameters(),
+<<<<<<< HEAD
                 strict=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 self.assertEqual(i, j)
 
@@ -5597,7 +5812,11 @@ class DistributedTest:
             # as baseline
 
             # cpu training setup
+<<<<<<< HEAD
             model = BatchNormNet() if affine else BatchNormNet(affine=False)
+=======
+            model = BN_NET if affine else BN_NET_NO_AFFINE
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # single gpu training setup
             model_gpu = copy.deepcopy(model)
@@ -5647,7 +5866,10 @@ class DistributedTest:
         def _test_post_localSGD_optimizer_parity(self, create_averager, grad_is_view):
             learning_rate = 0.03
 
+<<<<<<< HEAD
             DDP_NET = Net()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             net = torch.nn.parallel.DistributedDataParallel(
                 copy.deepcopy(DDP_NET).cuda(),
                 device_ids=[self.rank],
@@ -5685,9 +5907,13 @@ class DistributedTest:
                     target,
                 )
                 for p1, p2 in zip(
+<<<<<<< HEAD
                     net.parameters(),
                     net_using_post_localSGD_opt.parameters(),
                     strict=True,
+=======
+                    net.parameters(), net_using_post_localSGD_opt.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     self.assertEqual(p1.data, p2.data)
 
@@ -5716,7 +5942,11 @@ class DistributedTest:
             learning_rate = 0.03
 
             net_using_post_localSGD_opt = torch.nn.parallel.DistributedDataParallel(
+<<<<<<< HEAD
                 Net().cuda(), device_ids=[self.rank]
+=======
+                copy.deepcopy(DDP_NET).cuda(), device_ids=[self.rank]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
             averager = create_averager()
@@ -5866,7 +6096,11 @@ class DistributedTest:
             bs_offset = int(rank * 2)
             global_bs = int(num_processes * 2)
 
+<<<<<<< HEAD
             model = nn.SyncBatchNorm(2, momentum=0.99)
+=======
+            model = ONLY_SBN_NET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model_gpu = copy.deepcopy(model).cuda(rank)
             model_DDP = nn.parallel.DistributedDataParallel(
                 model_gpu, device_ids=[rank]
@@ -6076,7 +6310,10 @@ class DistributedTest:
         def test_DistributedDataParallel_SyncBatchNorm_Diff_Input_Sizes_Running_Value(
             self,
         ):
+<<<<<<< HEAD
             ONLY_SBN_NET = nn.SyncBatchNorm(2, momentum=0.99)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _group, _group_id, rank = self._init_global_test()
             model = nn.parallel.DistributedDataParallel(
                 ONLY_SBN_NET.cuda(rank), device_ids=[rank]
@@ -6144,7 +6381,11 @@ class DistributedTest:
         def test_DistributedDataParallel_SyncBatchNorm_half(self):
             _group, _group_id, rank = self._init_global_test()
 
+<<<<<<< HEAD
             model = BatchNormNet()
+=======
+            model = copy.deepcopy(BN_NET)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model = model.half()
             model = torch.nn.SyncBatchNorm.convert_sync_batchnorm(model)
             model = nn.parallel.DistributedDataParallel(
@@ -6160,7 +6401,11 @@ class DistributedTest:
 
         def _test_ddp_logging_data(self, is_gpu):
             rank = dist.get_rank()
+<<<<<<< HEAD
             model_DDP = Net()
+=======
+            model_DDP = copy.deepcopy(DDP_NET)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if is_gpu:
                 model_DDP = nn.parallel.DistributedDataParallel(
                     model_DDP.cuda(rank), device_ids=[rank]
@@ -6232,7 +6477,11 @@ class DistributedTest:
         )
         def test_ddp_logging_data_cpu(self):
             def parse_env(var):
+<<<<<<< HEAD
                 return os.environ.get(var, "N/A")
+=======
+                return os.environ[var] if var in os.environ else "N/A"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             dist.set_debug_level(dist.DebugLevel.INFO)
             _, group_id, _ = self._init_global_test()
@@ -6436,7 +6685,11 @@ class DistributedTest:
             BACKEND == "nccl", "nccl does not support DDP on CPU models"
         )
         def test_static_graph_api_cpu(self):
+<<<<<<< HEAD
             model_DDP = nn.parallel.DistributedDataParallel(Net())
+=======
+            model_DDP = nn.parallel.DistributedDataParallel(DDP_NET)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             expected_err = "should be called before training loop starts"
             with self.assertRaisesRegex(RuntimeError, expected_err):
                 local_bs = 2
@@ -6669,7 +6922,11 @@ class DistributedTest:
         def _test_allgather_object(self, subgroup=None):
             # Only set device for NCCL backend since it must use GPUs.
 
+<<<<<<< HEAD
             gather_objects = create_collectives_object_test_list()
+=======
+            gather_objects = COLLECTIVES_OBJECT_TEST_LIST.copy()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             backend = os.environ["BACKEND"]
             if backend == "nccl":
@@ -6713,7 +6970,11 @@ class DistributedTest:
 
         def _test_gather_object(self, pg=None):
             # Ensure stateful objects can be gathered
+<<<<<<< HEAD
             gather_objects = create_collectives_object_test_list()
+=======
+            gather_objects = COLLECTIVES_OBJECT_TEST_LIST.copy()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             my_rank = dist.get_rank(pg)
 
             backend = os.environ["BACKEND"]
@@ -6763,7 +7024,10 @@ class DistributedTest:
         )
         @require_backend_is_available(DistTestCases.backend_feature["gpu"])
         @with_dist_debug_levels(levels=["DETAIL", "OFF", "INFO"])
+<<<<<<< HEAD
         @require_exact_world_size(4)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_gather_object(self):
             return self._test_gather_object()
 
@@ -6772,7 +7036,10 @@ class DistributedTest:
         )
         @require_backend_is_available(DistTestCases.backend_feature["gpu"])
         @with_dist_debug_levels(levels=["DETAIL", "OFF", "INFO"])
+<<<<<<< HEAD
         @require_exact_world_size(4)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def test_gather_object_subgroup(self):
             default = _get_default_group()
             backend = dist.get_backend(default)
@@ -6837,7 +7104,11 @@ class DistributedTest:
             # they are the same as new_model on rank_to_broadcast.
             if rank == rank_to_broadcast:
                 expected_states = new_model.state_dict().values()
+<<<<<<< HEAD
                 for t, expected in zip(net_module_states, expected_states, strict=True):
+=======
+                for t, expected in zip(net_module_states, expected_states):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(t, expected)
 
         @skip_if_lt_x_gpu(2)
@@ -7048,7 +7319,11 @@ class DistributedTest:
                 self.assertNotEqual(attrs.get("dtype", ""), "")
 
                 per_coll_meta[collname].append(attrs)
+<<<<<<< HEAD
                 if collname == "wait":
+=======
+                if collname in {"wait"}:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     continue
 
                 self.assertEqual(attrs["pg_name"], "0")  # yes this is a string
@@ -7154,9 +7429,13 @@ class DistributedTest:
 
             # Validate model state dicts are equal
             for (_, local_tensor), (_, dist_tensor) in zip(
+<<<<<<< HEAD
                 local_model.state_dict().items(),
                 net.module.state_dict().items(),
                 strict=True,
+=======
+                local_model.state_dict().items(), net.module.state_dict().items()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 self.assertEqual(local_tensor, dist_tensor)
 
@@ -7287,7 +7566,11 @@ class DistributedTest:
                     return x
 
             torch.cuda.set_device(self.rank)
+<<<<<<< HEAD
             model_bn = BatchNormNet()
+=======
+            model_bn = BN_NET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             model_bn = nn.SyncBatchNorm.convert_sync_batchnorm(
                 copy.deepcopy(model_bn)
             ).cuda(self.rank)
@@ -7487,7 +7770,11 @@ class DistributedTest:
                 for baseline_iter in baseline_num_iters:
                     for offset in iteration_offsets:
                         mapping = dict.fromkeys(
+<<<<<<< HEAD
                             range(num_early_join_ranks), baseline_iter
+=======
+                            range(0, num_early_join_ranks), baseline_iter
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                         # if num_early_join_ranks > 1, ranks > 0 that will join early
                         # iterate offset//2 more times than rank 0, to test nodes
@@ -7583,7 +7870,11 @@ class DistributedTest:
                     loss.backward()
 
         def _test_broadcast_object_list(self, group=None):
+<<<<<<< HEAD
             gather_objects = create_collectives_object_test_list()
+=======
+            gather_objects = COLLECTIVES_OBJECT_TEST_LIST.copy()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Only set device for NCCL backend since it must use GPUs.
             # Case where rank != GPU device.
@@ -7744,17 +8035,25 @@ class DistributedTest:
                     # materialized param grad is not touched by DDP, so its grad should
                     # be the same as if running locally.
                     for materialized_param, local_param in zip(
+<<<<<<< HEAD
                         ddp.module.fc2.parameters(),
                         local_model.fc2.parameters(),
                         strict=True,
+=======
+                        ddp.module.fc2.parameters(), local_model.fc2.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertEqual(materialized_param.grad, local_param.grad)
 
                     # fc1 parameter grad should still be different, due to allreduce.
                     for synced_param, local_param in zip(
+<<<<<<< HEAD
                         ddp.module.fc1.parameters(),
                         local_model.fc1.parameters(),
                         strict=True,
+=======
+                        ddp.module.fc1.parameters(), local_model.fc1.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertFalse(synced_param.grad == local_param.grad)
 
@@ -8311,11 +8610,18 @@ class DistributedTest:
         @require_backend_is_available({"gloo"})
         def test_scatter_object_list(self):
             src_rank = 0
+<<<<<<< HEAD
             collectives_object_test_list = create_collectives_object_test_list()
             scatter_list = (
                 collectives_object_test_list
                 if self.rank == src_rank
                 else [None for _ in collectives_object_test_list]
+=======
+            scatter_list = (
+                COLLECTIVES_OBJECT_TEST_LIST
+                if self.rank == src_rank
+                else [None for _ in COLLECTIVES_OBJECT_TEST_LIST]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             world_size = dist.get_world_size()
             scatter_list = scatter_list[:world_size]
@@ -8328,8 +8634,13 @@ class DistributedTest:
             dist.scatter_object_list(output_obj_list, scatter_list, src=src_rank)
             self.assertEqual(
                 output_obj_list[0],
+<<<<<<< HEAD
                 collectives_object_test_list[
                     self.rank % len(collectives_object_test_list)
+=======
+                COLLECTIVES_OBJECT_TEST_LIST[
+                    self.rank % len(COLLECTIVES_OBJECT_TEST_LIST)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ],
             )
             # Ensure errors are raised upon incorrect arguments.
@@ -8607,7 +8918,11 @@ class DistributedTest:
 
                 # Verify grads are the same
                 for local_param, dist_param in zip(
+<<<<<<< HEAD
                     local_net.parameters(), net.parameters(), strict=True
+=======
+                    local_net.parameters(), net.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     local_grad = local_param.grad
                     dist_grad = dist_param.grad
@@ -8657,7 +8972,11 @@ class DistributedTest:
             torch._C._functions.UndefinedGrad()(out).backward()
             torch._C._functions.UndefinedGrad()(local_out).backward()
             for (dist_param_name, dist_param), (local_param_name, local_param) in zip(
+<<<<<<< HEAD
                 net.named_parameters(), local_net.named_parameters(), strict=True
+=======
+                net.named_parameters(), local_net.named_parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 dist_grad = dist_param.grad
                 local_grad = local_param.grad
@@ -8715,9 +9034,13 @@ class DistributedTest:
             self.assertTrue(
                 static_model._get_ddp_logging_data().get("has_rebuilt_buckets", 0)
             )
+<<<<<<< HEAD
             for i, j in zip(
                 base_model.parameters(), static_model.parameters(), strict=True
             ):
+=======
+            for i, j in zip(base_model.parameters(), static_model.parameters()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(i, j)
 
         @require_backend_is_available({"gloo"})
@@ -9325,7 +9648,11 @@ class DistributedTest:
                     loss_static.backward()
                     self._model_step(model_static_graph)
                     for p, p_static in zip(
+<<<<<<< HEAD
                         model.parameters(), model_static_graph.parameters(), strict=True
+=======
+                        model.parameters(), model_static_graph.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertEqual(p, p_static)
 
@@ -10002,7 +10329,11 @@ class DistributedTest:
                         p.grad.data = p.grad / iters
 
                     for p_ddp, p_local in zip(
+<<<<<<< HEAD
                         model.parameters(), local_model.parameters(), strict=True
+=======
+                        model.parameters(), local_model.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ):
                         self.assertTrue(
                             torch.allclose(p_ddp.grad, p_local.grad),
@@ -10017,7 +10348,11 @@ class DistributedTest:
             "Only Nccl & Gloo backend support DistributedDataParallel",
         )
         def test_sync_bn_logged(self):
+<<<<<<< HEAD
             model = BatchNormNet()
+=======
+            model = BN_NET
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             rank = self.rank
             # single gpu training setup
             model_gpu = model.cuda(rank)
@@ -10219,9 +10554,13 @@ class DistributedTest:
             #  (refer to https://github.com/numpy/numpy/blob/266aad7478bc7fbcc55eea7f942a0d373b838396/numpy/random/mtrand.pyi)
             # To make sure random state was restored properly, all entries should equal the original
             for entry1, entry2 in zip(
+<<<<<<< HEAD
                 hook_state.rng.get_state(),
                 dummy_hook_state.rng.get_state(),
                 strict=True,
+=======
+                hook_state.rng.get_state(), dummy_hook_state.rng.get_state()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 np.testing.assert_array_equal(entry1, entry2)
 
@@ -10242,7 +10581,11 @@ class DistributedTest:
 
             # Check that gradients after 10 epochs are the same
             for orig_param, dummy_param in zip(
+<<<<<<< HEAD
                 ddp_model.parameters(), dummy_ddp_model.parameters(), strict=True
+=======
+                ddp_model.parameters(), dummy_ddp_model.parameters()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 self.assertEqual(orig_param.grad, dummy_param.grad)
 
@@ -10329,9 +10672,13 @@ class DistributedTest:
                 self.assertEqual(out_ddp, out_ddp_static)
                 out_ddp.backward()
                 out_ddp_static.backward()
+<<<<<<< HEAD
                 for p1, p2 in zip(
                     ddp.parameters(), ddp_static.parameters(), strict=True
                 ):
+=======
+                for p1, p2 in zip(ddp.parameters(), ddp_static.parameters()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.assertEqual(p1.grad, p2.grad)
 
         @skip_if_lt_x_gpu(2)
@@ -10424,9 +10771,13 @@ class DistributedTest:
                 test_model_1._get_ddp_logging_data().get("num_buckets_reduced"), 1
             )
 
+<<<<<<< HEAD
             for i, j in zip(
                 base_model.parameters(), test_model_1.parameters(), strict=True
             ):
+=======
+            for i, j in zip(base_model.parameters(), test_model_1.parameters()):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(i, j)
 
 

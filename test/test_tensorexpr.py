@@ -695,17 +695,29 @@ class TestTensorExprFuser(BaseTestClass):
             _atol = 2e-3
             _rtol = 1e-5
             if data_type is torch.bfloat16:
+<<<<<<< HEAD
                 # Compared to aten logic, NNC could save additional BF16/Fp32 conversion.
+=======
+                # Compared to aten logic, NNC coudl save addtional BF16/Fp32 conversion.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Take d = a + b - c as an example, the aten logic is as follows at
                 # operator level:
                 #    tmp = to_bf16(to_fp32(a) + to_fp32(b))
                 #    d = to_bf16(to_fp32(tmp) + to_fp32(c))
+<<<<<<< HEAD
                 # But NNC could fuse the compression and remove the redundant conversions.
+=======
+                # But NNC could fuse the compression and remove the redudant conversions.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # The final statement is as follows
                 #    d = to_bf16(to_fp32(a) + to_fp32(b) + to_fp32(c))
                 # Hence, we simulate NNC computation by feeding fp32 tensors and converting
                 # the result tensor back to bf16. The simulation could avoid the numeric
+<<<<<<< HEAD
                 # deviation to simplify the result comparison
+=======
+                # deviation to simplify the result comprasion
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 y = warmup_and_run_forward(traced, rand_a.float(), rand_b.float())
                 if torch_fn not in cmp_fns:
                     y = y.bfloat16()
@@ -1216,7 +1228,11 @@ class TestTensorExprFuser(BaseTestClass):
         @torch.jit.script
         def test(x: torch.Tensor, y: torch.Tensor, z: int) -> torch.Tensor:
             b = y
+<<<<<<< HEAD
             for i in range(z):
+=======
+            for i in range(0, z):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 a = x + y
                 b = b + y
             return b

@@ -29,7 +29,17 @@ def set_module(obj, mod):
     obj.__module__ = mod
 
 
+<<<<<<< HEAD
 cmake_prefix_path = _osp.join(_osp.dirname(_osp.dirname(__file__)), "share", "cmake")
+=======
+if torch._running_with_deploy():
+    # not valid inside torch_deploy interpreter, no paths exists for frozen modules
+    cmake_prefix_path = None
+else:
+    cmake_prefix_path = _osp.join(
+        _osp.dirname(_osp.dirname(__file__)), "share", "cmake"
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def swap_tensors(t1, t2):

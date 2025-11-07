@@ -2,9 +2,14 @@
 
 import itertools
 import os
+<<<<<<< HEAD
 import random
 from contextlib import nullcontext
 from unittest import skip, skipIf, skipUnless
+=======
+from contextlib import nullcontext
+from unittest import skip, skipIf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -22,6 +27,7 @@ from torch.distributed._symmetric_memory import (
     restride_A_for_fused_matmul_reduce_scatter,
     restride_A_shard_for_fused_all_gather_matmul,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import (
     _get_torch_cuda_version,
     SM100OrLater,
@@ -45,6 +51,25 @@ from torch.testing._internal.common_utils import (
     requires_cuda,
     requires_cuda_p2p_access,
     run_tests,
+=======
+from torch.testing._internal.common_cuda import _get_torch_cuda_version, SM90OrLater
+from torch.testing._internal.common_device_type import e4m3_type
+from torch.testing._internal.common_distributed import (
+    MultiProcContinousTest,
+    MultiProcessTestCase,
+    requires_multicast_support,
+    skip_if_lt_x_gpu,
+)
+from torch.testing._internal.common_utils import (
+    instantiate_parametrized_tests,
+    MI300_ARCH,
+    parametrize,
+    requires_cuda,
+    run_tests,
+    runOnRocmArch,
+    skip_but_pass_in_sandcastle_if,
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_ROCM,
     TestCase,
 )
@@ -52,31 +77,70 @@ from torch.testing._internal.common_utils import (
 
 test_contexts = [nullcontext, _test_mode]
 
+<<<<<<< HEAD
 # Set environment variable to disable multicast for all tests in this module
 os.environ["TORCH_SYMM_MEM_DISABLE_MULTICAST"] = "1"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # So that tests are written in device-agnostic way
 device_type = "cuda"
 device_module = torch.get_device_module(device_type)
 
 
+<<<<<<< HEAD
 @instantiate_parametrized_tests
 @requires_cuda_p2p_access()
 class SymmetricMemoryTest(MultiProcContinuousTest):
+=======
+def requires_cuda_p2p_access():
+    cuda_p2p_access_available = (
+        torch.cuda.is_available()
+        and torch.cuda.get_device_capability() >= (8, 0)
+        and torch.cuda.device_count() >= 2
+    )
+    num_devices = torch.cuda.device_count()
+    for i in range(num_devices - 1):
+        for j in range(i + 1, num_devices):
+            if not torch.cuda.can_device_access_peer(i, j):
+                cuda_p2p_access_available = False
+                break
+        if not cuda_p2p_access_available:
+            break
+
+    return skip_but_pass_in_sandcastle_if(
+        not cuda_p2p_access_available,
+        "cuda p2p access is not available",
+    )
+
+
+@instantiate_parametrized_tests
+@requires_cuda_p2p_access()
+class SymmetricMemoryTest(MultiProcContinousTest):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def device(self) -> torch.device:
         return torch.device(device_type, self.rank)
 
+<<<<<<< HEAD
     def _init_process(self):
         torch.cuda.set_device(self.device)
         torch.manual_seed(42 + self.rank)
 
     @requires_multicast_support()
+=======
+    def _init_process(self, set_device: bool = True):
+        if set_device:
+            torch.cuda.set_device(self.device)
+        torch.manual_seed(42 + self.rank)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_has_multicast_support(self) -> None:
         # validate that has_multicast_support() returns "false" instead of throwing
         self.assertFalse(_SymmetricMemory.has_multicast_support(DeviceType.CPU, 0))
         # NOTE: DeviceType.CUDA is implicitly tested through @requires_multicast_support
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
@@ -88,6 +152,9 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
         self.assertIsNotNone(backend)
 
     @skip_if_rocm_multiprocess
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_cuda_nvlink_connectivity_detection(self) -> None:
         from torch._C._distributed_c10d import _detect_dma_connectivity
@@ -99,16 +166,104 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
         for row in connectivity.matrix:
             self.assertEqual(len(row), torch.cuda.device_count())
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_large_alloc(self) -> None:
         t = symm_mem.empty(2 * 1024**3, dtype=torch.uint8, device="cuda")
         self.assertEqual(t.numel() * t.element_size(), 2 * 1024**3)
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    def _get_test_alloc_args(self):
+        shape = (64, 64)
+        stride = (64, 1)
+        dtype = torch.float32
+        device = self.device
+        group_name = "0"
+        return (shape, stride, dtype, device, group_name)
+
+    def _verify_symmetric_memory(self, symm_mem_hdl):
+        self.assertEqual(symm_mem_hdl.world_size, self.world_size)
+
+        buf = symm_mem_hdl.get_buffer(
+            0, (symm_mem_hdl.buffer_size // 4,), torch.float32
+        )
+        self.assertEqual(buf.storage_offset(), 0)
+        self.assertEqual(buf.untyped_storage().size(), symm_mem_hdl.buffer_size)
+
+        if symm_mem_hdl.rank == 0:
+            symm_mem_hdl.wait_signal(src_rank=1)
+            self.assertTrue(buf.eq(42).all())
+        else:
+            buf.fill_(42)
+            symm_mem_hdl.put_signal(dst_rank=0)
+
+        symm_mem_hdl.barrier()
+
+        if symm_mem_hdl.rank == 0:
+            symm_mem_hdl.barrier()
+            self.assertTrue(buf.eq(43).all())
+        else:
+            buf.fill_(43)
+            symm_mem_hdl.barrier()
+
+        symm_mem_hdl.barrier()
+
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+    @parametrize("set_device", [True, False])
+    def test_empty_strided_p2p(self, set_device: bool) -> None:
+        self._init_process(set_device)
+        enable_symm_mem_for_group(dist.group.WORLD.group_name)
+
+        alloc_args = self._get_test_alloc_args()
+
+        t = torch.empty((64, 64), device=self.device)
+        self.assertIsNone(_SymmetricMemory.rendezvous(t))
+
+        t = _SymmetricMemory.empty_strided_p2p(*alloc_args)
+        symm_mem_hdl = _SymmetricMemory.rendezvous(t)
+
+        del t
+        self._verify_symmetric_memory(symm_mem_hdl)
+
+    @skipIfRocm  # started failing during ROCm 6.4 CI upgrade
+    @skip_if_lt_x_gpu(2)
+    @parametrize("set_device", [True, False])
+    def test_empty_strided_p2p_persistent(self, set_device: bool) -> None:
+        self._init_process(set_device)
+        enable_symm_mem_for_group(dist.group.WORLD.group_name)
+
+        alloc_args = self._get_test_alloc_args()
+
+        t = _SymmetricMemory.empty_strided_p2p(*alloc_args, alloc_id=42)
+        data_ptr = t.data_ptr()
+
+        # Verify that persistent allocation would fail if there's an active
+        # allocation with the same alloc_id.
+        with self.assertRaises(RuntimeError):
+            _SymmetricMemory.empty_strided_p2p(*alloc_args, alloc_id=42)
+
+        # Verify that persistent allocation would succeed in lieu of activate
+        # allocations with the same alloc_id, and the returned tensor would
+        # have the same data pointer.
+        del t
+        t = _SymmetricMemory.empty_strided_p2p(*alloc_args, alloc_id=42)
+        self.assertEqual(t.data_ptr(), data_ptr)
+
+        symm_mem_hdl = _SymmetricMemory.rendezvous(t)
+        self._verify_symmetric_memory(symm_mem_hdl)
+
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_get_signal_pad(self) -> None:
         self._init_process()
@@ -149,9 +304,13 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
         t.fill_(0)
         self.assertTrue(signal_pad.eq(42).all())
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_cuda
     def test_allow_overlapping_devices(self) -> None:
         os.environ["TORCH_SYMM_MEM_ALLOW_OVERLAPPING_DEVICES"] = "1"
@@ -170,6 +329,7 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
 
         os.environ["TORCH_SYMM_MEM_ALLOW_OVERLAPPING_DEVICES"] = "0"
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
@@ -300,6 +460,11 @@ class AsyncTPTest(MultiProcContinuousTest):
     )
     @skip_if_lt_x_gpu(2)
     @parametrize("gather_dim", [0, 1, 2])
+=======
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+    @parametrize("gather_dim", [0, 1])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fused_all_gather_matmul(self, gather_dim: int) -> None:
         self._init_process()
 
@@ -311,10 +476,14 @@ class AsyncTPTest(MultiProcContinuousTest):
         rank = self.rank
 
         torch.manual_seed(42 + rank)
+<<<<<<< HEAD
         A_shard_shape = [BATCH, M, K]
         A_shard_shape[gather_dim] //= self.world_size
 
         A_shard = torch.rand(A_shard_shape, device="cuda")
+=======
+        A_shard = torch.rand(BATCH, M // self.world_size, K, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         Bs = [torch.rand(K, N, device="cuda") for _ in range(3)]
 
         ag_output_0, mm_outputs_0 = _fused_all_gather_matmul_fallback(
@@ -330,7 +499,11 @@ class AsyncTPTest(MultiProcContinuousTest):
             assert torch.allclose(mm_output_0, mm_output_1)
             assert mm_output_0.stride(), mm_output_1.stride()
 
+<<<<<<< HEAD
     @skip_if_rocm_multiprocess  # this requires async_input_mm support
+=======
+    @skipIfRocm  # this requires async_input_mm support
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIf(
         not SM90OrLater,
         "_fused_all_gather_matmul_native currently only supports sm>=90",
@@ -338,10 +511,13 @@ class AsyncTPTest(MultiProcContinuousTest):
     @skip_if_lt_x_gpu(2)
     @parametrize("symm_mem_input", [True, False])
     @parametrize("is_b_row_major", [True, False])
+<<<<<<< HEAD
     @skipIf(
         SM100OrLater,
         "https://github.com/pytorch/pytorch/issues/162917",
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fused_all_gather_matmul_native(
         self, symm_mem_input: bool, is_b_row_major: bool
     ) -> None:
@@ -431,11 +607,16 @@ class AsyncTPTest(MultiProcContinuousTest):
         torch.testing.assert_close(ag_target, ag_baseline)
         torch.testing.assert_close(mm_target[0], mm_baseline[0])
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @skip_if_lt_x_gpu(2)
     @skipUnless(SM89OrLater, "Requires compute capability >= 8.9")
+=======
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("gather_dim", [0, 1])
     @parametrize(
         "scale_mode", ["tensor-wise", "row-wise-replicated", "row-wise-sharded"]
@@ -457,7 +638,11 @@ class AsyncTPTest(MultiProcContinuousTest):
         elif gather_dim == 1:
             leading_dims = (BATCH, M // self.world_size)
         else:
+<<<<<<< HEAD
             raise AssertionError(f"Invalid scale_mode: {scale_mode}")
+=======
+            raise AssertionError("Invalid scale_mode: {scale_mode}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         torch.manual_seed(42 + rank)
 
@@ -520,18 +705,28 @@ class AsyncTPTest(MultiProcContinuousTest):
             self.assertEqual(mm_output_0.stride(), mm_output_1.stride())
             self.assertEqual(mm_output_0.dtype, mm_output_1.dtype)
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @skip_if_lt_x_gpu(2)
     @parametrize("scatter_dim", [0, 1, 2])
+=======
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+    @parametrize("scatter_dim", [0, 1])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fused_matmul_reduce_scatter(self, scatter_dim: int) -> None:
         self._init_process()
 
         BATCH = 8
         M = 64
         N = 16
+<<<<<<< HEAD
         K = 1024
+=======
+        K = 32
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         group = dist.group.WORLD
         rank = self.rank
 
@@ -549,6 +744,7 @@ class AsyncTPTest(MultiProcContinuousTest):
         assert torch.allclose(output_0, output_1)
         assert output_0.stride() == output_1.stride()
 
+<<<<<<< HEAD
     @skip_if_rocm_multiprocess  # AsyncTP support changed _fused_scaled_matmul_reduce_scatter_fallback API, need more changes
     @skip_if_lt_x_gpu(2)
     @skipUnless(SM89OrLater, "Requires compute capability >= 8.9")
@@ -558,6 +754,12 @@ class AsyncTPTest(MultiProcContinuousTest):
         SM100OrLater,
         "https://github.com/pytorch/pytorch/issues/162940",
     )
+=======
+    @skipIfRocm  # AsyncTP support changed _fused_scaled_matmul_reduce_scatter_fallback API, need more changes
+    @skip_if_lt_x_gpu(2)
+    @parametrize("scatter_dim", [0, 1])
+    @parametrize("rowwise", [True, False])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fused_scaled_matmul_reduce_scatter(
         self, scatter_dim: int, rowwise: bool
     ) -> None:
@@ -602,11 +804,17 @@ class AsyncTPTest(MultiProcContinuousTest):
                 )
 
         assert outputs[0].stride() == outputs[1].stride()
+<<<<<<< HEAD
         self.assertEqual(outputs[0], outputs[1])
 
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+        assert torch.allclose(outputs[0], outputs[1]), (outputs[0], outputs[1])
+
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @parametrize("dim", [0, 1, 2])
     def test_optimal_layout(self, dim: int) -> None:
         t = torch.rand(8, 64, 32, 16)
@@ -619,6 +827,7 @@ class AsyncTPTest(MultiProcContinuousTest):
         self.assertTrue(x.movedim(dim, 0).is_contiguous())
         self.assertTrue(torch.allclose(x, t))
 
+<<<<<<< HEAD
 
 # [READ ME FIRST]
 # The `SymmMemEmptySetDeviceTest` suite parameterizes whether user sets the
@@ -748,11 +957,114 @@ class SymmMemEmptySetDeviceTest(MultiProcessTestCase):
 
         symm_mem_hdl = _SymmetricMemory.rendezvous(t)
         self._verify_symmetric_memory(symm_mem_hdl)
+=======
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+    @parametrize("symm_mem_input", [True, False])
+    def test_low_contention_all_gather(self, symm_mem_input: bool) -> None:
+        self._init_process()
+
+        if symm_mem_input:
+            t = _SymmetricMemory.empty_strided_p2p(
+                size=(64, 64),
+                stride=(64, 1),
+                dtype=torch.float32,
+                device=self.device,
+                group_name="0",
+            ).fill_(self.rank)
+        else:
+            t = torch.full((64, 64), self.rank, dtype=torch.float32, device=self.device)
+
+        res = torch.ops.symm_mem._low_contention_all_gather(t, "0")
+        res = torch.ops._c10d_functional.wait_tensor(res)
+        self.assertEqual(res.shape, (64 * self.world_size, 64))
+
+        chunks = res.chunk(self.world_size)
+        for r in range(self.world_size):
+            self.assertTrue(chunks[r].eq(r).all())
+
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(2)
+    @parametrize("reduce_op", ["sum", "avg"])
+    @parametrize("symm_mem_input", [True, False])
+    def test_low_contention_reduce_scatter(
+        self, reduce_op: str, symm_mem_input: bool
+    ) -> None:
+        self._init_process()
+
+        if symm_mem_input:
+            t = _SymmetricMemory.empty_strided_p2p(
+                size=(64, 64),
+                stride=(64, 1),
+                dtype=torch.float32,
+                device=self.device,
+                group_name="0",
+            )
+        else:
+            t = torch.empty((64, 64), dtype=torch.float32, device=self.device)
+
+        chunks = t.chunk(self.world_size)
+        for r in range(self.world_size):
+            chunks[r].fill_(r)
+
+        res = torch.ops.symm_mem._low_contention_reduce_scatter(t, reduce_op, "0")
+        res = torch.ops._c10d_functional.wait_tensor(res)
+        self.assertEqual(res.shape, (64 // self.world_size, 64))
+
+        if reduce_op == "sum":
+            expect = self.rank * self.world_size
+        elif reduce_op == "avg":
+            expect = self.rank
+        else:
+            raise AssertionError(f"Unexpected reduce_op: {reduce_op}")
+        self.assertTrue(res.eq(expect).all())
+
+    @runOnRocmArch(MI300_ARCH)
+    @skip_if_lt_x_gpu(4)
+    def test_subgroup(self) -> None:
+        self._init_process()
+
+        ranks = list(range(self.world_size))
+        subgroup_0 = dist.new_group(ranks[: len(ranks) // 2])
+        subgroup_1 = dist.new_group(ranks[len(ranks) // 2 :])
+
+        world = dist.group.WORLD
+        subgroup = subgroup_0 if world.rank() < world.size() // 2 else subgroup_1
+
+        t = symm_mem.empty(64, device="cuda")
+        symm_mem_world = symm_mem.rendezvous(t, group=world)
+        symm_mem_subgroup = symm_mem.rendezvous(t, group=subgroup)
+
+        self.assertEqual(symm_mem_world.world_size, world.size())
+        self.assertEqual(symm_mem_world.rank, world.rank())
+        self.assertEqual(symm_mem_subgroup.world_size, world.size() // 2)
+        self.assertEqual(symm_mem_subgroup.rank, world.rank() % subgroup.size())
+
+        t.fill_(world.rank())
+        symm_mem_world.barrier()
+
+        # Observe a peer buffer via the world group
+        peer_rank = (world.rank() + 1) % world.size()
+        buf = symm_mem_world.get_buffer(peer_rank, (64,), torch.float32)
+        self.assertTrue(buf.eq(peer_rank).all())
+
+        # Observe a peer buffer via the subgroup
+        peer_rank = (subgroup.rank() + 1) % subgroup.size()
+        buf = symm_mem_subgroup.get_buffer(peer_rank, (64,), torch.float32)
+        if world.rank() < world.size() // 2:
+            self.assertTrue(buf.eq(peer_rank).all())
+        else:
+            self.assertTrue(buf.eq(peer_rank + world.size() // 2).all())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # This Test class is used to test the error handling of SymmetricMemory APIs.
 # Since a process restart is often needed after each test, we use the
+<<<<<<< HEAD
 # MultiProcessTestCase instead of MultiProcContinuousTest.
+=======
+# MultiProcessTestCase instead of MultiProcContinousTest.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @requires_cuda_p2p_access()
 class SymmMemNegativeTest(MultiProcessTestCase):
     def setUp(self) -> None:
@@ -780,10 +1092,17 @@ class SymmMemNegativeTest(MultiProcessTestCase):
 
     # These timeout tests are skipped on ROCm because timeout calls trap(), which
     # is handled differently inside hip runtime. It collects gpu coredump and causes
+<<<<<<< HEAD
     # the linux kernel to create a core dump of the host application. The functionality
     # is there, meaning timeout is happening correctly. However, there isn't a nice way
     # to test it as the current executing thread will coredump and exit.
     @skip_if_rocm_multiprocess
+=======
+    # the linux kernel to create a core dump of the host application. The funcitonality
+    # is there, meaning timeout is happening correctly. However, there isn't a nice way
+    # to test it as the current executing thread will coredump and exit.
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_barrier_timeout(self) -> None:
         self._init_process()
@@ -806,10 +1125,17 @@ class SymmMemNegativeTest(MultiProcessTestCase):
 
     # These timeout tests are skipped on ROCm because timeout calls trap(), which
     # is handled differently inside hip runtime. It collects gpu coredump and causes
+<<<<<<< HEAD
     # the linux kernel to create a core dump of the host application. The functionality
     # is there, meaning timeout is happening correctly. However, there isn't a nice way
     # to test it as the current executing thread will coredump and exit.
     @skip_if_rocm_multiprocess
+=======
+    # the linux kernel to create a core dump of the host application. The funcitonality
+    # is there, meaning timeout is happening correctly. However, there isn't a nice way
+    # to test it as the current executing thread will coredump and exit.
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_put_signal_timeout(self) -> None:
         self._init_process()
@@ -835,10 +1161,17 @@ class SymmMemNegativeTest(MultiProcessTestCase):
 
     # These timeout tests are skipped on ROCm because timeout calls trap(), which
     # is handled differently inside hip runtime. It collects gpu coredump and causes
+<<<<<<< HEAD
     # the linux kernel to create a core dump of the host application. The functionality
     # is there, meaning timeout is happening correctly. However, there isn't a nice way
     # to test it as the current executing thread will coredump and exit.
     @skip_if_rocm_multiprocess
+=======
+    # the linux kernel to create a core dump of the host application. The funcitonality
+    # is there, meaning timeout is happening correctly. However, there isn't a nice way
+    # to test it as the current executing thread will coredump and exit.
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     def test_wait_signal_timeout(self) -> None:
         self._init_process()
@@ -862,7 +1195,11 @@ class SymmMemNegativeTest(MultiProcessTestCase):
 
 @instantiate_parametrized_tests
 @requires_cuda_p2p_access()
+<<<<<<< HEAD
 class SymmMemCollectiveTest(MultiProcContinuousTest):
+=======
+class SymmMemCollectiveTest(MultiProcContinousTest):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @property
     def device(self) -> torch.device:
         return torch.device(device_type, self.rank)
@@ -907,8 +1244,11 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
     @parametrize("dtype", [torch.float, torch.bfloat16])
     @parametrize("align_bytes", [4, 8, 16])
     @parametrize("size_bytes", [4, 8192, 8196])
+<<<<<<< HEAD
     # https://github.com/pytorch/pytorch/issues/164015
     @xfailIfSM100OrLater
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multimem_one_shot_all_reduce(
         self, dtype: torch.dtype, size_bytes: int, align_bytes: int
     ) -> None:
@@ -929,6 +1269,7 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
             gathered_inps.sum(dim=0), res, rtol=1e-03, atol=1e-05
         )
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(4)
     @requires_multicast_support()
     @parametrize("dtype", [torch.float, torch.bfloat16])
@@ -963,6 +1304,9 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(4)
     def test_one_shot_all_reduce(self) -> None:
         self._init_process()
@@ -993,9 +1337,13 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
                 )
             self._verify_all_reduce_result(local_inp if copy else inp[offset:], res)
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(4)
     def test_two_shot_all_reduce(self) -> None:
         self._init_process()
@@ -1045,9 +1393,13 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
             gathered_inps.sum(dim=0), res, rtol=1e-01, atol=1e-01
         )
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(4)
     def test_reduce_scatter(self) -> None:
         self._init_process()
@@ -1084,9 +1436,13 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
             self.assertTrue(t[shift + numel :].eq(0).all().item())
             self._verify_reduce_scatter_result(inp, out)
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(4)
     def test_reduce_scatter_corner_cases(self) -> None:
         self._init_process()
@@ -1124,7 +1480,10 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
     @skip_if_lt_x_gpu(4)
     @requires_multicast_support()
     @parametrize("align_bytes", [4, 8, 16])
+<<<<<<< HEAD
     @requires_multicast_support()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_multimem_all_gather(self, align_bytes: int) -> None:
         self._init_process()
         group_name = dist.group.WORLD.group_name
@@ -1151,7 +1510,11 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
 
 @instantiate_parametrized_tests
 @requires_cuda_p2p_access()
+<<<<<<< HEAD
 class LoweringTest(MultiProcContinuousTest):
+=======
+class LoweringTest(MultiProcContinousTest):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _init_process(self) -> None:
         torch.cuda.set_device(self.device)
         enable_symm_mem_for_group(dist.group.WORLD.group_name)
@@ -1163,7 +1526,11 @@ class LoweringTest(MultiProcContinuousTest):
         return torch.device(device_type, self.rank)
 
     @skip("Fails with 'one_shot_all_reduce' not found in AOT graph, TODO: fix")
+<<<<<<< HEAD
     @skip_if_rocm_multiprocess  # requires registered-buffer support
+=======
+    @skipIfRocm  # requires registered-buffer support
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @fresh_cache()
     def test_lowering_one_shot_all_reduce(self):
@@ -1223,9 +1590,13 @@ class SymmMemSingleProcTest(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 0),
         "stream_write_value32 currently only supports cuda version>=12.0",
     )
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
+=======
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_stream_write_value32(self):
         tensor = torch.zeros(4, dtype=torch.uint32, device="cuda")
         expect = torch.tril(torch.ones(4, 4, device="cuda")).to(torch.uint32)
@@ -1240,10 +1611,15 @@ class SymmMemSingleProcTest(TestCase):
         with self.assertRaises(RuntimeError):
             _SymmetricMemory.stream_write_value32(tensor, offset=0, val=4294967296)
 
+<<<<<<< HEAD
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @requires_cuda
+=======
+    @requires_cuda
+    @runOnRocmArch(MI300_ARCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_memset32(self):
         t = _SymmetricMemory.empty_strided_p2p(
             (64,),

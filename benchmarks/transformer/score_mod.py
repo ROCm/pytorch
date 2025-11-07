@@ -1,5 +1,6 @@
 import argparse
 import csv
+<<<<<<< HEAD
 import gc
 import itertools
 import json
@@ -14,6 +15,17 @@ from typing import Literal, Optional, Union
 
 import numpy as np
 from config_utils import heads_input_type, load_config_file, print_default_config
+=======
+import itertools
+import random
+from collections import defaultdict
+from contextlib import nullcontext
+from dataclasses import asdict, dataclass
+from functools import partial
+from typing import Callable, Optional, Union
+
+import numpy as np
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from tabulate import tabulate
 from tqdm import tqdm
 
@@ -37,6 +49,7 @@ torch._dynamo.config.recompile_limit = 1000
 from torch._inductor.runtime.benchmarking import benchmarker
 
 
+<<<<<<< HEAD
 def cleanup_memory():
     """Aggressively free GPU memory"""
     torch.cuda.empty_cache()
@@ -127,6 +140,8 @@ DtypeString = Literal["bfloat16", "float16", "float32"]
 SpeedupType = Literal["fwd", "bwd"]
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def benchmark_torch_function_in_microseconds(func: Callable, *args, **kwargs) -> float:
     # warmup
     for _ in range(5):
@@ -142,7 +157,10 @@ class ExperimentConfig:
     calculate_bwd_time: bool
     cal_bandwidth: bool
     backends: list[str]
+<<<<<<< HEAD
     max_autotune: bool
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __post_init__(self):
         assert len(self.shape) == 6, (
@@ -157,7 +175,10 @@ class ExperimentConfig:
         d.pop("cal_bandwidth", None)
         d["shape(B,Hq,M,Hkv,N,D)"] = d.pop("shape")
         d.pop("backends", None)
+<<<<<<< HEAD
         d.pop("max_autotune", False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return d
 
 
@@ -305,7 +326,10 @@ def query_key_value_clones(
     return query_ref, key_ref, value_ref
 
 
+<<<<<<< HEAD
 @safe_backend("SDPA")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def run_single_backend_sdpa(
     config: ExperimentConfig,
     query: torch.Tensor,
@@ -320,7 +344,10 @@ def run_single_backend_sdpa(
     backend_context = get_backend_context(backend)
     with backend_context:
         _device = torch.device("cuda")
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         eager_sdpa = generate_eager_sdpa(
             config.attn_type, config.shape, config.dtype, block_mask, score_mod
         )
@@ -369,7 +396,11 @@ def run_single_backend_sdpa(
 
         if config.calculate_bwd_time:
             # TODO: debug backward pass for njt
+<<<<<<< HEAD
             if eager_sdpa and config.attn_type != "document_mask":
+=======
+            if eager_sdpa and not config.attn_type == "document_mask":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 d_out = torch.randn_like(out_eager.transpose(1, 2)).transpose(1, 2)
                 backward_eager_time = benchmark_torch_function_in_microseconds(
                     out_eager.backward, d_out, retain_graph=True
@@ -388,7 +419,10 @@ def run_single_backend_sdpa(
             )
 
 
+<<<<<<< HEAD
 @safe_backend("FlashAttention")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def run_single_backend_FA(
     config: ExperimentConfig,
     query: torch.Tensor,
@@ -400,9 +434,15 @@ def run_single_backend_FA(
     mask_kwargs,
     backend: str,
 ) -> ExperimentResults:
+<<<<<<< HEAD
     assert backend in ["fav3", "fakv"]
     # Generate callable for specific backend.
     if backend in ["fav3"]:
+=======
+    assert backend in ["fav2", "fav3", "fakv"]
+    # Generate callable for specific backend.
+    if backend in ["fav2", "fav3"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         FA = generate_FA_callable(
             config.attn_type, config.shape, config.dtype, backend, **mask_kwargs
         )
@@ -453,10 +493,17 @@ def run_single_backend_FA(
     )
 
 
+<<<<<<< HEAD
 @safe_backend("flex_attention", return_dict=True)
 def run_single_experiment(
     config: ExperimentConfig,
     dynamic=False,
+=======
+def run_single_experiment(
+    config: ExperimentConfig,
+    dynamic=False,
+    max_autotune=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> dict[str, ExperimentResults]:
     device = torch.device("cuda")
     batch_size, q_heads, q_seq_len, kv_heads, kv_seq_len, head_dim = config.shape
@@ -476,7 +523,11 @@ def run_single_experiment(
     block_mask, mask_kwargs = generate_block_mask(config.attn_type, config.shape)
     kernel_options = get_kernel_options(config.attn_type, config.shape)
 
+<<<<<<< HEAD
     if config.max_autotune:
+=======
+    if max_autotune:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         compiled_sdpa = torch.compile(
             flex_attention, dynamic=dynamic, mode="max-autotune-no-cudagraphs"
         )
@@ -506,7 +557,11 @@ def run_single_experiment(
 
     results = {}
     for backend in config.backends:
+<<<<<<< HEAD
         if backend in ["fav3", "fakv"]:
+=======
+        if backend in ["fav2", "fav3", "fakv"]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             results[backend] = run_single_backend_FA(
                 config,
                 query,
@@ -518,7 +573,11 @@ def run_single_experiment(
                 mask_kwargs,
                 backend,
             )
+<<<<<<< HEAD
         else:  # sdpa (also supports fav2)
+=======
+        else:  # sdpa
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             results[backend] = run_single_backend_sdpa(
                 config,
                 query,
@@ -539,7 +598,11 @@ def run_single_experiment(
     sparsity = block_mask.sparsity() / 100.0 if block_mask is not None else 0.0
     sparsity = sparsity if config.attn_type != "document_mask" else 0.5
 
+<<<<<<< HEAD
     results["flex"] = ExperimentResults(
+=======
+    results["compiled"] = ExperimentResults(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fwd_time=forward_compiled_time,
         bwd_time=backward_compile_time if config.calculate_bwd_time else None,
         sparsity=sparsity,
@@ -600,15 +663,24 @@ def calculate_tflops(config: ExperimentConfig, results: ExperimentResults) -> fl
     softmax_flops = M * N * 2  # Not counting online softmax overhead
     o_flops = M * D * N * 2
     # Not counting split k overhead
+<<<<<<< HEAD
     sparsity = results.sparsity if results.sparsity is not None else 0.0
     total_flops = B * Hq * (qk_flops + softmax_flops + o_flops) * (1 - sparsity)
+=======
+    total_flops = B * Hq * (qk_flops + softmax_flops + o_flops) * (1 - results.sparsity)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return total_flops / results.fwd_time / 1e6  # in TFLOPs/
 
 
 def get_average_speedups(results: list[Experiment], type: str, backend: str):
     # Calculate speedups
     speedups = [
+<<<<<<< HEAD
         calculate_speedup(r.results["flex"], r.results[backend], type) for r in results
+=======
+        calculate_speedup(r.results["compiled"], r.results[backend], type)
+        for r in results
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ]
 
     # Find indices of max and min speedups
@@ -636,7 +708,11 @@ def get_average_speedups(results: list[Experiment], type: str, backend: str):
 def print_results(results: list[Experiment], save_path: Optional[str] = None):
     table_data = defaultdict(list)
     for experiment in results:
+<<<<<<< HEAD
         backends = experiment.config.backends + ["flex"]
+=======
+        backends = experiment.config.backends + ["compiled"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for key, value in experiment.asdict().items():
             if key in backends:
                 if value.fwd_time:
@@ -649,43 +725,78 @@ def print_results(results: list[Experiment], save_path: Optional[str] = None):
     # Calculate speedups
     for backend in results[0].config.backends:
         fwd_speedups = [
+<<<<<<< HEAD
             calculate_speedup(r.results["flex"], r.results[backend], type="fwd")
             for r in results
         ]
         table_data[f"fwd_speedup_flex_over_{backend}"] = fwd_speedups
+=======
+            calculate_speedup(r.results["compiled"], r.results[backend], type="fwd")
+            for r in results
+        ]
+        table_data[f"fwd_{backend}_speedup"] = fwd_speedups
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if results[0].config.calculate_bwd_time:
         for backend in results[0].config.backends:
             bwd_speedups = [
+<<<<<<< HEAD
                 calculate_speedup(r.results["flex"], r.results[backend], type="bwd")
                 for r in results
             ]
             table_data[f"bwd_speedup_flex_over_{backend}"] = bwd_speedups
+=======
+                calculate_speedup(r.results["compiled"], r.results[backend], type="bwd")
+                for r in results
+            ]
+            table_data[f"bwd_{backend}_speedup"] = bwd_speedups
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Calculate mem + computational throughput
     if results[0].config.cal_bandwidth:
         fwd_bandwidth = [
+<<<<<<< HEAD
             calculate_bandwidth(r.config, r.results["flex"], type="fwd")
             for r in results
         ]
         table_data["fwd_mem_bw (TB/s)"] = fwd_bandwidth
         fwd_tflops = [calculate_tflops(r.config, r.results["flex"]) for r in results]
+=======
+            calculate_bandwidth(r.config, r.results["compiled"], type="fwd")
+            for r in results
+        ]
+        table_data["fwd_mem_bw (TB/s)"] = fwd_bandwidth
+        fwd_tflops = [
+            calculate_tflops(r.config, r.results["compiled"]) for r in results
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         table_data["TFlops/s"] = fwd_tflops
 
     print(tabulate(table_data, headers="keys", tablefmt="github", floatfmt=".3f"))
 
     for backend in results[0].config.backends:
+<<<<<<< HEAD
         if np.isnan(table_data[f"fwd_speedup_flex_over_{backend}"]).all():
             continue
         print("\n")
         print(f"FWD Speedup of Flex over {backend}".center(125, "="))
+=======
+        if np.isnan(table_data[f"fwd_{backend}_speedup"]).all():
+            continue
+        print("\n")
+        print(f"FWD Speedups vs. {backend}".center(125, "="))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         print("\n")
         average_data = get_average_speedups(results, type="fwd", backend=backend)
         print(tabulate(average_data, headers="keys", tablefmt="github", floatfmt=".3f"))
 
         if results[0].config.calculate_bwd_time:
             print("\n")
+<<<<<<< HEAD
             print(f"BWD Speedup of Flex over {backend}".center(125, "="))
+=======
+            print(f"BWD Speedups vs. {backend}".center(125, "="))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             print("\n")
             average_data = get_average_speedups(results, type="bwd", backend=backend)
             print(
@@ -888,14 +999,22 @@ def get_backend_context(backend: str):
     Returns a context manager for the specified backend.
     Args:
         backend (str): The name of the backend to use.
+<<<<<<< HEAD
                        Valid options are 'math', 'efficient', 'cudnn', 'fav2', 'fav3', 'fakv', 'og-eager'.
+=======
+                       Valid options are 'fav2', 'cudnn', 'math', 'efficient', 'fav3', 'fakv', 'og-eager'.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Returns:
         A context manager for the specified backend.
     Raises:
         ValueError: If an invalid backend is specified.
     """
     backends = {
+<<<<<<< HEAD
         "fav2": sdpa_kernel(SDPBackend.FLASH_ATTENTION),
+=======
+        "fav2": nullcontext(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "cudnn": sdpa_kernel(SDPBackend.CUDNN_ATTENTION),
         "math": sdpa_kernel(SDPBackend.MATH),
         "efficient": sdpa_kernel(SDPBackend.EFFICIENT_ATTENTION),
@@ -917,7 +1036,19 @@ def generate_FA_callable(
 ) -> Callable | None:
     if dtype not in [torch.float16, torch.bfloat16]:
         return None
+<<<<<<< HEAD
     if backend == "fav3":
+=======
+    if backend == "fav2":
+        try:
+            from flash_attn import flash_attn_func, flash_attn_varlen_func
+        except ImportError:
+            print(
+                "Flash attention 2 is not installed. Please install it to run fav2 backend. "
+            )
+            raise
+    elif backend == "fav3":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         try:
             from flash_attn.flash_attn_interface import (
                 flash_attn_func,
@@ -1123,7 +1254,10 @@ def generate_experiment_configs(
     kv_cache_size: list[int],
     cal_bandwidth: bool,
     backends: list[str],
+<<<<<<< HEAD
     max_autotune: bool,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[ExperimentConfig]:
     assert not (calculate_bwd and decoding), "Decoding does not support backward"
 
@@ -1167,13 +1301,17 @@ def generate_experiment_configs(
                 calculate_bwd_time=calculate_bwd,
                 cal_bandwidth=cal_bandwidth,
                 backends=backends,
+<<<<<<< HEAD
                 max_autotune=max_autotune,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
     return all_configs
 
 
+<<<<<<< HEAD
 def _output_json_for_dashboard(
     experiments,
     output_file,
@@ -1452,10 +1590,14 @@ def main(
     # Always calculate throughput
     throughput = True
     print("Backend: ", backend)
+=======
+def main(args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     seed = 123
     np.random.seed(seed)
     torch.manual_seed(seed)
     results = []
+<<<<<<< HEAD
     for experiment_count, config in enumerate(
         tqdm(
             generate_experiment_configs(
@@ -1474,17 +1616,39 @@ def main(
             )
         ),
         start=1,
+=======
+    for config in tqdm(
+        generate_experiment_configs(
+            args.calculate_bwd,
+            args.dtype,
+            args.b,
+            args.nh,
+            args.s,
+            args.d,
+            args.mods,
+            args.decoding,
+            args.kv_size,
+            args.throughput,
+            args.backend,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         results.append(
             Experiment(
                 config,
                 run_single_experiment(
                     config,
+<<<<<<< HEAD
                     dynamic=dynamic,
+=======
+                    dynamic=args.dynamic,
+                    max_autotune=args.max_autotune,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
             )
         )
 
+<<<<<<< HEAD
         # Periodic memory cleanup every 50 experiments
         if experiment_count % 50 == 0:
             cleanup_memory()
@@ -1494,6 +1658,17 @@ def main(
     # Output JSON for dashboard if requested
     if output_json_for_dashboard:
         _output_json_for_dashboard(results, output_json_for_dashboard, benchmark_name)
+=======
+    print_results(results, args.save_path)
+
+
+def heads_input_type(s):
+    try:
+        hq, hkv = map(int, s.split(","))
+        return hq, hkv
+    except Exception as e:
+        raise argparse.ArgumentTypeError("Heads must be Hq,Hkv") from e
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if __name__ == "__main__":
@@ -1502,12 +1677,15 @@ if __name__ == "__main__":
         description="Run sweep over sizes and score mods for flex attention"
     )
     parser.add_argument(
+<<<<<<< HEAD
         "--config",
         type=str,
         help="Path to JSON config file. CLI args override config file values.",
         default=None,
     )
     parser.add_argument(
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "--dynamic",
         action="store_true",
         help="Runs a dynamic shapes version of compiled flex attention.",
@@ -1576,6 +1754,7 @@ Ignores -b batch size and calculate batch size from kv size instead when specifi
         default=["efficient"],
         help="Backend to use for attention computation",
     )
+<<<<<<< HEAD
     parser.add_argument(
         "--output-json-for-dashboard",
         type=str,
@@ -1622,3 +1801,10 @@ Ignores -b batch size and calculate batch size from kv size instead when specifi
     args_dict.pop("print_config", None)
 
     main(**args_dict)
+=======
+    # Parse arguments
+    args = parser.parse_args()
+    args.dtype = getattr(torch, args.dtype)
+
+    main(args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

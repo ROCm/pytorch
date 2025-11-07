@@ -2,6 +2,7 @@
 
 import sys
 sys.argv.append("--jit-executor=legacy")
+<<<<<<< HEAD
 
 if __name__ == "__main__":
     from torch.testing._internal.common_utils import parse_cmd_line_args
@@ -10,6 +11,8 @@ if __name__ == "__main__":
     # before instantiating tests.
     parse_cmd_line_args()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from test_jit_fuser import *  # noqa: F403
 
 if __name__ == '__main__':

@@ -35,7 +35,11 @@ Like PIL, Pillow is licensed under the open source HPND License
 
 namespace {
 
+<<<<<<< HEAD
 inline __m128i mm_cvtsi32_si128(const uint8_t* C10_RESTRICT ptr, bool i32_aligned) {
+=======
+static inline __m128i mm_cvtsi32_si128(const uint8_t* C10_RESTRICT ptr, bool i32_aligned) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int32_t v;
   if (i32_aligned) {
     v = *(const int32_t*)ptr;
@@ -45,11 +49,19 @@ inline __m128i mm_cvtsi32_si128(const uint8_t* C10_RESTRICT ptr, bool i32_aligne
   return _mm_cvtsi32_si128(v);
 }
 
+<<<<<<< HEAD
 inline __m128i mm_cvtepu8_epi32(const uint8_t* C10_RESTRICT ptr, bool i32_aligned) {
   return _mm_cvtepu8_epi32(mm_cvtsi32_si128(ptr, i32_aligned));
 }
 
 inline void _write_endline_rgb_as_uint32(
+=======
+static inline __m128i mm_cvtepu8_epi32(const uint8_t* C10_RESTRICT ptr, bool i32_aligned) {
+  return _mm_cvtepu8_epi32(mm_cvtsi32_si128(ptr, i32_aligned));
+}
+
+static inline void _write_endline_rgb_as_uint32(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     uint8_t* C10_RESTRICT output,
     uint32_t data
 ) {
@@ -889,7 +901,11 @@ void ImagingResampleHorizontalConvolution8u(
             _mm_loadu_si128((__m128i *) (lineIn_min + stride * i))),
             _mm_loadu_si128((__m128i *) (lineIn_min + stride * (i + 4))), 1);
 
+<<<<<<< HEAD
         // Extract lower part of each lane, cast to epi16 and reorder RGBARGBA -> RRGGBBAA
+=======
+        // Extract lower part of each lane, cast to epi16 and reoder RGBARGBA -> RRGGBBAA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // RGBA: pix1 = [
         //   r0 0 r1 0  g0 0 g1 0  b0 0 b1 0  a0 0 a1 0
         //   r4 0 r5 0  g4 0 g5 0  b4 0 b5 0  a4 0 a5 0

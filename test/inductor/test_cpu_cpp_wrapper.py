@@ -110,6 +110,10 @@ def make_test_case(
 
     @config.patch(
         cpp_wrapper=True,
+<<<<<<< HEAD
+=======
+        search_autotune_cache=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cpp_wrapper_build_separate=test_build_separate,
     )
     def fn(self):
@@ -268,7 +272,11 @@ if RUN_CPU:
             "test_multi_threading",
             condition=not IS_WINDOWS,
             # Two threads compile, so we expect the output code to be printed twice.
+<<<<<<< HEAD
             code_string_count={"py::gil_scoped_release_simple release;": 2},
+=======
+            code_string_count={"py::gil_scoped_release release;": 2},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ),
         BaseTest("test_profiler_mark_wrapper_call"),
         BaseTest(

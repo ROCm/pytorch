@@ -4,13 +4,20 @@ import copy
 import unittest
 
 import torch._dynamo as torchdynamo
+<<<<<<< HEAD
 from torch._export import config
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._export.db.case import ExportCase, SupportLevel
 from torch._export.db.examples import (
     filter_examples_by_support_level,
     get_rewrite_cases,
 )
+<<<<<<< HEAD
 from torch.export import export
+=======
+from torch.export import export_for_training
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     IS_WINDOWS,
@@ -36,6 +43,7 @@ class ExampleTests(TestCase):
         kwargs_export = case.example_kwargs
         args_model = copy.deepcopy(args_export)
         kwargs_model = copy.deepcopy(kwargs_export)
+<<<<<<< HEAD
         with config.patch(use_new_tracer_experimental=True):
             exported_program = export(
                 model,
@@ -44,6 +52,15 @@ class ExampleTests(TestCase):
                 dynamic_shapes=case.dynamic_shapes,
                 strict=True,
             )
+=======
+        exported_program = export_for_training(
+            model,
+            args_export,
+            kwargs_export,
+            dynamic_shapes=case.dynamic_shapes,
+            strict=True,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         exported_program.graph_module.print_readable()
 
         self.assertEqual(
@@ -70,6 +87,7 @@ class ExampleTests(TestCase):
         with self.assertRaises(
             (torchdynamo.exc.Unsupported, AssertionError, RuntimeError)
         ):
+<<<<<<< HEAD
             with config.patch(use_new_tracer_experimental=True):
                 _ = export(
                     model,
@@ -78,6 +96,15 @@ class ExampleTests(TestCase):
                     dynamic_shapes=case.dynamic_shapes,
                     strict=True,
                 )
+=======
+            export_for_training(
+                model,
+                case.example_args,
+                case.example_kwargs,
+                dynamic_shapes=case.dynamic_shapes,
+                strict=True,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     exportdb_not_supported_rewrite_cases = [
         (name, rewrite_case)
@@ -97,7 +124,11 @@ class ExampleTests(TestCase):
             self, name: str, rewrite_case: ExportCase
         ) -> None:
             # pyre-ignore
+<<<<<<< HEAD
             export(
+=======
+            export_for_training(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 rewrite_case.model,
                 rewrite_case.example_args,
                 rewrite_case.example_kwargs,

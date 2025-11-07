@@ -2,8 +2,13 @@
 # mypy: allow-untyped-defs
 import functools
 import logging
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, TYPE_CHECKING
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -96,7 +101,10 @@ class FSDPState(_State):
         for module in modules:
             _insert_module_state(module, self)
         self._modules = modules
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._device = device
         self._device_handle = _get_device_handle(device.type)
         self._mp_policy = mp_policy
@@ -203,8 +211,12 @@ class FSDPState(_State):
 
     def _init_fqns(self) -> None:
         """Sets module and parameter FQN attributes for debugging."""
+<<<<<<< HEAD
         if not self._is_root:
             raise AssertionError("Expected _is_root to be True")
+=======
+        assert self._is_root
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         root_module = self._modules[0]
         param_to_fsdp_param: dict[nn.Parameter, FSDPParam] = {}
         module_to_fsdp_param_group: dict[nn.Module, FSDPParamGroup] = {}
@@ -223,10 +235,14 @@ class FSDPState(_State):
                 if module_fqn is None:
                     module_to_fsdp_param_group[module]._module_fqn = module_name
                 else:
+<<<<<<< HEAD
                     if not isinstance(module_fqn, str):
                         raise AssertionError(
                             f"Expected module_fqn to be str, got {type(module_fqn)}: {module_fqn}"
                         )
+=======
+                    assert isinstance(module_fqn, str), f"{module_fqn}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     module_fqn += f", {module_name}"
                     module_to_fsdp_param_group[module]._module_fqn = module_fqn
 
@@ -235,7 +251,11 @@ class FSDPState(_State):
         self, module: nn.Module, args: tuple[Any, ...], kwargs: dict[str, Any]
     ) -> tuple[tuple[Any, ...], dict[str, Any]]:
         # When composing with module-hook-based activation checkpointing, the
+<<<<<<< HEAD
         # pre-backward hook is responsible for the unshard
+=======
+        # the pre-backward hook is responsible for the unshard
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._training_state == TrainingState.PRE_BACKWARD:
             return args, kwargs
         self._training_state = TrainingState.FORWARD

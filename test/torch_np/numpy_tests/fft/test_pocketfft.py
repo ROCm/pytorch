@@ -366,13 +366,21 @@ class TestFFTThreadSafe(TestCase):
 
         [x.join() for x in t]
         # Make sure all threads returned the correct value
+<<<<<<< HEAD
         for _ in range(self.threads):
+=======
+        for i in range(self.threads):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # under torch.dynamo `assert_array_equal` fails with relative errors of
             # about 1.5e-14. Hence replace it with `assert_allclose(..., rtol=2e-14)`
             assert_allclose(
                 q.get(timeout=5),
                 expected,
+<<<<<<< HEAD
                 atol=2e-14,
+=======
+                atol=2e-14
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # msg="Function returned wrong value in multithreaded context",
             )
 

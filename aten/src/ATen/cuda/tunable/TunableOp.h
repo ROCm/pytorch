@@ -29,7 +29,11 @@ template <typename ParamsT>
 class Callable {
   public:
     virtual ~Callable() = default;
+<<<<<<< HEAD
     virtual TuningStatus Call(const ParamsT* /*unused*/) {
+=======
+    virtual TuningStatus Call(const ParamsT*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return FAIL;
     }
     virtual TuningStatus IsSupported(const ParamsT* params) {
@@ -235,7 +239,11 @@ class TunableOp {
       // numeric check option is controlled by non-static env var, so check it once per tuned operator
       bool do_numerics_check = ctx->IsNumericsCheckEnabled();
 
+<<<<<<< HEAD
       // calculate a reference answer for numerical check
+=======
+      // calcaulte a reference answer for numerical check
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (do_numerics_check) {
         reference_params = params->DeepCopy(false);
         TORCH_CHECK(ops_[ResultEntry::Default()]->Call(reference_params) == OK);
@@ -267,10 +275,34 @@ class TunableOp {
       for (size_t i = 0; i < op_names_.size(); i++) {
         auto* candidate = ops_[op_names_[i]].get(); // borrow pointer
 
+<<<<<<< HEAD
         auto status = candidate->Call(reusable_params[0]);
         if (status != OK) {
           TUNABLE_LOG3("├──unsupported id=", i, ", ", op_sig, '(', params_sig, ") ", op_names_[i]);
           continue;
+=======
+        if (do_numerics_check) {
+          ParamsT* numerical_params = params->DeepCopy(false);
+          auto status = candidate->Call(numerical_params);
+          if (status != OK) {
+            numerical_params->Delete();
+            TUNABLE_LOG3("├──unsupported id=", i, ", ", op_sig, '(', params_sig, ") ", op_names_[i]);
+            continue;
+          }
+          status = reference_params->NumericalCheck(numerical_params);
+          numerical_params->Delete();
+          if (status != OK) {
+            TUNABLE_LOG3("├──numerics check failed for id=", i, ", ", op_sig, '(', params_sig, ") ", op_names_[i]);
+            continue;
+          }
+        }
+        else {
+          auto status = candidate->Call(reusable_params[0]);
+          if (status != OK) {
+            TUNABLE_LOG3("├──unsupported id=", i, ", ", op_sig, '(', params_sig, ") ", op_names_[i]);
+            continue;
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         // collect a small profile
@@ -293,6 +325,7 @@ class TunableOp {
           continue;
         }
 
+<<<<<<< HEAD
         if (do_numerics_check) {
           ParamsT* numerical_params = params->DeepCopy(false);
           auto status = candidate->Call(numerical_params);
@@ -309,6 +342,8 @@ class TunableOp {
           }
         }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         // for warmup does user set max duration, max iters, or both?
         // warmup is skipped by default, i.e. warmup_iter = 0
         // warmup will be set to the non-zero value of max_warmup_duration

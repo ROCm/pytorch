@@ -226,6 +226,7 @@ __global__ void CatArrayBatchedCopy_contig(
     }
 }
 
+<<<<<<< HEAD
 
 template <typename T, typename IndexType, int Dims, int batch_size, int stride_size, int alignment, int elems_per_vec>
 __global__ void CatArrayBatchedCopy_vectorized(
@@ -258,6 +259,8 @@ __global__ void CatArrayBatchedCopy_vectorized(
 
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 /*
   Specialized implementation of the CatArrayBatchedCopy written to generate wide memory loads
   to improve memory bandwidth throughput.
@@ -328,6 +331,7 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
   scalar_t *data = (scalar_t *)(out.mutable_data_ptr());
   CatArrInputTensorMetadata<scalar_t, unsigned int, batch_size, stride_size> catMetaData;
   TensorSizeStride<unsigned int, CAT_ARRAY_MAX_INPUT_DIMS> outputParam;
+<<<<<<< HEAD
   // If all batches are contiguous we can call a specialized implementation
   // which requires the input tensor addresses to be aligned to a
   // 16 Byte boundary.
@@ -349,6 +353,14 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
       } else {
         outputParam.tensorStride[i] = out.stride(i);
       }
+=======
+
+  // Next, let's initialize the size, stride arrays for the output Tensor.
+  if (memory_format == c10::MemoryFormat::Contiguous) {
+    for (int i = 0; i < nDims; ++i) {
+      outputParam.tensorSize[i] = out.size(i);
+      outputParam.tensorStride[i] = out.stride(i);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   } else if (memory_format == c10::MemoryFormat::ChannelsLast || memory_format == c10::MemoryFormat::ChannelsLast3d) {
     // permute the semantics of dims from NCHW to NHWC so that the input
@@ -367,6 +379,7 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
 
   at::cuda::CUDAStream stream = at::cuda::getCurrentCUDAStream();
 
+<<<<<<< HEAD
 
   // for channels last computing slice size correctly is much more involved, so we never send it
   // on the fully vectorized path
@@ -376,6 +389,14 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
   bool isInOutAligned = isContig && at::native::memory::get_alignment(data) >= alignment &&
                         memory_format == c10::MemoryFormat::Contiguous && (dimension == 0 ||
                         outputParam.tensorStride[dimension - 1] * sizeof(scalar_t) % alignment == 0);
+=======
+  // If all batches are contiguous we can call a specialized implementation
+  // which requires the input tensor addresses to be aligned to a
+  // 16 Byte boundary.
+
+  bool isContig = true;
+  bool isAligned = true;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   unsigned int max_elements_per_tensor = 0;
 
   // Now we loop
@@ -391,6 +412,7 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
       // high-dimensional tensor
       if (inputs[i+batchCounter].get().numel() > 0) {
         dimSize = inputs[i+batchCounter].get().size(dimension);
+<<<<<<< HEAD
         if (isInOutAligned) {
           auto t = inputs[i+batchCounter].get();
           // similarly to output stride, we cannot trust stride value to
@@ -401,6 +423,8 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
           slice_size *= sizeof(scalar_t);
           isInOutAligned &= (slice_size % alignment == 0);
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
 
       catMetaData.input[batchCounter] = (scalar_t*)(inputs[i+batchCounter].get().const_data_ptr());
@@ -411,12 +435,18 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
 #ifdef USE_ROCM
       // On ROCm, CatArrayBatchedCopy_contig is faster
       isAligned = false;
+<<<<<<< HEAD
       isInOutAligned = false;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
       // If at least one of the inputs is not aligned, we can't call the
       // CatArrayBatchedCopy_alignedK_contig
       isAligned &= is_aligned_vec4(catMetaData.input[batchCounter]);
+<<<<<<< HEAD
       isInOutAligned &= at::native::memory::get_alignment(catMetaData.input[batchCounter]) >= alignment;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
 
       if (stride_size > 1) {
@@ -427,6 +457,10 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
           catMetaData.tensorStride[batchCounter].tensorStride[j] = strides[j];
         }
         catMetaData.isContiguous[batchCounter] = false;
+<<<<<<< HEAD
+=======
+        isContig = false;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else {
         catMetaData.isContiguous[batchCounter] = true;
       }
@@ -449,6 +483,7 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
           max_elements_per_tensor, batchCounter);
 #else
     dim3 applyBlock, catGrid;
+<<<<<<< HEAD
     if (isInOutAligned) {
       std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, alignment>(
         max_elements_per_tensor, batchCounter);
@@ -456,6 +491,12 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
       std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, ALIGNED_VEC_LOAD_BYTES_16>(
           max_elements_per_tensor, batchCounter);
     } else if (isContig && isAligned && sizeof(scalar_t) == 2) {
+=======
+    if (isContig && sizeof(scalar_t) > 2) {
+      std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, ALIGNED_VEC_LOAD_BYTES_16>(
+          max_elements_per_tensor, batchCounter);
+    } else if (isContig && sizeof(scalar_t) == 2) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       std::tie(catGrid, applyBlock) = getCatGridContig<scalar_t, ALIGNED_VEC_LOAD_BYTES_8>(
           max_elements_per_tensor, batchCounter);
     } else {
@@ -463,6 +504,7 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
       getCatGrid(batchCounter, catGrid);
     }
 #endif
+<<<<<<< HEAD
     int32_t trailingSize;
     int nDimsLocal = nDims;
     TensorSizeStride<unsigned int, CAT_ARRAY_MAX_INPUT_DIMS> kernelOutputParam;
@@ -499,10 +541,23 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
         break;
       default:
         cat_dim--;
+=======
+
+    if (memory_format != c10::MemoryFormat::Contiguous) {
+      switch (dimension) {
+      case 0:
+        break;
+      case 1:
+        dimension = nDims - dimension;
+        break;
+      default:
+        dimension--;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
     // Template Declarations for dim = 1, 2, 3, 4
 #define HANDLE_CASE(DIMS) \
+<<<<<<< HEAD
     if (isInOutAligned) {\
       constexpr auto elems_per_vec = alignment / sizeof(scalar_t); \
       CatArrayBatchedCopy_vectorized<scalar_t, unsigned int, DIMS, batch_size, stride_size, alignment, elems_per_vec><<<\
@@ -527,6 +582,27 @@ void parallel_cat(const Tensor &out, const MaterializedITensorListRef& inputs, i
     }\
     C10_CUDA_KERNEL_LAUNCH_CHECK();
     switch (nDimsLocal) {
+=======
+    if (isContig && isAligned && sizeof(scalar_t) > 2 && sizeof(scalar_t) <= 8) {\
+      CatArrayBatchedCopy_alignedK_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size, ALIGNED_VEC_LOAD_BYTES_16><<<\
+          catGrid, applyBlock, 0, stream.stream()>>>(\
+              data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
+    } else if (isContig && isAligned && sizeof(scalar_t) == 2) { \
+      CatArrayBatchedCopy_alignedK_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size, ALIGNED_VEC_LOAD_BYTES_8><<<\
+          catGrid, applyBlock, 0, stream.stream()>>>(\
+              data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
+    } else if (isContig) {\
+      CatArrayBatchedCopy_contig<scalar_t, unsigned int, DIMS, batch_size, stride_size><<<\
+          catGrid, applyBlock, 0, stream.stream()>>>(\
+              data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
+    } else {\
+      CatArrayBatchedCopy<scalar_t, unsigned int, DIMS, batch_size, stride_size><<<\
+          catGrid, applyBlock, 0, stream.stream()>>>(\
+              data, catMetaData, outputParam, dimension, outputParam.tensorStride[dimension]);\
+    }\
+    C10_CUDA_KERNEL_LAUNCH_CHECK();
+    switch (nDims) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       case 1:
         HANDLE_CASE(1);
         break;

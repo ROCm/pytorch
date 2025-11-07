@@ -61,7 +61,11 @@
 constexpr float EPSILON = 1e-12;
 
 namespace {
+<<<<<<< HEAD
   inline at::Tensor apply_loss_reduction(const at::Tensor& unreduced, int64_t reduction) {
+=======
+  static inline at::Tensor apply_loss_reduction(const at::Tensor& unreduced, int64_t reduction) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (reduction == at::Reduction::Mean) {
       return unreduced.mean();
     } else if (reduction == at::Reduction::Sum) {
@@ -127,9 +131,12 @@ TORCH_IMPL_FUNC(smooth_l1_loss_out)
 
 TORCH_IMPL_FUNC(mse_loss_out)
 (const Tensor& input, const Tensor& target, int64_t reduction, const Tensor& result) {
+<<<<<<< HEAD
   TORCH_CHECK(input.device() == target.device(),
       "Expected all tensors to be on the same device, but found at least two devices, ",
       input.device(), " and ", target.device(), "!");
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (reduction != Reduction::None) {
     Tensor loss;
     auto iter = TensorIterator::borrowing_binary_op(loss, input, target);

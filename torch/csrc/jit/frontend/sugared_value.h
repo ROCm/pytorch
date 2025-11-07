@@ -118,7 +118,11 @@ struct TORCH_API SugaredValue
 
   // If we are iterating over a Sugared Value and it returns a value from this
   // function, then we emit an unrolled loop over the variable. This allows us
+<<<<<<< HEAD
   // to support containers of Heterogeneous types, like Module Containers &
+=======
+  // to support containers of Heterogenous types, like Module Containers &
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Tuples
   virtual std::optional<int64_t> staticLen() {
     return std::nullopt;
@@ -136,10 +140,18 @@ struct TORCH_API SugaredValue
   // Value *
   virtual Value* len(const SourceRange& loc, GraphFunction& m) {
     throw(
+<<<<<<< HEAD
         ErrorReport(loc) << "'" << kind() << "'" << " object is not iterable");
   }
 
   // expression for ith element for iterable value
+=======
+        ErrorReport(loc) << "'" << kind() << "'"
+                         << " object is not iterable");
+  }
+
+  // expression for ith elemement for iterable value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   virtual std::shared_ptr<SugaredValue> getitem(
       const SourceRange& loc,
       GraphFunction& m,
@@ -296,7 +308,11 @@ struct TORCH_API SugaredTupleValue : public SugaredValue {
     return shared_from_this();
   }
 
+<<<<<<< HEAD
   // Because this is used to contain SugaredValues of Heterogeneous types,
+=======
+  // Because this is used to contain SugaredValues of Heterogenous types,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // we define staticLen() so that when this is iterated over it is emitted
   // as an unrolled loop.
   std::optional<int64_t> staticLen() override {
@@ -318,7 +334,11 @@ struct TORCH_API BuiltinModule : public SugaredValue {
       GraphFunction& m,
       const std::string& field) override {
     if (field == "autograd") {
+<<<<<<< HEAD
       // When referring torch.autograd, it is also considered to be a
+=======
+      // When refering torch.autograd, it is also considered to be a
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // BuiltinModule and we will dispatch to the aten operators for the
       // methods under its module.
       return std::make_shared<BuiltinModule>("aten", version);
@@ -330,12 +350,20 @@ struct TORCH_API BuiltinModule : public SugaredValue {
 
  private:
   std::string name;
+<<<<<<< HEAD
   // when we add operator versioning, emit this op as it existing at 'version'
+=======
+  // when we add operator versioning, emit this op as it exising at 'version'
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // if not set, use the latest version
   std::optional<int64_t> version;
 };
 
+<<<<<<< HEAD
 // Represents a class, analogous to `int` or `dict`. Instances of classes,
+=======
+// Represents a class, analagous to `int` or `dict`. Instances of classes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // like `1` or `{"foo": 5}`, are represented as SimpleValues
 struct TORCH_API ClassValue : public SugaredValue {
   explicit ClassValue(ClassTypePtr type) : type_(std::move(type)) {}
@@ -857,6 +885,7 @@ struct TORCH_API SliceValue : public SugaredValue {
   Value* step_;
 };
 
+<<<<<<< HEAD
 struct TORCH_API TorchCheckValue : public SugaredValue {
   explicit TorchCheckValue() = default;
 
@@ -872,4 +901,6 @@ struct TORCH_API TorchCheckValue : public SugaredValue {
       size_t n_binders) override;
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::jit

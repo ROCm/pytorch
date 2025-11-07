@@ -5,11 +5,19 @@ import io
 import itertools
 import os
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from contextlib import contextmanager
 from functools import wraps
 from pstats import Stats
 from typing import Any, cast, Optional, TypeVar, Union
+=======
+from collections.abc import Sequence
+from contextlib import contextmanager
+from functools import wraps
+from pstats import Stats
+from typing import Any, Callable, cast, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.distributed as dist
@@ -168,8 +176,12 @@ class _DistWrapper:
 
             local_reply = gather_result[0]
         else:
+<<<<<<< HEAD
             if object_list is None:
                 raise AssertionError("object_list is None")
+=======
+            assert object_list is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_reply = object_list[0]
         return local_reply
 
@@ -191,14 +203,22 @@ class _DistWrapper:
         local_data: Union[WRAPPED_EXCEPTION, T]
         try:
             local_data = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_data = _wrap_exception(e)
 
         all_data = self.gather_object(local_data)
         all_results: Optional[list[Union[R, CheckpointException]]] = None
         if self.is_coordinator:
+<<<<<<< HEAD
             if all_data is None:
                 raise AssertionError("all_data is None")
+=======
+            assert all_data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node_failures = _get_failure_dict(all_data)
 
             if len(node_failures) == 0:
@@ -208,7 +228,11 @@ class _DistWrapper:
                         list[Union[R, CheckpointException]],
                         reduce_fun(cast(list[T], all_data)),
                     )
+<<<<<<< HEAD
                 except BaseException as e:  # noqa: B036
+=======
+                except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node_failures[self.rank] = _wrap_exception(e)
 
             if len(node_failures) > 0:
@@ -239,25 +263,40 @@ class _DistWrapper:
         local_data: Union[T, WRAPPED_EXCEPTION]
         try:
             local_data = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             local_data = _wrap_exception(e)
 
         all_data = self.gather_object(local_data)
         result: Optional[Union[R, CheckpointException]] = None
         if self.is_coordinator:
+<<<<<<< HEAD
             if all_data is None:
                 raise AssertionError("all_data is None")
+=======
+            assert all_data is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node_failures = _get_failure_dict(all_data)
             if len(node_failures) == 0:
                 try:
                     result = reduce_fun(cast(list[T], all_data))
+<<<<<<< HEAD
                 except BaseException as e:  # noqa: B036
+=======
+                except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     node_failures[self.rank] = _wrap_exception(e)
 
             if len(node_failures) > 0:
                 result = CheckpointException(step, node_failures)
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         final_result = self.broadcast_object(result)
         if isinstance(final_result, CheckpointException):
             raise final_result
@@ -278,7 +317,11 @@ class _DistWrapper:
         result: Union[T, WRAPPED_EXCEPTION]
         try:
             result = map_fun()
+<<<<<<< HEAD
         except BaseException as e:  # noqa: B036
+=======
+        except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = _wrap_exception(e)
 
         all_results = self.all_gather_object(result)
@@ -304,9 +347,14 @@ class _DistWrapper:
         if self.is_coordinator:
             try:
                 result = map_fun()
+<<<<<<< HEAD
             except BaseException as e:  # noqa: B036
                 result = CheckpointException(step, {self.rank: _wrap_exception(e)})
         # pyrefly: ignore [bad-argument-type]
+=======
+            except BaseException as e:
+                result = CheckpointException(step, {self.rank: _wrap_exception(e)})
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         final_result = self.broadcast_object(result)
         if isinstance(final_result, CheckpointException):
             raise final_result
@@ -461,20 +509,31 @@ def _api_bc_check(func):
         if len(args) == 2:
             warnings.warn(
                 f"The argument order of {func.__name__} has been changed. "
+<<<<<<< HEAD
                 "Please check the document to avoid future breakages.",
                 stacklevel=2,
+=======
+                "Please check the document to avoid future breakages."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             sig = inspect.signature(func)
             kwonlyargs = [
                 p.name for p in sig.parameters.values() if p.kind == p.KEYWORD_ONLY
             ]
             if "storage_writer" in kwonlyargs:
+<<<<<<< HEAD
                 if "storage_writer" in kwargs:
                     raise AssertionError(f"storage_writer in kwargs: {(args, kwargs)}")
                 kwargs["storage_writer"] = args[1]
             elif "storage_reader" in kwonlyargs:
                 if "storage_reader" in kwargs:
                     raise AssertionError(f"storage_reader in kwargs: {(args, kwargs)}")
+=======
+                assert "storage_writer" not in kwargs, (args, kwargs)
+                kwargs["storage_writer"] = args[1]
+            elif "storage_reader" in kwonlyargs:
+                assert "storage_reader" not in kwargs, (args, kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kwargs["storage_reader"] = args[1]
             else:
                 raise RuntimeError(f"Unexpected kwonlyargs = {kwonlyargs}")

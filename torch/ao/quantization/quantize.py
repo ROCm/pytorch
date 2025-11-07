@@ -237,7 +237,11 @@ def _add_observer_(
 
     for name, child in module.named_children():
         # TODO remove Dropout special after codebase stable
+<<<<<<< HEAD
         if type_before_parametrizations(child) is nn.Dropout:
+=======
+        if type_before_parametrizations(child) in [nn.Dropout]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             continue
         elif issubclass(
             type_before_parametrizations(child), (nnq.FloatFunctional, nnq.QFunctional)
@@ -392,8 +396,12 @@ def prepare(
         warnings.warn(
             "None of the submodule got qconfig applied. Make sure you "
             "passed correct configuration through `qconfig_dict` or "
+<<<<<<< HEAD
             "by assigning the `.qconfig` attribute directly on submodules",
             stacklevel=2,
+=======
+            "by assigning the `.qconfig` attribute directly on submodules"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     _add_observer_(

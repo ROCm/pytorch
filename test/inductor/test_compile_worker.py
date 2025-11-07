@@ -1,7 +1,10 @@
 # Owner(s): ["module: inductor"]
 import operator
 import os
+<<<<<<< HEAD
 import tempfile
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._inductor.compile_worker.subproc_pool import (
     raise_testexc,
@@ -54,6 +57,7 @@ class TestCompileWorker(TestCase):
         finally:
             pool.shutdown()
 
+<<<<<<< HEAD
     @skipIfWindows(msg="pass_fds not supported on Windows.")
     def test_quiesce(self):
         pool = SubprocPool(2)
@@ -80,6 +84,8 @@ class TestCompileWorker(TestCase):
             finally:
                 pool.shutdown()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._inductor.test_case import run_tests

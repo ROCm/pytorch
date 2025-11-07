@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from torch._dynamo.codegen import PyCodegen
     from torch._dynamo.symbolic_convert import InstructionTranslator
 
+<<<<<<< HEAD
 PARAM_NAMES = [
     "query",
     "key",
@@ -22,6 +23,9 @@ PARAM_NAMES = [
     "is_causal",
     "enable_gqa",
 ]
+=======
+PARAM_NAMES = "query key value attn_mask dropout is_causal enable_gqa".split()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class SDPAParamsVariable(VariableTracker):

@@ -5,7 +5,10 @@ To support these two classes, in `./_utils` we define many utility methods and
 functions to be run in multiprocessing. E.g., the data loading worker loop is
 in `./_utils/worker.py`.
 """
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from __future__ import annotations
 
 import functools
@@ -16,8 +19,12 @@ import os
 import queue
 import threading
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Generic, Optional, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Any, Callable, Generic, Optional, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import torch
@@ -111,6 +118,7 @@ def _get_distributed_settings():
 def _sharding_worker_init_fn(worker_init_fn, world_size, rank_id, worker_id):
     global_worker_id = worker_id
     info = torch.utils.data.get_worker_info()
+<<<<<<< HEAD
     if info is None:
         raise AssertionError("Worker info is None in sharding worker init function")
     total_workers = info.num_workers
@@ -119,6 +127,12 @@ def _sharding_worker_init_fn(worker_init_fn, world_size, rank_id, worker_id):
         raise AssertionError(
             "datapipe must be an instance of IterDataPipe or MapDataPipe"
         )
+=======
+    assert info is not None
+    total_workers = info.num_workers
+    datapipe = info.dataset
+    assert isinstance(datapipe, (IterDataPipe, MapDataPipe))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # To distribute elements across distributed process evenly, we should shard data on distributed
     # processes first then shard on worker processes
     total_workers *= world_size
@@ -196,8 +210,14 @@ class DataLoader(Generic[_T_co]):
         persistent_workers (bool, optional): If ``True``, the data loader will not shut down
             the worker processes after a dataset has been consumed once. This allows to
             maintain the workers `Dataset` instances alive. (default: ``False``)
+<<<<<<< HEAD
         pin_memory_device (str, optional): Deprecated, the current :ref:`accelerator<accelerators>`
             will be used as the device if ``pin_memory=True``.
+=======
+        pin_memory_device (str, optional): the device to :attr:`pin_memory` on if ``pin_memory`` is
+            ``True``. If not given, the current :ref:`accelerator<accelerators>` will be the
+            default. This argument is discouraged and subject to deprecated.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         in_order (bool, optional): If ``False``, the data loader will not enforce that batches
             are returned in a first-in, first-out order. Only applies when ``num_workers > 0``. (default: ``True``)
 
@@ -485,7 +505,11 @@ class DataLoader(Generic[_T_co]):
 
     def __iter__(self) -> _BaseDataLoaderIter:
         # When using a single worker the returned iterator should be
+<<<<<<< HEAD
         # created every time to avoid resetting its state
+=======
+        # created everytime to avoid resetting its state
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # However, in the case of a multiple workers iterator
         # the iterator is only created once in the lifetime of the
         # DataLoader object so that workers can be reused
@@ -561,10 +585,17 @@ class DataLoader(Generic[_T_co]):
         #     necessary.
         #
         #
+<<<<<<< HEAD
         # [Note] Please note that this function respects `cpuset` only when os.sched_getaffinity is
         #        available (available in most of Linux system, but not OSX and Windows).
         #        When os.sched_getaffinity is not available, os.cpu_count() is called instead, but
         #        it doesn't respect cpuset.
+=======
+        # [Note] Please note that this function repects `cpuset` only when os.sched_getaffinity is
+        #        available (available in most of Linux system, but not OSX and Windows).
+        #        When os.sched_getaffinity is not available, os.cpu_count() is called instead, but
+        #        it doesn't repect cpuset.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #        We don't take threading into account since each worker process is single threaded
         #        at this time.
         #
@@ -624,8 +655,12 @@ class DataLoader(Generic[_T_co]):
             warnings.warn(
                 _create_warning_msg(
                     max_num_worker_suggest, self.num_workers, cpuset_checked
+<<<<<<< HEAD
                 ),
                 stacklevel=2,
+=======
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return
 
@@ -633,8 +668,12 @@ class DataLoader(Generic[_T_co]):
             warnings.warn(
                 _create_warning_msg(
                     max_num_worker_suggest, self.num_workers, cpuset_checked
+<<<<<<< HEAD
                 ),
                 stacklevel=2,
+=======
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
 
@@ -661,6 +700,7 @@ class _BaseDataLoaderIter:
         ws, rank = _get_distributed_settings()
         self._world_size = ws
         self._rank = rank
+<<<<<<< HEAD
 
         if loader.pin_memory and loader.pin_memory_device:
             warnings.warn(
@@ -699,6 +739,47 @@ class _BaseDataLoaderIter:
             )
             warnings.warn(warn_msg, stacklevel=2)
 
+=======
+        # If pin_memory_device not set, default behaviour is current accelerator.
+        # If pin_memory_device is set but pin_memory is not set, the default
+        # behaviour false.
+        if len(loader.pin_memory_device) == 0:
+            if loader.pin_memory and not torch.accelerator.is_available():
+                warn_msg = (
+                    "'pin_memory' argument is set as true but no accelerator is found, "
+                    "then device pinned memory won't be used."
+                )
+                warnings.warn(warn_msg)
+
+            self._pin_memory = loader.pin_memory and torch.accelerator.is_available()
+            self._pin_memory_device = None
+            # Currently, pin_memory would raise error on the MPS backend (see
+            # https://github.com/pytorch/pytorch/issues/86060), so forcibly
+            # disable pin_memory on MPS. Remove this restriction once pinned
+            # memory allocation for MPS is fixed.
+            if (
+                self._pin_memory
+                and (acc := torch.accelerator.current_accelerator()) is not None
+                and acc.type == "mps"
+            ):
+                self._pin_memory = False
+                warn_msg = (
+                    "'pin_memory' argument is set as true but not supported on MPS now, "
+                    "then device pinned memory won't be used."
+                )
+                warnings.warn(warn_msg)
+        else:
+            if not loader.pin_memory:
+                warn_msg = (
+                    "'pin_memory_device' is set but 'pin_memory' argument is not set, "
+                    "then device pinned memory won't be used."
+                    "please set 'pin_memory' to true, if you need to use the device pin memory"
+                )
+                warnings.warn(warn_msg)
+
+            self._pin_memory = loader.pin_memory
+            self._pin_memory_device = loader.pin_memory_device
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._timeout = loader.timeout
         self._collate_fn = loader.collate_fn
         self._sampler_iter = iter(self._index_sampler)
@@ -754,7 +835,11 @@ class _BaseDataLoaderIter:
                         "IterableDataset replica at each worker. Please see "
                         "https://pytorch.org/docs/stable/data.html#torch.utils.data.IterableDataset for examples."
                     )
+<<<<<<< HEAD
                 warnings.warn(warn_msg, stacklevel=2)
+=======
+                warnings.warn(warn_msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return data
 
     def __len__(self) -> int:
@@ -772,12 +857,17 @@ class _BaseDataLoaderIter:
 class _SingleProcessDataLoaderIter(_BaseDataLoaderIter):
     def __init__(self, loader):
         super().__init__(loader)
+<<<<<<< HEAD
         if self._timeout != 0:
             raise AssertionError("_SingleProcessDataLoaderIter requires timeout == 0")
         if self._num_workers != 0:
             raise AssertionError(
                 "_SingleProcessDataLoaderIter requires num_workers == 0"
             )
+=======
+        assert self._timeout == 0
+        assert self._num_workers == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Adds forward compatibilities so classic DataLoader can work with DataPipes:
         #   Taking care of distributed sharding
@@ -896,7 +986,11 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
     #        2. A similar issue araises when a `DataLoader` is used in a subprocess.
     #           When a process ends, it shuts the all its daemonic children
     #           down with a SIGTERM (instead of joining them without a timeout).
+<<<<<<< HEAD
     #           Similarly for threads, but by a different mechanism. This fact,
+=======
+    #           Simiarly for threads, but by a different mechanism. This fact,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #           together with a few implementation details of multiprocessing, forces
     #           us to make workers daemonic. All of our problems arise when a
     #           DataLoader is used in a subprocess, and are caused by multiprocessing
@@ -1027,7 +1121,11 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
     #   `cancel_join_thread` on that queue if its `IterableDataset` iterator
     #   happens to exhaust coincidentally, which is out of the control of the
     #   main process). Thus, since we will exit `pin_memory_thread` before the
+<<<<<<< HEAD
     #   workers (see below), two separate events are used.
+=======
+    #   workers (see below), two separete events are used.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     #
     # NOTE: In short, the protocol is that the main process will set these
     #       `done_event`s and then the corresponding processes/threads a `None`,
@@ -1119,6 +1217,7 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
         self._prefetch_factor = loader.prefetch_factor
         self._in_order = loader.in_order
 
+<<<<<<< HEAD
         if self._num_workers <= 0:
             raise AssertionError(
                 "num_workers must be greater than 0 for MultiProcessingDataLoaderIter"
@@ -1127,6 +1226,10 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
             raise AssertionError(
                 "prefetch_factor must be greater than 0 for MultiProcessingDataLoaderIter"
             )
+=======
+        assert self._num_workers > 0
+        assert self._prefetch_factor > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if loader.multiprocessing_context is None:
             multiprocessing_context = torch.multiprocessing
@@ -1194,13 +1297,32 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
 
             # Queue is not type-annotated
             self._data_queue = queue.Queue()  # type: ignore[var-annotated]
+<<<<<<< HEAD
             current_device_id = torch.accelerator.current_device_index()
+=======
+            current_device = -1
+            if self._pin_memory_device == "cuda":
+                current_device = torch.cuda.current_device()
+            elif self._pin_memory_device == "xpu":
+                current_device = torch.xpu.current_device()
+            elif self._pin_memory_device == torch._C._get_privateuse1_backend_name():
+                custom_device_mod = getattr(
+                    torch, torch._C._get_privateuse1_backend_name()
+                )
+                current_device = custom_device_mod.current_device()
+            elif self._pin_memory_device is None:
+                current_device = torch.accelerator.current_device_index()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             pin_memory_thread = threading.Thread(
                 target=_utils.pin_memory._pin_memory_loop,
                 args=(
                     self._worker_result_queue,
                     self._data_queue,
+<<<<<<< HEAD
                     current_device_id,
+=======
+                    current_device,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self._pin_memory_thread_done_event,
                     self._pin_memory_device,
                 ),
@@ -1227,10 +1349,14 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
                 atexit.register(_MultiProcessingDataLoaderIter._clean_up_worker, w)
 
         # .pid can be None only before process is spawned (not the case, so ignore)
+<<<<<<< HEAD
         _utils.signal_handling._set_worker_pids(
             id(self),
             tuple(w.pid for w in self._workers),  # type: ignore[misc]
         )
+=======
+        _utils.signal_handling._set_worker_pids(id(self), tuple(w.pid for w in self._workers))  # type: ignore[misc]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         _utils.signal_handling._set_SIGCHLD_handler()
         self._worker_pids_set = True
         self._reset(loader, first_iter=True)
@@ -1271,10 +1397,14 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
             while resume_iteration_cnt > 0:
                 return_idx, return_data = self._get_data()
                 if isinstance(return_idx, _utils.worker._ResumeIteration):
+<<<<<<< HEAD
                     if return_data is not None:
                         raise AssertionError(
                             "Expected return_data to be None when resuming iteration"
                         )
+=======
+                    assert return_data is None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     resume_iteration_cnt -= 1
         # prime the prefetch loop
         for _ in range(self._prefetch_factor * self._num_workers):
@@ -1499,10 +1629,14 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
                 self._rcvd_idx += 1
                 return self._process_data(data, worker_id)
 
+<<<<<<< HEAD
             if self._shutdown or self._tasks_outstanding <= 0:
                 raise AssertionError(
                     "Invalid iterator state: shutdown or no outstanding tasks when fetching next data"
                 )
+=======
+            assert not self._shutdown and self._tasks_outstanding > 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             idx, data = self._get_data()
             self._tasks_outstanding -= 1
             if self._dataset_kind == _DatasetKind.Iterable:
@@ -1531,10 +1665,14 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
 
     def _try_put_index(self):
         max_tasks = self._prefetch_factor * self._num_workers
+<<<<<<< HEAD
         if self._tasks_outstanding >= max_tasks:
             raise AssertionError(
                 "Number of outstanding tasks exceeded maximum allowed tasks"
             )
+=======
+        assert self._tasks_outstanding < max_tasks
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         try:
             index = self._next_index()
@@ -1573,6 +1711,7 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
         # exhausting an `IterableDataset`. This should be used only when this
         # `_MultiProcessingDataLoaderIter` is going to continue running.
 
+<<<<<<< HEAD
         if (
             not self._workers_status[worker_id]
             and not self._persistent_workers
@@ -1581,6 +1720,11 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
             raise AssertionError(
                 "Worker status inconsistent when marking worker as unavailable"
             )
+=======
+        assert self._workers_status[worker_id] or (
+            self._persistent_workers and shutdown
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Signal termination to that specific worker.
         q = self._index_queues[worker_id]
@@ -1593,16 +1737,24 @@ class _MultiProcessingDataLoaderIter(_BaseDataLoaderIter):
         # (2) since we don't join, the worker may still raise error, and we
         # prefer capturing those, rather than ignoring them, even though they
         # are raised after the worker has finished its job.
+<<<<<<< HEAD
         # Joining is deferred to `_shutdown_workers`, which it is called when
+=======
+        # Joinning is deferred to `_shutdown_workers`, which it is called when
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # all workers finish their jobs (e.g., `IterableDataset` replicas) or
         # when this iterator is garbage collected.
 
         self._workers_status[worker_id] = False
 
+<<<<<<< HEAD
         if self._workers_done_event.is_set() != shutdown:
             raise AssertionError(
                 "_workers_done_event state does not match shutdown flag"
             )
+=======
+        assert self._workers_done_event.is_set() == shutdown
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _shutdown_workers(self):
         # Called when shutting down this `_MultiProcessingDataLoaderIter`.

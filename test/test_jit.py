@@ -3,6 +3,7 @@
 
 import torch
 
+<<<<<<< HEAD
 if __name__ == '__main__':
     from torch.testing._internal.common_utils import parse_cmd_line_args
 
@@ -10,6 +11,8 @@ if __name__ == '__main__':
     # before instantiating tests.
     parse_cmd_line_args()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This is how we include tests located in test/jit/...
 # They are included here so that they are invoked when you call `test_jit.py`,
 # do not run these test files directly.
@@ -104,7 +107,11 @@ import torch.nn.functional as F
 from torch.testing._internal import jit_utils
 from torch.testing._internal.common_jit import check_against_reference
 from torch.testing._internal.common_utils import run_tests, IS_WINDOWS, \
+<<<<<<< HEAD
     GRAPH_EXECUTOR, suppress_warnings, IS_SANDCASTLE, ProfilingMode, \
+=======
+    suppress_warnings, IS_SANDCASTLE, GRAPH_EXECUTOR, ProfilingMode, \
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TestCase, freeze_rng_state, slowTest, TemporaryFileName, \
     enable_profiling_mode_for_profiling_tests, TEST_MKL, set_default_dtype, num_profiled_runs, \
     skipIfCrossRef, skipIfTorchDynamo
@@ -165,7 +172,10 @@ def doAutodiffCheck(testname):
     if "test_t_" in testname or testname == "test_t":
         return False
 
+<<<<<<< HEAD
     assert GRAPH_EXECUTOR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if GRAPH_EXECUTOR == ProfilingMode.SIMPLE:
         return False
 
@@ -209,7 +219,10 @@ def doAutodiffCheck(testname):
     return testname not in test_exceptions
 
 
+<<<<<<< HEAD
 assert GRAPH_EXECUTOR
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # TODO: enable TE in PE when all tests are fixed
 torch._C._jit_set_texpr_fuser_enabled(GRAPH_EXECUTOR == ProfilingMode.PROFILING)
 torch._C._jit_set_profiling_executor(GRAPH_EXECUTOR != ProfilingMode.LEGACY)
@@ -2887,9 +2900,15 @@ graph(%Ra, %Rb):
                     self.assertTrue(hasattr(input, 'type'))
                     self.assertTrue(input.type() is not None)
                 self.assertTrue(hasattr(block, 'returnNode'))
+<<<<<<< HEAD
                 self.assertTrue(type(block.returnNode()) is torch._C.Node)
                 self.assertTrue(hasattr(block, 'paramNode'))
                 self.assertTrue(type(block.paramNode()) is torch._C.Node)
+=======
+                self.assertTrue(type(block.returnNode()) == torch._C.Node)
+                self.assertTrue(hasattr(block, 'paramNode'))
+                self.assertTrue(type(block.paramNode()) == torch._C.Node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(tested_blocks)
 
     def test_export_opnames(self):
@@ -3153,7 +3172,11 @@ class TestScript(JitTestCase):
             eplan = get_execution_plan(dstate)
             num_bailouts = eplan.code.num_bailouts()
 
+<<<<<<< HEAD
             for i in range(num_bailouts):
+=======
+            for i in range(0, num_bailouts):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 eplan.code.request_bailout(i)
                 self.assertEqual(jitted(x), expected)
 
@@ -4773,7 +4796,11 @@ a")
         self.assertIsNot(fun_compiled, fun_compiled_2)
         self.assertEqual(fun_compiled_2(), 7)
 
+<<<<<<< HEAD
         # caching doesn't increase refcounts to function (holds weak reference)
+=======
+        # caching doesnt increase refcounts to function (holds weak reference)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertTrue(sys.getrefcount(fun), num_ref_counts)
 
     def test_string_ops(self):
@@ -5950,7 +5977,11 @@ a")
             # type: (int) -> int
             prev = 1
             v = 1
+<<<<<<< HEAD
             for i in range(x):
+=======
+            for i in range(0, x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 save = v
                 v = v + prev
                 prev = save
@@ -6510,7 +6541,11 @@ a")
                     if isinstance(res_python, Exception):
                         continue
 
+<<<<<<< HEAD
                     if type(res_python) is type(res_script):
+=======
+                    if type(res_python) == type(res_script):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         if isinstance(res_python, tuple) and (math.isnan(res_python[0]) == math.isnan(res_script[0])):
                             continue
                         if isinstance(res_python, float) and math.isnan(res_python) and math.isnan(res_script):
@@ -6723,7 +6758,11 @@ a")
         @torch.jit.script
         def testNoThrows(t):
             c1 = 1
+<<<<<<< HEAD
             if (False and bool(t[1])) or (True or bool(t[1])):  # noqa: SIM222,SIM223
+=======
+            if (False and bool(t[1])) or (True or bool(t[1])):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 c1 = 0
             return c1
 
@@ -7383,8 +7422,13 @@ a")
                     # tensor from empty list is type float in python and annotated type in torchscript
                     if "annotate" in li and "dtype" not in option:
                         continue
+<<<<<<< HEAD
                     # Skip unsigned tensor initialization for signed values on 3.10
                     if "torch.uint8" in option and "-" in li:
+=======
+                    # Skip unsigned tensor initializaton for signed values on 3.10
+                    if sys.version_info[:2] >= (3, 10) and "torch.uint8" in option and "-" in li:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         continue
                     code = tensor_template.format(list_create=li, tensor_op=op, options=option)
                     scope = {}
@@ -7999,7 +8043,11 @@ dedent """
                 m += k
             return m
 
+<<<<<<< HEAD
         # use of k tests the pathway where we have to insert uninitialized
+=======
+        # use of k tests the pathway where we have to insert unitialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.checkScript(test_varexit, (3,))
         self.checkScript(test_varexit, (2,))
 
@@ -8646,7 +8694,11 @@ dedent """
         args = args + [1, 1.5]
 
         def isBool(arg):
+<<<<<<< HEAD
             return type(arg) is bool or (type(arg) is str and "torch.bool" in arg)
+=======
+            return type(arg) == bool or (type(arg) == str and "torch.bool" in arg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         for op in ops:
             for first_arg in args:
@@ -8655,7 +8707,11 @@ dedent """
                     if (op == 'sub' or op == 'div') and (isBool(first_arg) or isBool(second_arg)):
                         continue
                     # div is not implemented correctly for mixed-type or int params
+<<<<<<< HEAD
                     if (op == 'div' and (type(first_arg) is not type(second_arg) or
+=======
+                    if (op == 'div' and (type(first_arg) != type(second_arg) or
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                        isinstance(first_arg, int) or
                        (isinstance(first_arg, str) and 'int' in first_arg))):
                         continue
@@ -8671,7 +8727,11 @@ dedent """
                     graph = cu.func.graph
                     torch._C._jit_pass_complete_shape_analysis(graph, (), False)
                     # use dim=-1 to represent a python/jit scalar.
+<<<<<<< HEAD
                     dim = -1 if type(first_arg) is not str and type(second_arg) is not str else non_jit_result.dim()
+=======
+                    dim = -1 if type(first_arg) != str and type(second_arg) != str else non_jit_result.dim()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     dtype = non_jit_result.dtype
                     # jit only supports int/float scalars.
                     if dim < 0:
@@ -10005,7 +10065,11 @@ dedent """
         def tensor_unifying(x, y, z):
             # testing dynamic is appropriately set for y and z
             if bool(x):
+<<<<<<< HEAD
                 x, y, z = x + 1, y, z  # noqa: PLW0127
+=======
+                x, y, z = x + 1, y, z
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 x, y, z = x + 1, x, y
 
@@ -10075,7 +10139,11 @@ dedent """
         buffer = io.BytesIO()
         torch.jit.save(cm, buffer)
         buffer.seek(0)
+<<<<<<< HEAD
         # when tensor is loaded as constant it isn't specialized
+=======
+        # when tensor is loaded as constant it isnt specialized
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cm_load = torch.jit.load(buffer)
         FileCheck().check_not("Float(1, 3)").run(cm_load.forward.graph)
 
@@ -10309,7 +10377,11 @@ dedent """
 
     def test_type_inferred_from_empty_annotation(self):
         """
+<<<<<<< HEAD
         Test that the type inferred from an empty or missing annotation is Torch.Tensor with `inferred=true`
+=======
+        Test that the type inferred from an empty or missing annotation is Torch.Tensor wtih `inferred=true`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         @torch.jit.script
         def fn(x):
@@ -10938,7 +11010,11 @@ dedent """
 
             # Test symbolic differentiation
             # Run Forward and Backward thrice to trigger autodiff graph
+<<<<<<< HEAD
             for i in range(3):
+=======
+            for i in range(0, 3):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 y = jit_module(x)
                 y.backward(grad)
             x.grad.zero_()
@@ -11802,7 +11878,11 @@ dedent """
         def fn_zip_enumerate(x, y):
             # type: (List[int], List[int]) -> int
             sum = 0
+<<<<<<< HEAD
             for (i, (j, v), k) in zip(x, enumerate(y), range(100)):
+=======
+            for (i, (j, v), k) in zip(x, enumerate(y), range(0, 100)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 sum += i * j * v * k
 
             return sum
@@ -14844,7 +14924,11 @@ dedent """
 
         # testing overload declared first, then non-overload
         if sys.version_info < (3, 13):  # test broken in 3.13
+<<<<<<< HEAD
             with self.assertRaisesRegex(Exception, "Overloads are not usable when a module"):
+=======
+            with self.assertRaisesRegex(Exception, "Overloads are not useable when a module"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 class W3(torch.nn.Module):
                     @torch.jit._overload_method  # noqa: F811
                     def forward(self, x):  # noqa: F811
@@ -14897,7 +14981,11 @@ dedent """
                 return self.hello(1), self.hello(x)
 
         if sys.version_info < (3, 13):  # test broken in 3.13
+<<<<<<< HEAD
             with self.assertRaisesRegex(Exception, "Overloads are not usable when a module"):
+=======
+            with self.assertRaisesRegex(Exception, "Overloads are not useable when a module"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 a = torch.jit.script(W2())
 
     def test_narrow_copy(self):
@@ -15615,7 +15703,11 @@ dedent """
                 a = hasattr(self, "fee")
                 b = hasattr(self, "foo")
                 c = hasattr(self, "hi")
+<<<<<<< HEAD
                 d = hasattr(self, "nonexistent")
+=======
+                d = hasattr(self, "nonexistant")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return (a, b, c, d)
 
             def foo(self):
@@ -15758,7 +15850,11 @@ dedent """
         def fn(d):
             # type: (Dict[str, int]) -> List[int]
             out = [1]
+<<<<<<< HEAD
             for i in range(d.get("hi", 6)):
+=======
+            for i in range(d["hi"] if "hi" in d else 6):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out.append(i)  # noqa: PERF402
             return out
 
@@ -16053,7 +16149,11 @@ EXCLUDE_TYPE_CHECK = {
 # chunk returns a list in scripting and we don't unpack the list,
 # Thus it won't be replaced by ConstantChunk and run AD.
 # It's explicitly checked in test_chunk_constant_script_ad
+<<<<<<< HEAD
 # Similarly for split, it's replaced by split_with_sizes in tracing,
+=======
+# Similary for split, it's replaced by split_with_sizes in tracing,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # but we don't have AD formula for aten::split(Tensor, int[], int),
 # an op registered in JIT so AD is not triggered in scripting.
 EXCLUDE_SCRIPT_AD_CHECK = {
@@ -16104,7 +16204,11 @@ M = 10
 S = 5
 
 def add_nn_module_test(*args, **kwargs):
+<<<<<<< HEAD
     no_grad = kwargs.get('no_grad', False)
+=======
+    no_grad = False if 'no_grad' not in kwargs else kwargs['no_grad']
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if 'desc' in kwargs and 'eval' in kwargs['desc']:
         # eval() is not supported, so skip these tests

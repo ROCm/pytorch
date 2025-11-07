@@ -4,11 +4,16 @@ import pytorch_test_common
 from pytorch_test_common import skipIfNoCuda
 
 import torch
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter import verification
 from torch.onnx._internal.torchscript_exporter._globals import GLOBALS
 from torch.onnx._internal.torchscript_exporter.utils import (
     _trigger_symbolic_function_registration,
 )
+=======
+from torch.onnx import verification
+from torch.onnx._globals import GLOBALS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 
@@ -23,7 +28,10 @@ def _jit_graph_to_onnx_model(graph, operator_export_type, opset_version):
     """
 
     GLOBALS.export_onnx_opset_version = opset_version
+<<<<<<< HEAD
     _trigger_symbolic_function_registration()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     graph = torch.onnx.utils._optimize_graph(
         graph, operator_export_type, params_dict={}
     )

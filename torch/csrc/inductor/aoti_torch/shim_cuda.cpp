@@ -2,7 +2,10 @@
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
 #include <torch/csrc/inductor/aoti_torch/utils.h>
 
+<<<<<<< HEAD
 #include <c10/cuda/CUDACachingAllocator.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <c10/cuda/CUDAGuard.h>
 #include <c10/cuda/CUDAStream.h>
 
@@ -54,6 +57,7 @@ AOTITorchError aoti_torch_get_current_cuda_stream(
     *(cudaStream_t*)(ret_stream) = at::cuda::getCurrentCUDAStream(device_index);
   });
 }
+<<<<<<< HEAD
 
 AOTITorchError aoti_torch_cuda_caching_allocator_raw_alloc(
     uint64_t nbytes,
@@ -83,3 +87,5 @@ AOTITorchError aoti_torch_cuda_caching_allocator_raw_delete(void* ptr) {
     }
   });
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

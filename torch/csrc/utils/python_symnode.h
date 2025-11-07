@@ -12,7 +12,10 @@ namespace torch {
 TORCH_PYTHON_API py::handle get_symint_class();
 TORCH_PYTHON_API py::handle get_symfloat_class();
 TORCH_PYTHON_API py::handle get_symbool_class();
+<<<<<<< HEAD
 TORCH_PYTHON_API py::handle get_dynint_class();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // NB: These functions must not be called too early, otherwise torch not setup.
 // Alternate design is to have torch "register" the object to us
@@ -25,9 +28,12 @@ inline bool is_symfloat(py::handle obj) {
 inline bool is_symbool(py::handle obj) {
   return py::isinstance(obj, get_symbool_class());
 }
+<<<<<<< HEAD
 inline bool is_dynint(py::handle obj) {
   return py::isinstance(obj, get_dynint_class());
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace impl {
 
@@ -129,6 +135,14 @@ class PythonSymNodeImpl : public c10::SymNodeImpl {
     return getPyObj().attr("expect_true")(file, line).cast<bool>();
   }
 
+<<<<<<< HEAD
+=======
+  bool expect_size(const char* file, int64_t line) override {
+    py::gil_scoped_acquire acquire;
+    return getPyObj().attr("expect_size")(file, line).cast<bool>();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool guard_size_oblivious(const char* file, int64_t line) override {
     py::gil_scoped_acquire acquire;
     return getPyObj().attr("guard_size_oblivious")(file, line).cast<bool>();

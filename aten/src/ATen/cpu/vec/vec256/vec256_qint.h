@@ -54,9 +54,13 @@ struct Vectorizedqi {
 #endif
 
  public:
+<<<<<<< HEAD
   Vectorizedqi() {
     vals = _mm256_setzero_si256();
   }
+=======
+  Vectorizedqi() {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Vectorizedqi(__m256i v) : vals(v) {}
   operator __m256i() const {
     return vals;
@@ -123,29 +127,46 @@ typename std::enable_if_t<
 }
 
 template <typename T>
+<<<<<<< HEAD
 at::vec::Vectorized<T> inline convert_float_to_int8(
     at::vec::Vectorized<float> src);
 
 template <>
 at::vec::Vectorized<int8_t> inline convert_float_to_int8(
     at::vec::Vectorized<float> src) {
+=======
+typename std::enable_if_t<
+    std::is_same_v<T, uint8_t> || std::is_same_v<T, int8_t>,
+    at::vec::Vectorized<
+        T>> inline convert_float_to_int8(at::vec::Vectorized<float> src) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // Convert from float32 to int32 with truncation
   __m256i x_values_int32 = _mm256_cvttps_epi32(src);
 
   // Convert from int32 to int16 using signed saturation
   __m256i xy_packed_v = _mm256_packs_epi32(x_values_int32, x_values_int32);
 
+<<<<<<< HEAD
   constexpr auto min_val = std::numeric_limits<int8_t>::min();
   constexpr auto max_val = std::numeric_limits<int8_t>::max();
 
   // Convert from int16 to int8 using unsigned saturation
   __m256i xyzw_clamped_v = pack_saturate_and_clamp<int8_t>(
       xy_packed_v, xy_packed_v, min_val, max_val);
+=======
+  constexpr auto min_val = std::numeric_limits<T>::min();
+  constexpr auto max_val = std::numeric_limits<T>::max();
+
+  // Convert from int16 to uint8/int8 using unsigned saturation
+  __m256i xyzw_clamped_v =
+      pack_saturate_and_clamp<T>(xy_packed_v, xy_packed_v, min_val, max_val);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   __m256i permute_mask_v =
       _mm256_set_epi32(0x07, 0x03, 0x06, 0x02, 0x05, 0x01, 0x04, 0x00);
   return _mm256_permutevar8x32_epi32(xyzw_clamped_v, permute_mask_v);
 }
 
+<<<<<<< HEAD
 template <>
 at::vec::Vectorized<uint8_t> inline convert_float_to_int8(
     at::vec::Vectorized<float> src) {
@@ -169,6 +190,8 @@ at::vec::Vectorized<uint8_t> inline convert_float_to_int8(
   return _mm256_castsi128_si256(result);
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T>
 __FORCE_INLINE void QuantizeAvx2(
     const float* src,
@@ -1377,7 +1400,11 @@ Vectorized<c10::quint8> inline maximum(
 #if (defined(__aarch64__) && !defined(CPU_CAPABILITY_SVE256))
 std::pair<Vectorized<float>, Vectorized<float>> inline convert_int8_to_float(
     at::vec::Vectorized<int8_t> src) {
+<<<<<<< HEAD
   auto s8x8 = vget_low_s8(src);
+=======
+  auto s8x8 = vld1_s8(src.operator const int8_t*());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto s16x8 = vmovl_s8(s8x8);
 
   auto s32x4_hi = vmovl_s16(vget_high_s16(s16x8));
@@ -1390,7 +1417,11 @@ std::pair<Vectorized<float>, Vectorized<float>> inline convert_int8_to_float(
 
 std::pair<Vectorized<float>, Vectorized<float>> inline convert_int8_to_float(
     at::vec::Vectorized<uint8_t> src) {
+<<<<<<< HEAD
   auto u8x8 = vget_low_u8(src);
+=======
+  auto u8x8 = vld1_u8(src.operator const uint8_t*());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto u16x8 = vmovl_u8(u8x8);
   auto u32x4_hi = vmovl_u16(vget_high_u16(u16x8));
   auto u32x4_lo = vmovl_u16(vget_low_u16(u16x8));
@@ -1402,7 +1433,11 @@ std::pair<Vectorized<float>, Vectorized<float>> inline convert_int8_to_float(
 
 Vectorized<float> inline convert_int8_half_register_to_float(
     at::vec::Vectorized<int8_t> src) {
+<<<<<<< HEAD
   auto s8x8 = vget_low_s8(src);
+=======
+  auto s8x8 = vld1_s8(src.operator const int8_t*());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto s16x8 = vmovl_s8(s8x8);
 
   auto s32x4_lo = vmovl_s16(vget_low_s16(s16x8));
@@ -1412,7 +1447,11 @@ Vectorized<float> inline convert_int8_half_register_to_float(
 
 Vectorized<float> inline convert_int8_half_register_to_float(
     at::vec::Vectorized<uint8_t> src) {
+<<<<<<< HEAD
   auto u8x8 = vget_low_u8(src);
+=======
+  auto u8x8 = vld1_u8(src.operator const uint8_t*());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto u16x8 = vmovl_u8(u8x8);
   auto u32x4_lo = vmovl_u16(vget_low_u16(u16x8));
 

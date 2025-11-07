@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # mypy: disable-error-code="method-assign"
 
 """
@@ -36,13 +40,20 @@ import textwrap
 import threading
 import traceback
 import types
+<<<<<<< HEAD
 import unittest
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 import weakref
 from dataclasses import dataclass
 from enum import Enum
 from os.path import dirname, join
+<<<<<<< HEAD
 from typing import Any, NamedTuple, Optional, Sized, TYPE_CHECKING, Union
+=======
+from typing import Any, Callable, NamedTuple, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest.mock import patch
 
 import sympy
@@ -67,7 +78,11 @@ from torch._dispatch.python import enable_python_dispatcher
 from torch._dynamo.types import ConvertFrameReturn, FrameAction, FrameExecStrategy
 from torch._export.utils import _compiling_state_context
 from torch._subclasses.fake_tensor import unset_fake_temporarily
+<<<<<<< HEAD
 from torch._utils_internal import DISABLE_JUSTKNOBS, justknobs_check, log_export_usage
+=======
+from torch._utils_internal import justknobs_check, log_export_usage
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.export.dynamic_shapes import (
     _combine_args,
     _DimHint,
@@ -103,6 +118,7 @@ from .exc import (
 )
 from .hooks import Hooks
 from .mutation_guard import install_generation_tagging_init
+<<<<<<< HEAD
 from .utils import (
     _get_error_on_graph_break,
     _set_error_on_graph_break,
@@ -126,6 +142,15 @@ if TYPE_CHECKING:
         GuardFail,
         GuardFilterEntry,
     )
+=======
+from .utils import common_constant_types, compile_times
+
+
+if TYPE_CHECKING:
+    from torch._subclasses import fake_tensor
+
+    from .types import CacheEntry, DynamoCallback
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 log = logging.getLogger(__name__)
@@ -145,6 +170,7 @@ cached_backends: dict[int, CompilerFn] = {}
 unset = Unset.token
 
 
+<<<<<<< HEAD
 if DISABLE_JUSTKNOBS:
     _maybe_set_eval_frame = set_eval_frame
 else:
@@ -159,6 +185,18 @@ else:
             return callback
         else:
             return set_eval_frame(callback)
+=======
+def _maybe_set_eval_frame(callback: DynamoCallback):
+    # A wrapper on set_eval_frame that is guarded by a Justknob.
+    # Users can disable torchDynamo by setting the JK to False.
+    if not justknobs_check("pytorch/compiler:enable_compiler_set_eval_frame"):
+        torch._dynamo.utils.warn_once(
+            "Dynamo disabled by Justknob: enable_compiler_set_eval_frame, skipping set_eval_frame"
+        )
+        return callback
+    else:
+        return set_eval_frame(callback)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @dataclass
@@ -191,7 +229,11 @@ _set_stance._dynamo_forbidden = True  # type: ignore[attr-defined]
 _EXAMPLE_INPUTS: Optional[dict[str, list[Any]]] = None
 
 
+<<<<<<< HEAD
 def get_example_inputs(key: str) -> list[Any]:
+=======
+def get_example_inputs(key) -> list[Any]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global _EXAMPLE_INPUTS
     if _EXAMPLE_INPUTS is None:
         _EXAMPLE_INPUTS = {}
@@ -202,7 +244,11 @@ def get_example_inputs(key: str) -> list[Any]:
     return _EXAMPLE_INPUTS[key]
 
 
+<<<<<<< HEAD
 def _callback_from_stance(callback: DynamoCallback) -> DynamoCallback:
+=======
+def _callback_from_stance(callback):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _stance.stance == "default":
         # force_backend
         if _stance.backend is not None and callback not in (False, None):
@@ -227,6 +273,7 @@ def _callback_from_stance(callback: DynamoCallback) -> DynamoCallback:
         if callback in (False, None):
             return callback
 
+<<<<<<< HEAD
         def fail_callback(
             frame: DynamoFrameType, *args: Any, **kwargs: Any
         ) -> ConvertFrameReturn:
@@ -267,15 +314,30 @@ def _callback_from_stance(callback: DynamoCallback) -> DynamoCallback:
 
         # to prevent cache miss due to different backend
         fail_callback._torchdynamo_orig_backend = callback  # type: ignore[attr-defined]
+=======
+        def fail_callback(frame, *args, **kwargs):
+            if trace_rules.check(frame.f_code):
+                return ConvertFrameReturn()
+            raise RuntimeError(
+                "Detected recompile when torch.compile stance is 'fail_on_recompile'"
+            )
+
+        # to prevent cache miss due to different callback
+        fail_callback._torchdynamo_orig_callable = callback  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return fail_callback
     else:
         raise RuntimeError(f"invalid torch.compile stance '{_stance}'")
 
 
+<<<<<<< HEAD
 def _create_wrapped_callback(
     compiler_fn: CompilerFn,
 ) -> convert_frame.CatchErrorsWrapper:
+=======
+def _create_wrapped_callback(compiler_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     hooks = Hooks()
     return convert_frame.catch_errors_wrapper(
         convert_frame.convert_frame(  # type: ignore[arg-type]
@@ -286,7 +348,11 @@ def _create_wrapped_callback(
     )
 
 
+<<<<<<< HEAD
 def _get_or_add_example_inputs(frame: DynamoFrameType) -> list[Any]:
+=======
+def _get_or_add_example_inputs(frame):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     key = frame.f_code.co_filename + str(frame.f_code.co_firstlineno)
     example_inputs = get_example_inputs(key)
 
@@ -296,10 +362,15 @@ def _get_or_add_example_inputs(frame: DynamoFrameType) -> list[Any]:
     return example_inputs
 
 
+<<<<<<< HEAD
 def _create_delayed_compile_callback(
     callback: DynamoCallback, stance: str
 ) -> Callable[..., Any]:
     def callback_fn(*args: Any, **kwargs: Any) -> convert_frame.ConvertFrameReturn:
+=======
+def _create_delayed_compile_callback(callback, stance):
+    def callback_fn(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         frame = args[0]
         example_inputs = _get_or_add_example_inputs(frame)
 
@@ -316,6 +387,7 @@ def _create_delayed_compile_callback(
 
         dynamism = track_dynamism_across_examples(example_inputs)
         code_context.get_context(frame.f_code)["dynamism"] = dynamism
+<<<<<<< HEAD
         compiler_fn = callback._torchdynamo_orig_backend._torchdynamo_orig_backend  # type: ignore[union-attr]
         return _create_wrapped_callback(compiler_fn)(*args, **kwargs)
 
@@ -330,6 +402,19 @@ def _is_skip_guard_eval_unsafe_stance() -> bool:
 
 
 def _reset_guarded_backend_cache() -> None:
+=======
+        compiler_fn = callback._torchdynamo_orig_callable._torchdynamo_orig_callable
+        return _create_wrapped_callback(compiler_fn)(*args, **kwargs)
+
+    return callback_fn
+
+
+def _is_skip_guard_eval_unsafe_stance():
+    return _stance.skip_guard_eval_unsafe
+
+
+def _reset_guarded_backend_cache():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global cached_backends
     for backend in cached_backends.values():
         if hasattr(backend, "reset"):
@@ -377,7 +462,11 @@ class OptimizedModule(torch.nn.Module):
         "_super_module_initialized",
     }
 
+<<<<<<< HEAD
     def __init__(self, mod: torch.nn.Module, dynamo_ctx: _TorchDynamoContext) -> None:
+=======
+    def __init__(self, mod: torch.nn.Module, dynamo_ctx) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NOTE: this must go first, because attribute reads/writes of `self`
         # uses `_orig_mod`, and sometimes users override `Module.__init__` to
         # do attribute reads/writes on `self`.
@@ -395,6 +484,7 @@ class OptimizedModule(torch.nn.Module):
         self._initialize()
         self.training = self._orig_mod.training
 
+<<<<<<< HEAD
     def __len__(self) -> int:
         # Proxy the len call to the original module
         if isinstance(self._orig_mod, Sized):
@@ -403,6 +493,9 @@ class OptimizedModule(torch.nn.Module):
         raise TypeError(f"{type(self._orig_mod).__name__} does not support len()")
 
     def _initialize(self) -> None:
+=======
+    def _initialize(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Do this stuff in constructor to lower overhead slightly
         if isinstance(self.dynamo_ctx, DisableContext):
             # No need to check trace rules
@@ -426,7 +519,11 @@ class OptimizedModule(torch.nn.Module):
             self._forward = self.forward
             self.forward = self._call_lazy_check
 
+<<<<<<< HEAD
     def __call__(self, *args: Any, **kwargs: Any) -> Any:
+=======
+    def __call__(self, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.nn.modules.module._has_any_global_hook():
             warnings.warn(
                 "Using `torch.compile(module)` when there are global hooks on "
@@ -439,6 +536,7 @@ class OptimizedModule(torch.nn.Module):
             )
         return super().__call__(*args, **kwargs)
 
+<<<<<<< HEAD
     def _aot_compile(self, inputs: list[torch._dynamo.aot_compile.ModelInput]) -> None:
         """
         Experimental: AOT Compile a set of inputs and use that as the forward function
@@ -496,34 +594,60 @@ class OptimizedModule(torch.nn.Module):
         return (self.__class__, (self._orig_mod, self.dynamo_ctx))
 
     def __getstate__(self) -> dict[str, Any]:
+=======
+    def __reduce__(self):
+        return (self.__class__, (self._orig_mod, self.dynamo_ctx))
+
+    def __getstate__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         state = dict(self.__dict__)
         state.pop("forward", None)
         state.pop("__call__", None)
         return state
 
+<<<<<<< HEAD
     def __setstate__(self, state: dict[str, Any]) -> None:
+=======
+    def __setstate__(self, state):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.__dict__ = state
         self._initialize()
 
     @property
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def training(self) -> bool:
         return self._orig_mod.training
 
     @training.setter
     def training(self, value: bool) -> None:
+=======
+    def training(self):
+        return self._orig_mod.training
+
+    @training.setter
+    def training(self, value):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Ignore the `training` mutation in `super().__init__()`, since that's
         # setting the default on `nn.Module`, but we are mirroring the
         # `training` attr in `self._orig_mod`.
         if self._super_module_initialized:
             self._orig_mod.training = value
 
+<<<<<<< HEAD
     def __getattr__(self, name: str) -> Any:
+=======
+    def __getattr__(self, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if name == "_orig_mod":
             return self._modules["_orig_mod"]
         return getattr(self._orig_mod, name)
 
+<<<<<<< HEAD
     def __setattr__(self, name: str, val: Any) -> None:
+=======
+    def __setattr__(self, name, val) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Allow patching over class attributes
         if hasattr(type(self), name):
             return super().__setattr__(name, val)
@@ -532,7 +656,11 @@ class OptimizedModule(torch.nn.Module):
             return super().__setattr__(name, val)
         return setattr(self._orig_mod, name, val)
 
+<<<<<<< HEAD
     def __delattr__(self, name: str) -> None:
+=======
+    def __delattr__(self, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This mirrors `__setattr__`
         if hasattr(type(self), name):
             return super().__delattr__(name)
@@ -541,7 +669,11 @@ class OptimizedModule(torch.nn.Module):
             return super().__delattr__(name)
         return delattr(self._orig_mod, name)
 
+<<<<<<< HEAD
     def _call_lazy_check(self, *args: Any, **kwargs: Any) -> Any:
+=======
+    def _call_lazy_check(self, *args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             hasattr(self._orig_mod, "_initialize_hook")
             and hasattr(self._orig_mod, "_infer_parameters")
@@ -554,14 +686,22 @@ class OptimizedModule(torch.nn.Module):
             self._orig_mod._infer_parameters(self._orig_mod, args, kwargs)
         return self._forward(*args, **kwargs)
 
+<<<<<<< HEAD
     def __dir__(self) -> list[str]:
+=======
+    def __dir__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         orig_mod_attrs = self._orig_mod.__dir__()
         return orig_mod_attrs + [
             attr for attr in super().__dir__() if attr not in orig_mod_attrs
         ]
 
 
+<<<<<<< HEAD
 def remove_from_cache(f: Any) -> None:
+=======
+def remove_from_cache(f):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Make sure f.__code__ is not cached to force a recompile
     """
@@ -578,6 +718,7 @@ def remove_from_cache(f: Any) -> None:
         log.warning("could not determine __code__ for %s", f)
 
 
+<<<<<<< HEAD
 def nothing() -> None:
     pass
 
@@ -589,21 +730,41 @@ def always_false() -> bool:
 def innermost_fn(
     fn: Callable[..., Any], unaltered_fn_attr: str = "_torchdynamo_orig_callable"
 ) -> Callable[..., Any]:
+=======
+def nothing():
+    pass
+
+
+def always_false():
+    return False
+
+
+def innermost_fn(fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     In case of nesting of _TorchDynamoContext calls, find the innermost
     function. TorchDynamo caches on fn.__code__ object, so its necessary to find
     the innermost function to pass on the optimize, run, disable etc.
     """
     unaltered_fn = fn
+<<<<<<< HEAD
     while hasattr(unaltered_fn, unaltered_fn_attr):
         unaltered_fn = getattr(unaltered_fn, unaltered_fn_attr)
+=======
+    while hasattr(unaltered_fn, "_torchdynamo_orig_callable"):
+        unaltered_fn = unaltered_fn._torchdynamo_orig_callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert callable(unaltered_fn), (
             f"A callable function is expected, but {type(unaltered_fn)} is provided."
         )
     return unaltered_fn
 
 
+<<<<<<< HEAD
 def make_set_enable_dynamic(enable: bool) -> Any:
+=======
+def make_set_enable_dynamic(enable: bool):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert isinstance(enable, bool)
     if enable:
         # Assume everything is dynamic by default
@@ -625,12 +786,20 @@ class DynamoTLS(threading.local):
 dynamo_tls = DynamoTLS()
 
 
+<<<<<<< HEAD
 def clear_dynamo_tls() -> None:
+=======
+def clear_dynamo_tls():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dynamo_tls.traced_frame_infos.clear()
 
 
 @atexit.register
+<<<<<<< HEAD
 def _log_traced_frames() -> None:
+=======
+def _log_traced_frames():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     At program exit, log all of the frames Dynamo has attempted to trace from,
     excluding the continuation frames generated by Dynamo.
@@ -641,23 +810,45 @@ def _log_traced_frames() -> None:
     log.info(msg)
 
 
+<<<<<<< HEAD
 def guard_collectives_hook(guard_eval_result: bool) -> bool:
+=======
+def guard_collectives_hook(guard_eval_result):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch.distributed as dist
     from torch._dynamo.utils import dynamo_timed
 
     # guard_eval_result == True  ==>  cache hit
     if pg := distributed.get_guard_pg():
         with dynamo_timed(
+<<<<<<< HEAD
             "guard_collective", log_pt2_compile_event=False, log_waitcounter=True
         ):
             log.debug("guard_collective %s", guard_eval_result)
+=======
+            "guard_collective", log_pt2_compile_event=True, log_waitcounter=True
+        ):
+            log.info("guard_collective %s", guard_eval_result)
+            torch._logging.trace_structured(
+                "artifact",
+                metadata_fn=lambda: {
+                    "name": "guard_collective",
+                    "encoding": "string",
+                },
+                payload_fn=lambda: str(guard_eval_result),
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # TODO: a bit awkward to time, this isn't inside of the dynamo compile region
             all_results = [None] * pg.size()
             dist.all_gather_object(all_results, guard_eval_result, group=pg)
             # True = everyone hit, OK to run
             # False = someone missed, force recompile everywhere
             res = all(all_results)
+<<<<<<< HEAD
             log.debug("guard_collective %s -> %s", guard_eval_result, res)
+=======
+            log.info("guard_collective %s -> %s", guard_eval_result, res)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return res
     return guard_eval_result
 
@@ -669,6 +860,7 @@ class _TorchDynamoContext:
     def __init__(
         self,
         callback: DynamoCallback,
+<<<<<<< HEAD
         on_enter: Callable[[], Any] = nothing,
         backend_ctx_ctor: Callable[
             [], contextlib.AbstractContextManager[Any]
@@ -683,6 +875,17 @@ class _TorchDynamoContext:
         compiler_config: Optional[Any] = None,
         package: Optional[CompilePackage] = None,
         hooks: Optional[Hooks] = None,
+=======
+        on_enter=nothing,
+        backend_ctx_ctor=null_context,
+        patch_fn=nothing,
+        first_ctx=False,
+        *,
+        export=False,
+        dynamic=None,
+        compiler_config=None,
+        package=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         super().__init__()
         assert callable(callback) or callback is False or callback is None
@@ -690,27 +893,42 @@ class _TorchDynamoContext:
         self._backend_ctx_ctor = backend_ctx_ctor
         self.prior: Union[Unset, DynamoCallback] = unset
         self.first_ctx = first_ctx
+<<<<<<< HEAD
         self.fullgraph = fullgraph
         self.error_on_graph_break = error_on_graph_break
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.export = export
         self._dynamic = dynamic
         self.compiler_config = compiler_config
         self.cleanup_fns: list[Callable[[], Any]] = []
         self.enter_exit_hooks = []
         self._package = package
+<<<<<<< HEAD
         self._hooks = hooks
         patch_fn()
 
         # Save the backends so that we can reset them during torch._dynamo.reset
         backend = innermost_fn(callback, unaltered_fn_attr="_torchdynamo_orig_backend")  # type: ignore[arg-type]
         cached_backends.setdefault(id(backend), backend)  # type: ignore[arg-type]
+=======
+        patch_fn()
+
+        # Save the backends so that we can reset them during torch._dynamo.reset
+        backend = innermost_fn(callback)
+        cached_backends.setdefault(id(backend), backend)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if dynamic is not None:
             self.enter_exit_hooks.append(make_set_enable_dynamic(dynamic))
 
         if on_enter is not nothing:
             # this case is not common
+<<<<<<< HEAD
             def call_on_enter() -> Callable[[], None]:
+=======
+            def call_on_enter():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 on_enter()
                 return nothing
 
@@ -718,14 +936,22 @@ class _TorchDynamoContext:
 
         if backend_ctx_ctor is not contextlib.nullcontext:
             # this case is not common
+<<<<<<< HEAD
             def call_backend_ctx() -> functools.partial[Optional[bool]]:
+=======
+            def call_backend_ctx():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ctx = backend_ctx_ctor()
                 ctx.__enter__()
                 return functools.partial(ctx.__exit__, None, None, None)
 
             self.enter_exit_hooks.append(call_backend_ctx)
 
+<<<<<<< HEAD
     def __enter__(self) -> None:
+=======
+    def __enter__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config.raise_on_ctx_manager_usage:
             raise RuntimeError(
                 "torch._dynamo.optimize(...) is used with a context manager. "
@@ -739,12 +965,16 @@ class _TorchDynamoContext:
         )
         _maybe_set_eval_frame(_callback_from_stance(self.callback))
 
+<<<<<<< HEAD
     def __exit__(
         self,
         exc_type: Optional[type[BaseException]],
         exc_val: Optional[BaseException],
         exc_tb: Optional[types.TracebackType],
     ) -> Optional[bool]:
+=======
+    def __exit__(self, exc_type, exc_val, exc_tb):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.prior is not unset
         set_eval_frame(None)
         set_skip_guard_eval_unsafe(self.prior_skip_guard_eval_unsafe)
@@ -753,6 +983,7 @@ class _TorchDynamoContext:
         self.cleanup_fns.clear()
         _maybe_set_eval_frame(_callback_from_stance(self.prior))
         self.prior = unset
+<<<<<<< HEAD
         return None
 
     def __call__(self, fn: Any) -> Any:
@@ -804,6 +1035,16 @@ class _TorchDynamoContext:
                 ),
             )
 
+=======
+
+    def __call__(self, fn):
+        # public api for compiler config/options
+        def get_compiler_config():
+            return self.compiler_config
+
+        fn = innermost_fn(fn)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # add context containing GraphModule to any GraphModule forward functions
         if isinstance(fn, GraphModule):
             # add context containing GraphModule to any GraphModule forward functions
@@ -844,9 +1085,13 @@ class _TorchDynamoContext:
             filename = inspect.getsourcefile(fn)
         except TypeError:
             filename = None
+<<<<<<< HEAD
         if config.debug_force_nested_calls:
             fn = external_utils.wrap_inline(fn)
         elif config.wrap_top_frame or (
+=======
+        if config.wrap_top_frame or (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             (filename is None or trace_rules.check(fn))
             and (
                 getattr(fn, "__name__", "")
@@ -857,6 +1102,7 @@ class _TorchDynamoContext:
             # call to a builtin without a frame for us to capture
             fn = external_utils.wrap_inline(fn)
 
+<<<<<<< HEAD
         def do_nothing(*arg: Any, **kwargs: Any) -> None:
             pass
 
@@ -880,6 +1126,24 @@ class _TorchDynamoContext:
                         return fn(*args, **kwargs)
                 # Skip nested compile - just inline the function
                 if is_fx_symbolic_tracing():
+=======
+        def do_nothing(*arg, **kwargs):
+            pass
+
+        if hasattr(self, "callback"):
+            callback = self.callback
+        else:
+            callback = do_nothing
+
+        is_jit_tracing = torch._C._is_tracing
+        is_fx_tracing = torch.fx._symbolic_trace.is_fx_tracing
+
+        @functools.wraps(fn)
+        def compile_wrapper(*args, **kwargs):
+            prior = set_eval_frame(None)
+            try:
+                if is_fx_tracing():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if config.error_on_nested_fx_trace:
                         raise RuntimeError(
                             "Detected that you are using FX to symbolically trace "
@@ -898,10 +1162,13 @@ class _TorchDynamoContext:
                 prior_skip_guard_eval_unsafe = set_skip_guard_eval_unsafe(
                     _is_skip_guard_eval_unsafe_stance()
                 )
+<<<<<<< HEAD
                 prior_error_on_graph_break = None
                 if not self.fullgraph and self.error_on_graph_break is not None:
                     prior_error_on_graph_break = _get_error_on_graph_break()
                     _set_error_on_graph_break(self.error_on_graph_break)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # Ensure that if an assertion occurs after graph pushes
                 # something onto the DynamicLayerStack then we pop it off (the
@@ -912,7 +1179,10 @@ class _TorchDynamoContext:
                 saved_dynamic_layer_stack_depth = (
                     torch._C._functorch.get_dynamic_layer_stack_depth()
                 )
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _maybe_set_eval_frame(_callback_from_stance(callback))
 
                 try:
@@ -925,7 +1195,10 @@ class _TorchDynamoContext:
                     while cur_exn.__cause__ is not None:
                         cur_exn.__cause__.with_traceback(None)
                         cur_exn = cur_exn.__cause__
+<<<<<<< HEAD
                     # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     raise e.with_traceback(None) from e.__cause__  # User compiler error
                 except ShortenTraceback as e:
                     # Failures in the backend likely don't have useful
@@ -934,8 +1207,11 @@ class _TorchDynamoContext:
                 finally:
                     # Restore the dynamic layer stack depth if necessary.
                     set_eval_frame(None)
+<<<<<<< HEAD
                     if prior_error_on_graph_break is not None:
                         _set_error_on_graph_break(prior_error_on_graph_break)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch._C._functorch.pop_dynamic_layer_stack_and_undo_to_depth(
                         saved_dynamic_layer_stack_depth
                     )
@@ -947,6 +1223,7 @@ class _TorchDynamoContext:
                 _maybe_set_eval_frame(prior)
 
         # hooks to properly handle inlining
+<<<<<<< HEAD
         if self.error_on_graph_break is not None:
             compile_wrapper._torchdynamo_inline = (  # type: ignore[attr-defined]
                 external_utils.wrap_inline_with_error_on_graph_break(
@@ -955,6 +1232,9 @@ class _TorchDynamoContext:
             )
         else:
             compile_wrapper._torchdynamo_inline = fn  # type: ignore[attr-defined]
+=======
+        compile_wrapper._torchdynamo_inline = fn  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Save the function pointer to find the original callable while nesting
         # of decorators.
@@ -964,8 +1244,11 @@ class _TorchDynamoContext:
         # provide public api _fn.get_compiler_config()
         assert not hasattr(compile_wrapper, "get_compiler_config")
         compile_wrapper.get_compiler_config = get_compiler_config  # type: ignore[attr-defined]
+<<<<<<< HEAD
         if torch._dynamo.config.enable_aot_compile:
             compile_wrapper.aot_compile = aot_compile  # type: ignore[attr-defined]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # If the function is called using torch._dynamo.optimize decorator, we
         # should prevent any type of skipping.
@@ -1012,6 +1295,7 @@ class _TorchDynamoContext:
 class OptimizeContext(_TorchDynamoContext):
     def __init__(
         self,
+<<<<<<< HEAD
         callback: DynamoCallback,
         backend_ctx_ctor: Callable[[], contextlib.AbstractContextManager[Any]],
         first_ctx: bool = False,
@@ -1028,6 +1312,21 @@ class OptimizeContext(_TorchDynamoContext):
         hooks: Optional[Hooks] = None,
     ) -> None:
         def on_enter() -> None:
+=======
+        callback,
+        backend_ctx_ctor,
+        first_ctx=False,
+        *,
+        export=False,
+        dynamic=None,
+        compiler_config=None,
+        rebuild_ctx: Optional[
+            Callable[[], Union[OptimizeContext, _NullDecorator]]
+        ] = None,
+        package=None,
+    ) -> None:
+        def on_enter():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             install_generation_tagging_init()
 
         super().__init__(
@@ -1036,13 +1335,19 @@ class OptimizeContext(_TorchDynamoContext):
             backend_ctx_ctor=backend_ctx_ctor,
             patch_fn=TorchPatcher.patch,
             first_ctx=first_ctx,
+<<<<<<< HEAD
             fullgraph=fullgraph,
             error_on_graph_break=error_on_graph_break,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             export=export,
             dynamic=dynamic,
             compiler_config=compiler_config,
             package=package,
+<<<<<<< HEAD
             hooks=hooks,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if config.compiled_autograd:
@@ -1050,6 +1355,7 @@ class OptimizeContext(_TorchDynamoContext):
             if _dynamic is None:
                 _dynamic = not torch._dynamo.config.assume_static_by_default
 
+<<<<<<< HEAD
             def call_compiled_autograd() -> functools.partial[Optional[bool]]:
                 assert rebuild_ctx is not None
                 compiler_fn = rebuild_ctx()
@@ -1058,15 +1364,26 @@ class OptimizeContext(_TorchDynamoContext):
                     # pyrefly: ignore [bad-argument-type]
                     dynamic=_dynamic,
                     ignore_active_disable_ctx=False,
+=======
+            def call_compiled_autograd():
+                assert rebuild_ctx is not None
+                compiler_fn = rebuild_ctx()
+                ctx = torch._dynamo.compiled_autograd._enable(
+                    compiler_fn, dynamic=_dynamic, ignore_active_disable_ctx=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 ctx.__enter__()
                 return functools.partial(ctx.__exit__, None, None, None)
 
             self.enter_exit_hooks.append(call_compiled_autograd)
 
+<<<<<<< HEAD
     def __reduce__(
         self,
     ) -> tuple[type[OptimizeContext], tuple[Any, ...], dict[str, Any]]:
+=======
+    def __reduce__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (
             self.__class__,
             (self.callback, self._backend_ctx_ctor, self.first_ctx),
@@ -1081,12 +1398,20 @@ class OptimizeContext(_TorchDynamoContext):
 class RunOnlyContext(_TorchDynamoContext):
     def __init__(self) -> None:
         # cudagraph trees relies on generation increment
+<<<<<<< HEAD
         def on_enter() -> None:
+=======
+        def on_enter():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch._dynamo.mutation_guard.GenerationTracker.generation += 1
 
         super().__init__(callback=False, on_enter=on_enter)
 
+<<<<<<< HEAD
     def __reduce__(self) -> tuple[type[RunOnlyContext], tuple[Any, ...]]:
+=======
+    def __reduce__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (self.__class__, ())
 
 
@@ -1096,7 +1421,11 @@ class DisableContext(_TorchDynamoContext):
         self.msg = msg
         self.wrapping = wrapping
 
+<<<<<<< HEAD
     def __call__(self, fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+    def __call__(self, fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Earlier this code was in the base class _TorchDynamoContext. But we
         # moved it here to have better code organization. For disable, we just
         # want the callback to be None. We don't have to check trace_rules or
@@ -1120,7 +1449,10 @@ class DisableContext(_TorchDynamoContext):
             cls_obj.__call__ = self(cls_obj.__call__)
             if issubclass(cls_obj, torch.nn.Module):
                 # NN module variable tracker directly inlines the _call_impl. Disable it.
+<<<<<<< HEAD
                 # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cls_obj._call_impl = self(cls_obj._call_impl)
             return cls_obj
 
@@ -1128,7 +1460,11 @@ class DisableContext(_TorchDynamoContext):
             f"A callable function is expected, but {type(fn)} is provided."
         )
 
+<<<<<<< HEAD
         def _fn(*args: Any, **kwargs: Any) -> Any:
+=======
+        def _fn(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             prior = set_eval_frame(None)
             try:
                 _maybe_set_eval_frame(_callback_from_stance(self.callback))
@@ -1156,11 +1492,16 @@ class DisableContext(_TorchDynamoContext):
 
         return _fn
 
+<<<<<<< HEAD
     def __reduce__(self) -> tuple[type[DisableContext], tuple[Any, ...]]:
+=======
+    def __reduce__(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return (self.__class__, ())
 
 
 def _optimize_catch_errors(
+<<<<<<< HEAD
     compile_fn: convert_frame.ConvertFrameProtocol,
     hooks: Hooks,
     backend_ctx_ctor: Callable[
@@ -1174,17 +1515,32 @@ def _optimize_catch_errors(
     rebuild_ctx: Optional[Callable[[], Union[OptimizeContext, _NullDecorator]]] = None,
     package: Optional[CompilePackage] = None,
 ) -> OptimizeContext:
+=======
+    compile_fn,
+    hooks: Hooks,
+    backend_ctx_ctor=null_context,
+    export=False,
+    dynamic=None,
+    compiler_config=None,
+    rebuild_ctx=None,
+    package=None,
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return OptimizeContext(
         convert_frame.catch_errors_wrapper(compile_fn, hooks),
         backend_ctx_ctor=backend_ctx_ctor,
         first_ctx=True,
+<<<<<<< HEAD
         fullgraph=fullgraph,
         error_on_graph_break=error_on_graph_break,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         export=export,
         dynamic=dynamic,
         compiler_config=compiler_config,
         rebuild_ctx=rebuild_ctx,
         package=package,
+<<<<<<< HEAD
         hooks=hooks,
     )
 
@@ -1200,22 +1556,41 @@ def get_compiler_fn(
     elif hasattr(compiler_fn, "compiler_name"):
         compiler_str = compiler_fn.compiler_name  # type: ignore[union-attr]
         assert isinstance(compiler_str, str)
+=======
+    )
+
+
+def get_compiler_fn(compiler_fn):
+    from .repro.after_dynamo import wrap_backend_debug
+
+    if hasattr(compiler_fn, "compiler_name"):
+        compiler_str = compiler_fn.compiler_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elif isinstance(compiler_fn, str):
         compiler_str = compiler_fn
     else:
         compiler_str = None
+<<<<<<< HEAD
     compiler_fn = lookup_backend(compiler_fn)  # type: ignore[arg-type]
+=======
+    compiler_fn = lookup_backend(compiler_fn)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return wrap_backend_debug(compiler_fn, compiler_str)
 
 
 class _NullDecorator(contextlib.nullcontext):  # type: ignore[type-arg]
+<<<<<<< HEAD
     def __call__(self, fn: Callable[..., Any]) -> Callable[..., Any]:
+=======
+    def __call__(self, fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert callable(fn), (
             f"A callable function is expected, but {type(fn)} is provided."
         )
         return fn
 
 
+<<<<<<< HEAD
 # Make dynamo graph to have same input/output spec as user code
 def argument_names(
     f_sig: inspect.Signature,
@@ -1302,6 +1677,9 @@ def argument_names(
 
 
 def check_if_dynamo_supported() -> None:
+=======
+def check_if_dynamo_supported():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if sys.version_info >= (3, 14):
         raise RuntimeError("Python 3.14+ not yet supported for torch.compile")
     elif sysconfig.get_config_var("Py_GIL_DISABLED") == 1 and sys.version_info < (
@@ -1315,7 +1693,11 @@ def check_if_dynamo_supported() -> None:
         )
 
 
+<<<<<<< HEAD
 def is_dynamo_supported() -> bool:
+=======
+def is_dynamo_supported():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         check_if_dynamo_supported()
         return True
@@ -1323,11 +1705,19 @@ def is_dynamo_supported() -> bool:
         return False
 
 
+<<<<<<< HEAD
 def check_if_inductor_supported() -> None:
     check_if_dynamo_supported()
 
 
 def is_inductor_supported() -> bool:
+=======
+def check_if_inductor_supported():
+    check_if_dynamo_supported()
+
+
+def is_inductor_supported():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         check_if_inductor_supported()
         return True
@@ -1335,15 +1725,24 @@ def is_inductor_supported() -> bool:
         return False
 
 
+<<<<<<< HEAD
 def check_for_incompatible_configs() -> None:
+=======
+def check_for_incompatible_configs():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Some of the configs should be mutually exclusive
     assert not (config.suppress_errors and config.fail_on_recompile_limit_hit), (
         "Dynamo configs suppress_error and fail_on_recompile_limit_hit can not both be active at the same time."
     )
 
 
+<<<<<<< HEAD
 def optimize(*args: Any, **kwargs: Any) -> Union[OptimizeContext, _NullDecorator]:
     def rebuild_ctx() -> Union[OptimizeContext, _NullDecorator]:
+=======
+def optimize(*args, **kwargs):
+    def rebuild_ctx():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ca_kwargs_override = config.compiled_autograd_kwargs_override
         if ca_kwargs_override:
             # NOTE: The process of translating other `torch.compile` kwargs to `torch._dynamo.optimize` kwargs
@@ -1359,6 +1758,7 @@ def optimize(*args: Any, **kwargs: Any) -> Union[OptimizeContext, _NullDecorator
 
 def _optimize(
     rebuild_ctx: Callable[[], Union[OptimizeContext, _NullDecorator]],
+<<<<<<< HEAD
     backend: Union[str, Callable[..., Any]] = "inductor",
     *,
     nopython: bool = False,
@@ -1369,6 +1769,17 @@ def _optimize(
     disable: bool = False,
     dynamic: Optional[bool] = None,
     package: Optional[CompilePackage] = None,
+=======
+    backend="inductor",
+    *,
+    nopython=False,
+    guard_export_fn=None,
+    guard_fail_fn=None,
+    guard_filter_fn=None,
+    disable=False,
+    dynamic=None,
+    package=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Union[OptimizeContext, _NullDecorator]:
     """
     The main entrypoint of TorchDynamo.  Do graph capture and call
@@ -1385,11 +1796,14 @@ def _optimize(
             - Or, a string backend name in `torch._dynamo.list_backends()`
         nopython: If True, graph breaks will be errors and there will
             be a single whole-program graph.
+<<<<<<< HEAD
         error_on_graph_break: If not None, the current `error_on_graph_break` setting is set to the given value.
             See `torch._dynamo.error_on_graph_break()` for more details on what `error_on_graph_break` means.
 
             Unlike `nopython=True` (i.e. `fullgraph=True`), there is no guarantee of a single whole-program graph.
             If `nopython` is True, `error_on_graph_break` does nothing.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         disable: If True, turn this decorator into a no-op
         dynamic: If True, upfront compile as dynamic a kernel as possible.  If False,
             disable all dynamic shapes support (always specialize).  If None, automatically
@@ -1420,7 +1834,11 @@ def _optimize(
     ):
         return _NullDecorator()
 
+<<<<<<< HEAD
     if nopython and not config.debug_force_graph_break_on_leaf_return:
+=======
+    if nopython:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return optimize_assert(
             backend,
             dynamic=dynamic,
@@ -1435,6 +1853,7 @@ def _optimize(
     backend_ctx_ctor = getattr(backend, "backend_ctx_ctor", null_context)
 
     # The backend function is stashed in the callable returned by
+<<<<<<< HEAD
     # _optimize_catch_errors in the field _torchdynamo_orig_backend. This can
     # be used by eval_frame.c to insert a guard on the backend.
 
@@ -1456,6 +1875,14 @@ def _optimize(
         fullgraph=False,
         error_on_graph_break=error_on_graph_break
         and not config.debug_force_graph_break_on_leaf_return,
+=======
+    # _optimize_catch_errors in the field _torchdynamo_orig_callable. This can
+    # be used by eval_frame.c to insert a guard on the backend.
+    return _optimize_catch_errors(
+        convert_frame.convert_frame(backend, hooks=hooks, package=package),
+        hooks,
+        backend_ctx_ctor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dynamic=dynamic,
         compiler_config=(
             backend.get_compiler_config()
@@ -1469,10 +1896,15 @@ def _optimize(
 
 # TODO(voz): Consider making "explain" output alongside a run / part of a run
 @patch("torch._dynamo.symbolic_convert.explain", True)
+<<<<<<< HEAD
 def explain(f: Callable[..., Any], *extra_args: Any, **extra_kwargs: Any) -> Any:
     from .backends.debugging import ExplainOutput
 
     def inner(*args: Any, **kwargs: Any) -> ExplainOutput:
+=======
+def explain(f, *extra_args, **extra_kwargs):
+    def inner(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO(voz): Do we want a decorator for this?
         from . import reset  # type: ignore[attr-defined]
 
@@ -1481,12 +1913,21 @@ def explain(f: Callable[..., Any], *extra_args: Any, **extra_kwargs: Any) -> Any
         graphs: list[torch.fx.GraphModule] = []
         break_reasons: list[Any] = []
         op_count: int = 0
+<<<<<<< HEAD
         ops_per_graph: list[list[Target]] = []
         out_guards: list[_guards.Guard] = []
 
         def dynamo_graph_accumulating_compiler(
             gm: torch.fx.GraphModule, example_inputs: Any
         ) -> Callable[..., Any]:
+=======
+        ops_per_graph: list[torch.fx.Node] = []
+        out_guards: list[_guards.Guard] = []
+
+        def dynamo_graph_accumulating_compiler(
+            gm: torch.fx.GraphModule, example_inputs
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             from .backends.debugging import _explain_graph_detail
 
             nonlocal graphs
@@ -1500,7 +1941,11 @@ def explain(f: Callable[..., Any], *extra_args: Any, **extra_kwargs: Any) -> Any
 
             return gm.forward
 
+<<<<<<< HEAD
         def guard_export_print(guards: Iterable[_guards.Guard]) -> None:
+=======
+        def guard_export_print(guards):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             nonlocal out_guards
             out_guards.extend(guards)
 
@@ -1518,6 +1963,10 @@ def explain(f: Callable[..., Any], *extra_args: Any, **extra_kwargs: Any) -> Any
 
         # TODO(voz): Do we want a decorator for this?
         reset()
+<<<<<<< HEAD
+=======
+        from .backends.debugging import ExplainOutput
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return ExplainOutput(
             graphs,
@@ -1547,9 +1996,15 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
     def __init__(
         self,
         m: torch.fx.GraphModule,
+<<<<<<< HEAD
         flat_args: list[Any],
         matched_input_elements_positions: list[int],
         flat_results: Sequence[Any],
+=======
+        flat_args: tuple[Any],
+        matched_input_elements_positions: list[int],
+        flat_results: list[Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         matched_output_elements_positions: list[int],
         example_fake_inputs: list[torch.Tensor],
         flat_args_dynamic_dims: list[set[int]],
@@ -1564,7 +2019,11 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
         }
 
         self.new_args = []
+<<<<<<< HEAD
         for i in range(len(flat_args)):
+=======
+        for i in range(0, len(flat_args)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             arg = super().placeholder(f"arg{i}", (), {})
             if i in matched_input_elements_to_fake:
                 arg.node.meta["val"] = matched_input_elements_to_fake[i]
@@ -1597,9 +2056,13 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
         self.matched_output_elements_positions = matched_output_elements_positions
         self.flat_results = flat_results
 
+<<<<<<< HEAD
     def placeholder(
         self, target: Target, args: tuple[Argument, ...], kwargs: dict[str, Any]
     ) -> Any:
+=======
+    def placeholder(self, target, args, kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         arg = next(self.old_args_gen)
         if "val" in self.current_node.meta:
             arg.node.meta["val"] = self.current_node.meta["val"]
@@ -1614,11 +2077,17 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
             ]
         return arg
 
+<<<<<<< HEAD
     def output(
         self, target: Target, args: tuple[Argument, ...], kwargs: dict[str, Any]
     ) -> Any:
         dynamo_result_flat = args[0]
         lookup = [*dynamo_result_flat, *self.new_args]  # type: ignore[misc]
+=======
+    def output(self, target, args, kwargs):
+        dynamo_result_flat = args[0]
+        lookup = [*dynamo_result_flat, *self.new_args]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_results_flat = []
         for i in range(len(self.flat_results)):
             if self.matched_output_elements_positions[i] is not None:
@@ -1631,7 +2100,11 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
                 new_results_flat.append(const_val)
         return super().output(target, (new_results_flat,), {})
 
+<<<<<<< HEAD
     def run_node(self, n: Node) -> Any:
+=======
+    def run_node(self, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.current_node = n
         result_proxy = super().run_node(n)
         if "val" in self.current_node.meta:
@@ -1651,7 +2124,11 @@ class FlattenInputOutputSignature(torch.fx.Transformer):
             )
         return result_proxy
 
+<<<<<<< HEAD
     def transform(self) -> torch.fx.GraphModule:
+=======
+    def transform(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result_gm = super().transform()
         if "dynamo_flat_name_to_original_fqn" in self.module.meta:  # type: ignore[operator]
             result_gm.meta["dynamo_flat_name_to_original_fqn"] = self.module.meta[  # type: ignore[index]
@@ -1670,17 +2147,26 @@ class ExportResult(NamedTuple):
 
 
 # NOTE: this function only supports graphs created by Dynamo's OutputGraph module
+<<<<<<< HEAD
 def check_signature_rewritable(graph: torch.fx.GraphModule) -> None:
+=======
+def check_signature_rewritable(graph):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     input_errors = []
     for node in graph.graph.find_nodes(op="placeholder"):
         # set in OutputGraph._call_user_compiler
         assert hasattr(node, "_dynamo_source")
         assert hasattr(graph, "_source_to_user_stacks")
 
+<<<<<<< HEAD
         # NOTE: We can safely ignore these type warnings if and only if
         # the function is made from OutputGraph (checked in the assertions)
         source = node._dynamo_source  # type: ignore[attr-defined]
         user_stacks = graph._source_to_user_stacks.get(source)  # type: ignore[operator, union-attr]
+=======
+        source = node._dynamo_source
+        user_stacks = graph._source_to_user_stacks.get(source)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if user_stacks is None:
             continue
         assert len(user_stacks) > 0
@@ -1716,6 +2202,7 @@ def check_signature_rewritable(graph: torch.fx.GraphModule) -> None:
         )
 
 
+<<<<<<< HEAD
 def check_user_input_output(flat_values: list[Any], error_type: UserErrorType) -> None:
     supported_types = [
         torch.Tensor,
@@ -1763,11 +2250,63 @@ def rewrite_signature(
 ) -> torch.fx.GraphModule:
     orig_args, orig_kwargs = pytree.tree_unflatten(flat_args, in_spec)
 
+=======
+def rewrite_signature(
+    f_sig,
+    graph,
+    fake_mode,
+    flat_args,
+    in_spec,
+    example_fake_inputs,
+    graph_captured_input,
+    graph_captured_output,
+    dynamo_traced_result,
+    flat_args_dynamic_dims,
+):
+    orig_args, orig_kwargs = pytree.tree_unflatten(flat_args, in_spec)
+
+    def check_user_input_output(flat_values, error_type):
+        supported_types = [
+            torch.Tensor,
+            torch.SymInt,
+            torch.SymFloat,
+            torch.SymBool,
+            torch._C.ScriptObject,
+            _IntWrapper,
+        ] + list(common_constant_types)
+
+        def is_supported_type(val):
+            return isinstance(val, tuple(supported_types))
+
+        value_type = "input" if error_type == UserErrorType.INVALID_INPUT else "output"
+        # We only check that the outputs are not None. Inputs can be None.
+        for v in flat_values:
+            if not is_supported_type(v):
+                if error_type == UserErrorType.INVALID_INPUT and v is None:
+                    continue
+
+                raise UserError(
+                    error_type,
+                    f"It looks like one of the {value_type}s with type `{type(v)}` "
+                    "is not supported or pytree-flattenable. \n"
+                    f"Exported graphs {value_type}s can only contain the "
+                    f"following supported types: {supported_types}. \n"
+                    "If you are using a custom class object, "
+                    "please register a pytree_flatten/unflatten function "
+                    "using `torch.utils._pytree.register_pytree_node` or "
+                    "`torch.export.register_dataclass`.",
+                )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     check_user_input_output(flat_args, UserErrorType.INVALID_INPUT)
     flat_results_traced, out_spec_traced = pytree.tree_flatten(dynamo_traced_result)
     check_user_input_output(flat_results_traced, UserErrorType.INVALID_OUTPUT)
 
+<<<<<<< HEAD
     def check_optional_input_and_error(f_sig: inspect.Signature) -> None:
+=======
+    def check_optional_input_and_error(f_sig: inspect.Signature):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Check if function has optional input.
         for name, param in f_sig.parameters.items():
             if param.default is not inspect.Parameter.empty:
@@ -1783,9 +2322,13 @@ def rewrite_signature(
                     case_name="optional_input",
                 )
 
+<<<<<<< HEAD
     def produce_matching(
         debug_type: str, sources: Iterable[Any], candidates: Iterable[Any]
     ) -> list[Optional[int]]:
+=======
+    def produce_matching(debug_type, sources, candidates):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         matched_elements_positions: list[Optional[int]] = []
         dict_of_source_vals = {}
         for i, val in enumerate(sources):
@@ -1818,14 +2361,106 @@ def rewrite_signature(
     new_graph = FlattenInputOutputSignature(
         graph,
         flat_args,
+<<<<<<< HEAD
         matched_input_elements_positions,  # type: ignore[arg-type]
         flat_results_traced,
         matched_output_elements_positions,  # type: ignore[arg-type]
+=======
+        matched_input_elements_positions,
+        flat_results_traced,
+        matched_output_elements_positions,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         example_fake_inputs,
         flat_args_dynamic_dims,
         fake_mode,
     ).transform()
 
+<<<<<<< HEAD
+=======
+    # Make dynamo graph to have same input/output spec as user code
+    def argument_names(f_sig, args, kwargs) -> list[str]:
+        def signature_to_fullargspec(sig: inspect.Signature):
+            # Get a list of Parameter objects from the Signature object
+            params = list(sig.parameters.values())
+            # Separate positional arguments, keyword-only arguments and varargs/varkw
+            args = [
+                p.name
+                for p in params
+                if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+            ]
+            kwonlyargs = [
+                p.name for p in params if p.kind == inspect.Parameter.KEYWORD_ONLY
+            ]
+            varargs = next(
+                (p.name for p in params if p.kind == inspect.Parameter.VAR_POSITIONAL),
+                None,
+            )
+            varkw = next(
+                (p.name for p in params if p.kind == inspect.Parameter.VAR_KEYWORD),
+                None,
+            )
+            # Get default values for positional arguments and keyword-only arguments
+            defaults = tuple(
+                p.default
+                for p in params
+                if p.kind == inspect.Parameter.POSITIONAL_OR_KEYWORD
+                and p.default is not inspect.Parameter.empty
+            )
+            kwonlydefaults = {
+                p.name: p.default
+                for p in params
+                if p.kind == inspect.Parameter.KEYWORD_ONLY
+                and p.default is not inspect.Parameter.empty
+            }
+            # Get annotations for parameters and return value
+            annotations = {}
+            if sig.return_annotation:
+                annotations = {"return": sig.return_annotation}
+            for parameter in params:
+                annotations[parameter.name] = parameter.annotation
+            # Return a FullArgSpec object with the extracted attributes
+            return inspect.FullArgSpec(
+                args, varargs, varkw, defaults, kwonlyargs, kwonlydefaults, annotations
+            )
+
+        fullargspec = signature_to_fullargspec(f_sig)
+
+        # 1. Map `args` 1-to-1 to positional arguments in original signature.
+        input_strs = fullargspec.args[: len(args)]
+
+        if len(args) > len(fullargspec.args):
+            # 2. If there are more arguments left in `args`, they map to varargs in original
+            # signature. Assign names as {varargs}_0, {varargs}_1, ...
+            assert fullargspec.varargs is not None, "More arguments than expected"
+            input_strs += [
+                f"{fullargspec.varargs}_{i}"
+                for i in range(0, len(args) - len(input_strs))
+            ]
+        elif len(args) < len(fullargspec.args):
+            # 3. If there are fewer arguments in `args` than `fullargspec.args`,
+            # it implies these are arguments either with default values, or provided in
+            # `kwargs`. The former can be safely ignored. Because Dynamo.export does not
+            # export them as part of the function signature. The latter will be handled
+            # in the next step.
+            for unprovided_arg in fullargspec.args[
+                len(args) : -len(fullargspec.defaults or [])
+            ]:
+                assert unprovided_arg in kwargs, f"Missing argument {unprovided_arg}"
+
+        # 4. Keyword arguments provided in `kwargs`.
+        input_strs += list(kwargs.keys())
+
+        # 5. Keyword-only arguments with default values if not provided are not exported
+        # as part of the function signature.
+        for kwonly_arg in fullargspec.kwonlyargs:
+            kwonlydefaults = fullargspec.kwonlydefaults or {}
+            assert kwonly_arg in kwargs or kwonly_arg in kwonlydefaults, (
+                f"Missing keyword only argument {kwonly_arg}"
+            )
+
+        return input_strs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     new_graph.graph._codegen = _PyTreeCodeGen(
         _PyTreeInfo(
             argument_names(f_sig, orig_args, orig_kwargs),
@@ -1839,7 +2474,11 @@ def rewrite_signature(
 
 def export(
     f: Callable[..., Any],
+<<<<<<< HEAD
     *extra_args: Any,
+=======
+    *extra_args,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     aten_graph: bool = False,
     pre_dispatch: bool = False,
     decomposition_table: Optional[
@@ -1852,9 +2491,16 @@ def export(
     same_signature: bool = True,
     disable_constraint_solver: bool = False,
     prefer_deferred_runtime_asserts_over_guards: bool = False,
+<<<<<<< HEAD
     _log_export_usage: bool = True,
     constraints: Optional[list[Constraint]] = None,
     **extra_kwargs: Any,
+=======
+    allow_complex_guards_as_runtime_asserts: bool = False,
+    _log_export_usage: bool = True,
+    constraints: Optional[list[Constraint]] = None,
+    **extra_kwargs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[..., ExportResult]:
     """
     Export an input function f to a format that can be executed outside of PyTorch using the FX graph.
@@ -1909,9 +2555,12 @@ def export(
 
     Note - this headerdoc was authored by ChatGPT, with slight modifications by the author.
     """
+<<<<<<< HEAD
     if config.debug_force_graph_break_on_leaf_return:
         raise unittest.SkipTest("Cannot force graph break on export")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if _log_export_usage:
         log_export_usage(event="export.private_api", flags={"_dynamo"})
 
@@ -1921,7 +2570,11 @@ def export(
     _assume_static_by_default = assume_static_by_default
     _constraints = constraints
 
+<<<<<<< HEAD
     def inner(*args: Any, **kwargs: Any) -> ExportResult:
+=======
+    def inner(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not _constraints:
             combined_args = _combine_args(_f, args, kwargs)
             constraints = _process_dynamic_shapes(combined_args, dynamic_shapes)
@@ -1941,7 +2594,11 @@ def export(
             assert aten_graph, "pre_dispatch=True can only be used when aten_graph=True"
         f = innermost_fn(f)
         call_to_inspect = f.forward if isinstance(f, torch.nn.Module) else f
+<<<<<<< HEAD
         original_signature = inspect.signature(call_to_inspect)  # type: ignore[arg-type]
+=======
+        original_signature = inspect.signature(call_to_inspect)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         graph = None
         out_guards = None
         graph_captured_input = None
@@ -1949,18 +2606,30 @@ def export(
         fake_mode = None
         result_traced = None
 
+<<<<<<< HEAD
         def guard_export_print(guards: _guards.GuardsSet) -> None:
+=======
+        def guard_export_print(guards: _guards.GuardsSet):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             nonlocal out_guards
             assert out_guards is None, (
                 "whole graph export entails exactly one guard export"
             )
             out_guards = guards
 
+<<<<<<< HEAD
         example_inputs: list[Any] = []
 
         def dynamo_normalization_capturing_compiler(
             gm: torch.fx.GraphModule, inner_example_inputs: list[Any]
         ) -> Callable[..., Any]:
+=======
+        example_inputs = []
+
+        def dynamo_normalization_capturing_compiler(
+            gm: torch.fx.GraphModule, inner_example_inputs
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             nonlocal graph
             assert graph is None, (
                 "Tried to emit a second graph during export. Tracing through 'f' must produce a single graph."
@@ -1976,7 +2645,11 @@ def export(
             fake_mode = _guards.detect_fake_mode()
             example_inputs = inner_example_inputs
 
+<<<<<<< HEAD
             def result_capturing_wrapper(*graph_inputs: Any) -> Any:
+=======
+            def result_capturing_wrapper(*graph_inputs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 nonlocal graph_captured_result
                 nonlocal graph_captured_input
 
@@ -2000,7 +2673,11 @@ def export(
                 ignore_fresh_unbacked = null_context()
                 assert ambient_fake_mode is not None
                 if shape_env := ambient_fake_mode.shape_env:
+<<<<<<< HEAD
                     ignore_fresh_unbacked = shape_env.ignore_fresh_unbacked_symbols()  # type: ignore[assignment]
+=======
+                    ignore_fresh_unbacked = shape_env.ignore_fresh_unbacked_symbols()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 with (
                     ambient_fake_mode,
@@ -2018,6 +2695,7 @@ def export(
                             value, static_shapes=True
                         )
 
+<<<<<<< HEAD
                     from torch._export.non_strict_utils import (
                         key_path_to_source,
                         KeyPath,
@@ -2028,6 +2706,10 @@ def export(
                     ) -> Any:
                         if isinstance(t, torch.Tensor):
                             # pyrefly: ignore [missing-attribute]
+=======
+                    def fakify_with_ambient(path, t):
+                        if isinstance(t, torch.Tensor):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             return ambient_fake_mode.from_tensor(t, static_shapes=True)
                         elif isinstance(t, _IntWrapper):
                             if (
@@ -2039,6 +2721,13 @@ def export(
                                     _DimHintType.AUTO,
                                 )
                             ):  # type: ignore[union-attr]
+<<<<<<< HEAD
+=======
+                                from torch._export.non_strict_utils import (
+                                    key_path_to_source,
+                                )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                                 source = key_path_to_source(path)
                                 symint = ambient_fake_mode.shape_env.create_unspecified_symint_and_symbol(  # type: ignore[union-attr]
                                     t.val, source, DimDynamic.DYNAMIC
@@ -2053,9 +2742,13 @@ def export(
                         fakify_with_ambient, graph_inputs
                     )
                     graph_captured_result = torch.func.functional_call(
+<<<<<<< HEAD
                         graph,
                         fake_params_buffers,  # type: ignore[arg-type]
                         fake_graph_inputs,  # type: ignore[arg-type]
+=======
+                        graph, fake_params_buffers, fake_graph_inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
 
                 return graph_captured_result
@@ -2078,12 +2771,17 @@ def export(
                 automatic_dynamic_shapes=False,
                 capture_dynamic_output_shape_ops=True,
                 capture_scalar_outputs=True,
+<<<<<<< HEAD
                 constant_fold_autograd_profiler_enabled=True,
                 prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
                 # install_free_tensors ensures that params and buffers are still
                 # added as graph attributes, and makes Dynamo emits graphs that
                 # follow export pytree-able input requirements
                 install_free_tensors=config.install_free_tensors_for_export,
+=======
+                prefer_deferred_runtime_asserts_over_guards=prefer_deferred_runtime_asserts_over_guards,
+                allow_complex_guards_as_runtime_asserts=allow_complex_guards_as_runtime_asserts,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             _compiling_state_context(),
         ):
@@ -2113,9 +2811,13 @@ def export(
             and not trace_rules.check(call_to_inspect)
         ):
             dim_constraints.solve()
+<<<<<<< HEAD
 
             forced_specializations = dim_constraints.forced_specializations()
 
+=======
+            forced_specializations = dim_constraints.forced_specializations()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             msg = dim_constraints.prettify_results(
                 original_signature,
                 dynamic_shapes,
@@ -2136,7 +2838,10 @@ def export(
                     )
 
             # Error if we have any constraints on static values
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for k in shape_env.var_to_range.keys():
                 if isinstance(k, sympy.Integer):
                     constraint_violation_error = ConstraintViolationError(
@@ -2205,7 +2910,11 @@ def export(
 
         if aten_graph:
             # Running graph with interpreter is needed for propagating the stack_trace
+<<<<<<< HEAD
             def graph_with_interpreter(*args: Any) -> Any:
+=======
+            def graph_with_interpreter(*args):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 with torch.fx.traceback.preserve_node_meta():
                     return torch.fx.Interpreter(graph).run(*args)  # type: ignore[arg-type]
 
@@ -2255,12 +2964,20 @@ def export(
                 flat_args,
                 in_spec,
                 example_fake_inputs,
+<<<<<<< HEAD
                 graph_captured_input,  # type: ignore[arg-type]
+=======
+                graph_captured_input,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 graph_captured_result,
                 result_traced,  # type: ignore[possibly-undefined]
                 flat_args_dynamic_dims,
             )
+<<<<<<< HEAD
         return ExportResult(graph, out_guards)
+=======
+        return ExportResult(graph, out_guards)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     if extra_args or extra_kwargs:
         warnings.warn(
@@ -2270,19 +2987,31 @@ def export(
             FutureWarning,
             stacklevel=2,
         )
+<<<<<<< HEAD
         return inner(*extra_args, **extra_kwargs)  # type: ignore[return-value]
+=======
+        return inner(*extra_args, **extra_kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return inner
 
 
+<<<<<<< HEAD
 def optimize_assert(*args: Any, **kwargs: Any) -> OptimizeContext:
+=======
+def optimize_assert(*args, **kwargs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if "rebuild_ctx" in kwargs and kwargs["rebuild_ctx"] is not None:
         # called from optimize
         rebuild_ctx = kwargs["rebuild_ctx"]
         del kwargs["rebuild_ctx"]
     else:
 
+<<<<<<< HEAD
         def rebuild_ctx() -> OptimizeContext:
+=======
+        def rebuild_ctx():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return optimize_assert(*args, **kwargs)
 
     return _optimize_assert(rebuild_ctx, *args, **kwargs)
@@ -2290,6 +3019,7 @@ def optimize_assert(*args: Any, **kwargs: Any) -> OptimizeContext:
 
 def _optimize_assert(
     rebuild_ctx: Callable[[], OptimizeContext],
+<<<<<<< HEAD
     backend: Union[str, Callable[..., Any], None],
     *,
     hooks: Hooks = Hooks(None, None, None),
@@ -2305,12 +3035,25 @@ def _optimize_assert(
 
     Used for fullgraph=True and export, since we must always error on graph breaks and ignore
     symbolic_convert.error_on_graph_break. Can also be used for testing.
+=======
+    backend,
+    *,
+    hooks=Hooks(None, None, None),
+    export=False,
+    export_constraints=None,
+    dynamic=None,
+    package=None,
+):
+    """
+    The same as `torch._dynamo.optimize(backend, nopython=True)`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     backend = get_compiler_fn(backend)
 
     # Find if backend has any extra context manager
     backend_ctx_ctor = getattr(backend, "backend_ctx_ctor", null_context)
 
+<<<<<<< HEAD
     if config.caching_precompile and package is None:
         # Create an uninitialized package that will be set/filled by
         # _OptimizeContext.__call__
@@ -2321,6 +3064,8 @@ def _optimize_assert(
 
         package = CompilePackage(fn=None, dynamo=None, ignore_inlined_sources=False)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return _optimize_catch_errors(
         convert_frame.convert_frame_assert(
             backend,
@@ -2330,7 +3075,10 @@ def _optimize_assert(
         ),
         hooks,
         backend_ctx_ctor,
+<<<<<<< HEAD
         fullgraph=True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         export=export,
         dynamic=dynamic,
         rebuild_ctx=rebuild_ctx,
@@ -2341,7 +3089,11 @@ def _optimize_assert(
 class TorchPatcher:
     @staticmethod
     @functools.cache
+<<<<<<< HEAD
     def patch() -> None:
+=======
+    def patch():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # A better way to disable the following would be decorate the source
         # functions with @torch._disable_dynamo. However, this causes issues
         # with torch.deploy internally.
@@ -2434,6 +3186,7 @@ class TorchPatcher:
                 )
 
     @staticmethod
+<<<<<<< HEAD
     def suppress_torch_distributed_warnings(
         fn: Callable[..., Any],
     ) -> Callable[..., Any]:
@@ -2442,11 +3195,23 @@ class TorchPatcher:
                 torch._logging._internal.user_warning_filter
             ):
                 return fn(*args, **kwargs)
+=======
+    def suppress_torch_distributed_warnings(fn):
+        def inner_fn(*args, **kwargs):
+            warnings.filterwarnings(
+                "ignore", category=UserWarning, module="torch.distributed"
+            )
+            return fn(*args, **kwargs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return inner_fn
 
 
+<<<<<<< HEAD
 def skip_code(code: types.CodeType) -> None:
+=======
+def skip_code(code: types.CodeType):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     set_code_exec_strategy(
         code, FrameExecStrategy(FrameAction.SKIP, FrameAction.DEFAULT)
     )

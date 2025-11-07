@@ -19,13 +19,20 @@ import tempfile
 import threading
 import time
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from contextlib import nullcontext
 from dataclasses import dataclass, field
 from enum import IntFlag
 from multiprocessing import synchronize
 from types import FrameType
+<<<<<<< HEAD
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.multiprocessing as mp
 from torch.distributed.elastic.multiprocessing.errors import ProcessFailure, record
@@ -38,7 +45,10 @@ from torch.distributed.elastic.multiprocessing.subprocess_handler import (
     SubprocessHandler,
 )
 from torch.distributed.elastic.multiprocessing.tail_log import TailLog
+<<<<<<< HEAD
 from torch.numa.binding import maybe_wrap_with_numa_binding, NumaOptions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 IS_WINDOWS = sys.platform == "win32"
@@ -193,8 +203,11 @@ class LogsDest:
     tee_stdouts: dict[int, str] = field(default_factory=dict)
     tee_stderrs: dict[int, str] = field(default_factory=dict)
     error_files: dict[int, str] = field(default_factory=dict)
+<<<<<<< HEAD
     filtered_stdout: str = field(default_factory=str)
     filtered_stderr: str = field(default_factory=str)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class LogsSpecs(ABC):
@@ -292,8 +305,11 @@ class DefaultLogsSpecs(LogsSpecs):
         - `<log_dir>/<rdzv_run_id>/attempt_<attempt>/<rank>/stdout.log`
         - `<log_dir>/<rdzv_run_id>/attempt_<attempt>/<rank>/stderr.log`
         - `<log_dir>/<rdzv_run_id>/attempt_<attempt>/<rank>/error.json`
+<<<<<<< HEAD
         - `<log_dir>/<rdzv_run_id>/attempt_<attempt>/filtered_stdout.log`
         - `<log_dir>/<rdzv_run_id>/attempt_<attempt>/filtered_stderr.log`
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         nprocs = len(envs)
         global_env = {}  # use only to query properties that are not dependent on a rank
@@ -390,6 +406,7 @@ class DefaultLogsSpecs(LogsSpecs):
                 )
                 envs[local_rank]["TORCHELASTIC_ERROR_FILE"] = error_file
 
+<<<<<<< HEAD
         return LogsDest(
             stdouts,
             stderrs,
@@ -399,6 +416,9 @@ class DefaultLogsSpecs(LogsSpecs):
             os.path.join(attempt_log_dir, "filtered_stdout.log"),
             os.path.join(attempt_log_dir, "filtered_stderr.log"),
         )
+=======
+        return LogsDest(stdouts, stderrs, tee_stdouts, tee_stderrs, error_files)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __repr__(self) -> str:
         return (
@@ -450,6 +470,7 @@ class PContext(abc.ABC):
     .. warning:: stdouts and stderrs should ALWAYS be a superset of
                  tee_stdouts and tee_stderrs (respectively) this is b/c
                  tee is implemented as a redirect + tail -f <stdout/stderr.log>
+<<<<<<< HEAD
 
     Args:
         duplicate_stdout_filters:
@@ -460,6 +481,8 @@ class PContext(abc.ABC):
             If non-empty, duplicates stderrs specified in ``logs_specs``'s ``tee``
             to a file containing only lines that match _any_ of the filter strings.
             The log file is aggregated across all ranks selected by ``tee``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
 
     def __init__(
@@ -470,8 +493,11 @@ class PContext(abc.ABC):
         envs: dict[int, dict[str, str]],
         logs_specs: LogsSpecs,
         log_line_prefixes: Optional[dict[int, str]] = None,
+<<<<<<< HEAD
         duplicate_stdout_filters: Optional[list[str]] = None,
         duplicate_stderr_filters: Optional[list[str]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         self.name = name
         # validate that all mappings have the same number of keys and
@@ -491,6 +517,7 @@ class PContext(abc.ABC):
         self.stderrs = logs_dest.stderrs
         self.error_files = logs_dest.error_files
         self.nprocs = nprocs
+<<<<<<< HEAD
         self.filtered_stdout = logs_dest.filtered_stdout
         self.filtered_stderr = logs_dest.filtered_stderr
 
@@ -524,10 +551,20 @@ class PContext(abc.ABC):
                     ),
                 )
             )
+=======
+
+        self._stdout_tail = TailLog(
+            name, logs_dest.tee_stdouts, sys.stdout, log_line_prefixes
+        )
+        self._stderr_tail = TailLog(
+            name, logs_dest.tee_stderrs, sys.stderr, log_line_prefixes
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def start(self) -> None:
         """Start processes using parameters defined in the constructor."""
         if threading.current_thread() is threading.main_thread():
+<<<<<<< HEAD
             # Register signal handlers for the signals specified in the environment variable
             signals_to_handle = os.environ.get(
                 "TORCHELASTIC_SIGNALS_TO_HANDLE", "SIGTERM,SIGINT,SIGHUP,SIGQUIT"
@@ -561,14 +598,26 @@ class PContext(abc.ABC):
                             sig_name,
                             exc_info=True,
                         )
+=======
+            signal.signal(signal.SIGTERM, _terminate_process_handler)
+            signal.signal(signal.SIGINT, _terminate_process_handler)
+            if not IS_WINDOWS:
+                signal.signal(signal.SIGHUP, _terminate_process_handler)
+                signal.signal(signal.SIGQUIT, _terminate_process_handler)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             logger.warning(
                 "Failed to register signal handlers since torchelastic is running on a child thread. "
                 "This could lead to orphaned worker processes if the torchrun is terminated."
             )
         self._start()
+<<<<<<< HEAD
         for tail_log in self._tail_logs:
             tail_log.start()
+=======
+        self._stdout_tail.start()
+        self._stderr_tail.start()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @abc.abstractmethod
     def _start(self) -> None:
@@ -655,8 +704,15 @@ class PContext(abc.ABC):
         if not death_sig:
             death_sig = _get_default_signal()
         self._close(death_sig=death_sig, timeout=timeout)
+<<<<<<< HEAD
         for tail_log in self._tail_logs:
             tail_log.stop()
+=======
+        if self._stdout_tail:
+            self._stdout_tail.stop()
+        if self._stderr_tail:
+            self._stderr_tail.stop()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_std_cm(std_rd: str, redirect_fn):
@@ -675,7 +731,10 @@ def _wrap(
     stderr_redirects: dict[int, str],  # redirect file for stderr (to console if None)
     ret_vals: dict[int, mp.SimpleQueue],
     queue_finished_reading_event: synchronize.Event,
+<<<<<<< HEAD
     numa_options: Optional[NumaOptions],
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> None:
     # get the per-rank params up front so we fail fast if no mapping is found
     args_ = args[local_rank]
@@ -692,9 +751,12 @@ def _wrap(
         os.environ[k] = v
 
     with stdout_cm, stderr_cm:
+<<<<<<< HEAD
         fn = maybe_wrap_with_numa_binding(
             fn, gpu_index=local_rank, numa_options=numa_options
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ret = record(fn)(*args_)
     ret_val_.put(ret)
     queue_finished_reading_event.wait()
@@ -712,9 +774,12 @@ class MultiprocessContext(PContext):
         start_method: str,
         logs_specs: LogsSpecs,
         log_line_prefixes: Optional[dict[int, str]] = None,
+<<<<<<< HEAD
         numa_options: Optional[NumaOptions] = None,
         duplicate_stdout_filters: Optional[list[str]] = None,
         duplicate_stderr_filters: Optional[list[str]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         super().__init__(
             name,
@@ -723,8 +788,11 @@ class MultiprocessContext(PContext):
             envs,
             logs_specs,
             log_line_prefixes,
+<<<<<<< HEAD
             duplicate_stdout_filters,
             duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         self.start_method = start_method
@@ -741,8 +809,11 @@ class MultiprocessContext(PContext):
         # successfully. If any process died on event.wait() calling set() method will deadlock.
         self._worker_finished_event = mp.get_context(self.start_method).Event()
 
+<<<<<<< HEAD
         self._numa_options: Optional[NumaOptions] = numa_options
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _start(self):
         if self._pc:
             raise ValueError(
@@ -759,7 +830,10 @@ class MultiprocessContext(PContext):
                 self.stderrs,
                 self._ret_vals,
                 self._worker_finished_event,
+<<<<<<< HEAD
                 self._numa_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             nprocs=self.nprocs,
             join=False,
@@ -787,7 +861,11 @@ class MultiprocessContext(PContext):
             # pipe. Hence to prevent deadlocks on large return values,
             # we opportunistically try queue.get on each join call
             # See: https://docs.python.org/2/library/multiprocessing.html#all-platforms
+<<<<<<< HEAD
             for local_rank in range(self.nprocs):
+=======
+            for local_rank in range(0, self.nprocs):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return_queue = self._ret_vals[local_rank]
                 if not return_queue.empty():
                     # save the return values temporarily into a member var
@@ -901,9 +979,12 @@ class SubprocessContext(PContext):
         envs: dict[int, dict[str, str]],
         logs_specs: LogsSpecs,
         log_line_prefixes: Optional[dict[int, str]] = None,
+<<<<<<< HEAD
         numa_options: Optional[NumaOptions] = None,
         duplicate_stdout_filters: Optional[list[str]] = None,
         duplicate_stderr_filters: Optional[list[str]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         super().__init__(
             name,
@@ -912,15 +993,21 @@ class SubprocessContext(PContext):
             envs,
             logs_specs,
             log_line_prefixes,
+<<<<<<< HEAD
             duplicate_stdout_filters,
             duplicate_stderr_filters,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # state vector; _vdone[local_rank] -> is local_rank finished or not
         self._running_local_ranks: set[int] = set(range(self.nprocs))
         self._failures: dict[int, ProcessFailure] = {}
         self.subprocess_handlers: dict[int, SubprocessHandler] = {}
+<<<<<<< HEAD
         self._numa_options: Optional[NumaOptions] = numa_options
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _start(self):
         if self.subprocess_handlers:
@@ -935,12 +1022,20 @@ class SubprocessContext(PContext):
                 stdout=self.stdouts[local_rank],
                 stderr=self.stderrs[local_rank],
                 local_rank_id=local_rank,
+<<<<<<< HEAD
                 numa_options=self._numa_options,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for local_rank in range(self.nprocs)
         }
 
+<<<<<<< HEAD
     def _capture_process_failures(self, done_local_ranks: set[int]):
+=======
+    def _poll(self) -> Optional[RunProcsResult]:
+        done_local_ranks = set()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for local_rank in self._running_local_ranks:
             handler = self.subprocess_handlers[local_rank]
             exitcode = handler.proc.poll()
@@ -955,19 +1050,25 @@ class SubprocessContext(PContext):
                     )
                 # else: --> succeeded; nothing to do
 
+<<<<<<< HEAD
     def _poll(self) -> Optional[RunProcsResult]:
         done_local_ranks: set[int] = set()
         self._capture_process_failures(done_local_ranks)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._running_local_ranks.difference_update(done_local_ranks)
 
         # if ALL procs are finished or ANY have failed
         if not self._running_local_ranks or self._failures:
             self.close()  # terminate all running procs
+<<<<<<< HEAD
             self._capture_process_failures(
                 done_local_ranks
             )  # log sigterms and sigkill exit codes in the self._failures for bookkeeping purposes
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             result = RunProcsResult(
                 failures=self._failures,
                 stdouts=self.stdouts,

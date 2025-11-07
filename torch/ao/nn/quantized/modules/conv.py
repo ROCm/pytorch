@@ -1,7 +1,11 @@
 # mypy: allow-untyped-defs
 r"""Quantized convolution modules."""
 
+<<<<<<< HEAD
 from typing import ClassVar, Literal, Optional
+=======
+from typing import ClassVar, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.intrinsic as nni
@@ -278,9 +282,15 @@ class _ConvNd(WeightedQuantizedModule):
     @staticmethod
     def from_float(cls, mod, use_precomputed_fake_quant=False):
         if hasattr(mod, "weight_fake_quant"):
+<<<<<<< HEAD
             # assert type(mod) is cls.__QAT_MODULE, " nnq." + cls.__name__ + \
             # ".from_float only works for " + cls.__QAT_MODULE.__name__
             if type(mod) is cls._NNIQAT_CONV_BN_MODULE:
+=======
+            # assert type(mod) == cls.__QAT_MODULE, " nnq." + cls.__name__ + \
+            # ".from_float only works for " + cls.__QAT_MODULE.__name__
+            if type(mod) == cls._NNIQAT_CONV_BN_MODULE:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 mod.weight, mod.bias = fuse_conv_bn_weights(
                     mod.weight,
                     mod.bias,
@@ -296,7 +306,11 @@ class _ConvNd(WeightedQuantizedModule):
             weight_post_process = mod.weight_fake_quant
             activation_post_process = mod.activation_post_process
         else:
+<<<<<<< HEAD
             assert type(mod) is cls._FLOAT_MODULE, (
+=======
+            assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 " nnq."
                 + cls.__name__
                 + ".from_float only works for "
@@ -401,14 +415,21 @@ class Conv1d(_ConvNd):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
     ):
         factory_kwargs = {"device": device, "dtype": dtype}
         kernel_size = _single(kernel_size)
         stride = _single(stride)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         padding = padding if isinstance(padding, str) else _single(padding)
         dilation = _single(dilation)
 
@@ -808,7 +829,11 @@ class _ConvTransposeNd(_ConvNd):
             + ".from_float only works for "
             + cls._FLOAT_MODULE.__name__  # type: ignore[attr-defined]
         )
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, msg
+=======
+        assert type(mod) == cls._FLOAT_MODULE, msg
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert hasattr(mod, "qconfig"), "Input float module must have qconfig defined."
         weight_post_process = mod.qconfig.weight()  # type: ignore[operator, union-attr]
         weight_post_process(mod.weight)

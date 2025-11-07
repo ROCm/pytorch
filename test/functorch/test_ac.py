@@ -6,7 +6,11 @@ from math import prod
 import torch
 import torch._functorch.config as config
 from torch.testing._internal.common_utils import run_tests, TEST_WITH_ROCM, TestCase
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.utils._triton import has_triton
 from torch.utils.checkpoint import checkpoint
 from torch.utils.flop_counter import FlopCounterMode, register_flop_formula
@@ -106,7 +110,11 @@ class MemoryBudgetTest(TestCase):
             return f(x, ws)
 
         _, eager_flops = get_mem_and_flops(call)
+<<<<<<< HEAD
         for budget in range(11):
+=======
+        for budget in range(0, 11):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mem, flops = get_mem_and_flops(call, memory_budget=budget / 10)
             if budget <= 5:
                 # We start saving the matmuls
@@ -251,7 +259,11 @@ class MemoryBudgetTest(TestCase):
             return f(x, ws)
 
         expected = call()
+<<<<<<< HEAD
         for budget in range(11):
+=======
+        for budget in range(0, 11):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             memory_budget = budget / 10
             torch._dynamo.reset()
             with config.patch(activation_memory_budget=memory_budget):
@@ -405,5 +417,9 @@ class MemoryBudgetTest(TestCase):
 
 if __name__ == "__main__":
     # I'm using the cuda memory allocator to verify memory allocations
+<<<<<<< HEAD
     if HAS_CUDA_AND_TRITON and not TEST_WITH_ROCM:
+=======
+    if HAS_CUDA and not TEST_WITH_ROCM:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

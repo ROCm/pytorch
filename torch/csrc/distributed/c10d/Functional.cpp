@@ -30,6 +30,7 @@ c10d::ReduceOp to_reduce_op(const std::string& reduce_op) {
   return it->second;
 }
 
+<<<<<<< HEAD
 at::Tensor allocate_all_gather_output(
     const at::Tensor& input,
     int64_t group_size) {
@@ -65,6 +66,8 @@ at::Tensor allocate_reduce_scatter_output(
 
 namespace c10d {
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 at::Tensor& all_reduce_(
     at::Tensor& input,
     // NOLINTNEXTLINE(performance-unnecessary-value-param)
@@ -85,6 +88,7 @@ at::Tensor all_reduce(
     const at::Tensor& input,
     std::string reduce_op,
     std::string group_name) {
+<<<<<<< HEAD
   if (input.is_complex()) {
     TORCH_CHECK(
         // TODO - ideally use 'to_reduce_op' helper but it currently errors on
@@ -100,6 +104,10 @@ at::Tensor all_reduce(
   auto output_ret =
       all_reduce_(output, std::move(reduce_op), std::move(group_name));
   return input.is_complex() ? at::view_as_complex(output_ret) : output_ret;
+=======
+  auto output = input.clone(at::MemoryFormat::Contiguous);
+  return all_reduce_(output, std::move(reduce_op), std::move(group_name));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 std::vector<at::Tensor> all_reduce_coalesced_(
@@ -133,6 +141,20 @@ std::vector<at::Tensor> all_reduce_coalesced(
       outputs, std::move(reduce_op), std::move(group_name));
 }
 
+<<<<<<< HEAD
+=======
+at::Tensor allocate_all_gather_output(
+    const at::Tensor& input,
+    int64_t group_size) {
+  TORCH_CHECK(input.is_contiguous());
+  auto output_size = input.sizes().vec();
+  output_size[0] *= group_size;
+  return at::empty(
+      output_size,
+      at::TensorOptions().dtype(input.dtype()).device(input.device()));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::vector<at::Tensor> all_gather_into_tensor_coalesced(
     std::vector<at::Tensor> inputs,
     int64_t group_size,
@@ -158,11 +180,17 @@ at::Tensor all_gather_into_tensor(
     int64_t group_size,
     std::string group_name) {
   TORCH_CHECK(input.is_contiguous());
+<<<<<<< HEAD
   auto real_input = input.is_complex() ? at::view_as_real(input) : input;
   std::vector<at::Tensor> inputs{real_input};
   auto output = all_gather_into_tensor_coalesced(
       inputs, group_size, std::move(group_name))[0];
   return input.is_complex() ? at::view_as_complex(output) : output;
+=======
+  std::vector<at::Tensor> inputs{input};
+  return all_gather_into_tensor_coalesced(
+      inputs, group_size, std::move(group_name))[0];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 at::Tensor& all_gather_into_tensor_out(
@@ -179,6 +207,25 @@ at::Tensor& all_gather_into_tensor_out(
   return output;
 }
 
+<<<<<<< HEAD
+=======
+at::Tensor allocate_reduce_scatter_output(
+    const at::Tensor& input,
+    const int64_t group_size) {
+  TORCH_CHECK(input.is_contiguous());
+  auto output_size = input.sizes().vec();
+  if (output_size[0] % group_size != 0) {
+    LOG(WARNING) << "The first dimension of the reduce_scatter input ("
+                 << output_size[0] << ") is not divisible by the group size ("
+                 << group_size << ").";
+  }
+  output_size[0] /= group_size;
+  return at::empty(
+      output_size,
+      at::TensorOptions().dtype(input.dtype()).device(input.device()));
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 std::vector<at::Tensor> reduce_scatter_tensor_coalesced(
     std::vector<at::Tensor> inputs,
     // NOLINTNEXTLINE(performance-unnecessary-value-param)
@@ -209,12 +256,15 @@ at::Tensor reduce_scatter_tensor(
     int64_t group_size,
     std::string group_name) {
   TORCH_CHECK(input.is_contiguous());
+<<<<<<< HEAD
   if (input.is_complex()) {
     auto real_input = at::view_as_real(input);
     std::vector<at::Tensor> inputs{real_input};
     return at::view_as_complex(reduce_scatter_tensor_coalesced(
         inputs, std::move(reduce_op), group_size, std::move(group_name))[0]);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<at::Tensor> inputs{input};
   return reduce_scatter_tensor_coalesced(
       inputs, std::move(reduce_op), group_size, std::move(group_name))[0];
@@ -222,6 +272,7 @@ at::Tensor reduce_scatter_tensor(
 
 at::Tensor all_to_all_single(
     const at::Tensor& input,
+<<<<<<< HEAD
     c10::SymIntArrayRef _output_split_sizes,
     c10::SymIntArrayRef _input_split_sizes,
     // NOLINTNEXTLINE(performance-unnecessary-value-param)
@@ -237,6 +288,12 @@ at::Tensor all_to_all_single(
     input_split_sizes.emplace_back(size.expect_int());
   }
 
+=======
+    std::vector<int64_t> output_split_sizes,
+    std::vector<int64_t> input_split_sizes,
+    // NOLINTNEXTLINE(performance-unnecessary-value-param)
+    std::string group_name) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(input.is_contiguous());
   std::vector<int64_t> output_sizes = input.sizes().vec();
   output_sizes[0] = std::accumulate(
@@ -258,8 +315,12 @@ at::Tensor all_to_all_single(
 at::Tensor& broadcast_(at::Tensor& input, int64_t src, std::string group_name) {
   c10d::BroadcastOptions opts;
   opts.rootRank = src;
+<<<<<<< HEAD
   auto input_real = input.is_complex() ? at::view_as_real(input) : input;
   std::vector<at::Tensor> inputs{input_real};
+=======
+  std::vector<at::Tensor> inputs{input};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto group = c10d::resolve_process_group(group_name);
   auto work = group->broadcast(inputs, opts);
@@ -275,68 +336,108 @@ at::Tensor broadcast(
   return broadcast_(output, src, std::move(group_name));
 }
 
+<<<<<<< HEAD
 } // namespace c10d
+=======
+} // namespace
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 TORCH_LIBRARY(_c10d_functional, m) {
   m.def(
       "all_reduce(Tensor input, str reduce_op, str group_name) -> Tensor",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd, c10d::all_reduce),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::all_reduce),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
       "all_reduce_(Tensor(a!) input, str reduce_op, str group_name) -> Tensor(a!)",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd, c10d::all_reduce_),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::all_reduce_),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
       "all_reduce_coalesced(Tensor[] inputs, str reduce_op, str group_name) -> Tensor[]",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd,
           c10d::all_reduce_coalesced),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::all_reduce_coalesced),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
       "all_reduce_coalesced_(Tensor[](a!) inputs, str reduce_op, str group_name) -> Tensor[](a!)",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd,
           c10d::all_reduce_coalesced_),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::all_reduce_coalesced_),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
       "all_gather_into_tensor_out(Tensor input, int group_size, str group_name, *, Tensor(a!) out) -> Tensor(a!)",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
+<<<<<<< HEAD
           c10d::all_gather_into_tensor_out),
+=======
+          ::all_gather_into_tensor_out),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
       "all_gather_into_tensor(Tensor input, int group_size, str group_name) -> Tensor",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
+<<<<<<< HEAD
           c10d::all_gather_into_tensor),
+=======
+          ::all_gather_into_tensor),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
       "all_gather_into_tensor_coalesced(Tensor[] inputs, int group_size, str group_name) -> Tensor[]",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
+<<<<<<< HEAD
           c10d::all_gather_into_tensor_coalesced),
+=======
+          ::all_gather_into_tensor_coalesced),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
       "reduce_scatter_tensor(Tensor input, str reduce_op, int group_size, str group_name) -> Tensor",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd,
           c10d::reduce_scatter_tensor),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::reduce_scatter_tensor),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
       "reduce_scatter_tensor_coalesced(Tensor[] inputs, str reduce_op, int group_size, str group_name) -> Tensor[]",
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd,
+<<<<<<< HEAD
           c10d::reduce_scatter_tensor_coalesced),
+=======
+          ::reduce_scatter_tensor_coalesced),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
@@ -346,19 +447,31 @@ TORCH_LIBRARY(_c10d_functional, m) {
       "SymInt[] input_split_sizes, "
       "str group_name) -> Tensor",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd, c10d::all_to_all_single),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::all_to_all_single),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag, at::Tag::needs_contiguous_strides});
 
   m.def(
       "broadcast(Tensor input, int src, str group_name) -> Tensor",
+<<<<<<< HEAD
       torch::dispatch(
           c10::DispatchKey::CompositeExplicitAutograd, c10d::broadcast),
+=======
+      torch::dispatch(c10::DispatchKey::CompositeExplicitAutograd, ::broadcast),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
       "broadcast_(Tensor(a!) input, int src, str group_name) -> Tensor(a!)",
       torch::dispatch(
+<<<<<<< HEAD
           c10::DispatchKey::CompositeExplicitAutograd, c10d::broadcast_),
+=======
+          c10::DispatchKey::CompositeExplicitAutograd, ::broadcast_),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       {at::Tag::pt2_compliant_tag});
 
   m.def(
@@ -375,6 +488,7 @@ class AllToAllSingle : public torch::autograd::Function<AllToAllSingle> {
       torch::autograd::AutogradContext* ctx,
       const at::Tensor& input,
       // NOLINTNEXTLINE(performance-unnecessary-value-param)
+<<<<<<< HEAD
       at::SymIntArrayRef output_split_sizes,
       // NOLINTNEXTLINE(performance-unnecessary-value-param)
       at::SymIntArrayRef input_split_sizes,
@@ -383,21 +497,42 @@ class AllToAllSingle : public torch::autograd::Function<AllToAllSingle> {
     // swap sizes for backwards pass
     ctx->saved_data["output_split_sizes"] = input_split_sizes.vec();
     ctx->saved_data["input_split_sizes"] = output_split_sizes.vec();
+=======
+      std::vector<int64_t> output_split_sizes,
+      // NOLINTNEXTLINE(performance-unnecessary-value-param)
+      std::vector<int64_t> input_split_sizes,
+      // NOLINTNEXTLINE(performance-unnecessary-value-param)
+      std::string group_name) {
+    // swap sizes for backwards pass
+    ctx->saved_data["output_split_sizes"] = input_split_sizes;
+    ctx->saved_data["input_split_sizes"] = output_split_sizes;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ctx->saved_data["group_name"] = group_name;
 
     return c10::Dispatcher::singleton()
         .findSchemaOrThrow("_c10d_functional::all_to_all_single", "")
+<<<<<<< HEAD
         .typed<decltype(c10d::all_to_all_single)>()
+=======
+        .typed<decltype(all_to_all_single)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .call(input, output_split_sizes, input_split_sizes, group_name);
   }
 
   static torch::autograd::variable_list backward(
       torch::autograd::AutogradContext* ctx,
       const torch::autograd::variable_list& grad_out_list) {
+<<<<<<< HEAD
     std::vector<c10::SymInt> output_split_sizes =
         ctx->saved_data["output_split_sizes"].toSymIntVector();
     std::vector<c10::SymInt> input_split_sizes =
         ctx->saved_data["input_split_sizes"].toSymIntVector();
+=======
+    const std::vector<int64_t>& output_split_sizes =
+        ctx->saved_data["output_split_sizes"].toIntVector();
+    const std::vector<int64_t>& input_split_sizes =
+        ctx->saved_data["input_split_sizes"].toIntVector();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::string& group_name = ctx->saved_data["group_name"].toStringRef();
 
     DCHECK(grad_out_list.size() == 1);
@@ -406,7 +541,11 @@ class AllToAllSingle : public torch::autograd::Function<AllToAllSingle> {
     auto out =
         c10::Dispatcher::singleton()
             .findSchemaOrThrow("_c10d_functional::all_to_all_single", "")
+<<<<<<< HEAD
             .typed<decltype(c10d::all_to_all_single)>()
+=======
+            .typed<decltype(all_to_all_single)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .call(grad_out, output_split_sizes, input_split_sizes, group_name);
 
     // do an explicit wait to avoid cuda stream issues
@@ -422,8 +561,13 @@ class AllToAllSingle : public torch::autograd::Function<AllToAllSingle> {
 
 at::Tensor all_to_all_single_autograd(
     const at::Tensor& input,
+<<<<<<< HEAD
     at::SymIntArrayRef output_split_sizes,
     at::SymIntArrayRef input_split_sizes,
+=======
+    const std::vector<int64_t>& output_split_sizes,
+    const std::vector<int64_t>& input_split_sizes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const std::string& group_name) {
   return AllToAllSingle::apply(
       input, output_split_sizes, input_split_sizes, group_name);
@@ -445,7 +589,11 @@ class ReduceScatterTensor
 
     return c10::Dispatcher::singleton()
         .findSchemaOrThrow("_c10d_functional::reduce_scatter_tensor", "")
+<<<<<<< HEAD
         .typed<decltype(c10d::reduce_scatter_tensor)>()
+=======
+        .typed<decltype(reduce_scatter_tensor)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .call(input, reduce_op, group_size, group_name);
   }
 
@@ -461,7 +609,11 @@ class ReduceScatterTensor
     auto out =
         c10::Dispatcher::singleton()
             .findSchemaOrThrow("_c10d_functional::all_gather_into_tensor", "")
+<<<<<<< HEAD
             .typed<decltype(c10d::all_gather_into_tensor)>()
+=======
+            .typed<decltype(all_gather_into_tensor)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .call(grad_out, group_size, group_name);
 
     // do an explicit wait to avoid cuda stream issues
@@ -501,7 +653,11 @@ class AllGatherIntoTensor
 
     return c10::Dispatcher::singleton()
         .findSchemaOrThrow("_c10d_functional::all_gather_into_tensor", "")
+<<<<<<< HEAD
         .typed<decltype(c10d::all_gather_into_tensor)>()
+=======
+        .typed<decltype(all_gather_into_tensor)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         .call(input, group_size, group_name);
   }
 
@@ -517,7 +673,11 @@ class AllGatherIntoTensor
     auto out =
         c10::Dispatcher::singleton()
             .findSchemaOrThrow("_c10d_functional::reduce_scatter_tensor", "")
+<<<<<<< HEAD
             .typed<decltype(c10d::reduce_scatter_tensor)>()
+=======
+            .typed<decltype(reduce_scatter_tensor)>()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             .call(grad_out, "sum", group_size, group_name);
 
     // do an explicit wait to avoid cuda stream issues
@@ -594,10 +754,14 @@ at::Tensor shard_dim_alltoall(
   input_sizes.insert(input_sizes.begin() + shard_dim, group_size);
 
   auto tensor_reshaped = input.view(input_sizes);
+<<<<<<< HEAD
   auto tensor_shard_contig = tensor_reshaped.movedim(shard_dim, 0).contiguous();
   auto tensor_for_comm = input.is_complex()
       ? at::view_as_real(tensor_shard_contig)
       : tensor_shard_contig;
+=======
+  auto tensor_for_comm = tensor_reshaped.movedim(shard_dim, 0).contiguous();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto recv_tensor = at::empty_like(tensor_for_comm);
   std::vector<int64_t> out_split_sizes;
@@ -619,8 +783,12 @@ at::Tensor shard_dim_alltoall(
   // view/reshape it back to the expected output shape
   output_sizes[shard_dim] /= group_size;
   output_sizes[gather_dim] *= group_size;
+<<<<<<< HEAD
   return input.is_complex() ? at::view_as_complex(output).view(output_sizes)
                             : output.view(output_sizes);
+=======
+  return output.view(output_sizes);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 } // namespace
 

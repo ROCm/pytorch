@@ -157,13 +157,21 @@ struct Interpolate<1, scalar_t, opmath_t, index_t, 2> {
 };
 
 template <int n, typename scalar_t, typename index_t, int interp_size>
+<<<<<<< HEAD
 inline scalar_t interpolate(char* src, char** data, const int64_t* strides, int64_t i) {
+=======
+static inline scalar_t interpolate(char* src, char** data, const int64_t* strides, int64_t i) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   using opmath_t = at::opmath_type<scalar_t>;
   return Interpolate<n, scalar_t, opmath_t, index_t, interp_size>::eval(src, data, strides, i);
 }
 
 template <typename scalar_t, typename index_t>
+<<<<<<< HEAD
 inline scalar_t interpolate_aa_single_dim_zero_strides(
+=======
+static inline scalar_t interpolate_aa_single_dim_zero_strides(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     char* src,
     char** data,
     const index_t ids_stride) {
@@ -187,7 +195,11 @@ inline scalar_t interpolate_aa_single_dim_zero_strides(
 }
 
 template <typename scalar_t, typename index_t>
+<<<<<<< HEAD
 inline scalar_t interpolate_aa_single_dim(
+=======
+static inline scalar_t interpolate_aa_single_dim(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     char* src,
     char** data,
     const int64_t* strides,
@@ -213,7 +225,11 @@ inline scalar_t interpolate_aa_single_dim(
 }
 
 template<int m>
+<<<<<<< HEAD
 inline bool is_zero_stride(const int64_t* strides) {
+=======
+static inline bool is_zero_stride(const int64_t* strides) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool output = strides[0] == 0;
   for (const auto i : c10::irange(1, m)) {
     output &= (strides[i] == 0);
@@ -222,7 +238,11 @@ inline bool is_zero_stride(const int64_t* strides) {
 }
 
 template <typename scalar_t, typename index_t, int interp_size>
+<<<<<<< HEAD
 inline bool is_contiguous_stride(const int64_t* strides) {
+=======
+static inline bool is_contiguous_stride(const int64_t* strides) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool output = (strides[0] == sizeof(index_t)) && (strides[1] == sizeof(scalar_t));
   for (int i=2; i<2 * interp_size; i+=2) {
     output &= (strides[i] == sizeof(index_t)) && (strides[i + 1] == sizeof(scalar_t));
@@ -282,13 +302,21 @@ struct CheckAlmostAllZeroStrides<0, non_zero_stride_dim, scalar_t, index_t, inte
 };
 
 template <int n, int s, typename scalar_t, typename index_t, int interp_size>
+<<<<<<< HEAD
 inline bool check_almost_all_zero_stride(const int64_t* strides) {
+=======
+static inline bool check_almost_all_zero_stride(const int64_t* strides) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return CheckAlmostAllZeroStrides<n, s, scalar_t, index_t, interp_size>::eval(strides);
 }
 
 // Helper method to compute interpolation for nearest, linear, cubic modes
 template <typename scalar_t, typename index_t, int out_ndims, int interp_size>
+<<<<<<< HEAD
 inline void basic_loop(char** data, const int64_t* strides, int64_t n) {
+=======
+static inline void basic_loop(char** data, const int64_t* strides, int64_t n) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   char* dst = data[0];
   char* src = data[1];
   for (const auto i : c10::irange(n)) {
@@ -298,7 +326,11 @@ inline void basic_loop(char** data, const int64_t* strides, int64_t n) {
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void basic_loop_aa_vertical(
+=======
+static inline void basic_loop_aa_vertical(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     char** data,
     const int64_t* strides,
     int64_t n,
@@ -354,7 +386,11 @@ inline void basic_loop_aa_vertical<uint8_t>(
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 inline void basic_loop_aa_horizontal(
+=======
+static inline void basic_loop_aa_horizontal(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     char** data,
     const int64_t* strides,
     int64_t n,
@@ -1038,7 +1074,11 @@ struct HelperInterpNearest : public HelperInterpBase {
   // We keep this structure for BC and consider as deprecated.
   // See HelperInterpNearestExact as replacement
 
+<<<<<<< HEAD
   static constexpr int interp_size = 1;
+=======
+  static const int interp_size = 1;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   static inline void init_indices_weights(
     at::ScalarType output_type,
@@ -1155,7 +1195,11 @@ struct HelperInterpNearestExact : public HelperInterpNearest {
 
 struct HelperInterpLinear : public HelperInterpBase {
 
+<<<<<<< HEAD
   static constexpr int interp_size = 2;
+=======
+  static const int interp_size = 2;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Compute indices and weights for each interpolated dimension
   // indices_weights = {
@@ -1275,7 +1319,11 @@ struct HelperInterpLinear : public HelperInterpBase {
 
 struct HelperInterpCubic : public HelperInterpBase {
 
+<<<<<<< HEAD
   static constexpr int interp_size = 4;
+=======
+  static const int interp_size = 4;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // Compute indices and weights for each interpolated dimension
   // indices_weights = {

@@ -15,6 +15,7 @@ from torch.testing._internal.common_device_type import (
 from torch.testing._internal.common_modules import module_db, modules, ModuleErrorEnum, TrainEvalMode
 from torch.testing._internal.common_utils import (
     TestCase, run_tests, freeze_rng_state, mock_wrapper, get_tensors_from, gradcheck,
+<<<<<<< HEAD
     gradgradcheck, parametrize, wrapSwapTensorsTest, TEST_WITH_ROCM)
 from unittest.mock import patch, call
 
@@ -25,6 +26,12 @@ if TEST_WITH_ROCM:
     os.environ["PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM"] = "1"
 
 
+=======
+    gradgradcheck, parametrize, wrapSwapTensorsTest)
+from unittest.mock import patch, call
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestModule(TestCase):
     _do_cuda_memory_leak_check = True
     _do_cuda_non_default_stream = True
@@ -328,7 +335,11 @@ class TestModule(TestCase):
 
     def _retain_grad(self, obj):
         # gradients needs to be retained to check for grad. This is useful when
+<<<<<<< HEAD
         # non-leaves are present in the graph.
+=======
+        # non-leafs are present in the graph.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def inner_retain_grad(obj):
             if obj.requires_grad:
                 obj.retain_grad()

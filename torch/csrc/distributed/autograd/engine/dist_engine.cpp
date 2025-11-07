@@ -65,7 +65,11 @@ class DistAccumulateGradCaptureHook
     for (const auto& hook : accumulateGrad_->post_hooks()) {
       (*hook)(kEmptyOutput, inputGrads);
     }
+<<<<<<< HEAD
     return std::move(inputGrads[0]);
+=======
+    return inputGrads[0];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
  private:

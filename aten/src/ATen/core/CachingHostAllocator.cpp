@@ -6,9 +6,15 @@ namespace at {
 
 namespace {
 
+<<<<<<< HEAD
 std::array<HostAllocator*, at::COMPILE_TIME_MAX_DEVICE_TYPES>
     allocator_array{};
 std::array<uint8_t, at::COMPILE_TIME_MAX_DEVICE_TYPES>
+=======
+static std::array<HostAllocator*, at::COMPILE_TIME_MAX_DEVICE_TYPES>
+    allocator_array{};
+static std::array<uint8_t, at::COMPILE_TIME_MAX_DEVICE_TYPES>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     allocator_priority{};
 
 } // anonymous namespace

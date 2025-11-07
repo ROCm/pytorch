@@ -27,9 +27,12 @@ from torch.testing._internal.jit_utils import (
 )
 
 
+<<<<<<< HEAD
 assert GRAPH_EXECUTOR is not None
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @unittest.skipIf(
     GRAPH_EXECUTOR == ProfilingMode.SIMPLE, "Simple Executor doesn't support gradients"
 )

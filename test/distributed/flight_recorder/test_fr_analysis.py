@@ -143,6 +143,7 @@ class FlightRecorderEventTest(TestCase):
             match_one_event(e11, e12, membership, "0").state,
             MatchState.FULLY_MATCHED,
         )
+<<<<<<< HEAD
         e13 = create_one_event(
             "gather",
             ("0", "default"),
@@ -156,6 +157,8 @@ class FlightRecorderEventTest(TestCase):
             match_one_event(e11, e13, membership, "0").state,
             MatchState.FULLY_MATCHED,
         )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_all_events(self):
         for collective in sorted(COLLECTIVES):

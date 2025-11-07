@@ -8,9 +8,15 @@ import linecache
 import os
 import sys
 import types
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from contextlib import contextmanager
 from typing import Any, cast, Optional, TYPE_CHECKING, Union
+=======
+from collections.abc import Iterable
+from contextlib import contextmanager
+from typing import Any, Callable, cast, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from weakref import WeakValueDictionary
 
 import torch
@@ -423,12 +429,16 @@ class PackageImporter(Importer):
                         module.__dict__.setdefault(old_name, new_name)
 
                 return module
+<<<<<<< HEAD
         return self._make_module(
             name,
             cur.source_file,  # type: ignore[attr-defined]
             isinstance(cur, _PackageNode),
             parent,
         )
+=======
+        return self._make_module(name, cur.source_file, isinstance(cur, _PackageNode), parent)  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _compile_source(self, fullpath: str, mangled_filename: str):
         source = self.zip_reader.get_record(fullpath)

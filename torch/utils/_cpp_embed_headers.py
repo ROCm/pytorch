@@ -53,6 +53,10 @@ if __name__ == "__main__":
     import sys
 
     if len(sys.argv) < 2:
+<<<<<<< HEAD
         print(f"Usage:\n {sys.argv[0]} filename")
+=======
+        print("Usage:\n {sys.argv[0]} filename")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sys.exit(1)
     print(embed_headers(sys.argv[1]))

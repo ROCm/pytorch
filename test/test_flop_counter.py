@@ -13,7 +13,10 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FP8,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_device_type import e4m3_type
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     run_tests,
     TEST_WITH_TORCHDYNAMO,
@@ -854,7 +857,11 @@ class TestFlopCounter(TestCase):
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
     def test_scaled_mm(self):
+<<<<<<< HEAD
         dtype = e4m3_type
+=======
+        dtype = torch.float8_e4m3fnuz if torch.version.hip else torch.float8_e4m3fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with FlopCounterMode() as mode:
             torch._scaled_mm(
                 torch.randn((3 * 16, 5 * 16), device="cuda").to(dtype),

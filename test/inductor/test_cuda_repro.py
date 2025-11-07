@@ -1,7 +1,10 @@
 # Owner(s): ["module: inductor"]
 # ruff: noqa: F841
 
+<<<<<<< HEAD
 import copy
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import gc
 import math
@@ -27,7 +30,10 @@ from torch._inductor.utils import (
     run_fw_bw_and_get_code,
 )
 from torch.fx.experimental.proxy_tensor import make_fx
+<<<<<<< HEAD
 from torch.nn.attention import sdpa_kernel, SDPBackend
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
@@ -39,8 +45,11 @@ from torch.testing._internal.common_utils import (
     DeterministicGuard,
     freeze_rng_state,
     IS_FBCODE,
+<<<<<<< HEAD
     MI350_ARCH,
     skipIfRocmArch,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_ASAN,
     TEST_WITH_ROCM,
     xfailIfPy312Plus,
@@ -78,7 +87,11 @@ except unittest.SkipTest:
         sys.exit(0)
     raise
 
+<<<<<<< HEAD
 NAVI_ARCH = ("gfx1100", "gfx1101") # Used for navi exclusive skips on ROCm
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TestCase = test_torchinductor.TestCase
 ToTuple = test_torchinductor.ToTuple
 check_model_cuda = test_torchinductor.check_model_cuda
@@ -89,6 +102,7 @@ class CudaReproTests(TestCase):
     device = "cuda"
     common = check_model_cuda
 
+<<<<<<< HEAD
     def test_mm_out_dtype_compile(self):
         a = torch.randn(1, 3, device="cuda", dtype=torch.float16)
         b = torch.randn(3, 2, device="cuda", dtype=torch.float16)
@@ -102,6 +116,8 @@ class CudaReproTests(TestCase):
         self.assertEqual(result.dtype, expected.dtype)
         self.assertEqual(result, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_index_put_issue(self):
         def forward(
             self,
@@ -136,6 +152,7 @@ class CudaReproTests(TestCase):
         compiled = compile_fx_inner(mod, inps)
         compiled(inps)
 
+<<<<<<< HEAD
     def test_view_replay_padding_issue_163328(self):
         class ReproModule(nn.Module):
             def __init__(self):
@@ -177,6 +194,8 @@ class CudaReproTests(TestCase):
         self.assertEqual(compiled_out["ten0"], eager_out["ten0"])
         self.assertEqual(compiled_out["ten1"], eager_out["ten1"])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_effn_attn_bias_padding(self):
         batch_size, num_heads, seq_len, head_dim = 2, 32, 512, 128
 
@@ -220,7 +239,10 @@ class CudaReproTests(TestCase):
         # dont check rng state
         self.assertEqual(out[:2], fn(query, key, value, input_tensor2)[:2])
 
+<<<<<<< HEAD
     @skipIfRocmArch(MI350_ARCH)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_effn_attn_bias_padding_misaligned(self):
         seqlen_start = 1008
 
@@ -236,10 +258,16 @@ class CudaReproTests(TestCase):
             inputs = [q, k, v, mask]
 
             def f(q, k, v, mask):
+<<<<<<< HEAD
                 with sdpa_kernel(SDPBackend.EFFICIENT_ATTENTION):
                     return F.scaled_dot_product_attention(
                         q, k, v, attn_mask=mask, dropout_p=0.0
                     )
+=======
+                return F.scaled_dot_product_attention(
+                    q, k, v, attn_mask=mask, dropout_p=0.0
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             f_compiled = torch.compile(f)
 
@@ -247,9 +275,15 @@ class CudaReproTests(TestCase):
             # padded bias should have an expanded dim
             FileCheck().check("buf0 =").check_same(", 0, ").run(code[0])
             # single fused padded kernel
+<<<<<<< HEAD
             FileCheck().check_count("empty_strided_cuda(", 1, exactly=True).check(
                 "return"
             ).run(code[0])
+=======
+            FileCheck().check("def call").check_count(
+                "empty_strided_cuda", 1, exactly=True
+            ).check("return").run(code[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.assertEqual(out, f(*inputs))
 
@@ -981,6 +1015,7 @@ class CudaReproTests(TestCase):
             out, torch.scatter_reduce(input_orig.clone(), 0, index, src, "sum")
         )
 
+<<<<<<< HEAD
     def test_normalize_norm_leq_one(self):
         def fn(x: torch.Tensor) -> torch.Tensor:
             return torch.nn.functional.normalize(x, dim=-1)
@@ -993,6 +1028,8 @@ class CudaReproTests(TestCase):
             torch.all(norm <= 1.0), f"expected norm <= 1.0 but got {norm.item()}"
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_libdevice_routing(self):
         def foo(x):
             return x.exp()
@@ -1005,7 +1042,11 @@ class CudaReproTests(TestCase):
 
         inp = inp.to(torch.float)
         out, code = run_and_get_code(torch.compile(foo), inp)
+<<<<<<< HEAD
         FileCheck().check_not("tl_math.exp").check("libdevice.exp").run(code[0])
+=======
+        FileCheck().check_not("libdevice.exp").check("tl_math.exp").run(code[0])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertEqual(foo(inp), out)
 
         def foo(x):
@@ -1418,7 +1459,11 @@ class CudaReproTests(TestCase):
             out2 = model(input2)
             out3 = model(input3)
 
+<<<<<<< HEAD
         self.assertEqual(cnts.frame_count, 2)
+=======
+        self.assertEqual(cnts.frame_count, 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @config.patch({"triton.cudagraphs": True})
     def test_index_put_no_fallback_cudagraph(self):
@@ -1441,6 +1486,7 @@ class CudaReproTests(TestCase):
         self.assertEqual(ref, res)
 
     @torch._inductor.config.patch(emulate_precision_casts=True)
+<<<<<<< HEAD
     def test_emulate_precision_casts_norm_rounding(self):
         torch.manual_seed(0)
         torch.cuda.manual_seed_all(0)
@@ -1563,6 +1609,8 @@ class CudaReproTests(TestCase):
             )
 
     @torch._inductor.config.patch(emulate_precision_casts=True)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dont_inplace_disjoint_accesses(self):
         # TODO - would not need mms if we could annotate donated buffer..
         def forward(  # noqa: F821, F722
@@ -2037,7 +2085,10 @@ class CudaReproTests(TestCase):
         self.assertEqual(graph.disable_cudagraphs_reason, None)
         self.assertEqual(graph.device_types, {"cuda"})
 
+<<<<<<< HEAD
     @unittest.skipIf(IS_FBCODE, "Not runnable in fbcode")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_triton_interpret(self):
         import subprocess
 
@@ -2050,7 +2101,11 @@ import torch
 def foo(x):
     return x + 1
 
+<<<<<<< HEAD
 # somehow gives different results.. still, check that it doesn't error
+=======
+# somehow gives different results.. still, check that it doesnt error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 foo(torch.rand([256], device="cuda"))
 """
         subprocess.run([sys.executable, "-c", script], check=True)
@@ -2194,6 +2249,7 @@ def triton_poi_fused_add_reflection_pad2d_0(in_ptr0, in_ptr1, out_ptr0, xnumel, 
 
         self.assertEqual(f(x_ref, y_ref), out)
 
+<<<<<<< HEAD
     def test_red_dtype_mismatch(self):
         for per in (True, False):
             torch._dynamo.reset()
@@ -2228,6 +2284,8 @@ def triton_poi_fused_add_reflection_pad2d_0(in_ptr0, in_ptr1, out_ptr0, xnumel, 
             out = f(x, y)
             self.assertEqual(torch.compile(f)(x, y), out)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         not config.is_fbcode(),
         "bfloat16 atomic add is only supported in fbcode today #97016",
@@ -2325,7 +2383,10 @@ def triton_poi_fused_add_reflection_pad2d_0(in_ptr0, in_ptr1, out_ptr0, xnumel, 
         self.assertIn("znumel", code)
 
     @xfailIfPy312Plus  # https://github.com/pytorch/pytorch/issues/142032
+<<<<<<< HEAD
     @unittest.skipIf(config.is_fbcode(), "Dependence on functorch.einops")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_repeated_masked_load(self):
         target_size = (8, 2)
         mem_eff_temporal_upsampling_interp_chunks = 2
@@ -2395,6 +2456,7 @@ def triton_poi_fused_add_reflection_pad2d_0(in_ptr0, in_ptr1, out_ptr0, xnumel, 
 
         self.assertEqual(default_output, max_autotune_output)
 
+<<<<<<< HEAD
     def test_adaptive_avg_pool3d_issue_157248(self):
         """Test for GitHub issue #157248: Conv2d-unsqueeze-AdaptiveAvgPool3d produces incorrect results"""
 
@@ -2632,4 +2694,12 @@ if __name__ == "__main__":
     from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
 
     if HAS_CUDA_AND_TRITON and not TEST_WITH_ASAN:
+=======
+
+if __name__ == "__main__":
+    from torch._inductor.test_case import run_tests
+    from torch.testing._internal.inductor_utils import HAS_CUDA
+
+    if HAS_CUDA and not TEST_WITH_ASAN:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

@@ -88,7 +88,11 @@ def warn_if_has_hooks(tensor):
                 warnings.warn(f"backward hook {repr(hook)} on tensor will not be "
                               "serialized.  If this is expected, you can "
                               "decorate the function with @torch.utils.hooks.unserializable_hook "
+<<<<<<< HEAD
                               "to suppress this warning", stacklevel=2)
+=======
+                              "to suppress this warning")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class BackwardHook:
     """
@@ -145,7 +149,10 @@ class BackwardHook:
 
                 res = out
 
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.grad_outputs = None
 
             return self._unpack_none(self.input_tensors_index, res)
@@ -238,8 +245,12 @@ class BackwardHook:
                     self.grad_outputs = None
 
                 if local_grad_outputs is not None:
+<<<<<<< HEAD
                     if self.output_tensors_index is None:
                         raise AssertionError("output_tensors_index should not be None when grad_outputs is not None")
+=======
+                    assert self.output_tensors_index is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     return tuple(local_grad_outputs[i] for i in self.output_tensors_index)
 
             grad_fn.register_hook(hook)

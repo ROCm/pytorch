@@ -11,8 +11,11 @@ if TYPE_CHECKING:
     from collections.abc import Iterable
 
 
+<<<<<<< HEAD
 CMAKE_MINIMUM_VERSION_STRING = "3.27"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 IS_WINDOWS = platform.system() == "Windows"
 IS_DARWIN = platform.system() == "Darwin"
 IS_LINUX = platform.system() == "Linux"

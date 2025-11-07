@@ -1,4 +1,8 @@
 #include <torch/csrc/jit/serialization/pickle.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/serialization/pickler.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/serialize.h>
 
 #include <vector>

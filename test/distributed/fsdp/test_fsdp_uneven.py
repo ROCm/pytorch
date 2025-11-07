@@ -45,7 +45,11 @@ class TestUnevenParamShard(FSDPTest):
     def test_one_iteration(self, device):
         """Test FSDP with uneven divide of parameter shards."""
         model = Linear(3, 3, bias=False)
+<<<<<<< HEAD
         input = torch.rand(self.world_size, 3)
+=======
+        input = torch.rand(8, 3)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         my_lr = 0.1
 
         ref_forward_output_my_rank, ref_weight_out = self._get_ref_results(

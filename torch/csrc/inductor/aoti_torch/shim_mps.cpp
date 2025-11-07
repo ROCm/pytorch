@@ -27,6 +27,7 @@ AOTITorchError aoti_torch_mps_set_arg_int(
     func->setArg(idx, val);
   });
 }
+<<<<<<< HEAD
 
 AOTITorchError aoti_torch_mps_create_shader_library(
     const char* metal_shader_source,
@@ -140,3 +141,5 @@ AOTITorchError aoti_torch_mps_run_command_block(
         [callback, func, user_data]() { callback(func, user_data); });
   });
 }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

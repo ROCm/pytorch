@@ -418,8 +418,13 @@ struct OperatorGeneratorArgs {
 
   template <typename... Args>
   explicit constexpr OperatorGeneratorArgs(
+<<<<<<< HEAD
       torch::detail::SelectiveStr<false> /*unused*/,
       Args... /*unused*/)
+=======
+      torch::detail::SelectiveStr<false>,
+      Args...)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : schema_str(nullptr),
         isOperationCreator(false),
         operation(nullptr),

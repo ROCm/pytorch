@@ -109,6 +109,7 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
   using ID = size_t;
 
   // Mapping of each thread to its own operator stack
+<<<<<<< HEAD
   std::map<size_t, std::stack<ID>> opStack;
   // Uses the underlying TensorImpl object pointer as the key and map to its
   // unique id.
@@ -118,6 +119,17 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
   std::unordered_map<const void*, ID> data_ptr_to_storage_id;
   std::unordered_map<const void*, weak_storage_ptr>
       data_ptr_to_weak_storage_ptr;
+=======
+  std::map<size_t, std::stack<ID>> opStack{};
+  // Uses the underlying TensorImpl object pointer as the key and map to its
+  // unique id.
+  std::map<const void*, ID> objectId{};
+
+  using weak_storage_ptr = c10::weak_intrusive_ptr<StorageImpl>;
+  std::unordered_map<const void*, ID> data_ptr_to_storage_id{};
+  std::unordered_map<const void*, weak_storage_ptr>
+      data_ptr_to_weak_storage_ptr{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ID get_tensor_storage_ID(const c10::Storage& t_storage) {
     const std::lock_guard<std::recursive_mutex> lock(gMutex);
@@ -138,7 +150,12 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
         // So we need to remove the key and insert the key with the new value.
         data_ptr_to_storage_id.erase(raw_data_ptr);
         data_ptr_to_storage_id[raw_data_ptr] = id;
+<<<<<<< HEAD
         data_ptr_to_weak_storage_ptr.insert_or_assign(
+=======
+        data_ptr_to_weak_storage_ptr.erase(raw_data_ptr);
+        data_ptr_to_weak_storage_ptr.emplace(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raw_data_ptr, t_storage.getWeakStorageImpl());
         return id;
       } else {
@@ -151,6 +168,7 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
   enum class RunState { uninitialized, disabled, enabled };
 
   // Mutex for multithreaded access to the shared containers.
+<<<<<<< HEAD
   std::recursive_mutex gMutex;
   // Stream to write output JSON.
   std::ofstream out;
@@ -159,13 +177,27 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
   std::string fileName;
 
   std::string resourceDir;
+=======
+  std::recursive_mutex gMutex{};
+  // Stream to write output JSON.
+  std::ofstream out{};
+
+  // Full path to the output file.
+  std::string fileName{};
+
+  std::string resourceDir{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // RecordFunction callback handle for this observer.
   CallbackHandle cbHandle{INVALID_CALLBACK_HANDLE};
 
   // Process ID.
   int32_t pid{-1};
+<<<<<<< HEAD
   std::string recordTime;
+=======
+  std::string recordTime{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   ExecutionTraceObserver() = default;
 
@@ -192,7 +224,11 @@ struct TORCH_API ExecutionTraceObserver { // NOLINT
 
   bool record_integral_tensor_range{false};
 
+<<<<<<< HEAD
   std::unordered_set<std::string> nodeListForSavingIntegerTensor;
+=======
+  std::unordered_set<std::string> nodeListForSavingIntegerTensor{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
  private:
   static bool callbackShouldBeEnabled(RunState run_state) {

@@ -229,10 +229,17 @@ private:
   }
 
 
+<<<<<<< HEAD
   static constexpr uint32_t kPhilox10A = 0x9E3779B9;
   static constexpr uint32_t kPhilox10B = 0xBB67AE85;
   static constexpr uint32_t kPhiloxSA = 0xD2511F53;
   static constexpr uint32_t kPhiloxSB = 0xCD9E8D57;
+=======
+  static const uint32_t kPhilox10A = 0x9E3779B9;
+  static const uint32_t kPhilox10B = 0xBB67AE85;
+  static const uint32_t kPhiloxSA = 0xD2511F53;
+  static const uint32_t kPhiloxSB = 0xCD9E8D57;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 typedef philox_engine Philox4_32;

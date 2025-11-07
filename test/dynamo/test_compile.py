@@ -234,6 +234,7 @@ class InPlaceCompilationTests(TestCase):
         with self.assertRaises(IndexError):
             fn(torch.randn(10), 99)
 
+<<<<<<< HEAD
     def test_list_bad_weakref(self):
         import weakref
 
@@ -255,6 +256,8 @@ class InPlaceCompilationTests(TestCase):
         a = torch.randn(10)
         self.assertEqual(m(a), a)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # The private variants of the below functions are extensively tested
 # So as long as the signatures match we're good

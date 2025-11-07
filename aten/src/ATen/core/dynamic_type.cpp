@@ -177,7 +177,11 @@ bool DynamicType::equals(const Type& rhs) const {
   return equals(*create(rhs));
 }
 
+<<<<<<< HEAD
 bool DynamicType::isSubtypeOfExt(const Type& rhs, std::ostream* /*why_not*/) const {
+=======
+bool DynamicType::isSubtypeOfExt(const Type& rhs, std::ostream*) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto other = create(rhs);
   if (tag_ == other->tag_) {
     if (equals(*other)) {
@@ -371,7 +375,11 @@ DynamicTypePtr ivalue::TupleTypeFactory<c10::DynamicType>::create(
 }
 
 DynamicTypePtr ivalue::TupleTypeFactory<c10::DynamicType>::fallback(
+<<<<<<< HEAD
     const Type& /*unused*/) {
+=======
+    const Type&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(false);
   return nullptr;
 }

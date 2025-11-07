@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Side effect tracking and management for TorchDynamo's compilation system.
 
@@ -26,12 +31,19 @@ import contextlib
 import inspect
 import warnings
 import weakref
+<<<<<<< HEAD
 from collections.abc import Generator, MutableMapping
+=======
+from collections.abc import MutableMapping
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from types import CellType
 from typing import Any, Optional, TYPE_CHECKING
 
 import torch.nn
+<<<<<<< HEAD
 from torch._dynamo.variables.misc import AutogradFunctionContextVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from . import graph_break_hints, utils, variables
 from .bytecode_transformation import (
@@ -57,6 +69,7 @@ from .variables.user_defined import FrozenDataClassVariable
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from torch._dynamo.output_graph import OutputGraph
     from torch._dynamo.symbolic_convert import InstructionTranslatorBase
     from torch._dynamo.variables.lists import ListVariable
@@ -65,17 +78,32 @@ if TYPE_CHECKING:
 def _manual_dict_setitem(
     dict_from: dict[Any, Any], dict_to: dict[Any, Any], mro_index: int
 ) -> None:
+=======
+    from torch._dynamo.symbolic_convert import InstructionTranslator
+
+
+def _manual_dict_setitem(dict_from, dict_to, mro_index):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Carefully calls the dict or OrderedDict `clear` or `__setitem__`. We have
     # to be careful because we don't want to trigger the user defined object
     # setitem or clear. The mro_index is used to find the dict/OrderedDict from
     # the class mro.
     dict_class = type(dict_to).__mro__[mro_index]
+<<<<<<< HEAD
     dict_class.clear(dict_to)  # type: ignore[attr-defined]
     for k, v in dict_from.items():
         dict_class.__setitem__(dict_to, k, v)  # type: ignore[index]
 
 
 def _manual_list_update(list_from: list[Any], list_to: list[Any]) -> None:
+=======
+    dict_class.clear(dict_to)
+    for k, v in dict_from.items():
+        dict_class.__setitem__(dict_to, k, v)
+
+
+def _manual_list_update(list_from, list_to):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     list.clear(list_to)
     list.extend(list_to, list_from)
 
@@ -106,6 +134,7 @@ class SideEffects:
 
     def __init__(
         self,
+<<<<<<< HEAD
         output_graph: "OutputGraph",
         id_to_variable: Optional[dict[int, VariableTracker]] = None,
         store_attr_mutations: Optional[
@@ -127,6 +156,15 @@ class SideEffects:
             ]
         ] = None,
     ) -> None:
+=======
+        output_graph,
+        id_to_variable=None,
+        store_attr_mutations=None,
+        keepalive=None,
+        save_for_backward=None,
+        tensor_hooks=None,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__()
         self.output_graph_weakref = weakref.ref(output_graph)
         self.id_to_variable = id_to_variable or {}
@@ -139,6 +177,7 @@ class SideEffects:
         self._has_existing_dict_mutation = False
         # Track Compiled Autograd final callbacks that must be called at the end of Compiled Autograd backward graph.
         # Only applicable if this graph is created from Dynamo tracing in Compiled Autograd.
+<<<<<<< HEAD
         self.ca_final_callbacks_var: Optional[ListVariable] = None
 
         # Tracks VariableTracker objects whose mutations can be skipped.
@@ -159,6 +198,9 @@ class SideEffects:
         """Remove a variable from the skip mutation set, restoring normal mutation tracking."""
         if var in self.ignore_mutation_on_these_variables:
             self.ignore_mutation_on_these_variables.remove(var)
+=======
+        self.ca_final_callbacks_var = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __eq__(self, other: object) -> bool:
         assert isinstance(other, SideEffects)
@@ -192,12 +234,19 @@ class SideEffects:
         else:
             return None
 
+<<<<<<< HEAD
     def clone(self) -> "SideEffects":
         """Create a shallow copy"""
         ref = self.output_graph_weakref()
         assert ref is not None
         return self.__class__(
             output_graph=ref,
+=======
+    def clone(self):
+        """Create a shallow copy"""
+        return self.__class__(
+            output_graph=self.output_graph_weakref(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             id_to_variable=dict(self.id_to_variable),
             store_attr_mutations={
                 k: dict(v) for k, v in self.store_attr_mutations.items()
@@ -207,6 +256,7 @@ class SideEffects:
             tensor_hooks=self.tensor_hooks,
         )
 
+<<<<<<< HEAD
     def __contains__(self, item: Any) -> bool:
         return id(item) in self.id_to_variable
 
@@ -227,19 +277,49 @@ class SideEffects:
     def should_allow_externally_visible_side_effects_in_subtracer(self) -> bool:
         output_graph = self.output_graph_weakref()
         return bool(
+=======
+    def __contains__(self, item):
+        return id(item) in self.id_to_variable
+
+    def __getitem__(self, item):
+        return self.id_to_variable[id(item)]
+
+    def should_allow_side_effects_under_checkpoint(self):
+        output_graph = self.output_graph_weakref()
+        return (
+            output_graph
+            and output_graph.current_tx.output.current_tracer.under_activation_checkpoint
+            and output_graph.current_tx.output.current_tracer.allow_side_effects_under_checkpoint
+        )
+
+    def should_allow_externally_visible_side_effects_in_subtracer(self):
+        output_graph = self.output_graph_weakref()
+        return (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_graph
             and output_graph.current_tx.output.current_tracer.unsafe_allow_externally_visible_side_effects
         )
 
+<<<<<<< HEAD
     def is_reconstructing_generator(self) -> bool:
         output_graph = self.output_graph_weakref()
 
         return bool(
+=======
+    def is_reconstructing_generator(self):
+        output_graph = self.output_graph_weakref()
+
+        return (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_graph
             and output_graph.current_tx.output.current_tracer.is_reconstructing_generator
         )
 
+<<<<<<< HEAD
     def check_allowed_side_effect(self, item: VariableTracker) -> bool:
+=======
+    def check_allowed_side_effect(self, item):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch._dynamo.variables.misc import AutogradFunctionContextVariable
 
         # People do things like self.dim = dim inside autograd.Function.
@@ -266,17 +346,23 @@ class SideEffects:
                 explanation="This is not supported.",
                 hints=[],
             )
+<<<<<<< HEAD
         return False
 
     def store_attr(
         self, item: VariableTracker, name: str, value: VariableTracker
     ) -> None:
+=======
+
+    def store_attr(self, item: VariableTracker, name: str, value: VariableTracker):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.is_attribute_mutation(item)
         self.check_allowed_side_effect(item)
         if item not in self.store_attr_mutations:
             self.store_attr_mutations[item] = {}
         self.store_attr_mutations[item][name] = value
 
+<<<<<<< HEAD
     def load_attr(
         self,
         item: VariableTracker,
@@ -284,6 +370,9 @@ class SideEffects:
         deleted_ok: bool = False,
         check: bool = False,
     ) -> VariableTracker:
+=======
+    def load_attr(self, item, name, deleted_ok=False, check=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if check:
             assert self.is_attribute_mutation(item)
         result = self.store_attr_mutations[item][name]
@@ -296,7 +385,11 @@ class SideEffects:
             )
         return result
 
+<<<<<<< HEAD
     def store_cell(self, cellvar: VariableTracker, value: VariableTracker) -> None:
+=======
+    def store_cell(self, cellvar, value):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if cellvar.is_immutable():
             unimplemented_v2(
                 gb_type="Write to immutable cell",
@@ -308,7 +401,11 @@ class SideEffects:
         assert isinstance(value, variables.VariableTracker)
         self.store_attr(cellvar, "cell_contents", value)
 
+<<<<<<< HEAD
     def load_cell(self, cellvar: VariableTracker) -> VariableTracker:
+=======
+    def load_cell(self, cellvar):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(cellvar, variables.CellVariable)
         if self.has_pending_mutation_of_attr(cellvar, "cell_contents"):
             return self.load_attr(cellvar, "cell_contents", check=False)
@@ -321,6 +418,7 @@ class SideEffects:
             hints=[*graph_break_hints.USER_ERROR],
         )
 
+<<<<<<< HEAD
     def load_global(self, gvar: VariableTracker, name: str) -> VariableTracker:
         assert isinstance(gvar, variables.VariableTracker)
         return self.load_attr(gvar, name)
@@ -328,17 +426,31 @@ class SideEffects:
     def store_global(
         self, gvar: VariableTracker, name: str, value: VariableTracker
     ) -> None:
+=======
+    def load_global(self, gvar: VariableTracker, name: str):
+        assert isinstance(gvar, variables.VariableTracker)
+        return self.load_attr(gvar, name)
+
+    def store_global(self, gvar: VariableTracker, name: str, value: VariableTracker):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(gvar, variables.VariableTracker)
         assert isinstance(value, variables.VariableTracker)
         self.store_attr(gvar, name, value)
 
     @staticmethod
+<<<<<<< HEAD
     def cls_supports_mutation_side_effects(cls: type) -> bool:
         return inspect.getattr_static(cls, "__getattribute__", None) in (
             object.__getattribute__,
             dict.__getattribute__,
             set.__getattribute__,
             frozenset.__getattribute__,
+=======
+    def cls_supports_mutation_side_effects(cls):
+        return inspect.getattr_static(cls, "__getattribute__", None) in (
+            object.__getattribute__,
+            dict.__getattribute__,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             int.__getattribute__,
             str.__getattribute__,
             list.__getattribute__,
@@ -346,20 +458,35 @@ class SideEffects:
             BaseException.__getattribute__,
         )
 
+<<<<<<< HEAD
     def is_attribute_mutation(self, item: VariableTracker) -> bool:
         return isinstance(item.mutation_type, AttributeMutation)
 
     def has_pending_mutation(self, item: VariableTracker) -> bool:
+=======
+    def is_attribute_mutation(self, item):
+        return isinstance(item.mutation_type, AttributeMutation)
+
+    def has_pending_mutation(self, item):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.is_attribute_mutation(item) and bool(
             self.store_attr_mutations.get(item)
         )
 
+<<<<<<< HEAD
     def has_pending_mutation_of_attr(self, item: VariableTracker, name: str) -> bool:
+=======
+    def has_pending_mutation_of_attr(self, item, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.is_attribute_mutation(
             item
         ) and name in self.store_attr_mutations.get(item, ())
 
+<<<<<<< HEAD
     def is_modified(self, item: VariableTracker) -> bool:
+=======
+    def is_modified(self, item):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if item.is_immutable():
             return False
         if isinstance(item.mutation_type, (AttributeMutationNew, ValueMutationNew)):
@@ -374,14 +501,23 @@ class SideEffects:
         if self.is_attribute_mutation(item):
             return item in self.store_attr_mutations
 
+<<<<<<< HEAD
         return item.mutation_type.is_modified  # type: ignore[attr-defined]
+=======
+        return item.mutation_type.is_modified
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _track_obj(
         self,
         item: Any,
         variable: VariableTracker,
+<<<<<<< HEAD
         mutation_type_cls: type = ValueMutationExisting,
     ) -> VariableTracker:
+=======
+        mutation_type_cls=ValueMutationExisting,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Start tracking an existing or new variable for mutation"""
         if id(item) in self.id_to_variable:
             raise AssertionError(
@@ -403,7 +539,11 @@ class SideEffects:
         self,
         item: Any,
         variable: VariableTracker,
+<<<<<<< HEAD
     ) -> VariableTracker:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._track_obj(
             item,
             variable,
@@ -415,8 +555,13 @@ class SideEffects:
         cls_source: Source,
         user_cls: Any,
         variable_cls: Any,
+<<<<<<< HEAD
         options: dict[str, Any],
     ) -> VariableTracker:
+=======
+        options,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if user_cls is torch.autograd.function.FunctionCtx:
             with warnings.catch_warnings(record=True):
                 obj = torch.autograd.Function()
@@ -431,7 +576,11 @@ class SideEffects:
         self.keepalive.append(obj)
         return variable
 
+<<<<<<< HEAD
     def get_variable_cls(self, user_cls: type) -> type:
+=======
+    def get_variable_cls(self, user_cls):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from torch.overrides import TorchFunctionMode
 
         from .variables.ctx_manager import GenericContextWrappingVariable
@@ -455,8 +604,11 @@ class SideEffects:
             variable_cls = variables.UnspecializedNNModuleVariable
         elif issubclass(user_cls, (dict, collections.OrderedDict)):
             variable_cls = variables.UserDefinedDictVariable
+<<<<<<< HEAD
         elif issubclass(user_cls, (set, frozenset)):
             variable_cls = variables.UserDefinedSetVariable
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif issubclass(user_cls, tuple):
             variable_cls = variables.UserDefinedTupleVariable
         elif issubclass(user_cls, list):
@@ -472,11 +624,19 @@ class SideEffects:
 
     def get_example_value(
         self,
+<<<<<<< HEAD
         base_cls_vt: VariableTracker,
         cls_vt: VariableTracker,
         init_args: list[VariableTracker],
     ) -> Any:
         user_cls = cls_vt.value  # type: ignore[attr-defined]
+=======
+        base_cls_vt,
+        cls_vt,
+        init_args,
+    ):
+        user_cls = cls_vt.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if issubclass(user_cls, torch.nn.Module):
             # TODO(anijain2305) - Is it possible to remove this specialization?
             obj = nn_module_new(user_cls)
@@ -503,10 +663,17 @@ class SideEffects:
 
     def track_new_user_defined_object(
         self,
+<<<<<<< HEAD
         base_cls_vt: VariableTracker,
         cls_vt: VariableTracker,
         init_args: list[VariableTracker],
     ) -> VariableTracker:
+=======
+        base_cls_vt,
+        cls_vt,
+        init_args,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Creates a UserDefinedObjectVariable (or its subclass) variable tracker
         and mark it for attribute mutation tracking.
@@ -516,7 +683,11 @@ class SideEffects:
             base_cls_vt.__new__(user_cls, *init_args)
         """
         cls_source = cls_vt.source
+<<<<<<< HEAD
         user_cls = cls_vt.value  # type: ignore[attr-defined]
+=======
+        user_cls = cls_vt.value
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         variable_cls = self.get_variable_cls(user_cls)
         obj = self.get_example_value(base_cls_vt, cls_vt, init_args)
 
@@ -533,7 +704,11 @@ class SideEffects:
 
     def track_cell_new(
         self,
+<<<<<<< HEAD
     ) -> VariableTracker:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         obj = object()
         variable = variables.CellVariable(
             mutation_type=AttributeMutationNew(),
@@ -544,7 +719,11 @@ class SideEffects:
 
     def track_cell_existing(
         self, source: Optional[Source], cell: CellType, contents: VariableTracker
+<<<<<<< HEAD
     ) -> VariableTracker:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         variable = variables.CellVariable(
             # We don't support mutation to cell without source because we need
             # source to properly codegen the mutations.
@@ -556,7 +735,11 @@ class SideEffects:
         self.keepalive.append(cell)
         return variable
 
+<<<<<<< HEAD
     def track_global_existing(self, source: Source, item: Any) -> VariableTracker:
+=======
+    def track_global_existing(self, source: Source, item: Any):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         variable = variables.NewGlobalVariable(
             mutation_type=AttributeMutationExisting(),
             source=source,
@@ -565,6 +748,7 @@ class SideEffects:
         self.keepalive.append(item)
         return variable
 
+<<<<<<< HEAD
     def track_save_for_backward(
         self, ctx: VariableTracker, args: list[VariableTracker]
     ) -> None:
@@ -574,6 +758,13 @@ class SideEffects:
     def track_runahead_tensor_and_symvar_side_effects(
         self, other: "SideEffects"
     ) -> None:
+=======
+    def track_save_for_backward(self, ctx, args):
+        assert isinstance(ctx, variables.AutogradFunctionContextVariable)
+        self.save_for_backward.append((ctx, args))
+
+    def track_tensor_variables_from_runahead_side_effects(self, other):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # In higher order ops we want to keep track of tensors seen in the
         # speculate_subgraph so that we don't lift them again as a new input in
         # other speculate_subgraph or in the root tracer.
@@ -581,16 +772,28 @@ class SideEffects:
             other_id = id(other_item)
             other_variable = other.id_to_variable[other_id]
             if other_id not in self.id_to_variable and isinstance(
+<<<<<<< HEAD
                 other_variable, (variables.TensorVariable, variables.SymNodeVariable)
             ):
                 self.track_object_existing(other_item, other_variable)
 
     def prune_dead_object_new(self, tx: "InstructionTranslatorBase") -> None:
+=======
+                other_variable, variables.TensorVariable
+            ):
+                self.track_object_existing(other_item, other_variable)
+
+    def prune_dead_object_new(self, tx):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Avoid VT cycles from e.g., recursive function.
         visited: set[VariableTracker] = set()
         live_new_objects: set[VariableTracker] = set()
 
+<<<<<<< HEAD
         def visit(var: VariableTracker) -> None:
+=======
+        def visit(var: VariableTracker):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if var in visited:
                 return
             visited.add(var)
@@ -606,7 +809,11 @@ class SideEffects:
                     self.store_attr_mutations[var],
                 )
 
+<<<<<<< HEAD
         def is_live(var: VariableTracker) -> bool:
+=======
+        def is_live(var: VariableTracker):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(var.mutation_type, AttributeMutationNew):
                 return var in live_new_objects
             return True
@@ -620,6 +827,7 @@ class SideEffects:
         # The only live side effects come from returns (tx.stack), any intermediates
         # during a graph break (tx.symbolic_locals), and mutation on pre-existing variables.
         # Recursively visit Variables and see if any of them have been mutated.
+<<<<<<< HEAD
         init_live_vars = []
         # gather stack/symbolic_locals for all tx's up the chain
         cur_tx: Optional[InstructionTranslatorBase] = tx
@@ -635,6 +843,18 @@ class SideEffects:
                 tx.output.backward_state,
                 self.tensor_hooks,
             ],
+=======
+        VariableTracker.visit(
+            visit,
+            # TODO track from all possible sources.
+            (
+                tx.stack,
+                tx.symbolic_locals,
+                pre_existing_vars,
+                tx.output.backward_state,
+                self.tensor_hooks,
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # Manually release the self-referential function, which indirectly
         # captures certain `VariableTracker` and affects parts of PT test/logic
@@ -654,10 +874,14 @@ class SideEffects:
             k: v for k, v in self.store_attr_mutations.items() if is_live(k)
         }
 
+<<<<<<< HEAD
     def mutation(self, var: VariableTracker) -> None:
         if var in self.ignore_mutation_on_these_variables:
             return
 
+=======
+    def mutation(self, var):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.check_allowed_side_effect(var)
         if isinstance(var.mutation_type, ValueMutationExisting):
             var.mutation_type.is_modified = True
@@ -668,6 +892,7 @@ class SideEffects:
         ):
             self._has_existing_dict_mutation = True
 
+<<<<<<< HEAD
     def has_existing_dict_mutation(self) -> bool:
         return self._has_existing_dict_mutation
 
@@ -675,6 +900,15 @@ class SideEffects:
         return [var for var in self.id_to_variable.values() if self.is_modified(var)]
 
     def codegen_save_tempvars(self, cg: PyCodegen) -> None:
+=======
+    def has_existing_dict_mutation(self):
+        return self._has_existing_dict_mutation
+
+    def _get_modified_vars(self):
+        return [var for var in self.id_to_variable.values() if self.is_modified(var)]
+
+    def codegen_save_tempvars(self, cg: PyCodegen):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # We must codegen modified VT to their source by default, so that
         # mutation and aliasing are properly accounted for.
         #
@@ -699,7 +933,10 @@ class SideEffects:
                     cg.add_cache(var)
                     var.source = LocalSource(cg.tempvars[var])  # type: ignore[attr-defined]
                 elif var.source is None:
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     var.source = LocalCellSource(var.local_name)
             elif isinstance(var, variables.TensorVariable):
                 # NOTE: for historical reasons we never assigned local sources
@@ -735,8 +972,12 @@ class SideEffects:
                 # base_cls.__new__(user_cls, *args)
                 if isinstance(var, variables.UserDefinedObjectVariable):
 
+<<<<<<< HEAD
                     def load_new_method() -> None:
                         # pyrefly: ignore [missing-attribute]
+=======
+                    def load_new_method():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         assert var.base_cls_vt is not None
                         cg(var.base_cls_vt)  # type: ignore[attr-defined]
                         cg.extend_output([cg.create_load_attr("__new__")])
@@ -746,6 +987,7 @@ class SideEffects:
                     cg.add_push_null(
                         lambda: cg.load_import_from(utils.__name__, "object_new")
                     )
+<<<<<<< HEAD
                 assert var.mutation_type.cls_source is not None
                 cg(var.mutation_type.cls_source)
 
@@ -755,6 +997,16 @@ class SideEffects:
 
                 # Call the __new__ method
                 cg.extend_output(create_call_function(1 + len(var.init_args), False))  # type: ignore[attr-defined]
+=======
+                cg(var.mutation_type.cls_source)
+
+                # Generate the args to the __new__ method
+                for arg in var.init_args:
+                    cg(arg)
+
+                # Call the __new__ method
+                cg.extend_output(create_call_function(1 + len(var.init_args), False))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 cg.add_cache(var)
                 var.source = LocalSource(cg.tempvars[var])
@@ -771,6 +1023,7 @@ class SideEffects:
                 ]
             )
 
+<<<<<<< HEAD
     def register_hook(
         self,
         tensor: "variables.TensorVariable",
@@ -778,6 +1031,9 @@ class SideEffects:
         handle: "variables.RemovableHandleVariable",
         name: str,
     ) -> None:
+=======
+    def register_hook(self, tensor, hook, handle, name):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(tensor, variables.TensorVariable)
         assert isinstance(hook, variables.VariableTracker)
         assert (
@@ -793,10 +1049,17 @@ class SideEffects:
         assert not handle.idx
         handle.idx = idx
 
+<<<<<<< HEAD
     def remove_hook(self, idx: int) -> None:
         del self.tensor_hooks[idx]
 
     def codegen_hooks(self, cg: PyCodegen) -> None:
+=======
+    def remove_hook(self, idx):
+        del self.tensor_hooks[idx]
+
+    def codegen_hooks(self, cg):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for (
             tensor,
             hook,
@@ -838,7 +1101,11 @@ class SideEffects:
             # - The handle's exact user-specified name, "user_code_variable_name", is discerned and associated during STORE_FAST.
             assert tensor.source, "Hooks on non input tensors NYI - should not get here"
 
+<<<<<<< HEAD
             def gen_fn() -> None:
+=======
+            def gen_fn():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cg(tensor)
                 cg.extend_output([cg.create_load_attr(name)])
 
@@ -850,17 +1117,27 @@ class SideEffects:
             # be associated with the return value of register_hook().  This consumes the top of stack.
             cg.add_cache(handle)
 
+<<<<<<< HEAD
     def get_ca_final_callbacks_var(self) -> "variables.ListVariable":
+=======
+    def get_ca_final_callbacks_var(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from .variables.base import ValueMutationNew
 
         if self.ca_final_callbacks_var is None:
             self.ca_final_callbacks_var = variables.ListVariable(
                 [], mutation_type=ValueMutationNew()
             )
+<<<<<<< HEAD
 
         return self.ca_final_callbacks_var
 
     def codegen_update_mutated(self, cg: PyCodegen) -> None:
+=======
+        return self.ca_final_callbacks_var
+
+    def codegen_update_mutated(self, cg: PyCodegen):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         suffixes = []
         for var in self._get_modified_vars():
             if isinstance(var, variables.ListVariable):
@@ -983,9 +1260,13 @@ class SideEffects:
 
             elif self.is_attribute_mutation(var):
                 if isinstance(
+<<<<<<< HEAD
                     var,
                     variables.UserDefinedDictVariable,
                     # pyrefly: ignore [bad-argument-type]
+=======
+                    var, variables.UserDefinedDictVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ) and self.is_modified(var._dict_vt):
                     # Do dict related update manually here. The store_attr
                     # mutations will be applied later.
@@ -1018,7 +1299,10 @@ class SideEffects:
                         ]
                     )
 
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     cg(var._dict_vt, allow_cache=False)  # Don't codegen via source
                     cg.extend_output(
                         [
@@ -1039,9 +1323,13 @@ class SideEffects:
                         ]
                     )
                 elif isinstance(
+<<<<<<< HEAD
                     var,
                     variables.UserDefinedListVariable,
                     # pyrefly: ignore [bad-argument-type]
+=======
+                    var, variables.UserDefinedListVariable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ) and self.is_modified(var._list_vt):
                     # Update the list to the updated items. Be careful in
                     # calling the list methods and not the overridden methods.
@@ -1058,7 +1346,10 @@ class SideEffects:
                         ]
                     )
 
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     cg(var._list_vt, allow_cache=False)  # Don't codegen via source
                     cg.extend_output(
                         [
@@ -1159,7 +1450,11 @@ class SideEffects:
                     cg.pop_top()
             elif isinstance(var, variables.RandomVariable):
                 # set correct random seed state
+<<<<<<< HEAD
                 def gen_fn() -> None:
+=======
+                def gen_fn():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     cg(var.source)  # type: ignore[attr-defined]
                     cg.load_attr("setstate")
 
@@ -1179,7 +1474,11 @@ class SideEffects:
         for suffix in reversed(suffixes):
             cg.extend_output(suffix)
 
+<<<<<<< HEAD
     def is_empty(self) -> bool:
+=======
+    def is_empty(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return not (
             any(map(self.is_modified, self.id_to_variable.values()))
             or self.tensor_hooks
@@ -1187,15 +1486,23 @@ class SideEffects:
             or self.tensor_hooks
         )
 
+<<<<<<< HEAD
     def clear(self) -> None:
+=======
+    def clear(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.keepalive.clear()
         self.id_to_variable.clear()
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def allow_side_effects_under_checkpoint(
     tx: "InstructionTranslatorBase",
 ) -> Generator[None, None, None]:
+=======
+def allow_side_effects_under_checkpoint(tx: "InstructionTranslator"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert tx.output.current_tracer.under_activation_checkpoint
     orig_val = tx.output.current_tracer.allow_side_effects_under_checkpoint
     try:
@@ -1206,9 +1513,13 @@ def allow_side_effects_under_checkpoint(
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def allow_externally_visible_side_effects_in_subtracer(
     tx: "InstructionTranslatorBase",
 ) -> Generator[None, None, None]:
+=======
+def allow_externally_visible_side_effects_in_subtracer(tx: "InstructionTranslator"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     orig_val = tx.output.current_tracer.unsafe_allow_externally_visible_side_effects
     try:
         tx.output.current_tracer.unsafe_allow_externally_visible_side_effects = True
@@ -1218,9 +1529,13 @@ def allow_externally_visible_side_effects_in_subtracer(
 
 
 @contextlib.contextmanager
+<<<<<<< HEAD
 def disallow_side_effects_in_generator(
     tx: "InstructionTranslatorBase",
 ) -> Generator[None, None, None]:
+=======
+def disallow_side_effects_in_generator(tx: "InstructionTranslator"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     orig_val = tx.output.current_tracer.is_reconstructing_generator
     try:
         tx.output.current_tracer.is_reconstructing_generator = True

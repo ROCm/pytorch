@@ -301,7 +301,11 @@ bool is_onednn_matmul_strides(const at::Tensor& tensor) {
       return false;
   }
 
+<<<<<<< HEAD
   // the overlapped cases are not supported
+=======
+  // the overlaped cases are not supported
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   dnnl::memory::dims strides = get_onednn_strides(tensor);
   int64_t storage_size = 1;
   for (size_t dim = 0; dim < tensor_dim; ++dim)

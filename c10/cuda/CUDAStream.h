@@ -70,7 +70,11 @@ class C10_CUDA_API CUDAStream {
   /// Construct a CUDAStream from a Stream with no error checking.
   /// This constructor uses the "named" constructor idiom, and can
   /// be invoked as: CUDAStream(CUDAStream::UNCHECKED, stream)
+<<<<<<< HEAD
   explicit CUDAStream(Unchecked /*unused*/, Stream stream) : stream_(stream) {}
+=======
+  explicit CUDAStream(Unchecked, Stream stream) : stream_(stream) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool operator==(const CUDAStream& other) const noexcept {
     return unwrap() == other.unwrap();

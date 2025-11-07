@@ -208,8 +208,13 @@ class EtcdRendezvousHandler(RendezvousHandler):
         try:
             self.set_closed()
             return True
+<<<<<<< HEAD
         except BaseException:  # noqa: B036
             logger.warning("Shutdown failed", exc_info=True)
+=======
+        except BaseException as e:
+            logger.warning("Shutdown failed. Error occurred: %s", str(e))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return False
 
 
@@ -333,7 +338,11 @@ class EtcdRendezvous:
                 # to avoid spamming etcd
                 # FIXME: there are a few things that fall under this like
                 # etcd.EtcdKeyNotFound, etc, which could be handled more explicitly.
+<<<<<<< HEAD
                 logger.info("Rendezvous attempt failed, will retry. Reason: %s", e)  # noqa: G200
+=======
+                logger.info("Rendezvous attempt failed, will retry. Reason: %s", e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 time.sleep(1)
 
     def init_phase(self):

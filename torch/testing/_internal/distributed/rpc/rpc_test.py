@@ -43,7 +43,10 @@ from torch.testing._internal.common_utils import (
     IS_MACOS,
     load_tests,
     skip_but_pass_in_sandcastle_if,
+<<<<<<< HEAD
     skipIfRocm,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TemporaryFileName,
 )
 from torch.testing._internal.dist_utils import (
@@ -665,7 +668,11 @@ class FooBackendOptions(rpc.RpcBackendOptions):
 
 # load_tests from common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
+<<<<<<< HEAD
 load_tests = load_tests  # noqa: PLW0127
+=======
+load_tests = load_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class MyEmbeddingBagModel(torch.nn.Module):
@@ -1819,7 +1826,11 @@ class RpcTest(RpcAgentTestFixture, RpcTestCommon):
         # Spawn multiple threads that send RPCs to ensure keys are correctly
         # prefixed when there are multiple RPCs being created/in flight at the
         # same time.
+<<<<<<< HEAD
         dst_ranks = [rank for rank in range(self.world_size) if rank != self.rank]
+=======
+        dst_ranks = [rank for rank in range(0, self.world_size) if rank != self.rank]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def rpc_with_profiling(dst_worker):
             with _profile() as prof:
@@ -1885,7 +1896,11 @@ class RpcTest(RpcAgentTestFixture, RpcTestCommon):
         if self.rank != 1:
             return
 
+<<<<<<< HEAD
         dst_ranks = [rank for rank in range(self.world_size) if rank != self.rank]
+=======
+        dst_ranks = [rank for rank in range(0, self.world_size) if rank != self.rank]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for dst in dst_ranks:
             dst_worker = worker_name(dst)
             with _profile() as prof:
@@ -3561,7 +3576,11 @@ class RpcTest(RpcAgentTestFixture, RpcTestCommon):
                 print(f"Got msg {msg}")
                 self.assertTrue("Original exception on remote side was" in msg)
                 self.assertTrue("CustomException" in msg)
+<<<<<<< HEAD
             except BaseException as e:  # noqa: B036
+=======
+            except BaseException as e:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 raise RuntimeError(f"Failure - expected RuntimeError, got {e}") from e
             finally:
                 self.assertTrue(exc_caught)
@@ -4979,7 +4998,10 @@ class TensorPipeAgentRpcTest(RpcAgentTestFixture, RpcTestCommon):
 
     # Dynamic RPC existing ranks can communicate with new ranks using CUDA rpc
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @skipIfRocm
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @dist_init(setup_rpc=False)
     def test_dynamic_rpc_existing_rank_can_communicate_with_new_rank_cuda(self):
         initialize_pg(self.file_init_method, self.rank, self.world_size)

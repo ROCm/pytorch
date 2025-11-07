@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
@@ -11,6 +12,14 @@ if TYPE_CHECKING:
 from torch.utils.benchmark import Fuzzer, FuzzedParameter, ParameterAlias, FuzzedSparseTensor
 
 __all__ = ["UnaryOpSparseFuzzer"]
+=======
+# mypy: allow-untyped-defs
+
+import numpy as np
+import torch
+from torch.utils.benchmark import Fuzzer, FuzzedParameter, ParameterAlias, FuzzedSparseTensor
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 _MIN_DIM_SIZE = 16
 _MAX_DIM_SIZE = 16 * 1024 ** 2
@@ -20,9 +29,13 @@ _POW_TWO_SIZES = tuple(2 ** i for i in range(
 ))
 
 class UnaryOpSparseFuzzer(Fuzzer):
+<<<<<<< HEAD
     def __init__(self, seed: Optional[int], dtype: _dtype | None = None, cuda: bool = False) -> None:
         if dtype is None:
             dtype = getattr(torch, 'float32', None)
+=======
+    def __init__(self, seed, dtype=torch.float32, cuda=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().__init__(
             parameters=[
                 # Sparse dim parameter of x. (e.g. 1D, 2D, or 3D.)

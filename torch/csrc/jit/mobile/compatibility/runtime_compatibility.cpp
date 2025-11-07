@@ -7,6 +7,13 @@
 #include <torch/custom_class.h>
 #include <unordered_map>
 
+<<<<<<< HEAD
+=======
+namespace c10 {
+TypePtr parseType(const std::string& pythonStr);
+} // namespace c10
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace torch::jit {
 
 uint64_t _get_runtime_bytecode_version() {

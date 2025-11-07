@@ -26,14 +26,21 @@ from torch._dynamo.utils import identity, preserve_rng_state
 from torch._prims_common import is_integer_dtype
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.functions import CeilDiv, FloorDiv, ModularIndexing
+<<<<<<< HEAD
 from torch.utils._triton import has_triton_package, has_triton_stable_tma_api
+=======
+from torch.utils._triton import has_triton_package
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from ...utils._sympy.symbol import free_symbol_is_type, prefix_str, symbol_is_type, SymT
 from ...utils._sympy.value_ranges import ValueRanges
 from .. import config, ir, metrics
 from ..async_compile import AsyncCompile
 from ..codecache import code_hash, get_path, PyCodeCache, write_atomic
+<<<<<<< HEAD
 from ..debug import set_kernel_post_grad_provenance_tracing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from ..ops_handler import DefaultHandler
 from ..runtime import triton_heuristics
 from ..runtime.benchmarking import benchmarker
@@ -45,10 +52,15 @@ from ..runtime.hints import (
 )
 from ..runtime.runtime_utils import get_max_y_grid, next_power_of_2
 from ..scheduler import BaseSchedulerNode, FusedSchedulerNode, Scheduler, SchedulerNode
+<<<<<<< HEAD
 from ..shape_propagation import get_broadcasted_shape
 from ..utils import (
     cache_on_self,
     DelayMaybeLine,
+=======
+from ..utils import (
+    cache_on_self,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DelayReplaceLine,
     get_bounds_index_expr,
     get_fused_kernel_name,
@@ -75,7 +87,10 @@ from .common import (
     DeferredLine,
     IndentedBuffer,
     InplacedBuffer,
+<<<<<<< HEAD
     is_buffer_removed,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     OpOverrides,
     PythonPrinter,
     RemovedArg,
@@ -89,7 +104,10 @@ from .simd import (
     IterationRanges,
     IterationRangesEntry,
     IterationRangesRoot,
+<<<<<<< HEAD
     PartialAccumulate,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     SIMDKernel,
     SIMDScheduling,
 )
@@ -110,7 +128,10 @@ if TYPE_CHECKING:
     from torch._inductor.dtype_propagation import DtypePropagationOpsHandler
 
     from ..ir import IRNode
+<<<<<<< HEAD
     from .common import BlockShapeType
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from .simd_kernel_features import SIMDKernelFeatures
 
     _T = TypeVar("_T")
@@ -122,6 +143,7 @@ fusion_log = torch._logging.getArtifactLogger(__name__, "fusion")
 async_compile = AsyncCompile()
 
 
+<<<<<<< HEAD
 def get_triton_reduction_function(reduction_type):
     use_helper = reduction_type in ("any", "max", "min", "prod")
     module = "triton_helpers" if use_helper else "tl"
@@ -143,6 +165,8 @@ def is_sympy_integer_like(expr: object):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class OpDtypeSupport:
     """
     Some Triton ops such as libdevice and tl.math only support float32 and float64.
@@ -221,6 +245,7 @@ class TritonSymbols:
     }
 
     @classmethod
+<<<<<<< HEAD
     def get_block_shape(cls, expr: sympy.Expr) -> BlockShapeType:
         # return block shape of sympy Expression
         # e.g.,
@@ -284,6 +309,8 @@ class TritonSymbols:
         return expr_shape
 
     @classmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def get_block_size(cls, tree: IterationRanges) -> sympy.Symbol:
         return cls.block_sizes[tree.symt]
 
@@ -299,7 +326,10 @@ class IndexingOptions:
     expand_str: Optional[str]
     _has_rindex: bool
     index: sympy.Expr
+<<<<<<< HEAD
     expand_shape: Optional[Sequence[Union[int, str]]]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def has_mask(self) -> bool:
         return bool(self.mask_vars)
@@ -327,6 +357,7 @@ class IndexingOptions:
 
 
 @dataclasses.dataclass
+<<<<<<< HEAD
 class BlockDescriptorOptions:
     """
     This is a base class that describes a block descriptor used in Triton kernels.
@@ -334,6 +365,9 @@ class BlockDescriptorOptions:
     or a block pointer (with BlockPtrOptions).
     """
 
+=======
+class BlockPtrOptions:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     params: BlockParameters
     constant_offset: sympy.Expr
     order: list[int]
@@ -342,9 +376,12 @@ class BlockDescriptorOptions:
     broadcasting_dims: list[bool]
     final_shape: Sequence[sympy.Expr]
     _boundary_check: Optional[list[int]] = None
+<<<<<<< HEAD
     # Can we safely lift the constructor
     # to the top of the kernel?
     can_lift: bool = False
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def shape(self) -> list[sympy.Expr]:
@@ -362,19 +399,72 @@ class BlockDescriptorOptions:
     def offsets(self) -> list[sympy.Expr]:
         return self.params.offsets
 
+<<<<<<< HEAD
     @classmethod
     def create(
         cls,
+=======
+    def codegen_broadcast_and_reshape(
+        self,
+        value: str,
+        initial_shape: Sequence[sympy.Expr],
+        final_shape: Sequence[sympy.Expr],
+        allow_implicit: bool,
+    ) -> str:
+        """
+        Generate a broadcast and a reshape for the block pointer.
+        This restores stride-0 dimensions which were removed from the block pointer.
+        """
+
+        # Reshape to add singletons.
+        pre_broadcast_shape = [
+            sympy.S.One if is_broadcasting else dim
+            for dim, is_broadcasting in zip(
+                self.broadcast_shape, self.broadcasting_dims
+            )
+        ]
+        value = triton_reshape(value, initial_shape, pre_broadcast_shape)
+
+        # Broadcast singletons.
+        # For loads, we can often implicitly broadcast singleton dimensions.
+        # We need an explicit broadcast for stores, or if the final reshape does more
+        # than add singletons.
+        sizevars = V.graph.sizevars
+        supports_implicit_broadcast = allow_implicit and (
+            len(pre_broadcast_shape) == len(final_shape)
+            and all(
+                sizevars.statically_known_equals(pre_dim, 1)
+                or sizevars.statically_known_equals(pre_dim, post_dim)
+                for pre_dim, post_dim in zip(pre_broadcast_shape, final_shape)
+            )
+        )
+
+        if any(self.broadcasting_dims) and not supports_implicit_broadcast:
+            value = f"tl.broadcast_to({value}, {V.kernel.index_to_str(self.broadcast_shape)})"
+
+        # Reshape to the final shape.
+        value = triton_reshape(value, self.broadcast_shape, final_shape)
+
+        return value
+
+    @staticmethod
+    def create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *,
         params: BlockParameters,
         constant_offset: sympy.Expr,
         range_trees: list[IterationRangesRoot],
         mask_vars: OrderedSet[str],
         get_max_block: Callable[[str], int],
+<<<<<<< HEAD
         can_lift=False,
         transpose_contiguous=False,
     ) -> BlockDescriptorOptions:
         """Helper to create a BlockDescriptorOptions instance"""
+=======
+    ) -> BlockPtrOptions:
+        """Helper to create a  BlockPtrOptions instance"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         sizevars = V.graph.sizevars
 
@@ -412,6 +502,7 @@ class BlockDescriptorOptions:
         # Combine all removable dims.
         removable_dims = [any(dims) for dims in zip(singleton_dims, broadcasting_dims)]
 
+<<<<<<< HEAD
         # Remove singleton_dims from broadcasting_dims so that
         # broadcast_shape and broadcasting_dims have the same length
         broadcasting_dims = [
@@ -420,6 +511,8 @@ class BlockDescriptorOptions:
             if not is_singleton
         ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def remove_dims(it):
             """Removes any broadcasting or singleton dims from a given sequence"""
             return [
@@ -430,6 +523,7 @@ class BlockDescriptorOptions:
 
         # Drop removable dimensions from the input.
         params = BlockParameters(
+<<<<<<< HEAD
             **{
                 key: remove_dims(val) for key, val in dataclasses.asdict(params).items()
             },
@@ -438,6 +532,10 @@ class BlockDescriptorOptions:
         transpose = transpose_contiguous and params.strides[-1] != 1
         if transpose:
             params = params.transpose()
+=======
+            **{key: remove_dims(val) for key, val in dataclasses.asdict(params).items()}
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Compute the final shape, adjusting for special kernel types.
         final_shape = [TritonSymbols.get_block_size(tree) for tree in range_trees]
@@ -445,12 +543,15 @@ class BlockDescriptorOptions:
             assert range_trees[0].prefix == "x"
             final_shape.pop(0)
 
+<<<<<<< HEAD
         # Check for when BlockParams have been transposed.
         order = list(reversed(range(len(params.shape))))
         if transpose:
             final_shape.reverse()
             order.reverse()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         reduction_ndim = V.kernel.num_reduction_dims
         if (
             not V.kernel.inside_reduction
@@ -460,15 +561,25 @@ class BlockDescriptorOptions:
             # Need to expand rank to match the rank used inside the reduction loop
             final_shape += [sympy.S.One] * reduction_ndim
 
+<<<<<<< HEAD
         result = cls(
             params=params,
             constant_offset=V.graph.sizevars.lookup_precomputed_size(constant_offset),
             order=order,
+=======
+        result = BlockPtrOptions(
+            params=params,
+            constant_offset=V.graph.sizevars.lookup_precomputed_size(constant_offset),
+            order=list(reversed(range(len(params.shape)))),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mask_vars=mask_vars,
             final_shape=final_shape,
             broadcast_shape=broadcast_shape,
             broadcasting_dims=broadcasting_dims,
+<<<<<<< HEAD
             can_lift=can_lift,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         result.compute_boundary_check(get_max_block, range_trees)
         return result
@@ -482,10 +593,47 @@ class BlockDescriptorOptions:
         roffset = TritonSymbols.block_offsets[symt]
         return sympy_subs(expr, {roffset: replacement})
 
+<<<<<<< HEAD
     def remove_roffsets(self, expr: sympy.Expr) -> sympy.Expr:
         for symt in TritonSymbols.reduction_types:
             expr = self.replace_offset(expr, sympy.Integer(0), symt)
         return expr
+=======
+    def format(self, name: str, roffset=True) -> str:
+        """
+        Codegen a call to tl.make_block_ptr()
+
+        Args:
+            name: variable name for pointer
+            roffset: should rn_offset be included in offsets=..., for use with tl.advance()
+
+        Returns:
+            "tl.make_block_ptr(...)"
+        """
+
+        def remove_roffsets(expr: sympy.Expr) -> sympy.Expr:
+            for symt in TritonSymbols.reduction_types:
+                expr = self.replace_offset(expr, sympy.Integer(0), symt)
+            return expr
+
+        f = V.kernel.index_to_str
+        offsets = [*self.offsets]
+        if not roffset:
+            offsets = [remove_roffsets(offset) for offset in offsets]
+        args = [
+            (
+                f"{name} + ({f(self.constant_offset)})"
+                if self.constant_offset != 0
+                else name
+            ),
+            f"shape={f(self.shape)}",
+            f"strides={f(self.strides)}",
+            f"block_shape={f(self.block_shape)}",
+            f"order={f(self.order)}",
+            f"offsets={f(offsets)}",
+        ]
+        return f"tl.make_block_ptr({', '.join(args)})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def compute_boundary_check(
         self,
@@ -543,6 +691,7 @@ class BlockDescriptorOptions:
         assert self._boundary_check is not None
         return self._boundary_check
 
+<<<<<<< HEAD
     def has_indirect(self) -> bool:
         return False  # block_ptr can't do indirect indexing
 
@@ -679,6 +828,8 @@ class BlockPtrOptions(BlockDescriptorOptions):
         ]
         return f"tl.make_block_ptr({', '.join(args)})"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def advance_roffset(self, symt: SymT) -> sympy.Expr:
         """
         Codegen string to pass to tl.advance(name, ...).
@@ -698,6 +849,27 @@ class BlockPtrOptions(BlockDescriptorOptions):
         ]
         return advance
 
+<<<<<<< HEAD
+=======
+    def has_indirect(self) -> bool:
+        return False  # block_ptr can't do indirect indexing
+
+    def has_rindex(self) -> bool:
+        return any(
+            free_symbol_is_type(expr, TritonSymbols.reduction_types)
+            for expr in self.block_shape
+        )
+
+    def has_rmask(self) -> bool:
+        return self.has_rindex()
+
+    def has_tmpmask(self) -> bool:
+        return False  # block_ptr can't do indirect indexing
+
+    def has_mask(self) -> bool:
+        return bool(self.boundary_check())
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 def triton_reshape(
     value: str, old_shape: Sequence[sympy.Expr], new_shape: Sequence[sympy.Expr]
@@ -726,6 +898,7 @@ def triton_reshape(
     return f"{value}[{', '.join(expand)}]"
 
 
+<<<<<<< HEAD
 def enable_pdl_codegen():
     if not torch._inductor.config.triton.enable_pdl:
         return False
@@ -733,6 +906,8 @@ def enable_pdl_codegen():
     return major >= 9
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # NB: Inheriting from PythonPrinter is somewhat dangerous, because there are a
 # number of operators which Triton "implements", but in a way that is
 # inconsistent with Python semantics (and consistent with C semantics).  We
@@ -801,7 +976,11 @@ class TritonPrinter(PythonPrinter):
         return f"libdevice.ceil({self._print(expr.args[0])}).to({V.kernel.index_dtype})"
 
     def _helper_sqrt(self, expr: sympy.Expr) -> str:
+<<<<<<< HEAD
         return f"tl.sqrt_rn(({self._print(expr)}).to(tl.float32))"
+=======
+        return f"libdevice.sqrt(({self._print(expr)}).to(tl.float32))"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _print_FloatPow(self, expr: sympy.Expr) -> str:
         return (
@@ -950,6 +1129,7 @@ def low_precision_fp_var(var: Union[CSEVariable, Any]) -> bool:
 
 
 class TritonCSEVariable(CSEVariable):
+<<<<<<< HEAD
     def __init__(
         self,
         name: str,
@@ -963,6 +1143,13 @@ class TritonCSEVariable(CSEVariable):
         assert dtype is not None, "TritonCSEVariable must have dtype"
         # TODO: uncomment this and fix the few failures left
         # assert shape is not None, "TritonCSEVariable must have shape"
+=======
+    def __init__(self, name, bounds: ValueRanges[Any], dtype: torch.dtype) -> None:
+        super().__init__(name, bounds, dtype)
+        # We'll use this to track which masks the variable needs when used for indirect indexing
+        self.mask_vars: OrderedSet[str] = OrderedSet()
+        assert dtype is not None, "TritonCSEVariable must have dtype"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def update_on_args(self, name, args, kwargs):
         for arg in args:
@@ -1034,7 +1221,11 @@ def maybe_upcast_float32(convert_output: bool = True) -> Callable[[_T], _T]:
 
 
 class TritonOverrides(OpOverrides):
+<<<<<<< HEAD
     """Map element-wise ops to Triton e.g., ops.to_dtype(x,...) -> x.to(...)"""
+=======
+    """Map element-wise ops to Triton"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     _LOG_2_E = math.log2(math.e)
 
@@ -1083,6 +1274,7 @@ class TritonOverrides(OpOverrides):
 
         if dtype == torch.bool:
             return f"({x} != 0)"
+<<<<<<< HEAD
         elif dtype == torch.uint8 and (
             src_dtype is not None and src_dtype.is_floating_point or src_dtype is None
         ):
@@ -1091,6 +1283,12 @@ class TritonOverrides(OpOverrides):
             # optimization - if source type is known and it's not a floating type, then
             # do not apply conversion to the intermediate type.
             return f"{x}.to(tl.int16).to(tl.uint8)"
+=======
+        elif dtype == torch.uint8:
+            # to work around llvm uint conversion semantics
+            # that produces 0's for negative values
+            return f"{x}.to(tl.int8).to(tl.uint8)"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if use_compute_types:
             out_dtype = triton_compute_type(dtype)
@@ -1148,6 +1346,7 @@ class TritonOverrides(OpOverrides):
 
     @staticmethod
     def truediv(x, y):
+<<<<<<< HEAD
         x_dtype = getattr(x, "dtype", None)
         y_dtype = getattr(y, "dtype", None)
 
@@ -1168,6 +1367,9 @@ class TritonOverrides(OpOverrides):
         if torch.xpu.is_available():
             out = f"({x} / {y})"
 
+=======
+        out = f"({x} / {y})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if low_precision_fp_var(x) or low_precision_fp_var(y):
             out_dtype = get_dtype_handler().truediv(x, y)
             if out_dtype in (torch.float16, torch.float32):
@@ -1195,9 +1397,15 @@ class TritonOverrides(OpOverrides):
         more details.
         """
         if config.use_fast_math:
+<<<<<<< HEAD
             return f"tl_math.exp({x})"
         else:
             return f"libdevice.exp({x})"
+=======
+            return f"libdevice.exp2({x} * {TritonOverrides._LOG_2_E})"
+        else:
+            return f"tl_math.exp({x})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     @maybe_upcast_float32()
@@ -1212,7 +1420,11 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def sqrt(x):
+<<<<<<< HEAD
         return f"tl.sqrt_rn({x})"
+=======
+        return f"libdevice.sqrt({x})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def relu(x):
@@ -1234,6 +1446,7 @@ class TritonOverrides(OpOverrides):
 
     @staticmethod
     def minimum(a, b):
+<<<<<<< HEAD
         if torch.version.hip:
             return f"tl.minimum({a}, {b}, tl.PropagateNan.ALL)"
         else:
@@ -1245,12 +1458,20 @@ class TritonOverrides(OpOverrides):
             return f"tl.maximum({a}, {b}, tl.PropagateNan.ALL)"
         else:
             return f"triton_helpers.maximum({a}, {b})"
+=======
+        return f"triton_helpers.minimum({a}, {b})"
+
+    @staticmethod
+    def maximum(a, b):
+        return f"triton_helpers.maximum({a}, {b})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def where(a, b, c):
         return f"tl.where({a}, {b}, {c})"
 
     @staticmethod
+<<<<<<< HEAD
     def dot(a, b):
         """
         Triton code generation for lowering ops.dot to tl.dot.
@@ -1438,6 +1659,8 @@ class TritonOverrides(OpOverrides):
         return f'tl.dot({a}, {b}, input_precision="{input_precision}")'
 
     @staticmethod
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def inline_asm_elementwise(
         *inputs, asm, constraints=None, dtype=torch.float32, is_pure=True, pack=1
     ):
@@ -1617,10 +1840,14 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def rsqrt(x):
+<<<<<<< HEAD
         if torch.version.hip:
             return f"tl.rsqrt({x})"
         else:
             return f"libdevice.rsqrt({x})"
+=======
+        return f"libdevice.rsqrt({x})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     @maybe_upcast_float32()
@@ -1785,6 +2012,7 @@ class TritonKernelOverrides(TritonOverrides):
 
     @classmethod
     def index_expr(cls, expr, dtype):
+<<<<<<< HEAD
         indexing = V.kernel.indexing(
             expr, block_ptr=False, tma_compatibility_checker=None
         )
@@ -1796,6 +2024,11 @@ class TritonKernelOverrides(TritonOverrides):
         else:
             shape = TritonSymbols.get_block_shape(indexing.index)
 
+=======
+        indexing = V.kernel.indexing(expr, block_ptr=False)
+        assert isinstance(indexing, IndexingOptions)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Our sympy expr printing casts to the current kernel index dtype.
         # we only respect non int32-int64 dtypes and otherwise use current kernel indexing dtype
         index_dtype = V.kernel.get_index_dtype_as_torch_dtype()
@@ -1810,7 +2043,10 @@ class TritonKernelOverrides(TritonOverrides):
                 indexing.index_str,
                 bounds=get_bounds_index_expr(expr),
                 dtype=dtype,
+<<<<<<< HEAD
                 shape=shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         finally:
             config.test_configs.runtime_triton_dtype_assert = orig
@@ -1820,7 +2056,10 @@ class TritonKernelOverrides(TritonOverrides):
                 V.kernel.compute,
                 cls.to_dtype(var, dtype),
                 dtype=upcast_compute_type(dtype),
+<<<<<<< HEAD
                 shape=var.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         else:
             # TODO: we are not always consistent in enforcing that the output of the index expr printing
@@ -1839,7 +2078,10 @@ class TritonKernelOverrides(TritonOverrides):
                     V.kernel.compute,
                     cls.to_dtype(var, index_dtype),
                     dtype=index_dtype,
+<<<<<<< HEAD
                     shape=var.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         var.mask_vars = indexing.mask_vars
@@ -1852,7 +2094,10 @@ class TritonKernelOverrides(TritonOverrides):
                 V.kernel.compute,
                 f"{mask}.to(tl.int1)",
                 dtype=torch.bool,
+<<<<<<< HEAD
                 shape=mask.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         nodes = body.graph.find_nodes(op="output")
@@ -1883,7 +2128,10 @@ class TritonKernelOverrides(TritonOverrides):
                 f"tl.full({result}.shape, {constant_repr(other)}, {result}.dtype)",
                 bounds=ValueRanges.wrap(other),
                 dtype=result.dtype,
+<<<<<<< HEAD
                 shape=result.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             ret = ops.where(new_mask, result, other)
         else:
@@ -1905,14 +2153,20 @@ class TritonKernelOverrides(TritonOverrides):
         if cse_val := V.kernel.cse.try_get(cache_key):
             return cse_val
 
+<<<<<<< HEAD
         mantissa = V.kernel.cse.newvar(dtype=x.dtype, shape=x.shape)
         exponent = V.kernel.cse.newvar(dtype=torch.int32, shape=x.shape)
+=======
+        mantissa = V.kernel.cse.newvar(dtype=x.dtype)
+        exponent = V.kernel.cse.newvar(dtype=torch.int32)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         V.kernel.compute.writeline(
             f"{mantissa}, {exponent} = triton_helpers.frexp({x})"
         )
         V.kernel.cse.put(cache_key, (mantissa, exponent))
         return (mantissa, exponent)
 
+<<<<<<< HEAD
     @staticmethod
     def partial_accumulate(
         name: str,
@@ -1921,6 +2175,8 @@ class TritonKernelOverrides(TritonOverrides):
     ) -> None:
         raise NotImplementedError
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class HelperFunctions:
     """An ordered set of helper functions."""
@@ -1980,6 +2236,7 @@ class BlockParameters:
         a, b = tuple(dataclasses.asdict(x) for x in (self, other))
         return cls(**{key: a[key] + b[key] for key in a})
 
+<<<<<<< HEAD
     def transpose(self) -> BlockParameters:
         return BlockParameters(
             self.shape[::-1],
@@ -1988,6 +2245,8 @@ class BlockParameters:
             self.offsets[::-1],
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class CooperativeReductionWorkspaceCache:
     """
@@ -2007,7 +2266,11 @@ class CooperativeReductionWorkspaceCache:
         cached = self.ready_for_reuse.get(nbytes)
         if cached:
             return cached.popleft()
+<<<<<<< HEAD
         ws_name, _, ws_offset = self.args.workspace(nbytes, False)
+=======
+        ws_name, ws_offset = self.args.workspace(nbytes, False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.current_loop.append((nbytes, ws_name, ws_offset))
         return (ws_name, ws_offset)
 
@@ -2049,6 +2312,7 @@ class TritonCSE(CSE[TritonCSEVariable, Union[str, tuple[str, str]]]):
             return cache_key
 
 
+<<<<<<< HEAD
 @dataclasses.dataclass
 class TMACompatibilityChecker:
     """
@@ -2245,15 +2509,21 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
     triton kernel programmatically
     """
 
+=======
+class TritonKernel(SIMDKernel[TritonCSEVariable]):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     overrides = TritonKernelOverrides  # type: ignore[assignment]
     helper_functions: HelperFunctions
     kexpr: Callable[[sympy.Expr], str] = texpr
     allow_block_ptr = True
+<<<<<<< HEAD
     tma_compatibility_checker_cls = TMACompatibilityChecker
     block_ptr_options_cls: type[BlockPtrOptions] = BlockPtrOptions
     tensor_descriptor_options_cls: type[TensorDescriptorOptions] = (
         TensorDescriptorOptions
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __init__(
         self,
@@ -2261,16 +2531,22 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         min_elem_per_thread=0,
         optimize_mask=True,
         fixed_config: Optional[FixedTritonConfig] = None,
+<<<<<<< HEAD
         hint_override: Optional[int] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         **kwargs,
     ) -> None:
         self.optimize_mask: bool = optimize_mask
         self.fixed_config = fixed_config
         super().__init__(tiling, **kwargs)
         self.cse = TritonCSE(self.newvar_prefix, self.suffix)
+<<<<<<< HEAD
         # Cache of values that can be reused for the prologue.
         self.prologue_cache: dict[str, str] = {}
         self.prologue: IndentedBuffer = IndentedBuffer()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.post_loop_combine: IndentedBuffer = IndentedBuffer()
         self.post_loop_store: IndentedBuffer = IndentedBuffer()
         self.outside_loop_vars = OrderedSet[Any]()
@@ -2281,10 +2557,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         self.pointer_advancements: dict[SymT, dict[str, list[sympy.Expr]]] = (
             collections.defaultdict(dict)
         )
+<<<<<<< HEAD
         self.tma_min_block_sizes = dict[str, int]()
         self.hint_override = hint_override
         self._load_counts: collections.Counter[str] = collections.Counter()
         self._load_index = 0
+=======
+        self._load_counts: collections.Counter[str] = collections.Counter()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # A set of autotuning hints to pass as part of triton_meta
         self.autotune_hints = OrderedSet[AutotuneHint]()
@@ -2301,6 +2581,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if self.cooperative_reduction:
             self.init_cooperative_reduction_mask()
 
+<<<<<<< HEAD
         self.has_load_with_contiguous_rdim = False
         # We track the store name since a store can be canceled later
         self.stores_with_contiguous_rdim: list[str] = []
@@ -2339,6 +2620,8 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             is_buffer_removed(name) for name in self.stores_with_contiguous_rdim
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def dtype_to_str(self, dtype: torch.dtype) -> str:
         return triton_type(dtype)
 
@@ -2445,12 +2728,20 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         )
 
     def want_no_x_dim(self):
+<<<<<<< HEAD
         return (
             self.persistent_reduction
             and len(self.numels) == self.num_reduction_dims + 1
             and self.fixed_config
             and self.fixed_config["XBLOCK"] == 1
         )
+=======
+        """
+        ROCm branch change: Remove want_no_x_dim for persistent reduction.
+        Inductor benchmarks show no perf advantage and simplifies autotune flow.
+        """
+        return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def assert_function(self) -> str:
@@ -2460,11 +2751,18 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         self,
         index: sympy.Expr,
         *,
+<<<<<<< HEAD
         copy_shape: Optional[Union[str, tuple[str]]] = None,
         dense_indexing=False,
         override_mask=None,
         block_ptr=False,
         tma_compatibility_checker: Optional[TMACompatibilityChecker] = None,
+=======
+        copy_shape=None,
+        dense_indexing=False,
+        override_mask=None,
+        block_ptr=False,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Compute the index and mask to pass to tl.load() or tl.store()
@@ -2504,8 +2802,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     for symt in TritonSymbols.block_types
                     if symbol_is_type(var, symt)
                 ]
+<<<<<<< HEAD
                 if len(prefix_matches) == 0:
                     pass
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 assert len(prefix_matches) == 1, f"Ambiguous type: {var.name}"
                 mask_vars.add(f"{prefix_matches[0]}mask")
 
@@ -2527,6 +2828,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             dense_mask_vars.add(f"{tree.prefix}mask")
 
         if (
+<<<<<<< HEAD
             (
                 (block_ptr and self.allow_block_ptr and config.triton.use_block_ptr)
                 or (
@@ -2534,6 +2836,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     and tma_compatibility_checker.can_use_tma()
                 )
             )
+=======
+            block_ptr
+            and self.allow_block_ptr
+            and config.triton.use_block_ptr
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             and not override_mask
             and not self._load_mask
             and len(mask_vars - dense_mask_vars) == 0
@@ -2597,9 +2904,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 )
                 num_dims = max(
                     2,
+<<<<<<< HEAD
                     # range_tree.nodes only includes the entries for the range tree
                     # len(range_tree.nodes) <= self.range_tree_nodes
                     len(range_tree.nodes),
+=======
+                    len(self.range_tree_nodes),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     (
                         index.count(FloorDiv(index_var, denom))
                         + index.count(ModularIndexing(index_var, denom, modulo))
@@ -2665,7 +2976,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     offsets=block_offsets,
                 )
 
+<<<<<<< HEAD
             def match_block_subexpr(
+=======
+            def match_block_pointer_subexpr(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 expr: sympy.Expr, range_tree: IterationRangesRoot
             ) -> Optional[BlockParameters]:
                 """
@@ -2681,7 +2996,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
                 return None
 
+<<<<<<< HEAD
             def match_block_expr() -> Optional[BlockDescriptorOptions]:
+=======
+            def match_block_pointer() -> Optional[BlockPtrOptions]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 index_relative_to_xyr_index = sympy_subs(
                     index, {v: t.expr for v, t in self.range_tree_nodes.items()}
                 )
@@ -2707,7 +3026,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                         return None
 
                     # Match the subexpression for this range tree.
+<<<<<<< HEAD
                     params = match_block_subexpr(subexpr, tree)
+=======
+                    params = match_block_pointer_subexpr(subexpr, tree)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if params is None:
                         return None
                     block_params += params
@@ -2715,6 +3038,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 # Collect leftover terms as a constant offset.
                 offset = index_relative_to_xyr_index - sum(index_subexprs)
 
+<<<<<<< HEAD
                 # Form the block pointer or TMA descriptor.
                 self.filter_masks(mask_vars)
 
@@ -2737,11 +3061,17 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     transpose_contiguous = copy_shape is not None
 
                 options = options_class.create(
+=======
+                # Form the block pointer.
+                self.filter_masks(mask_vars)
+                return BlockPtrOptions.create(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     params=block_params,
                     constant_offset=offset,
                     range_trees=range_trees,
                     mask_vars=mask_vars,
                     get_max_block=self.max_block,
+<<<<<<< HEAD
                     can_lift=can_lift,
                     transpose_contiguous=transpose_contiguous,
                 )
@@ -2791,6 +3121,19 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 expand_str = str([1] * len(self.dense_size_list()))
                 expand_shape = tuple([1] * len(self.dense_size_list()))
 
+=======
+                )
+
+            # Return a block pointer, if indexing matches the pattern.
+            options = match_block_pointer()
+            if options is not None:
+                return options
+
+        expand_str = None
+        index_str = self.index_to_str(index)
+        if isinstance(index, sympy.Integer):
+            expand_str = f"{copy_shape}.shape" if copy_shape else self.dense_size_str()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             index_str = f"tl.full({expand_str}, {index_str}, tl.int32)"
             if self.fixed_config and not self._has_constant_xmask():
                 mask_vars = OrderedSet(["xmask"])
@@ -2798,6 +3141,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 mask_vars = OrderedSet()
             if self._load_mask:
                 mask_vars.add(self._load_mask)
+<<<<<<< HEAD
             return IndexingOptions(
                 index_str,
                 mask_vars,
@@ -2870,6 +3214,17 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 _, expand_shape = _get_expand_str()
             else:
                 expand_shape = ()
+=======
+            return IndexingOptions(index_str, mask_vars, expand_str, has_rindex, index)
+
+        if need_dense and not have_dense:
+            expand_str = f"{copy_shape}.shape" if copy_shape else self.dense_size_str()
+            index_str = f"tl.broadcast_to({index_str}, {expand_str})"
+            mask_vars = dense_mask_vars
+        elif not have_loop_vars and copy_shape:
+            index_str = f"tl.broadcast_to({index_str}, {copy_shape}.shape)"
+            mask_vars = dense_mask_vars
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if override_mask:
             mask_vars = OrderedSet([override_mask])
@@ -2879,6 +3234,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         self.filter_masks(mask_vars)
 
+<<<<<<< HEAD
         return IndexingOptions(
             index_str,
             mask_vars,
@@ -2930,10 +3286,27 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             else:
                 other = f", boundary_check={check!r}"
 
+=======
+        return IndexingOptions(index_str, mask_vars, expand_str, has_rindex, index)
+
+    def codegen_block_ptr(
+        self, name: str, var: str, indexing: BlockPtrOptions, other=""
+    ) -> tuple[str, str]:
+        check = indexing.boundary_check()
+        if not check:
+            # workaround https://github.com/triton-lang/triton/issues/2813
+            other = ""
+        elif other:
+            assert other == ", other=0.0"
+            other = f", boundary_check={check!r}, padding_option='zero'"
+        else:
+            other = f", boundary_check={check!r}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if (
             self.inside_reduction
             and self.range_trees[-1].is_loop
             and indexing.has_rindex()
+<<<<<<< HEAD
         ) or indexing.can_lift:
             if indexing.can_lift and var in self.prologue_cache:
                 # Check for epilogue subtiling to reuse the same
@@ -3021,6 +3394,44 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         #  1. Broadcast the operand to the final shape of the range trees, e.g. [ZBLOCK,
         #     YBLOCK, XBLOCK]. This protects against implicit broadcasting from loads.
         #  2. In case the block pointer / tma descriptor has different dimensionality, broadcast/reshape the
+=======
+        ):
+            block_ptr = f"block_ptr{next(self.block_ptr_id)}"
+            self.body.writeline(
+                DeferredLine(
+                    name, f"{block_ptr} = {indexing.format(var, roffset=False)}"
+                )
+            )
+            # Store for later use. If the buffer is removed the below advancements
+            # are no longer necessary
+            self.block_ptr_to_buffer[block_ptr] = name
+
+            # Generate block pointer advancements, for later use.
+            for symt in TritonSymbols.reduction_types:
+                advance_offsets = indexing.advance_roffset(symt)
+
+                # Ignore identity advancements.
+                if all(
+                    V.graph.sizevars.statically_known_equals(offset, sympy.Integer(0))
+                    for offset in advance_offsets
+                ):
+                    continue
+
+                advancements = self.pointer_advancements[symt]
+                assert block_ptr not in advancements, (
+                    "duplicate advancement for pointer '{block_ptr}' at type '{symt}'"
+                )
+                advancements[block_ptr] = advance_offsets
+        else:
+            block_ptr = indexing.format(var)
+        return block_ptr, other
+
+    def codegen_block_ptr_store_line(self, name, indexing, block_ptr, value, other=""):
+        # Stores require an explicit broadcast. We do this in two phases:
+        #  1. Broadcast the operand to the final shape of the range trees, e.g. [ZBLOCK,
+        #     YBLOCK, XBLOCK]. This protects against implicit broadcasting from loads.
+        #  2. In case the block pointer has different dimensionality, broadcast/reshape the
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         #     result to the shape of the pointer.
         value = f"tl.broadcast_to({value}, {indexing.final_shape})"
 
@@ -3037,9 +3448,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         # workaround https://github.com/triton-lang/triton/issues/2814
         value = f"{value}.to({triton_store_type(V.graph.get_dtype(name))})"
+<<<<<<< HEAD
         if isinstance(indexing, BlockPtrOptions):
             return f"tl.store({block_ptr}, {value}{other})"
         return f"{block_ptr}.store({V.kernel.index_to_str(indexing.offsets)}, {value})"
+=======
+        return f"tl.store({block_ptr}, {value}{other})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def check_bounds(
         self,
@@ -3052,7 +3467,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             return
 
         assert isinstance(expr, sympy.Expr)
+<<<<<<< HEAD
         indexing = self.indexing(expr, block_ptr=False, tma_compatibility_checker=None)
+=======
+        indexing = self.indexing(expr, block_ptr=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(indexing, IndexingOptions)
 
         index_str = indexing.index_str
@@ -3082,6 +3501,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         else:
             return self.loads
 
+<<<<<<< HEAD
     def _handle_pdl_before_load(self, wait_buffer):
         GDC_WAIT = "tl.extra.cuda.gdc_wait()"
         self._load_index += 1
@@ -3112,12 +3532,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         """
         Load from the memory location 'name', offset by some indexing expression 'index'.
         """
+=======
+    def load(self, name: str, index: sympy.Expr):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         var = self.args.input(name)
         load_counts = self._load_counts
         load_counts[name] += 1
         make_line: Callable[[str], Union[str, DelayReplaceLine]] = identity
         indirect_indexing = self.is_indirect_indexing(index)
         original_index = index
+<<<<<<< HEAD
         dtype = V.graph.get_dtype(name)
         indexing = self.indexing(
             index,
@@ -3135,6 +3559,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         ):
             self.has_load_with_contiguous_rdim = True
 
+=======
+        indexing = self.indexing(index, block_ptr=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         has_rindex = indexing.has_rindex()
         has_tmpmask = indexing.has_tmpmask()
 
@@ -3199,13 +3626,18 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             cachemod = ", cache_modifier='.cg'"
 
         append_broadcast = None
+<<<<<<< HEAD
         shape: BlockShapeType = None
+=======
+        dtype = V.graph.get_dtype(name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if should_unwrap_unspec_arg(name):
             line = var
             # unwrapped bf16/fp16 0d tensors are passed in as float32 scalars
             # see triton_utils.py:signature_of
             if dtype in (torch.float16, torch.bfloat16):
+<<<<<<< HEAD
                 if config.triton.codegen_upcast_to_fp32:
                     dtype = torch.float32
                 else:
@@ -3241,6 +3673,23 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 else:
                     shape = TritonSymbols.get_block_shape(indexing.index)
 
+=======
+                dtype = torch.float32
+
+        else:
+            if isinstance(indexing, BlockPtrOptions):
+                block_ptr, other = self.codegen_block_ptr(name, var, indexing, other)
+                line = f"tl.load({block_ptr}{other}{ep}{cachemod})"
+                line = indexing.codegen_broadcast_and_reshape(
+                    line, indexing.block_shape, indexing.final_shape, True
+                )
+            elif isinstance(original_index, sympy.Integer):
+                line = f"tl.load({var} + ({original_index}))"
+                append_broadcast = indexing.expand_str
+            else:
+                line = f"tl.load({var} + ({indexing.index_str}), {indexing.mask_str}{ep}{other}{cachemod})"
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if (
                 dtype in (torch.float16, torch.bfloat16)
                 and config.triton.codegen_upcast_to_fp32
@@ -3255,11 +3704,15 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 dtype = torch.bool
 
         load_buffer = self.get_load_buffer(indexing)
+<<<<<<< HEAD
         self._handle_pdl_before_load(load_buffer)
         result_var = self.cse.generate(
             load_buffer, make_line(line), dtype=dtype, shape=shape
         )
         self._handle_pdl_after_load(load_buffer, result_var)
+=======
+        result_var = self.cse.generate(load_buffer, make_line(line), dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if result_var.use_count > 1:
             load_counts[name] -= 1  # don't double count cache hit
         assert isinstance(result_var, TritonCSEVariable)
@@ -3267,9 +3720,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         if append_broadcast:
             line = f"tl.broadcast_to({result_var}, {append_broadcast})"
+<<<<<<< HEAD
             result_var = self.cse.generate(
                 load_buffer, line, dtype=dtype, shape=indexing.expand_shape
             )
+=======
+            result_var = self.cse.generate(load_buffer, line, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if indexing.mask_vars:
                 if dtype.is_floating_point:
                     zero = "0.0"
@@ -3281,9 +3738,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     constant_repr(self._load_other) if self._load_other else zero
                 )
                 line = f"tl.where({indexing.mask_str}, {result_var}, {other_val})"
+<<<<<<< HEAD
                 result_var = self.cse.generate(
                     load_buffer, line, dtype=dtype, shape=result_var.shape
                 )
+=======
+                result_var = self.cse.generate(load_buffer, line, dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not self.inside_reduction or (not indexing.has_rmask() and not has_rindex):
             self.outside_loop_vars.add(result_var)
@@ -3293,6 +3754,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
     def store(
         self, name: str, index: sympy.Expr, value: CSEVariable, mode: StoreMode = None
     ) -> None:
+<<<<<<< HEAD
         """
         store the 'value' to the memory location 'name', offset by some indexing expression 'index'.
         """
@@ -3321,6 +3783,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             indexing.index
         ):
             self.stores_with_contiguous_rdim.append(name)
+=======
+        var = self.args.output(name)
+        original_index = index
+        indexing = self.indexing(index, dense_indexing=True, block_ptr=mode is None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Guard against write-after-read corruption in triton.
         # See # https://github.com/triton-lang/triton/issues/1615
@@ -3333,6 +3800,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if is_inplace and is_broadcasted:
             self.stores.writeline(DeferredLine(name, "tl.debug_barrier()"))
 
+<<<<<<< HEAD
         if isinstance(indexing, (BlockPtrOptions, TensorDescriptorOptions)):
             block_descriptor, other = self.codegen_block_ptr(name, var, indexing)
             # block_ptr / tma descriptor stores don't do implicit casting
@@ -3366,6 +3834,18 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 value_shape = ", ".join(map(str, value.shape))
                 indexing_str += f".broadcast_to({value_shape})"
             line = f"tl.atomic_add({var} + ({indexing_str}), {value}, {indexing.mask_str}, sem='relaxed')"
+=======
+        if isinstance(indexing, BlockPtrOptions):
+            block_ptr, other = self.codegen_block_ptr(name, var, indexing)
+            # block_ptr stores don't do implicit casting
+            line = self.codegen_block_ptr_store_line(
+                name, indexing, block_ptr, value, other
+            )
+        elif mode is None:
+            line = f"tl.store({var} + ({indexing.index_str}), {value}, {indexing.mask_str})"
+        elif mode == "atomic_add":
+            line = f"tl.atomic_add({var} + ({indexing.index_str}), {value}, {indexing.mask_str}, sem='relaxed')"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise NotImplementedError(f"store mode={mode}")
 
@@ -3380,9 +3860,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         exit_stack.close()
 
+<<<<<<< HEAD
     def device_assert_async(self, cond, msg) -> None:
         self.compute.writeline(f"tl.device_assert({cond}, {repr(msg)})")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def guard_cooperative_store(self, name, buffer):
         """
         For cooperative reductions only one thread block should write out the result.
@@ -3392,6 +3875,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         buffer.writeline(DeferredLine(name, f"if rsplit_id == ({idx} % RSPLIT):"))
         return buffer.indent()
 
+<<<<<<< HEAD
     def _combine_masks(self, *variables: Optional[CSEVariable]):
         masks = None
         for elem in variables:
@@ -3404,6 +3888,8 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     masks = masks | elem.mask_vars
         return masks
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def bucketize(
         self,
         values: CSEVariable,
@@ -3440,7 +3926,10 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 "Bucketize only supports indexing with int32 and int64"
             )
 
+<<<<<<< HEAD
         self._handle_pdl_before_load(self.compute)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = self.cse.generate(
             self.compute,
             f"triton_helpers.bucketize_binary_search({values}, "
@@ -3452,12 +3941,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             f"{sorter_indices}, "
             ")",
             dtype=indexing_dtype,  # type: ignore[attr-defined]
+<<<<<<< HEAD
             shape=values.shape,
         )
         self._handle_pdl_after_load(self.compute, result)
 
         masks = self._combine_masks(values, boundary_indices, sorter_indices)
         result.mask_vars = masks  # type: ignore[attr-defined]
+=======
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return result
 
@@ -3470,6 +3963,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         sizes = [":"] * (ndims - nreduce) + ["None"] * nreduce
         return f"{value}[{', '.join(sizes)}]"
 
+<<<<<<< HEAD
     def reduction_resize_and_shape(self, value, shape) -> tuple[str, BlockShapeType]:
         ndims = self.triton_tensor_ndim()
         if ndims == 1:
@@ -3485,6 +3979,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
     def reduction_collapse_dims(
         self, buffer, value: CSEVariable, dtype: torch.dtype
     ) -> CSEVariable:
+=======
+    def reduction_collapse_dims(self, buffer, value: str, dtype: torch.dtype) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Reshape to RBLOCK, collapsing all reduction dims.
         """
@@ -3495,11 +3992,18 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         target_ndim = self.triton_tensor_ndim() - self.num_reduction_dims
         initial_shape = self.dense_size_list()
         target_shape = initial_shape[:target_ndim] + ["RBLOCK"]
+<<<<<<< HEAD
         return self.cse.generate(
             buffer,
             triton_reshape(str(value), initial_shape, target_shape),
             dtype=dtype,
             shape=tuple(target_shape),
+=======
+        return str(
+            self.cse.generate(
+                buffer, triton_reshape(value, initial_shape, target_shape), dtype=dtype
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def reduction(
@@ -3509,10 +4013,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         reduction_type: ReductionType,
         value: Union[CSEVariable, tuple[CSEVariable, ...]],
     ) -> Union[CSEVariable, tuple[CSEVariable, ...]]:
+<<<<<<< HEAD
         """
         codegen reduction of value to Triton according the reduction_type
         """
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def maybe_upcast(value: CSEVariable) -> CSEVariable:
             # Math reductions in FP16/BF16 are less accurate because the Triton compiler does not
             # automatically promote to FP32 for accumulation. Additionally, max/min reductions
@@ -3542,6 +4049,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             masks.append(self._load_mask)
         reduction_range_prefix = self.range_trees[-1].prefix[0]
 
+<<<<<<< HEAD
         # When we do native matmtul codegen,
         # we don't want to keep the R0_BLOCK/R1_BLOCK in the accumulator.
         # so instead of naively calling dense_size_str(), we filter out
@@ -3560,32 +4068,45 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             dense_size_str = self.dense_size_str()
             value_shape = tuple(self.dense_size_list())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Say we have
         #     tmp0 = ops.constant(1, torch.int64)
         #     tmp1 = ops.reduction(torch.int64, torch.int64, "sum", tmp0)
         # tmp0 in the triton code is either a scalar, or single-element tensor
         # so if we emit tl.sum directly, it will only give 1 instead of RBLOCK * 1
         # To avoid this, we broadcast to the expected shape first.
+<<<<<<< HEAD
+=======
+        dense_size_str = self.dense_size_str()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         value = self._map_tuple_or_scalar(
             lambda v: self.cse.generate(
                 self.compute,
                 f"tl.broadcast_to({v}, {dense_size_str})",
                 dtype=v.dtype,
+<<<<<<< HEAD
                 shape=value_shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ),
             value,
         )
 
+<<<<<<< HEAD
         logical_index = None
         if reduction_type in ("argmin", "argmax"):
             if isinstance(value, tuple):
                 value, logical_index = value
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim = self.triton_tensor_ndim() - self.num_reduction_dims
         root_op: str
 
         def final_reduction(
             buffer,
+<<<<<<< HEAD
             value: CSEVariable,
             result_type: Optional[torch.dtype],
         ) -> tuple[str, Optional[torch.dtype], BlockShapeType]:
@@ -3622,11 +4143,46 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             result_var: CSEVariable,
             value: CSEVariable,
             result_type: Optional[torch.dtype],
+=======
+            value: str,
+            result_type: Optional[str],
+        ) -> str:
+            """
+            Helper to generate a reduction call, e.g. tl.sum.
+            """
+            use_helper = reduction_type in ("any", "max", "min", "prod")
+            module = "triton_helpers" if use_helper else "tl"
+
+            value = self.reduction_collapse_dims(buffer, value, dtype)
+            if reduction_type in ("max", "min"):
+                value = self.reduction_resize(
+                    f"{module}.{reduction_type}2({value}, {dim})"
+                )
+            else:
+                value = self.reduction_resize(
+                    f"{module}.{reduction_type}({value}, {dim})"
+                )
+
+            if result_type is not None:
+                value = f"{value}.to({result_type})"
+
+            return value
+
+        def final_reduction_define(
+            buffer,
+            result_var: str,
+            value: str,
+            result_type: Optional[str],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ) -> None:
             """
             Generate a reduction and assign it to an existing variable.
             """
+<<<<<<< HEAD
             value, _, _ = final_reduction(buffer, value, result_type)
+=======
+            value = final_reduction(buffer, value, result_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             buffer.splice(f"{result_var} = {value}")
 
         def final_argreduce(buffer, result_var, value, index):
@@ -3645,11 +4201,15 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         acc_type = triton_acc_type(src_dtype)
         torch_acc_type = upcast_acc_dtype(src_dtype)
+<<<<<<< HEAD
         result_shape = list(self.dense_size_list())
         result_shape[dim] = "1"
         result_var: Any = self.cse.newvar(
             dtype=torch_acc_type, shape=tuple(result_shape)
         )
+=======
+        result_var: Any = self.cse.newvar(dtype=torch_acc_type)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result_var.mask_vars = OrderedSet(
             var for var in masks if not prefix_is_reduction(var[0])
         )
@@ -3662,6 +4222,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         if self.persistent_reduction:
             default = ir.Reduction.default_value(reduction_type, src_dtype)
+<<<<<<< HEAD
 
             def update_constant_dtype(constant, src_dtype, dst_dtype):
                 "update reduction constant mask value to match dst_dtype"
@@ -3690,6 +4251,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     where_cond(value, default_str),
                     dtype=value.dtype,
                     shape=value.shape,
+=======
+            default = self._map_tuple_or_scalar(constant_repr, default)
+
+            def _mask_value(value, default) -> CSEVariable:
+                return self.cse.generate(
+                    self.compute, where_cond(value, default), dtype=value.dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             masked_value: Union[CSEVariable, Sequence[CSEVariable]]
@@ -3698,6 +4266,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 # will fallback below
                 pass
             elif isinstance(value, tuple):
+<<<<<<< HEAD
                 masked_value = [_mask_value(v, d) for v, d in zip(value, default)]  # type: ignore[arg-type]
             elif reduction_type == "dot":
                 # Here, we don't perform the masking.
@@ -3705,10 +4274,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 # Since tl.dot performs reduction within the triton block,
                 # masking should happen before the tl.dot is called.
                 masked_value = self.cse.generate(self.compute, value, dtype=value.dtype)
+=======
+                masked_value = [_mask_value(v, d) for v, d in zip(value, default)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 masked_value = _mask_value(value, default)
 
             if reduction_type in ("argmax", "argmin"):
+<<<<<<< HEAD
                 assert isinstance(masked_value, CSEVariable)
                 accumulator_dtype = V.kernel.get_index_dtype_as_torch_dtype()
                 if logical_index:
@@ -3722,6 +4295,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                             shape=masked_value.shape,
                         )
                     )
+=======
+                accumulator_dtype = V.kernel.get_index_dtype_as_torch_dtype()
+                accumulator_index = str(
+                    self.cse.generate(
+                        self.compute,
+                        f"tl.broadcast_to({reduction_range_prefix}index, {masked_value}.shape)",
+                        dtype=accumulator_dtype,
+                    )
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 root_op = {"argmax": "max", "argmin": "min"}[reduction_type]
                 final_argreduce(
                     self.compute, result_var, masked_value, accumulator_index
@@ -3742,8 +4325,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 assert isinstance(masked_value, Sequence)
                 (mean, m2, weight) = masked_value
                 result_var = tuple(
+<<<<<<< HEAD
                     self.cse.generate(self.compute, value, dtype=dtype, shape=shape)
                     for value, shape in self._welford(
+=======
+                    self.cse.generate(self.compute, value, dtype=dtype)
+                    for value in self._welford(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.compute, mean, m2, weight, dim, dtype
                     )
                 )
@@ -3753,6 +4341,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 result_var = self.prepare_softmax_twopass_fallback(dtype, value)
             else:
                 assert isinstance(masked_value, CSEVariable)
+<<<<<<< HEAD
                 _result, _dtype, _shape = final_reduction(
                     self.compute, masked_value, masked_value.dtype
                 )
@@ -3783,6 +4372,21 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     self.body.writeline(
                         f"{accumulator} = tl.full({self.dense_size_str()}, {default}, {acc_type})"
                     )
+=======
+                result_var = self.cse.generate(
+                    self.compute,
+                    final_reduction(self.compute, str(masked_value), None),
+                    dtype=masked_value.dtype,
+                )
+        else:
+            accumulator = self.cse.namedvar(f"_{result_var}", dtype=torch_acc_type)
+            default = ir.Reduction.default_accumulator(reduction_type, src_dtype)
+            default = self._map_tuple_or_scalar(constant_repr, default)
+            if not isinstance(default, tuple):
+                self.body.writeline(
+                    f"{accumulator} = tl.full({self.dense_size_str()}, {default}, {acc_type})"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             if reduction_type in ("argmax", "argmin"):
                 accumulator_index = f"_{result_var}_index"
@@ -3792,6 +4396,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     f"{torch.iinfo(index_dtype).max}, {self.dtype_to_str(index_dtype)})"
                 )
                 root_op = {"argmax": "max", "argmin": "min"}[reduction_type]
+<<<<<<< HEAD
                 # Use logical_index if it was unpacked, otherwise fall back to physical index
                 index_var = (
                     f"({str(logical_index)}).to({self.dtype_to_str(index_dtype)})"
@@ -3802,6 +4407,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     f"""\
                 {accumulator}_next, {accumulator_index}_next = triton_helpers.{root_op}imum_with_index(
                     {accumulator}, {accumulator_index}, {value}, {index_var}
+=======
+
+                self.compute.splice(
+                    f"""\
+                {accumulator}_next, {accumulator_index}_next = triton_helpers.{root_op}imum_with_index(
+                    {accumulator}, {accumulator_index}, {value}, {reduction_range_prefix}index
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 {accumulator} = {where_cond(f"{accumulator}_next", accumulator)}
                 {accumulator_index} = {where_cond(f"{accumulator_index}_next", accumulator_index)}
@@ -3848,7 +4460,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 # reduce. Similar to the final reduction for coopereative
                 # reduction
                 result_max = result_var
+<<<<<<< HEAD
                 result_sum = self.cse.newvar(dtype=dtype, shape=result_max.shape)
+=======
+                result_sum = self.cse.newvar(dtype=dtype)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 result_var = self.online_softmax_reduce_final_reduction(
                     self.post_loop_combine,
@@ -3862,12 +4478,18 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             else:
                 combine_fn = ir.get_reduction_combine_fn(reduction_type, src_dtype)
                 updated = combine_fn(accumulator, value)
+<<<<<<< HEAD
                 if reduction_type == "dot":
                     self.compute.writeline(f"{accumulator} = {updated}")
                 else:
                     self.compute.writeline(
                         f"{accumulator} = {where_cond(updated, accumulator)}"
                     )
+=======
+                self.compute.writeline(
+                    f"{accumulator} = {where_cond(updated, accumulator)}"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 if src_dtype == torch.bool:
                     # This is only really used for aten.any. It changes the
@@ -3876,6 +4498,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     # to
                     #     tmp5 = triton_helpers.max(_tmp5.to(tl.int8), 1)[:, None].to(tl.int1)
                     # which is needed because tl.reduce doesn't support tl.int1
+<<<<<<< HEAD
                     accumulator = self.cse.generate(
                         self.post_loop_combine,
                         f"{accumulator}.to(tl.int8)",
@@ -3886,6 +4509,20 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 final_reduction_define(
                     self.post_loop_combine, result_var, accumulator, None
                 )
+=======
+                    accumulator_casted_str = f"{accumulator}.to(tl.int8)"
+                    result_type = triton_compute_type(dtype)
+                    final_reduction_define(
+                        self.post_loop_combine,
+                        str(result_var),
+                        accumulator_casted_str,
+                        result_type,
+                    )
+                else:
+                    final_reduction_define(
+                        self.post_loop_combine, str(result_var), str(accumulator), None
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.cooperative_reduction:
             default = ir.Reduction.default_accumulator(reduction_type, src_dtype)
@@ -3938,7 +4575,10 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 )
             elif reduction_type == "online_softmax_reduce":
                 result_max, result_sum = result_var
+<<<<<<< HEAD
                 assert isinstance(default, Sequence)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 peer_max = self.codegen_cooperative_reduction_peer_combine(
                     result_max, upcast_acc_dtype(src_dtype), default[0]
                 )
@@ -3958,7 +4598,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 peers = self.codegen_cooperative_reduction_peer_combine(
                     result_var, upcast_acc_dtype(src_dtype), default
                 )
+<<<<<<< HEAD
                 final_reduction_define(self.post_loop_store, result_var, peers, None)
+=======
+                final_reduction_define(
+                    self.post_loop_store, str(result_var), peers, None
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             exit_stack.close()
 
         self.cse.reduction_cache[cache_key] = result_var
@@ -4018,6 +4664,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             for value in (mean, m2, weight)
         )
         welford = f"triton_helpers.welford({mean}, {m2}, {weight}, {dim})"
+<<<<<<< HEAD
 
         def reduced_shape(shape):
             return tuple(shape[0:dim] + shape[dim + 1 :])
@@ -4032,6 +4679,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             self.reduction_resize_and_shape(value, value.shape)
             for value in welford_results
         )
+=======
+        welford_results = [str(self.cse.newvar(dtype=dtype)) for _ in range(3)]
+        buffer.writeline(f"{', '.join(welford_results)} = {welford}")
+
+        result_values = tuple(self.reduction_resize(value) for value in welford_results)
+        return result_values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def welford_reduce(
         self, result_var, reduction_type, value, where_cond, acc_type, dtype
@@ -4039,6 +4693,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         """Helper to codegen a welford reduction"""
         dim = self.triton_tensor_ndim() - self.num_reduction_dims
 
+<<<<<<< HEAD
         accumulator = TritonCSEVariable(
             f"{result_var}_mean",
             shape=tuple(self.dense_size_list()),
@@ -4057,6 +4712,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             dtype=acc_type,
             bounds=ValueRanges.unknown(),
         )
+=======
+        accumulator = f"{result_var}_mean"
+        accumulator_m2 = f"{result_var}_m2"
+        accumulator_weight = f"{result_var}_weight"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.body.writeline(
             f"{accumulator} = tl.zeros({self.dense_size_str()}, {acc_type})"
         )
@@ -4093,11 +4753,21 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             """
         )
         result_mean = result_var
+<<<<<<< HEAD
         return self.welford_reduce_final_reduction(
             self.post_loop_combine,
             result_mean,
             None,
             None,
+=======
+        result_m2 = self.cse.newvar(dtype=dtype)
+        result_weight = self.cse.newvar(dtype=dtype)
+        return self.welford_reduce_final_reduction(
+            self.post_loop_combine,
+            result_mean,
+            result_m2,
+            result_weight,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             accumulator,
             accumulator_m2,
             accumulator_weight,
@@ -4118,6 +4788,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         dtype,
     ):
         """Helper to codegen call to triton_helpers.welford"""
+<<<<<<< HEAD
         values = list(self._welford(buffer, mean, m2, weight, dim, dtype))
 
         result_exprs = [result_mean, result_m2, result_weight]
@@ -4128,10 +4799,19 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             buffer.splice(f"{result_expr} = {value}")
 
         return tuple(result_exprs)
+=======
+        values = self._welford(buffer, mean, m2, weight, dim, dtype)
+        result_exprs = [result_mean, result_m2, result_weight]
+        for result_expr, value in zip(result_exprs, values):
+            buffer.splice(f"{result_expr} = {value}")
+
+        return result_mean, result_m2, result_weight
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def online_softmax_reduce_final_reduction(
         self, buffer, result_max, result_sum, peer_max, peer_sum, dim, dtype
     ):
+<<<<<<< HEAD
         accumulator_max = self.reduction_collapse_dims(buffer, peer_max, dtype)
         accumulator_sum = self.reduction_collapse_dims(buffer, peer_sum, dtype)
         buffer.splice(
@@ -4142,6 +4822,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             {result_sum} = {self.reduction_resize(f"{result_sum}")}
             """
         )
+=======
+        values = self._online_softmax_reduce(buffer, peer_max, peer_sum, dim, dtype)
+        result_exprs = [result_max, result_sum]
+        for result_expr, value in zip(result_exprs, values):
+            buffer.splice(f"{result_expr} = {value}")
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return result_max, result_sum
 
     def max_rsplit(self):
@@ -4151,7 +4838,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
     def codegen_cooperative_reduction_peer_combine(
         self, result_var, dtype, default_val
+<<<<<<< HEAD
     ) -> CSEVariable:
+=======
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Generate code to save a [XBLOCK, RSPLIT] temporary workspace, where each thread block writes a different
         column.  After the barrier, every thread block loads the completed value so that it can compute the final
@@ -4170,6 +4861,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             """,
             strip=True,
         )
+<<<<<<< HEAD
         peers = self.create_cse_var(
             f"{result_var}_peers",
             shape=["XBLOCK", "RSPLIT"],
@@ -4181,11 +4873,19 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             f"rsplit_mask, eviction_policy='evict_first', other=triton_helpers.if_mask(rsplit_mask, {constant_repr(default_val)}))"
         )
         return peers
+=======
+        self.post_loop_store.writeline(
+            f"{result_var}_peers = tl.load({result_var}_ws + (xindex * RSPLIT + rsplit_arange), "
+            f"rsplit_mask, eviction_policy='evict_first', other=triton_helpers.if_mask(rsplit_mask, {constant_repr(default_val)}))"
+        )
+        return f"{result_var}_peers"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def store_reduction(
         self,
         name: str,
         index: sympy.Expr,
+<<<<<<< HEAD
         value: CSEVariable,
     ):
         assert self.inside_reduction
@@ -4201,6 +4901,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 force=False,
             ),
         )
+=======
+        value: Union[CSEVariable, tuple[CSEVariable, ...]],
+    ):
+        assert self.inside_reduction
+        self.inside_reduction = False
+        indexing = self.indexing(index, block_ptr=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.inside_reduction = True
         var = self.args.output(name)
 
@@ -4210,7 +4917,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 self.guard_cooperative_store(name, self.post_loop_store)
             )
 
+<<<<<<< HEAD
         if isinstance(indexing, (BlockPtrOptions, TensorDescriptorOptions)):
+=======
+        if isinstance(indexing, BlockPtrOptions):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.post_loop_store.writeline(
                 DeferredLine(
                     name,
@@ -4225,6 +4936,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             )
         else:
             assert isinstance(indexing, IndexingOptions)
+<<<<<<< HEAD
 
             indexing_str = indexing.index_str
             if (
@@ -4239,14 +4951,24 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 DeferredLine(
                     name,
                     f"tl.store({var} + ({indexing_str}), {value}, {indexing.mask_str})",
+=======
+            self.post_loop_store.writeline(
+                DeferredLine(
+                    name,
+                    f"tl.store({var} + ({indexing.index_str}), {value}, {indexing.mask_str})",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             )
 
         exit_stack.close()
 
+<<<<<<< HEAD
     def _lift_helper(
         self, fn, values: tuple[CSEVariable, ...], dtypes: tuple[torch.dtype, ...]
     ) -> str:
+=======
+    def _lift_helper(self, fn, num_args, dtypes: tuple[torch.dtype, ...]) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Lift IR function for scan operations into a triton function
         # in the global namespace
         helper = IndentedBuffer()
@@ -4254,10 +4976,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         cse = CSE()
 
         args = [
+<<<<<<< HEAD
             tuple(
                 cse.namedvar(f"arg{i}_{n}", dtype=dtype, shape=value.shape)
                 for n, (value, dtype) in enumerate(zip(values, dtypes))
             )
+=======
+            tuple(cse.namedvar(f"arg{i}_{n}", dtype=dtypes[n]) for n in range(num_args))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for i in range(2)
         ]
         signature = ", ".join(str(x) for x in itertools.chain.from_iterable(args))
@@ -4272,9 +4998,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         helper_name = "_triton_helper_fn"
 
         from torch._inductor.dtype_propagation import DtypePropagationOpsHandler
+<<<<<<< HEAD
         from torch._inductor.shape_propagation import ShapePropagationOpsHandler
 
         shape_handler = ShapePropagationOpsHandler()
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dtype_handler = DtypePropagationOpsHandler()
 
         class CSEProxy(DefaultHandler):
@@ -4289,16 +5019,22 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     name,
                 )(*args, **kwargs)
 
+<<<<<<< HEAD
                 output_shape = getattr(
                     shape_handler,
                     name,
                 )(*args, **kwargs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return cse.generate(
                     helper,
                     getattr(overrides, name)(*args, **kwargs),
                     dtype=output_dtype,
+<<<<<<< HEAD
                     shape=output_shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         with helper.indent(), V.set_ops_handler(CSEProxy()):
@@ -4316,9 +5052,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         ],
         values: tuple[CSEVariable, ...],
     ) -> tuple[CSEVariable, ...]:
+<<<<<<< HEAD
         """
         Perform an associative scan on 'values'.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.inside_reduction
         assert not self.cooperative_reduction, "TODO"
         masks = OrderedSet(f"{tree.prefix}mask" for tree in self.range_trees)
@@ -4331,7 +5070,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         dtypes = tuple(upcast_compute_type(dtype) for dtype in dtypes)
         cse_compute = functools.partial(self.cse.generate, self.compute)
+<<<<<<< HEAD
         combine_helper_fn = self._lift_helper(combine_fn, values, dtypes)
+=======
+        combine_helper_fn = self._lift_helper(combine_fn, len(values), dtypes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim = self.triton_tensor_ndim() - self.num_reduction_dims
 
         for value, dtype in zip(values, dtypes):
@@ -4339,19 +5082,26 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 self.compute,
                 f"{value}.to({triton_compute_type(dtype)})",
                 dtype=dtype,
+<<<<<<< HEAD
                 shape=value.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             value = self.cse.generate(
                 self.compute,
                 f"tl.broadcast_to({value_dtype}, {self.dense_size_str()})",
                 dtype=dtype,
+<<<<<<< HEAD
                 shape=tuple(self.dense_size_list()),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             broadcasted_values.append(value)
 
             acc_type = triton_acc_type(dtype)
 
             if not self.persistent_reduction:
+<<<<<<< HEAD
                 reduced_size = self.dense_size_list()
                 reduced_size[-1] = "1"
                 accumulator = self.cse.newvar(dtype=dtype, shape=reduced_size)
@@ -4360,6 +5110,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 default = "float('nan')" if dtype.is_floating_point else "-1"
                 self.body.writeline(
                     f"{accumulator} = tl.full({reduced_size_str}, {default}, {acc_type})"
+=======
+                accumulator = self.cse.newvar(dtype=dtype)
+                reduced_size = self.dense_size_list()
+                reduced_size[-1] = "1"
+                reduced_size = f"[{', '.join(reduced_size)}]"
+
+                default = "float('nan')" if dtype.is_floating_point else "-1"
+                self.body.writeline(
+                    f"{accumulator} = tl.full({reduced_size}, {default}, {acc_type})"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
                 accumulators.append(accumulator)
@@ -4372,10 +5132,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             cache_keys = [f"{line}, {i}, {masks}" for i in range(n)]
             if all(self.cse.contains(cache_key) for cache_key in cache_keys):
                 return [self.cse.get(cache_key) for cache_key in cache_keys]
+<<<<<<< HEAD
             result_vars = [
                 self.cse.newvar(dtype=dtype, shape=value.shape)
                 for (dtype, value) in zip(dtypes, values)
             ]
+=======
+            result_vars = [self.cse.newvar(dtype=_dtype) for _dtype in dtypes]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.compute.writeline(
                 f"{csv(result_vars)} = {line}",
             )
@@ -4387,7 +5151,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         partial_scan_vars = cse_multiple(
             f"tl.associative_scan(({csv(broadcasted_values)}), {dim}, {combine_helper_fn})",
+<<<<<<< HEAD
             broadcasted_values,
+=======
+            values,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             masks,
             dtypes,
         )
@@ -4396,6 +5164,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             # tl.reduce doesn't work for non-commutative operators, so instead
             # of repeating the scan op as a reduction, we use sum to select the
             # last scan value
+<<<<<<< HEAD
             def _partial_scan_shape(var):
                 if var.shape is None:
                     return None
@@ -4404,11 +5173,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     shape[-1] = "1"
                     return shape
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             partial_reduce_vars = [
                 cse_compute(
                     f"triton_helpers.select_one(({partial_scan_var}), rbase == (RBLOCK - 1), dim=-1, keep_dims=True)",
                     dtype=upcast_compute_type(partial_scan_var.dtype),
+<<<<<<< HEAD
                     shape=_partial_scan_shape(partial_scan_var),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for partial_scan_var in partial_scan_vars
             ]
@@ -4418,7 +5192,10 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 cse_compute(
                     f"tl.where(roffset > 0, {full_scan}, {partial_scan})",
                     dtype=partial_scan.dtype,
+<<<<<<< HEAD
                     shape=partial_scan.shape,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 for full_scan, partial_scan in zip(full_scan_vars, partial_scan_vars)
             ]
@@ -4461,9 +5238,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         assert len(dtypes) == len(values)
         broadcasted_values = [
             cse_compute(
+<<<<<<< HEAD
                 f"tl.broadcast_to({value}, {self.dense_size_str()})",
                 dtype=dtypes[i],
                 shape=tuple(self.dense_size_list()),
+=======
+                f"tl.broadcast_to({value}, {self.dense_size_str()})", dtype=dtypes[i]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             for i, value in enumerate(values)
         ]
@@ -4471,6 +5252,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         def csv(values):
             return " ".join(f"{value}," for value in values)
 
+<<<<<<< HEAD
         def cse_multiple(line, broadcasted_values, masks, dtypes):
             n = len(broadcasted_values)
             cache_keys = [f"{line}, {i}, {masks}" for i in range(n)]
@@ -4480,6 +5262,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 self.cse.newvar(dtype=dtype, shape=value.shape)
                 for dtype, value in zip(dtypes, broadcasted_values)
             ]  # type: ignore[attr-defined]
+=======
+        def cse_multiple(line, n, masks, dtypes):
+            cache_keys = [f"{line}, {i}, {masks}" for i in range(n)]
+            if all(self.cse.contains(cache_key) for cache_key in cache_keys):
+                return [self.cse.get(cache_key) for cache_key in cache_keys]
+            result_vars = [self.cse.newvar(dtype=dtypes[i]) for i in range(n)]  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.compute.writeline(
                 f"{csv(result_vars)} = {line}",
             )
@@ -4497,7 +5286,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 f"triton_helpers.sort_with_index({broadcasted_values[0]}, {broadcasted_values[1]},"
                 f" {rnumel}, {dim}, stable={stable}, descending={descending})"
             )
+<<<<<<< HEAD
             result_vars = cse_multiple(line, broadcasted_values, masks, dtypes)
+=======
+            result_vars = cse_multiple(line, len(values), masks, dtypes)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise AssertionError("Unhandled sort")
 
@@ -4507,6 +5300,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         return tuple(result_vars)
 
+<<<<<<< HEAD
     def codegen_prologue(self, code: IndentedBuffer):
         """
         Generate the output from prologue. This should be
@@ -4520,6 +5314,8 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         self.prologue.clear()
         self.prologue_cache.clear()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def codegen_body(self):
         """
         Concat output code from index_code, loads, compute, stores,
@@ -4541,6 +5337,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             return
 
         loop_trees = [tree for tree in self.range_trees if tree.is_loop]
+<<<<<<< HEAD
         if self.mix_order_reduction:
             assert self.persistent_reduction, (
                 "Mix order reduction requires persistent reduction"
@@ -4599,6 +5396,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 )
 
         elif self.inside_reduction and len(loop_trees) > 0:
+=======
+        if self.inside_reduction and len(loop_trees) > 0:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Write the loop headers.
             for level, tree in enumerate(loop_trees):
                 with self.body.indent(offset=level):
@@ -4607,9 +5407,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     loop_end = (
                         "rsplit_end" if self.cooperative_reduction else f"{prefix}numel"
                     )
+<<<<<<< HEAD
                     num_stages = ", num_stages = 2" if torch.version.hip else ""
                     self.body.writeline(
                         f"for {prefix}offset in tl.range({loop_start}, {loop_end}, {prefix.upper()}BLOCK{num_stages}):"
+=======
+                    self.body.writeline(
+                        f"for {prefix}offset in range({loop_start}, {loop_end}, {prefix.upper()}BLOCK):"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 with self.body.indent(offset=level + 1):
                     self.iteration_ranges_codegen_header(tree, self.body)
@@ -4670,8 +5475,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 strip=True,
             )
             self.cooperative_reduction_workspace_cache.on_loop_end()
+<<<<<<< HEAD
         if not self.mix_order_reduction:
             self.body.splice(self.post_loop_store)
+=======
+        self.body.splice(self.post_loop_store)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.indexing_code.clear()
         self.loads.clear()
         self.compute.clear()
@@ -4688,6 +5497,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 if isinstance(arg, int):
                     args.append(str(arg))
                 elif isinstance(arg, SymbolicCallArg):
+<<<<<<< HEAD
                     hint = V.graph.sizevars.size_hint(
                         arg.inner_expr,
                         hint_override=self.hint_override,
@@ -4701,10 +5511,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                         fallback=config.unbacked_symint_fallback,
                     )
                     args.append(str(hint))
+=======
+                    args.append(str(V.graph.sizevars.size_hint(arg.inner_expr)))
+                elif isinstance(arg, sympy.Expr):
+                    args.append(str(V.graph.sizevars.size_hint(arg)))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 else:
                     raise ValueError(f"Unsupported numel argument type: {type(arg)}")
         return args
 
+<<<<<<< HEAD
     def codegen_kernel_benchmark(self, num_gb: Optional[float]) -> IndentedBuffer:
         """
         Generates Python code for benchmarking this Triton kernel.
@@ -4716,6 +5532,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         Returns:
             IndentedBuffer: A buffer containing the generated Python benchmark code.
         """
+=======
+    def codegen_kernel_benchmark(self, num_gb):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result = IndentedBuffer()
         _argdefs, call_args, signature, _ = self.args.python_argdefs()
 
@@ -4727,6 +5546,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 var_name = f"arg_{next(name_cnt)}"
                 buf = V.graph.try_get_buffer(arg_name)
                 if buf:
+<<<<<<< HEAD
                     size = V.graph.sizevars.size_hints(
                         buf.get_size(),
                         hint_override=self.hint_override,
@@ -4739,10 +5559,15 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     )
                     result.writeline(
                         f"{var_name} = rand_strided({size}, {stride}, device='{buf.get_device()}', dtype={buf.get_dtype()})"  # noqa: B950 line too long
+=======
+                    result.writeline(
+                        f"{var_name} = rand_strided({V.graph.sizevars.size_hints(buf.get_size())}, {V.graph.sizevars.size_hints(buf.get_stride())}, device='{buf.get_device()}', dtype={buf.get_dtype()})"  # noqa: B950 line too long
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 elif arg_name in V.graph.constants:
                     # note that random seed is put in V.graph.constants
                     const_tensor = V.graph.constants[arg_name]
+<<<<<<< HEAD
                     size = V.graph.sizevars.size_hints(
                         const_tensor.size(),
                         hint_override=self.hint_override,
@@ -4762,6 +5587,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                         hint_override=self.hint_override,
                         fallback=config.unbacked_symint_fallback,
                     )
+=======
+                    result.writeline(
+                        f"{var_name} = rand_strided({V.graph.sizevars.size_hints(const_tensor.size())}, {V.graph.sizevars.size_hints(const_tensor.stride())}, device='{const_tensor.device}', dtype={const_tensor.dtype})"  # type: ignore[arg-type]  # noqa: B950 line too long
+                    )
+                elif isinstance(arg_sig, SizeArg):
+                    symval_hint = V.graph.sizevars.size_hint(arg_sig.expr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                     # Force the seed_offset to be 0 so calls to the same kernel
                     # using different seed offset will have the same benchmark harness.
@@ -4771,9 +5603,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     result.writeline(f"{var_name} = {symval_hint}")
                 elif isinstance(arg_sig, WorkspaceArg):
                     device = V.graph.get_current_device_or_throw()
+<<<<<<< HEAD
                     count = V.graph.sizevars.size_hint(
                         arg_sig.count, hint_override=self.hint_override
                     )
+=======
+                    count = V.graph.sizevars.size_hint(arg_sig.count)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     result.writeline(
                         f"{var_name} = torch.zeros({count}, device='{device}', dtype={arg_sig.dtype})"
                     )
@@ -4856,6 +5692,10 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
     def inductor_meta_common():
         inductor_meta = {
             "backend_hash": torch.utils._triton.triton_hash_with_backend(),
+<<<<<<< HEAD
+=======
+            "are_deterministic_algorithms_enabled": torch.are_deterministic_algorithms_enabled(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "assert_indirect_indexing": config.assert_indirect_indexing,
             "autotune_local_cache": config.autotune_local_cache,
             "autotune_pointwise": config.triton.autotune_pointwise,
@@ -4867,6 +5707,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             "min_split_scan_rblock": config.triton.min_split_scan_rblock,
             "spill_threshold": config.triton.spill_threshold,
             "store_cubin": config.triton.store_cubin,
+<<<<<<< HEAD
             "deterministic": config.deterministic,
             "force_filter_reduction_configs": config.test_configs.force_filter_reduction_configs,
         }
@@ -4876,6 +5717,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 torch.are_deterministic_algorithms_enabled()
             )
 
+=======
+        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if torch.version.hip is not None:
             inductor_meta["is_hip"] = True
         if config.is_fbcode():
@@ -4899,12 +5743,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             )
         return inductor_meta
 
+<<<<<<< HEAD
     def codegen_kernel(self, name=None) -> str:
         """
         Convert the TritonKernel from Inductor SIMD IR to triton code, including inductor triton heuristics, imports,
         metadata, and benchmarking infra.
         """
 
+=======
+    def codegen_kernel(self, name=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code = IndentedBuffer()
 
         size_hints = {}
@@ -5019,9 +5867,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if self.cooperative_reduction:
             add_constexpr_arg("RSPLIT")
 
+<<<<<<< HEAD
         if self.mix_order_reduction:
             add_constexpr_arg("RSPLIT_SIZE")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         triton_meta_signature = signature_to_meta(
             signature, size_dtype=self.index_dtype, argdefs=argdefs
         )
@@ -5029,10 +5880,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             "signature": triton_meta_signature,
             "device": DeviceProperties.create(V.graph.get_current_device_or_throw()),
             "constants": {},
+<<<<<<< HEAD
             "native_matmul": (
                 torch._inductor.config.triton.native_matmul
                 and ("tl.dot" in str(self.body) or "tl.dot" in str(self.compute))
             ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         # Skip memory optimization for forward of the training loop where we expect
@@ -5041,14 +5895,20 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         optimize_mem = V.graph.is_inference or V.graph.is_backward
 
         inductor_meta = {
+<<<<<<< HEAD
             "grid_type": self._get_grid_type().__name__,
             # Triton will not accept an OrderedSet for autotune_hints
+=======
+            # Triton will not accept an OrderedSet for autotune_hints
+            "grid_type": self._get_grid_type().__name__,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "autotune_hints": set(self.autotune_hints),  # noqa: set_linter
             "kernel_name": str(Placeholder.DESCRIPTIVE_NAME),
             "mutated_arg_names": mutated_args,
             "optimize_mem": optimize_mem,
             "no_x_dim": self.no_x_dim,
             "num_load": self.num_load,
+<<<<<<< HEAD
             "num_store": self.num_store,
             "num_reduction": self.num_reduction,
             **self.inductor_meta_common(),
@@ -5123,12 +5983,21 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if self.tma_min_block_sizes:
             inductor_meta["tma_min_block_sizes"] = self.tma_min_block_sizes
 
+=======
+            "num_reduction": self.num_reduction,
+            **self.inductor_meta_common(),
+        }
+        if self.tiling_scores:
+            inductor_meta["tiling_scores"] = self.tiling_scores
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.cooperative_reduction:
             inductor_meta["persistent_reduction"] = self.persistent_reduction
 
         num_gb = None
         if config.benchmark_kernel or config.profile_bandwidth:
             num_gb = self.estimate_kernel_num_bytes() / 1e9
+<<<<<<< HEAD
             if num_gb is not None:
                 inductor_meta["kernel_num_gb"] = num_gb
         if config.benchmark_kernel:
@@ -5141,6 +6010,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if enable_pdl_codegen():
             triton_meta["launch_pdl"] = True
 
+=======
+            inductor_meta["kernel_num_gb"] = num_gb
+
+        triton_meta["configs"] = [config_of(signature)]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Triton compiler includes equal_to_1 args into constants even
         # when they are not constexpr. otherwise there may be a segfault
         # during launching the Inductor-compiled Triton kernel.
@@ -5148,11 +6023,17 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         # https://github.com/triton-lang/triton/blob/231efe9ed2d200be0f69a07c298e4342b08efe3d/python/triton/runtime/jit.py#L384
         for arg_num in equal_1_arg_indices(signature):  # type: ignore[index]
             triton_meta["constants"][signature[arg_num].name] = 1  # type: ignore[index,union-attr]
+<<<<<<< HEAD
         triton_meta["enable_fp_fusion"] = not config.emulate_precision_casts
 
         self.triton_meta = triton_meta
 
         self.codegen_prologue(self.body)
+=======
+
+        self.triton_meta = triton_meta
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.codegen_body()
 
         for helper in self.helper_functions:
@@ -5222,14 +6103,21 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             val = int(rnumel)
             val = next_power_of_2(val)
         else:
+<<<<<<< HEAD
             val = 2
+=======
+            val = 128
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             while not V.graph.sizevars.statically_known_leq(rnumel, val):
                 if val > 16 * 1024:
                     raise ValueError(f"Failed to find static RBLOCK for {rnumel}")
                 val *= 2
+<<<<<<< HEAD
 
             return val
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return val
 
     @staticmethod
@@ -5273,10 +6161,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     val = f"triton_helpers.constexpr_next_power_of_2(({numel} + RSPLIT - 1) // RSPLIT)"
                 else:
                     val = self._get_persistent_RBLOCK(tree.numel)
+<<<<<<< HEAD
                     if self.is_native_matmul:
                         # tl.dot only supports shapes >= 16
                         val = max(val, 16)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 code.writeline(f"{tree.prefix.upper()}BLOCK: tl.constexpr = {val}")
 
             if tree.prefix == "x" and self.no_x_dim:
@@ -5284,10 +6175,14 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
     def _get_grid_type(self) -> type[triton_heuristics.GridExpr]:
         n = sum([int(not tree.is_reduction) for tree in self.range_trees])
+<<<<<<< HEAD
         if self.mix_order_reduction:
             assert n == 1
             return triton_heuristics.MixOrderReductionGrid
         elif self.cooperative_reduction:
+=======
+        if self.cooperative_reduction:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert n == 1
             return triton_heuristics.CooperativeReductionGrid
         elif n == 1:
@@ -5312,9 +6207,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 call_args.append(expr)
                 arg_types.append(type(expr))
 
+<<<<<<< HEAD
     def call_kernel(
         self, name: str, node: Optional[IRNode] = None, deallocate_ws: bool = True
     ):
+=======
+    def call_kernel(self, name: str, node: Optional[IRNode] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         wrapper = V.graph.wrapper_code
         wrapper.write_triton_header_once()
         _, call_args, _, arg_types = self.args.python_argdefs()
@@ -5331,8 +6230,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             triton_meta=self.triton_meta,
         )
 
+<<<<<<< HEAD
         if deallocate_ws:
             self.deallocate_workspaces()
+=======
+        for ws in reversed(self.args.workspace_args):
+            wrapper.generate_workspace_deallocation(ws)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def codegen_nan_check(self) -> None:
         wrapper = V.graph.wrapper_code
@@ -5410,12 +6314,15 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         return TRITON_MAX_BLOCK[prefix.upper()]
 
     def _has_constant_mask(self, tree: IterationRangesRoot) -> bool:
+<<<<<<< HEAD
         if self.is_native_matmul:
             # tl.dot requires the shape to be >= 16,
             # so when matmul shape is smaller than 16, we always keep the mask.
             if V.graph.sizevars.statically_known_lt(tree.numel, 16):
                 return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not self.optimize_mask:
             return False
 
@@ -5554,6 +6461,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 line = f"{x}offset + {self.iteration_ranges_ranges_code(entry)}"
             else:
                 line = self.iteration_ranges_scalar_code(entry, f"{x}offset")
+<<<<<<< HEAD
 
             block_size = (
                 f"{x.upper()}BLOCK" if not self.mix_order_reduction else "RSPLIT_SIZE"
@@ -5564,6 +6472,15 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     f"{entry.name} = {line}",
                 ]
             )
+=======
+            code.writelines(
+                [
+                    f"{x}offset = {self.iteration_ranges_get_pid(entry)} * {x.upper()}BLOCK",
+                    f"{entry.name} = {line}",
+                ]
+            )
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self._has_constant_mask(entry):
             sizes = self.dense_size_str()
             code.writeline(f"{x}mask = tl.full({sizes}, True, tl.int1)")
@@ -5605,7 +6522,11 @@ class TritonScheduling(SIMDScheduling):
             )
         return cls.backend_features
 
+<<<<<<< HEAD
     def codegen_comment(self, node_schedule, kernel_name=None):
+=======
+    def codegen_comment(self, node_schedule):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         wrapper = V.graph.wrapper_code
         origins, _detailed_origins = get_kernel_metadata(node_schedule, wrapper)
         if origins:
@@ -5631,6 +6552,7 @@ class TritonScheduling(SIMDScheduling):
                     f"{wrapper.comment} Fused node name list: {', '.join(node_names)}"
                 )
 
+<<<<<<< HEAD
         if kernel_name:
             debug_handle = set_kernel_post_grad_provenance_tracing(
                 node_schedule,  # type: ignore[arg-type]
@@ -5638,6 +6560,8 @@ class TritonScheduling(SIMDScheduling):
             )
             wrapper.write_provenance_debug_handle(kernel_name, debug_handle)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def define_kernel(self, src_code, node_schedule, kernel):
         wrapper = V.graph.wrapper_code
         if src_code in wrapper.src_to_kernel:
@@ -5652,11 +6576,14 @@ class TritonScheduling(SIMDScheduling):
             kernel_name = "_".join(
                 ["triton", kernel_category, fused_name, wrapper.next_kernel_suffix()]
             )
+<<<<<<< HEAD
             if config.aot_inductor.model_name_for_generated_files:
                 # When AOTI compiles multiple submodules, we need to use the model name to
                 # distinguish kernel related symbols.
                 kernel_name = f"{config.aot_inductor.model_name_for_generated_files}_{kernel_name}"
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # use the original src_code as the key
             wrapper.src_to_kernel[src_code] = kernel_name
             subs_name = kernel_name if config.triton.unique_kernel_names else "triton_"
@@ -5759,7 +6686,11 @@ class TritonScheduling(SIMDScheduling):
             except Exception as e:
                 if config.triton.disallow_failing_autotune_kernels_TESTING_ONLY:
                     raise
+<<<<<<< HEAD
                 log.debug(  # noqa: G200
+=======
+                log.debug(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "Exception (%s) in compiling fused nodes %s",
                     e,
                     node_names,

@@ -184,7 +184,11 @@ def fork_rng(
                 f"and suppress this warning, set the '{_devices_kw}' keyword argument to "
                 f"`range(torch.{device_type}.device_count())`."
             )
+<<<<<<< HEAD
             warnings.warn(message, stacklevel=2)
+=======
+            warnings.warn(message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _fork_rng_warned_already = True
         devices = list(range(num_devices))
     else:

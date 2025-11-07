@@ -369,7 +369,11 @@ PyObject* launch_kernel(PyObject* self, PyObject* args) {
   // Parse the fixed arguments and the format string
   if (!PyArg_ParseTuple(
           args,
+<<<<<<< HEAD
           "KiiiiisOK",
+=======
+          "KiiiiisOl",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           &func_ptr,
           &gridX,
           &gridY,

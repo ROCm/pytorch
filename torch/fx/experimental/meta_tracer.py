@@ -2,8 +2,12 @@
 import builtins
 import functools
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional, Union
+=======
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx
@@ -172,6 +176,7 @@ class MetaTracer(torch.fx.Tracer):
         proxy_factory_fn=None,
     ):
         rv = super().create_proxy(
+<<<<<<< HEAD
             kind,
             target,
             args,
@@ -180,6 +185,9 @@ class MetaTracer(torch.fx.Tracer):
             type_expr,
             # pyrefly: ignore [bad-argument-type]
             proxy_factory_fn,
+=======
+            kind, target, args, kwargs, name, type_expr, proxy_factory_fn
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         if kind == "placeholder" and target in self.meta_args:
@@ -201,7 +209,10 @@ class MetaTracer(torch.fx.Tracer):
 
             if kind == "call_function":
                 meta_target = manual_meta_overrides.get(target, target)
+<<<<<<< HEAD
                 # pyrefly: ignore [not-callable]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 meta_out = meta_target(*args_metas, **kwargs_metas)
             elif kind == "call_method":
                 meta_target = getattr(args_metas[0], target)  # type: ignore[index]

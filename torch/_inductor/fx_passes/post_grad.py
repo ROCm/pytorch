@@ -5,7 +5,11 @@ import itertools
 import logging
 import operator
 from collections import Counter, defaultdict
+<<<<<<< HEAD
 from typing import Any, Callable, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -42,7 +46,11 @@ from ..pattern_matcher import (
     Match,
     MultiOutputPattern,
     MULTIPLE,
+<<<<<<< HEAD
     PatternMatcherPass as PatternMatcherPassBase,
+=======
+    PatternMatcherPass,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     register_graph_pattern,
     register_replacement,
     stable_topological_sort,
@@ -68,10 +76,13 @@ from .split_cat import POST_GRAD_PATTERNS
 _T = TypeVar("_T")
 _P = ParamSpec("_P")
 
+<<<<<<< HEAD
 PatternMatcherPass = functools.partial(
     PatternMatcherPassBase, subsystem="post_grad_passes"
 )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 aten = torch.ops.aten
 prims = torch.ops.prims
@@ -201,6 +212,7 @@ def post_grad_passes(gm: torch.fx.GraphModule, is_inference: bool):
                 pass_name = "custom_backend_passes_" + device
                 GraphTransformObserver(gm, pass_name).apply_gm_pass(custom_backend_pass)
 
+<<<<<<< HEAD
     collectives_bucketing: bool = False
 
     if config.bucket_reduce_scatters_fx != "none":
@@ -302,6 +314,12 @@ def post_grad_passes(gm: torch.fx.GraphModule, is_inference: bool):
     # ./fx_passes/README.md for a discussion of mutation invariants.
     GraphTransformObserver(gm, "reinplace_inplaceable_ops").apply_graph_pass(
         functools.partial(reinplace_inplaceable_ops, fake_tensor_updater),
+=======
+    # Keep these last, since they introduces mutation. Look at
+    # ./fx_passes/README.md for a discussion of mutation invariants.
+    GraphTransformObserver(gm, "reinplace_inplaceable_ops").apply_graph_pass(
+        reinplace_inplaceable_ops
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     GraphTransformObserver(
         gm, "decompose_triton_kernel_wrapper_functional"
@@ -362,7 +380,10 @@ def decompose_map_to_while_loop(gm: torch.fx.GraphModule):
 
     @register_graph_pattern(
         CallFunctionVarArgs(torch.ops.higher_order.map_impl),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=graph_pass,
     )
     def _(match: Match, *args, **kwargs):
@@ -461,7 +482,11 @@ def decompose_map_to_while_loop(gm: torch.fx.GraphModule):
 
 
 def resolve_shape_to_proxy(
+<<<<<<< HEAD
     shape: list[int | torch.SymInt], bound_symbols: dict[Any, Any]
+=======
+    shape: list[Union[int, torch.SymInt]], bound_symbols: dict[Any, Any]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     """
     Given a list of symints/ints, this function returns a calculated expression of bound_symbols' values.
@@ -550,7 +575,10 @@ def decompose_scan_to_while_loop(gm: torch.fx.GraphModule):
 
     @register_graph_pattern(
         CallFunctionVarArgs(torch.ops.higher_order.scan),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=graph_pass,
     )
     def _(match: Match, *args, **kwargs):
@@ -684,6 +712,7 @@ def lazy_init():
     # pass since otherwise there will be perf/peak-memory regression:
     # https://github.com/pytorch/pytorch/issues/148141
     register_replacement(
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
         prepare_softmax_pattern,
         # pyrefly: ignore [bad-argument-type]
@@ -693,6 +722,13 @@ def lazy_init():
         # pyrefly: ignore [bad-argument-type]
         trace_fn=fwd_only,
         # pyrefly: ignore [bad-argument-type]
+=======
+        prepare_softmax_pattern,
+        prepare_softmax_replacement,
+        [torch.empty(4, 8)],
+        scalar_workaround=dict(dim=-1),
+        trace_fn=fwd_only,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dicts=pass_patterns[1],
         extra_check=prepare_softmax_extra_check,
     )
@@ -735,7 +771,11 @@ def reorder_for_locality(graph: torch.fx.Graph):
         iter(graph.find_nodes(op="call_function", target=torch.ops.aten.copy_.default)),
         None,
     )
+<<<<<<< HEAD
     past_mutating_epilogue = first_copy is None
+=======
+    past_mutating_epilogue = True if first_copy is None else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for node in reversed(graph.nodes):
         seen_nodes.add(node)
@@ -753,10 +793,14 @@ def register_lowering_pattern(
     Register an aten to inductor IR replacement pattern
     """
     return pattern_matcher.register_lowering_pattern(
+<<<<<<< HEAD
         pattern,
         extra_check,
         # pyrefly: ignore [bad-argument-type]
         pass_dict=pass_patterns[pass_number],
+=======
+        pattern, extra_check, pass_dict=pass_patterns[pass_number]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -847,6 +891,7 @@ def scatter_upon_const_tensor(
     """
     from torch._inductor import metrics
 
+<<<<<<< HEAD
     # Check if inputs are tensors instead of inductor IR nodes
     if isinstance(selector, torch.Tensor):
         # Return a fake tensor with the proper shape that this operator is intended to return
@@ -854,6 +899,8 @@ def scatter_upon_const_tensor(
         return torch.empty(shape, dtype=dtype, device=device)
 
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     metrics.num_matches_for_scatter_upon_const_tensor += 1
 
     selector_loader = selector.make_loader()
@@ -905,7 +952,10 @@ def mm_plus_mm(match: Match, mat1, mat2, mat3, mat4):
         KeywordArg("dim"),
         _users=MULTIPLE,
     ),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=pass_patterns[1],
 )
 def pointless_cumsum_replacement(match: Match, shape, fill_value, device, dtype, dim):
@@ -925,7 +975,10 @@ def pointless_cumsum_replacement(match: Match, shape, fill_value, device, dtype,
 
     # only replace the output node, not all nodes
     match.nodes = [match.output_node()]
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     match.replace_by_example(repl, list(shape))
 
 
@@ -1147,8 +1200,13 @@ def remove_noop_ops(graph: torch.fx.Graph):
     Removes both operations that are essentially aten.clone and operations that are essentially aten.alias from the graph.
     """
     inputs = OrderedSet[torch.fx.Node]()
+<<<<<<< HEAD
     input_storages = OrderedSet[int | None]()
     output_storages = OrderedSet[int | None]()
+=======
+    input_storages = OrderedSet[Union[int, None]]()
+    output_storages = OrderedSet[Union[int, None]]()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for node in graph.find_nodes(op="placeholder"):
         inputs.add(node)
@@ -1243,7 +1301,10 @@ def decompose_triton_kernel_wrapper_functional(graph):
 
     @register_graph_pattern(
         CallFunctionVarArgs(torch.ops.higher_order.triton_kernel_wrapper_functional),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=graph_pass,
     )
     def _(match: Match, *args, **kwargs):
@@ -1260,7 +1321,10 @@ def decompose_triton_kernel_wrapper_functional(graph):
             args, kwargs = pytree.tree_unflatten(flat_args, spec)
             return (triton_kernel_wrapper_functional_dense(*args, **kwargs),)
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(decomp, flat_args, run_functional_passes=False)
 
     graph_pass.apply(graph)
@@ -1284,7 +1348,10 @@ def decompose_auto_functionalized(graph):
 
     @register_graph_pattern(
         CallFunctionVarArgs(torch.ops.higher_order.auto_functionalized),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=graph_pass,
     )
     def _(match: Match, *args, **kwargs):
@@ -1305,12 +1372,18 @@ def decompose_auto_functionalized(graph):
             mode = args[0]
             return auto_functionalized_dense(mode, only_clone_these_tensors, **kwargs)
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(decomp, flat_args, run_functional_passes=False)
 
     @register_graph_pattern(
         CallFunctionVarArgs(torch.ops.higher_order.auto_functionalized_v2),
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pass_dict=graph_pass,
     )
     def _(match: Match, *args, **kwargs):
@@ -1351,11 +1424,15 @@ def decompose_auto_functionalized(graph):
                 mutable_op, only_clone_these_bases, **kwargs
             )
 
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         match.replace_by_example(decomp, flat_args, run_functional_passes=False)
 
     graph_pass.apply(graph)
 
+<<<<<<< HEAD
     # Remove unused get_attr nodes and their corresponding attributes from the graph module.
     # When auto_functionalizing a hop, we need to clean up get_attr nodes for _constant_schema
     # and the auto_functionalized graph module that are no longer referenced.
@@ -1395,6 +1472,21 @@ def decompose_auto_functionalized(graph):
         assert isinstance(attr_name, str)
         delattr(graph.owning_module, attr_name)
 
+=======
+    # We need to remove the get_attr registered for _constant_schema and the
+    # auto_functioanlized's graph module (it's replaced with original ) when auto_functionalize a hop.
+    _to_remove = []
+    for node in graph.nodes:
+        if node.op == "get_attr" and len(node.users) == 0:
+            _to_remove.append(node)
+            if hasattr(graph.owning_module, node.target) and isinstance(
+                getattr(graph.owning_module, node.target), torch.fx.GraphModule
+            ):
+                delattr(graph.owning_module, node.target)
+    for node in _to_remove:
+        graph.erase_node(node)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     graph.lint()
 
     for _ in graph.find_nodes(
@@ -1516,7 +1608,10 @@ def should_prefer_unfused_addmm(match):
 
 @register_graph_pattern(
     CallFunction(aten.addmm, KeywordArg("inp"), Arg(), Arg()),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=pass_patterns[2],
     extra_check=should_prefer_unfused_addmm,
 )
@@ -1524,7 +1619,10 @@ def unfuse_bias_add_to_pointwise(match: Match, mat1, mat2, *, inp):
     def repl(inp, x1, x2):
         return x1 @ x2 + inp
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     match.replace_by_example(repl, [inp, mat1, mat2])
 
 
@@ -1543,12 +1641,15 @@ def is_valid_addmm_fusion(match):
     if not matched:
         return False  # Shape mismatch
 
+<<<<<<< HEAD
     inp_dtype = inp.meta["val"].dtype
 
     # aten cublas integration assumes equal dtypes
     if inp_dtype != mat1.meta["val"].dtype or inp_dtype != mat2.meta["val"].dtype:
         return False
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return not should_prefer_unfused_addmm(match)
 
 
@@ -1558,7 +1659,10 @@ def is_valid_addmm_fusion(match):
         CallFunction(aten.mm, Arg(), Arg()),
         KeywordArg("inp"),
     ),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=pass_patterns[2],
     extra_check=is_valid_addmm_fusion,
 )
@@ -1568,7 +1672,10 @@ def is_valid_addmm_fusion(match):
         KeywordArg("inp"),
         CallFunction(aten.mm, Arg(), Arg()),
     ),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=pass_patterns[2],
     extra_check=is_valid_addmm_fusion,
 )
@@ -1598,9 +1705,13 @@ def register_partial_reduction_pattern():
         full_reduc = CallFunction([red_op, equiv_red[red_op]], inp)
 
         @register_graph_pattern(
+<<<<<<< HEAD
             MultiOutputPattern([partial_reduc, full_reduc]),
             # pyrefly: ignore [bad-argument-type]
             pass_dict=pass_patterns[2],
+=======
+            MultiOutputPattern([partial_reduc, full_reduc]), pass_dict=pass_patterns[2]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         def reuse_partial(match, input, reduced_dims, keepdim):
             partial_red, full_red = match.output_nodes()
@@ -1753,7 +1864,11 @@ class ConstructorMoverPass:
 
         return False
 
+<<<<<<< HEAD
     def get_node_device(self, node: fx.Node) -> torch.device | None:
+=======
+    def get_node_device(self, node: fx.Node) -> Optional[torch.device]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Get the device of a node.
         """
@@ -1776,7 +1891,10 @@ class ConstructorMoverPass:
 
             pytree.tree_map_only(fx.Node, add_cpu_inp, (node.args, node.kwargs))
 
+<<<<<<< HEAD
             # pyrefly: ignore [redundant-condition]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if cpu_count:
                 cpu_indeg[node] = cpu_count
 
@@ -1810,7 +1928,11 @@ class ConstructorMoverPass:
             if not torch._subclasses.fake_tensor._is_tensor_constructor(node.target):
                 continue
 
+<<<<<<< HEAD
             if node.kwargs.get("device") != torch.device("cpu"):
+=======
+            if not node.kwargs.get("device") == torch.device("cpu"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 continue
 
             constructors.append(node)
@@ -1822,6 +1944,7 @@ class ConstructorMoverPass:
         movable_constructors = self.find_movable_constructors(graph, constructors)
 
         target_device = next(iter(target_devices))
+<<<<<<< HEAD
         movable_cpu_placeholders = movable_constructors & cpu_placeholders
         if movable_cpu_placeholders:
             node = next(iter(reversed(movable_cpu_placeholders)))
@@ -1860,6 +1983,19 @@ class ConstructorMoverPass:
                         and x.target != torch.ops.aten.copy_.default,
                     )
                     last_node = gpu_node
+=======
+        for node in movable_constructors:
+            if node in cpu_placeholders:
+                with graph.inserting_after(node):
+                    gpu_node = graph.call_function(
+                        torch.ops.prims.device_put.default, (node, target_device)
+                    )
+                node.replace_all_uses_with(
+                    gpu_node,
+                    lambda x: x != gpu_node
+                    and x.target != torch.ops.aten.copy_.default,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # noop elimination if there are other device_put for gpu_node to
                 # target device. Alternatively, we could just move the other device_put
@@ -1873,12 +2009,19 @@ class ConstructorMoverPass:
                 for noop in noop_device_puts:
                     noop.replace_all_uses_with(gpu_node)
                     graph.erase_node(noop)
+<<<<<<< HEAD
 
         movable_constructors -= movable_cpu_placeholders
         for node in movable_constructors:
             kwargs = node.kwargs.copy()
             kwargs["device"] = target_device
             node.kwargs = kwargs
+=======
+            else:
+                kwargs = node.kwargs.copy()
+                kwargs["device"] = target_device
+                node.kwargs = kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def find_movable_constructors(
         self, graph: fx.Graph, constructors: list[fx.Node]
@@ -1971,9 +2114,19 @@ def move_constructors_to_gpu(graph: fx.Graph) -> None:
     # by explicitly moving cpu scalar tensors to gpu when profitable, relying on
     # graph partition to split off this data copy, and cudagraphifying
     # the remaining gpu ops.
+<<<<<<< HEAD
     allow_inputs_outputs = bool(
         torch._inductor.config.triton.cudagraphs
         and torch._inductor.config.graph_partition
+=======
+    allow_inputs_outputs = (
+        True
+        if (
+            torch._inductor.config.triton.cudagraphs
+            and torch._inductor.config.graph_partition
+        )
+        else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     ConstructorMoverPass(
         get_gpu_type(),

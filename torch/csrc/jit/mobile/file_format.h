@@ -153,8 +153,12 @@ static inline std::tuple<std::shared_ptr<char>, size_t> get_file_content(
   size_t buffer_size = (size / kMaxAlignment + 1) * kMaxAlignment;
   std::shared_ptr<char> data(
       static_cast<char*>(c10::alloc_cpu(buffer_size)), c10::free_cpu);
+<<<<<<< HEAD
   auto nread = fread(data.get(), size, 1, f);
   TORCH_CHECK(nread == 1, "Failed to read file: ", filename);
+=======
+  fread(data.get(), size, 1, f);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   fclose(f);
 #endif
   return std::make_tuple(data, size);

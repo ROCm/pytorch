@@ -1,7 +1,13 @@
 # Owner(s): ["module: dynamo"]
 
+<<<<<<< HEAD
 """Test functions for limits module."""
 
+=======
+""" Test functions for limits module.
+
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import functools
 import warnings
 from unittest import expectedFailure as xfail, skipIf

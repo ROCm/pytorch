@@ -3,14 +3,21 @@ import importlib
 import io
 import pickle
 from abc import abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, NewType, Optional, TypeVar, Union
+=======
+from typing import Any, Callable, NewType, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import override, Self
 
 import torch
 import torch.utils._pytree as pytree
 from torch._guards import TracingContext
+<<<<<<< HEAD
 from torch._inductor.standalone_compile import AOTCompiledArtifact
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._subclasses.fake_tensor import FakeTensor, FakeTensorMode, Tensor
 from torch._subclasses.meta_utils import (
     MetaConverter,
@@ -67,7 +74,10 @@ class GraphPickler(pickle.Pickler):
         self._meta_tensor_describer = MetaTensorDescriber(copy_data=False)
 
     @override
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def reducer_override(
         self, obj: object
     ) -> tuple[Callable[..., Any], tuple[Any, ...]]:
@@ -204,7 +214,10 @@ class _SymNodePickleData:
     ]:
         args = (cls(obj.node), pickler._unpickle_state)
         if isinstance(obj, torch.SymInt):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return _SymNodePickleData.unpickle_sym_int, args
         else:
             raise NotImplementedError(f"Unhandled SymNode type {type(obj)}")
@@ -216,6 +229,11 @@ class _SymNodePickleData:
         self.hint = node._hint
 
     def _to_sym_node(self) -> SymNode:
+<<<<<<< HEAD
+=======
+        from torch.fx.experimental.sym_node import SymNode
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert self.shape_env is not None
         return SymNode(self.expr, self.shape_env, self.pytype, self.hint)
 
@@ -266,6 +284,7 @@ class _TensorPickleData:
             fake_mode=unpickle_state.fake_mode,
         )
 
+<<<<<<< HEAD
         # also need to set the fake_mode on the base of a tensor if it's a view
         if metadata.is_view and metadata.base is not None:
             new_base = dataclasses.replace(
@@ -274,6 +293,8 @@ class _TensorPickleData:
             )
             metadata = dataclasses.replace(metadata, base=new_base)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def with_fake(
             make_meta_t: Callable[[], torch.Tensor], device: Union[torch.device, str]
         ) -> FakeTensor:
@@ -281,7 +302,10 @@ class _TensorPickleData:
                 return FakeTensor(
                     unpickle_state.fake_mode,
                     make_meta_t(),
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     device,
                 )
 
@@ -334,9 +358,13 @@ class _TorchNumpyPickleData:
         if not (name := getattr(np, "__name__", None)):
             return None
 
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
         assert np == getattr(importlib.import_module(mod), name)
         # pyrefly: ignore [unbound-name]
+=======
+        assert np == getattr(importlib.import_module(mod), name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return cls(mod, name)
 
 
@@ -423,6 +451,7 @@ class _OpPickleData:
         if isinstance(op, str):
             return _OpStrPickleData(op)
 
+<<<<<<< HEAD
         if isinstance(getattr(op, "__wrapped__", None), AOTCompiledArtifact):
             assert hasattr(op, "__wrapped__")
             artifact = op.__wrapped__
@@ -431,13 +460,25 @@ class _OpPickleData:
 
         name = torch.fx.Node._pretty_print_target(op)
 
+=======
+        name = torch.fx.Node._pretty_print_target(op)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(op, torch._ops.OpOverload):
             return cls._pickle_op(name, _OpOverloadPickleData, options)
         elif isinstance(op, torch._ops.OpOverloadPacket):
             return cls._pickle_op(name, _OpOverloadPacketPickleData, options)
+<<<<<<< HEAD
         elif name.startswith(_OpFunctionPickleData.SUPPORTED_ROOTS):
             root, detail = name.split(".", 1)
             return _OpFunctionPickleData(root, detail)
+=======
+        elif name.startswith(("builtins.", "math.", "torch.")):
+            root, detail = name.split(".", 1)
+            return _OpBuiltinPickleData(root, detail)
+        elif name.startswith("operator."):
+            _, detail = name.split(".", 1)
+            return _OpOperatorPickleData(detail)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             # TODO: raise a BypassFxGraphCache so we will just bypass this one...
             raise NotImplementedError(f"TARGET: {type(op)} {op} {name}")
@@ -511,6 +552,7 @@ class _OpOverloadPacketPickleData(_OpPickleData):
         return obj
 
 
+<<<<<<< HEAD
 class _OpPrecompiledPickleData(_OpPickleData):
     def __init__(self, artifact: AOTCompiledArtifact) -> None:
         self.contents = artifact.serialize()
@@ -536,6 +578,9 @@ class _OpFunctionPickleData(_OpPickleData):
     # Static variable listing supported root names
     SUPPORTED_ROOTS = ("builtins.", "math.", "torch.", "operator.", "einops.")
 
+=======
+class _OpBuiltinPickleData(_OpPickleData):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, root: str, name: str) -> None:
         self.root = root
         self.name = name
@@ -549,6 +594,7 @@ class _OpFunctionPickleData(_OpPickleData):
             return self._getattr_by_name(math, self.name)
         elif self.root == "torch":
             return self._getattr_by_name(torch, self.name)
+<<<<<<< HEAD
         elif self.root == "operator":
             import operator
 
@@ -557,10 +603,25 @@ class _OpFunctionPickleData(_OpPickleData):
             import einops
 
             return self._getattr_by_name(einops, self.name)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise NotImplementedError
 
 
+<<<<<<< HEAD
+=======
+class _OpOperatorPickleData(_OpPickleData):
+    def __init__(self, name: str) -> None:
+        self.name = name
+
+    def unpickle(self, unpickle_state: _UnpickleState) -> object:
+        import operator
+
+        return self._getattr_by_name(operator, self.name)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class _GraphPickleData:
     def __init__(self, graph: torch.fx.Graph, options: Options) -> None:
         self.tracer_cls = graph._tracer_cls

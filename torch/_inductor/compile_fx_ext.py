@@ -30,7 +30,11 @@ from . import config
 from .compile_fx import _CompileFxKwargs, _InProcessFxCompile, FxCompile, log
 from .debug import DebugContext
 from .graph import GraphLowering
+<<<<<<< HEAD
 from .output_code import complex_memory_overlap  # noqa: F401
+=======
+from .output_code import complex_memory_overlap as complex_memory_overlap  # noqa: F401
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from .virtualized import V
 
 
@@ -445,7 +449,11 @@ class _SerializedFxCompile(FxCompile):
             # we can't cache (or serialize)
             FxGraphCache._check_for_hop(gm)
         except BypassFxGraphCache as e:
+<<<<<<< HEAD
             log.debug("Skipping %s compile: %s", type(self), e)  # noqa: G200
+=======
+            log.debug("Skipping %s compile: %s", type(self), e)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return None
 
         context = torch._guards.TracingContext.try_get()

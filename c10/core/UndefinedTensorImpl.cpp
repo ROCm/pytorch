@@ -12,8 +12,12 @@ UndefinedTensorImpl::UndefinedTensorImpl()
   set_custom_sizes_strides(SizesStridesPolicy::CustomStrides);
 }
 
+<<<<<<< HEAD
 c10::SymBool UndefinedTensorImpl::sym_is_contiguous_custom(
     MemoryFormat format) const {
+=======
+bool UndefinedTensorImpl::is_contiguous_custom(MemoryFormat format) const {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return is_contiguous_default(format);
 }
 IntArrayRef UndefinedTensorImpl::strides_custom() const {
@@ -31,7 +35,11 @@ bool UndefinedTensorImpl::has_storage() const {
 }
 #endif
 
+<<<<<<< HEAD
 void UndefinedTensorImpl::set_storage_offset(int64_t /*storage_offset*/) {
+=======
+void UndefinedTensorImpl::set_storage_offset(int64_t) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(false, "set_storage_offset() called on an undefined Tensor");
 }
 

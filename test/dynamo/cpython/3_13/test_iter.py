@@ -4,9 +4,12 @@
 # ruff: noqa
 # flake8: noqa
 
+<<<<<<< HEAD
 # Test copied from
 # https://raw.githubusercontent.com/python/cpython/refs/tags/v3.13.5/Lib/test/test_iter.py
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import sys
 import torch
 import torch._dynamo.test_case
@@ -165,6 +168,11 @@ class TestCase(__TestCase):
 
     # Helper to check that an iterator returns a given sequence
     def check_iterator(self, it, seq, pickle=True):
+<<<<<<< HEAD
+=======
+        if pickle:
+            self.check_pickle(it, seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = []
         while 1:
             try:
@@ -176,6 +184,11 @@ class TestCase(__TestCase):
 
     # Helper to check that a for loop generates a given sequence
     def check_for_loop(self, expr, seq, pickle=True):
+<<<<<<< HEAD
+=======
+        if pickle:
+            self.check_pickle(iter(expr), seq)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = []
         for val in expr:
             res.append(val)
@@ -314,6 +327,7 @@ class TestCase(__TestCase):
         def run(builtin_name, item, sentinel=None):
             it = iter(item) if sentinel is None else iter(item, sentinel)
 
+<<<<<<< HEAD
             with torch._dynamo.error_on_graph_break(False):
                 class CustomStr:
                     def __init__(self, name, iterator):
@@ -328,6 +342,21 @@ class TestCase(__TestCase):
                         # the pointers after this call
                         list(self.iterator)
                         return other == self.name
+=======
+            class CustomStr:
+                def __init__(self, name, iterator):
+                    self.name = name
+                    self.iterator = iterator
+                def __hash__(self):
+                    return hash(self.name)
+                def __eq__(self, other):
+                    # Here we exhaust our iterator, possibly changing
+                    # its `it_seq` pointer to NULL
+                    # The `__reduce__` call should correctly get
+                    # the pointers after this call
+                    list(self.iterator)
+                    return other == self.name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # del is required here
             # to not prematurely call __eq__ from
@@ -377,10 +406,16 @@ class TestCase(__TestCase):
 
     # Test a new_style class with __iter__ but no next() method
     def test_new_style_iter_class(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class IterClass(object):
                 def __iter__(self):
                     return self
+=======
+        class IterClass(object):
+            def __iter__(self):
+                return self
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertRaises(TypeError, iter, IterClass())
 
     # Test two-argument iter() with callable instance
@@ -449,12 +484,20 @@ class TestCase(__TestCase):
 
     # Test exception propagation through sequence iterator
     def test_exception_sequence(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MySequenceClass(SequenceClass):
                 def __getitem__(self, i):
                     if i == 10:
                         raise RuntimeError
                     return SequenceClass.__getitem__(self, i)
+=======
+        class MySequenceClass(SequenceClass):
+            def __getitem__(self, i):
+                if i == 10:
+                    raise RuntimeError
+                return SequenceClass.__getitem__(self, i)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         res = []
         try:
             for x in MySequenceClass(20):
@@ -466,12 +509,20 @@ class TestCase(__TestCase):
 
     # Test for StopIteration from __getitem__
     def test_stop_sequence(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class MySequenceClass(SequenceClass):
                 def __getitem__(self, i):
                     if i == 10:
                         raise StopIteration
                     return SequenceClass.__getitem__(self, i)
+=======
+        class MySequenceClass(SequenceClass):
+            def __getitem__(self, i):
+                if i == 10:
+                    raise StopIteration
+                return SequenceClass.__getitem__(self, i)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.check_for_loop(MySequenceClass(20), list(range(10)), pickle=False)
 
     # Test a big range
@@ -598,6 +649,7 @@ class TestCase(__TestCase):
         self.assertRaises(TypeError, filter, None, list)
         self.assertRaises(TypeError, filter, None, 42)
 
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class Boolean:
                 def __init__(self, truth):
@@ -626,6 +678,34 @@ class TestCase(__TestCase):
                             else:
                                 raise StopIteration
                     return SeqIter(self.vals)
+=======
+        class Boolean:
+            def __init__(self, truth):
+                self.truth = truth
+            def __bool__(self):
+                return self.truth
+        bTrue = Boolean(True)
+        bFalse = Boolean(False)
+
+        class Seq:
+            def __init__(self, *args):
+                self.vals = args
+            def __iter__(self):
+                class SeqIter:
+                    def __init__(self, vals):
+                        self.vals = vals
+                        self.i = 0
+                    def __iter__(self):
+                        return self
+                    def __next__(self):
+                        i = self.i
+                        self.i = i + 1
+                        if i < len(self.vals):
+                            return self.vals[i]
+                        else:
+                            raise StopIteration
+                return SeqIter(self.vals)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         seq = Seq(*([bTrue, bFalse] * 25))
         self.assertEqual(list(filter(lambda x: not x, seq)), [bFalse]*25)
@@ -713,6 +793,7 @@ class TestCase(__TestCase):
         self.assertEqual(list(d.items()), list(zip(d, d.values())))
 
         # Generate all ints starting at constructor arg.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class IntsFrom:
                 def __init__(self, start):
@@ -725,6 +806,19 @@ class TestCase(__TestCase):
                     i = self.i
                     self.i = i+1
                     return i
+=======
+        class IntsFrom:
+            def __init__(self, start):
+                self.i = start
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                i = self.i
+                self.i = i+1
+                return i
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         f = open(TESTFN, "w", encoding="utf-8")
         try:
@@ -747,6 +841,7 @@ class TestCase(__TestCase):
         self.assertEqual(list(zip(range(5))), [(i,) for i in range(5)])
 
         # Classes that lie about their lengths.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class NoGuessLen5:
                 def __getitem__(self, i):
@@ -761,6 +856,21 @@ class TestCase(__TestCase):
             class Guess30Len5(NoGuessLen5):
                 def __len__(self):
                     return 30
+=======
+        class NoGuessLen5:
+            def __getitem__(self, i):
+                if i >= 5:
+                    raise IndexError
+                return i
+
+        class Guess3Len5(NoGuessLen5):
+            def __len__(self):
+                return 3
+
+        class Guess30Len5(NoGuessLen5):
+            def __len__(self):
+                return 30
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         def lzip(*args):
             return list(zip(*args))
@@ -780,6 +890,7 @@ class TestCase(__TestCase):
 
         # This class inserts a Unicode object into its argument's natural
         # iteration, in the 3rd position.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class OhPhooey:
                 def __init__(self, seq):
@@ -795,6 +906,22 @@ class TestCase(__TestCase):
                     if i == 2:
                         return "fooled you!"
                     return next(self.it)
+=======
+        class OhPhooey:
+            def __init__(self, seq):
+                self.it = iter(seq)
+                self.i = 0
+
+            def __iter__(self):
+                return self
+
+            def __next__(self):
+                i = self.i
+                self.i = i+1
+                if i == 2:
+                    return "fooled you!"
+                return next(self.it)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         f = open(TESTFN, "w", encoding="utf-8")
         try:
@@ -958,6 +1085,7 @@ class TestCase(__TestCase):
             f.writelines({})
 
             # Try a big chunk too.
+<<<<<<< HEAD
             with torch._dynamo.error_on_graph_break(False):
                 class Iterator:
                     def __init__(self, start, finish):
@@ -982,6 +1110,31 @@ class TestCase(__TestCase):
 
                     def __iter__(self):
                         return Iterator(self.start, self.finish)
+=======
+            class Iterator:
+                def __init__(self, start, finish):
+                    self.start = start
+                    self.finish = finish
+                    self.i = self.start
+
+                def __next__(self):
+                    if self.i >= self.finish:
+                        raise StopIteration
+                    result = str(self.i) + '\n'
+                    self.i += 1
+                    return result
+
+                def __iter__(self):
+                    return self
+
+            class Whatever:
+                def __init__(self, start, finish):
+                    self.start = start
+                    self.finish = finish
+
+                def __iter__(self):
+                    return Iterator(self.start, self.finish)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             f.writelines(Whatever(6, 6+2000))
             f.close()
@@ -1054,6 +1207,7 @@ class TestCase(__TestCase):
 
     @cpython_only
     def test_ref_counting_behavior(self):
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class C(object):
                 count = 0
@@ -1064,6 +1218,17 @@ class TestCase(__TestCase):
                     cls = self.__class__
                     assert cls.count > 0
                     cls.count -= 1
+=======
+        class C(object):
+            count = 0
+            def __new__(cls):
+                cls.count += 1
+                return object.__new__(cls)
+            def __del__(self):
+                cls = self.__class__
+                assert cls.count > 0
+                cls.count -= 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         x = C()
         self.assertEqual(C.count, 1)
         del x
@@ -1154,6 +1319,7 @@ class TestCase(__TestCase):
 
     def test_3720(self):
         # Avoid a crash, when an iterator deletes its next() method.
+<<<<<<< HEAD
         with torch._dynamo.error_on_graph_break(False):
             class BadIterator(object):
                 def __iter__(self):
@@ -1161,6 +1327,14 @@ class TestCase(__TestCase):
                 def __next__(self):
                     del BadIterator.__next__
                     return 1
+=======
+        class BadIterator(object):
+            def __iter__(self):
+                return self
+            def __next__(self):
+                del BadIterator.__next__
+                return 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         try:
             for i in BadIterator() :

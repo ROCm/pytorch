@@ -172,7 +172,11 @@ template <>
 TORCH_API void THP_decodeBuffer<bool, bool>(
     bool* dst,
     const uint8_t* src,
+<<<<<<< HEAD
     bool /*unused*/,
+=======
+    bool,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     size_t len) {
   for (const auto i : c10::irange(len)) {
     dst[i] = (int)src[i] != 0 ? true : false;

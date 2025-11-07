@@ -40,7 +40,11 @@ struct TORCH_API EmbeddingOptions {
   TORCH_ARG(bool, sparse) = false;
   /// The learnable weights of the module of shape (num_embeddings,
   /// embedding_dim)
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, _weight);
+=======
+  TORCH_ARG(torch::Tensor, _weight) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // ============================================================================
@@ -136,7 +140,11 @@ struct TORCH_API EmbeddingBagOptions {
   TORCH_ARG(bool, sparse) = false;
   /// The learnable weights of the module of shape (num_embeddings,
   /// embedding_dim)
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, _weight);
+=======
+  TORCH_ARG(torch::Tensor, _weight) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// If ``true``, `offsets` has one additional element, where the last element
   /// is equivalent to the size of `indices`. This matches the CSR format.
   TORCH_ARG(bool, include_last_offset) = false;
@@ -201,7 +209,11 @@ namespace functional {
 struct TORCH_API EmbeddingBagFuncOptions {
   /// Only used when `input` is 1D. `offsets` determines
   /// the starting index position of each bag (sequence) in `input`.
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, offsets);
+=======
+  TORCH_ARG(torch::Tensor, offsets) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// If given, each embedding vector with norm larger than `max_norm` is
   /// renormalized to have norm `max_norm`.
   TORCH_ARG(std::optional<double>, max_norm) = std::nullopt;
@@ -223,7 +235,11 @@ struct TORCH_API EmbeddingBagFuncOptions {
   /// be taken to be 1. If specified, `per_sample_weights` must have exactly the
   /// same shape as input and is treated as having the same `offsets`, if those
   /// are not None.
+<<<<<<< HEAD
   TORCH_ARG(torch::Tensor, per_sample_weights);
+=======
+  TORCH_ARG(torch::Tensor, per_sample_weights) = Tensor();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// If ``true``, `offsets` has one additional element, where the last element
   /// is equivalent to the size of `indices`. This matches the CSR format. Note:
   /// this option is currently only supported when ``mode="sum"``.

@@ -1,7 +1,11 @@
 # Owner(s): ["module: inductor"]
 import importlib
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, Optional
+=======
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from unittest import skipIf
 
 import torch
@@ -32,8 +36,11 @@ class CodegenInductorTest(InductorTestCase):
         *args,
         compile_kwargs: Optional[dict] = None,
         config_patches: Optional[dict] = None,
+<<<<<<< HEAD
         atol: float | None = 1e-05,
         rtol: float | None = 1e-08,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Runs the module through Inductor, comparing to eager reference.
@@ -55,7 +62,11 @@ class CodegenInductorTest(InductorTestCase):
         ref_tensors = flatten_tensors(func(*args))
         actual_tensors = flatten_tensors(result)
         for ref, actual in zip(ref_tensors, actual_tensors):
+<<<<<<< HEAD
             self.assertTrue(torch.allclose(ref, actual, atol=atol, rtol=rtol))
+=======
+            self.assertTrue(torch.allclose(ref, actual))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return result, code
 
@@ -93,6 +104,7 @@ class CodegenInductorTest(InductorTestCase):
 
     @requires_gpu()
     @skipIf(GPU_TYPE == "mps", "Triton is not available for MPS")
+<<<<<<< HEAD
     def test_cse_make_block_ptr_reduction(self):
         def func(a, b):
             tmp0 = a * b
@@ -121,6 +133,8 @@ class CodegenInductorTest(InductorTestCase):
 
     @requires_gpu()
     @skipIf(GPU_TYPE == "mps", "Triton is not available for MPS")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_kernel_fusion_thresholds(self):
         def func(a, b):
             tmp0 = a + 1

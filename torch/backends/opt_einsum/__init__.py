@@ -70,7 +70,10 @@ def _set_strategy(_strategy: str) -> None:
 
 
 def _get_strategy() -> str:
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return strategy
 
 
@@ -116,5 +119,9 @@ class OptEinsumModule(PropModule):
 # https://stackoverflow.com/questions/2447353/getattr-on-a-module/7668273#7668273
 sys.modules[__name__] = OptEinsumModule(sys.modules[__name__], __name__)
 
+<<<<<<< HEAD
 enabled = bool(is_available())
+=======
+enabled = True if is_available() else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 strategy = "auto" if is_available() else None

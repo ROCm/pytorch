@@ -37,11 +37,18 @@ PyObject* THPModule_DisableTorchFunctionType();
 PyObject* THPModule_DisableTorchFunctionSubclassType();
 PyObject* THPModule_disable_torch_function(PyObject* self, PyObject* args);
 PyObject* THPModule_disable_torch_dispatch(PyObject* self, PyObject* args);
+<<<<<<< HEAD
 PyObject* THPModule_has_torch_function(PyObject* /*unused*/, PyObject* arg);
 PyObject* THPModule_has_torch_function_unary(
     PyObject* /*unused*/,
     PyObject* obj);
 PyObject* THPModule_has_torch_function_variadic(
     PyObject* /*unused*/,
+=======
+PyObject* THPModule_has_torch_function(PyObject*, PyObject* arg);
+PyObject* THPModule_has_torch_function_unary(PyObject*, PyObject* obj);
+PyObject* THPModule_has_torch_function_variadic(
+    PyObject*,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     PyObject* const* args,
     Py_ssize_t nargs);

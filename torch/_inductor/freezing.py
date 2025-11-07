@@ -153,7 +153,10 @@ class ErasedTensor(torch.Tensor):
     def __torch_dispatch__(cls, func, types, args=(), kwargs=None):  # type: ignore[override]
         erased_tensors = [
             e
+<<<<<<< HEAD
             # pyrefly: ignore [bad-unpacking]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for e in pytree.arg_tree_leaves(*args, **kwargs)
             if isinstance(e, ErasedTensor)
         ]
@@ -178,7 +181,10 @@ def invalidate_eager_modules():
             for attr_name, tensor in list(
                 itertools.chain(
                     mod.named_parameters(recurse=False),
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     mod.named_buffers(recurse=False),
                 )
             ):
@@ -194,9 +200,13 @@ def discard_traced_gm_params(mod: torch.fx.GraphModule):
     with torch.utils._python_dispatch._disable_current_modes():
         for attr_name, tensor in list(
             itertools.chain(
+<<<<<<< HEAD
                 mod.named_parameters(recurse=False),
                 # pyrefly: ignore [bad-argument-type]
                 mod.named_buffers(recurse=False),
+=======
+                mod.named_parameters(recurse=False), mod.named_buffers(recurse=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         ):
             with torch._dispatch.python.no_python_dispatcher():

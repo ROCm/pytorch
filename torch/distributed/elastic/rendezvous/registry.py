@@ -5,7 +5,11 @@
 # LICENSE file in the root directory of this source tree.
 
 import logging
+<<<<<<< HEAD
 from importlib.metadata import entry_points
+=======
+import sys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from .api import (
     rendezvous_handler_registry as handler_registry,
@@ -15,6 +19,14 @@ from .api import (
 from .dynamic_rendezvous import create_handler
 
 
+<<<<<<< HEAD
+=======
+if sys.version_info < (3, 10):
+    from importlib_metadata import entry_points
+else:
+    from importlib.metadata import entry_points
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 
 __all__ = ["get_rendezvous_handler"]

@@ -31,12 +31,15 @@ from torch.testing._internal.distributed._tensor.common_dtensor import (
     skip_unless_torch_gpu,
     with_comms,
 )
+<<<<<<< HEAD
 from torch.utils._typing_utils import not_none
 
 
 def get_generator_seed_for_device_type(device_type: str) -> int:
     device_module = torch.get_device_module(device_type)
     return device_module.get_rng_state()[:8].view(torch.int64).item()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class DistTensorRandomInitTest(DTensorTestBase):
@@ -45,7 +48,11 @@ class DistTensorRandomInitTest(DTensorTestBase):
         shard_spec = [Shard(0)]
         input_size = (8, 4)
 
+<<<<<<< HEAD
         # NOTE: currently random initialization on gpu device has different
+=======
+        # NOTE: currently random initialization on cuda device has different
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # behavior from other devices. Unify the test once the behavior is unified.
         if not is_rng_supported_mesh(device_mesh):
             input_tensor = torch.randn(*input_size, device=self.device_type)
@@ -95,6 +102,7 @@ class DistTensorRandomInitTest(DTensorTestBase):
 
     @with_comms
     @skip_if_lt_x_gpu(4)
+<<<<<<< HEAD
     def test_init_with_user_generator(self):
         device_mesh = self.build_device_mesh()
         torch.manual_seed(42)
@@ -128,6 +136,16 @@ class DistTensorRandomInitTest(DTensorTestBase):
 
         # Note: this behavior changed, and now the guideline is to set the same RNG seed on all SPMD ranks.
         torch.get_device_module(self.device_type).manual_seed(0)
+=======
+    def test_meta_tensor_init(self):
+        # test suite sets each rank's seed to the same value but in actual
+        # execution the default random seed will be different (a random value).
+        # The DTensor random ops will use the same random seed even though the
+        # torch random generator keeps different seeds on ranks. This ensures
+        # that Replicate DTensor will have the same initialized results
+        # across ranks.
+        torch.cuda.manual_seed(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device_mesh = DeviceMesh(self.device_type, torch.arange(self.world_size))
         size = [1024, 2048]
         meta_dtensor = distribute_tensor(
@@ -146,7 +164,11 @@ class DistTensorRandomInitTest(DTensorTestBase):
         self.assertTrue(random._rng_tracker.distribute_region_enabled)
 
         # allgather the local tensors
+<<<<<<< HEAD
         gathered_local_tensors = funcol.all_gather_tensor(
+=======
+        local_tensor = funcol.all_gather_tensor(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dtensor.to_local(), gather_dim=0, group=(device_mesh, 0)
         )
 
@@ -157,8 +179,12 @@ class DistTensorRandomInitTest(DTensorTestBase):
                 # other rank should have an identical local tensor
                 other_slice = slice(1024 * other_rank, 1024 * other_rank + 1024)
                 self.assertEqual(
+<<<<<<< HEAD
                     gathered_local_tensors[self_slice, :],
                     gathered_local_tensors[other_slice, :],
+=======
+                    local_tensor[self_slice, :], local_tensor[other_slice, :]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
         # Test 2: disable the distribute region for RNG
@@ -177,11 +203,19 @@ class DistTensorRandomInitTest(DTensorTestBase):
 
         # compare with local tensors from other ranks
         for other_rank in range(self.world_size):
+<<<<<<< HEAD
             # the RNG result on each rank are the same even without the help of DTensor's RNG infra,
             # since the default RNG is the same across ranks.
             if self.rank != other_rank:
                 other_slice = slice(1024 * other_rank, 1024 * other_rank + 1024)
                 self.assertEqual(
+=======
+            # the RNG result on each rank differs even they're supposed
+            # to be replicated
+            if self.rank != other_rank:
+                other_slice = slice(1024 * other_rank, 1024 * other_rank + 1024)
+                self.assertNotEqual(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     local_tensor[self_slice, :], local_tensor[other_slice, :]
                 )
 
@@ -307,12 +341,16 @@ class DistTensorRandomOpTest(DTensorTestBase):
         # seed synchronization only happens after `manual_seed` or the first DTensor
         # random op call
         dt.uniform_(0, 1)
+<<<<<<< HEAD
 
         # We do not maintain the copy of the seed in dtensor, but we do mutate the global rng state
         # since we now always pull it fresh from the local device generator
         self.assertEqual(
             seed_from_rank_0, get_generator_seed_for_device_type(self.device_type)
         )
+=======
+        self.assertEqual(seed_from_rank_0, random._rng_tracker.get_seed("parallel-rng"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @with_comms
     @skip_unless_torch_gpu
@@ -331,6 +369,7 @@ class DistTensorRandomOpTest(DTensorTestBase):
             manual_seed(self.rank, device_mesh)
             # RNG tracker should already be initialized
             self.assertTrue(random._rng_tracker is not None)
+<<<<<<< HEAD
             self.assertEqual(
                 self.rank, get_generator_seed_for_device_type(self.device_type)
             )
@@ -338,6 +377,13 @@ class DistTensorRandomOpTest(DTensorTestBase):
             # Test 2: set same seed on different ranks
             manual_seed(1234, device_mesh)
             self.assertEqual(1234, get_generator_seed_for_device_type(self.device_type))
+=======
+            self.assertEqual(self.rank, random._rng_tracker.get_seed("parallel-rng"))
+
+            # Test 2: set same seed on different ranks
+            manual_seed(1234, device_mesh)
+            self.assertEqual(1234, random._rng_tracker.get_seed("parallel-rng"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.assertEqual(comm_mode.get_total_counts(), 0)
 
@@ -370,10 +416,14 @@ class DistTensorRandomOpTest(DTensorTestBase):
 
         # set the seed for each pipeline stage to 123 + pp_rank
         manual_seed(123 + pp_rank, spmd_mesh)
+<<<<<<< HEAD
         # dtensor no longer stores a copy of the seed, but it mutates the device's generator so we can check that
         self.assertEqual(
             123 + pp_rank, get_generator_seed_for_device_type(self.device_type)
         )
+=======
+        self.assertEqual(123 + pp_rank, random._rng_tracker.get_seed("parallel-rng"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # mimic initializing a model weight sharded on the SPMD mesh
         spmd_dtensor = torch.distributed.tensor.ones(
@@ -458,15 +508,23 @@ class DistTensorRandomOpTest(DTensorTestBase):
             self_slice = slice(4 * self.rank, 4 * self.rank + 4)
             for other_rank in range(self.world_size):
                 if self.rank != other_rank:
+<<<<<<< HEAD
                     # other rank should have a different local tensor for shard placement
+=======
+                    # other rank should have an identical local tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     other_slice = slice(4 * other_rank, 4 * other_rank + 4)
                     self.assertNotEqual(
                         local_tensor[self_slice, :],
                         local_tensor[other_slice, :],
                     )
 
+<<<<<<< HEAD
             # we should set manual seed to the same value on all SPMD ranks
             torch.manual_seed(0)
+=======
+            torch.manual_seed(self.rank)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             dtensor = fn(size, device_mesh=device_mesh, placements=[Replicate()])
             local_tensor = funcol.all_gather_tensor(
                 dtensor.to_local(), gather_dim=0, group=(device_mesh, 0)
@@ -476,7 +534,11 @@ class DistTensorRandomOpTest(DTensorTestBase):
             self_slice = slice(4 * self.rank, 4 * self.rank + 4)
             for other_rank in range(self.world_size):
                 if self.rank != other_rank:
+<<<<<<< HEAD
                     # other rank should have an identical local tensor for replicate placement
+=======
+                    # other rank should have an identical local tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     other_slice = slice(4 * other_rank, 4 * other_rank + 4)
                     self.assertEqual(
                         local_tensor[self_slice, :],
@@ -550,9 +612,13 @@ class DistTensorRandomOpTest(DTensorTestBase):
             # local_shard_list_on_dim[i] has the list of all shards on that dim
             # as a tuple (local_shard_offset, local_shard_size)
             dtensor_shape = dtensor.shape
+<<<<<<< HEAD
             local_shard_list_on_dim: list[list[tuple[int, int]]] = [
                 [(0, l)] for l in dtensor_shape
             ]
+=======
+            local_shard_list_on_dim = [[(0, l)] for l in dtensor_shape]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for idx, placement in enumerate(placements):
                 if isinstance(placement, Shard):
                     mesh_dim_size = device_mesh.size(idx)
@@ -568,7 +634,11 @@ class DistTensorRandomOpTest(DTensorTestBase):
                             shard_idx_on_dim,
                         )
                         local_shard_list_on_dim[shard_dim].append(
+<<<<<<< HEAD
                             (not_none(shard_offset), shard_size)
+=======
+                            (shard_offset, shard_size)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
 
             local_shard_comb = itertools.product(*local_shard_list_on_dim)
@@ -595,8 +665,13 @@ class DistTensorRandomOpsTest3D(DTensorTestBase):
     def world_size(self):
         return 8
 
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(8)
     @with_comms
+=======
+    @with_comms
+    @skip_if_lt_x_gpu(8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_hsdp_tp_model_meta_init(self):
         # initialize the 3-d device mesh
         global_mesh = init_device_mesh(

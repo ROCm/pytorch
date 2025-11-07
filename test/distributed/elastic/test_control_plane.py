@@ -71,9 +71,15 @@ class WorkerServerTest(TestCase):
             self.assertEqual(resp.status, 200)
             self.assertIn("ping", json.loads(resp.data))
 
+<<<<<<< HEAD
             resp = pool.request("POST", "/handler/nonexistent")
             self.assertEqual(resp.status, 404)
             self.assertIn(b"Handler nonexistent not found:", resp.data)
+=======
+            resp = pool.request("POST", "/handler/nonexistant")
+            self.assertEqual(resp.status, 404)
+            self.assertIn(b"Handler nonexistant not found:", resp.data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @requires_cuda
     def test_dump_nccl_trace_pickle(self) -> None:
@@ -207,8 +213,13 @@ class WorkerServerTest(TestCase):
     def test_get_handler_nonexistant(self) -> None:
         from torch._C._distributed_c10d import _get_handler
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(ValueError, "Failed to find handler nonexistent"):
             _get_handler("nonexistent")
+=======
+        with self.assertRaisesRegex(ValueError, "Failed to find handler nonexistant"):
+            _get_handler("nonexistant")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_get_handler_names(self) -> None:
         from torch._C._distributed_c10d import _get_handler_names

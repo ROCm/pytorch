@@ -56,7 +56,11 @@ void memset_junk(void* data, size_t num) {
 }
 
 #if defined(__linux__) && !defined(__ANDROID__)
+<<<<<<< HEAD
 inline bool is_thp_alloc_enabled() {
+=======
+static inline bool is_thp_alloc_enabled() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static bool value = [&] {
     auto env = c10::utils::check_env("THP_MEM_ALLOC_ENABLE");
     return env.has_value() ? env.value() : 0;
@@ -108,6 +112,7 @@ void* alloc_cpu(size_t nbytes) {
       "DefaultCPUAllocator: not enough memory: you tried to allocate ",
       nbytes,
       " bytes.");
+<<<<<<< HEAD
 #elif defined(USE_MIMALLOC)
   data = mi_malloc_aligned(nbytes, gAlignment);
   CAFFE_ENFORCE(
@@ -117,6 +122,14 @@ void* alloc_cpu(size_t nbytes) {
       " bytes.");
 #elif defined(_MSC_VER)
   data = _aligned_malloc(nbytes, gAlignment);
+=======
+#elif defined(_MSC_VER)
+#ifdef USE_MIMALLOC
+  data = mi_malloc_aligned(nbytes, gAlignment);
+#else
+  data = _aligned_malloc(nbytes, gAlignment);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CAFFE_ENFORCE(
       data,
       "DefaultCPUAllocator: not enough memory: you tried to allocate ",
@@ -163,10 +176,19 @@ void* alloc_cpu(size_t nbytes) {
 }
 
 void free_cpu(void* data) {
+<<<<<<< HEAD
 #ifdef USE_MIMALLOC
   mi_free(data);
 #elif defined(_MSC_VER)
   _aligned_free(data);
+=======
+#ifdef _MSC_VER
+#ifdef USE_MIMALLOC
+  mi_free(data);
+#else
+  _aligned_free(data);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   // NOLINTNEXTLINE(cppcoreguidelines-no-malloc)
   free(data);

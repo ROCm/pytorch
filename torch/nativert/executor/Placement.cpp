@@ -32,6 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Placement& placement) {
   return os;
 }
 
+<<<<<<< HEAD
 namespace {
 void assertCudaDeviceHasIndex(const c10::Device& device) {
   if (device.is_cuda()) {
@@ -41,6 +42,8 @@ void assertCudaDeviceHasIndex(const c10::Device& device) {
 }
 } // namespace
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 Placement::Placement(std::optional<c10::Device> defaultDevice)
     : Placement({}, defaultDevice) {}
 
@@ -48,6 +51,7 @@ Placement::Placement(
     const std::unordered_map<c10::Device, c10::Device>& deviceMap,
     std::optional<c10::Device> defaultDevice) {
   for (const auto& [srcDevice, dstDevice] : deviceMap) {
+<<<<<<< HEAD
     assertCudaDeviceHasIndex(srcDevice);
     assertCudaDeviceHasIndex(dstDevice);
 
@@ -57,11 +61,22 @@ Placement::Placement(
   if (defaultDevice.has_value()) {
     assertCudaDeviceHasIndex(defaultDevice.value());
     defaultDevice_ = defaultDevice.value();
+=======
+    deviceMap_.try_emplace(
+        normalizeDevice(srcDevice), normalizeDevice(dstDevice));
+  }
+  if (defaultDevice.has_value()) {
+    defaultDevice_ = normalizeDevice(defaultDevice.value());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
 c10::Device Placement::getMappedDevice(const c10::Device& srcDevice) const {
+<<<<<<< HEAD
   auto it = deviceMap_.find(srcDevice);
+=======
+  auto it = deviceMap_.find(normalizeDevice(srcDevice));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (it != deviceMap_.end()) {
     return it->second;
   }

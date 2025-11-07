@@ -168,7 +168,11 @@
     {
       "Gb_type": "Attempted to wrap torch._higher_order_ops.invoke_subgraph",
       "Context": "",
+<<<<<<< HEAD
       "Explanation": "Directly using invoke_subgraph is not supported. Use nested_compile_region",
+=======
+      "Explanation": "Directly using invoke_subgraph is not supported. Use mark_compile_region",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Hints": []
     }
   ],
@@ -222,7 +226,11 @@
     {
       "Gb_type": "Builtin `operator.*` comparison with constant `self` failed",
       "Context": "call_method {self} {name} {args} {kwargs}",
+<<<<<<< HEAD
       "Explanation": "\"Failed to compare {self} with {other}, \"                     + f\"because {other} is not a Python constant or its mutation check fails.\"",
+=======
+      "Explanation": "\"Failed to compare {self} with {other}, because {other} is not a Python constant or its mutation check fails.\"",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Hints": []
     }
   ],
@@ -391,7 +399,10 @@
       "Context": "context",
       "Explanation": "Higher order ops do not support aliasing. Found in {source_target.name()}",
       "Hints": [
+<<<<<<< HEAD
         "Replace `return input` with `return input.clone()` to avoid aliasing.",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         "Consider using the debug context to change user code to avoid aliasing.",
         "Please open an issue."
       ]
@@ -851,7 +862,11 @@
   "GB0088": [
     {
       "Gb_type": "Observed exception",
+<<<<<<< HEAD
       "Context": "raised exception {curr_exc.python_type_name()}({curr_exc.args})",
+=======
+      "Context": "str(raised_exception)",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Explanation": "observed_exn_gb_explanation",
       "Hints": [
         "Dynamo has detected that tracing the code will result in an error when running in eager. Please double check that your code doesn't contain a similar error when actually running eager/uncompiled."
@@ -1384,6 +1399,7 @@
   "GB0142": [
     {
       "Gb_type": "Unsupported context manager",
+<<<<<<< HEAD
       "Context": "Attempted SETUP_WITH/BEFORE_WITH/LOAD_SPECIAL on {ctx}",
       "Explanation": "Dynamo does not know how to enter a `{ctx.python_type_name()}` context manager.",
       "Hints": [
@@ -1398,6 +1414,8 @@
     },
     {
       "Gb_type": "Unsupported context manager",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Context": "Attempted SETUP_WITH/BEFORE_WITH on {ctx}",
       "Explanation": "Dynamo does not know how to enter a `{ctx.python_type_name()}` context manager.",
       "Hints": [
@@ -1674,6 +1692,7 @@
   ],
   "GB0170": [
     {
+<<<<<<< HEAD
       "Gb_type": "Data-dependent branching",
       "Context": "attempted to jump with {value}",
       "Explanation": "_explanation",
@@ -1689,6 +1708,8 @@
       "Hints": []
     },
     {
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       "Gb_type": "_gb_type",
       "Context": "attempted to jump with {value}",
       "Explanation": "_explanation",
@@ -2167,6 +2188,7 @@
       "Explanation": "Dynamo does not support tracing builtin index() on a Tensor",
       "Hints": []
     }
+<<<<<<< HEAD
   ],
   "GB0219": [
     {
@@ -2851,5 +2873,7 @@
         "Move the Placement usage outside the compiled region"
       ]
     }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   ]
 }

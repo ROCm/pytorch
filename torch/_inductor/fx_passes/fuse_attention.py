@@ -18,6 +18,10 @@ from ..pattern_matcher import (
 log = logging.getLogger(__name__)
 aten = torch.ops.aten
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 _scaled_dot_product_attention = aten.scaled_dot_product_attention
 
 
@@ -607,7 +611,11 @@ def _sfdp_replacement_21(query, key, value, attn_mask):
         query,
         key,
         value,
+<<<<<<< HEAD
         attn_mask=attn_mask.to(dtype=query.dtype),
+=======
+        attn_mask=attn_mask,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         is_causal=False,
         scale=1.0,
     )
@@ -640,7 +648,11 @@ def _sfdp_replacement_22(query, key, value, attn_mask):
             query,
             key,
             value,
+<<<<<<< HEAD
             attn_mask=attn_mask.to(dtype=query.dtype),
+=======
+            attn_mask=attn_mask,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_causal=False,
             scale=1.0,
         ),
@@ -687,6 +699,7 @@ def _sfdp_replacement_23(query, key, value):
     )
 
 
+<<<<<<< HEAD
 def _sfdp_pattern_24(query, key, value, attention_mask):
     """
     this pattern is for MBartForCausalLM/PLBartForCausalLM.
@@ -723,6 +736,8 @@ def _sfdp_replacement_24(query, key, value, attention_mask):
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _sfdp_params_check(match):
     assert all(k in match.kwargs for k in ("query", "key", "value"))
     query = match.kwargs["query"].meta["val"]
@@ -1025,6 +1040,7 @@ def _get_sfdp_patterns():
                 _sfdp_params_check,
             ),
             (
+<<<<<<< HEAD
                 _sfdp_pattern_21,
                 _sfdp_replacement_21,
                 [g_bs1(), g_bs1(), g_bs1(), m_bs1_float()],
@@ -1032,6 +1048,8 @@ def _get_sfdp_patterns():
                 _sfdp_params_check,
             ),
             (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _sfdp_pattern_22,
                 _sfdp_replacement_22,
                 [g(), g(), g(), m_float()],
@@ -1039,6 +1057,7 @@ def _get_sfdp_patterns():
                 _sfdp_params_check,
             ),
             (
+<<<<<<< HEAD
                 _sfdp_pattern_22,
                 _sfdp_replacement_22,
                 [g_bs1(), g_bs1(), g_bs1(), m_bs1_float()],
@@ -1046,12 +1065,15 @@ def _get_sfdp_patterns():
                 _sfdp_params_check,
             ),
             (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 _sfdp_pattern_23,
                 _sfdp_replacement_23,
                 [g(), g(), g()],
                 {},
                 _sfdp_params_check,
             ),
+<<<<<<< HEAD
             (
                 _sfdp_pattern_23,
                 _sfdp_replacement_23,
@@ -1066,6 +1088,8 @@ def _get_sfdp_patterns():
                 {},
                 _sfdp_extra_check,
             ),
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
         mask_fp32_patterns = ["pattern_16"]
         if dtype == torch.half:

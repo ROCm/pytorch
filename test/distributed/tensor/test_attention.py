@@ -1,5 +1,6 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 # Owner(s): ["oncall: distributed"]
+<<<<<<< HEAD
 import itertools
 import random
 import unittest
@@ -20,12 +21,28 @@ from torch.distributed.tensor.experimental._attention import (
     _cp_options,
     _disable_context_parallel_dispatcher,
     _enable_context_parallel_dispatcher,
+=======
+import unittest
+
+import torch
+import torch.distributed as dist
+import torch.nn.functional as F
+from torch import nn
+from torch.distributed.tensor import DeviceMesh
+from torch.distributed.tensor.debug import CommDebugMode
+from torch.distributed.tensor.experimental._attention import (
+    _AttentionContextParallel,
+    _CausalBehavior,
+    _cp_options,
+    _DispatchMode,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _is_causal_behavior,
     _RotateMethod,
     context_parallel,
     context_parallel_unshard,
     set_rotate_method,
 )
+<<<<<<< HEAD
 from torch.distributed.tensor.experimental._cp_custom_ops import flex_cp_allgather
 from torch.distributed.tensor.experimental._load_balancer import (
     _HeadTailLoadBalancer,
@@ -43,6 +60,10 @@ from torch.nn.attention.flex_attention import (
     create_block_mask,
     flex_attention,
 )
+=======
+from torch.distributed.tensor.parallel import parallelize_module
+from torch.nn.attention import sdpa_kernel, SDPBackend
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
@@ -53,6 +74,11 @@ from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
 from torch.testing._internal.common_utils import run_tests, skipIfRocm
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
+<<<<<<< HEAD
+=======
+    ModelArgs,
+    Transformer,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     with_comms,
 )
 
@@ -72,6 +98,7 @@ rotater_enum_to_str = {
 }  # mapping from _RotateMethod enum to string
 
 
+<<<<<<< HEAD
 class SDPAWrapper(torch.nn.Module):
     def __init__(self, compiled: bool, backend: SDPBackend) -> None:
         super().__init__()
@@ -90,6 +117,8 @@ class SDPAWrapper(torch.nn.Module):
             return self.sdpa(*args, **kwargs)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class RingAttentionTest(DTensorTestBase):
     @property
     def world_size(self) -> int:
@@ -115,11 +144,19 @@ class RingAttentionTest(DTensorTestBase):
                 "load_balance": [True, False],
                 "rotater": [_RotateMethod.ALL_TO_ALL, _RotateMethod.ALL_GATHER],
                 "test_forward_only": [True, False],
+<<<<<<< HEAD
                 "use_context": [True, False],
+=======
+                "dispatch_mode": [
+                    _DispatchMode.MONKEY_PATCH,
+                    _DispatchMode.TORCH_FUNCTION,
+                ],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             },
             self._test_ring_attention_sdpa,
         )
 
+<<<<<<< HEAD
     def _ring_attention_sdpa(
         self,
         cp_q: torch.Tensor,
@@ -214,6 +251,8 @@ class RingAttentionTest(DTensorTestBase):
 
         return cp_out, cp_dq, cp_dk, cp_dv
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _test_ring_attention_sdpa(
         self,
         is_causal: bool,
@@ -222,8 +261,15 @@ class RingAttentionTest(DTensorTestBase):
         load_balance: bool,
         rotater: _RotateMethod,
         test_forward_only: bool,
+<<<<<<< HEAD
         use_context: bool,
     ) -> None:
+=======
+        dispatch_mode: _DispatchMode,
+    ) -> None:
+        torch.distributed.tensor.experimental._attention._dispatch_mode = dispatch_mode
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn_eval(fn, *args, **kwargs):
             if test_forward_only:
                 with torch.no_grad():
@@ -241,8 +287,13 @@ class RingAttentionTest(DTensorTestBase):
         device_mesh = DeviceMesh(self.device_type, torch.arange(0, self.world_size))
         dtype = torch.bfloat16
         bs = 8
+<<<<<<< HEAD
         seq_length = 1024
         seq_dim = 2
+=======
+        query_tokens = 64
+        context_tokens = 64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dim = 32
         nheads = 8
         torch.manual_seed(10)
@@ -253,6 +304,7 @@ class RingAttentionTest(DTensorTestBase):
             else torch.float32
         )
 
+<<<<<<< HEAD
         q, k, v = [
             torch.rand(
                 (bs, nheads, seq_length * self.world_size, dim),
@@ -262,6 +314,28 @@ class RingAttentionTest(DTensorTestBase):
             )
             for _ in range(3)
         ]
+=======
+        _cp_options.enable_load_balance = load_balance
+
+        q = torch.rand(
+            (bs, nheads, self.world_size * query_tokens, dim),
+            device=self.device_type,
+            dtype=dtype,
+            requires_grad=True,
+        )
+        k = torch.rand(
+            (bs, nheads, self.world_size * context_tokens, dim),
+            device=self.device_type,
+            dtype=dtype,
+            requires_grad=True,
+        )
+        v = torch.rand(
+            (bs, nheads, self.world_size * context_tokens, dim),
+            device=self.device_type,
+            dtype=dtype,
+            requires_grad=True,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Ensure all ranks have the same initialization data.
         with torch.no_grad():
@@ -272,6 +346,7 @@ class RingAttentionTest(DTensorTestBase):
         with sdpa_kernel(backend):
             out = fn_eval(F.scaled_dot_product_attention, q, k, v, is_causal=is_causal)
 
+<<<<<<< HEAD
         cp_q, cp_k, cp_v = [target.detach().clone() for target in [q, k, v]]
         cp_out, cp_dq, cp_dk, cp_dv = self._ring_attention_sdpa(
             cp_q,
@@ -315,6 +390,83 @@ class RingAttentionTest(DTensorTestBase):
         torch.testing.assert_close(q.grad, cp_dq, atol=atol, rtol=rtol)
         torch.testing.assert_close(k.grad, cp_dk, atol=atol, rtol=rtol)
         torch.testing.assert_close(v.grad, cp_dv, atol=atol, rtol=rtol)
+=======
+        cp_q = q.detach().clone()
+        cp_k = k.detach().clone()
+        cp_v = v.detach().clone()
+        # Theoretically, context_parallel() should not be used to shard
+        # parameters because when require_grad is True, resize_ is not
+        # allowed. But requires_grad of cp_q, cp_k, and cp_v are False
+        # now. So we can just use context_parallel() to shard q, k, v.
+        # In reality, context_paralle() should be used to shard the input.
+        with context_parallel(
+            device_mesh, buffers=(cp_q, cp_k, cp_v), buffer_seq_dims=(2, 2, 2)
+        ):
+            cp_q.requires_grad = True
+            cp_k.requires_grad = True
+            cp_v.requires_grad = True
+            with CommDebugMode() as comm_mode:
+                with sdpa_kernel(backend):
+                    if compiled:
+                        fn = torch.compile(
+                            F.scaled_dot_product_attention,
+                            fullgraph=True,
+                            backend="aot_eager",
+                        )
+                    else:
+                        fn = F.scaled_dot_product_attention
+
+                    cp_out = fn_eval(fn, cp_q, cp_k, cp_v, is_causal=is_causal)
+
+                    if not compiled and rotater == _RotateMethod.ALL_TO_ALL:
+                        # Compiler and CommDebugMode do not work well together.
+                        expect_all2all_count = (
+                            self.world_size - 1
+                            if test_forward_only
+                            else self.world_size * 3 - 2
+                        )
+                        self.assertDictEqual(
+                            comm_mode.get_comm_counts(),
+                            {c10d_functional.all_to_all_single: expect_all2all_count},
+                        )
+
+            # Due to numerical error, we need to choose different atol for different
+            # attention kernels
+            (cp_out,) = context_parallel_unshard(device_mesh, [cp_out], [2])
+            atol = (
+                1e-08
+                if backend == SDPBackend.EFFICIENT_ATTENTION
+                else 1e-3 * self.world_size
+            )
+            self.assertTrue(torch.allclose(out, cp_out, atol=atol))
+
+            if not test_forward_only:
+                cp_dq, cp_dk, cp_dv = context_parallel_unshard(
+                    device_mesh,
+                    [cp_q.grad, cp_k.grad, cp_v.grad],
+                    [2, 2, 2],
+                )
+                atol = (
+                    2e-06
+                    if backend == SDPBackend.EFFICIENT_ATTENTION
+                    else 8e-3 * self.world_size
+                )
+                self.assertTrue(torch.allclose(q.grad, cp_dq, atol=atol))
+                self.assertTrue(torch.allclose(k.grad, cp_dk, atol=atol))
+                self.assertTrue(torch.allclose(v.grad, cp_dv, atol=atol))
+
+                cp_q.grad = None
+                cp_k.grad = None
+                cp_v.grad = None
+
+            cp_q.requires_grad = False
+            cp_k.requires_grad = False
+            cp_v.requires_grad = False
+
+        torch.distributed.tensor.experimental._attention._dispatch_mode = (
+            _DispatchMode.MONKEY_PATCH
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_is_causal_behavior(self) -> None:
         _cp_options.enable_load_balance = False
@@ -346,6 +498,7 @@ class RingAttentionTest(DTensorTestBase):
                     behavior,
                 )
 
+<<<<<<< HEAD
 
 # Compile the flex_attention function
 compiled_flex_attention = torch.compile(flex_attention, dynamic=False, fullgraph=True)
@@ -806,5 +959,182 @@ class TestSharding(DTensorTestBase):
         )
 
 
+=======
+    @skip_if_lt_x_gpu(2)
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
+    )
+    @with_comms
+    def test_ring_attention_native_transformer(self) -> None:
+        self.run_subtests(
+            {
+                "is_causal": [True, False],
+                "rotater": [_RotateMethod.ALL_GATHER, _RotateMethod.ALL_TO_ALL],
+            },
+            self._test_ring_attention_native_transformer,
+        )
+
+    @sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION])
+    def _test_ring_attention_native_transformer(
+        self, is_causal: bool, rotater: _RotateMethod
+    ) -> None:
+        _cp_options.enable_load_balance = is_causal
+        set_rotate_method(rotater_enum_to_str[rotater])
+        self.assertEqual(_cp_options.rotate_method, rotater)
+        device_mesh = DeviceMesh(
+            self.device_type,
+            torch.arange(0, self.world_size),
+        )
+        dtype = torch.bfloat16
+        bs = 8
+        ntokens = 8
+        dim = 32
+        nheads = 8
+        num_layers = 2
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model=dim,
+            nhead=nheads,
+            dim_feedforward=dim,
+            batch_first=True,
+        ).to(dtype)
+        encoder_layer = parallelize_module(
+            module=encoder_layer,
+            device_mesh=device_mesh,
+            parallelize_plan={
+                "self_attn": _AttentionContextParallel(),
+            },
+        )
+        model = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
+        model = model.to(self.device_type).to(dtype)
+
+        mask = (
+            nn.Transformer.generate_square_subsequent_mask(
+                ntokens, device=self.device_type, dtype=dtype
+            )
+            if is_causal
+            else None
+        )
+        seq = torch.rand((bs, ntokens, dim), device=self.device_type, dtype=dtype)
+
+        with CommDebugMode() as comm_mode:
+            out = model(seq, mask=mask, is_causal=is_causal)
+
+        if rotater == _RotateMethod.ALL_TO_ALL:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_to_all_single: (self.world_size - 1)
+                    * num_layers,
+                },
+            )
+        else:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_gather_into_tensor: num_layers,
+                },
+            )
+
+        with CommDebugMode() as comm_mode:
+            out.sum().backward()
+
+        if rotater == _RotateMethod.ALL_TO_ALL:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_to_all_single: (self.world_size * 2 - 1)
+                    * num_layers,
+                },
+            )
+        else:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_gather_into_tensor: num_layers,
+                    c10d_functional.all_to_all_single: self.world_size * num_layers,
+                },
+            )
+
+    @skip_if_lt_x_gpu(2)
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
+    )
+    @with_comms
+    @sdpa_kernel(backends=[SDPBackend.FLASH_ATTENTION])
+    def test_ring_attention_custom_transformer(self) -> None:
+        self.run_subtests(
+            {"rotater": [_RotateMethod.ALL_GATHER, _RotateMethod.ALL_TO_ALL]},
+            self._test_ring_attention_custom_transformer,
+        )
+
+    def _test_ring_attention_custom_transformer(self, rotater: _RotateMethod) -> None:
+        set_rotate_method(rotater_enum_to_str[rotater])
+        self.assertEqual(_cp_options.rotate_method, rotater)
+        device_mesh = DeviceMesh(
+            self.device_type,
+            torch.arange(0, self.world_size),
+        )
+        # early init DTensor RNG tracker to avoid broadcast be captuured in comm_mode
+        torch.distributed.tensor._random.manual_seed(10, device_mesh)
+
+        dtype = torch.bfloat16
+        bs = 2
+        args = ModelArgs()
+
+        model = Transformer(args).to(dtype).to(self.device_type)
+
+        model = parallelize_module(
+            module=model,
+            device_mesh=device_mesh,
+            parallelize_plan={
+                f"layers.{i}.attention": _AttentionContextParallel()
+                for i in range(args.n_layers)
+            },
+        )
+
+        seq = torch.randint(
+            args.vocab_size, (bs, args.max_seq_len), device=self.device_type
+        )
+
+        with CommDebugMode() as comm_mode:
+            out = model(seq)
+
+        if rotater == _RotateMethod.ALL_TO_ALL:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_to_all_single: (self.world_size - 1)
+                    * args.n_layers,
+                },
+            )
+        else:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {c10d_functional.all_gather_into_tensor: args.n_layers},
+            )
+
+        with CommDebugMode() as comm_mode:
+            out.sum().backward()
+
+        if rotater == _RotateMethod.ALL_TO_ALL:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_to_all_single: (self.world_size * 2 - 1)
+                    * args.n_layers,
+                },
+            )
+        else:
+            self.assertDictEqual(
+                comm_mode.get_comm_counts(),
+                {
+                    c10d_functional.all_gather_into_tensor: args.n_layers,
+                    c10d_functional.all_to_all_single: self.world_size * args.n_layers,
+                },
+            )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

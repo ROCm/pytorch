@@ -1,7 +1,10 @@
 # mypy: allow-untyped-defs
 import functools
 import hashlib
+<<<<<<< HEAD
 import inspect
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import json
 import logging
 import os
@@ -10,7 +13,10 @@ from typing import Any, Optional
 
 import torch._inductor.config as config
 from torch._inductor.codecache import cutlass_key
+<<<<<<< HEAD
 from torch._inductor.codegen.cuda import cutlass_utils, serialization
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.codegen.cuda.cuda_env import get_cuda_arch, get_cuda_version
 from torch._inductor.codegen.cuda.serialization import get_cutlass_operation_serializer
 from torch._inductor.runtime.cache_dir_utils import cache_dir
@@ -29,6 +35,7 @@ def get_config_request_key(
     instantiation_level: str,
 ) -> str:
     """
+<<<<<<< HEAD
     Return a key for the full ops, based on cutlass key, arch, cuda version, instantiation level, and serialization.py file hash.
     """
 
@@ -41,14 +48,21 @@ def get_config_request_key(
     serialization_hash = get_file_hash(serialization)
     cutlass_utils_hash = get_file_hash(cutlass_utils)
 
+=======
+    Return a key for the full ops, based on cutlass key, arch, cuda version, and instantiation level.
+    """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     hash_target = "-".join(
         [
             cutlass_key().hex(),
             arch,
             cuda_version,
             instantiation_level,
+<<<<<<< HEAD
             serialization_hash,
             cutlass_utils_hash,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
     )
     return hashlib.sha256(hash_target.encode("utf-8")).hexdigest()[0:8]
@@ -94,11 +108,19 @@ def maybe_fetch_ops() -> Optional[list[Any]]:
             assert isinstance(serialized_ops, list), (
                 f"Expected serialized ops is a list, got {type(serialized_ops)}"
             )
+<<<<<<< HEAD
         except Exception:
             log.warning(
                 "Failed to load CUTLASS config %s from local cache",
                 filename,
                 exc_info=True,
+=======
+        except Exception as e:
+            log.warning(
+                "Failed to load CUTLASS config %s from local cache: %s",
+                filename,
+                e,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             serialized_ops = None
     elif config.is_fbcode():

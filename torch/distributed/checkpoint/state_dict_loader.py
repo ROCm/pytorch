@@ -1,10 +1,16 @@
 # mypy: allow-untyped-decorators
 # mypy: allow-untyped-defs
+<<<<<<< HEAD
 import inspect
 import logging
 import os
 import warnings
 from typing import Any, cast, Optional, TYPE_CHECKING, Union
+=======
+import os
+import warnings
+from typing import Any, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import deprecated
 
 import torch
@@ -20,6 +26,7 @@ from .storage import StorageReader
 from .utils import _api_bc_check, _DistWrapper, _profile
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from torch.distributed.checkpoint.metadata import Metadata
 
@@ -27,6 +34,10 @@ __all__ = ["load_state_dict", "load"]
 
 logger = logging.getLogger()
 
+=======
+__all__ = ["load_state_dict", "load"]
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @deprecated(
     "`load_state_dict` is deprecated and will be removed in future versions. "
@@ -158,8 +169,12 @@ def load(
     no_dist = no_dist or (not dist.is_available()) or (not dist.is_initialized())
     if no_dist:
         warnings.warn(
+<<<<<<< HEAD
             "torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process.",
             stacklevel=2,
+=======
+            "torch.distributed is disabled, unavailable or uninitialized, assuming the intent is to load in a single process."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     with _profile():
@@ -221,6 +236,7 @@ def _load_state_dict(
         ckpt_kwargs["checkpoint_id"] = ckpt_id
         ckpt_kwargs["process_group"] = distW.group
 
+<<<<<<< HEAD
     use_collectives = True
     metadata: Optional[Metadata] = None
 
@@ -265,6 +281,14 @@ def _load_state_dict(
             )
         else:
             storage_reader.set_up_storage_reader(metadata, distW.is_coordinator)
+=======
+    @_dcp_method_logger(**ckpt_kwargs)
+    def local_step():
+        assert planner is not None
+        metadata = storage_reader.read_metadata()
+        planner.set_up_planner(state_dict, metadata, distW.is_coordinator)
+        storage_reader.set_up_storage_reader(metadata, distW.is_coordinator)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         local_plan = planner.create_local_plan()
         local_plan = storage_reader.prepare_local_plan(local_plan)
@@ -272,12 +296,17 @@ def _load_state_dict(
 
     @_dcp_method_logger(**ckpt_kwargs)
     def global_step(all_local_plans):
+<<<<<<< HEAD
         if planner is None:
             raise AssertionError("planner is None")
+=======
+        assert planner is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         all_local_plans = planner.create_global_plan(all_local_plans)
         all_local_plans = storage_reader.prepare_global_plan(all_local_plans)
         return all_local_plans
 
+<<<<<<< HEAD
     central_plan: Optional[LoadPlan] = None
     if use_collectives:
         central_plan = distW.reduce_scatter("plan", local_step, global_step)
@@ -292,17 +321,28 @@ def _load_state_dict(
             raise AssertionError("planner is None")
         if central_plan is None:
             raise AssertionError("central_plan is None")
+=======
+    central_plan: LoadPlan = distW.reduce_scatter("plan", local_step, global_step)
+
+    @_dcp_method_logger(**ckpt_kwargs)
+    def read_data():
+        assert planner is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         final_local_plan = planner.finish_plan(central_plan)
         all_reads = storage_reader.read_data(final_local_plan, planner)
 
         all_reads.wait()
         return None
 
+<<<<<<< HEAD
     if use_collectives:
         _ = distW.all_gather("read", read_data)
     else:
         read_data()
         distW.barrier()
+=======
+    _ = distW.all_gather("read", read_data)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _load_state_dict_from_keys(
@@ -366,8 +406,12 @@ def _load_state_dict_from_keys(
     no_dist = not (dist.is_available() and dist.is_initialized())
     if no_dist:
         warnings.warn(
+<<<<<<< HEAD
             "torch.distributed is unavailable or uninitialized, assuming the intent is to load in a single process.",
             stacklevel=2,
+=======
+            "torch.distributed is unavailable or uninitialized, assuming the intent is to load in a single process."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     storage_reader = cast(

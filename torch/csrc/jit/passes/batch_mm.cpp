@@ -319,7 +319,11 @@ static void BatchMMTreeReduce(Block* block, AliasDb& alias_db) {
 }
 
 static bool shape_is_fast_for_side(const at::Tensor& other_side_input) {
+<<<<<<< HEAD
   // Cutoff chose by benchmarking on a TITAN V
+=======
+  // Cutoff chosed by benchmarking on a TITAN V
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return other_side_input.numel() <= 1024 * 2048;
 }
 

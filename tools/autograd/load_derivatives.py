@@ -95,11 +95,16 @@ def add_view_copy_derivatives(
             else:
                 break
         # prefer manually-defined derivatives if any
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
         if len(view_copy_differentiability_infos) > 0 and fn_schema not in infos:
             # pyrefly: ignore [unbound-name]
             assert fn_schema is not None
             # pyrefly: ignore [unbound-name]
+=======
+        if len(view_copy_differentiability_infos) > 0 and fn_schema not in infos:
+            assert fn_schema is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             view_infos[fn_schema] = view_copy_differentiability_infos
 
     infos.update(view_infos)
@@ -401,7 +406,10 @@ def postprocess_forward_derivatives(
             for arg_name in all_arg_names:
                 if arg_name in diff_arg_names:
                     arg_name = arg_name + "_t"
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 new_args.append(arg_name)
 
             # TODO we are trolling
@@ -942,7 +950,10 @@ def saved_variables(
             + f".sym_strides(), which returned a c10::SymIntArrayRef. formula={formula}"
         )
     for nctype in nctypes:
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         name = (
             nctype.name.name if isinstance(nctype.name, SpecialArgName) else nctype.name
         )
@@ -952,7 +963,10 @@ def saved_variables(
 
             def repl(m: re.Match[str]) -> str:
                 suffix: str = (
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     info["suffix"](m) if callable(info["suffix"]) else info["suffix"]
                 )
                 expr: str = info["expr"](name) if "expr" in info else m.group(0)

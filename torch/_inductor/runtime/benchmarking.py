@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import functools
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import inspect
 import time
 from functools import cached_property, wraps
@@ -24,6 +27,7 @@ P = ParamSpec("P")
 T = TypeVar("T")
 
 
+<<<<<<< HEAD
 def may_distort_benchmarking_result(fn: Callable[..., Any]) -> Callable[..., Any]:
     from torch._inductor import config
 
@@ -73,6 +77,8 @@ def may_ban_benchmarking() -> None:
         """)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def time_and_count(
     fn: Callable[Concatenate[Any, P], T],
 ) -> Callable[Concatenate[Any, P], T]:
@@ -123,7 +129,10 @@ class Benchmarker:
         - The runtime of `fn(*fn_args, **fn_kwargs)`, in milliseconds.
         """
         inferred_device = None
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for arg_or_kwarg in chain(fn_args, fn_kwargs.values()):
             if not isinstance(arg_or_kwarg, torch.Tensor):
                 continue
@@ -195,6 +204,7 @@ class TritonBenchmarker(Benchmarker):
             raise NotImplementedError("requires Triton") from e
         return do_bench
 
+<<<<<<< HEAD
     @may_distort_benchmarking_result
     @time_and_count
     # pyrefly: ignore [bad-override]
@@ -204,6 +214,10 @@ class TritonBenchmarker(Benchmarker):
         is_vetted_benchmarking: bool = False,
         **kwargs: Any,
     ) -> float:
+=======
+    @time_and_count
+    def benchmark_gpu(self: Self, _callable: Callable[[], Any], **kwargs: Any) -> float:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Benchmark the GPU callable, `_callable`, and return the runtime, in milliseconds.
 
         Arguments:
@@ -220,9 +234,12 @@ class TritonBenchmarker(Benchmarker):
         this is the first requested quantile. Else, if `kwargs["return_mode"]` is specified,
         this is the requested return mode. Otherwise, this is the median.
         """
+<<<<<<< HEAD
         if not is_vetted_benchmarking:
             may_ban_benchmarking()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         do_bench_params = inspect.signature(self.triton_do_bench).parameters
         for kwarg in list(kwargs.keys()):
             if kwarg not in do_bench_params:
@@ -234,7 +251,11 @@ class TritonBenchmarker(Benchmarker):
         return self.triton_do_bench(_callable, **kwargs, return_mode="median")
 
 
+<<<<<<< HEAD
 class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
+=======
+class InductorBenchmarker(TritonBenchmarker):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @cached_property
     def L2_cache_size(self: Self) -> int:
         """Get the L2 cache size, in bytes, of the current device."""
@@ -265,20 +286,30 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
             ]
         )
 
+<<<<<<< HEAD
     @may_distort_benchmarking_result
     @time_and_count
     def benchmark_gpu(  # type: ignore[override]
+=======
+    @time_and_count
+    def benchmark_gpu(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self: Self,
         _callable: Callable[[], Any],
         estimation_iters: int = 5,
         memory_warmup_iters: int = 100,
         benchmark_iters: int = 100,
         max_benchmark_duration: int = 25,
+<<<<<<< HEAD
         return_mode: str = "min",
         grad_to_none: list[torch.Tensor] | None = None,
         is_vetted_benchmarking: bool = False,
         **kwargs: Any,
     ) -> float | list[float]:
+=======
+        **kwargs: Any,
+    ) -> float:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Benchmark a GPU callable using a custom benchmarking implementation.
 
         Arguments:
@@ -296,6 +327,7 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         of `memory_warmup_iters` and `benchmark_iters`, along with the estimated
         runtime of `_callable` and various other factors, and we then shrink
         `benchmark_iters` to fit in the allotted maximum duration.
+<<<<<<< HEAD
         - return_mode: Return mode for benchmark results. Options are "min" (default),
         "all" (returns all measurements).
         - grad_to_none: Optionally, a list of tensors whose gradients should be cleared
@@ -312,6 +344,13 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         if not is_vetted_benchmarking:
             may_ban_benchmarking()
 
+=======
+        - **kwargs: Additional kwargs that may be passed to the fallback.
+
+        Returns:
+        - The minimum runtime of `_callable`, in milliseconds.
+        """
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # we don't want any outside errors propagating into benchmarking
         torch.cuda.synchronize()
 
@@ -326,10 +365,13 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         # estimate the runtime of `_callable`
         event_pairs = self.get_event_pairs(estimation_iters)
         for start_event, end_event in event_pairs:
+<<<<<<< HEAD
             # Clear gradients before timing (matches triton.testing.do_bench)
             if grad_to_none is not None:
                 for x in grad_to_none:
                     x.grad = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             buffer.zero_()
             start_event.record()
             _callable()
@@ -349,20 +391,28 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         # benchmark `_callable`
         event_pairs = self.get_event_pairs(benchmark_iters)
         for start_event, end_event in event_pairs:
+<<<<<<< HEAD
             # Clear gradients before timing (matches triton.testing.do_bench)
             if grad_to_none is not None:
                 for x in grad_to_none:
                     x.grad = None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             buffer.zero_()
             start_event.record()
             _callable()
             end_event.record()
         torch.cuda.synchronize()
+<<<<<<< HEAD
+=======
+        benchmarked_timing = self.get_event_pairs_min_timing(event_pairs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # explicitly delete the buffer, sometimes helps memory
         # footprint metrics in OSS Inductor performance benchmarks
         del buffer
 
+<<<<<<< HEAD
         # Return based on the requested mode
         if return_mode == "all":
             # Get all timings from event pairs
@@ -380,6 +430,11 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
             raise ValueError(
                 f"Unsupported return_mode: {return_mode}. Use 'min' or 'all'."
             )
+=======
+        # return the minimum of `estimated_timing` and `benchmarked_timing`,
+        # we just want the minimum timing overall so we might as well check both
+        return min(estimated_timing, benchmarked_timing)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 benchmarker = (

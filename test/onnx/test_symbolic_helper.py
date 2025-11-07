@@ -3,7 +3,11 @@
 
 import torch
 from torch.onnx import symbolic_helper
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter._globals import GLOBALS
+=======
+from torch.onnx._globals import GLOBALS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 

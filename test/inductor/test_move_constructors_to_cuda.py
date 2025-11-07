@@ -9,7 +9,11 @@ from torch._inductor.utils import run_and_get_code
 from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_utils import IS_LINUX
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import HAS_CUDA_AND_TRITON
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 requires_multigpu = functools.partial(
@@ -112,5 +116,9 @@ class TestMoveConstructorsToCuda(TestCase):
 
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     if IS_LINUX and HAS_CUDA_AND_TRITON:
+=======
+    if IS_LINUX and HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests()

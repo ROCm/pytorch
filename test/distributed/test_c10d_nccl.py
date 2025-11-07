@@ -29,6 +29,7 @@ if not c10d.is_available() or not c10d.is_nccl_available():
 
 
 import test_c10d_common
+<<<<<<< HEAD
 from test_c10d_common import (
     ConvNet,
     DoubleGpuNet,
@@ -36,6 +37,9 @@ from test_c10d_common import (
     gpus_for_rank,
     ModuleForDdpCommHook,
 )
+=======
+from test_c10d_common import ConvNet, DoubleGpuNet, gpus_for_rank, ModuleForDdpCommHook
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch.distributed as dist
 import torch.distributed.algorithms.ddp_comm_hooks.default_hooks as default
@@ -83,6 +87,10 @@ if TEST_WITH_DEV_DBG_ASAN:
     )
     sys.exit(0)
 
+<<<<<<< HEAD
+=======
+# bfloat16 is only supported by CUDA 11+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BFLOAT16_AVAILABLE = torch.cuda.is_available() and (
     torch.version.cuda is not None or torch.version.hip is not None
 )
@@ -606,7 +614,11 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     def _helper_test_extra_cuda_context_by_nvml(self):
         """
+<<<<<<< HEAD
         A helper for `test_extra_cuda_context`, if pynvml is available.
+=======
+        A helper for `test_extra_cuda_context`, if pynvml is avaiable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pynvml provides python bindings for NVIDIA NVML functionalities.
         Here we are interested in: nvmlDeviceGetComputeRunningProcesses
         """
@@ -639,7 +651,11 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     def _helper_test_extra_cuda_context_by_memory(self):
         """
+<<<<<<< HEAD
         A helper for `test_extra_cuda_context`, if pynvml is NOT available.
+=======
+        A helper for `test_extra_cuda_context`, if pynvml is NOT avaiable.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         If extra context is created, it would manifest into device 0's memory usage.
         """
         device = torch.device(f"cuda:{self.rank:d}")
@@ -1096,6 +1112,7 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     @requires_nccl_version((2, 18), "Need NCCL 2.18+ for ncclCommSplit")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+<<<<<<< HEAD
     def test_comm_split_group_mixed_backend(self):
         # Test `ncclCommSplit` for smaller subgroups of the world when
         # we've passed a specific device_id to init_process_group.
@@ -1152,6 +1169,8 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     @requires_nccl_version((2, 18), "Need NCCL 2.18+ for ncclCommSplit")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_non_blocking_init(self):
         # Test creating a pg using nonblocking mode but not eagerly
         os.environ["TORCH_NCCL_USE_COMM_NONBLOCKING"] = "1"
@@ -1181,7 +1200,11 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         os.environ["TORCH_NCCL_NONBLOCKING_TIMEOUT"] = "100"
         store = c10d.FileStore(self.file_name, self.world_size)
         device = torch.device(f"cuda:{self.rank}")
+<<<<<<< HEAD
         # bound device to trigger eager init mode
+=======
+        # bound device to triger eager init mode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pg = self._create_process_group_nccl(store, self.opts(), device_id=device)
         backend = pg._get_backend(torch.device(device))
         self.assertEqual(backend.comm_split_count(), 0)
@@ -1286,6 +1309,7 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         )
         dist.all_reduce(torch.empty(1, device=torch.device("cuda", device_idx)))
 
+<<<<<<< HEAD
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
     def test_block_current_stream(self):
@@ -1301,6 +1325,8 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         work.wait()
         torch.cuda.synchronize()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class DistributedDataParallelTest(
     test_c10d_common.CommonDistributedDataParallelTest, MultiProcessTestCase
@@ -2080,7 +2106,11 @@ class DistributedDataParallelTest(
                         opt = torch.optim.SGD(m.parameters(), lr=0.1)
                         opt_ddp = torch.optim.SGD(m_ddp.parameters(), lr=0.1)
                         has_half = any(p.dtype is torch.half for p in m.parameters())
+<<<<<<< HEAD
                         tol = 3.0e-3 if has_half else 1.0e-5
+=======
+                        tol = 1.0e-3 if has_half else 1.0e-5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     except BaseException:
                         # Prints case-specific debugging info to narrow down failing case.
                         print(
@@ -2621,6 +2651,28 @@ class DistributedDataParallelTest(
     @requires_nccl()
     @skip_if_lt_x_gpu(2)
     def test_ddp_complex_params(self):
+<<<<<<< HEAD
+=======
+        class FFTModel(nn.Module):
+            def __init__(self, hin, win, n_features):
+                super().__init__()
+                self.hin = hin
+                self.win = win
+                self.weight = nn.Parameter(
+                    torch.ones(
+                        (n_features, n_features, hin, win // 2 + 1), dtype=torch.cfloat
+                    )
+                )
+
+            def forward(self, x):
+                xc = torch.fft.rfft2(
+                    x, s=(self.hin, self.win), dim=(-2, -1), norm="ortho"
+                )
+                xcw = torch.einsum("nchw,cohw->nohw", xc, self.weight)
+                x = torch.fft.irfft2(xcw, dim=(-2, -1), norm="ortho")
+                return x
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         process_group = self._get_process_group()
         device_id = gpus_for_rank(self.world_size)[self.rank][0]
         N, C, H, W = 1, 16, 64, 64
@@ -2778,7 +2830,15 @@ class WorkHookTest(MultiProcessTestCase):
         # from rank0 to other ranks. However, this is DDP's internal implementation,
         # which is subject to change in future versions.
         self.assertTrue(num_hook_fired[OpType.BROADCAST] > 0)
+<<<<<<< HEAD
         ctor_allreduce = num_hook_fired.get(OpType.ALLREDUCE, 0)
+=======
+        ctor_allreduce = (
+            num_hook_fired[OpType.ALLREDUCE]
+            if OpType.ALLREDUCE in num_hook_fired
+            else 0
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         x = torch.zeros(2, 1000).cuda(self.rank)
         ddp(x).sum().backward()
@@ -2898,6 +2958,7 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
         os.environ["TORCH_NCCL_WAIT_TIMEOUT_DUMP_MILSEC"] = "1000"
 
     @requires_nccl()
+<<<<<<< HEAD
     @skip_if_lt_x_gpu(3)
     @skip_if_rocm_multiprocess
     def test_send_recv_non_dense_tensor(self):
@@ -2917,6 +2978,8 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
                 dist.recv(block, src=0)
 
     @requires_nccl()
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @requires_nccl_version((2, 4, 0), "Need NCCL 2.4+ for error checking")
     @skip_if_lt_x_gpu(3)
     @skip_if_rocm_multiprocess
@@ -3060,7 +3123,11 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
             time.sleep(4)
             self.assertEqual(process_group.get_error(), ErrorType.REMOTE_ERROR)
 
+<<<<<<< HEAD
         # Mimicking all ranks sensing the timeout, abort
+=======
+        # Mimicing all ranks sensing the timeout, abort
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         process_group.abort()
 
         if prev_nccl_async_error_handling is not None:
@@ -3164,6 +3231,7 @@ class NcclErrorHandlingTest(MultiProcessTestCase):
         self._run_invalid_nccl_blocking_wait_env("4294967295")
 
 
+<<<<<<< HEAD
 class NcclUserBufferRegistrationTest(MultiProcessTestCase):
     def setUp(self):
         super().setUp()
@@ -3185,6 +3253,24 @@ class NcclUserBufferRegistrationTest(MultiProcessTestCase):
 
     def tearDown(self):
         self.env_patcher.stop()
+=======
+class NcclRegistrationTest(MultiProcessTestCase):
+    def setUp(self):
+        super().setUp()
+        # TORCH_NCCL_BLOCKING_WAIT overrides TORCH_NCCL_ASYNC_ERROR_HANDLING hence tests
+        # that use TORCH_NCCL_BLOCKING_WAIT will test it as expected.
+        os.environ["TORCH_NCCL_ASYNC_ERROR_HANDLING"] = "1"
+        nccl_debug_file = tempfile.NamedTemporaryFile()
+        os.environ["NCCL_ALGO"] = "NVLS"
+        os.environ["NCCL_DEBUG"] = "INFO"
+        os.environ["NCCL_DEBUG_SUBSYS"] = "NVLS"
+        if torch.cuda.nccl.version() >= (2, 24, 3):
+            os.environ["NCCL_DEBUG_SUBSYS"] = "REG,TUNING"
+        os.environ["NCCL_DEBUG_FILE"] = nccl_debug_file.name
+        self._spawn_processes()
+
+    def tearDown(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         super().tearDown()
         try:
             os.remove(self.file_name)
@@ -3197,6 +3283,7 @@ class NcclUserBufferRegistrationTest(MultiProcessTestCase):
     @requires_multicast_support()
     def test_nccl_user_buffer_registration(self):
         store = c10d.FileStore(self.file_name, self.world_size)
+<<<<<<< HEAD
         device = torch.device(f"cuda:{self.rank}")
         c10d.init_process_group(
             backend="nccl",
@@ -3205,6 +3292,12 @@ class NcclUserBufferRegistrationTest(MultiProcessTestCase):
             store=store,
             device_id=device,
         )
+=======
+        c10d.init_process_group(
+            backend="nccl", rank=self.rank, world_size=self.world_size, store=store
+        )
+        device = torch.device(f"cuda:{self.rank}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.cuda.set_device(self.rank)
         pg = c10d.distributed_c10d._get_default_group()
         backend = pg._get_backend(torch.device(device))
@@ -3246,6 +3339,7 @@ class NcclUserBufferRegistrationTest(MultiProcessTestCase):
     @requires_multicast_support()
     def test_nccl_window_registration(self):
         store = c10d.FileStore(self.file_name, self.world_size)
+<<<<<<< HEAD
         device = torch.device(f"cuda:{self.rank}")
         with torch.cuda.device(device):
             # Eager init the nccl comm so that we don't implicitly create one during register_mem_pool
@@ -3288,12 +3382,47 @@ class NcclUserBufferRegistrationTest(MultiProcessTestCase):
 
             # clean up memory
             del tensor, pool
+=======
+        c10d.init_process_group(
+            backend="nccl", rank=self.rank, world_size=self.world_size, store=store
+        )
+        device = torch.device(f"cuda:{self.rank}")
+        torch.cuda.set_device(self.rank)
+        pg = c10d.distributed_c10d._get_default_group()
+        backend = pg._get_backend(torch.device(device))
+
+        # Use NCCL memory allocator
+        # enable symmetric memory usage in NCCL
+        pool = torch.cuda.MemPool(backend.mem_allocator, symm_mem=True)
+
+        # allocate memory with ncclMemAlloc
+        # note: symmetric kernels are not available for dtypes like torch.int64
+        with torch.cuda.use_mem_pool(pool):
+            tensor = torch.arange(1024 * 1024 * 2, device=device, dtype=torch.float32)
+
+        # register buffers to NCCL
+        backend.register_mem_pool(pool)
+
+        # allreduce now should use NVIDIA Switches
+        pg.allreduce(tensor).wait()
+        torch.cuda.synchronize(device=device)
+
+        # de-register buffers from NCCL
+        backend.deregister_mem_pool(pool)
+
+        # clean up memory
+        del tensor, pool
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         with open(os.environ["NCCL_DEBUG_FILE"]) as f:
             nccl_debug_file_content = f.read()
             # if buffers were registered and symmetric kernels ran, NCCL_DEBUG
             # should show successful registration in debug output
+<<<<<<< HEAD
             self.assertRegex(nccl_debug_file_content, "Symmetric")
+=======
+            self.assertRegex(nccl_debug_file_content, "[Symmetric]")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CommTest(test_c10d_common.AbstractCommTest, MultiProcessTestCase):
@@ -4378,7 +4507,11 @@ class NCCLTraceTestBase(MultiProcessTestCase):
 
     def _join_processes(self, fn):
         # We need to patch sys.exit() as skip_if will use sys.exit() and
+<<<<<<< HEAD
         # the exit code from the this process will not be caught.
+=======
+        # the exit code from the this process will not be catched.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with mock.patch("sys.exit"):
             fn()
         super()._join_processes(fn)
@@ -4437,12 +4570,19 @@ class NCCLTraceTestBase(MultiProcessTestCase):
 class NCCLTraceTest(NCCLTraceTestBase):
     def _verify_trace(self, t, include_collectives, timing_enabled, is_json):
         ver = t["version"]
+<<<<<<< HEAD
         self.assertEqual(ver, "2.10")
         comm_lib_version = t["comm_lib_version"]
         torch_comm_lib_version = torch.cuda.nccl.version()
         self.assertEqual(
             comm_lib_version, ".".join(str(v) for v in torch_comm_lib_version)
         )
+=======
+        self.assertEqual(ver, "2.9")
+        nccl_version = t["nccl_version"]
+        torch_nccl_version = torch.cuda.nccl.version()
+        self.assertEqual(nccl_version, ".".join(str(v) for v in torch_nccl_version))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         pg_config = t["pg_config"]
         self.assertEqual(len(pg_config), 1)
         default_pg_info = pg_config["0"]
@@ -4587,6 +4727,7 @@ class NCCLTraceTest(NCCLTraceTestBase):
 
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+<<<<<<< HEAD
     @parametrize("timing_enabled", [True, False])
     def test_fr_record_reset(self, timing_enabled):
         if self.rank == self.MAIN_PROCESS_RANK:
@@ -4615,6 +4756,8 @@ class NCCLTraceTest(NCCLTraceTestBase):
 
     @requires_nccl()
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dump_pipe(self):
         def open_file_with_timeout(file_path, mode, timeout=1.0):
             start_time = time.time()
@@ -4909,7 +5052,11 @@ class NCCLTraceTest(NCCLTraceTestBase):
             for p2p_op_idx, input_sizes in zip(
                 range(first_op, coalesced_op, 1), op_sizes_per_coalesce
             ):
+<<<<<<< HEAD
                 # the individual ops inside the coalescing group the individual op metadata,
+=======
+                # the indivudal ops inside the coalescing group the individual op metadata,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # but not the timing info coming from the actual coalesced kernel
                 profiling_name = (
                     "nccl:recv 0<-1" if self.rank == 0 else "nccl:send 1->0"

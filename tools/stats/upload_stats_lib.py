@@ -9,16 +9,23 @@ import time
 import zipfile
 from functools import lru_cache
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, cast, Optional, TYPE_CHECKING
+=======
+from typing import Any, Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import boto3  # type: ignore[import]
 import requests
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PYTORCH_REPO = "https://api.github.com/repos/pytorch/pytorch"
 
 

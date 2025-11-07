@@ -1,18 +1,31 @@
 # mypy: allow-untyped-defs
 import inspect
 import itertools
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from enum import auto, Enum
 from typing import Any, cast, Optional
+=======
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from enum import auto, Enum
+from typing import Any, Callable, cast, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
 from torch._prims_common import make_contiguous_strides_for
 from torch.distributed._functional_collectives import AsyncCollectiveTensor
+<<<<<<< HEAD
 from torch.distributed.device_mesh import DeviceMesh
 from torch.distributed.tensor import DTensor, Replicate, Shard
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+=======
+from torch.distributed.tensor import DTensor, Replicate, Shard
+from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
+from torch.distributed.tensor.device_mesh import _mesh_resources
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor.placement_types import _StridedShard, Placement
 
 from ._fsdp_api import CPUOffloadPolicy, MixedPrecisionPolicy, OffloadPolicy
@@ -140,7 +153,12 @@ def copy__functionalize(tensor, data):
         torch.ops.fsdp.copy_.default(tensor_inner, data_inner)
 
 
+<<<<<<< HEAD
 torch.fx.node.has_side_effect(torch.ops.fsdp.copy_.default)
+=======
+if not torch._running_with_deploy():
+    torch.fx.node.has_side_effect(torch.ops.fsdp.copy_.default)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ShardedState(Enum):
@@ -232,7 +250,10 @@ class FSDPParam:
         self._module_info: ParamModuleInfo = module_info
         self.mesh_info = mesh_info
         self.post_forward_mesh_info = post_forward_mesh_info
+<<<<<<< HEAD
         # pyrefly: ignore [read-only]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.device = device
         self.mp_policy = mp_policy
         self.offload_to_cpu: bool = isinstance(offload_policy, CPUOffloadPolicy)
@@ -275,10 +296,14 @@ class FSDPParam:
             fsdp_placement = Shard(0)
         elif fsdp_placement.dim < 0:
             fsdp_placement = Shard(fsdp_placement.dim + param.ndim)
+<<<<<<< HEAD
         if not isinstance(fsdp_placement, Shard):
             raise AssertionError(
                 f"Expected Shard, got {type(fsdp_placement)}: {fsdp_placement}"
             )
+=======
+        assert isinstance(fsdp_placement, Shard), f"{fsdp_placement}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.fsdp_placement = fsdp_placement
         shard_dim = fsdp_placement.dim
         # TODO: Replace the sharded DTensor parameter construction logic with
@@ -289,6 +314,7 @@ class FSDPParam:
         if self.is_dtensor:
             self._tp_spec = cast(DTensor, param)._spec
             dp_mesh, tp_mesh = (self.mesh_info.mesh, self._tp_spec.mesh)
+<<<<<<< HEAD
             if dp_mesh is None or tp_mesh is None:
                 raise AssertionError(
                     "FSDP requires the DP and model parallel TP/EP mesh to be not None but got: \n"
@@ -305,6 +331,30 @@ class FSDPParam:
                     "_spmd_mesh.ndim can only be 2 (FSDP+TP/EP), 3 (FSDP+EP+TP, HSDP+TP/EP), "
                     f"or 4 (HSDP+EP+TP) but got {self._spmd_mesh.ndim}."
                 )
+=======
+            dp_global_mesh = _mesh_resources.get_root_mesh(dp_mesh)
+            tp_global_mesh = _mesh_resources.get_root_mesh(tp_mesh)
+            if dp_global_mesh != tp_global_mesh or (
+                dp_global_mesh is None or tp_global_mesh is None
+            ):
+                raise AssertionError(
+                    "FSDP requires the DP and TP mesh to have the same parent mesh but got: \n"
+                    f"DP's global mesh: {dp_global_mesh}\nTP's global mesh: {tp_global_mesh}"
+                )
+            name_dims_error = "FSDP requires named DeviceMesh dims for ND parallelism"
+            assert dp_mesh.mesh_dim_names is not None, name_dims_error
+            assert tp_mesh.mesh_dim_names is not None, name_dims_error
+            submesh_names = dp_mesh.mesh_dim_names + tp_mesh.mesh_dim_names
+            self._spmd_mesh = dp_global_mesh[submesh_names]
+            if len(self._tp_spec.placements) != 1:
+                raise NotImplementedError(
+                    f"FSDP only supports 1D TP, not {self._tp_spec.placements}"
+                )
+            split_factor = self._tp_spec.num_shards_map[shard_dim]
+            assert 2 <= self._spmd_mesh.ndim <= 3, (
+                f"_spmd_mesh.ndim can only be 2 or 3 but got {self._spmd_mesh.ndim}."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._spmd_placements: tuple[Placement, ...]
             dp_shard_tp_placement = (
                 (
@@ -312,6 +362,7 @@ class FSDPParam:
                     if split_factor > 1
                     else fsdp_placement
                 ),
+<<<<<<< HEAD
                 *self._tp_spec.placements,
             )
             if dp_mesh.ndim == 1:  # FSDP
@@ -321,6 +372,14 @@ class FSDPParam:
                     raise AssertionError(
                         f"Expected replicate_mesh_dim to be 0, got {self.mesh_info.replicate_mesh_dim}"
                     )
+=======
+                self._tp_spec.placements[0],
+            )
+            if self._spmd_mesh.ndim == 2:
+                self._spmd_placements = dp_shard_tp_placement
+            else:
+                assert self.mesh_info.replicate_mesh_dim == 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self._spmd_placements = (Replicate(),) + dp_shard_tp_placement
             self._sharding_spec = DTensorSpec(
                 self._spmd_mesh,
@@ -340,10 +399,14 @@ class FSDPParam:
                 tensor_meta=TensorMeta(param.size(), param.stride(), param.dtype),
             )
             param_data = param
+<<<<<<< HEAD
         if not param_data.is_contiguous():
             raise AssertionError(
                 f"Expected contiguous tensor, got {param_data.shape=} {param_data.stride()=}"
             )
+=======
+        assert param_data.is_contiguous(), f"{param_data.shape=} {param_data.stride()=}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_dim = fsdp_placement.dim
         if shard_dim >= param_data.ndim:
             raise AssertionError(
@@ -379,16 +442,26 @@ class FSDPParam:
         if self.offload_to_cpu and not padded_sharded_param.is_meta:
             padded_sharded_param = padded_sharded_param.cpu()
             if self.pin_memory:
+<<<<<<< HEAD
                 padded_sharded_param = padded_sharded_param.pin_memory()
+=======
+                padded_sharded_param = padded_sharded_param.pin_memory(
+                    device=self.device
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._sharded_param_data = padded_sharded_param.view(-1)
         length = sharded_param.size(shard_dim) if sharded_param.numel() > 0 else 0
         sharded_param = padded_sharded_param.narrow(
             dim=shard_dim, start=0, length=length
         )
+<<<<<<< HEAD
         if not sharded_param.is_contiguous():
             raise AssertionError(
                 f"Expected contiguous tensor with {self.fsdp_placement=}"
             )
+=======
+        assert sharded_param.is_contiguous(), f"{self.fsdp_placement=}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.sharded_param = nn.Parameter(self.to_sharded_dtensor(sharded_param))
         self.sharded_param.requires_grad_(param.requires_grad)
         # Let `param_data` be freed normally when its ref count reaches 0 when
@@ -398,8 +471,12 @@ class FSDPParam:
 
     def _init_sharded_post_forward_param_metadata(self, param: torch.Tensor) -> None:
         mesh_info = self.post_forward_mesh_info
+<<<<<<< HEAD
         if mesh_info is None:
             raise AssertionError("Expected post_forward_mesh_info to not be None")
+=======
+        assert mesh_info is not None  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         param_data = param._local_tensor if isinstance(param, DTensor) else param
         chunks = _chunk_with_empty(param_data, mesh_info.shard_mesh_size, dim=0)
         self.sharded_post_forward_size = _get_dim_chunked_size(
@@ -504,10 +581,14 @@ class FSDPParam:
         else:
             # For the default path (no post-all-gather), the all-gather output
             # gives the unsharded parameter data directly
+<<<<<<< HEAD
             if len(self.all_gather_outputs) != 1:
                 raise AssertionError(
                     f"Expected 1 all_gather_output, got {len(self.all_gather_outputs)}"
                 )
+=======
+            assert len(self.all_gather_outputs) == 1, f"{len(self.all_gather_outputs)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             unsharded_tensor = self.all_gather_outputs[0]
         unsharded_param = torch.as_strided(
             unsharded_tensor,
@@ -518,8 +599,12 @@ class FSDPParam:
         if self.is_dtensor:
             unsharded_param = _from_local_no_grad(unsharded_param, self._tp_spec)
         if hasattr(self, "_unsharded_param"):
+<<<<<<< HEAD
             if not compiled_autograd_enabled():
                 raise AssertionError("Expected compiled_autograd to be enabled")
+=======
+            assert compiled_autograd_enabled()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with (
                 torch.no_grad(),
                 torch.autograd._unsafe_preserve_version_counter(self._unsharded_param),
@@ -556,12 +641,17 @@ class FSDPParam:
                 "Resharding to smaller mesh with TP is not supported yet"
             )
         self._assert_in_states(ShardedState.UNSHARDED)
+<<<<<<< HEAD
         if self.post_forward_mesh_info is None:
             raise AssertionError("Expected post_forward_mesh_info to not be None")
         if len(self.all_gather_outputs) != 1:
             raise AssertionError(
                 f"Expected 1 all_gather_output, got {len(self.all_gather_outputs)}"
             )
+=======
+        assert self.post_forward_mesh_info is not None  # mypy
+        assert len(self.all_gather_outputs) == 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         shard_world_size = self.post_forward_mesh_info.shard_mesh_size
         if (numel := self.all_gather_outputs[0].numel()) % shard_world_size != 0:
             _raise_assert_with_print(
@@ -569,7 +659,10 @@ class FSDPParam:
                 f"world size ({shard_world_size})"
             )
         shard_rank = self.post_forward_mesh_info.shard_mesh_rank
+<<<<<<< HEAD
         # pyrefly: ignore [unbound-name]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         sharded_numel = numel // shard_world_size
         self._sharded_post_forward_param_data = (
             self.all_gather_outputs[0].narrow(
@@ -630,10 +723,14 @@ class FSDPParam:
             _raise_assert_with_print(
                 f"Expects size {self.sharded_post_forward_size} but got {tensor.shape}"
             )
+<<<<<<< HEAD
         if not isinstance(self.post_forward_mesh_info, HSDPMeshInfo):
             raise AssertionError(
                 f"Expected HSDPMeshInfo, got {type(self.post_forward_mesh_info)}"
             )
+=======
+        assert isinstance(self.post_forward_mesh_info, HSDPMeshInfo)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # TODO: Prefer this DTensor to be read-only and generalize the
         # placement once we support TP.
         post_forward_sharding_spec = DTensorSpec(
@@ -703,11 +800,15 @@ class FSDPParam:
                         self.device, non_blocking=True
                     )
                 pre_all_gather_signature = inspect.signature(
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     sharded_local_tensor.fsdp_pre_all_gather
                 )
                 num_fn_params = len(pre_all_gather_signature.parameters)
                 # Old signature only passes mesh; keep for BC for now
+<<<<<<< HEAD
                 if num_fn_params not in (1, 5):
                     raise AssertionError(
                         f"Invalid fsdp_pre_all_gather: {pre_all_gather_signature}\n"
@@ -715,11 +816,24 @@ class FSDPParam:
                         "outer_size: torch.Size, outer_stride: tuple[int, ...], "
                         "module: nn.Module, mp_policy: MixedPrecisionPolicy)"
                     )
+=======
+                assert num_fn_params in (
+                    1,
+                    5,
+                ), (
+                    f"Invalid fsdp_pre_all_gather: {pre_all_gather_signature}\n"
+                    "Expects fsdp_pre_all_gather(self, mesh: DeviceMesh, "
+                    "module: nn.Module, mp_policy: MixedPrecisionPolicy)"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if num_fn_params == 1:
                     (
                         all_gather_inputs,
                         self._extensions_data.all_gather_metadata,
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ) = sharded_local_tensor.fsdp_pre_all_gather(
                         self.shard_mesh_from_root
                     )
@@ -727,7 +841,10 @@ class FSDPParam:
                     (
                         all_gather_inputs,
                         self._extensions_data.all_gather_metadata,
+<<<<<<< HEAD
                         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ) = sharded_local_tensor.fsdp_pre_all_gather(
                         self.shard_mesh_from_root,
                         self._orig_size,
@@ -780,21 +897,30 @@ class FSDPParam:
     @property
     def unsharded_grad_data(self) -> torch.Tensor:
         grad = self.unsharded_param.grad
+<<<<<<< HEAD
         if grad is None:
             raise AssertionError("Expects unsharded_param.grad to not be None")
+=======
+        assert grad is not None, "Expects unsharded_param.grad to not be None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._get_grad_inner_tensor(grad)
 
     @property
     def unsharded_accumulated_grad_data(self) -> torch.Tensor:
         grad = self.unsharded_accumulated_grad
+<<<<<<< HEAD
         if grad is None:
             raise AssertionError("Expects unsharded_accumulated_grad to not be None")
+=======
+        assert grad is not None, "Expects unsharded_accumulated_grad to not be None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self._get_grad_inner_tensor(grad)
 
     def _get_grad_inner_tensor(self, grad: torch.Tensor) -> torch.Tensor:
         if self.is_dtensor:
             if isinstance(grad, AsyncCollectiveTensor):
                 grad = grad.wait()
+<<<<<<< HEAD
             if not isinstance(grad, DTensor):
                 raise AssertionError(f"Expected DTensor, got {type(grad)}")
             placements = self._tp_spec.placements
@@ -803,6 +929,14 @@ class FSDPParam:
                     raise AssertionError(
                         f"Expected same placement length: {self._tp_spec=} {grad.placements=}"
                     )
+=======
+            assert isinstance(grad, DTensor), f"{type(grad)}"
+            placements = self._tp_spec.placements
+            if placements != grad.placements:
+                assert len(self._tp_spec.placements) == len(grad.placements), (
+                    f"{self._tp_spec=} {grad.placements=}"
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 grad = grad.redistribute(placements=placements)
             grad = grad._local_tensor
         return grad
@@ -817,8 +951,12 @@ class FSDPParam:
         if mesh.ndim == 1:
             return mesh
         elif mesh.ndim == 2:
+<<<<<<< HEAD
             if mesh.mesh_dim_names is None:
                 raise AssertionError("Expected mesh_dim_names to not be None")
+=======
+            assert mesh.mesh_dim_names is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return mesh[mesh.mesh_dim_names[-1]]
         raise ValueError(f"Invalid mesh: {mesh}")
 
@@ -829,11 +967,18 @@ class FSDPParam:
         if mesh.ndim == 1:
             return mesh
         else:
+<<<<<<< HEAD
             if mesh.mesh_dim_names is None:
                 raise AssertionError("Expected mesh_dim_names to not be None")
             shard_dim_name = mesh.mesh_dim_names[-1]
 
             root_mesh = mesh._get_root_mesh()
+=======
+            assert mesh.mesh_dim_names is not None
+            shard_dim_name = mesh.mesh_dim_names[-1]
+
+            root_mesh = _mesh_resources.get_root_mesh(mesh)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return root_mesh[shard_dim_name]
 
     def _assert_in_states(self, *states: ShardedState) -> None:
@@ -855,11 +1000,15 @@ class FSDPParam:
                     f"instead of {self.sharded_param}"
                 )
             self.sharded_param = new_param
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_tensor = new_param._local_tensor
         if local_tensor.is_meta:
             return
         updated_local_tensor = False
+<<<<<<< HEAD
         # local_tensor can be padded twice
         # 1st time in fully_shard(model)
         # 2nd time in model(input) lazy_init
@@ -885,6 +1034,15 @@ class FSDPParam:
                 raise AssertionError(
                     f"Shard({shard_dim}) requires even sharding: {local_tensor.size()=}"
                 )
+=======
+        padded_sharded_size = self.padded_sharded_param_size
+        shard_dim = self.fsdp_placement.dim
+        length = local_tensor.size(shard_dim) if local_tensor.numel() > 0 else 0
+        if local_tensor.size() != padded_sharded_size:
+            assert shard_dim == 0, (
+                f"Shard({shard_dim}) requires even sharding: {local_tensor.size()=}"
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             padded_local_tensor = local_tensor.new_zeros(padded_sharded_size)
             padded_local_tensor.narrow(dim=shard_dim, start=0, length=length).copy_(
                 local_tensor
@@ -892,21 +1050,32 @@ class FSDPParam:
             local_tensor = padded_local_tensor
             updated_local_tensor = True
         if self.pin_memory and not local_tensor.is_pinned():
+<<<<<<< HEAD
             local_tensor = local_tensor.cpu().pin_memory()
             updated_local_tensor = True
         if not same_local_tensor:
             self._sharded_param_data = local_tensor.view(-1)
         if not isinstance(self.sharded_param, DTensor):
             raise AssertionError(f"Expected DTensor, got {type(self.sharded_param)}")
+=======
+            local_tensor = local_tensor.cpu().pin_memory(device=self.device)
+            updated_local_tensor = True
+        self._sharded_param_data = local_tensor.view(-1)
+        assert isinstance(self.sharded_param, DTensor)  # mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if updated_local_tensor:
             # Only change the local tensor object if needed
             self.sharded_param._local_tensor = local_tensor.narrow(
                 dim=shard_dim, start=0, length=length
             )
+<<<<<<< HEAD
             if not self.sharded_param._local_tensor.is_contiguous():
                 raise AssertionError(
                     "Expected sharded_param._local_tensor to be contiguous"
                 )
+=======
+            assert self.sharded_param._local_tensor.is_contiguous()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._sharding_spec = self.sharded_param._spec
 
     def __repr__(self):

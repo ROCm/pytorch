@@ -1,7 +1,14 @@
+<<<<<<< HEAD
 import logging
 import weakref
 from dataclasses import dataclass
 from typing import Any, Optional
+=======
+# mypy: allow-untyped-defs
+import logging
+import weakref
+from dataclasses import dataclass
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch._guards import CompileId
 
@@ -9,7 +16,11 @@ from . import config
 from .types import DynamoFrameType
 
 
+<<<<<<< HEAD
 log: logging.Logger = logging.getLogger(__name__)
+=======
+log = logging.getLogger(__name__)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 [Note on cache size limit]
 
@@ -99,9 +110,13 @@ class CacheSizeRelevantForFrame:
         return self.num_cache_entries_with_same_id_matched_objs >= limit
 
 
+<<<<<<< HEAD
 def _get_weakref_from_f_locals(
     frame: DynamoFrameType, local_name: str
 ) -> Optional[weakref.ref[Any]]:
+=======
+def _get_weakref_from_f_locals(frame: DynamoFrameType, local_name: str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     obj = frame.f_locals.get(local_name, None)
     weak_id = None
     try:
@@ -111,7 +126,11 @@ def _get_weakref_from_f_locals(
     return weak_id
 
 
+<<<<<<< HEAD
 def _has_same_id_matched_objs(frame: DynamoFrameType, cache_entry: Any) -> bool:
+=======
+def _has_same_id_matched_objs(frame: DynamoFrameType, cache_entry) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Checks if the ID_MATCH'd objects saved on cache_entry are same as the ones
     in frame.f_locals.
@@ -133,7 +152,11 @@ def _has_same_id_matched_objs(frame: DynamoFrameType, cache_entry: Any) -> bool:
 
 
 def compute_cache_size(
+<<<<<<< HEAD
     frame: DynamoFrameType, cache_entry: Any
+=======
+    frame: DynamoFrameType, cache_entry
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> CacheSizeRelevantForFrame:
     # Walk the linked list to calculate the cache size
     num_cache_entries = 0

@@ -42,7 +42,11 @@ TEST(MPSObjCInterfaceTest, MPSCustomKernel) {
     id<MTLLibrary> customKernelLibrary = [device newLibraryWithSource: [NSString stringWithUTF8String:CUSTOM_KERNEL]
                                                               options: nil
                                                                 error: &error];
+<<<<<<< HEAD
     TORCH_CHECK(customKernelLibrary, "Failed to create custom kernel library, error: ", error.localizedDescription.UTF8String);
+=======
+    TORCH_CHECK(customKernelLibrary, "Failed to to create custom kernel library, error: ", error.localizedDescription.UTF8String);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     id<MTLFunction> customFunction = [customKernelLibrary newFunctionWithName: @"add_arrays"];
     TORCH_CHECK(customFunction, "Failed to create function state object for the kernel");

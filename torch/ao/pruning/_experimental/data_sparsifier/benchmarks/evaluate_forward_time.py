@@ -27,7 +27,10 @@ def run_forward(model, **batch):
             model(X, lS_o, lS_i)
         end = time.time()
         time_taken = end - start
+<<<<<<< HEAD
         # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         time_list.append(time_taken)
     avg_time = np.mean(time_list[1:])
     return avg_time

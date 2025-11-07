@@ -405,7 +405,13 @@ class TestPythonBuiltinOP(JitTestCase):
             def f():
                 x = torch.ones(10, 9, 8, 7, 6)
                 return x{indices}.shape
+<<<<<<< HEAD
             """.format(indices=indices)
+=======
+            """.format(
+                    indices=indices
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             test_str = test_str.replace(r"'", r"")
             scope = {}

@@ -80,7 +80,11 @@ static void two_pass_reduction(TensorIteratorBase& iter, loop2d_t loop) {
 }
 
 /// Chooses a dimension over which to parallelize. Prefers the outer-most
+<<<<<<< HEAD
 /// dimension that's larger than the number of available threads.
+=======
+/// dimension thats larger than the number of available threads.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static int find_split_dim(TensorIteratorBase& iter) {
   int num_threads = at::get_num_threads();
   auto shape = iter.shape();

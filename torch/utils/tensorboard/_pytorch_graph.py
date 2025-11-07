@@ -187,8 +187,12 @@ class GraphPy:
                 )
 
         for key, node in self.nodes_io.items():
+<<<<<<< HEAD
             if type(node) is NodeBase:
                 # pyrefly: ignore [unsupported-operation]
+=======
+            if type(node) == NodeBase:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.unique_name_to_scoped_name[key] = node.scope + "/" + node.debugName
             if hasattr(node, "input_or_output"):
                 self.unique_name_to_scoped_name[key] = (
@@ -199,7 +203,10 @@ class GraphPy:
                 self.unique_name_to_scoped_name[key] = node.scope + "/" + node.debugName
                 if node.scope == "" and self.shallowest_scope_name:
                     self.unique_name_to_scoped_name[node.debugName] = (
+<<<<<<< HEAD
                         # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.shallowest_scope_name + "/" + node.debugName
                     )
 

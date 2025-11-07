@@ -35,6 +35,7 @@ struct ExclusivelyOwnedTensorTraits {
     // incremented.
     const bool isUndefined = toDestroy == UndefinedTensorImpl::singleton();
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(
+<<<<<<< HEAD
         toDestroy->refcount() == 1 ||
             (toDestroy->refcount() == 0 && isUndefined),
         "ExclusivelyOwned<Tensor> destroyed with isUndefined ",
@@ -45,16 +46,36 @@ struct ExclusivelyOwnedTensorTraits {
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(
         toDestroy->weakcount() == 1 ||
             (toDestroy->weakcount() == 0 &&
+=======
+        toDestroy->refcount_ == 1 || (toDestroy->refcount_ == 0 && isUndefined),
+        "ExclusivelyOwned<Tensor> destroyed with isUndefined ",
+        isUndefined,
+        " and refcount ",
+        toDestroy->refcount_,
+        ", expected 1 or, if isUndefined, 0!");
+    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(
+        toDestroy->weakcount_ == 1 ||
+            (toDestroy->weakcount_ == 0 &&
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              toDestroy == UndefinedTensorImpl::singleton()),
         "ExclusivelyOwned<Tensor> destroyed with isUndefined ",
         isUndefined,
         " and weakcount ",
+<<<<<<< HEAD
         toDestroy->weakcount(),
+=======
+        toDestroy->weakcount_,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ", expected 1 or, if isUndefined, 0!");
     if (!isUndefined) {
 #ifndef NDEBUG
       // Needed to pass the debug assertions in ~intrusive_ptr_target.
+<<<<<<< HEAD
       toDestroy->combined_refcount_.store(0, std::memory_order_relaxed);
+=======
+      toDestroy->refcount_ = 0;
+      toDestroy->weakcount_ = 0;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #endif
       delete toDestroy;
     }

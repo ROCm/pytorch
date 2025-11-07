@@ -395,7 +395,11 @@ class CommDebugMode(TorchDispatchMode):
         json_dict: dict[str, Any] = {}
         add_json_information(json_dict, "Global")
 
+<<<<<<< HEAD
         # converts dictionary into json file
+=======
+        # converts dictonary into json file
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with open(file_name, "w") as json_file:
             json.dump(json_dict, json_file, indent=4)
 
@@ -594,7 +598,10 @@ class CommDebugMode(TorchDispatchMode):
         self.advanced_module_tracker.__enter__()
         return self
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __exit__(self, *args):
         self.advanced_module_tracker.__exit__()
         super().__exit__(*args)
@@ -734,6 +741,9 @@ class CommDebugMode(TorchDispatchMode):
         ].append(operation_dict)
 
         return out
+<<<<<<< HEAD
 
     def __repr__(self):
         return f"CommDebugMode(get_total_counts()={self.get_total_counts()})"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

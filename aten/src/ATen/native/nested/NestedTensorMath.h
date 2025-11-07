@@ -53,7 +53,11 @@ C10_ALWAYS_INLINE std::pair<int64_t, int64_t> _check_nested_layer_norm_inputs(
       normalized_shape);
 
   // Check that the normalized_shape has the exact same sizes as the last dimensions from the NestedTensor input
+<<<<<<< HEAD
   // Also, compute M and N considering the idiosyncrasies of NestedTensors
+=======
+  // Also, compute M and N considering the idiosyncracies of NestedTensors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t N = 1;
   for (const auto i: c10::irange(normalized_ndim)) {
     TORCH_CHECK(

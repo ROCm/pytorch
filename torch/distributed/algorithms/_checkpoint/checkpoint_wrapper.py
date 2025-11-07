@@ -1,10 +1,17 @@
 # mypy: allow-untyped-defs
 import warnings
 from abc import ABC, abstractmethod
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator
 from enum import auto, Enum
 from functools import partial
 from typing import Any, Optional
+=======
+from collections.abc import Iterator
+from enum import auto, Enum
+from functools import partial
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn

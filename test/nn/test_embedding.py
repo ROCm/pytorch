@@ -182,7 +182,10 @@ class TestEmbeddingNN(NNTestCase):
         self.assertEqual(res_old, res_F)
 
     # https://github.com/pytorch/pytorch/issues/130806
+<<<<<<< HEAD
     @unittest.skipIf(not TEST_CUDA, "CUDA not available")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @largeTensorTest("40GB", device="cuda")
     def test_large_tensors(self):
         input = torch.randint(low=0, high=16032, size=[131072], device="cuda")
@@ -551,7 +554,11 @@ class TestEmbeddingNNDeviceType(NNTestCase):
                 # Pull out the bag's indices from indices_1D, and fill any
                 # remaining space with padding indices
                 indices_in_bag = []
+<<<<<<< HEAD
                 for item_pos in range(max_indices_per_bag):
+=======
+                for item_pos in range(0, max_indices_per_bag):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if (start + item_pos) < end:
                         indices_in_bag.append(indices_1D[start + item_pos])
                     else:
@@ -632,6 +639,7 @@ class TestEmbeddingNNDeviceType(NNTestCase):
                     weights.grad, weights_check.grad, msg=msg, atol=atol, rtol=rtol
                 )
 
+<<<<<<< HEAD
     @onlyCUDA
     @dtypes(
         torch.bfloat16,
@@ -702,6 +710,8 @@ class TestEmbeddingNNDeviceType(NNTestCase):
         assert grad_weight.shape == (num_weights, embedding_dim)
         assert grad_weight.dtype == torch.bfloat16
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Check correctness of torch.nn.functional.embedding_bag forward and
     # backward functions with padding_idx, given a 2D indices input. Compare
     # against torch.nn.functional.embedding followed by a reduction.

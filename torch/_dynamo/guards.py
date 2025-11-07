@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 Core guard system for Dynamo that detects when compiled code needs to be recompiled due to
 changes in program state. Guards are conditions that must remain true for previously-compiled
@@ -31,13 +36,17 @@ import math
 import pickle
 import sys
 import textwrap
+<<<<<<< HEAD
 import traceback
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import types
 import warnings
 import weakref
 from contextlib import contextmanager
 from copy import deepcopy
 from inspect import currentframe
+<<<<<<< HEAD
 from typing import Any, NoReturn, Optional, TYPE_CHECKING, Union
 
 
@@ -47,6 +56,9 @@ except ImportError:
     from typing_extensions import LiteralString
 
 from typing_extensions import TypeAliasType, TypeVar
+=======
+from typing import Any, Callable, NoReturn, Optional, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from weakref import ReferenceType
 
 import torch
@@ -56,6 +68,7 @@ from torch._C._dynamo.eval_frame import code_framelocals_names
 from torch._C._dynamo.guards import (
     check_obj_id,
     check_type_id,
+<<<<<<< HEAD
     ClosureGuardAccessor,
     CodeGuardAccessor,
     dict_version,
@@ -68,10 +81,15 @@ from torch._C._dynamo.guards import (
     GuardAccessor,
     GuardDebugInfo,
     GuardManager,
+=======
+    dict_version,
+    DictGuardManager,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     install_no_tensor_aliasing_guard,
     install_object_aliasing_guard,
     install_storage_overlapping_guard,
     install_symbolic_shape_guard,
+<<<<<<< HEAD
     LeafGuard,
     profile_guard_manager,
     RelationalGuard,
@@ -80,6 +98,10 @@ from torch._C._dynamo.guards import (
     TypeDictGuardAccessor,
     TypeGuardAccessor,
     TypeMROGuardAccessor,
+=======
+    profile_guard_manager,
+    RootGuardManager,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 from torch._dynamo.source import (
     get_global_source_name,
@@ -88,8 +110,11 @@ from torch._dynamo.source import (
     is_from_flatten_script_object_source,
     is_from_local_source,
     is_from_optimizer_source,
+<<<<<<< HEAD
     is_from_skip_guard_source,
     is_from_unspecialized_builtin_nn_module_source,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorProperty,
     TensorPropertySource,
 )
@@ -105,7 +130,10 @@ from torch._guards import (
     Source,
     StorageOverlap,
 )
+<<<<<<< HEAD
 from torch._inductor.utils import IndentedBuffer
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._logging import structured
 from torch._utils_internal import justknobs_check
 from torch.fx.experimental.symbolic_shapes import (
@@ -128,15 +156,21 @@ from .source import (
     CallFunctionNoArgsSource,
     CallMethodItemSource,
     ChainedSource,
+<<<<<<< HEAD
     ClosureSource,
     CodeSource,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ConstantSource,
     ConstDictKeySource,
     DataclassFieldsSource,
     DefaultsSource,
     DictGetItemSource,
     DictSubclassGetItemSource,
+<<<<<<< HEAD
     DynamicScalarSource,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     FlattenScriptObjectSource,
     FloatTensorSource,
     FSDPNNModuleSource,
@@ -148,19 +182,27 @@ from .source import (
     GradSource,
     ListGetItemSource,
     LocalSource,
+<<<<<<< HEAD
     NamedTupleFieldsSource,
     NNModuleSource,
     NonSerializableSetGetItemSource,
+=======
+    NNModuleSource,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     NumpyTensorSource,
     OptimizerSource,
     ScriptObjectQualifiedNameSource,
     ShapeEnvSource,
     SubclassAttrListSource,
     TorchFunctionModeStackSource,
+<<<<<<< HEAD
     TorchSource,
     TupleIteratorGetItemSource,
     TypeDictSource,
     TypeMROSource,
+=======
+    TupleIteratorGetItemSource,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TypeSource,
     UnspecializedBuiltinNNModuleSource,
     UnspecializedNNModuleSource,
@@ -198,11 +240,15 @@ from .utils import (
 )
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
 guard_manager_testing_hook_fn: Optional[Callable[[Any, Any, Any], Any]] = None
+=======
+guard_manager_testing_hook_fn: Optional[Callable[[Any, Any], Any]] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 try:
     import numpy as np
@@ -211,6 +257,7 @@ except ModuleNotFoundError:
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Generator, KeysView, Sequence
 
     from sympy import Symbol
@@ -219,6 +266,13 @@ if TYPE_CHECKING:
     from torch._dynamo.output_graph import OutputGraphCommon, OutputGraphGuardsState
 
 T = TypeVar("T")
+=======
+    from sympy import Symbol
+
+    from torch._dynamo.output_graph import OutputGraphGuardsState
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 log = logging.getLogger(__name__)
 guards_log = torch._logging.getArtifactLogger(__name__, "guards")
 recompiles_log = torch._logging.getArtifactLogger(__name__, "recompiles")
@@ -228,6 +282,7 @@ recompiles_verbose_log = torch._logging.getArtifactLogger(
 verbose_guards_log = torch._logging.getArtifactLogger(__name__, "verbose_guards")
 
 
+<<<<<<< HEAD
 dunder_attrs_assumed_constants = (
     "__defaults__",
     "__kwdefaults__",
@@ -264,6 +319,8 @@ class IndentedBufferWithPrefix(IndentedBuffer):
             super().writeline("+- " + line)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class GuardManagerWrapper:
     """
     A helper class that contains the root guard manager. An instance of this
@@ -272,12 +329,17 @@ class GuardManagerWrapper:
     the check_nopybind from C++.
     """
 
+<<<<<<< HEAD
     def __init__(self, root: Optional[RootGuardManager] = None) -> None:
+=======
+    def __init__(self, root=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if root is None:
             self.root = RootGuardManager()
         else:
             self.root = root
 
+<<<<<<< HEAD
         self.diff_guard_root: Optional[RootGuardManager] = None
         self.closure_vars: Optional[dict[str, Any]] = None
         self.args: Optional[list[str]] = None
@@ -291,19 +353,42 @@ class GuardManagerWrapper:
         self.no_tensor_aliasing_sources: list[str] = []
 
         self.printed_relational_guards: set[RelationalGuard] = set()
+=======
+        self.diff_guard_root = None
+        self.closure_vars = None
+        self.args = None
+        self.code_parts = []
+        self.verbose_code_parts = None
+        self.global_scope = None
+        self.guard_fail_fn = None
+        self.cache_entry = None
+        self.extra_state = None
+        self.id_matched_objs = {}
+        self.no_tensor_aliasing_sources = []
+
+        self.printed_relational_guards = set()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.diff_guard_sources: OrderedSet[str] = OrderedSet()
 
     @contextmanager
+<<<<<<< HEAD
     def _preserve_printed_relational_guards(self) -> Generator[None, None, None]:
+=======
+    def _preserve_printed_relational_guards(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.printed_relational_guards = set()
         try:
             yield
         finally:
             self.printed_relational_guards = set()
 
+<<<<<<< HEAD
     # TODO: clarify what fn and attributes guard manager has to get the right things here
     def collect_diff_guard_sources(self) -> OrderedSet[str]:
+=======
+    def collect_diff_guard_sources(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # At the time of finalize, we have only marked guard managers with
         # TENSOR_MATCH guards as diff guard managers. So, we do a tree traversal
         # and collect all the nodes in the tree (branches) that lead to tensor
@@ -313,7 +398,11 @@ class GuardManagerWrapper:
         # 0, so we collect them as well. Later on, we accumulate the diff guard
         # sources for all the guard managers.
 
+<<<<<<< HEAD
         def visit_dict_manager(node: DictGuardManager) -> bool:
+=======
+        def visit_dict_manager(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             is_diff_guard_node = (
                 node.get_source() in self.diff_guard_sources or node.fail_count() > 0
             )
@@ -327,7 +416,11 @@ class GuardManagerWrapper:
 
             return is_diff_guard_node
 
+<<<<<<< HEAD
         def visit_manager(node: GuardManager) -> bool:
+=======
+        def visit_manager(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert not isinstance(node, DictGuardManager)
 
             is_diff_guard_node = (
@@ -341,7 +434,11 @@ class GuardManagerWrapper:
 
             return is_diff_guard_node
 
+<<<<<<< HEAD
         def visit(node: GuardManager) -> bool:
+=======
+        def visit(node):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if node is None:
                 return False
             if isinstance(node, DictGuardManager):
@@ -352,6 +449,7 @@ class GuardManagerWrapper:
 
         return self.diff_guard_sources
 
+<<<<<<< HEAD
     def finalize(self) -> None:
         if config.use_recursive_dict_tags_for_guards and justknobs_check(
             "pytorch/compiler:use_recursive_dict_tags_for_guards"
@@ -584,6 +682,13 @@ class GuardManagerWrapper:
                 node.mark_tag_safe_root()
 
     def populate_diff_guard_manager(self) -> None:
+=======
+    def finalize(self):
+        self.collect_diff_guard_sources()
+        self.populate_diff_guard_manager()
+
+    def populate_diff_guard_manager(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.diff_guard_root = self.clone_with_chosen_sources(self.diff_guard_sources)
 
         # Ensure that that C++ side points to the updated diff guard manager.
@@ -596,28 +701,42 @@ class GuardManagerWrapper:
         if self.cache_entry:
             self.cache_entry.update_diff_guard_root_manager()
 
+<<<<<<< HEAD
     def clone_with_chosen_sources(
         self, chosen_sources: OrderedSet[str]
     ) -> RootGuardManager:
         def filter_fn(node_mgr: GuardManager) -> bool:
+=======
+    def clone_with_chosen_sources(self, chosen_sources):
+        def filter_fn(node_mgr):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return node_mgr.get_source() in chosen_sources
 
         return self.root.clone_manager(filter_fn)
 
+<<<<<<< HEAD
     def get_guard_lines(self, guard: LeafGuard) -> list[str]:
+=======
+    def get_guard_lines(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         guard_name = guard.__class__.__name__
         parts = guard.verbose_code_parts()
         parts = [guard_name + ": " + part for part in parts]
         return parts
 
+<<<<<<< HEAD
     def get_manager_line(
         self, guard_manager: GuardManager, accessor_str: Optional[str] = None
     ) -> str:
+=======
+    def get_manager_line(self, guard_manager, accessor_str=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         source = guard_manager.get_source()
         t = guard_manager.__class__.__name__
         s = t + ": source=" + source
         if accessor_str:
             s += ", " + accessor_str
+<<<<<<< HEAD
         s += f", type={guard_manager.get_type_of_guarded_value()}"
         s += f", tag_safe=({guard_manager.is_tag_safe()}, {guard_manager.is_tag_safe_root()})"
         return s
@@ -625,6 +744,11 @@ class GuardManagerWrapper:
     def construct_dict_manager_string(
         self, mgr: DictGuardManager, body: IndentedBufferWithPrefix
     ) -> None:
+=======
+        return s
+
+    def construct_dict_manager_string(self, mgr, body):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for idx, (key_mgr, val_mgr) in sorted(mgr.get_key_value_managers().items()):
             body.writeline(f"KeyValueManager pair at index={idx}")
             with body.indent():
@@ -636,6 +760,7 @@ class GuardManagerWrapper:
                     body.writeline(f"ValueManager: {self.get_manager_line(val_mgr)}")
                     self.construct_manager_string(val_mgr, body)
 
+<<<<<<< HEAD
     def construct_manager_string(
         self, mgr: GuardManager, body: IndentedBufferWithPrefix
     ) -> None:
@@ -645,6 +770,14 @@ class GuardManagerWrapper:
                     if guard not in self.printed_relational_guards:
                         self.printed_relational_guards.add(guard)
                         # pyrefly: ignore [bad-argument-type]
+=======
+    def construct_manager_string(self, mgr, body):
+        with body.indent():
+            for guard in mgr.get_leaf_guards():
+                if isinstance(guard, torch._C._dynamo.guards.RelationalGuard):  # type: ignore[attr-defined]
+                    if guard not in self.printed_relational_guards:
+                        self.printed_relational_guards.add(guard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         body.writelines(self.get_guard_lines(guard))
                     else:
                         body.writelines(
@@ -668,7 +801,23 @@ class GuardManagerWrapper:
                 )
                 self.construct_manager_string(child_mgr, body)
 
+<<<<<<< HEAD
     def __str__(self) -> str:
+=======
+    def __str__(self):
+        from torch._inductor.utils import IndentedBuffer
+
+        class IndentedBufferWithPrefix(IndentedBuffer):
+            def prefix(self):
+                return "| " * (self._indent * self.tabwidth)
+
+            def writeline(self, line, skip_prefix=False):
+                if skip_prefix:
+                    super().writeline(line)
+                else:
+                    super().writeline("+- " + line)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with self._preserve_printed_relational_guards():
             body = IndentedBufferWithPrefix()
             body.tabwidth = 1
@@ -681,6 +830,7 @@ class GuardManagerWrapper:
                     body.writelines(self.get_guard_lines(guard))
             return body.getvalue()
 
+<<<<<<< HEAD
     def check(self, x: Any) -> bool:
         # Only needed for debugging purposes.
         return self.root.check(x)
@@ -694,18 +844,41 @@ class GuardManagerWrapper:
         relational_guards_seen = set()
 
         def get_code_parts(leaf_guard: LeafGuard) -> list[str]:
+=======
+    def check(self, x):
+        # Only needed for debugging purposes.
+        return self.root.check(x)
+
+    def check_verbose(self, x):
+        # Only needed for debugging purposes.
+        return self.root.check_verbose(x)
+
+    def populate_code_parts_for_debugging(self):
+        # This should be called when the guard manager is fully populated
+        relational_guards_seen = set()
+
+        def get_code_parts(leaf_guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             code_parts = []
             for verbose_code_part in leaf_guard.verbose_code_parts():
                 code_part = verbose_code_part.split("#")[0].rstrip()
                 code_parts.append(code_part)
             return code_parts
 
+<<<<<<< HEAD
         def visit(mgr: GuardManager) -> None:
             nonlocal relational_guards_seen
             for guard in mgr.get_leaf_guards():
                 if isinstance(guard, RelationalGuard):
                     if guard not in relational_guards_seen:
                         # pyrefly: ignore [bad-argument-type]
+=======
+        def visit(mgr):
+            nonlocal relational_guards_seen
+            for guard in mgr.get_leaf_guards():
+                if isinstance(guard, torch._C._dynamo.guards.RelationalGuard):  # type: ignore[attr-defined]
+                    if guard not in relational_guards_seen:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         self.code_parts.extend(get_code_parts(guard))
                         relational_guards_seen.add(guard)
                 else:
@@ -717,18 +890,29 @@ class GuardManagerWrapper:
         visit(self.root)
 
 
+<<<<<<< HEAD
 def from_numpy(a: Any) -> torch.Tensor:
+=======
+def from_numpy(a):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # If not numpy array, piggy back on e.g. tensor guards to check type
     # Re-enable torch function since we disable it on leaf guards
     # we need it to properly construct the tensor if a default device is set
     with torch.overrides._enable_torch_function():
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return torch.as_tensor(a) if isinstance(a, (np.generic, np.ndarray)) else a
 
 
 # For user stack printing
 @functools.cache
+<<<<<<< HEAD
 def uninteresting_files() -> set[str]:
+=======
+def uninteresting_files():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     import torch._dynamo.external_utils
     import torch._dynamo.polyfills
 
@@ -736,7 +920,10 @@ def uninteresting_files() -> set[str]:
 
     from torch._dynamo.polyfills.loader import POLYFILLED_MODULES
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     mods.extend(POLYFILLED_MODULES)
 
     return {inspect.getfile(m) for m in mods}
@@ -745,7 +932,11 @@ def uninteresting_files() -> set[str]:
 _CLOSURE_VARS: Optional[dict[str, object]] = None
 
 
+<<<<<<< HEAD
 def _get_closure_vars() -> dict[str, object]:
+=======
+def _get_closure_vars():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     global _CLOSURE_VARS
     if _CLOSURE_VARS is None:
         _CLOSURE_VARS = {
@@ -759,7 +950,10 @@ def _get_closure_vars() -> dict[str, object]:
             "___normalize_range_iter": normalize_range_iter,
             "___tuple_iterator_getitem": tuple_iterator_getitem,
             "___dataclass_fields": dataclass_fields,
+<<<<<<< HEAD
             "___namedtuple_fields": lambda x: x._fields,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "___get_torch_function_mode_stack_at": get_torch_function_mode_stack_at,
             "__math_isnan": math.isnan,
             "__numpy_isnan": None if np is None else np.isnan,
@@ -782,13 +976,18 @@ def _ast_unparse(node: ast.AST) -> str:
 strip_function_call = torch._C._dynamo.strip_function_call
 
 
+<<<<<<< HEAD
 def get_verbose_code_part(code_part: str, guard: Optional[Guard]) -> str:
+=======
+def get_verbose_code_part(code_part: str, guard: Guard) -> str:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     extra = ""
     if guard is not None:
         if guard.user_stack:
             for fs in reversed(guard.user_stack):
                 if fs.filename not in uninteresting_files():
                     extra = f"  # {format_frame(fs, line=True)}"
+<<<<<<< HEAD
                     if len(extra) > 1024:
                         # For fx graphs, the line can be very long in case of
                         # torch.stack ops, where many inputs are set to None
@@ -796,6 +995,8 @@ def get_verbose_code_part(code_part: str, guard: Optional[Guard]) -> str:
                         # guards log file.  In such cases, do not print the line
                         # contents.
                         extra = f"  # {format_frame(fs)}"
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     break
         elif guard.stack:
             summary = guard.stack.summary()
@@ -807,6 +1008,7 @@ def get_verbose_code_part(code_part: str, guard: Optional[Guard]) -> str:
 
 
 def get_verbose_code_parts(
+<<<<<<< HEAD
     code_parts: Union[str, list[str]],
     guard: Optional[Guard],
     recompile_hint: Optional[str] = None,
@@ -826,6 +1028,16 @@ def get_verbose_code_parts(
 
 
 def convert_int_to_concrete_values(dim: Any) -> Optional[int]:
+=======
+    code_parts: Union[str | list[str]], guard: Guard
+) -> list[str]:
+    if not isinstance(code_parts, list):
+        code_parts = [code_parts]
+    return [get_verbose_code_part(code_part, guard) for code_part in code_parts]
+
+
+def convert_int_to_concrete_values(dim) -> Optional[int]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if dim is None:
         return None
     if not is_symbolic(dim):
@@ -835,6 +1047,7 @@ def convert_int_to_concrete_values(dim: Any) -> Optional[int]:
         return dim.node.maybe_as_int()
 
 
+<<<<<<< HEAD
 def convert_to_concrete_values(size_or_stride: list[Any]) -> list[Optional[int]]:
     return [convert_int_to_concrete_values(dim) for dim in size_or_stride]
 
@@ -847,6 +1060,13 @@ def get_tensor_guard_code_part(
     pytype: type,
     dispatch_keys: DispatchKeySet,
 ) -> str:
+=======
+def convert_to_concrete_values(size_or_stride):
+    return [convert_int_to_concrete_values(dim) for dim in size_or_stride]
+
+
+def get_tensor_guard_code_part(value, name, sizes, strides, pytype, dispatch_keys):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     dispatch_key = (
         dispatch_keys | torch._C._dispatch_tls_local_include_set()
     ) - torch._C._dispatch_tls_local_exclude_set()
@@ -860,7 +1080,11 @@ def get_tensor_guard_code_part(
     return guard_str
 
 
+<<<<<<< HEAD
 def get_key_index(dct: dict[Any, Any], key: Any) -> int:
+=======
+def get_key_index(dct, key):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Ensure that we call dict.keys and not value.keys (which can call
     # overridden keys method). In the C++ guards, we relied on PyDict_Next
     # to traverse the dictionary, which uses the internal data structure and
@@ -868,7 +1092,11 @@ def get_key_index(dct: dict[Any, Any], key: Any) -> int:
     return list(builtin_dict_keys(dct)).index(key)
 
 
+<<<<<<< HEAD
 def get_key_index_source(source: Any, index: Any) -> str:
+=======
+def get_key_index_source(source, index):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return f"list(dict.keys({source}))[{index}]"
 
 
@@ -880,6 +1108,7 @@ def raise_local_type_error(obj: Any) -> NoReturn:
     )
 
 
+<<<<<<< HEAD
 def should_optimize_getattr_on_nn_module(value: Any) -> bool:
     # If inline_inbuilt_nn_modules flag is True, Dynamo has already traced
     # through the __getattr__, and therefore it is always safe to optimize
@@ -890,6 +1119,8 @@ def should_optimize_getattr_on_nn_module(value: Any) -> bool:
     )
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass(frozen=True)
 class NNModuleAttrAccessorInfo:
     # Represents where is the attr name is present in the nn module attribute
@@ -906,12 +1137,17 @@ class NNModuleAttrAccessorInfo:
 
 
 def getitem_on_dict_manager(
+<<<<<<< HEAD
     source: Union[DictGetItemSource, DictSubclassGetItemSource],
     base_guard_manager: DictGuardManager,
     base_example_value: Any,
     example_value: Any,
     guard_manager_enum: GuardManagerType,
 ) -> GuardManager:
+=======
+    source, base_guard_manager, base_example_value, example_value, guard_manager_enum
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     base_source_name = source.base.name()
     if isinstance(source.index, ConstDictKeySource):
         index = source.index.index
@@ -950,7 +1186,11 @@ def getitem_on_dict_manager(
     )
 
 
+<<<<<<< HEAD
 def match_on_id_for_tensor(guard: Guard) -> bool:
+=======
+def match_on_id_for_tensor(guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     source = guard.originating_source
     # For numpy tensors, always use TENSOR_MATCH because __from_numpy leads
     # to a new tensor every time and therefore id differs.
@@ -977,7 +1217,11 @@ class GuardManagerType(enum.Enum):
 
 
 @functools.cache
+<<<<<<< HEAD
 def code_framelocals_names_reversed_cached(code: types.CodeType) -> list[str]:
+=======
+def code_framelocals_names_reversed_cached(code: types.CodeType):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return list(reversed(code_framelocals_names(code)))
 
 
@@ -985,24 +1229,38 @@ class GuardBuilder(GuardBuilderBase):
     def __init__(
         self,
         f_code: types.CodeType,
+<<<<<<< HEAD
         id_ref: Callable[[object, str], int],
         source_ref: Callable[[Source], str],
         lookup_weakrefs: Callable[[object], Optional[weakref.ref[object]]],
+=======
+        id_ref: Callable[[Any, str], str],
+        source_ref: Callable[[Source], str],
+        lookup_weakrefs: Callable[[object], ReferenceType[object]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         local_scope: dict[str, object],
         global_scope: dict[str, object],
         guard_manager: GuardManagerWrapper,
         check_fn_manager: CheckFunctionManager,
+<<<<<<< HEAD
         save_guards: bool = False,
         runtime_global_scope: Optional[dict[str, object]] = None,
         source_get_cache: Optional[dict[str, Any]] = None,
     ) -> None:
+=======
+        serialization_mode: Optional[str] = None,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.f_code = f_code
         self.id_ref = id_ref
         self.source_ref = source_ref
         self.lookup_weakrefs = lookup_weakrefs
         self.scope: dict[str, dict[str, object]] = {"L": local_scope, "G": global_scope}
+<<<<<<< HEAD
         self.runtime_global_scope = runtime_global_scope or global_scope
         self.source_get_cache = source_get_cache or {}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.scope["__builtins__"] = builtins.__dict__.copy()
         for (
             name,
@@ -1027,6 +1285,7 @@ class GuardBuilder(GuardBuilderBase):
         # Collect the guard managers and debug info to insert no tensor aliasing
         # guards.
         self.no_tensor_aliasing_names: list[str] = []
+<<<<<<< HEAD
         self.no_tensor_aliasing_guard_managers: list[GuardManager] = []
 
         self.check_fn_manager: CheckFunctionManager = check_fn_manager
@@ -1034,17 +1293,28 @@ class GuardBuilder(GuardBuilderBase):
         self.guard_tree_values: dict[int, Any] = {}
         self.save_guards = save_guards
 
+=======
+        self.no_tensor_aliasing_guard_managers: list[GuardManagerWrapper] = []
+
+        self.check_fn_manager: CheckFunctionManager = check_fn_manager
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Collect the ids of dicts which need key order guarding. source_name is
         # not sufficient because for nn modules, we can have different sources
         # to access the same object - self._module["param"] is same as
         # self.param.
         self.key_order_guarded_dict_ids = set()
+<<<<<<< HEAD
         assert self.check_fn_manager.output_graph is not None
         for source in self.check_fn_manager.output_graph.guard_on_key_order:
             dict_obj = self.get(source.name())
             if self.save_guards:
                 self.source_get_cache[source.name()] = dict_obj
             self.key_order_guarded_dict_ids.add(id(dict_obj))
+=======
+        for source in self.check_fn_manager.output_graph.guard_on_key_order:
+            self.key_order_guarded_dict_ids.add(id(self.get(source.name())))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Keep track of weak references of objects with ID_MATCH guard. This
         # info is stored alongside optimized_code and guard_manager and is used to
@@ -1052,6 +1322,7 @@ class GuardBuilder(GuardBuilderBase):
         self.id_matched_objs: dict[str, ReferenceType[object]] = {}
 
         # Save the guard managers to avoid repeatedly traversing sources.
+<<<<<<< HEAD
         self._cached_guard_managers: dict[str, GuardManager] = {}
         self._cached_duplicate_input_guards: set[tuple[str, str]] = set()
         self.object_aliasing_guard_codes: list[tuple[str, str]] = []
@@ -1063,6 +1334,15 @@ class GuardBuilder(GuardBuilderBase):
     def guard_on_dict_keys_and_ignore_order(
         self, example_value: dict[Any, Any], guard: Guard
     ) -> None:
+=======
+        self._cached_guard_managers: dict[
+            str, torch._C._dynamo.guards.GuardManager
+        ] = {}
+        self._cached_duplicate_input_guards: set[tuple[str, str]] = set()
+        self.serialization_mode = serialization_mode
+
+    def guard_on_dict_keys_and_ignore_order(self, example_value, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dict_mgr = self.get_guard_manager(guard)
         if isinstance(dict_mgr, DictGuardManager):
             raise NotImplementedError(
@@ -1090,7 +1370,11 @@ class GuardBuilder(GuardBuilderBase):
                 guard_manager_enum=guard_manager_enum,
             )
 
+<<<<<<< HEAD
     def guard_on_dict_keys_and_order(self, value: dict[Any, Any], guard: Guard) -> None:
+=======
+    def guard_on_dict_keys_and_order(self, value, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Add key managers for the DictGuardManager. Then add either an
         # ID_MATCH or EQUALS_MATCH guard on the key.
         dict_mgr = self.get_guard_manager(guard)
@@ -1129,7 +1413,11 @@ class GuardBuilder(GuardBuilderBase):
                 )
 
     @staticmethod
+<<<<<<< HEAD
     def _get_generic_dict_manager_example_value(example_value: Any) -> Optional[Any]:
+=======
+    def _get_generic_dict_manager_example_value(example_value):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # due to a bug in 3.13.0 (introduced by https://github.com/python/cpython/pull/116115,
         # reported in https://github.com/python/cpython/issues/125608,
         # fixed by https://github.com/python/cpython/pull/125611), we cannot take
@@ -1148,6 +1436,7 @@ class GuardBuilder(GuardBuilderBase):
 
     def getattr_on_nn_module(
         self,
+<<<<<<< HEAD
         source: AttrSource,
         base_guard_manager: GuardManager,
         base_example_value: Any,
@@ -1156,6 +1445,16 @@ class GuardBuilder(GuardBuilderBase):
         source_name: str,
         guard_manager_enum: GuardManagerType,
     ) -> GuardManager:
+=======
+        source,
+        base_guard_manager,
+        base_example_value,
+        example_value,
+        base_source_name,
+        source_name,
+        guard_manager_enum,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         This tries to avoid calling the expensive nn module custom getattr method by
         checking if the attribute is accessible via __dict__. For attributes that
@@ -1174,6 +1473,7 @@ class GuardBuilder(GuardBuilderBase):
         """
 
         def getitem_on_dict_mgr(
+<<<<<<< HEAD
             mgr: GuardManager,
             key: Any,
             source_name: str,
@@ -1181,6 +1481,10 @@ class GuardBuilder(GuardBuilderBase):
             example_value: Any,
             guard_manager_enum: GuardManagerType,
         ) -> GuardManager:
+=======
+            mgr, key, source_name, base_example_value, example_value, guard_manager_enum
+        ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(mgr, DictGuardManager):
                 # Case where the user code relies on key order, e.g.,
                 # named_parameters
@@ -1290,7 +1594,10 @@ class GuardBuilder(GuardBuilderBase):
             )
 
             if l2_key:
+<<<<<<< HEAD
                 assert l2_source_name is not None and l2_guard_manager_enum is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return getitem_on_dict_mgr(
                     mgr=l1_mgr,
                     key=l2_key,
@@ -1301,13 +1608,18 @@ class GuardBuilder(GuardBuilderBase):
                 )
             return l1_mgr
 
+<<<<<<< HEAD
     def requires_key_order_guarding(self, source: Source) -> bool:
+=======
+    def requires_key_order_guarding(self, source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         source_name = source.name()
         if source_name == "":
             return False
         obj_id = id(self.get(source_name))
         return obj_id in self.key_order_guarded_dict_ids
 
+<<<<<<< HEAD
     def get_guard_manager_type(
         self,
         source: Source,
@@ -1315,33 +1627,52 @@ class GuardBuilder(GuardBuilderBase):
             Union[KeysView[Any], set[Any], frozenset[Any], dict[Any, Any]]
         ],
     ) -> GuardManagerType:
+=======
+    def get_guard_manager_type(self, source, example_value):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         guard_manager_enum = GuardManagerType.GUARD_MANAGER
         if self.requires_key_order_guarding(source):
             # Fix this if condition
             if isinstance(example_value, dict_keys):
                 guard_manager_enum = GuardManagerType.DICT_GUARD_MANAGER
+<<<<<<< HEAD
             elif isinstance(example_value, (set, frozenset)):
                 # we don't need to guard on key order for set/frozenset
                 # but the if above will be true for these types as set is
                 # implemented using a dict in Dynamo
                 guard_manager_enum = GuardManagerType.GUARD_MANAGER
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 assert isinstance(example_value, dict)
                 guard_manager_enum = GuardManagerType.DICT_GUARD_MANAGER
         return guard_manager_enum
 
+<<<<<<< HEAD
     def manager_guards_on_keys(self, mgr_enum: GuardManagerType) -> bool:
         return mgr_enum == GuardManagerType.DICT_GUARD_MANAGER
 
     def get_global_guard_manager(self) -> GuardManager:
         return self.guard_manager.root.globals_dict_manager(
             f_globals=self.runtime_global_scope,
+=======
+    def manager_guards_on_keys(self, mgr_enum):
+        return mgr_enum == GuardManagerType.DICT_GUARD_MANAGER
+
+    def get_global_guard_manager(self):
+        return self.guard_manager.root.globals_dict_manager(
+            f_globals=self.scope["G"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             source="G",
             example_value=self.scope["G"],
             guard_manager_enum=GuardManagerType.GUARD_MANAGER,
         )
 
+<<<<<<< HEAD
     def get_guard_manager_from_source(self, source: Source) -> GuardManager:
+=======
+    def get_guard_manager_from_source(self, source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         root_guard_manager = self.guard_manager.root
 
         example_value = None
@@ -1352,7 +1683,10 @@ class GuardBuilder(GuardBuilderBase):
 
         if source_name != "":
             example_value = self.get(source_name)
+<<<<<<< HEAD
             self.guard_tree_values[id(example_value)] = example_value
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         guard_manager_enum = self.get_guard_manager_type(source, example_value)
 
@@ -1371,7 +1705,24 @@ class GuardBuilder(GuardBuilderBase):
 
         # Use istype instead of isinstance to check for exact type of source.
         if istype(source, LocalSource):
+<<<<<<< HEAD
             framelocals_idx = get_framelocals_idx(self.f_code, source.local_name)
+=======
+            # Refer to index in the frame's localsplus directly.
+            # NOTE: name order for a code object doesn't change.
+            # NOTE: we need to find the LAST matching index because <= 3.10 contains
+            # duplicate names in the case of cells: a name can be both local and cell
+            # and will take up 2 slots of the frame's localsplus. The correct behavior
+            # is to refer to the cell, which has a higher index.
+            framelocals_names_reversed = code_framelocals_names_reversed_cached(
+                self.f_code
+            )
+            framelocals_idx = (
+                len(framelocals_names_reversed)
+                - framelocals_names_reversed.index(source.local_name)
+                - 1
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             out = root_guard_manager.framelocals_manager(
                 key=(source.local_name, framelocals_idx),
                 source=source_name,
@@ -1408,6 +1759,7 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+<<<<<<< HEAD
         elif istype(source, TypeDictSource):
             assert base_guard_manager  # to make mypy happy
             out = base_guard_manager.type_dict_manager(
@@ -1422,6 +1774,8 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif istype(
             source,
             (
@@ -1434,6 +1788,7 @@ class GuardBuilder(GuardBuilderBase):
         ):
             assert base_guard_manager  # to make mypy happy
             out = base_guard_manager
+<<<<<<< HEAD
         elif istype(source, TorchSource):
             out = root_guard_manager.lambda_manager(
                 python_lambda=lambda _: torch,
@@ -1441,6 +1796,8 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif istype(source, TorchFunctionModeStackSource):
             out = root_guard_manager.lambda_manager(
                 python_lambda=lambda _: get_torch_function_mode_stack_at(
@@ -1467,9 +1824,18 @@ class GuardBuilder(GuardBuilderBase):
             )
         elif istype(source, (AttrSource, UnspecializedParamBufferSource)):
             assert base_guard_manager  # to make mypy happy
+<<<<<<< HEAD
             assert isinstance(source, AttrSource)
             if should_optimize_getattr_on_nn_module(base_example_value):
                 assert base_source_name
+=======
+
+            if (
+                isinstance(base_example_value, torch.nn.Module)
+                and get_custom_getattr(base_example_value)
+                is unpatched_nn_module_getattr
+            ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 out = self.getattr_on_nn_module(
                     source,
                     base_guard_manager,
@@ -1489,7 +1855,10 @@ class GuardBuilder(GuardBuilderBase):
         elif istype(source, (DictGetItemSource, DictSubclassGetItemSource)):
             assert base_guard_manager  # to make mypy happy
             assert isinstance(base_example_value, (dict, collections.OrderedDict))
+<<<<<<< HEAD
             assert isinstance(source, (DictGetItemSource, DictSubclassGetItemSource))
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(base_guard_manager, DictGuardManager):
                 assert self.manager_guards_on_keys(base_guard_manager_enum)
                 out = getitem_on_dict_manager(
@@ -1569,7 +1938,10 @@ class GuardBuilder(GuardBuilderBase):
                 )
         elif istype(source, DefaultsSource):
             assert base_guard_manager  # to make mypy happy
+<<<<<<< HEAD
             assert base_source_name
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert callable(base_example_value)
             if not source.is_kw:
                 out = base_guard_manager.func_defaults_manager(
@@ -1677,6 +2049,7 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+<<<<<<< HEAD
         elif istype(source, NonSerializableSetGetItemSource):
             assert base_guard_manager
             out = base_guard_manager.set_getitem_manager(
@@ -1685,6 +2058,8 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         elif istype(source, WeakRefCallSource):
             assert base_guard_manager  # to make mypy happy
             out = base_guard_manager.weakref_call_manager(
@@ -1707,6 +2082,7 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+<<<<<<< HEAD
         elif istype(source, NamedTupleFieldsSource):
             assert base_guard_manager
             out = base_guard_manager.lambda_manager(
@@ -1737,6 +2113,8 @@ class GuardBuilder(GuardBuilderBase):
                 example_value=example_value,
                 guard_manager_enum=guard_manager_enum,
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             raise AssertionError(
                 f"missing guard manager builder {source} - {source.name()}"
@@ -1745,16 +2123,28 @@ class GuardBuilder(GuardBuilderBase):
         self._cached_guard_managers[source.name()] = out
         return out
 
+<<<<<<< HEAD
     def get_guard_manager(self, guard: Guard) -> GuardManager:
+=======
+    def get_guard_manager(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return self.get_guard_manager_from_source(guard.originating_source)
 
     def add_python_lambda_leaf_guard_to_root(
         self,
+<<<<<<< HEAD
         code_parts: list[str],
         verbose_code_parts: list[str],
         closure_vars: Optional[dict[str, object]] = None,
         is_epilogue: bool = True,
     ) -> None:
+=======
+        code_parts,
+        verbose_code_parts,
+        closure_vars=None,
+        is_epilogue=True,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if closure_vars is None:
             closure_vars = _get_closure_vars()
         # Adds a lambda leaf guard to the root guard manager. It wraps the
@@ -1784,6 +2174,7 @@ class GuardBuilder(GuardBuilderBase):
     # (like its type) which is what you permanently install into the
     # guard code.
     def get(self, name: str, closure_vars: Optional[dict[str, Any]] = None) -> Any:
+<<<<<<< HEAD
         if self.source_get_cache:
             if name in self.source_get_cache:
                 return self.source_get_cache[name]
@@ -1793,6 +2184,11 @@ class GuardBuilder(GuardBuilderBase):
         if self.save_guards and ".__closure__" in name:
             self.source_get_cache[name] = ret
         return ret
+=======
+        if closure_vars is None:
+            closure_vars = _get_closure_vars()
+        return eval(name, self.scope, closure_vars)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Registers the usage of the source name referenced by the
     # string (or stored in the Guard) as being guarded upon.  It's important
@@ -1815,6 +2211,7 @@ class GuardBuilder(GuardBuilderBase):
 
         return name
 
+<<<<<<< HEAD
     def _guard_on_attribute(
         self,
         guard: Guard,
@@ -1825,6 +2222,10 @@ class GuardBuilder(GuardBuilderBase):
             attr_source = CodeSource(guard.originating_source)
         else:
             attr_source = AttrSource(guard.originating_source, attr_name)  # type: ignore[assignment]
+=======
+    def _guard_on_attribute(self, guard: Guard, attr_name: str, guard_fn):
+        attr_source = AttrSource(guard.originating_source, attr_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Copy the stack info
         new_guard = Guard(
             attr_source, guard_fn, stack=guard.stack, user_stack=guard.user_stack
@@ -1832,6 +2233,7 @@ class GuardBuilder(GuardBuilderBase):
         new_guard.create(self)
 
     # Note: the order of the guards in this file matters since we sort guards on the same object by lineno
+<<<<<<< HEAD
     def HASATTR(self, guard: Guard) -> None:
         source = guard.originating_source
         if isinstance(source, NNModuleSource):
@@ -1839,6 +2241,12 @@ class GuardBuilder(GuardBuilderBase):
         if isinstance(source, CodeSource):
             # No need to guard that a function has a __code__ attribute
             return
+=======
+    def HASATTR(self, guard: Guard):
+        source = guard.originating_source
+        if isinstance(source, NNModuleSource):
+            source = source.base
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert isinstance(source, AttrSource), f"invalid source {guard.name}"
         base_source = source.base
         base = base_source.name()
@@ -1851,10 +2259,13 @@ class GuardBuilder(GuardBuilderBase):
             code = f"hasattr({ref}, {attr!r})"
         else:
             code = f"not hasattr({ref}, {attr!r})"
+<<<<<<< HEAD
 
         if code in self.already_added_code_parts:
             return
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._set_guard_export_info(
             guard, [code], provided_guarded_object=self.get(base)
         )
@@ -1869,8 +2280,17 @@ class GuardBuilder(GuardBuilderBase):
 
             # if the base value is nn.Module, check if we can speedup the
             # guard by going through __dict__ attrs.
+<<<<<<< HEAD
             if should_optimize_getattr_on_nn_module(base_example_value):
                 self.getattr_on_nn_module(
+=======
+            if (
+                isinstance(base_example_value, torch.nn.Module)
+                and get_custom_getattr(base_example_value)
+                is unpatched_nn_module_getattr
+            ):
+                return self.getattr_on_nn_module(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     source,
                     base_manager,
                     base_example_value,
@@ -1888,6 +2308,7 @@ class GuardBuilder(GuardBuilderBase):
                 )
         else:
             base_manager.add_no_hasattr_guard(attr, get_verbose_code_parts(code, guard))
+<<<<<<< HEAD
         self.already_added_code_parts.add(code)
 
     def NOT_PRESENT_IN_GENERIC_DICT(
@@ -1903,6 +2324,17 @@ class GuardBuilder(GuardBuilderBase):
         if code in self.already_added_code_parts:
             return
 
+=======
+
+    def NOT_PRESENT_IN_GENERIC_DICT(self, guard: Guard, attr=None) -> None:
+        assert attr is not None
+        ref = self.arg_ref(guard)
+        val = self.get(guard.name)
+        assert isinstance(val, torch.nn.Module)
+
+        base_manager = self.get_guard_manager(guard)
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod_dict_source = f"{guard.name}.__dict__"
         mod_generic_dict_manager = base_manager.get_generic_dict_manager(
             source=mod_dict_source,
@@ -1910,10 +2342,17 @@ class GuardBuilder(GuardBuilderBase):
             guard_manager_enum=GuardManagerType.GUARD_MANAGER,
         )
 
+<<<<<<< HEAD
         mod_generic_dict_manager.add_dict_contains_guard(
             False, attr, get_verbose_code_parts(code, guard)
         )
         self.already_added_code_parts.add(code)
+=======
+        code = f"not ___dict_contains({attr!r}, {ref}.__dict__)"
+        mod_generic_dict_manager.add_dict_contains_guard(
+            False, attr, get_verbose_code_parts(code, guard)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def TYPE_MATCH(self, guard: Guard) -> None:
         # ___check_type_id is same as `id(type(x)) == y`
@@ -1923,10 +2362,16 @@ class GuardBuilder(GuardBuilderBase):
         else:
             t = type(value)
 
+<<<<<<< HEAD
         if t.__qualname__ != t.__name__:
             # Type match guards must be local scope, this is
             # raised in self.serialize_guards
             guard._unserializable = True
+=======
+        if self.serialization_mode == "save":
+            if t.__qualname__ != t.__name__:
+                raise_local_type_error(value)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         obj_id = self.id_ref(t, f"type({guard.name})")
         code = f"___check_type_id({self.arg_ref(guard)}, {obj_id})"
@@ -1936,7 +2381,15 @@ class GuardBuilder(GuardBuilderBase):
             obj_id, get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def DICT_VERSION(self, guard: Guard) -> None:
+=======
+    def DICT_VERSION(self, guard: Guard):
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "DICT_VERSION guard cannot be serialized."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # ___check_dict_version is same as `dict_version(x) == y`
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
@@ -1950,18 +2403,26 @@ class GuardBuilder(GuardBuilderBase):
             val, get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def DICT_CONTAINS(self, guard: Guard, key: str, invert: bool) -> None:
+=======
+    def DICT_CONTAINS(self, guard: Guard, key: str, invert: bool):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         dict_ref = self.arg_ref(guard)
 
         maybe_not = "not " if invert else ""
         code = f"{maybe_not}___dict_contains({key!r}, {dict_ref})"
+<<<<<<< HEAD
         if code in self.already_added_code_parts:
             return
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self._set_guard_export_info(guard, [code])
 
         self.get_guard_manager(guard).add_dict_contains_guard(
             not invert, key, get_verbose_code_parts(code, guard)
         )
+<<<<<<< HEAD
         self.already_added_code_parts.add(code)
 
     def SET_CONTAINS(self, guard: Guard, key: Any, invert: bool) -> None:
@@ -1981,6 +2442,10 @@ class GuardBuilder(GuardBuilderBase):
         self.already_added_code_parts.add(code)
 
     def BOOL_MATCH(self, guard: Guard) -> None:
+=======
+
+    def BOOL_MATCH(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # checks val == True or val == False
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
@@ -1997,7 +2462,11 @@ class GuardBuilder(GuardBuilderBase):
                 get_verbose_code_parts(code, guard)
             )
 
+<<<<<<< HEAD
     def NONE_MATCH(self, guard: Guard) -> None:
+=======
+    def NONE_MATCH(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # checks `val is None`
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
@@ -2009,6 +2478,7 @@ class GuardBuilder(GuardBuilderBase):
             get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def ID_MATCH(self, guard: Guard, recompile_hint: Optional[str] = None) -> None:
         # TODO - Run a CI with the following uncommented to find the remaining places
         # val = self.get(guard.name)
@@ -2021,6 +2491,11 @@ class GuardBuilder(GuardBuilderBase):
     def id_match_unchecked(
         self, guard: Guard, recompile_hint: Optional[str] = None
     ) -> None:
+=======
+    def ID_MATCH(self, guard: Guard):
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError("ID_MATCH guard cannot be serialized.")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # ___check_obj_id is same as `id(x) == y`
         if isinstance(guard.originating_source, TypeSource):
             # optional optimization to produce cleaner/faster guard code
@@ -2032,9 +2507,16 @@ class GuardBuilder(GuardBuilderBase):
         val = self.get(guard.name)
         id_val = self.id_ref(val, guard.name)
         code = f"___check_obj_id({ref}, {id_val})"
+<<<<<<< HEAD
         self._set_guard_export_info(guard, [code], provided_func_name="ID_MATCH")
         self.get_guard_manager(guard).add_id_match_guard(
             id_val, get_verbose_code_parts(code, guard, recompile_hint)
+=======
+        self._set_guard_export_info(guard, [code])
+
+        self.get_guard_manager(guard).add_id_match_guard(
+            id_val, get_verbose_code_parts(code, guard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
         # Keep track of ID_MATCH'd objects. This will be used to modify the
@@ -2049,7 +2531,11 @@ class GuardBuilder(GuardBuilderBase):
                 if weak_id is not None:
                     self.id_matched_objs[local_name] = weak_id
 
+<<<<<<< HEAD
     def NOT_NONE_MATCH(self, guard: Guard, value: Optional[Any] = None) -> None:
+=======
+    def NOT_NONE_MATCH(self, guard: Guard, value=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
         assert isinstance(val, torch.Tensor)
@@ -2060,7 +2546,11 @@ class GuardBuilder(GuardBuilderBase):
             get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def DISPATCH_KEY_SET_MATCH(self, guard: Guard) -> None:
+=======
+    def DISPATCH_KEY_SET_MATCH(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
         assert isinstance(val, torch._C.DispatchKeySet)
@@ -2070,6 +2560,7 @@ class GuardBuilder(GuardBuilderBase):
             val, get_verbose_code_parts(code_parts, guard)
         )
 
+<<<<<<< HEAD
     def DUAL_LEVEL(self, guard: Guard) -> None:
         # Invalidate dual level if current dual level is different than the one
         # in the fx graph
@@ -2085,6 +2576,30 @@ class GuardBuilder(GuardBuilderBase):
         # Invalidate functorch code if current level is different than
         # the one when FX graph was generated
         assert self.check_fn_manager.output_graph is not None
+=======
+    def NAME_MATCH(self, guard: Guard):
+        self._guard_on_attribute(guard, "__name__", GuardBuilder.EQUALS_MATCH)
+
+    def DUAL_LEVEL(self, guard: Guard):
+        # Invalidate dual level if current dual level is different than the one
+        # in the fx graph
+        dual_level = self.check_fn_manager.output_graph.dual_level
+        code = [f"torch.autograd.forward_ad._current_level == {dual_level}"]
+        self._set_guard_export_info(guard, [code])
+        # TODO(anijain2305) - Consider this moving this guard to C++
+        forward_ad = torch.autograd.forward_ad
+
+        def fn(x):
+            return forward_ad._current_level == dual_level
+
+        self.guard_manager.root.add_lambda_guard(
+            fn, get_verbose_code_parts(code, guard)
+        )
+
+    def FUNCTORCH_STACK_MATCH(self, guard: Guard):
+        # Invalidate functorch code if current level is different than
+        # the one when FX graph was generated
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cis = self.check_fn_manager.output_graph.functorch_layers
         states = [ci.get_state() for ci in cis]
         code = [f"torch._functorch.pyfunctorch.compare_functorch_state({states})"]
@@ -2093,22 +2608,34 @@ class GuardBuilder(GuardBuilderBase):
         # TODO(anijain2305) - Consider this moving this guard to C++
         compare_fn = torch._functorch.pyfunctorch.compare_functorch_state
 
+<<<<<<< HEAD
         def fn(x: Any) -> bool:
+=======
+        def fn(x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return compare_fn(states)
 
         self.guard_manager.root.add_lambda_guard(
             fn, get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def AUTOGRAD_SAVED_TENSORS_HOOKS(self, guard: Guard) -> None:
+=======
+    def AUTOGRAD_SAVED_TENSORS_HOOKS(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         get_hooks = torch._functorch._aot_autograd.utils.top_saved_tensors_hooks
         are_inline_hooks = (
             torch._functorch._aot_autograd.utils.saved_tensors_hooks_are_inlineable
         )
 
+<<<<<<< HEAD
         def hooks_ids_fn(
             hooks: tuple[Callable[[torch.Tensor], Any], Callable[[Any], torch.Tensor]],
         ) -> Optional[tuple[int, ...]]:
+=======
+        def hooks_ids_fn(hooks):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not are_inline_hooks(hooks):
                 return None
 
@@ -2122,27 +2649,43 @@ class GuardBuilder(GuardBuilderBase):
         ]
         self._set_guard_export_info(guard, code)
 
+<<<<<<< HEAD
         def fn(x: Any) -> bool:
+=======
+        def fn(x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return guard_hooks_ids == hooks_ids_fn(get_hooks())
 
         self.guard_manager.root.add_lambda_guard(
             fn, get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def TENSOR_SUBCLASS_METADATA_MATCH(self, guard: Guard) -> None:
+=======
+    def TENSOR_SUBCLASS_METADATA_MATCH(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         value = self.get(guard.name)
         original_metadata = deepcopy(self.get(guard.name).__tensor_flatten__()[1])
         if hasattr(value, "__metadata_guard__"):
             verify_guard_fn_signature(value)
 
+<<<<<<< HEAD
             def metadata_checker(x: Any) -> bool:
+=======
+            def metadata_checker(x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return value.__metadata_guard__(
                     original_metadata, x.__tensor_flatten__()[1]
                 )
 
         else:
 
+<<<<<<< HEAD
             def metadata_checker(x: Any) -> bool:
+=======
+            def metadata_checker(x):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return x.__tensor_flatten__()[1] == original_metadata
 
         global_name = f"___check_metadata_{id(metadata_checker)}_c{CompileContext.current_compile_id()}"
@@ -2150,7 +2693,11 @@ class GuardBuilder(GuardBuilderBase):
             metadata_checker, get_verbose_code_parts(global_name, guard)
         )
 
+<<<<<<< HEAD
     def EQUALS_MATCH(self, guard: Guard, recompile_hint: Optional[str] = None) -> None:
+=======
+    def EQUALS_MATCH(self, guard: Guard, recompile_hint: Optional[str] = None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = self.arg_ref(guard)
         val = self.get(guard.name)
         if np:
@@ -2182,8 +2729,11 @@ class GuardBuilder(GuardBuilderBase):
                 range,
                 dict_keys,
                 torch.Size,
+<<<<<<< HEAD
                 torch.Stream,
                 torch.cuda.streams.Stream,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *np_types,
                 *ok_mutable_types,
             }
@@ -2212,27 +2762,52 @@ class GuardBuilder(GuardBuilderBase):
 
         import torch.utils._pytree as pytree
 
+<<<<<<< HEAD
         assert isinstance(val, ok_types) or pytree.is_constant_class(type(val)), (
+=======
+        assert istype(val, ok_types) or pytree.is_constant_class(type(val)), (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             f"Unexpected type {type(val)}"
         )
 
         # Special case for nan because float("nan") == float("nan") evaluates to False
         if istype(val, float) and math.isnan(val):
+<<<<<<< HEAD
             code = [f"(type({ref}) is float and __math_isnan({ref}))"]
             self._set_guard_export_info(guard, code)
 
             self.get_guard_manager(guard).add_float_is_nan_guard(
+=======
+            self.TYPE_MATCH(guard)
+            code = []
+            code.append(f"__math_isnan({ref})")
+            self._set_guard_export_info(guard, code)
+
+            self.get_guard_manager(guard).add_lambda_guard(
+                _get_closure_vars()["__math_isnan"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 get_verbose_code_parts(code, guard),
             )
             return
 
         # Python math library doesn't support complex nan, so we need to use numpy
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         if istype(val, complex) and np.isnan(val):
             code = [f"(type({ref}) is complex and __numpy_isnan({ref}))"]
             self._set_guard_export_info(guard, code)
 
             self.get_guard_manager(guard).add_complex_is_nan_guard(
+=======
+        if istype(val, complex) and np.isnan(val):
+            self.TYPE_MATCH(guard)
+            code = []
+            code.append(f"__numpy_isnan({ref})")
+            self._set_guard_export_info(guard, code)
+
+            self.get_guard_manager(guard).add_lambda_guard(
+                _get_closure_vars()["__numpy_isnan"],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 get_verbose_code_parts(code, guard),
             )
             return
@@ -2255,7 +2830,11 @@ class GuardBuilder(GuardBuilderBase):
         self._set_guard_export_info(guard, code)
         return
 
+<<<<<<< HEAD
     def CONSTANT_MATCH(self, guard: Guard) -> None:
+=======
+    def CONSTANT_MATCH(self, guard: Guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         val = self.get(guard.name)
         if istype(val, bool):
             self.BOOL_MATCH(guard)
@@ -2266,6 +2845,7 @@ class GuardBuilder(GuardBuilderBase):
         else:
             self.EQUALS_MATCH(guard)
 
+<<<<<<< HEAD
     def NN_MODULE(self, guard: Guard) -> None:
         # don't support this in serialization because it uses unsupported ID_MATCH
         self.ID_MATCH(guard, "[inline-inbuilt-nn-modules-candidate]")
@@ -2275,6 +2855,19 @@ class GuardBuilder(GuardBuilderBase):
             if not self.guard_nn_modules:
                 # If guard_nn_modules is true, we will guard on the right set of guards
                 self._guard_on_attribute(guard, "training", GuardBuilder.CONSTANT_MATCH)  # type: ignore[arg-type]
+=======
+    def NN_MODULE(self, guard: Guard):
+        # don't support this in serialization because it uses unsupported ID_MATCH
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "NN_MODULE guard cannot be serialized."
+            )
+        self.ID_MATCH(guard)
+        val = self.get(guard.name)
+        if hasattr(val, "training"):
+            assert istype(val.training, bool)
+            self._guard_on_attribute(guard, "training", GuardBuilder.CONSTANT_MATCH)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         else:
             exc.unimplemented_v2(
                 gb_type="Attempted to guard on uninitialized nn.Module",
@@ -2286,6 +2879,7 @@ class GuardBuilder(GuardBuilderBase):
                 ],
             )
 
+<<<<<<< HEAD
     def FUNCTION_MATCH(self, guard: Guard) -> None:
         """things like torch.add and user defined functions"""
         # don't support this in serialization because it uses unsupported ID_MATCH
@@ -2330,6 +2924,36 @@ class GuardBuilder(GuardBuilderBase):
         return self.id_match_unchecked(guard)
 
     def SEQUENCE_LENGTH(self, guard: Guard) -> None:
+=======
+    def FUNCTION_MATCH(self, guard: Guard):
+        """things like torch.add and user defined functions"""
+        # don't support this in serialization because it uses unsupported ID_MATCH
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "FUNCTION_MATCH guard cannot be serialized."
+            )
+        return self.ID_MATCH(guard)
+
+    def CLOSURE_MATCH(self, guard: Guard):
+        """matches a closure by __code__ id."""
+        # don't support this in serialization because it uses unsupported FUNCTION_MATCH
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "CLOSURE_MATCH guard cannot be serialized."
+            )
+        val = self.get(guard.name)
+        # Strictly only want user-defined functions
+        if type(val) == types.FunctionType and hasattr(val, "__code__"):
+            self._guard_on_attribute(guard, "__code__", GuardBuilder.HASATTR)
+            self._guard_on_attribute(guard, "__code__", GuardBuilder.FUNCTION_MATCH)
+        else:
+            self.FUNCTION_MATCH(guard)
+
+    def BUILTIN_MATCH(self, guard: Guard):
+        return self.FUNCTION_MATCH(guard)
+
+    def SEQUENCE_LENGTH(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # This guard is used to check length of PySequence objects like list,
         # tuple, collections.deque etc
         ref = self.arg_ref(guard)
@@ -2355,7 +2979,11 @@ class GuardBuilder(GuardBuilderBase):
                 len(value), get_verbose_code_parts(code, guard)
             )
 
+<<<<<<< HEAD
     def TUPLE_ITERATOR_LEN(self, guard: Guard) -> None:
+=======
+    def TUPLE_ITERATOR_LEN(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = self.arg_ref(guard)
         value = self.get(guard.name)
         t = type(value)
@@ -2371,7 +2999,11 @@ class GuardBuilder(GuardBuilderBase):
             tuple_iterator_len(value), obj_id, get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def RANGE_ITERATOR_MATCH(self, guard: Guard) -> None:
+=======
+    def RANGE_ITERATOR_MATCH(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref = self.arg_ref(guard)
         value = self.get(guard.name)
         t = type(value)
@@ -2390,6 +3022,7 @@ class GuardBuilder(GuardBuilderBase):
         )
 
     # TODO(voz): Deduplicate w/ AOTAutograd dupe input guards
+<<<<<<< HEAD
     def DUPLICATE_INPUT(self, guard: Guard, source_b: Source) -> None:
         if self.save_guards:
             if name := get_local_source_name(source_b):
@@ -2397,6 +3030,13 @@ class GuardBuilder(GuardBuilderBase):
             if name := get_global_source_name(source_b):
                 self.check_fn_manager.additional_used_global_vars.add(name)
 
+=======
+    def DUPLICATE_INPUT(self, guard, source_b):
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "DUPLICATE_INPUT guard cannot be serialized yet."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ref_a = self.arg_ref(guard)
         ref_b = self.arg_ref(source_b.name())
 
@@ -2416,6 +3056,7 @@ class GuardBuilder(GuardBuilderBase):
         code = [f"{ref_b} is {ref_a}"]
         self._set_guard_export_info(guard, code)
 
+<<<<<<< HEAD
         if config.use_lamba_guard_for_object_aliasing:
             # Save the code part so that we can install a lambda guard at the
             # end.  Read the Note - On Lambda guarding of object aliasing - to
@@ -2431,6 +3072,19 @@ class GuardBuilder(GuardBuilderBase):
             )
 
     def WEAKREF_ALIVE(self, guard: Guard) -> None:
+=======
+        install_object_aliasing_guard(
+            self.get_guard_manager(guard),
+            self.get_guard_manager_from_source(source_b),
+            get_verbose_code_parts(code, guard),
+        )
+
+    def WEAKREF_ALIVE(self, guard):
+        if self.serialization_mode == "save":
+            raise torch._dynamo.exc.PackageError(
+                "WEAKREF_ALIVE guard cannot be serialized."
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code = [f"{self.arg_ref(guard)} is not None"]
 
         self._set_guard_export_info(guard, code)
@@ -2438,7 +3092,11 @@ class GuardBuilder(GuardBuilderBase):
             get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def MAPPING_KEYS_CHECK(self, guard: Guard) -> None:
+=======
+    def MAPPING_KEYS_CHECK(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Guard on the key order of types.MappingProxyType object"""
         ref = self.arg_ref(guard)
         value = self.get(guard.name)
@@ -2448,7 +3106,11 @@ class GuardBuilder(GuardBuilderBase):
         self._set_guard_export_info(guard, code)
         self.get_guard_manager(guard).add_mapping_keys_guard(value, code)
 
+<<<<<<< HEAD
     def DICT_KEYS_MATCH(self, guard: Guard) -> None:
+=======
+    def DICT_KEYS_MATCH(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Insert guard to check that the keys of a dict are same"""
         ref = self.arg_ref(guard)
         value = self.get(guard.name)
@@ -2473,13 +3135,18 @@ class GuardBuilder(GuardBuilderBase):
         else:
             self.guard_on_dict_keys_and_ignore_order(value, guard)
 
+<<<<<<< HEAD
     def EMPTY_NN_MODULE_HOOKS_DICT(self, guard: Guard) -> None:
+=======
+    def EMPTY_NN_MODULE_HOOKS_DICT(self, guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Special guard to skip guards on empty hooks. This is controlled by skip_nnmodule_hook_guards"""
         if config.skip_nnmodule_hook_guards:
             # This is unsafe if you add/remove a hook on nn module variable
             return
         self.SEQUENCE_LENGTH(guard)
 
+<<<<<<< HEAD
     def GRAD_MODE(self, guard: Guard) -> None:
         pass  # we always guard on this via GlobalStateGuard()
 
@@ -2497,6 +3164,24 @@ class GuardBuilder(GuardBuilderBase):
         assert guard.source is GuardSource.GLOBAL
 
         assert self.check_fn_manager.output_graph is not None
+=======
+    def GRAD_MODE(self, guard: Guard):
+        pass  # we always guard on this via GlobalStateGuard()
+
+    def DETERMINISTIC_ALGORITHMS(self, guard: Guard):
+        pass  # we always guard on this via GlobalStateGuard()
+
+    def TORCH_FUNCTION_STATE(self, guard: Guard):
+        pass  # we always guard on this via GlobalStateGuard()
+
+    def FSDP_TRAINING_STATE(self, guard: Guard):
+        pass  # we always guard on this via GlobalStateGuard()
+
+    def DEFAULT_DEVICE(self, guard: Guard):
+        """Guard on CURRENT_DEVICE per torch.utils._device"""
+        assert guard.source is GuardSource.GLOBAL
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         code = [
             f"utils_device.CURRENT_DEVICE == {self.check_fn_manager.output_graph.current_device!r}"
         ]
@@ -2506,6 +3191,7 @@ class GuardBuilder(GuardBuilderBase):
             get_verbose_code_parts(code, guard)
         )
 
+<<<<<<< HEAD
     def SHAPE_ENV(self, guard: Guard) -> None:
         from torch._dynamo.output_graph import OutputGraphCommon
 
@@ -2513,6 +3199,13 @@ class GuardBuilder(GuardBuilderBase):
         output_graph = self.check_fn_manager.output_graph
         assert output_graph is not None
         if self.check_fn_manager.shape_code_parts is not None:
+=======
+    def SHAPE_ENV(self, guard: Guard):
+        assert guard.name == ""
+        output_graph = self.check_fn_manager.output_graph
+        if self.serialization_mode == "load":
+            assert self.check_fn_manager.shape_code_parts is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             shape_code_parts = self.check_fn_manager.shape_code_parts
             python_code_parts = shape_code_parts.python_code_parts
             verbose_code_parts = shape_code_parts.verbose_code_parts
@@ -2524,17 +3217,27 @@ class GuardBuilder(GuardBuilderBase):
             # shape variables to sources from tracked_fakes.  This must happen after
             # tensor checks.
             # NB: self.output_graph can be None in the debug_nops tests
+<<<<<<< HEAD
             assert isinstance(output_graph, OutputGraphCommon)
             assert output_graph.shape_env is not None
             fs = output_graph.shape_env.tracked_fakes or []
             input_contexts = [a.symbolic_context for a in fs]
 
             def get_sources(t_id: int, dim: int) -> list[Source]:
+=======
+            fs = output_graph.tracked_fakes
+            input_contexts = [a.symbolic_context for a in fs]
+
+            def get_sources(t_id, dim):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # Looks up base sources mapped to a tensor id and uses them to create
                 # sources for the corresponding tensor dimension.
                 return [
                     TensorPropertySource(source, TensorProperty.SIZE, dim)
+<<<<<<< HEAD
                     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     for source in output_graph.tracked_fakes_id_to_source[t_id]
                 ]
 
@@ -2546,7 +3249,11 @@ class GuardBuilder(GuardBuilderBase):
                 ] = []
                 phantom_symbols: dict[str, Symbol] = {}
                 relaxed_sources: set[Source] = set()
+<<<<<<< HEAD
                 for constraint in output_graph.export_constraints:  # type: ignore[attr-defined]
+=======
+                for constraint in output_graph.export_constraints:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if constraint.t_id in output_graph.tracked_fakes_id_to_source:
                         torch.export.dynamic_shapes._process_equalities(
                             constraint,
@@ -2570,6 +3277,7 @@ class GuardBuilder(GuardBuilderBase):
             else:
                 equalities_inputs = None
 
+<<<<<<< HEAD
             def _get_code_parts(langs: tuple[str, ...]) -> list[_ShapeGuardsHelper]:
                 # pyrefly: ignore [missing-attribute]
                 return output_graph.shape_env.produce_guards_verbose(
@@ -2581,6 +3289,17 @@ class GuardBuilder(GuardBuilderBase):
                     # Export keeps static.
                     # pyrefly: ignore [missing-attribute]
                     ignore_static=(not output_graph.export),
+=======
+            def _get_code_parts(langs):
+                return output_graph.shape_env.produce_guards_verbose(
+                    [a.fake for a in fs],
+                    [a.source for a in fs],
+                    input_contexts=input_contexts,
+                    equalities_inputs=equalities_inputs,
+                    source_ref=self.source_ref,
+                    # Export keeps static.
+                    ignore_static=(not self.check_fn_manager.output_graph.export),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     langs=langs,
                 )
 
@@ -2588,7 +3307,11 @@ class GuardBuilder(GuardBuilderBase):
                 try:
                     # For exporting we need the python code parts
                     python_code_parts, verbose_code_parts, cpp_code_parts = (
+<<<<<<< HEAD
                         _get_code_parts(("python", "verbose_python", "cpp"))  # type: ignore[assignment]
+=======
+                        _get_code_parts(("python", "verbose_python", "cpp"))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                     python_fallback = False
                 except OverflowError:
@@ -2605,10 +3328,17 @@ class GuardBuilder(GuardBuilderBase):
 
             # When exporting, we may work with the shape constraints some more in
             # postprocessing, so don't freeze yet
+<<<<<<< HEAD
             if not output_graph.export:
                 output_graph.shape_env.freeze()
 
         if self.save_guards:
+=======
+            if not self.check_fn_manager.output_graph.export:
+                output_graph.shape_env.freeze()
+
+        if self.serialization_mode == "save":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # For SHAPE_ENV we want to skip serializing the entire ShapeEnv so instead
             # we directly serialize the generated code here.
             maybe_cpp_code_parts = locals().get("cpp_code_parts")
@@ -2641,9 +3371,13 @@ class GuardBuilder(GuardBuilderBase):
         if not python_fallback:
             assert cpp_code_parts  # type: ignore[possibly-undefined]
             code_parts, source_to_symbol = (
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
                 cpp_code_parts.exprs,
                 # pyrefly: ignore [unbound-name, missing-attribute]
+=======
+                cpp_code_parts.exprs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cpp_code_parts.source_to_symbol,
             )
 
@@ -2674,9 +3408,13 @@ class GuardBuilder(GuardBuilderBase):
 
             assert cpp_code_parts  # type: ignore[possibly-undefined]
             code_parts, source_to_symbol = (
+<<<<<<< HEAD
                 # pyrefly: ignore [unbound-name]
                 cpp_code_parts.exprs,
                 # pyrefly: ignore [unbound-name, missing-attribute]
+=======
+                cpp_code_parts.exprs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 cpp_code_parts.source_to_symbol,
             )
 
@@ -2753,7 +3491,11 @@ class GuardBuilder(GuardBuilderBase):
                 closure_vars={**SYMPY_INTERP, **_get_closure_vars()},
             )
 
+<<<<<<< HEAD
     def TENSOR_MATCH(self, guard: Guard, value: Optional[Any] = None) -> None:
+=======
+    def TENSOR_MATCH(self, guard: Guard, value=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if config._unsafe_skip_fsdp_module_guards and guard.is_fsdp_module():
             return
         # For tensors that are part of the Dynamo extracted Fx graph module, an
@@ -2779,10 +3521,16 @@ class GuardBuilder(GuardBuilderBase):
 
             if config.log_compilation_metrics and isinstance(value, torch.nn.Parameter):
                 metrics_context = get_metrics_context()
+<<<<<<< HEAD
                 if metrics_context.in_progress():
                     metrics_context.increment("param_numel", value.numel())
                     metrics_context.increment("param_bytes", value.nbytes)
                     metrics_context.increment("param_count", 1)
+=======
+                metrics_context.increment("param_numel", value.numel())
+                metrics_context.increment("param_bytes", value.nbytes)
+                metrics_context.increment("param_count", 1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             tensor_name = self.arg_ref(guard)
             # [Note - On Export Tensor Guards]
@@ -2807,7 +3555,10 @@ class GuardBuilder(GuardBuilderBase):
             # The list of tensor fields and calls we care about can be found in `terms` below.
             # TODO(voz): We are missing storage offset in all our tensor guards?
             code: list[str] = []
+<<<<<<< HEAD
             assert self.check_fn_manager.output_graph is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if self.check_fn_manager.output_graph.export:
                 self.TYPE_MATCH(guard)
                 terms = [
@@ -2838,12 +3589,16 @@ class GuardBuilder(GuardBuilderBase):
                 # insert aliasing guards on them
                 if not (
                     config.skip_no_tensor_aliasing_guards_on_parameters
+<<<<<<< HEAD
                     and (
                         istype(value, torch.nn.Parameter)
                         or is_from_unspecialized_builtin_nn_module_source(
                             guard.originating_source
                         )
                     )
+=======
+                    and istype(value, torch.nn.Parameter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ) and not isinstance(guard.originating_source, NumpyTensorSource):
                     # Keep track of all the tensor guard managers to insert
                     # NoAliasing check at the end.
@@ -2859,19 +3614,28 @@ class GuardBuilder(GuardBuilderBase):
 
                 verbose_code_parts = get_verbose_code_parts(
                     get_tensor_guard_code_part(
+<<<<<<< HEAD
                         value,
                         tensor_name,
                         size,
                         stride,
                         pytype,
                         dispatch_keys,
+=======
+                        value, tensor_name, size, stride, pytype, dispatch_keys
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     ),
                     guard,
                 )
                 guard_manager.add_tensor_match_guard(
                     value,
+<<<<<<< HEAD
                     size,  # type: ignore[arg-type]
                     stride,  # type: ignore[arg-type]
+=======
+                    size,
+                    stride,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     tensor_name,
                     verbose_code_parts,
                     pytype,
@@ -2939,6 +3703,7 @@ class GuardBuilder(GuardBuilderBase):
                 self._set_guard_export_info(guard, code)
 
     # A util that in the case of export, adds data onto guards
+<<<<<<< HEAD
     def _set_guard_export_info(
         self,
         guard: Guard,
@@ -2946,6 +3711,9 @@ class GuardBuilder(GuardBuilderBase):
         provided_guarded_object: Optional[Any] = None,
         provided_func_name: Optional[str] = None,
     ) -> None:
+=======
+    def _set_guard_export_info(self, guard, code_list, provided_guarded_object=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # WARNING: It is important that cur_frame/caller do NOT stay in
         # the current frame, because they will keep things live longer
         # than they should.  See TestMisc.test_release_module_memory
@@ -2954,7 +3722,11 @@ class GuardBuilder(GuardBuilderBase):
         caller = cur_frame.f_back
         del cur_frame
         assert caller is not None
+<<<<<<< HEAD
         func_name = provided_func_name or caller.f_code.co_name
+=======
+        func_name = caller.f_code.co_name
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         del caller
         # We use func_name for export, so might as well get a nice defensive check out of it
         assert func_name in self.__class__.__dict__, (
@@ -2978,9 +3750,13 @@ class GuardBuilder(GuardBuilderBase):
             getattr(guarded_object.__class__, "__weakrefoffset__", 0) != 0
         )
         # See D64140537 for why we are checking for tuple.
+<<<<<<< HEAD
         if supports_weakref and not isinstance(
             guarded_object, (enum.Enum, tuple, weakref.ProxyTypes)
         ):
+=======
+        if supports_weakref and not isinstance(guarded_object, (enum.Enum, tuple)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             obj_ref = weakref.ref(guarded_object)
 
         guard.set_export_info(
@@ -3025,7 +3801,11 @@ class PyExprCSEPass:
         def __init__(self, config: PyExprCSEPass.Config) -> None:
             self._config = config
 
+<<<<<<< HEAD
         def visit(self, node: ast.AST) -> None:
+=======
+        def visit(self, node: ast.AST) -> Any:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if isinstance(node, PyExprCSEPass.ALLOWED_NODE_TYPES):
                 self._config.expr_count[_ast_unparse(node)] += 1
             super().visit(node)
@@ -3093,7 +3873,11 @@ class PyExprCSEPass:
         return replacer.preface, _ast_unparse(new_node)
 
 
+<<<<<<< HEAD
 def must_add_nn_module_guards(guard: Guard) -> bool:
+=======
+def must_add_nn_module_guards(guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # For config.guard_nn_modules=False, we can skip all the guards that
     # originate from inside of nn module except for a few categories.
     return (
@@ -3108,11 +3892,19 @@ def must_add_nn_module_guards(guard: Guard) -> bool:
 
 
 class DeletedGuardManagerWrapper(GuardManagerWrapper):
+<<<<<<< HEAD
     def __init__(self, reason: str) -> None:
         super().__init__()
         self.invalidation_reason = reason
 
     def populate_diff_guard_manager(self) -> None:
+=======
+    def __init__(self, reason):
+        super().__init__()
+        self.invalidation_reason = reason
+
+    def populate_diff_guard_manager(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.diff_guard_root = None
 
 
@@ -3129,6 +3921,7 @@ class ShapeCodeParts:
 class GuardsState:
     output_graph: OutputGraphGuardsState
     shape_code_parts: Optional[ShapeCodeParts]
+<<<<<<< HEAD
     source_get_cache: Optional[dict[str, Any]] = None
 
 
@@ -3181,11 +3974,24 @@ class GuardsStatePickler(pickle.Pickler):
 
     @classmethod
     def _unpickle_module(cls, state: Any) -> torch.nn.Module:
+=======
+
+
+class GuardsStatePickler(pickle.Pickler):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fake_mode = torch._subclasses.FakeTensorMode()
+        self.tensor_converter = torch._subclasses.fake_tensor.FakeTensorConverter()
+
+    @classmethod
+    def _unpickle_module(cls, state):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         mod = torch.nn.Module()
         mod.__setstate__(state)
         return mod
 
     @classmethod
+<<<<<<< HEAD
     def _unpickle_tensor(
         cls,
         meta_tensor: torch.Tensor,
@@ -3197,12 +4003,19 @@ class GuardsStatePickler(pickle.Pickler):
         fake_mode = torch._subclasses.FakeTensorMode()
         tensor_converter = torch._subclasses.fake_tensor.FakeTensorConverter()
         ret = tensor_converter.from_meta_and_device(
+=======
+    def _unpickle_tensor(cls, meta_tensor, device, pytype, dispatch_keys_raw):
+        fake_mode = torch._subclasses.FakeTensorMode()
+        tensor_converter = torch._subclasses.fake_tensor.FakeTensorConverter()
+        return tensor_converter.from_meta_and_device(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fake_mode,
             meta_tensor,
             device,
             pytype,
             torch._C.DispatchKeySet.from_raw_repr(dispatch_keys_raw),
         )
+<<<<<<< HEAD
         ret.grad = grad
         return ret
 
@@ -3216,13 +4029,24 @@ class GuardsStatePickler(pickle.Pickler):
         ctx: Any,
         inner_data: list[tuple[str, Callable[..., Any], tuple[Any, ...]]],
     ) -> torch.Tensor:
+=======
+
+    @classmethod
+    def _unpickle_traceable_wrapper_subclass(
+        cls, meta_tensor, device, pytype, dispatch_keys_raw, ctx, inner_data
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Unpickle the inner tensor components. These could also be subclass instances.
         inner_tensors = {}
         for attr, unpickle_func, unpickle_func_args in inner_data:
             inner_tensors[attr] = unpickle_func(*unpickle_func_args)
 
         outer_size, outer_stride = meta_tensor.shape, meta_tensor.stride()
+<<<<<<< HEAD
         out = type(meta_tensor).__tensor_unflatten__(  # type: ignore[attr-defined]
+=======
+        out = type(meta_tensor).__tensor_unflatten__(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inner_tensors, ctx, outer_size, outer_stride
         )
         out.pytype = pytype
@@ -3230,6 +4054,7 @@ class GuardsStatePickler(pickle.Pickler):
         return out
 
     @classmethod
+<<<<<<< HEAD
     def _unpickle_python_module(cls, alias: str) -> types.ModuleType:
         return importlib.import_module(alias)
 
@@ -3304,6 +4129,29 @@ class GuardsStatePickler(pickle.Pickler):
             if id(obj) not in self.guard_tree_values:
                 return _Missing, ("tensor guard tree",)
 
+=======
+    def _unpickle_python_module(cls, alias: str):
+        return importlib.import_module(alias)
+
+    @classmethod
+    def _unpickle_dispatch_key_set(cls, raw_repr: int):
+        return torch._C.DispatchKeySet.from_raw_repr(raw_repr)
+
+    @classmethod
+    def _unpickle_functorch_interpreter(cls, json: bytes):
+        return torch._C._functorch.CInterpreter.deserialize(json)
+
+    @classmethod
+    def _unpickle_mapping_proxy(cls, d):
+        return types.MappingProxyType(d)
+
+    def reducer_override(self, obj):
+        import sympy
+
+        if isinstance(obj, torch.Tensor) and obj.device.type != "meta":
+            from torch.utils._python_dispatch import is_traceable_wrapper_subclass
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if is_traceable_wrapper_subclass(obj):
                 # inner_data is a list of tuples of:
                 #   (inner attr name, unpickle func, tuple of func inputs)
@@ -3313,8 +4161,11 @@ class GuardsStatePickler(pickle.Pickler):
                 # recursively call for inner tensor components
                 for attr in attrs:
                     inner = getattr(obj, attr)
+<<<<<<< HEAD
                     if isinstance(inner, torch.Tensor):
                         self.guard_tree_values[id(inner)] = inner
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     func, args_tuple = self.reducer_override(inner)
                     inner_data.append((attr, func, args_tuple))
 
@@ -3328,6 +4179,7 @@ class GuardsStatePickler(pickle.Pickler):
                 )
 
             return type(self)._unpickle_tensor, (
+<<<<<<< HEAD
                 torch.empty_like(obj, device="meta", requires_grad=obj.requires_grad),
                 obj.device,
                 type(obj),
@@ -3345,6 +4197,15 @@ class GuardsStatePickler(pickle.Pickler):
             if isinstance(obj, torch.nn.parallel.DistributedDataParallel):
                 return type(self)._unpickle_ddp_module, (obj.__getstate__(),)
 
+=======
+                torch.empty_like(obj, device="meta"),
+                obj.device,
+                type(obj),
+                torch._C._dispatch_keys(obj).raw_repr(),
+            )
+
+        elif isinstance(obj, torch.nn.Module):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if type(obj).__qualname__ == type(obj).__name__:
                 return NotImplemented
             if obj.__class__.__getstate__ == torch.nn.Module.__getstate__:
@@ -3373,6 +4234,7 @@ class GuardsStatePickler(pickle.Pickler):
         elif isinstance(obj, types.MappingProxyType):
             return type(self)._unpickle_mapping_proxy, (obj.copy(),)
 
+<<<<<<< HEAD
         elif isinstance(obj, torch._dynamo.utils.dict_keys):
             return type(self)._unpickle_dict_keys, (list(obj),)
 
@@ -3418,6 +4280,8 @@ class GuardsStatePickler(pickle.Pickler):
             if id(obj) not in self.guard_tree_values:
                 return _Missing, ("distributed_c10d.Work",)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if type(obj).__qualname__ != type(obj).__name__:
             raise torch._dynamo.exc.PackageError(
                 f"Type {type(obj)} for object {obj} cannot be saved "
@@ -3425,6 +4289,7 @@ class GuardsStatePickler(pickle.Pickler):
                 + "Please define the class at global scope (top level of a module)."
             )
 
+<<<<<<< HEAD
         if (
             inspect.isclass(obj)
             and hasattr(torch.distributed, "fsdp")
@@ -3462,6 +4327,14 @@ def pickle_guards_state(state: GuardsState, guard_tree_values: dict[int, Any]) -
             # Prune more objects in pytree hierarchy.
             missing_values[id(leaf)] = leaf
     pickler = GuardsStatePickler(guard_tree_values, empty_values, missing_values, buf)
+=======
+        return NotImplemented
+
+
+def pickle_guards_state(state: GuardsState) -> bytes:
+    buf = io.BytesIO()
+    pickler = GuardsStatePickler(buf)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         pickler.dump(state)
     except AttributeError as e:
@@ -3477,18 +4350,29 @@ def pickle_guards_state(state: GuardsState, guard_tree_values: dict[int, Any]) -
 class CheckFunctionManager:
     def __init__(
         self,
+<<<<<<< HEAD
         f_code: types.CodeType,
         output_graph: OutputGraphCommon,
         cache_entry: Optional[CacheEntry] = None,
+=======
+        f_code,
+        output_graph=None,
+        cache_entry=None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         guard_fail_fn: Optional[Callable[[GuardFail], None]] = None,
         guard_filter_fn: Optional[
             Callable[[list[GuardFilterEntry]], list[bool]]
         ] = None,
+<<<<<<< HEAD
         shape_code_parts: Optional[ShapeCodeParts] = None,
         runtime_global_scope: Optional[dict[str, Any]] = None,
         save_guards: bool = False,
         strict_error: bool = False,
         source_get_cache: Optional[dict[str, Any]] = None,
+=======
+        guards_serialization_mode: Optional[str] = None,
+        shape_code_parts: Optional[ShapeCodeParts] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         guards = output_graph.guards if output_graph else None
         self._weakrefs: dict[int, ReferenceType[object]] = {}
@@ -3496,8 +4380,12 @@ class CheckFunctionManager:
         existing_diff_guard_sources = (
             update_diff_guard_managers_for_existing_cache_entries(cache_entry)
         )
+<<<<<<< HEAD
         self.output_graph: Optional[OutputGraphCommon] = output_graph
         assert self.output_graph is not None
+=======
+        self.output_graph = output_graph
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Only used for serialization.
         self.shape_code_parts = shape_code_parts
@@ -3507,14 +4395,19 @@ class CheckFunctionManager:
         self.torch_function_mode_stack = (
             output_graph.torch_function_mode_stack if output_graph else None
         )
+<<<<<<< HEAD
         self.used_builtin_vars: OrderedSet[str] = OrderedSet()
         self.additional_used_local_vars: OrderedSet[str] = OrderedSet()
         self.additional_used_global_vars: OrderedSet[str] = OrderedSet()
         self.runtime_global_scope = runtime_global_scope
+=======
+        self.guards_serialization_mode = guards_serialization_mode
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not justknobs_check("pytorch/compiler:guard_nn_modules"):
             log.warning("guard_nn_modules is turned off using justknobs killswitch")
 
+<<<<<<< HEAD
         # TODO Be more explicit about the behavior for the users.
         if torch._dynamo.config.caching_precompile:
             _guard_filter_fn = guard_filter_fn or (lambda gs: [True for g in gs])
@@ -3560,12 +4453,27 @@ class CheckFunctionManager:
             )
 
             def make_guard_filter_entry(guard: Guard) -> GuardFilterEntry:
+=======
+        sorted_guards = sorted(guards or (), key=Guard.sort_key)
+        builder, guard_manager = self.build_guards(
+            sorted_guards,
+            existing_diff_guard_sources,
+            f_code,
+            output_graph,
+            None if guard_filter_fn else self.guards_serialization_mode,
+        )
+
+        if guard_filter_fn:
+
+            def make_guard_filter_entry(guard):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 MISSING = object()
                 name = strip_local_scope(guard.name)
                 if name == "":
                     has_value = False
                     value = MISSING
                 else:
+<<<<<<< HEAD
                     try:
                         # Guard evaluation is expected to fail when we guard on
                         # things like "not hasattr(x, 'foo')". In cases like this,
@@ -3577,14 +4485,29 @@ class CheckFunctionManager:
                         value = MISSING
                         has_value = False
                 is_global = get_global_source_name(guard.originating_source) is not None
+=======
+                    has_value = True
+                    value = builder.get(guard.name)
+                is_global = get_global_source_name(guard.originating_source) is not None
+                guard_fn = guard.create_fn
+                if isinstance(guard_fn, functools.partial):
+                    guard_fn = guard.create_fn.func
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return GuardFilterEntry(
                     name=name,
                     has_value=has_value,
                     value=value,
+<<<<<<< HEAD
                     guard_type=guard.create_fn_name(),
                     derived_guard_types=(
                         tuple(guard.guard_types) if guard.guard_types else ()
                     ),
+=======
+                    guard_type=guard_fn.__name__,
+                    derived_guard_types=tuple(guard.guard_types)
+                    if guard.guard_types
+                    else (),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     is_global=is_global,
                     orig_guard=guard,
                 )
@@ -3593,6 +4516,7 @@ class CheckFunctionManager:
                 [make_guard_filter_entry(guard) for guard in sorted_guards]
             )
             assert len(filter_results) == len(sorted_guards)
+<<<<<<< HEAD
             assert all(type(x) is bool for x in filter_results)
             sorted_guards = [
                 guard for i, guard in enumerate(sorted_guards) if filter_results[i]
@@ -3607,6 +4531,20 @@ class CheckFunctionManager:
             save_guards,
             source_get_cache=source_get_cache,
         )
+=======
+            assert all(type(x) == bool for x in filter_results)
+            sorted_guards = [
+                guard for i, guard in enumerate(sorted_guards) if filter_results[i]
+            ]
+            # Redo the guards because filtering relies on the results from the last guard builder.
+            builder, guard_manager = self.build_guards(
+                sorted_guards,
+                existing_diff_guard_sources,
+                f_code,
+                output_graph,
+                self.guards_serialization_mode,
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.guard_manager = guard_manager
         self.compile_check_fn(builder, sorted_guards, guard_fail_fn)
@@ -3629,6 +4567,7 @@ class CheckFunctionManager:
         # TODO(anijain2305, ydwu4) - Skipping export because of following test
         # python -s test/dynamo/test_export.py -k test_export_with_symbool_inputs
         latency = 0.0
+<<<<<<< HEAD
 
         if not output_graph.skip_guards_check and not output_graph.export:
             if not self.guard_manager.check(output_graph.local_scope):
@@ -3645,13 +4584,31 @@ class CheckFunctionManager:
             if guard_manager_testing_hook_fn is not None:
                 guard_manager_testing_hook_fn(
                     self.guard_manager, output_graph.local_scope, builder
+=======
+        if not output_graph.export and self.guards_serialization_mode != "load":
+            if not self.guard_manager.check(output_graph.local_scope):
+                reasons = get_guard_fail_reason_helper(
+                    self.guard_manager,  # type: ignore[arg-type]
+                    output_graph.local_scope,
+                    CompileContext.current_compile_id(),
+                )
+                raise AssertionError(f"Guard check failed: {reasons}")
+
+            if guard_manager_testing_hook_fn is not None:
+                guard_manager_testing_hook_fn(
+                    self.guard_manager, output_graph.local_scope
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             # NB for developers: n_iters is chosen to be 1 to prevent excessive
             # increase in compile time. We first do a cache flush to measure the
             # guard latency more accurately. This cache flush is expensive.
             # Note  - If you are working on a guard optimization, it might be a
+<<<<<<< HEAD
             # good idea to increase this number for more stability during
+=======
+            # good idea to increase this number for more stabiilty during
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # development.
             latency = profile_guard_manager(
                 self.guard_manager.root, output_graph.local_scope, 1
@@ -3669,6 +4626,7 @@ class CheckFunctionManager:
             CompileEventLogger.increment_toplevel("guard_latency_us", int(latency))
 
         self.guards_state: Optional[bytes] = None
+<<<<<<< HEAD
         if save_guards:
             from torch._dynamo.output_graph import OutputGraphCommon
 
@@ -3684,6 +4642,80 @@ class CheckFunctionManager:
                     f"Guard evaluation failed: {str(e)}",
                     traceback=traceback.format_exc().split("\n"),
                 )
+=======
+        if self.guards_serialization_mode == "save":
+            used_global_vars = set()
+            used_local_vars = set()
+
+            def prune_variable(source):
+                if name := get_global_source_name(source):
+                    assert isinstance(name, str)
+                    used_global_vars.add(name)
+                elif name := get_local_source_name(source):
+                    assert isinstance(name, str)
+                    used_local_vars.add(name)
+
+            output_graph_guards_state = self.output_graph.dump_guards_state()
+            # Only serialize the global variables that are actually used in guards.
+            for guard in sorted_guards:
+                if isinstance(guard.originating_source, ShapeEnvSource):
+                    assert self.shape_code_parts
+                    for source in self.shape_code_parts.shape_env_sources:
+                        prune_variable(source)
+                else:
+                    prune_variable(guard.originating_source)
+
+            for source in self.output_graph.guard_on_key_order:
+                prune_variable(source)
+
+            def normalize_create_fn(x):
+                if isinstance(x, functools.partial):
+
+                    def _ref(x):
+                        if isinstance(x, (TensorWeakRef, weakref.ref)):
+                            return x()
+                        return x
+
+                    new_args = tuple(_ref(a) for a in x.args)
+                    new_keywords = {k: _ref(v) for k, v in x.keywords.items()}
+                    return functools.partial(x.func, *new_args, **new_keywords)
+
+                return x
+
+            output_graph_guards_state = dataclasses.replace(
+                output_graph_guards_state,
+                local_scope={
+                    k: v
+                    for k, v in output_graph_guards_state.local_scope.items()
+                    if k in used_local_vars
+                },
+                global_scope={
+                    k: v
+                    for k, v in output_graph_guards_state.global_scope.items()
+                    if k in used_global_vars
+                },
+                _guards=torch._guards.GuardsSet(
+                    {
+                        dataclasses.replace(
+                            guard,
+                            obj_weakref=None,
+                            guarded_class_weakref=None,
+                            create_fn=normalize_create_fn(guard.create_fn),
+                        )
+                        for guard in sorted_guards
+                    }
+                ),
+                input_source_to_sizes_strides=pytree.tree_map(
+                    convert_int_to_concrete_values,
+                    output_graph_guards_state.input_source_to_sizes_strides,
+                ),
+            )
+            guards_state = GuardsState(
+                output_graph=output_graph_guards_state,
+                shape_code_parts=self.shape_code_parts,
+            )
+            self.guards_state = pickle_guards_state(guards_state)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # TODO: don't do the string rep, do something more structured here
         torch._logging.trace_structured(
@@ -3701,6 +4733,7 @@ class CheckFunctionManager:
         self._weakrefs.clear()
         self.output_graph = None
 
+<<<<<<< HEAD
     UNSUPPORTED_SERIALIZATION_GUARD_TYPES: tuple[LiteralString, ...] = (
         "DICT_VERSION",
         "NN_MODULE",
@@ -3845,12 +4878,26 @@ class CheckFunctionManager:
         save_guards: bool,
         source_get_cache: Optional[dict[str, Any]] = None,
     ) -> tuple[GuardBuilder, GuardManagerWrapper]:
+=======
+    def build_guards(
+        self,
+        sorted_guards,
+        existing_diff_guard_sources,
+        f_code,
+        output_graph,
+        serialization_mode=None,
+    ):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         guard_manager = GuardManagerWrapper()
         guard_manager.diff_guard_sources = existing_diff_guard_sources
 
         w_builder = None
 
+<<<<<<< HEAD
         def source_ref(source: Source) -> str:
+=======
+        def source_ref(source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             guard_source = source.guard_source()
             if guard_source is GuardSource.CONSTANT:
                 # No need to track constants
@@ -3869,6 +4916,7 @@ class CheckFunctionManager:
             output_graph.global_scope,
             guard_manager,
             self,
+<<<<<<< HEAD
             save_guards,
             runtime_global_scope=self.runtime_global_scope,
             source_get_cache=source_get_cache,
@@ -3879,6 +4927,16 @@ class CheckFunctionManager:
             b = weak_b()
             if b:
                 b.scope = None  # type: ignore[assignment]
+=======
+            serialization_mode,
+        )
+
+        # Break retain cycle. See test_release_scope_memory
+        def cleanup_builder(weak_b):
+            b = weak_b()
+            if b:
+                b.scope = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Break retain cycle. See test_release_input_memory
         w_builder = weakref.ref(builder, cleanup_builder)
@@ -3902,12 +4960,16 @@ class CheckFunctionManager:
             guard.create(builder)
         return builder, guard_manager
 
+<<<<<<< HEAD
     def compile_check_fn(
         self,
         builder: GuardBuilder,
         guards_out: list[Guard],
         guard_fail_fn: Optional[Callable[[GuardFail], None]],
     ) -> None:
+=======
+    def compile_check_fn(self, builder, guards_out, guard_fail_fn):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # see parallel handling of ".0" / "___implicit0" in _eval_frame.c
         largs = builder.argnames
         largs += ["**___kwargs_ignored"]
@@ -3918,11 +4980,15 @@ class CheckFunctionManager:
         verbose_code_parts = []
         structured_guard_fns: list[Callable[[], dict[str, Any]]] = []
 
+<<<<<<< HEAD
         assert self.torch_function_mode_stack is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch_function_mode_stack_check_fn = make_torch_function_mode_stack_guard(
             self.torch_function_mode_stack
         )
 
+<<<<<<< HEAD
         # Add compile id info in the guard manager for debugging purpose
         self.guard_manager.root.attach_compile_id(
             str(CompileContext.current_compile_id())
@@ -3934,6 +5000,10 @@ class CheckFunctionManager:
         self.guard_manager.root.add_global_state_guard(
             global_state, ["___check_global_state()"]
         )
+=======
+        # Insert the global_state guard
+        self.guard_manager.root.add_global_state_guard(["___check_global_state()"])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         self.guard_manager.root.add_torch_function_mode_stack_guard(
             self.torch_function_mode_stack,
@@ -3942,9 +5012,13 @@ class CheckFunctionManager:
         # Clear references to torch_function modes held in the list
         self.torch_function_mode_stack = None
 
+<<<<<<< HEAD
         def add_code_part(
             code_part: str, guard: Optional[Guard], log_only: bool = False
         ) -> None:
+=======
+        def add_code_part(code_part, guard, log_only=False):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             verbose_code_part = get_verbose_code_part(code_part, guard)
             guards_log.debug("%s", verbose_code_part)
 
@@ -4007,6 +5081,7 @@ class CheckFunctionManager:
                 ["check_no_aliasing(" + ", ".join(no_tensor_aliasing_names) + ")"],
             )
 
+<<<<<<< HEAD
         # Note - On Lambda guarding of object aliasing
         # We previously installed object-aliasing guards as relational guards,
         # but that undermined the recursive-dict guard optimization: placing the
@@ -4027,6 +5102,8 @@ class CheckFunctionManager:
                 aliasing_code_parts, aliasing_verbose_code_parts
             )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         aotautograd_guards: list[GuardEnvExpr] = (
             self.output_graph.aotautograd_guards if self.output_graph else []
         )
@@ -4082,7 +5159,12 @@ class CheckFunctionManager:
                 "dynamo_guards", payload_fn=lambda: [f() for f in structured_guard_fns]
             )
 
+<<<<<<< HEAD
         if convert_frame.initial_global_state is None:
+=======
+        global_state = convert_frame.initial_global_state
+        if global_state is None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # we should only hit this case in NopTests()
             global_state = convert_frame.GlobalStateGuard()
         closure_vars = {
@@ -4114,7 +5196,11 @@ class CheckFunctionManager:
         self.guard_manager.extra_state = None
         self.guard_manager.no_tensor_aliasing_sources = no_tensor_aliasing_names
 
+<<<<<<< HEAD
     def invalidate(self, obj_str: str) -> None:
+=======
+    def invalidate(self, obj_str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Some tests reveal that CheckFunctionManager has no attribute
         # guard_manager, but this case should not be of any concern.
         # This case doesn't seem easy to repro.
@@ -4125,6 +5211,7 @@ class CheckFunctionManager:
             and (extra_state := self.guard_manager.extra_state) is not None
         ):
             assert isinstance(cache_entry, CacheEntry)
+<<<<<<< HEAD
 
             assert isinstance(extra_state, ExtraState)
             reason = f"Cache line invalidated because {obj_str} got deallocated"
@@ -4134,6 +5221,15 @@ class CheckFunctionManager:
             self.guard_manager = deleted_guard_manager
 
     def id_ref(self, obj: object, obj_str: str) -> int:
+=======
+            assert isinstance(extra_state, ExtraState)
+            reason = f"Cache line invalidated because {obj_str} got deallocated"
+            deleted_guard_manager = DeletedGuardManagerWrapper(reason)
+            extra_state.invalidate(cache_entry, deleted_guard_manager)
+            self.guard_manager = deleted_guard_manager
+
+    def id_ref(self, obj, obj_str):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """add a weakref, return the id"""
         try:
             if id(obj) not in self._weakrefs:
@@ -4148,14 +5244,22 @@ class CheckFunctionManager:
             pass  # cannot weakref bool object
         return id(obj)
 
+<<<<<<< HEAD
     def lookup_weakrefs(self, obj: object) -> Optional[weakref.ref[object]]:
+=======
+    def lookup_weakrefs(self, obj):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """Lookup the _weakrefs created in id_ref function for ID_MATCH'd objects"""
         if id(obj) in self._weakrefs:
             return self._weakrefs[id(obj)]
         return None
 
 
+<<<<<<< HEAD
 def build_guard_function(code_parts: list[str], closure_args: str) -> tuple[str, str]:
+=======
+def build_guard_function(code_parts, closure_args) -> tuple[str, str]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._inductor.utils import IndentedBuffer
 
     csepass = PyExprCSEPass()
@@ -4164,7 +5268,10 @@ def build_guard_function(code_parts: list[str], closure_args: str) -> tuple[str,
 
         def replace(expr: str) -> tuple[list[str], str]:
             return csepass.replace(expr)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     except RecursionError:
         # If we hit recursion limits during CSE analysis, fall back to a no-op replace function
         # This can happen with extremely complex guard expressions
@@ -4199,28 +5306,47 @@ def build_guard_function(code_parts: list[str], closure_args: str) -> tuple[str,
     return guard_body.getvalue(), make_guard_fn.getvalue()
 
 
+<<<<<<< HEAD
 def is_recompiles_enabled() -> bool:
     return torch._logging._internal.log_state.is_artifact_enabled("recompiles")
 
 
 def is_recompiles_verbose_enabled() -> bool:
+=======
+def is_recompiles_enabled():
+    return torch._logging._internal.log_state.is_artifact_enabled("recompiles")
+
+
+def is_recompiles_verbose_enabled():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch._logging._internal.log_state.is_artifact_enabled("recompiles_verbose")
 
 
 # this will only be used if cpp guards are disabled
+<<<<<<< HEAD
 def make_torch_function_mode_stack_guard(
     initial_stack: list[torch.overrides.TorchFunctionMode],
 ) -> Callable[[], bool]:
     types = [type(x) for x in initial_stack]
 
     def check_torch_function_mode_stack() -> bool:
+=======
+def make_torch_function_mode_stack_guard(initial_stack):
+    types = [type(x) for x in initial_stack]
+
+    def check_torch_function_mode_stack():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cur_stack = get_torch_function_mode_stack()
 
         if len(cur_stack) != len(types):
             return False
 
         for ty, mode in zip(types, cur_stack):
+<<<<<<< HEAD
             if ty is not type(mode):
+=======
+            if ty != type(mode):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return False
 
         return True
@@ -4228,6 +5354,7 @@ def make_torch_function_mode_stack_guard(
     return check_torch_function_mode_stack
 
 
+<<<<<<< HEAD
 Scope = TypeAliasType("Scope", dict[str, object])
 
 
@@ -4238,6 +5365,12 @@ def recompilation_reason_for_no_tensor_aliasing_guard(
     global_scope = dict(guard_manager.global_scope)
     ids_to_source = collections.defaultdict(list)
     for tensor_source in guard_manager.no_tensor_aliasing_sources:
+=======
+def recompilation_reason_for_no_tensor_aliasing_guard(guard_manager, scope):
+    global_scope = dict(guard_manager.global_scope)
+    ids_to_source = collections.defaultdict(list)
+    for tensor_source in guard_manager.no_tensor_aliasing_sources:  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         global_scope["__compile_source__"] = tensor_source
         tensor_id = id(eval(tensor_source, global_scope, scope))
         ids_to_source[tensor_id].append(tensor_source)
@@ -4264,17 +5397,26 @@ def strip_local_scope(s: str) -> str:
 
 
 def get_guard_fail_reason_helper(
+<<<<<<< HEAD
     guard_manager: GuardManagerWrapper,
     f_locals: dict[str, object],
     compile_id: Optional[CompileId],
+=======
+    guard_manager: GuardFn,
+    f_locals: dict[str, object],
+    compile_id: CompileId,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> str:
     """
     Return the reason why `guard_manager` failed.
     Updates `guard_failures` with the generated reason.
     Only the first failed check of guard_manager is reported.
     """
+<<<<<<< HEAD
     assert guard_manager.global_scope is not None
     assert guard_manager.closure_vars is not None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     scope = {"L": f_locals, "G": guard_manager.global_scope["G"]}
     scope.update(guard_manager.closure_vars)
     reasons: list[str] = []
@@ -4282,7 +5424,11 @@ def get_guard_fail_reason_helper(
     no_tensor_aliasing_check_failed = False
 
     verbose_code_parts: list[str] = []
+<<<<<<< HEAD
     guard_debug_info = guard_manager.check_verbose(f_locals)
+=======
+    guard_debug_info = guard_manager.check_verbose(f_locals)  # type: ignore[attr-defined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # For test_export_with_map_cond, the check_verbose fail even without the
     # C++ guard manager. We need to fix the issue to remove the comment.
     # assert not guard_debug_info.result
@@ -4333,17 +5479,27 @@ def get_guard_fail_reason_helper(
 
 
 def get_guard_fail_reason(
+<<<<<<< HEAD
     guard_manager: GuardManagerWrapper,
     code: types.CodeType,
     f_locals: dict[str, object],
     compile_id: CompileId,
     skip_logging: bool = False,
+=======
+    guard_manager: GuardFn,
+    code: types.CodeType,
+    f_locals: dict[str, object],
+    compile_id: CompileId,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> str:
     if isinstance(guard_manager, DeletedGuardManagerWrapper):
         return f"{compile_id}: {guard_manager.invalidation_reason}"
     reason_str = get_guard_fail_reason_helper(guard_manager, f_locals, compile_id)
+<<<<<<< HEAD
     if skip_logging:
         return reason_str
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     guard_failures[orig_code_map[code]].append(reason_str)
 
     try:
@@ -4360,9 +5516,13 @@ def get_guard_fail_reason(
 
 
 def get_and_maybe_log_recompilation_reasons(
+<<<<<<< HEAD
     cache_entry: Optional[CacheEntry],
     frame: DynamoFrameType,
     skip_logging: bool = False,
+=======
+    cache_entry, frame: DynamoFrameType
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> list[str]:
     """
     Return the list of guard failure reasons using cache_entry.
@@ -4376,7 +5536,10 @@ def get_and_maybe_log_recompilation_reasons(
             cache_entry.code,
             frame.f_locals,
             cache_entry.compile_id,
+<<<<<<< HEAD
             skip_logging,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         if reason:
             reasons.append(reason)
@@ -4384,8 +5547,11 @@ def get_and_maybe_log_recompilation_reasons(
 
     code = frame.f_code
 
+<<<<<<< HEAD
     if skip_logging:
         return reasons
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # at least one of "recompiles" or "recompiles_verbose" is enabled
     do_recompiles_log = is_recompiles_enabled() or is_recompiles_verbose_enabled()
 
@@ -4424,20 +5590,32 @@ def get_and_maybe_log_recompilation_reasons(
     return reasons
 
 
+<<<<<<< HEAD
 def update_diff_guard_managers_for_existing_cache_entries(
     cache_entry: Optional[CacheEntry],
 ) -> OrderedSet[str]:
+=======
+def update_diff_guard_managers_for_existing_cache_entries(cache_entry):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     first_cache_entry = cache_entry
 
     # On the first pass, go through the cache entries and accumulate the diff
     # guard sources. Different guard managers can fail with different sources.
     # So, we collect all of them first.
+<<<<<<< HEAD
     acc_diff_guard_sources: OrderedSet[str] = OrderedSet()
+=======
+    acc_diff_guard_sources = set()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     while cache_entry is not None:
         acc_diff_guard_sources.update(
             cache_entry.guard_manager.collect_diff_guard_sources()
         )
+<<<<<<< HEAD
         cache_entry = cache_entry.next  # type: ignore[assignment]
+=======
+        cache_entry = cache_entry.next
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # On the second pass, set the diff_guard_sources for each cache line to the
     # accumulated value. And the re-populate the diff guard manager.
@@ -4445,7 +5623,11 @@ def update_diff_guard_managers_for_existing_cache_entries(
     while cache_entry is not None:
         cache_entry.guard_manager.diff_guard_sources = acc_diff_guard_sources
         cache_entry.guard_manager.populate_diff_guard_manager()
+<<<<<<< HEAD
         cache_entry = cache_entry.next  # type: ignore[assignment]
+=======
+        cache_entry = cache_entry.next
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # return the accumulated sources to set up the new cache line.
     return acc_diff_guard_sources
@@ -4457,7 +5639,11 @@ def guard_error_hook(
     f_locals: dict[str, object],
     index: int,
     last: bool,
+<<<<<<< HEAD
 ) -> None:
+=======
+):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     print(
         f"ERROR RUNNING GUARDS {code.co_name} {code.co_filename}:{code.co_firstlineno}"
     )
@@ -4477,7 +5663,11 @@ def guard_error_hook(
 set_guard_error_hook(guard_error_hook)
 
 
+<<<<<<< HEAD
 def unique(seq: Sequence[T]) -> Generator[T, None, None]:
+=======
+def unique(seq):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     seen = set()
     for x in seq:
         if x not in seen:
@@ -4485,9 +5675,13 @@ def unique(seq: Sequence[T]) -> Generator[T, None, None]:
             seen.add(x)
 
 
+<<<<<<< HEAD
 def make_dupe_guard(
     obj_source: Source, dupe_source: Source
 ) -> Optional[functools.partial[Any]]:
+=======
+def make_dupe_guard(obj_source, dupe_source):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Note - we may end up in a situation where we invoke something like
     # def fn(x, y)
     # with fn(x, x)
@@ -4521,7 +5715,11 @@ def make_dupe_guard(
     return None
 
 
+<<<<<<< HEAD
 def install_guard(*guards: Guard, skip: int = 0) -> None:
+=======
+def install_guard(*guards, skip=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Add dynamo guards to the current tracing context.
 
@@ -4537,6 +5735,9 @@ def install_guard(*guards: Guard, skip: int = 0) -> None:
     add = TracingContext.get().guards_context.dynamo_guards.add
     for guard in guards:
         assert isinstance(guard, Guard)
+<<<<<<< HEAD
         if is_from_skip_guard_source(guard.originating_source):
             continue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         add(guard, collect_debug_stack=collect_debug_stack, skip=skip + 1)

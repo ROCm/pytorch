@@ -212,7 +212,11 @@ struct PythonPrintImpl {
   //     and would appear in the same order when the expression tree is
   //     reparsed.
   // The last case can be checked
+<<<<<<< HEAD
   // because when we emit a expression tree in the parser,
+=======
+  // because when we emit a expresion tree in the parser,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // we do a left-to-right postorder traversal of the expression tree (emit
   // children, then emit op). The reverse of this is a right-to-left preorder
   // traversal of the tree. By doing a right-to-left preorder traversal of the
@@ -222,12 +226,20 @@ struct PythonPrintImpl {
   // expression.
 
   // The inductive step is that the right-most input should be produced by the
+<<<<<<< HEAD
   // node immediately before the current node if it is in tree order.
+=======
+  // node immediatly before the current node if it is in tree order.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   bool canInline(Value* v) {
     Node* n = v->node();
     // there must be only 1 values, otherwise we need an assignment to handle
+<<<<<<< HEAD
     // the multiple output values
+=======
+    // the multiple outout values
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (n->outputs().size() != 1)
       return false;
     // if it is used more than once, then we need a variable
@@ -651,7 +663,11 @@ struct PythonPrintImpl {
   // [reordering of inlines]
   // We inline anything that is semantically legal to inline, but sometimes
   // we find that these lines get too long. In that case we break the lines
+<<<<<<< HEAD
   /// and it is important that we un-inline all the inputs preceding the long
+=======
+  /// and it  is important that we un-inline all the inputs preceeding the long
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /// input:
   //   r = foo(x.add_(b), some_long + expression)
   //  wrong!
@@ -1410,7 +1426,11 @@ struct PythonPrintImpl {
         enforce_importable_(enforce_importable) {}
 
   void printClass(const ClassTypePtr& classType) {
+<<<<<<< HEAD
     // If any of the methods are not Graph functions, this indicates that
+=======
+    // If any of the methods are not Graph funtions, this indicates that
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // this class is a custom-bound C++ class. Skip serialization
     // of this class, we will depend on the ClassType being defined
     // in the target process.

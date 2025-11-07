@@ -6,7 +6,10 @@ import torch
 import torch.utils._pytree as pytree
 from torch._C import DispatchKey
 from torch._dispatch.python import suspend_functionalization
+<<<<<<< HEAD
 from torch._higher_order_ops.auto_functionalize import FunctionalCallableWithEpilogue
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._higher_order_ops.utils import (
     check_input_alias_and_mutation_return_outputs,
     HopInstance,
@@ -40,6 +43,7 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
         def __init__(self):
             return super().__init__("invoke_quant")
 
+<<<<<<< HEAD
 
     invoke_quant = InvokeQuant()
 
@@ -48,6 +52,13 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
         return x.sin().cos()
 
 
+=======
+    invoke_quant = InvokeQuant()
+
+    def g(x):
+        return x.sin().cos()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch.compile(backend="aot_eager")
     def f(x):
         return invoke_quant(g, x, scheme="nf4")
@@ -71,6 +82,7 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
         )
 
     def __call__(self, subgraph, *operands, **kwargs):
+<<<<<<< HEAD
         if not isinstance(
             subgraph,
             (
@@ -79,6 +91,9 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
                 FunctionalCallableWithEpilogue,
             ),
         ):
+=======
+        if not isinstance(subgraph, (torch.fx.GraphModule, FunctionWithNoFreeVars)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(
                 f"{self._name}: when calling this API without torch.compile, "
                 f"we require that the subgraph be a torch.fx.GraphModule (or "
@@ -116,10 +131,14 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
 
         out = self(subgraph, *operands, **kwargs)
         return track_tensor_tree(
+<<<<<<< HEAD
             out,
             out_proxy,
             constant=None,
             tracer=proxy_mode.tracer,  # type: ignore[arg-type]
+=======
+            out, out_proxy, constant=None, tracer=proxy_mode.tracer  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def _call_FakeTensorMode(self, mode, subgraph, *operands, **kwargs):
@@ -170,18 +189,35 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
             out = self(functionalized_subgraph, *unwrapped_operands, **kwargs)
         return ctx.wrap_tensors(out)
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
     def gen_schema(self, subgraph, *operands, **kwargs):
         from .schema import HopSchemaGenerator
 
         subgraph = materialize_as_graph(subgraph, operands)
+=======
+    def gen_schema(self, subgraph, *operands, **kwargs):
+        from .schema import HopSchemaGenerator
+
+        if not isinstance(subgraph, torch.fx.GraphModule):
+            subgraph = materialize_as_graph(subgraph, operands)
+
+        fake_args = [
+            ph.meta["example_value"] if "example_value" in ph.meta else ph.meta["val"]
+            for ph in subgraph.graph.find_nodes(op="placeholder")
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         (
             inp_inp_alias,
             inp_out_alias,
             out_out_alias,
             mutated_inp_idx,
             output,
+<<<<<<< HEAD
         ) = check_input_alias_and_mutation_return_outputs(subgraph)
+=======
+        ) = check_input_alias_and_mutation_return_outputs(subgraph, fake_args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if not (
             len(inp_inp_alias) == 0
@@ -193,11 +229,18 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
             import warnings
 
             warnings.warn(
+<<<<<<< HEAD
                 "Aliasing is not supported for HOP subgraph.\n"
                 f"{subgraph.print_readable(print_output=False)}\n"
                 f"Alias info: inp-inp alias: {inp_inp_alias}, inp-out alias: {inp_out_alias}, out-out alias{out_out_alias}"
                 f"This may lead to silent incorrectness.",
                 stacklevel=2,
+=======
+                "Aliasing is not suppported for HOP subgraph.\n"
+                f"{subgraph.print_readable(print_output=False)}\n"
+                f"Alias info: inp-inp alias: {inp_inp_alias}, inp-out alias: {inp_out_alias}, out-out alias{out_out_alias}"
+                f"This may lead to silent incorrectness."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         schema_gen = HopSchemaGenerator(self)
@@ -216,7 +259,10 @@ class BaseHOP(HigherOrderOperator, abc.ABC):
 
 class BaseHOPFunction(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, hop, subgraph, kwargs, *operands):
         ctx.hop = hop
         ctx.operands = operands
@@ -233,11 +279,15 @@ class BaseHOPFunction(torch.autograd.Function):
         kwargs = ctx.kwargs
 
         # TODO: Something special needs to happen with min cut partitioner
+<<<<<<< HEAD
         with (
             suspend_functionalization(),
             disable_functional_mode(),
             torch.enable_grad(),
         ):
+=======
+        with suspend_functionalization(), disable_functional_mode(), torch.enable_grad():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with disable_proxy_modes_tracing():
                 from .invoke_subgraph import create_fw_bw_graph
                 from .utils import _from_fun

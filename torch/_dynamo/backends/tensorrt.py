@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: ignore-errors
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # import torch  # type: ignore[import]
 # from .common import device_from_inputs, fake_tensor_unsupported  # type: ignore[import]
 # from .registry import register_backend  # type: ignore[import]

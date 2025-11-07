@@ -52,7 +52,11 @@ class _ScriptLocalOptimizer(nn.Module):
         all_local_grads = dist_autograd.get_gradients(autograd_ctx_id)
         # apply functional optimizer step with a list of gradients
         grads: list[Optional[Tensor]] = [
+<<<<<<< HEAD
             all_local_grads[p] if p in all_local_grads else None  # noqa: SIM401
+=======
+            all_local_grads[p] if p in all_local_grads else None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for p in self._local_params
         ]
 

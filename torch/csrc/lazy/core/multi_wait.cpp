@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/lazy/core/multi_wait.h>
 
 #include <chrono>
@@ -32,7 +35,11 @@ void MultiWait::Wait(double wait_seconds) {
   if (!cv_.wait_for(lock, std::chrono::duration<double>(wait_seconds), [this] {
         return completed_count_ >= count_;
       })) {
+<<<<<<< HEAD
     TORCH_CHECK(false, "Timeout");
+=======
+    throw std::runtime_error("Timeout");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   if (exptr_ != nullptr) {
     std::rethrow_exception(exptr_);

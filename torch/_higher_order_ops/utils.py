@@ -1,10 +1,16 @@
 # mypy: allow-untyped-defs
 import contextlib
 import functools
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Sequence
 from contextlib import AbstractContextManager, contextmanager, ExitStack, nullcontext
 from dataclasses import dataclass
 from typing import Any, Optional, overload, TypeVar, Union
+=======
+from contextlib import contextmanager, ExitStack, nullcontext
+from dataclasses import dataclass
+from typing import Any, Callable, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx.traceback as fx_traceback
@@ -96,8 +102,22 @@ def _maybe_run_with_interpreter(fn):
 
 def _maybe_compile_and_run_fn(fn, *args):
     if not torch.compiler.is_dynamo_compiling():
+<<<<<<< HEAD
         with setup_compilation_env() as backend:  # type: ignore[attr-defined]
             return torch.compile(fn, backend=backend, fullgraph=True)(*args)
+=======
+        from torch._dynamo.backends.debugging import (
+            make_eager_backend_with_torch_function_mode,
+        )
+
+        with _set_compilation_env(), torch._dynamo.utils.disable_cache_limit():
+            with _temp_remove_metadata_torch_function_mode() as metadata_mode:
+                if metadata_mode:
+                    backend = make_eager_backend_with_torch_function_mode(metadata_mode)
+                else:
+                    backend = "eager"
+                return torch.compile(fn, backend=backend, fullgraph=True)(*args)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     else:
         return fn(*args)
 
@@ -107,6 +127,7 @@ def reenter_make_fx(fn):
 
     @functools.wraps(fn)
     def wrapped(*args):
+<<<<<<< HEAD
         assert _CURRENT_MAKE_FX_TRACER is not None, (
             "Cannot reenter make_fx when we're not under a make_fx tracing session"
         )
@@ -114,6 +135,14 @@ def reenter_make_fx(fn):
             _maybe_run_with_interpreter(fn), *args
         )
         return gm
+=======
+        assert (
+            _CURRENT_MAKE_FX_TRACER is not None
+        ), "Cannot reenter make_fx when we're not under a make_fx tracing session"
+        return _CURRENT_MAKE_FX_TRACER.trace_subgraph(
+            _maybe_run_with_interpreter(fn), *args
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return wrapped
 
@@ -226,6 +255,7 @@ def check_meta_consistency(
 
 
 @contextmanager
+<<<<<<< HEAD
 def setup_compilation_env():
     """
     Context manager that sets up proper environment and backend when invoking torch.compile
@@ -258,6 +288,11 @@ def _set_compilation_env():
     _old_is_tracing = torch.fx._symbolic_trace._is_fx_tracing_flag
     _old_allow_empty_graphs = torch._dynamo.config.allow_empty_graphs
     _old_capture_scalar_outputs = torch._dynamo.config.capture_scalar_outputs
+=======
+def _set_compilation_env():
+    _old_is_tracing = torch.fx._symbolic_trace._is_fx_tracing_flag
+    _old_allow_empty_graphs = torch._dynamo.config.allow_empty_graphs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # The issue is tracked in https://github.com/pytorch/pytorch/issues/144360: when dynamo finds
     # the top-level frame produces no graph, the default behavior is to fallback to eager.
     # Then when it encounters an inner function, it will try to trace that function again, which is unnecessary.
@@ -270,24 +305,39 @@ def _set_compilation_env():
         # We need to turn off the is_fx_tracing_flag. Remove this flag check from dyanmo
         # once we are confident fx tracing works with dynamo.
         torch.fx._symbolic_trace._is_fx_tracing_flag = False
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
         torch._dynamo.config.allow_empty_graphs = True
         torch._dynamo.config.capture_scalar_outputs = True
+=======
+        torch._dynamo.config.allow_empty_graphs = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         yield
     finally:
         torch.fx._symbolic_trace._is_fx_tracing_flag = _old_is_tracing
         torch._dynamo.config.allow_empty_graphs = _old_allow_empty_graphs
+<<<<<<< HEAD
         torch._dynamo.config.capture_scalar_outputs = _old_capture_scalar_outputs
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # The invariant here is that we always trace the branch with fake tensor
 def _maybe_fake_tracing(fn, inputs: list[Any], pre_dispatch):
+<<<<<<< HEAD
     fake_mode_det = detect_fake_mode(inputs)
     fake_mode: AbstractContextManager = nullcontext()
     tracing_mode = "fake"
     if fake_mode_det is not None:
         fake_mode = fake_mode_det
         tracing_mode = "real"
+=======
+    fake_mode = detect_fake_mode(inputs)
+    tracing_mode = "real"
+    if fake_mode is None:
+        fake_mode = nullcontext()
+        tracing_mode = "fake"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # Note: we need to turn off proxy tensor mode to avoid tracing infra
     # code that happens in make_fx e.g. we now call as_strided when wrapping tensor
@@ -299,12 +349,18 @@ def _maybe_fake_tracing(fn, inputs: list[Any], pre_dispatch):
             pre_dispatch=pre_dispatch,
             _error_on_data_dependent_ops=False,
         )(*inputs)
+<<<<<<< HEAD
         if not isinstance(fake_mode, nullcontext) and fake_mode.shape_env is not None:  # type: ignore[attr-defined]
             insert_deferred_runtime_asserts(
                 gm,
                 fake_mode.shape_env,  # type: ignore[attr-defined]
                 "hoo_maybe_fake_tracing",
                 export=True,  # type: ignore[attr-defined]
+=======
+        if not isinstance(fake_mode, nullcontext) and fake_mode.shape_env is not None:
+            insert_deferred_runtime_asserts(
+                gm, fake_mode.shape_env, "hoo_maybe_fake_tracing", export=True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return gm
 
@@ -352,15 +408,23 @@ def analyze_potential_input_alias_or_mutation(name, aliases, input_mutations):
 
 def _has_potential_branch_input_mutation(gm, inputs, pre_dispatch=False):
     (
+<<<<<<< HEAD
         (_, _, _),
         inp_mutation,
     ) = potential_input_alias_or_mutation(gm, inputs, pre_dispatch)
+=======
+        _,
+        _,
+        _,
+    ), inp_mutation = potential_input_alias_or_mutation(gm, inputs, pre_dispatch)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return len(inp_mutation) > 0
 
 
 def has_potential_input_alias_or_mutation(gm, inputs, pre_dispatch=False):
     (
+<<<<<<< HEAD
         (
             inp_inp_alias_map,
             inp_out_alias_map,
@@ -368,6 +432,12 @@ def has_potential_input_alias_or_mutation(gm, inputs, pre_dispatch=False):
         ),
         inp_mutation,
     ) = potential_input_alias_or_mutation(gm, inputs, pre_dispatch)
+=======
+        inp_inp_alias_map,
+        inp_out_alias_map,
+        out_out_alias_map,
+    ), inp_mutation = potential_input_alias_or_mutation(gm, inputs, pre_dispatch)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return (
         any(
             (
@@ -423,7 +493,13 @@ def _check_alias_and_mutation(graph_module, inputs_fake, name, pre_dispatch):
         graph_module, inputs_fake, pre_dispatch=pre_dispatch
     )
     if aliases:
+<<<<<<< HEAD
         raise RuntimeError(f"{name} might be aliasing the input or the output!")  # noqa: F541
+=======
+        raise RuntimeError(
+            f"{name} might be aliasing the input or the output!"
+        )  # noqa: F541
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if inp_mutation:
         raise RuntimeError(f"{name} might be modifying the input!")  # noqa: F541
 
@@ -441,7 +517,10 @@ def unique_graph_name_with_root(
 ) -> tuple[int, str]:
     next_name = None
     i = 0
+<<<<<<< HEAD
     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     while not next_name:
         candidate = f"{prefix}_{i}"
         if hasattr(root, candidate):
@@ -502,7 +581,12 @@ def prepare_fw_with_masks(fn):
     def fw_with_masks(*args):
         fw_out = fn(*args)
         return fw_out, [
+<<<<<<< HEAD
             bool(isinstance(ret, torch.Tensor) and ret.requires_grad) for ret in fw_out
+=======
+            True if isinstance(ret, torch.Tensor) and ret.requires_grad else False
+            for ret in fw_out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
     return fw_with_masks
@@ -519,6 +603,7 @@ def prepare_fw_with_masks_all_requires_grad(fn):
         # require_gradness reasoning much easier.
         if pytree.tree_any_only(torch.Tensor, lambda t: t.requires_grad, args):
             fw_out = pytree.tree_map_only(
+<<<<<<< HEAD
                 torch.Tensor,
                 lambda x: x.requires_grad_(True) if x.dtype.is_floating_point else x,
                 fw_out,
@@ -530,6 +615,13 @@ def prepare_fw_with_masks_all_requires_grad(fn):
             return t.requires_grad
 
         return fw_out, pytree.tree_map_only(torch.Tensor, _query_requires_grad, fw_out)
+=======
+                torch.Tensor, lambda x: x.requires_grad_(True), fw_out
+            )
+        return fw_out, pytree.tree_map_only(
+            torch.Tensor, lambda x: x.requires_grad, fw_out
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return fw_with_masks
 
@@ -539,9 +631,15 @@ def prepare_fw_with_masks_all_requires_grad(fn):
 # replaced with an all-zero tensor for better optimization
 def unmask_none_gradients(grads, operands):
     allowed_types = (torch.Tensor, int, torch.SymInt)
+<<<<<<< HEAD
     assert all(isinstance(o, allowed_types) for o in operands), (
         f"operands can only be of {allowed_types} but got {[type(o) for o in operands]}"
     )
+=======
+    assert all(
+        isinstance(o, allowed_types) for o in operands
+    ), f"operands can only be of {allowed_types} but got {[type(o) for o in operands]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     unmasked_grads = []
     for g, o in zip(grads, operands):
@@ -744,6 +842,7 @@ def saved_tensors_and_symints(ctx):
     return tuple(args)
 
 
+<<<<<<< HEAD
 def split_into_chunks(iterable: Sequence[Any], chunk_sizes: list[int]) -> list[Any]:
     assert sum(chunk_sizes) == len(iterable), (
         "the sum of all chunks needs to match the length of the iterable."
@@ -839,6 +938,8 @@ def create_bw_fn(
     return flat_fn
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_dummy_aot_autograd_config():
     from torch._functorch.aot_autograd import AOTConfig
 
@@ -858,6 +959,7 @@ def first_slice_copy(t: torch.Tensor, dim: int = 0) -> torch.Tensor:
     return torch.select_copy(t, dim, 0)
 
 
+<<<<<<< HEAD
 # Returns a mask whether a list element is a tensor or not
 def get_tensor_mask(tensor_list: Iterable[Any]) -> list[bool]:
     return [bool(isinstance(v, torch.Tensor)) for v in tensor_list]
@@ -892,6 +994,8 @@ def first_slice_copy_with_grad(li: Iterable[Any]) -> list[Any]:
     return slc
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # Reports the difference between meta of two tensors in a string
 def diff_tensor_meta(
     meta1: TensorMetadata, meta2: TensorMetadata, check_grad=True
@@ -926,9 +1030,13 @@ def validate_subgraph_args_types(lifted_args: Union[tuple[Any, ...], list[Any]])
     allowed_types = (torch.Tensor, int, torch.SymInt)
     assert all(
         isinstance(arg, (torch.Tensor, int, torch.SymInt)) for arg in lifted_args
+<<<<<<< HEAD
     ), (
         f"{lifted_args} can only be of {allowed_types} but got {tuple(type(arg) for arg in lifted_args)}"
     )
+=======
+    ), f"{lifted_args} can only be of {allowed_types} but got {tuple(type(arg) for arg in lifted_args)}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # TODO: Return a more detailed information as to which node
@@ -942,6 +1050,7 @@ def check_input_alias_and_mutation(
         inp_out_alias_map,
         out_out_alias_map,
         mutated_inputs,
+<<<<<<< HEAD
     ) = check_input_alias_and_mutation_return_outputs(gm)[:-1]
     # pyrefly: ignore [bad-return]
     return inp_inp_alias_map, inp_out_alias_map, out_out_alias_map, mutated_inputs
@@ -953,6 +1062,15 @@ def _tensor_storage(t) -> StorageWeakRef:
 
 def check_input_alias_and_mutation_return_outputs(
     gm: torch.fx.GraphModule,
+=======
+    ) = check_input_alias_and_mutation_return_outputs(gm, fake_args)[:-1]
+    return inp_inp_alias_map, inp_out_alias_map, out_out_alias_map, mutated_inputs
+
+
+def check_input_alias_and_mutation_return_outputs(
+    gm: torch.fx.GraphModule,
+    fake_args: Union[list[FakeTensor], tuple[FakeTensor, ...]],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> tuple[
     dict[int, int],
     dict[int, int],
@@ -960,6 +1078,7 @@ def check_input_alias_and_mutation_return_outputs(
     list[int],
     Union[tuple[Any, ...], list[Any]],
 ]:
+<<<<<<< HEAD
     def _get_example_value(n):
         if not isinstance(n, torch.fx.Node):
             return n
@@ -1022,6 +1141,137 @@ def check_input_alias_and_mutation_return_outputs(
         mutated_inputs,
         outputs,
     )
+=======
+    # This function can be called under autograd, functional, proxy and fake tensor mode.
+    # We need to return either a fake tensor or a real tensor depending on the mode.
+    # to detect the input mutation/aliasing.
+    with disable_proxy_modes_tracing(), disable_functional_mode(), suspend_functionalization():
+
+        def _from_functional_tensor(t: torch.Tensor) -> torch.Tensor:
+            if isinstance(t, FunctionalTensor) or torch._is_functional_tensor(t):
+                return torch.empty_strided(
+                    t.size(),
+                    t.stride(),
+                    dtype=t.dtype,
+                    requires_grad=t.requires_grad,
+                    device=t.device,
+                )
+            return t
+
+        fake_args = pytree.tree_map_only(
+            torch.Tensor, _from_functional_tensor, fake_args
+        )
+    # We want to disable active functional, proxy and fake modes if any.
+    # to create a encapsulated environment for fake tensor prop
+    with torch.utils._python_dispatch._disable_current_modes():
+        """This function returns mutated inputs, inp-inp alias, inp-out alias, out-out alias
+        in the graph module gm. It checks whether input tensor versions have
+        changed after run gm once to detect mutation and checks tensor storage
+        to detect alias.
+        """
+
+        def _tensor_version(t) -> Optional[int]:
+            if isinstance(t, torch.Tensor):
+                if not isinstance(t, FakeTensor):
+                    raise RuntimeError("Only fake tensor is allowed")
+                return t._version
+            return None
+
+        def _tensor_storage(t) -> StorageWeakRef:
+            return StorageWeakRef(t._typed_storage())
+
+        def _get_shape_env(
+            fake_args,
+        ) -> Optional[torch.fx.experimental.symbolic_shapes.ShapeEnv]:
+            # detect_fake_mode requires there could be only one active fake mode. This
+            # restricts the usage of this function because the global TracingContext
+            # has a persistent fake mode but fake tensors can be created
+            # outside of the tracing context (e.g. in testing).
+            # Instead, we just look at fake_args fake tensor mode
+            if len(fake_args) == 0:
+                return torch.fx.experimental.symbolic_shapes.ShapeEnv()
+
+            for arg in fake_args:
+                if isinstance(arg, FakeTensor):
+                    return arg.fake_mode.shape_env
+            return None
+
+        # Clone the fake args to avoid mutating the original fake args
+        with ExitStack() as ctx_stack:
+            # We need to re-use prev_fake_mode's shape env to resolve
+            # the runtime assertions for unbacked symbols.
+            new_fake_mode = torch._subclasses.FakeTensorMode(
+                shape_env=_get_shape_env(fake_args),
+                allow_non_fake_inputs=False,
+            )
+            # We need to temporarily turn inference_mode off because
+            # under inference mode, tensor version counter is not tracked.
+            no_inference_mode_ctx = torch.inference_mode(False)
+            ctx_stack.enter_context(new_fake_mode)
+            ctx_stack.enter_context(no_inference_mode_ctx)
+            if new_fake_mode.shape_env is not None:
+                ctx_stack.enter_context(
+                    new_fake_mode.shape_env.ignore_fresh_unbacked_symbols()
+                )
+
+            # create new fake tensors in new fake mode to avoid mutating original tensors
+            cloned = [
+                torch.empty_strided(
+                    arg.size(),
+                    arg.stride(),
+                    dtype=arg.dtype,
+                    device=arg.device,
+                    requires_grad=arg.requires_grad,
+                    layout=arg.layout,
+                )
+                if isinstance(arg, torch.Tensor)
+                else arg
+                for arg in fake_args
+            ]
+            before = [_tensor_version(arg) for arg in cloned]
+            outputs = gm(*cloned)
+            outputs = [outputs] if not isinstance(outputs, (list, tuple)) else outputs
+            after = [_tensor_version(arg) for arg in cloned]
+            mutated_inputs = [
+                i for i, (v1, v2) in enumerate(zip(before, after)) if v1 != v2
+            ]
+        # We need to analyze the original fake_args to detect
+        # inp-inp alias.
+        inp_storage_map = {
+            _tensor_storage(inp): i
+            for i, inp in enumerate(fake_args)
+            if isinstance(inp, torch.Tensor)
+        }
+        inp_inp_alias_map = {
+            i: inp_storage_map[_tensor_storage(inp)]
+            for i, inp in enumerate(fake_args)
+            if isinstance(inp, torch.Tensor)
+            and inp_storage_map[_tensor_storage(inp)] != i
+        }
+        out_storage_map = {
+            _tensor_storage(out): i
+            for i, out in enumerate(outputs)
+            if isinstance(out, torch.Tensor)
+        }
+        out_out_alias_map = {
+            i: out_storage_map[_tensor_storage(out)]
+            for i, out in enumerate(outputs)
+            if isinstance(out, torch.Tensor)
+            and out_storage_map[_tensor_storage(out)] != i
+        }
+        inp_out_alias_map = {
+            i: out_storage_map[_tensor_storage(inp)]
+            for i, inp in enumerate(cloned)
+            if isinstance(inp, torch.Tensor) and _tensor_storage(inp) in out_storage_map
+        }
+        return (
+            inp_inp_alias_map,
+            inp_out_alias_map,
+            out_out_alias_map,
+            mutated_inputs,
+            outputs,
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 registered_hop_fake_fns: dict[torch._ops.OpOverload, Callable] = {}
@@ -1031,11 +1281,21 @@ F = TypeVar("F", bound=Callable)
 
 
 @overload
+<<<<<<< HEAD
 def register_fake(hop, fn: None = None) -> Callable[[F], F]: ...
 
 
 @overload
 def register_fake(hop, fn: F) -> F: ...
+=======
+def register_fake(hop, fn: None = None) -> Callable[[F], F]:
+    ...
+
+
+@overload
+def register_fake(hop, fn: F) -> F:
+    ...
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def register_fake(hop, fn=None):
@@ -1140,7 +1400,11 @@ def call_op(op: Union[OpOverload, HopInstance], args, kwargs):
 
 def materialize_as_graph(
     fn: Callable,
+<<<<<<< HEAD
     args: tuple[Any, ...],
+=======
+    args: tuple[Any],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     include_key_set: Optional[torch._C.DispatchKeySet] = None,
     exclude_key_set: Optional[torch._C.DispatchKeySet] = None,
     force_enable_grad=False,
@@ -1155,22 +1419,30 @@ def materialize_as_graph(
         with suspend_functionalization(), disable_functional_mode():
             with disable_proxy_modes_tracing():
                 unfunc_t = [_from_fun(arg) for arg in args]
+<<<<<<< HEAD
 
             with contextlib.ExitStack() as stack:
                 stack.enter_context(
                     torch.utils._python_dispatch._disable_current_modes()
                 )
                 stack.enter_context(
+=======
+            with contextlib.ExitStack() as stack:
+                stack.enter_context(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     torch._C._ForceDispatchKeyGuard(include_key_set, exclude_key_set),
                 )
                 if force_enable_grad:
                     stack.enter_context(torch.enable_grad())
+<<<<<<< HEAD
                 # fake_mode is needed because parent tracer's fake_mode might
                 # be None but the associated inputs have fake mode or there
                 # is a global tracing context with fake mode. We nneed to
                 # make sure the fake mode when tracing subgraph is consistent.
                 if fake_mode := detect_fake_mode(unfunc_t):
                     stack.enter_context(fake_mode)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return _maybe_reenter_make_fx(fn)(*unfunc_t)
 
     gm = _materialize_as_graph_inner()
@@ -1243,6 +1515,7 @@ def _has_gen_schema(op: HigherOrderOperator):
     return hasattr(type(op), method) and getattr(type(op), method) is not getattr(
         HigherOrderOperator, method
     )
+<<<<<<< HEAD
 
 
 def filter_with_masks(data: list[Optional[torch.Tensor]], masks: list[bool]):
@@ -1253,3 +1526,5 @@ def filter_with_masks(data: list[Optional[torch.Tensor]], masks: list[bool]):
 def fill_none_with_masks(data: list[Optional[torch.Tensor]], masks: list[bool]):
     data_iter = iter(data)
     return [next(data_iter) if kept else None for kept in masks]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

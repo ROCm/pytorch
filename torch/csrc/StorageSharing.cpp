@@ -86,7 +86,12 @@ static PyObject* THPStorage_pyNewFilenameStorage(
           THManagedMapAllocator::makeDataPtr(
               "", handle.c_str(), flags, static_cast<size_t>(size)),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -181,7 +186,12 @@ static PyObject* THPStorage_newSharedFilename(
           THManagedMapAllocator::makeDataPtr(
               manager_handle, object_handle, flags, size),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -195,7 +205,13 @@ static PyObject* THPStorage_pyNewFdStorage(PyObject* _unused, PyObject* args) {
     return nullptr;
   }
   return THPStorage_NewWithStorage(
+<<<<<<< HEAD
       THPStorageClass, at::new_shm_fd_storage(size));
+=======
+      THPStorageClass,
+      at::new_shm_fd_storage(size),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -256,7 +272,11 @@ static PyObject* THPStorage_newSharedFd(PyObject* _unused, PyObject* args) {
         "a file descriptor (int) and storage size (int)");
     return nullptr;
   }
+<<<<<<< HEAD
   int tmp_fd = THPUtils_unpackInt(_tmp_fd);
+=======
+  int tmp_fd = (int)THPUtils_unpackLong(_tmp_fd);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t size = THPUtils_unpackLong(_size);
   int fd = dup(tmp_fd);
   if (fd == -1) {
@@ -274,7 +294,12 @@ static PyObject* THPStorage_newSharedFd(PyObject* _unused, PyObject* args) {
           at::MapAllocator::makeDataPtr(
               at::WITH_FD, "", fd, flags, size, nullptr),
           /*allocator=*/nullptr,
+<<<<<<< HEAD
           /*resizable=*/false));
+=======
+          /*resizable=*/false),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   END_HANDLE_TH_ERRORS
 }
 
@@ -312,8 +337,13 @@ static PyObject* THPStorage_shareCuda(PyObject* self, PyObject* noargs) {
     auto shandle =
         c10::cuda::CUDACachingAllocator::shareIpcHandle(storage.mutable_data());
     _handle = PyBytes_FromStringAndSize(
+<<<<<<< HEAD
         shandle.handle.c_str(), static_cast<Py_ssize_t>(shandle.handle.size()));
     _offset_bytes = PyLong_FromSsize_t(static_cast<Py_ssize_t>(shandle.offset));
+=======
+        shandle.handle.c_str(), (Py_ssize_t)shandle.handle.size());
+    _offset_bytes = PyLong_FromSsize_t((Py_ssize_t)shandle.offset);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Put Storage Data behind new ref counting context
     // See Note [CUDA IPC Refcounting implementation explained]
@@ -334,7 +364,11 @@ static PyObject* THPStorage_shareCuda(PyObject* self, PyObject* noargs) {
     }
 
     _event_handle = PyBytes_FromStringAndSize(
+<<<<<<< HEAD
         reinterpret_cast<const char*>(&ipc_event_handle), CUDA_IPC_HANDLE_SIZE);
+=======
+        (char*)&ipc_event_handle, CUDA_IPC_HANDLE_SIZE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _event_sync_required = PyBool_FromLong(sent_data->event_sync_required_);
   }
 
@@ -385,7 +419,11 @@ static PyObject* THPStorage_releaseIPCCounter(
   }
   std::string ref_counter_handle = PyBytes_AS_STRING(_ref_counter);
   ptrdiff_t ref_counter_offset =
+<<<<<<< HEAD
       static_cast<ptrdiff_t>(THPUtils_unpackLong(_ref_counter_offset));
+=======
+      (ptrdiff_t)THPUtils_unpackLong(_ref_counter_offset);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // We don't want to break existing code, so resource deletion is best
   // effort basis. Exception expected if producer process terminated
   // before consumer released data.
@@ -446,9 +484,16 @@ static PyObject* THPStorage_newSharedCuda(PyObject* _unused, PyObject* args) {
     return nullptr;
   }
 
+<<<<<<< HEAD
   size_t storage_size = THPUtils_unpackUInt64(_size_bytes) / sizeof(uint8_t);
   ptrdiff_t storage_offset_bytes =
       static_cast<ptrdiff_t>(THPUtils_unpackLong(_offset_bytes));
+=======
+  size_t storage_size =
+      (size_t)THPUtils_unpackLong(_size_bytes) / sizeof(uint8_t);
+  ptrdiff_t storage_offset_bytes =
+      (ptrdiff_t)THPUtils_unpackLong(_offset_bytes);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   const auto device = c10::checked_convert<c10::DeviceIndex>(
       THPUtils_unpackLong(_device), "c10::DeviceIndex");
@@ -479,11 +524,19 @@ static PyObject* THPStorage_newSharedCuda(PyObject* _unused, PyObject* args) {
   // Offset the basePtr to reconstruct the real storage
   // devPtr = basePtr + storage_offset
   void* devPtr = basePtr.get();
+<<<<<<< HEAD
   devPtr = static_cast<char*>(devPtr) + storage_offset_bytes;
 
   std::string ref_counter_handle = PyBytes_AS_STRING(_ref_counter);
   ptrdiff_t ref_counter_offset =
       static_cast<ptrdiff_t>(THPUtils_unpackLong(_ref_counter_offset));
+=======
+  devPtr = (char*)devPtr + storage_offset_bytes;
+
+  std::string ref_counter_handle = PyBytes_AS_STRING(_ref_counter);
+  ptrdiff_t ref_counter_offset =
+      (ptrdiff_t)THPUtils_unpackLong(_ref_counter_offset);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   struct IpcDeleterContext {
     std::string ref_counter_handle;
@@ -554,7 +607,14 @@ static PyObject* THPStorage_newSharedCuda(PyObject* _unused, PyObject* args) {
   base->set_resizable(false);
   base->set_received_cuda(true);
 
+<<<<<<< HEAD
   return THPStorage_NewWithStorage(THPStorageClass, std::move(base));
+=======
+  return THPStorage_NewWithStorage(
+      THPStorageClass,
+      std::move(base),
+      c10::impl::PyInterpreterStatus::TAGGED_BY_US);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #else
   TORCH_CHECK(false, "CUDA is not available");
 #endif
@@ -577,8 +637,12 @@ static PyObject* THPStorage_newWithWeakPtr(PyObject* _unused, PyObject* arg) {
   HANDLE_TH_ERRORS
   TORCH_CHECK(
       THPUtils_checkLong(arg), "_new_with_weak_ptr(): arg must be an 'int'");
+<<<<<<< HEAD
   c10::StorageImpl* weak_storage =
       static_cast<c10::StorageImpl*>(PyLong_AsVoidPtr(arg));
+=======
+  c10::StorageImpl* weak_storage = (c10::StorageImpl*)PyLong_AsVoidPtr(arg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (auto* storage = c10::raw::weak_intrusive_ptr::lock(weak_storage)) {
     return THPStorage_Wrap(
         c10::intrusive_ptr<c10::StorageImpl>::reclaim(storage));
@@ -594,8 +658,12 @@ static PyObject* THPStorage_freeWeakRef(PyObject* _unused, PyObject* arg) {
   }
   TORCH_CHECK(
       THPUtils_checkLong(arg), "_free_weak_ref(): arg must be an 'int'");
+<<<<<<< HEAD
   c10::StorageImpl* weak_storage =
       static_cast<c10::StorageImpl*>(PyLong_AsVoidPtr(arg));
+=======
+  c10::StorageImpl* weak_storage = (c10::StorageImpl*)PyLong_AsVoidPtr(arg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::raw::weak_intrusive_ptr::decref(weak_storage);
 
   Py_RETURN_NONE;
@@ -605,8 +673,12 @@ static PyObject* THPStorage_freeWeakRef(PyObject* _unused, PyObject* arg) {
 static PyObject* THPStorage_expired(PyObject* _unused, PyObject* arg) {
   HANDLE_TH_ERRORS
   TORCH_CHECK(THPUtils_checkLong(arg), "_expired(): arg must be an 'int'");
+<<<<<<< HEAD
   c10::StorageImpl* weak_storage =
       static_cast<c10::StorageImpl*>(PyLong_AsVoidPtr(arg));
+=======
+  c10::StorageImpl* weak_storage = (c10::StorageImpl*)PyLong_AsVoidPtr(arg);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return PyBool_FromLong(
       c10::raw::weak_intrusive_ptr::use_count(weak_storage) == 0);
   END_HANDLE_TH_ERRORS

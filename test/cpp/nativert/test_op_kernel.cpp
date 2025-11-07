@@ -1,6 +1,9 @@
 #include <ATen/core/dispatch/Dispatcher.h>
 #include <ATen/core/op_registration/op_registration.h>
+<<<<<<< HEAD
 #include <ATen/ops/tensor.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <gtest/gtest.h>
 #include <torch/nativert/executor/OpKernel.h>
 

@@ -109,7 +109,10 @@ class Sequential(Module):
     def __init__(self, *args: Module) -> None: ...
 
     @overload
+<<<<<<< HEAD
     # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __init__(self, arg: OrderedDict[str, Module]) -> None: ...
 
     def __init__(self, *args):
@@ -171,9 +174,12 @@ class Sequential(Module):
             )
 
     def pop(self, key: Union[int, slice]) -> Module:
+<<<<<<< HEAD
         """
         Pop ``key`` from self.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         v = self[key]
         del self[key]
         return v
@@ -244,9 +250,12 @@ class Sequential(Module):
     # TestScript.test_sequential_intermediary_types).  Cannot annotate
     # with Any as TorchScript expects a more precise type
     def forward(self, input):
+<<<<<<< HEAD
         """
         Runs the forward pass.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         for module in self:
             input = module(input)
         return input
@@ -493,7 +502,11 @@ class ModuleList(Module):
             self.add_module(str(offset + i), module)
         return self
 
+<<<<<<< HEAD
     # remove forward altogether to fallback on Module's _forward_unimplemented
+=======
+    # remove forward alltogether to fallback on Module's _forward_unimplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ModuleDict(Module):
@@ -624,18 +637,28 @@ class ModuleDict(Module):
                         "ModuleDict update sequence element "
                         "#" + str(j) + " should be Iterable; is" + type(m).__name__
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 if not len(m) == 2:
                     raise ValueError(
                         "ModuleDict update sequence element "
                         # pyrefly: ignore [bad-argument-type]
+=======
+                if not len(m) == 2:
+                    raise ValueError(
+                        "ModuleDict update sequence element "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         "#" + str(j) + " has length " + str(len(m)) + "; 2 is required"
                     )
                 # modules can be Mapping (what it's typed at), or a list: [(name1, module1), (name2, module2)]
                 # that's too cumbersome to type correctly with overloads, so we add an ignore here
                 self[m[0]] = m[1]  # type: ignore[assignment]
 
+<<<<<<< HEAD
     # remove forward altogether to fallback on Module's _forward_unimplemented
+=======
+    # remove forward alltogether to fallback on Module's _forward_unimplemented
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class ParameterList(Module):
@@ -687,7 +710,10 @@ class ParameterList(Module):
     def __getitem__(self, idx: int) -> Any: ...
 
     @overload
+<<<<<<< HEAD
     # pyrefly: ignore [inconsistent-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def __getitem__(self: T, idx: slice) -> T: ...
 
     def __getitem__(self, idx):
@@ -756,9 +782,12 @@ class ParameterList(Module):
         return self
 
     def extra_repr(self) -> str:
+<<<<<<< HEAD
         """
         Return the extra representation of the module.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         child_lines = []
         for k, p in enumerate(self):
             if isinstance(p, torch.Tensor):
@@ -773,11 +802,17 @@ class ParameterList(Module):
                     size_str,
                     device_str,
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 child_lines.append("  (" + str(k) + "): " + parastr)
             else:
                 child_lines.append(
                     # pyrefly: ignore [bad-argument-type]
+=======
+                child_lines.append("  (" + str(k) + "): " + parastr)
+            else:
+                child_lines.append(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "  (" + str(k) + "): Object of type: " + type(p).__name__
                 )
 
@@ -929,7 +964,11 @@ class ParameterDict(Module):
             key (str): key to get from the ParameterDict
             default (Parameter, optional): value to return if key not present
         """
+<<<<<<< HEAD
         return self[key] if key in self else default  # noqa: SIM401
+=======
+        return self[key] if key in self else default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def fromkeys(
         self, keys: Iterable[str], default: Optional[Any] = None
@@ -985,11 +1024,17 @@ class ParameterDict(Module):
                         "ParameterDict update sequence element "
                         "#" + str(j) + " should be Iterable; is" + type(p).__name__
                     )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 if not len(p) == 2:
                     raise ValueError(
                         "ParameterDict update sequence element "
                         # pyrefly: ignore [bad-argument-type]
+=======
+                if not len(p) == 2:
+                    raise ValueError(
+                        "ParameterDict update sequence element "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         "#" + str(j) + " has length " + str(len(p)) + "; 2 is required"
                     )
                 # parameters as length-2 list too cumbersome to type, see ModuleDict.update comment
@@ -1010,11 +1055,17 @@ class ParameterDict(Module):
                     size_str,
                     device_str,
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
                 child_lines.append("  (" + str(k) + "): " + parastr)
             else:
                 child_lines.append(
                     # pyrefly: ignore [bad-argument-type]
+=======
+                child_lines.append("  (" + str(k) + "): " + parastr)
+            else:
+                child_lines.append(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     "  (" + str(k) + "): Object of type: " + type(p).__name__
                 )
         tmpstr = "\n".join(child_lines)

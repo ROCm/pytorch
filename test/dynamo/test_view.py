@@ -11,6 +11,11 @@ class ViewTests(torch._dynamo.test_case.TestCase):
         def f(t, _u0):
             u0 = t[0].item()
             u1 = t[1].item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             n = u0 * u1
             a = torch.randn(n)
             return a.view(-1, _u0)
@@ -23,12 +28,18 @@ class ViewTests(torch._dynamo.test_case.TestCase):
         def f(t, _n):
             u0 = t[0].item()
             u1 = t[1].item()
+<<<<<<< HEAD
+=======
+            torch._check_is_size(u0)
+            torch._check_is_size(u1)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             a = torch.randn(u0, u1)
             return a.view(_n)
 
         t = torch.tensor([2, 4], dtype=torch.int32)
         f(t, 8)
 
+<<<<<<< HEAD
     def test_view_with_tensor_shape_params(self):
         # Test for issue #156720: aten.view.default with tensor shape parameters
         class TestModel(torch.nn.Module):
@@ -109,6 +120,8 @@ class ViewTests(torch._dynamo.test_case.TestCase):
 
         torch.testing.assert_close(result, expected)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests

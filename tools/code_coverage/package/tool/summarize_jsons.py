@@ -67,7 +67,10 @@ def is_intrested_file(
 
     # ignore files that are not belong to pytorch
     if platform == TestPlatform.OSS:
+<<<<<<< HEAD
         # pyrefly: ignore [import-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         from package.oss.utils import get_pytorch_folder
 
         if not file_path.startswith(get_pytorch_folder()):

@@ -92,8 +92,18 @@ static std::tuple<Tensor, Tensor> sdpa_general_mps(const Tensor& query,
           }
 
           // upcasting to float32 if needed to improve precision when multiplying by the scale factor
+<<<<<<< HEAD
           maskedMM = castMPSTensor(mpsGraph, maskedMM, MPSDataTypeFloat32);
           maskedMM = [mpsGraph multiplicationWithPrimaryTensor:maskedMM secondaryTensor:scaleTensor name:nil];
+=======
+          if ([maskedMM dataType] != MPSDataTypeFloat32) {
+            maskedMM = [mpsGraph castTensor:maskedMM toType:MPSDataTypeFloat32 name:nil];
+          }
+          maskedMM = [mpsGraph multiplicationWithPrimaryTensor:maskedMM secondaryTensor:scaleTensor name:nil];
+          if ([maskedMM dataType] != qTensor.dataType) {
+            maskedMM = [mpsGraph castTensor:maskedMM toType:qTensor.dataType name:nil];
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
           if (is_causal) {
             auto causalMask = [mpsGraph constantWithScalar:1.0f
@@ -107,6 +117,7 @@ static std::tuple<Tensor, Tensor> sdpa_general_mps(const Tensor& query,
                                                       name:nil];
           } else if (attn_mask) {
             graph->maskTensor = mpsGraphRankedPlaceHolder(mpsGraph, *attn_mask);
+<<<<<<< HEAD
             maskedMM = [mpsGraph additionWithPrimaryTensor:maskedMM
                                            secondaryTensor:castMPSTensor(mpsGraph, graph->maskTensor, maskedMM.dataType)
                                                       name:nil];
@@ -132,6 +143,17 @@ static std::tuple<Tensor, Tensor> sdpa_general_mps(const Tensor& query,
           graph->vTensor = vTensor;
           graph->outputTensor = castMPSTensor(mpsGraph, output, qTensor.dataType);
           graph->attnTensor = castMPSTensor(mpsGraph, sm, qTensor.dataType);
+=======
+            maskedMM = [mpsGraph additionWithPrimaryTensor:maskedMM secondaryTensor:graph->maskTensor name:nil];
+          }
+          auto sm = [mpsGraph softMaxWithTensor:maskedMM axis:3 name:nil];
+          auto output = [mpsGraph matrixMultiplicationWithPrimaryTensor:sm secondaryTensor:vTensor name:nil];
+          graph->qTensor = qTensor;
+          graph->kTensor = kTensor;
+          graph->vTensor = vTensor;
+          graph->outputTensor = output;
+          graph->attnTensor = sm;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         });
     auto qPlaceholder = Placeholder(cachedGraph->qTensor, query);
     auto kPlaceholder = Placeholder(cachedGraph->kTensor, key);
@@ -179,8 +201,11 @@ static std::tuple<Tensor, Tensor> sdpa_vector_fast_mps(const Tensor& q_,
   uint maxSeqLength = k_.size(2);
   uint N = k_.size(2);
   uint B = q_.size(0) * q_.size(1);
+<<<<<<< HEAD
   uint q_head_stride = q_.stride(1);
   uint q_seq_stride = q_.stride(2);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint k_head_stride = k_.stride(1);
   uint k_seq_stride = k_.stride(2);
   uint v_head_stride = v_.stride(1);
@@ -208,8 +233,13 @@ static std::tuple<Tensor, Tensor> sdpa_vector_fast_mps(const Tensor& q_,
                   out,
                   1,
                   N,
+<<<<<<< HEAD
                   std::array<uint32_t, 3>{q_head_stride, k_head_stride, v_head_stride},
                   std::array<uint32_t, 3>{q_seq_stride, k_seq_stride, v_seq_stride},
+=======
+                  std::array<uint32_t, 2>{k_head_stride, k_seq_stride},
+                  std::array<uint32_t, 2>{v_head_stride, v_seq_stride},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   scale_factor);
 
       if (has_mask) {
@@ -256,8 +286,11 @@ static std::tuple<Tensor, Tensor> sdpa_vector_2pass_mps(const Tensor& q_,
   uint B = batchSize * num_heads;
   uint gqa_factor = q_.size(1) / k_.size(1);
 
+<<<<<<< HEAD
   uint q_head_stride = q_.stride(1);
   uint q_seq_stride = q_.stride(2);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint k_head_stride = k_.stride(1);
   uint k_seq_stride = k_.stride(2);
   uint v_head_stride = v_.stride(1);
@@ -295,8 +328,13 @@ static std::tuple<Tensor, Tensor> sdpa_vector_2pass_mps(const Tensor& q_,
                   maxs,
                   gqa_factor,
                   N,
+<<<<<<< HEAD
                   std::array<uint32_t, 3>{q_head_stride, k_head_stride, v_head_stride},
                   std::array<uint32_t, 3>{q_seq_stride, k_seq_stride, v_seq_stride},
+=======
+                  std::array<uint32_t, 2>{k_head_stride, k_seq_stride},
+                  std::array<uint32_t, 2>{v_head_stride, v_seq_stride},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                   scale_factor);
 
       if (has_mask) {

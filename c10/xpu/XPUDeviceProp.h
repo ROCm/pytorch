@@ -113,6 +113,7 @@ namespace c10::xpu {
   _(native_vector_width_double)                                                \
   _(native_vector_width_half)
 
+<<<<<<< HEAD
 #define AT_FORALL_XPU_EXT_DEVICE_PROPERTIES(_)                                \
   /* the number of EUs associated with the Intel GPU. */                      \
   _(gpu_eu_count, gpu_eu_count, 512)                                          \
@@ -131,6 +132,20 @@ namespace c10::xpu {
                                                                               \
   /* the device descriptor for device Universal Unique ID, 16 bytes*/         \
   _(uuid, device_info_uuid, (std::array<unsigned char, 16>{}))
+=======
+#define AT_FORALL_XPU_EXT_DEVICE_PROPERTIES(_)           \
+  /* the number of EUs associated with the Intel GPU. */ \
+  _(gpu_eu_count, 512)                                   \
+                                                         \
+  /* the number of EUs in a subslice. */                 \
+  _(gpu_eu_count_per_subslice, 8)                        \
+                                                         \
+  /* the simd width of EU of GPU. */                     \
+  _(gpu_eu_simd_width, 8)                                \
+                                                         \
+  /* the number of hardware threads per EU of GPU. */    \
+  _(gpu_hw_threads_per_eu, 8)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define AT_FORALL_XPU_DEVICE_ASPECT(_)                  \
   /* sycl::half is supported on device. */              \

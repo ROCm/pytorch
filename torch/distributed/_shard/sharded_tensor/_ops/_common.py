@@ -43,7 +43,10 @@ def _sharded_op_common(op, early_stop_func, extra_check):
         def wrapper(types, args=(), kwargs=None, pg=None):
             _basic_validation(op, args, kwargs)
 
+<<<<<<< HEAD
             # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             st = args[0]
             if kwargs is None:
                 kwargs = {}
@@ -93,7 +96,10 @@ def _register_sharded_op_on_local_shards(
     @_sharded_op_impl(op)
     @_sharded_op_common(op, early_stop_func, extra_check)
     def sharded_tensor_op_on_local_shards(types, args=(), kwargs=None, pg=None):
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         st = args[0]
         st_metadata = st.metadata()
         local_shards = st.local_shards()

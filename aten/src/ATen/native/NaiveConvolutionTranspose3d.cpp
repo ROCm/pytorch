@@ -22,7 +22,11 @@ namespace at::native {
 
 namespace {
 
+<<<<<<< HEAD
 inline void slow_conv_transpose3d_shape_check(
+=======
+static inline void slow_conv_transpose3d_shape_check(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     const Tensor& grad_output,
     const Tensor& weight,

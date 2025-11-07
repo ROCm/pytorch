@@ -102,9 +102,14 @@ def sample_inputs_masked_reduction(op_info, device, dtype, requires_grad, **kwar
         for mask in _generate_masked_op_mask(
             sample_input.input.shape, device, **kwargs
         ):
+<<<<<<< HEAD
             sample_input_args, sample_input_kwargs = (
                 sample_input.args,
                 dict(mask=mask, **sample_input.kwargs),
+=======
+            sample_input_args, sample_input_kwargs = sample_input.args, dict(
+                mask=mask, **sample_input.kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             yield SampleInput(
                 sample_input.input.detach().requires_grad_(requires_grad),
@@ -225,9 +230,14 @@ def sample_inputs_masked_norm(op_info, device, dtype, requires_grad, **kwargs):
             op_info, device, dtype, requires_grad, **kwargs
         ):
             sample_input_args, sample_input_kwargs = (
+<<<<<<< HEAD
                 (ord,) + sample_input.args,
                 sample_input.kwargs.copy(),
             )
+=======
+                ord,
+            ) + sample_input.args, sample_input.kwargs.copy()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield SampleInput(
                 sample_input.input.clone().requires_grad_(requires_grad),
                 args=sample_input_args,
@@ -278,9 +288,14 @@ def sample_inputs_masked_std_var(op_info, device, dtype, requires_grad, **kwargs
             for mask in _generate_masked_op_mask(
                 sample_input.input.shape, device, **kwargs
             ):
+<<<<<<< HEAD
                 sample_input_args, sample_input_kwargs = (
                     sample_input.args,
                     dict(mask=mask, **sample_input.kwargs),
+=======
+                sample_input_args, sample_input_kwargs = sample_input.args, dict(
+                    mask=mask, **sample_input.kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 yield SampleInput(
                     sample_input.input.detach().requires_grad_(requires_grad),
@@ -365,11 +380,18 @@ def sample_inputs_masked_cumops(op_info, device, dtype, requires_grad, **kwargs)
         for mask in _generate_masked_op_mask(
             sample_input.input.shape, device, **kwargs
         ):
+<<<<<<< HEAD
             if type(mask) is not torch.Tensor:
                 continue
             sample_input_args, sample_input_kwargs = (
                 sample_input.args,
                 dict(mask=mask, **sample_input.kwargs),
+=======
+            if type(mask) != torch.Tensor:
+                continue
+            sample_input_args, sample_input_kwargs = sample_input.args, dict(
+                mask=mask, **sample_input.kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             if "keepdim" in sample_input_kwargs:
                 sample_input_kwargs.pop("keepdim")
@@ -402,9 +424,15 @@ def sample_inputs_masked_logaddexp(op_info, device, dtype, requires_grad, **kwar
         make_tensor, dtype=dtype, device=device, requires_grad=requires_grad
     )
     for shape, input_masks, other_masks in zip(
+<<<<<<< HEAD
         shapes, input_mask_lists, other_mask_lists, strict=True
     ):
         for input_mask, other_mask in zip(input_masks, other_masks, strict=True):
+=======
+        shapes, input_mask_lists, other_mask_lists
+    ):
+        for input_mask, other_mask in zip(input_masks, other_masks):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             yield SampleInput(
                 make_arg(shape),
                 make_arg(shape),

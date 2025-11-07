@@ -5,14 +5,22 @@ import itertools
 import re
 from dataclasses import dataclass
 from enum import auto, Enum
+<<<<<<< HEAD
 from typing import Optional, TYPE_CHECKING
+=======
+from typing import Callable, Optional, TYPE_CHECKING
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import assert_never
 
 from torchgen.utils import NamespaceHelper, OrderedSet
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterator, Sequence
+=======
+    from collections.abc import Iterator, Sequence
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ #
@@ -60,6 +68,7 @@ class Variant(Enum):
 DEFAULT_KERNEL_NAMESPACE = "at::native"
 
 # NOTE: Keep the list in sync with `DispatchKey` in c10/core/DispatchKey.h
+<<<<<<< HEAD
 BACKEND_COMPONENTS = [
     "CPU",
     "CUDA",
@@ -77,6 +86,9 @@ BACKEND_COMPONENTS = [
     "PrivateUse2",
     "PrivateUse3",
 ]
+=======
+BACKEND_COMPONENTS = "CPU CUDA HIP XLA MTIA MPS IPU XPU HPU VE Lazy Meta PrivateUse1 PrivateUse2 PrivateUse3".split()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 FUNCTIONALITY_KEYS = [
     "",
     "Quantized",
@@ -304,8 +316,11 @@ dispatch_keys = [
     DispatchKey.SparseCsrXPU,
     DispatchKey.SparseCUDA,
     DispatchKey.SparseCsrCUDA,
+<<<<<<< HEAD
     DispatchKey.SparseMPS,
     DispatchKey.SparseCsrMPS,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     DispatchKey.QuantizedCPU,
     DispatchKey.QuantizedCUDA,
     DispatchKey.CompositeImplicitAutograd,

@@ -5,6 +5,13 @@ set -ex
 SCRIPTPATH="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 case "${GPU_ARCH_TYPE:-BLANK}" in
+<<<<<<< HEAD
+=======
+    BLANK)
+        # Legacy behavior for CircleCI
+        bash "${SCRIPTPATH}/build_cuda.sh"
+        ;;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     cuda)
         bash "${SCRIPTPATH}/build_cuda.sh"
         ;;

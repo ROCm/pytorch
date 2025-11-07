@@ -1,5 +1,10 @@
+<<<<<<< HEAD
 from . import parametrizations, parametrize, rnn, stateless
 from .clip_grad import (  # pyrefly: ignore  # deprecated
+=======
+from . import parametrizations, rnn, stateless
+from .clip_grad import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _clip_grads_with_norm_ as clip_grads_with_norm_,
     _get_total_norm as get_total_norm,
     clip_grad_norm,
@@ -36,7 +41,10 @@ __all__ = [
     "get_total_norm",
     "parameters_to_vector",
     "parametrizations",
+<<<<<<< HEAD
     "parametrize",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "remove_spectral_norm",
     "remove_weight_norm",
     "rnn",

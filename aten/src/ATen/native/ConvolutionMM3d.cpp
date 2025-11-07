@@ -9,7 +9,10 @@
 #include <ATen/native/TransposeType.h>
 #include <ATen/native/Unfold3d.h>
 #include <c10/util/irange.h>
+<<<<<<< HEAD
 #include <c10/util/safe_numerics.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -28,7 +31,11 @@ namespace at::native {
 
 namespace {
 
+<<<<<<< HEAD
 Tensor compute_columns3d(
+=======
+static Tensor compute_columns3d(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input_,
     IntArrayRef stride,
     IntArrayRef padding,
@@ -108,7 +115,11 @@ Tensor compute_columns3d(
   return columns;
 }
 
+<<<<<<< HEAD
 inline void slow_conv3d_shape_check(
+=======
+static inline void slow_conv3d_shape_check(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& input,
     const Tensor& grad_output,
     const Tensor& weight,
@@ -175,6 +186,7 @@ inline void slow_conv3d_shape_check(
   const int64_t input_height = input.size(dim_height);
   const int64_t input_width = input.size(dim_width);
 
+<<<<<<< HEAD
   constexpr int64_t MAX_SAFE_PAD = (1LL << 61);
 
   TORCH_CHECK_VALUE(
@@ -192,6 +204,8 @@ inline void slow_conv3d_shape_check(
     "Padding depth too large: pad_depth=",
     pad_depth);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const int64_t exact_input_depth = input_depth + 2 * pad_depth;
   const int64_t exact_input_height = input_height + 2 * pad_height;
   const int64_t exact_input_width = input_width + 2 * pad_width;
@@ -239,6 +253,7 @@ inline void slow_conv3d_shape_check(
       output_width,
       "). Output size is too small");
 
+<<<<<<< HEAD
   uint64_t kernel_product;
   TORCH_CHECK(
     !c10::mul_overflows(kernel_height, kernel_width, &kernel_product),
@@ -247,6 +262,8 @@ inline void slow_conv3d_shape_check(
     ", kernel_width=",
     kernel_width);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (weight.defined()) {
     int64_t n_input_plane = weight.size(1);
     if (weight.dim() == 2) {
@@ -273,7 +290,11 @@ inline void slow_conv3d_shape_check(
   }
 }
 
+<<<<<<< HEAD
 Tensor view_weight_2d(const Tensor& weight_) {
+=======
+static Tensor view_weight_2d(const Tensor& weight_) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   Tensor weight = weight_.contiguous();
   if (weight.dim() == 5) {
     const int64_t s1 = weight.size(0);
@@ -286,7 +307,11 @@ Tensor view_weight_2d(const Tensor& weight_) {
 }
 
 template <typename scalar_t>
+<<<<<<< HEAD
 void slow_conv3d_update_output_frame(
+=======
+static void slow_conv3d_update_output_frame(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TensorAccessor<const scalar_t, 4> input,
     TensorAccessor<scalar_t, 4> output,
     TensorAccessor<const scalar_t, 2> weight,
@@ -515,7 +540,11 @@ void slow_conv3d_backward_weight_frame(
       grad_weight.data(), ldc, grad_weight.stride(0) * n);
 }
 
+<<<<<<< HEAD
 void slow_conv3d_backward_parameters_out_cpu_template(
+=======
+static void slow_conv3d_backward_parameters_out_cpu_template(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Tensor& grad_weight,
     const Tensor& input,
     const Tensor& grad_output,

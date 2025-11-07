@@ -29,14 +29,22 @@ InputMetadata::InputMetadata(
     const at::TensorOptions& options,
     MetadataShape input_shape,
     bool is_tensor_subclass,
+<<<<<<< HEAD
     bool is_nested,
     std::optional<at::ScalarType> grad_dtype)
+=======
+    bool is_nested)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     : options_{options},
       shape_{std::move(input_shape)},
       is_tensor_subclass_{is_tensor_subclass},
       is_nested_{is_nested},
+<<<<<<< HEAD
       was_default_constructed_{false},
       grad_dtype_{grad_dtype} {
+=======
+      was_default_constructed_{false} {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto device_ = options.device();
   stream_ = c10::impl::getDeviceGuardImpl(device_.type())->getStream(device_);
 }
@@ -46,8 +54,12 @@ InputMetadata::InputMetadata(const at::Tensor& t)
           t.options(),
           compute_variant_shape(t),
           is_python_dispatch(t),
+<<<<<<< HEAD
           t.is_nested(),
           t.grad_dtype()) {}
+=======
+          t.is_nested()) {}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 at::Tensor InputMetadata::zeros_like() const {
   TORCH_CHECK(

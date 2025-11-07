@@ -8,7 +8,11 @@ from torch import Tensor
 
 
 def is_sparse(A):
+<<<<<<< HEAD
     """Check if tensor A is a sparse COO tensor. All other sparse storage formats (CSR, CSC, etc...) will return False."""
+=======
+    """Check if tensor A is a sparse tensor"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(A, torch.Tensor):
         return A.layout == torch.sparse_coo
 

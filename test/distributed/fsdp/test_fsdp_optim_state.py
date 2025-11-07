@@ -2,10 +2,16 @@
 
 import bisect
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable
 from copy import deepcopy
 from enum import auto, Enum
 from typing import Any, Optional
+=======
+from copy import deepcopy
+from enum import auto, Enum
+from typing import Any, Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -39,6 +45,10 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     parametrize,
     run_tests,
+<<<<<<< HEAD
+=======
+    skipIfRocm,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TEST_WITH_DEV_DBG_ASAN,
 )
 
@@ -421,7 +431,11 @@ class TestFSDPOptimState(FSDPTest):
             return False
         for state_name, value1 in state1.items():
             value2 = state2[state_name]
+<<<<<<< HEAD
             if type(value1) is not type(value2):
+=======
+            if type(value1) != type(value2):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return False
             if torch.is_tensor(value1):  # tensor state
                 assert torch.is_tensor(value2)
@@ -514,6 +528,10 @@ class TestFSDPOptimState(FSDPTest):
                     continue
                 self.assertEqual(full_osd_value, ref_osd_pg[name])
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skip_if_lt_x_gpu(2)
     @parametrize("state_dict_type", STATE_DICT_TYPES)
     @parametrize("use_multiple_param_groups", [False, True])

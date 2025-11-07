@@ -164,6 +164,7 @@ class TestNumPyInterop(TestCase):
         self.assertEqual(y.dtype, np.bool_)
         self.assertEqual(x[0], y[0])
 
+<<<<<<< HEAD
     @skipIfTorchDynamo(
         "can't check if value is ZeroTensor since _is_zerotensor returns a bool and not a TensorVariable"
     )
@@ -186,6 +187,8 @@ class TestNumPyInterop(TestCase):
             for i in range(10):
                 self.assertEqual(y[i], 0)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfTorchDynamo("conj bit not implemented in TensorVariable yet")
     def test_to_numpy_force_argument(self, device) -> None:
         for force in [False, True]:
@@ -205,7 +208,11 @@ class TestNumPyInterop(TestCase):
                             x = x.conj()
                             y = x.resolve_conj()
                         expect_error = (
+<<<<<<< HEAD
                             requires_grad or sparse or conj or device != "cpu"
+=======
+                            requires_grad or sparse or conj or not device == "cpu"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         )
                         error_msg = r"Use (t|T)ensor\..*(\.numpy\(\))?"
                         if not force and expect_error:
@@ -510,7 +517,11 @@ class TestNumPyInterop(TestCase):
             )  # type: ignore[call-overload]
         else:
             self.assertRaisesRegex(
+<<<<<<< HEAD
                 ValueError,
+=======
+                RuntimeError,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 "(Overflow|an integer is required)",
                 lambda: torch.mean(torch.randn(1, 1), np.uint64(-1)),
             )  # type: ignore[call-overload]
@@ -596,7 +607,11 @@ class TestNumPyInterop(TestCase):
                 if (
                     dtype == torch.complex64
                     and torch.is_tensor(t)
+<<<<<<< HEAD
                     and type(a) is np.complex64
+=======
+                    and type(a) == np.complex64
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ):
                     # TODO: Imaginary part is dropped in this case. Need fix.
                     # https://github.com/pytorch/pytorch/issues/43579
@@ -661,6 +676,7 @@ class TestNumPyInterop(TestCase):
         # Regression test for https://github.com/pytorch/pytorch/issues/113037
         self.assertEqual(torch.div(x, y, rounding_mode="floor").shape, y.shape)
 
+<<<<<<< HEAD
     def test_ndarray_astype_object_graph_break(self):
         @torch.compile(backend="eager", fullgraph=True)
         def f(xs):
@@ -683,6 +699,8 @@ class TestNumPyInterop(TestCase):
         ):
             f(xs)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_device_type_tests(TestNumPyInterop, globals())
 

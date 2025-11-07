@@ -48,7 +48,10 @@ else:
     _TensorPipeRpcBackendOptionsBase = object  # type: ignore[assignment, misc]
 
 
+<<<<<<< HEAD
 # pyrefly: ignore [invalid-inheritance]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TensorPipeRpcBackendOptions(_TensorPipeRpcBackendOptionsBase):
     r"""
     The backend options for

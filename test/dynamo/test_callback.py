@@ -8,12 +8,16 @@ from torch._dynamo.callback import callback_handler, CallbackArgs, CallbackTrigg
 from torch._dynamo.test_case import run_tests, TestCase
 from torch._guards import CompileId
 from torch.testing._internal.common_utils import TEST_WITH_ROCM
+<<<<<<< HEAD
 from torch.testing._internal.triton_utils import HAS_CUDA_AND_TRITON, requires_gpu
 
 
 device_type = (
     acc.type if (acc := torch.accelerator.current_accelerator(True)) else "cpu"
 )
+=======
+from torch.testing._internal.inductor_utils import HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CallbackTests(TestCase):
@@ -30,7 +34,11 @@ class CallbackTests(TestCase):
 
     def test_callbacks_with_duplicate_prevention(self) -> None:
         trigger = CallbackTrigger.DYNAMO
+<<<<<<< HEAD
         compile_id = CompileId(frame_id=0, frame_compile_id=0)
+=======
+        compile_id = CompileId(0, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with (
             callback_handler.install_callbacks(trigger, compile_id),
             callback_handler.install_callbacks(trigger, compile_id),
@@ -40,7 +48,11 @@ class CallbackTests(TestCase):
 
     def test_counter(self) -> None:
         trigger = CallbackTrigger.DYNAMO
+<<<<<<< HEAD
         compile_id = CompileId(frame_id=0, frame_compile_id=0)
+=======
+        compile_id = CompileId(0, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with callback_handler.install_callbacks(trigger, compile_id):
             self.assertEqual(
                 callback_handler._CompilationCallbackHandler__pending_callbacks_counter,
@@ -56,7 +68,11 @@ class CallbackTests(TestCase):
             AssertionError, "Pending callbacks counter cannot become negative."
         ):
             trigger = CallbackTrigger.DYNAMO
+<<<<<<< HEAD
             compile_id = CompileId(frame_id=0, frame_compile_id=0)
+=======
+            compile_id = CompileId(0, 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with callback_handler.install_callbacks(trigger, str(compile_id)):
                 pass
         self.assertEqual(
@@ -66,7 +82,11 @@ class CallbackTests(TestCase):
     @unittest.skipIf(
         TEST_WITH_ROCM, "ROCm outputs a different number of autotuning logs"
     )
+<<<<<<< HEAD
     @requires_gpu
+=======
+    @unittest.skipIf(not HAS_CUDA, "requires triton")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @torch._inductor.config.patch(force_disable_caches=True)
     def test_triggers(self) -> None:
         torch._dynamo.reset()
@@ -96,9 +116,15 @@ class CallbackTests(TestCase):
                 torch._dynamo.graph_break()
                 return self.fc2(temp)
 
+<<<<<<< HEAD
         model = TinyModel().to(device_type)
         compiled_model = torch.compile(model, mode="max-autotune")
         x = torch.randn(10, 10, device=device_type)
+=======
+        model = TinyModel().to("cuda")
+        compiled_model = torch.compile(model, mode="max-autotune")
+        x = torch.randn(10, 10, device="cuda")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         loss = compiled_model(x).sum()
         loss.backward()
@@ -111,6 +137,7 @@ start=CallbackArgs(callback_trigger=<CallbackTrigger.DYNAMO: 1>, compile_id='1/0
 end=CallbackArgs(callback_trigger=<CallbackTrigger.DYNAMO: 1>, compile_id='1/0')
 start=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='1/0')
 end=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='1/0')
+<<<<<<< HEAD
 start=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='0/0')
 end=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='0/0')""",  # noqa: B950
         )
@@ -123,6 +150,20 @@ end=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id
         loss = compiled_model(x).sum()
         loss.backward()
 
+=======
+start=CallbackArgs(callback_trigger=<CallbackTrigger.TRITON_AUTOTUNING: 3>, compile_id='1/0')
+end=CallbackArgs(callback_trigger=<CallbackTrigger.TRITON_AUTOTUNING: 3>, compile_id='1/0')
+start=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='0/0')
+end=CallbackArgs(callback_trigger=<CallbackTrigger.LAZY_BACKWARD: 2>, compile_id='0/0')
+start=CallbackArgs(callback_trigger=<CallbackTrigger.TRITON_AUTOTUNING: 3>, compile_id='0/0')
+end=CallbackArgs(callback_trigger=<CallbackTrigger.TRITON_AUTOTUNING: 3>, compile_id='0/0')""",  # noqa: B950
+        )
+        order.clear()
+
+        compiled_model.zero_grad()
+        loss = compiled_model(x).sum()
+        loss.backward()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.assertExpectedInline(
             "\n".join(order),
             """\

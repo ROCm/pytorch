@@ -3,7 +3,11 @@ from __future__ import annotations
 from collections import defaultdict
 from functools import lru_cache
 from pathlib import Path
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING
+=======
+from typing import Any, Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from warnings import warn
 
 from tools.testing.target_determination.heuristics.interface import (
@@ -17,10 +21,13 @@ from tools.testing.target_determination.heuristics.utils import (
 from tools.testing.test_run import TestRun
 
 
+<<<<<<< HEAD
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REPO_ROOT = Path(__file__).parents[3]
 
 keyword_synonyms: dict[str, list[str]] = {

@@ -7,7 +7,10 @@ import os
 import re
 import subprocess
 import sys
+<<<<<<< HEAD
 import types
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 
 
@@ -59,6 +62,10 @@ imports = [
     "BigBirdConfig",
     "BlenderbotForConditionalGeneration",
     "BlenderbotModel",
+<<<<<<< HEAD
+=======
+    "BlenderbotSmallForConditionalGeneration",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "BlenderbotSmallModel",
     "CLIPModel",
     "CLIPVisionModel",
@@ -72,6 +79,10 @@ imports = [
     "MarianForCausalLM",
     "MarianModel",
     "MarianMTModel",
+<<<<<<< HEAD
+=======
+    "PegasusForConditionalGeneration",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "PegasusModel",
     "ReformerConfig",
     "ViTForImageClassification",
@@ -105,11 +116,14 @@ finally:
 # on A100 GPUs - 40 GB.
 BATCH_SIZE_KNOWN_MODELS = {}
 
+<<<<<<< HEAD
 # Run only this selected group of models, leave this empty to run everything
 TORCHBENCH_ONLY_MODELS = [
     m.strip() for m in os.getenv("TORCHBENCH_ONLY_MODELS", "").split(",") if m.strip()
 ]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # TODO(sdym): use batch-size-file parameter of common.main, like torchbench.py
 # Get the list of models and their batch sizes
@@ -120,6 +134,7 @@ with open(MODELS_FILENAME) as fh:
     lines = [line.rstrip() for line in lines]
     for line in lines:
         model_name, batch_size = line.split(",")
+<<<<<<< HEAD
         if TORCHBENCH_ONLY_MODELS and model_name not in TORCHBENCH_ONLY_MODELS:
             continue
         batch_size = int(batch_size)
@@ -131,6 +146,11 @@ try:
     from .huggingface_llm_models import HF_LLM_MODELS
 except ImportError:
     from huggingface_llm_models import HF_LLM_MODELS
+=======
+        batch_size = int(batch_size)
+        BATCH_SIZE_KNOWN_MODELS[model_name] = batch_size
+assert len(BATCH_SIZE_KNOWN_MODELS)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_module_cls_by_model_name(model_cls_name):
@@ -165,7 +185,11 @@ def get_sequence_length(model_cls, model_name):
             "Bert",
             "Roberta",
         )
+<<<<<<< HEAD
     ) or model_name in ("DistillGPT2", "GoogleFnet", "YituTechConvBert"):
+=======
+    ) or model_name in ("DistillGPT2", "GoogleFnet", "YituTechConvBert", "CamemBert"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         seq_length = 512
     elif model_name in ("TrOCRForCausalLM"):
         seq_length = 256
@@ -220,7 +244,13 @@ def generate_inputs_for_model(
         BlenderbotModel,
         BlenderbotSmallModel,
         BlenderbotForConditionalGeneration,
+<<<<<<< HEAD
         PegasusModel,
+=======
+        BlenderbotSmallForConditionalGeneration,
+        PegasusModel,
+        PegasusForConditionalGeneration,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         MarianModel,
         MarianMTModel,
     ]:
@@ -329,6 +359,13 @@ EXTRA_MODELS = {
         AutoConfig.from_pretrained("YituTech/conv-bert-base"),
         AutoModelForMaskedLM,
     ),
+<<<<<<< HEAD
+=======
+    "CamemBert": (
+        AutoConfig.from_pretrained("camembert-base"),
+        AutoModelForMaskedLM,
+    ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 
@@ -367,7 +404,12 @@ class HuggingfaceRunner(BenchmarkRunner):
 
     def use_larger_multiplier_for_smaller_tensor(self, name):
         return name in [
+<<<<<<< HEAD
             "GPT2ForSequenceClassification",
+=======
+            "ElectraForQuestionAnswering",
+            "MegatronBertForQuestionAnswering",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
     def _get_model_cls_and_config(self, model_name):
@@ -415,8 +457,16 @@ class HuggingfaceRunner(BenchmarkRunner):
         use_eval_mode = self.args.use_eval_mode
         dtype = torch.float32
         reset_rng_state()
+<<<<<<< HEAD
 
         # Get batch size
+=======
+        model_cls, config = self._get_model_cls_and_config(model_name)
+        model = self._download_model(model_name)
+        model = model.to(device, dtype=dtype)
+        if self.args.enable_activation_checkpointing:
+            model.gradient_checkpointing_enable()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if model_name in BATCH_SIZE_KNOWN_MODELS:
             batch_size_default = BATCH_SIZE_KNOWN_MODELS[model_name]
         elif batch_size is None:
@@ -434,6 +484,7 @@ class HuggingfaceRunner(BenchmarkRunner):
                     f"Running smaller batch size={batch_size} for {model_name}, orig batch_size={batch_size_default}"  # noqa: G004
                 )
 
+<<<<<<< HEAD
         # Get model and example inputs
         if model_name in HF_LLM_MODELS:
             benchmark_cls = HF_LLM_MODELS[model_name]
@@ -474,6 +525,16 @@ class HuggingfaceRunner(BenchmarkRunner):
 
         if self.args.enable_activation_checkpointing:
             model.gradient_checkpointing_enable()
+=======
+        example_inputs = generate_inputs_for_model(
+            model_cls, model, model_name, batch_size, device, include_loss_args=True
+        )
+
+        # So we can check for correct gradients without eliminating the dropout computation
+        for attr in dir(config):
+            if "drop" in attr and isinstance(getattr(config, attr), float):
+                setattr(config, attr, 1e-30)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if (
             is_training
@@ -550,8 +611,12 @@ class HuggingfaceRunner(BenchmarkRunner):
 
     def forward_pass(self, mod, inputs, collect_outputs=True):
         with self.autocast(**self.autocast_arg):
+<<<<<<< HEAD
             res = mod(**inputs)
         return res.logits if self.hf_llm else res
+=======
+            return mod(**inputs)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def forward_and_backward_pass(self, mod, inputs, collect_outputs=True):
         cloned_inputs = clone_inputs(inputs)

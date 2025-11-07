@@ -3,7 +3,10 @@
 #include <fmt/ostream.h>
 
 #include <c10/util/Enumerate.h>
+<<<<<<< HEAD
 #include <c10/util/Exception.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifdef __SIGRID_USE_GPU__
 #include <ATen/cuda/CUDAContext.h>
@@ -14,9 +17,16 @@ namespace torch::nativert {
 
 C10Kernel::C10Kernel(
     const Node* node,
+<<<<<<< HEAD
     OpKernelKind kind,
     AliasingSpec&& aliasingSpec)
     : OpKernel(node, kind),
+=======
+    c10::Device device,
+    OpKernelKind kind,
+    AliasingSpec&& aliasingSpec)
+    : OpKernel(node, device, kind),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       op_(getOperatorForTarget(node->target(), node)),
       schema_(op_.schema(), std::move(aliasingSpec), kind_),
       arguments_(prefillStackWithStaticArgs(node, op_.schema())) {}
@@ -32,6 +42,7 @@ void C10Kernel::computeInternal(ExecutionFrame& executionFrame) const {
     op_.callBoxed(stack);
   } catch (const std::exception& ex) {
     auto stackTrace = node_->getMetadata("stack_trace");
+<<<<<<< HEAD
     TORCH_CHECK(
         false,
         "Exception while executing node: ",
@@ -44,6 +55,17 @@ void C10Kernel::computeInternal(ExecutionFrame& executionFrame) const {
         "\n",
         "Original Python stacktrace:\n",
         stackTrace ? *stackTrace : "<no stack trace>")
+=======
+    throw std::runtime_error(fmt::format(
+        "Exception while executing node: {}\n"
+        "with args:\n{}\n"
+        "{}\n"
+        "Original Python stacktrace:\n{}",
+        fmt::streamed(*node_),
+        readableArgs(op_.schema(), stack),
+        ex.what(),
+        stackTrace ? *stackTrace : "<no stack trace>"));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   // Write out results
@@ -52,10 +74,15 @@ void C10Kernel::computeInternal(ExecutionFrame& executionFrame) const {
   // these are named I don't think it will ever happen in practice. We need to
   // enforce it though.
   const auto& outputValues = node_->outputs();
+<<<<<<< HEAD
   TORCH_CHECK(
       outputValues.size() == stack.size(),
       "Output size mismatch for ",
       node_->toString());
+=======
+  TORCH_CHECK_EQ(outputValues.size(), stack.size())
+      << "Output size mismatch for " << node_->toString();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (auto&& [i, actualOutput] : c10::enumerate(stack)) {
     executionFrame.setIValue(outputValues[i]->id(), std::move(actualOutput));
   }
@@ -71,7 +98,11 @@ std::unordered_map<std::string, c10::IValue> getSymInputs(
     if (val.isInt() || val.isDouble() || val.isBool()) {
       inputs[input.name] = val;
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "unsupported type for symbolic input");
+=======
+      throw std::runtime_error("unsupported type for symbolic input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   for (const auto& attribute : node.attributes()) {
@@ -82,7 +113,11 @@ std::unordered_map<std::string, c10::IValue> getSymInputs(
     } else if (std::holds_alternative<bool>(attribute.value)) {
       inputs[attribute.name] = std::get<bool>(attribute.value);
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "unsupported type for symbolic input");
+=======
+      throw std::runtime_error("unsupported type for symbolic input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   return inputs;
@@ -106,7 +141,12 @@ void computeScalarBinaryOp(
   } else if (target == "_operator.pow") {
     out = std::pow(a, b);
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "unsupported operator for scalar binary op: ", target);
+=======
+    throw std::runtime_error(
+        fmt::format("unsupported operator for symbolic values: {}", target));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   executionFrame.setIValue(node.outputs()[0]->id(), out);
@@ -133,7 +173,11 @@ void ScalarBinaryOpKernel::computeInternal(
     } else if (x.isDouble()) {
       return x.toDouble();
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "unsupported type for symbolic input");
+=======
+      throw std::runtime_error("unsupported type for symbolic input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   };
 
@@ -174,7 +218,12 @@ void SymIntOpKernel::computeInternal(ExecutionFrame& executionFrame) const {
   } else if (target == "torch.sym_min") {
     out = std::min(a, b);
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "unsupported operator for SymInt: ", node_->target())
+=======
+    throw std::runtime_error(
+        fmt::format("unsupported operator for SymInt: {}", node_->target()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   executionFrame.setIValue(node_->outputs()[0]->id(), out);
@@ -221,7 +270,12 @@ void SymBoolOpKernel::computeInternal(ExecutionFrame& executionFrame) const {
     bool b = inputs.at("b").toBool();
     out = a && b;
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "unsupported operator for SymBool: ", node_->target())
+=======
+    throw std::runtime_error(
+        fmt::format("unsupported operator for SymBool: {}", node_->target()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   executionFrame.setIValue(node_->outputs()[0]->id(), out);
@@ -248,7 +302,11 @@ void SymFloatOpKernel::computeInternal(ExecutionFrame& executionFrame) const {
     } else if (a.isDouble()) {
       out = -a.toDouble();
     } else {
+<<<<<<< HEAD
       TORCH_CHECK(false, "unsupported type for symbolic input");
+=======
+      throw std::runtime_error("unsupported type for symbolic input");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     executionFrame.setIValue(node_->outputs()[0]->id(), out);
   } else if (target == "_operator.truediv") {
@@ -259,7 +317,15 @@ void SymFloatOpKernel::computeInternal(ExecutionFrame& executionFrame) const {
     double out = a / b;
     executionFrame.setIValue(node_->outputs()[0]->id(), out);
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(false, "unsupported operator for SymFloat: ", node_->target());
   }
 }
+=======
+    throw std::runtime_error(
+        fmt::format("unsupported operator for SymFloat: {}", node_->target()));
+  }
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace torch::nativert

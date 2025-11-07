@@ -1,9 +1,15 @@
 # mypy: ignore-errors
 
+<<<<<<< HEAD
 """Define analogs of numpy dtypes supported by pytorch.
 Define the scalar types and supported dtypes and numpy <--> torch dtype mappings.
 """
 
+=======
+""" Define analogs of numpy dtypes supported by pytorch.
+Define the scalar types and supported dtypes and numpy <--> torch dtype mappings.
+"""
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import builtins
 
 import torch
@@ -408,6 +414,11 @@ def set_default_dtype(fp_dtype="numpy", int_dtype="numpy"):
 
     if int_dtype in ["numpy", "pytorch"]:
         int_dtype = torch.int64
+<<<<<<< HEAD
+=======
+    else:
+        int_dtype = int_dtype
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     new_defaults = _dtypes_impl.DefaultDTypes(
         float_dtype=float_dtype, complex_dtype=complex_dtype, int_dtype=int_dtype

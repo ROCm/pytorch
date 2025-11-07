@@ -39,6 +39,7 @@ struct lerp_alpha_functor {
   }
 };
 
+<<<<<<< HEAD
 struct native_dropout_mask_and_scale_functor {
   template <typename TI, typename TA>
   inline TA operator()(const TI a, const TI b, const TA scale) {
@@ -46,6 +47,8 @@ struct native_dropout_mask_and_scale_functor {
   }
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct fmax_functor {
   template <typename T>
   inline T operator()(const T a, const T b) {
@@ -141,6 +144,7 @@ struct chebyshev_polynomial_w_functor {
   }
 };
 
+<<<<<<< HEAD
 struct shifted_chebyshev_polynomial_t_functor {
   template <typename T, enable_if_t<is_floating_point_v<T>, bool> = true>
   inline T operator()(const T a, const T b) {
@@ -193,6 +197,8 @@ struct shifted_chebyshev_polynomial_w_functor {
   }
 };
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 struct hermite_polynomial_h_functor {
   template <typename T, enable_if_t<is_floating_point_v<T>, bool> = true>
   inline T operator()(const T a, const T b) {
@@ -216,6 +222,7 @@ struct hermite_polynomial_he_functor {
 };
 
 struct nextafter_functor {
+<<<<<<< HEAD
   template <typename T>
   inline T operator()(const T a, const T b) {
     return static_cast<T>(::metal::nextafter(a, b));
@@ -226,6 +233,40 @@ struct hypot_functor {
   template <typename T>
   inline T operator()(const T a, const T b) {
     return static_cast<T>(precise::sqrt(float(a) * a + float(b) * b));
+=======
+#if __METAL_VERSION__ < 310
+  template <typename U>
+  struct bit_type {};
+  template <>
+  struct bit_type<float> {
+    using type = int;
+  };
+  template <>
+  struct bit_type<half> {
+    using type = short;
+  };
+#endif
+  template <typename T>
+  inline T operator()(const T a, const T b) {
+#if __METAL_VERSION__ >= 310
+    return static_cast<T>(::metal::nextafter(a, b));
+#else
+    using U = typename bit_type<T>::type;
+    if (a == b) {
+      return a;
+    }
+    if (::metal::isunordered(a, b)) {
+      return NAN;
+    }
+    if (a == 0) {
+      constexpr auto eps = as_type<T>(static_cast<U>(1));
+      return b > 0 ? eps : -eps;
+    }
+    auto bits = as_type<U>(a);
+    (a > 0) ^ (a > b) ? bits++ : bits--;
+    return as_type<T>(bits);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -329,6 +370,7 @@ struct fmod_functor {
   }
 };
 
+<<<<<<< HEAD
 struct igamma_functor {
   template <typename T>
   inline T operator()(const T a, const T b) {
@@ -342,6 +384,14 @@ struct igammac_functor {
     return c10::metal::igammac(a, b);
   }
 };
+=======
+// Some helper defines
+#if __METAL_VERSION__ >= 310
+#define _METAL_310_PLUS(x) x
+#else
+#define _METAL_310_PLUS(x)
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define REGISTER_INTEGER_BINARY_OP(NAME)  \
   REGISTER_BINARY_OP(NAME, long, long);   \
@@ -362,14 +412,23 @@ struct igammac_functor {
 #define REGISTER_FLOAT_BINARY_OP(NAME)    \
   REGISTER_BINARY_OP(NAME, float, float); \
   REGISTER_BINARY_OP(NAME, half, half);   \
+<<<<<<< HEAD
   REGISTER_BINARY_OP(NAME, bfloat, bfloat)
+=======
+  _METAL_310_PLUS(REGISTER_BINARY_OP(NAME, bfloat, bfloat))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #define REGISTER_OPMATH_FLOAT_BINARY_OP(NAME)    \
   REGISTER_OPMATH_BINARY_OP(NAME, float, float); \
   REGISTER_OPMATH_BINARY_OP(NAME, half, half);   \
+<<<<<<< HEAD
   REGISTER_OPMATH_BINARY_OP(NAME, bfloat, bfloat)
 
 REGISTER_FLOAT_BINARY_OP(hypot);
+=======
+  _METAL_310_PLUS(REGISTER_OPMATH_BINARY_OP(NAME, bfloat, bfloat))
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_FLOAT_BINARY_OP(copysign);
 REGISTER_INT2FLOAT_BINARY_OP(copysign);
 REGISTER_FLOAT_BINARY_OP(fmax);
@@ -387,6 +446,7 @@ REGISTER_FLOAT_BINARY_OP(chebyshev_polynomial_v);
 REGISTER_INT2FLOAT_BINARY_OP(chebyshev_polynomial_w);
 REGISTER_FLOAT_BINARY_OP(chebyshev_polynomial_w);
 REGISTER_INT2FLOAT_BINARY_OP(chebyshev_polynomial_v);
+<<<<<<< HEAD
 REGISTER_FLOAT_BINARY_OP(shifted_chebyshev_polynomial_t);
 REGISTER_INT2FLOAT_BINARY_OP(shifted_chebyshev_polynomial_t);
 REGISTER_FLOAT_BINARY_OP(shifted_chebyshev_polynomial_u);
@@ -395,6 +455,8 @@ REGISTER_FLOAT_BINARY_OP(shifted_chebyshev_polynomial_v);
 REGISTER_INT2FLOAT_BINARY_OP(shifted_chebyshev_polynomial_v);
 REGISTER_FLOAT_BINARY_OP(shifted_chebyshev_polynomial_w);
 REGISTER_INT2FLOAT_BINARY_OP(shifted_chebyshev_polynomial_w);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_FLOAT_BINARY_OP(hermite_polynomial_h);
 REGISTER_INT2FLOAT_BINARY_OP(hermite_polynomial_h);
 REGISTER_FLOAT_BINARY_OP(hermite_polynomial_he);
@@ -415,8 +477,11 @@ REGISTER_OPMATH_FLOAT_BINARY_OP(remainder);
 REGISTER_INTEGER_BINARY_OP(remainder);
 REGISTER_OPMATH_FLOAT_BINARY_OP(fmod);
 REGISTER_INTEGER_BINARY_OP(fmod);
+<<<<<<< HEAD
 REGISTER_OPMATH_FLOAT_BINARY_OP(igamma);
 REGISTER_OPMATH_FLOAT_BINARY_OP(igammac);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 REGISTER_BINARY_ALPHA_OP(add_alpha, long, long, long);
 REGISTER_BINARY_ALPHA_OP(add_alpha, int, int, int);
 REGISTER_BINARY_ALPHA_OP(add_alpha, float, float, float);
@@ -442,6 +507,7 @@ REGISTER_BINARY_ALPHA_OP(lerp_alpha, uchar, uchar, uchar);
 REGISTER_BINARY_ALPHA_OP(lerp_alpha, char, char, char);
 REGISTER_BINARY_ALPHA_OP(lerp_alpha, bool, bool, bool);
 
+<<<<<<< HEAD
 REGISTER_BINARY_ALPHA_OP(native_dropout_mask_and_scale, float, float, float);
 REGISTER_BINARY_ALPHA_OP(native_dropout_mask_and_scale, bfloat, bfloat, bfloat);
 REGISTER_BINARY_ALPHA_OP(native_dropout_mask_and_scale, half, half, half);
@@ -449,6 +515,13 @@ REGISTER_BINARY_ALPHA_OP(native_dropout_mask_and_scale, half, half, half);
 REGISTER_BINARY_ALPHA_OP(add_alpha, bfloat, bfloat, bfloat);
 REGISTER_BINARY_ALPHA_OP(sub_alpha, bfloat, bfloat, bfloat);
 REGISTER_BINARY_ALPHA_OP(lerp_alpha, bfloat, bfloat, bfloat);
+=======
+#if __METAL_VERSION__ >= 310
+REGISTER_BINARY_ALPHA_OP(add_alpha, bfloat, bfloat, bfloat);
+REGISTER_BINARY_ALPHA_OP(sub_alpha, bfloat, bfloat, bfloat);
+REGISTER_BINARY_ALPHA_OP(lerp_alpha, bfloat, bfloat, bfloat);
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Complex binary functions
 REGISTER_BINARY_OP(polar, float, float2);

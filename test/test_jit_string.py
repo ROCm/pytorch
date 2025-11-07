@@ -241,6 +241,7 @@ class TestScript(JitTestCase):
         def test_split() -> tuple[list[str], list[str], list[str], list[str], list[str],
                                   list[str], list[str], list[str], list[str], list[str], list[str]]:
             return (
+<<<<<<< HEAD
                 ["a", "a", "a", "a", "a"],
                 ["a", "a", "a", "a", "a"],
                 ["a", "a", "a", "a", "a"],
@@ -252,6 +253,19 @@ class TestScript(JitTestCase):
                 [" a", "a a", "a a"],
                 [" a", "a a", "a a "],
                 [" ", "a ", "a a "],
+=======
+                "a a a a a".split(),
+                "a  a a   a a".split(),
+                "   a a\ta \v a \v\f\n a \t   ".split(),
+                " a a a a a ".split(" "),
+                "a a a a a ".split(" ", 10),
+                "a a a a a ".split(" ", -1),
+                "a a a a a ".split(" ", 3),
+                " a a a a a ".split("*"),
+                " a*a a*a a".split("*"),
+                " a*a a*a a ".split("*", -1),
+                " a*a a*a a ".split("a*", 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         self.checkScript(test_split, ())
 
@@ -266,6 +280,7 @@ class TestScript(JitTestCase):
         def test_rsplit() -> tuple[list[str], list[str], list[str], list[str], list[str],
                                    list[str], list[str], list[str], list[str]]:
             return (
+<<<<<<< HEAD
                 ["a", "a", "a", "a", "a"],
                 ["", "a", "a", "a", "a", "a", ""],
                 ["a", "a", "a", "a", "a", ""],
@@ -275,6 +290,17 @@ class TestScript(JitTestCase):
                 [" a", "a a", "a a "],
                 [" a", "a a", "a a "],
                 [" ", "a ", "a a"],
+=======
+                "a a a a a".rsplit(),
+                " a a a a a ".rsplit(" "),
+                "a a a a a ".rsplit(" ", 10),
+                "a a a a a ".rsplit(" ", -1),
+                "a a a a a ".rsplit(" ", 3),
+                " a a a a a ".rsplit("*"),
+                " a*a a*a a ".rsplit("*"),
+                " a*a a*a a ".rsplit("*", -1),
+                " a*a a*a a".rsplit("a*", 10),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         self.checkScript(test_rsplit, ())
 

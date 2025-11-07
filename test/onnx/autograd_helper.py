@@ -3,7 +3,11 @@
 import torch
 
 
+<<<<<<< HEAD
 # Autograd function that is a replica of the autograd function in
+=======
+# Autograd funtion that is a replica of the autograd funtion in
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # test_utility_funs.py (test_autograd_module_name)
 class CustomFunction(torch.autograd.Function):
     @staticmethod

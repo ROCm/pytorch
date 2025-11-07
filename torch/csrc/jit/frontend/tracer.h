@@ -388,7 +388,11 @@ template <
          !std::is_convertible_v<
              std::decay_t<T>,
              c10::intrusive_ptr<c10::ivalue::Object>>)>>
+<<<<<<< HEAD
 void addOutput(Node* node, T&& /*unused*/) {
+=======
+void addOutput(Node* node, T&&) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       false,
       "Found an unsupported argument type ",

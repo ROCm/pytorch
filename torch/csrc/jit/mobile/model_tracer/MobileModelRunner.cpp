@@ -105,7 +105,11 @@ std::unordered_map<std::string, std::string> MobileModelRunner::
       function_and_info_dict[key.toStringRef()] = data_list;
     }
 
+<<<<<<< HEAD
     // Could store the full mapping of std types, but the 'info' section isn't
+=======
+    // Could store the full mapping of std types, but the 'info' section isnt
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // needed here
     std::string input_function =
         function_and_info_dict["get_inputs_function_name"][0];

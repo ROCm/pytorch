@@ -65,11 +65,17 @@ struct TORCH_API Method : public torch::IMethod {
   }
 
  private:
+<<<<<<< HEAD
   void setArgumentNames(
       std::vector<std::string>& /*argumentNames*/ /*argumentNamesOut*/)
       const override;
 
   // Methods are uniqued owned by a single module. This raw pointer allows
+=======
+  void setArgumentNames(std::vector<std::string>&) const override;
+
+  // Methods are uniqued onwed by a single module. This raw pointer allows
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // looking up the module.
   ObjectPtr owner_;
 

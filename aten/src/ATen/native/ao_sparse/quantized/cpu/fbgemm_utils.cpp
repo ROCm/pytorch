@@ -39,6 +39,10 @@ int register_linear_params() {
 }
 
 namespace {
+<<<<<<< HEAD
 [[maybe_unused]] auto linear_params = register_linear_params();
+=======
+[[maybe_unused]] static auto linear_params = register_linear_params();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 }  // namespace ao::sparse

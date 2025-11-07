@@ -55,7 +55,10 @@ def warn_deprecated():
         "torch._custom_op is deprecated and will be removed in PyTorch 2.6, please "
         "use the equivalent torch.library API instead.",
         DeprecationWarning,
+<<<<<<< HEAD
         stacklevel=2,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -102,7 +105,11 @@ def custom_op(
             lib, ns, function_schema, name, ophandle, _private_access=True
         )
 
+<<<<<<< HEAD
         result.__name__ = func.__name__  # pyrefly: ignore [bad-assignment]
+=======
+        result.__name__ = func.__name__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         result.__module__ = func.__module__
         result.__doc__ = func.__doc__
 
@@ -649,7 +656,11 @@ def custom_op_from_existing(op):
     name = op.name().split("::")[-1]
     schema_str = str(op._schema)
     # CustomOp expects the schema string without the namespace
+<<<<<<< HEAD
     schema_str = schema_str.rsplit("::", maxsplit=1)[-1]
+=======
+    schema_str = schema_str.split("::")[-1]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     schema = FunctionSchema.parse(schema_str)
     return CustomOp(lib, ns, schema, name, op, _private_access=True)
 

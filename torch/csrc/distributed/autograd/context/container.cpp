@@ -52,9 +52,19 @@ DistAutogradContainer& DistAutogradContainer::init(int64_t worker_id) {
   }
 
   container.worker_id_ = static_cast<int16_t>(worker_id);
+<<<<<<< HEAD
   container.next_context_id_ = worker_id << kAutoIncrementBits;
   container.next_autograd_message_id_ = worker_id << kAutoIncrementBits;
   container.max_id_ = (kAutoIncrementMask | (worker_id << kAutoIncrementBits));
+=======
+  container.next_context_id_ = static_cast<int64_t>(worker_id)
+      << kAutoIncrementBits;
+  container.next_autograd_message_id_ = static_cast<int64_t>(worker_id)
+      << kAutoIncrementBits;
+  container.max_id_ =
+      (kAutoIncrementMask |
+       (static_cast<int64_t>(worker_id) << kAutoIncrementBits));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   container.initialized_ = true;
   return container;
 }

@@ -826,8 +826,13 @@ class TestFuseFx(QuantizationTestCase):
         # check conv module has two inputs
         named_modules = dict(m.named_modules())
         for node in m.graph.nodes:
+<<<<<<< HEAD
             if node.op == "call_module" and type(named_modules[node.target]) is torch.nn.Conv2d:
                 self.assertTrue(len(node.args) == 2, msg="Expecting the fused op to have two arguments")
+=======
+            if node.op == "call_module" and type(named_modules[node.target]) == torch.nn.Conv2d:
+                self.assertTrue(len(node.args) == 2), "Expecting the fused op to have two arguments"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def test_fusion_pattern_with_matchallnode(self):
         """This test tests that the node matched by MatchAllNode will be regared as an input
@@ -917,7 +922,11 @@ class TestQuantizeFx(QuantizationTestCase):
         m = torch.fx.symbolic_trace(M())
         modules = dict(m.named_modules())
         for n in m.graph.nodes:
+<<<<<<< HEAD
             if n.op == 'call_module' and type(modules[n.target]) is nn.ReLU:
+=======
+            if n.op == 'call_module' and type(modules[n.target]) == nn.ReLU:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertTrue(_is_match(modules, n, pattern))
 
     def test_pattern_match_constant(self):
@@ -1221,7 +1230,11 @@ class TestQuantizeFx(QuantizationTestCase):
             def checkSerDeser(model, is_dynamic):
                 for module_name in ("linear", "conv"):
                     if hasattr(model, module_name):
+<<<<<<< HEAD
                         # make sure serialization works
+=======
+                        # make sure seralization works
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         state_dict = copy.deepcopy(model.state_dict())
                         all_keys = _get_keys(module_name, is_dynamic)
                         for key in all_keys:
@@ -1484,7 +1497,11 @@ class TestQuantizeFx(QuantizationTestCase):
             def checkSerDeser(model, is_dynamic):
                 module_name = "deconv"
                 if hasattr(model, module_name):
+<<<<<<< HEAD
                     # make sure serialization works
+=======
+                    # make sure seralization works
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     state_dict = copy.deepcopy(model.state_dict())
                     all_keys = _get_keys(module_name, is_dynamic)
                     for key in all_keys:
@@ -1569,7 +1586,11 @@ class TestQuantizeFx(QuantizationTestCase):
             def checkSerDeser(model, is_dynamic):
                 module_name = "deconv"
                 if hasattr(model, module_name):
+<<<<<<< HEAD
                     # make sure serialization works
+=======
+                    # make sure seralization works
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     state_dict = copy.deepcopy(model.state_dict())
                     all_keys = _get_keys(module_name, is_dynamic)
                     for key in all_keys:
@@ -6648,7 +6669,11 @@ class TestQuantizeFx(QuantizationTestCase):
             """
 
             def __init__(self, input_dim, output_dim):
+<<<<<<< HEAD
                 super().__init__()
+=======
+                super(__class__, self).__init__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.w = nn.Parameter(torch.randn(input_dim, output_dim))
                 self.b = nn.Parameter(torch.randn(input_dim))
 
@@ -6661,7 +6686,11 @@ class TestQuantizeFx(QuantizationTestCase):
             """
 
             def __init__(self, input_dim, hidden_dim, output_dim):
+<<<<<<< HEAD
                 super().__init__()
+=======
+                super(__class__, self).__init__()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.submodule_1 = SubModule(hidden_dim, input_dim)
                 setattr(self, 'submodule|2', SubModule(hidden_dim, hidden_dim))
                 setattr(self, 'submodule/3', SubModule(hidden_dim, hidden_dim))

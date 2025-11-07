@@ -21,7 +21,11 @@ class TORCH_API LazyGraphExecutor {
   };
 
   // Register a lazy graph executor instance that can be retrieved using Get()
+<<<<<<< HEAD
   static void Register(LazyGraphExecutor* /*executor*/);
+=======
+  static void Register(LazyGraphExecutor*);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   static LazyGraphExecutor* Get();
 
   virtual ~LazyGraphExecutor() = default;

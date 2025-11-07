@@ -26,9 +26,13 @@ class TORCH_API Function : public torch::jit::Function {
   void ensure_defined() override {}
   size_t num_inputs() const override;
   const c10::QualifiedName& qualname() const override;
+<<<<<<< HEAD
   bool call(
       Stack& /*unused*/,
       c10::function_ref<void(const mobile::Code&)> /*f*/ /*unused*/) override;
+=======
+  bool call(Stack&, c10::function_ref<void(const mobile::Code&)>) override;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   // NOTE: the APIs below is dangerous: if you call append_instruction with
   // dbg_handle and then call it without; then the dbg_handle will become

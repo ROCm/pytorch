@@ -41,9 +41,12 @@ DeviceType parse_type(const std::string& device_string) {
         "'mkldnn' is no longer used as device type. So torch.device('mkldnn') will be "
         "deprecated and removed in the future. Please use other valid device types instead.");
   }
+<<<<<<< HEAD
   if (device_string == get_privateuse1_backend()) {
     return DeviceType::PrivateUse1;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto device = std::find_if(
       types.begin(),
       types.end(),
@@ -53,6 +56,12 @@ DeviceType parse_type(const std::string& device_string) {
   if (device != types.end()) {
     return device->second;
   }
+<<<<<<< HEAD
+=======
+  if (device_string == get_privateuse1_backend()) {
+    return DeviceType::PrivateUse1;
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<const char*> device_names;
   for (const auto& it : types) {
     if (it.first) {

@@ -314,8 +314,13 @@ parseWireSections(const void* data, size_t data_size) {
   return out;
 }
 
+<<<<<<< HEAD
 static constexpr const char* kMeta = "meta";
 static constexpr const char* kPayload = "payload";
+=======
+static const char* kMeta = "meta";
+static const char* kPayload = "payload";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace
 
 c10::List<at::Tensor> cloneSparseTensors(
@@ -507,7 +512,12 @@ std::vector<at::IValue> readWrappedPayload(
       " but additional payload size is ",
       additionalPayloadSize);
   auto wrappedPayloadBegin =
+<<<<<<< HEAD
       message.payload().data() + payload.size() - additionalPayloadSize;
+=======
+      static_cast<const char*>(message.payload().data()) + payload.size() -
+      additionalPayloadSize;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::vector<torch::Tensor> tensorTable;
   IValue tuple = jit::unpickle(
       wrappedPayloadBegin,

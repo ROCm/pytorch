@@ -4,8 +4,13 @@ import collections
 import io
 import sys
 import types
+<<<<<<< HEAD
 from collections.abc import Callable, Iterator, Mapping
 from typing import Any, Optional, TypeVar, Union
+=======
+from collections.abc import Iterator, Mapping
+from typing import Any, Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import Self
 
 import torch
@@ -354,9 +359,13 @@ class _RemoteModule(nn.Module):
         _raise_not_supported(self.to.__name__)
 
     def register_backward_hook(  # type: ignore[return]
+<<<<<<< HEAD
         self,
         hook: Callable[[Module, _grad_t, _grad_t], Union[None, _grad_t]],
         # pyrefly: ignore [bad-return]
+=======
+        self, hook: Callable[[Module, _grad_t, _grad_t], Union[None, _grad_t]]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> RemovableHandle:
         _raise_not_supported(self.register_backward_hook.__name__)
 
@@ -371,7 +380,10 @@ class _RemoteModule(nn.Module):
         ],
         prepend: bool = False,
         with_kwargs: bool = False,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> RemovableHandle:
         _raise_not_supported(self.register_forward_pre_hook.__name__)
 
@@ -383,7 +395,10 @@ class _RemoteModule(nn.Module):
         ],
         prepend: bool = False,
         with_kwargs: bool = False,
+<<<<<<< HEAD
         # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> RemovableHandle:
         _raise_not_supported(self.register_forward_hook.__name__)
 
@@ -404,11 +419,15 @@ class _RemoteModule(nn.Module):
         )
 
     def named_parameters(  # type: ignore[return]
+<<<<<<< HEAD
         self,
         prefix: str = "",
         recurse: bool = True,
         remove_duplicate: bool = True,
         # pyrefly: ignore [bad-return]
+=======
+        self, prefix: str = "", recurse: bool = True, remove_duplicate: bool = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Iterator[tuple[str, Parameter]]:
         _raise_not_supported(self.named_parameters.__name__)
 
@@ -416,11 +435,15 @@ class _RemoteModule(nn.Module):
         _raise_not_supported(self.buffers.__name__)
 
     def named_buffers(  # type: ignore[return]
+<<<<<<< HEAD
         self,
         prefix: str = "",
         recurse: bool = True,
         remove_duplicate: bool = True,
         # pyrefly: ignore [bad-return]
+=======
+        self, prefix: str = "", recurse: bool = True, remove_duplicate: bool = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Iterator[tuple[str, Tensor]]:
         _raise_not_supported(self.named_buffers.__name__)
 
@@ -584,19 +607,28 @@ class _RemoteModule(nn.Module):
 
         remote_module = object.__new__(RemoteModule)
 
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         enable_moving_cpu_tensors_to_cuda = remote_module._prepare_init(remote_device)
 
         if _module_interface_cls is not None:
             # Users reply on this field to know if this generated RemoteModule is TorchScript-able.
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             remote_module.is_scriptable = True
 
             # pyrefly: ignore [missing-attribute]
+=======
+            remote_module.is_scriptable = True
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             remote_module._init_template(
                 _module_interface_cls, enable_moving_cpu_tensors_to_cuda
             )
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
             remote_module.is_scriptable = False
             # pyrefly: ignore [missing-attribute]
@@ -609,6 +641,15 @@ class _RemoteModule(nn.Module):
         # pyrefly: ignore [missing-attribute]
         remote_module._install_generated_methods()
         # pyrefly: ignore [missing-attribute]
+=======
+            remote_module.is_scriptable = False
+            remote_module.generated_methods = (
+                _NON_SCRIPTABLE_REMOTE_MODULE_MODULE._generated_methods
+            )
+        remote_module.module_rref = module_rref
+
+        remote_module._install_generated_methods()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         remote_module._check_attribute_picklability()
 
         return remote_module
@@ -711,11 +752,17 @@ def _remote_module_receiver(
     m.__dict__.update(serialized_remote_module._asdict())
 
     # Unpickling the attribute `module_rref` must invoke RRef's `_deserialize()` method.
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
     m.module_rref = rpc.PyRRef._deserialize(m.module_rref)
 
     # Install generated methods when unpickled.
     # pyrefly: ignore [missing-attribute]
+=======
+    m.module_rref = rpc.PyRRef._deserialize(m.module_rref)
+
+    # Install generated methods when unpickled.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for method in m.generated_methods:
         method_name = method.__name__
         method = torch.jit.export(method)

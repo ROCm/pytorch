@@ -39,7 +39,10 @@ def get_class_if_classified_error(e: Exception) -> Optional[str]:
         TorchRuntimeError: None,
     }
     if type(e) in _ALLOW_LIST:
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         attr_name = _ALLOW_LIST[type(e)]
         if attr_name is None:
             return ALWAYS_CLASSIFIED

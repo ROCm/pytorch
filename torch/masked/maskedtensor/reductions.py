@@ -90,7 +90,11 @@ def _torch_reduce_dim(fn):
                 "In the case that the semantics for the operator are not trivial, it would be appreciated "
                 "to also include a proposal for the semantics."
             )
+<<<<<<< HEAD
             warnings.warn(msg, stacklevel=2)
+=======
+            warnings.warn(msg)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return NotImplemented
         if not is_masked_tensor(self):
             raise TypeError("Input to reduce_dim must be a MaskedTensor")

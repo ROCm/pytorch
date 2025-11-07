@@ -58,9 +58,13 @@ def parallel_apply(
     else:
         devices = [None] * len(modules)
     devices = [_get_device_index(x, True) for x in devices]
+<<<<<<< HEAD
     streams = [torch.accelerator.current_stream(x) for x in devices]
     assert torch.accelerator.is_available(), "No available accelerator found."
     device_type = torch.accelerator.current_accelerator().type  # type: ignore[union-attr]
+=======
+    streams = [torch.cuda.current_stream(x) for x in devices]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     lock = threading.Lock()
     results = {}
     grad_enabled, autocast_enabled = (
@@ -74,7 +78,11 @@ def parallel_apply(
         input: Any,
         kwargs: dict[str, Any],
         device: Optional[Union[int, torch.device]] = None,
+<<<<<<< HEAD
         stream: Optional[torch.Stream] = None,
+=======
+        stream: Optional[torch.cuda.Stream] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> None:
         torch.set_grad_enabled(grad_enabled)
         if device is None:
@@ -87,6 +95,7 @@ def parallel_apply(
                     )
                 return
             device = t.get_device()
+<<<<<<< HEAD
         if isinstance(device, torch.device):
             device = device.index
         if stream is None:
@@ -96,6 +105,15 @@ def parallel_apply(
                 torch.accelerator.device_index(device),
                 stream,
                 torch.amp.autocast(device_type, enabled=autocast_enabled),
+=======
+        if stream is None:
+            stream = torch.cuda.current_stream(device)
+        try:
+            with (
+                torch.cuda.device(device),
+                torch.cuda.stream(stream),
+                torch.amp.autocast("cuda", enabled=autocast_enabled),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ):
                 # this also avoids accidental slicing of `input` if it is a Tensor
                 if not isinstance(input, (list, tuple)):

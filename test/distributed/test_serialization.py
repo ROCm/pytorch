@@ -95,6 +95,7 @@ class TestSerialization(TestCase):
         result = _streaming_load(file)
         torch.testing.assert_close(result, state_dict)
 
+<<<<<<< HEAD
     def test_empty_tensor(self) -> None:
         state_dict = {
             "empty": torch.zeros(0, 10),
@@ -107,6 +108,8 @@ class TestSerialization(TestCase):
         result = _streaming_load(file, weights_only=False)
         self.assertEqual(result, state_dict)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_dtensor(self) -> None:
         dist.init_process_group(
             backend="gloo", rank=0, world_size=1, store=dist.HashStore()

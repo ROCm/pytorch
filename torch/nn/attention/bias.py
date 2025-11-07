@@ -134,8 +134,12 @@ class CausalBias(torch.Tensor):
         self.seq_len_kv = seq_len_kv
         if seq_len_q > seq_len_kv and variant == CausalVariant.LOWER_RIGHT:
             warn(
+<<<<<<< HEAD
                 "Lower right causal bias will produce NaNs in the output when seq_len_q > seq_len_kv!",
                 stacklevel=2,
+=======
+                "Lower right causal bias will produce NaNs in the output when seq_len_q > seq_len_kv!"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
     def _upper_left(self, device: torch.device) -> torch.Tensor:
@@ -154,7 +158,10 @@ class CausalBias(torch.Tensor):
             diagonal=diagonal_offset,
         )
 
+<<<<<<< HEAD
     # pyrefly: ignore [bad-return]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def _materialize(self, device: Optional[torch.device] = None) -> torch.Tensor:
         """
         Materializes the causal bias into a tensor form.
@@ -271,7 +278,11 @@ class CausalBias(torch.Tensor):
                 )[0].transpose(1, 2)
             else:
                 _raise_kernel_warnings(sdpa_params)
+<<<<<<< HEAD
                 # We can't use efficient attention the only support for lower right is via materialization
+=======
+                # We cant use efficient attention the only support for lower right is via materialization
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return F.scaled_dot_product_attention(
                     query,
                     key,

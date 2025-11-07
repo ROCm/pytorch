@@ -45,7 +45,18 @@ constexpr bool is_pod_v = is_pod<T>::value;
 
 namespace guts {
 
+<<<<<<< HEAD
 #if defined(__HIP__)
+=======
+#if defined(__cpp_lib_apply) && !defined(__CUDA_ARCH__) && !defined(__HIP__)
+
+template <class F, class Tuple>
+C10_HOST_DEVICE inline constexpr decltype(auto) apply(F&& f, Tuple&& t) {
+  return std::apply(std::forward<F>(f), std::forward<Tuple>(t));
+}
+
+#else
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 // Implementation from http://en.cppreference.com/w/cpp/utility/apply (but
 // modified)

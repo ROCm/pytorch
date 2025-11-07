@@ -179,6 +179,7 @@ by recompiling the PyTorch from source.
 Please add below line as an argument to cmake command parameters::
 
     -DROCM_FORCE_ENABLE_GPU_ASSERTS:BOOL=ON
+<<<<<<< HEAD
 
 Enabling/Disabling ROCm Composable Kernel
 -----------------------------------------
@@ -206,3 +207,5 @@ To enable CK in either scenario, simply pass 'ck' to those functions.
 In order to set the backend to CK, the user MUST have built with the correct environment variable. If not,
 PyTorch will print a warning and use the "default" backend. For GEMMs, this will route to hipblas and
 for SDPA it routes to aotriton.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

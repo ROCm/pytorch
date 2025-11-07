@@ -32,6 +32,7 @@ def make_tensor_from_type(inp_type: torch._C.TensorType):
     stride = inp_type.strides()
     device = inp_type.device()
     dtype = inp_type.dtype()
+<<<<<<< HEAD
     if size is None:
         raise AssertionError("make_tensor_from_type: 'size' is None (inp_type.sizes() returned None)")
     if stride is None:
@@ -40,6 +41,12 @@ def make_tensor_from_type(inp_type: torch._C.TensorType):
         raise AssertionError("make_tensor_from_type: 'device' is None (inp_type.device() returned None)")
     if dtype is None:
         raise AssertionError("make_tensor_from_type: 'dtype' is None (inp_type.dtype() returned None)")
+=======
+    assert size is not None
+    assert stride is not None
+    assert device is not None
+    assert dtype is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return torch.empty_strided(size=size, stride=stride, device=device, dtype=dtype)
 
 def load_graph_and_inputs(ir: str) -> tuple[Any, list[Any]]:
@@ -85,8 +92,12 @@ def run_test(ir, inputs, *, warmup_runs=10, test_runs=20) -> float:
         if isinstance(input, torch.Tensor):
             is_cpu = input.device.type == "cpu"
             break
+<<<<<<< HEAD
     if is_cpu is None:
         raise AssertionError("No tensor found in inputs")
+=======
+    assert is_cpu is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     out = time_cpu(graph, inputs, test_runs) if is_cpu else time_cuda(graph, inputs, test_runs)
     return out

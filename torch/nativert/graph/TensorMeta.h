@@ -10,7 +10,10 @@
 #include <c10/util/ArrayRef.h>
 
 #include <torch/csrc/utils/generated_serialization_types.h>
+<<<<<<< HEAD
 #include <torch/nativert/executor/Placement.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::nativert {
 
@@ -26,12 +29,20 @@ class TensorMeta {
   explicit TensorMeta(const torch::_export::TensorMeta& tensorMeta);
 
   c10::IntArrayRef sizes() const {
+<<<<<<< HEAD
     TORCH_CHECK(!hasSymbolicShape_, "TensorMeta has symbolic shape");
+=======
+    CHECK(!hasSymbolicShape_) << "TensorMeta has symbolic shape";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return sizes_;
   }
 
   c10::IntArrayRef strides() const {
+<<<<<<< HEAD
     TORCH_CHECK(!hasSymbolicShape_, "TensorMeta has symbolic shape");
+=======
+    CHECK(!hasSymbolicShape_) << "TensorMeta has symbolic shape";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return strides_;
   }
 
@@ -56,7 +67,11 @@ class TensorMeta {
   }
 
   int64_t numel() const {
+<<<<<<< HEAD
     TORCH_CHECK(!hasSymbolicShape_, "TensorMeta has symbolic shape");
+=======
+    CHECK(!hasSymbolicShape_) << "TensorMeta has symbolic shape";
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return numel_;
   }
 
@@ -64,21 +79,27 @@ class TensorMeta {
     return device_;
   }
 
+<<<<<<< HEAD
   // override device according to placement
   void setDevice(c10::Device device) {
     device_ = device;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   c10::TensorOptions asTensorOptions() const {
     return c10::TensorOptions().dtype(dtype_).layout(layout_).requires_grad(
         requiresGrad_);
   }
 
+<<<<<<< HEAD
   // override device according to placement
   void applyDevicePlacement(const Placement& placement) {
     device_ = placement.getMappedDevice(device_);
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // NYI
   // c10::SymIntArrayRef sym_sizes() const {}
   // c10::SymIntArrayRef sym_strides() const {}

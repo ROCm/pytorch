@@ -9,15 +9,23 @@ from torch._inductor.codegen.cuda.cutlass_utils import (
     torch_dtype_to_cutlass_type,
     try_import_cutlass,
 )
+<<<<<<< HEAD
+=======
+from torch._inductor.graph import GraphLowering
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch._inductor.ir import ComputedBuffer, FixedLayout, PermuteView, Pointwise
 from torch._inductor.scheduler import BaseSchedulerNode
 from torch._inductor.utils import OrderedSet
 from torch.testing._internal.common_cuda import SM90OrLater
+<<<<<<< HEAD
 from torch.testing._internal.inductor_utils import (
     HAS_CPU,
     HAS_CUDA_AND_TRITON,
     MockGraphHandler,
 )
+=======
+from torch.testing._internal.inductor_utils import HAS_CPU, HAS_CUDA
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 if try_import_cutlass():
@@ -26,11 +34,18 @@ if try_import_cutlass():
 
     LayoutType = cutlass_lib.LayoutType
     DataType = cutlass_lib.DataType
+<<<<<<< HEAD
     from cutlass_cppgen.backend.evt.ir.tensor import Tensor as CutlassTensor
 
     from torch._inductor.codegen.cuda.cutlass_lib_extensions.evt_extensions import (
         _render_argument_type,
         _trace,
+=======
+    from torch._inductor.codegen.cuda.cutlass_lib_extensions.evt_extensions import (
+        _render_argument_type,
+        _trace,
+        CutlassTensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         trace,
     )
 
@@ -103,6 +118,20 @@ class MockComputedBuffer(ComputedBuffer):
         return 1
 
 
+<<<<<<< HEAD
+=======
+class MockGraphHandler(GraphLowering):
+    def __init__(self, name_to_buffer):
+        import torch._inductor.sizevars
+
+        self.sizevars = torch._inductor.sizevars.SizeVarAllocator()
+        self.name_to_buffer = name_to_buffer
+        self.graph_inputs = dict()
+        self.mutated_buffers = OrderedSet()
+        self.constants = dict()
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 class TestCutlassEVT(TestCase):
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @unittest.skipIf(not try_import_cutlass(), "requires cutlass")
@@ -332,6 +361,7 @@ return tmp_1, D""",
         from torch._inductor.codegen.cuda.cutlass_lib_extensions.evt_extensions import (
             create_example_tensors,
         )
+<<<<<<< HEAD
         from torch._inductor.virtualized import V
 
         with V.set_graph_handler(MockGraphHandler({})):
@@ -357,6 +387,31 @@ return tmp_1, D""",
             self.assertEqual(
                 result["buf1"].element, torch_dtype_to_cutlass_type(torch.float32)
             )
+=======
+
+        row_major_buf0 = MockComputedBuffer(
+            "buf0", None, torch.float32, (3, 4, 1), (4, 1, 0)
+        )
+        col_major_buf1 = MockComputedBuffer(
+            "buf1", None, torch.float32, (3, 2, 1), (1, 3, 0)
+        )
+        buffer_renames = {"buf0": "buf0", "buf1": "buf1", "acc": "buf0"}
+        name_to_buffer = {"buf0": row_major_buf0, "buf1": col_major_buf1}
+        result = create_example_tensors(
+            buffer_renames, name_to_buffer, lambda x: int(x)
+        )
+        self.assertEqual(result["acc"].shape, (3, 4, 1))
+        self.assertEqual(result["acc"].stride, (4, 1, 0))
+        self.assertEqual(
+            result["acc"].element, torch_dtype_to_cutlass_type(torch.float32)
+        )
+
+        self.assertEqual(result["buf1"].shape, (3, 2, 1))
+        self.assertEqual(result["buf1"].stride, (1, 3, 0))
+        self.assertEqual(
+            result["buf1"].element, torch_dtype_to_cutlass_type(torch.float32)
+        )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @unittest.skipIf(not try_import_cutlass(), "requires cutlass")
@@ -371,7 +426,11 @@ return tmp_1, D""",
                 epilogue_functor,
                 _create_mock_buffer_name_map(EXAMPLE_TENSORS),
                 lambda x: int(x),
+<<<<<<< HEAD
             )[0],
+=======
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """\
 { /* thread */
         { /* F */
@@ -381,12 +440,21 @@ return tmp_1, D""",
               {}, /* C */
               {}, /* compute_0 */
             },
+<<<<<<< HEAD
             {/* ptr_aux */ (float*) (ptr_0 + ptr_0_offset), /* null_default */ float(0), /* dAux */ {2048, _1{}, _0{}}}, /* aux */
             {}, /* compute_1 */
           },
           {/* ptr_aux */ (float*) (ptr_1 + ptr_1_offset), /* dAux */ {2048, _1{}, _0{}}}, /* F */
         },
         {/* ptr_col */ (float*) (ptr_2 + ptr_2_offset), /* null_default */ float(0), /* dCol */ {}}, /* bias */
+=======
+            {/* ptr_aux */ (float*) aux, /* null_default */ float(0), /* dAux */ {2048, _1{}, _0{}}}, /* aux */
+            {}, /* compute_1 */
+          },
+          {/* ptr_aux */ (float*) F, /* dAux */ {2048, _1{}, _0{}}}, /* F */
+        },
+        {/* ptr_col */ (float*) bias, /* null_default */ float(0), /* dCol */ {}}, /* bias */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         {}, /* compute_2 */
         {}, /* compute_3 */
         {}, /* compute_4 */
@@ -428,14 +496,24 @@ def fn(accum, bias):
                 epilogue_functor,
                 _create_mock_buffer_name_map(example_tensors),
                 lambda x: int(x),
+<<<<<<< HEAD
             )[0],
+=======
+            ),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             """\
 { /* thread */
         { /* E */
           {}, /* accum */
+<<<<<<< HEAD
           {/* ptr_aux */ (float*) (ptr_0 + ptr_0_offset), /* dAux */ {2048, _1{}, _0{}}}, /* E */
         },
         {/* ptr_col */ (float*) (ptr_1 + ptr_1_offset), /* null_default */ float(0), /* dCol */ {}}, /* bias */
+=======
+          {/* ptr_aux */ (float*) E, /* dAux */ {2048, _1{}, _0{}}}, /* E */
+        },
+        {/* ptr_col */ (float*) bias, /* null_default */ float(0), /* dCol */ {}}, /* bias */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         {}, /* compute_0 */
       }
 """,
@@ -444,7 +522,11 @@ def fn(accum, bias):
     @unittest.skipIf(not SM90OrLater, "need sm_90")
     @unittest.skipIf(not try_import_cutlass(), "requires cutlass")
     def test_evt_codegen(self):
+<<<<<<< HEAD
         _, _, code, _ = trace(
+=======
+        _, _, code = trace(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             BIAS_CODE,
             EXAMPLE_TENSORS,
             DataType.f32,
@@ -560,5 +642,9 @@ using StrideD = cute::Stride<int64_t, cute::Int<1>, cute::Int<0>>;
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
 
+<<<<<<< HEAD
     if HAS_CPU or HAS_CUDA_AND_TRITON:
+=======
+    if HAS_CPU or HAS_CUDA:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         run_tests(needs="filelock")

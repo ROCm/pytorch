@@ -125,6 +125,11 @@ Tensor& max_unpooling2d_forward_out_cuda(const Tensor& self_,
   TORCH_CHECK(
       indices_.scalar_type() == at::ScalarType::Long,
       "elements in indices should be type int64 but got: ", indices_.scalar_type());
+<<<<<<< HEAD
+=======
+  auto oheight = output_size[0];
+  auto owidth = output_size[1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   TensorArg output_arg{output, "output", 1}, self_arg{self_, "self_", 2},
       indices_arg{indices_, "indices_", 3};
@@ -147,9 +152,12 @@ Tensor& max_unpooling2d_forward_out_cuda(const Tensor& self_,
       output_size.size() == 2,
       "There should be exactly two elements (height, width) in output_size, but got ", output_size.size(), " elements.");
 
+<<<<<<< HEAD
   auto oheight = output_size[0];
   auto owidth = output_size[1];
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t dimw = 2;
   int64_t dimh = 1;
   int64_t numBatch = 1;
@@ -218,6 +226,12 @@ static void max_unpooling3d_shape_check(
     IntArrayRef stride,
     IntArrayRef padding,
     const char *fn_name) {
+<<<<<<< HEAD
+=======
+  int64_t oT = output_size[0];
+  int64_t oH = output_size[1];
+  int64_t oW = output_size[2];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       indices.scalar_type() == at::ScalarType::Long,
       "elements in indices should be type int64 but got: ", indices.scalar_type());
@@ -248,10 +262,13 @@ static void max_unpooling3d_shape_check(
       "strides should be greater than zero, but got stride: ",
       stride);
 
+<<<<<<< HEAD
   int64_t oT = output_size[0];
   int64_t oH = output_size[1];
   int64_t oW = output_size[2];
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int dimw = 3;
   int dimh = 2;
   int dimt = 1;
@@ -404,6 +421,11 @@ at::Tensor& max_unpooling2d_backward_out_cuda(const Tensor& grad_output_,
     const Tensor& indices_,
     IntArrayRef output_size,
     Tensor& grad_input) {
+<<<<<<< HEAD
+=======
+  int64_t oheight = output_size[0];
+  int64_t owidth = output_size[1];
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(grad_input.is_contiguous(), "grad_input must be contiguous");
   TORCH_CHECK(
       indices_.scalar_type() == at::ScalarType::Long,
@@ -426,9 +448,12 @@ at::Tensor& max_unpooling2d_backward_out_cuda(const Tensor& grad_output_,
 
   TORCH_CHECK(output_size.size() == 2, "output_size must have two elements, got size: ", output_size.size());
 
+<<<<<<< HEAD
   int64_t oheight = output_size[0];
   int64_t owidth = output_size[1];
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t nInputCols, nInputRows, nInputPlane;
 
   int dimw = 2;
@@ -508,14 +533,23 @@ at::Tensor& max_unpooling3d_backward_out_cuda(const Tensor& grad_output_,
     IntArrayRef padding,
     Tensor& grad_input) {
   TORCH_CHECK(grad_input.is_contiguous(), "grad_input must be contiguous");
+<<<<<<< HEAD
 
   max_unpooling3d_shape_check(
     self_, grad_output_, indices_, output_size, stride, padding, "max_unpooling3d_backward_out_cuda()");
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t oT = output_size[0];
   int64_t oH = output_size[1];
   int64_t oW = output_size[2];
 
+<<<<<<< HEAD
+=======
+  max_unpooling3d_shape_check(
+    self_, grad_output_, indices_, output_size, stride, padding, "max_unpooling3d_backward_out_cuda()");
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int batchSize = 0;
   int inputSlices = 0;
   int inputTime = 0;

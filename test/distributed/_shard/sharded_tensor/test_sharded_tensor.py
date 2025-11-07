@@ -1733,7 +1733,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(remote_device_before.rank(), remote_device_after.rank())
             self.assertEqual(str(remote_device_after.device()), "cpu")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to CPU
+=======
+        # ensure metdata also get changed to CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device()), "cpu")
@@ -1764,7 +1768,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(remote_device_before.rank(), remote_device_after.rank())
             self.assertEqual(str(remote_device_after.device()), "cpu")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to CPU
+=======
+        # ensure metdata also get changed to CPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device()), "cpu")
@@ -1820,7 +1828,11 @@ class TestShardedTensorEnumerable(ShardedTensorTestBase):
             self.assertEqual(str(remote_device_before.device().type), "cpu")
             self.assertEqual(str(remote_device_after.device().type), "cuda")
 
+<<<<<<< HEAD
         # ensure metadata also get changed to GPU
+=======
+        # ensure metdata also get changed to GPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         metas = new_st_gpu.metadata().shards_metadata
         for meta in metas:
             self.assertEqual(str(meta.placement.device().type), "cuda")
@@ -3074,7 +3086,11 @@ class TestShardedTensorFromLocalShards(ShardedTensorTestBase):
                 wrong_dtype_shards, [10, 10], init_rrefs=True
             )
 
+<<<<<<< HEAD
         tensor_requires_grad = self.rank == 0
+=======
+        tensor_requires_grad = True if self.rank == 0 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         wrong_requires_grad_shards = [
             sharded_tensor.Shard(
                 torch.randn(
@@ -3121,7 +3137,11 @@ class TestShardedTensorFromLocalShards(ShardedTensorTestBase):
                 wrong_pin_memory_local_shards, [10, 10], init_rrefs=True
             )
 
+<<<<<<< HEAD
         tensor_pin_memory = self.rank == 0
+=======
+        tensor_pin_memory = True if self.rank == 0 else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         wrong_pin_memory_shards_cross_ranks = [
             sharded_tensor.Shard(
                 torch.randn(5, 5, pin_memory=tensor_pin_memory), local_shard_metadata

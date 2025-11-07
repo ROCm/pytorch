@@ -1,6 +1,11 @@
 import math
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, Union
+=======
+from collections.abc import Sequence
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -38,9 +43,15 @@ def _construct_strides(
 ) -> Sequence[int]:
     """From a list of sizes and a fill order, construct the strides of the permuted tensor."""
     # Initialize strides
+<<<<<<< HEAD
     assert len(sizes) == len(fill_order), (
         "Length of sizes must match the length of the fill order"
     )
+=======
+    assert len(sizes) == len(
+        fill_order
+    ), "Length of sizes must match the length of the fill order"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     strides = [0] * len(sizes)
 
     # Start with stride 1 for the innermost dimension
@@ -92,7 +103,11 @@ class FlexAttentionHOP(HigherOrderOperator):
         kernel_options: dict[str, Any],
         score_mod_other_buffers: tuple = (),
         mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         validate_subgraph_args_types(score_mod_other_buffers + mask_mod_other_buffers)
         return super().__call__(
             query,
@@ -112,7 +127,11 @@ flex_attention = FlexAttentionHOP()
 
 class FlexAttentionBackwardHOP(HigherOrderOperator):
     def __init__(self) -> None:
+<<<<<<< HEAD
         super().__init__("flex_attention_backward", cacheable=True)
+=======
+        super().__init__("flex_attention_backward")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __call__(
         self,
@@ -134,7 +153,10 @@ class FlexAttentionBackwardHOP(HigherOrderOperator):
         torch.Tensor, torch.Tensor, torch.Tensor, tuple[Optional[torch.Tensor], ...]
     ]:
         validate_subgraph_args_types(score_mod_other_buffers + mask_mod_other_buffers)
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return super().__call__(
             query,
             key,
@@ -171,7 +193,11 @@ def _math_attention_inner(
 
     working_precision = torch.float64 if query.dtype == torch.float64 else torch.float32
 
+<<<<<<< HEAD
     scores = query.to(working_precision) @ key.to(working_precision).transpose(-2, -1)
+=======
+    scores = (query @ key.transpose(-2, -1)).to(dtype=working_precision)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     b = torch.arange(0, scores.size(0), device=scores.device)
     h = torch.arange(0, scores.size(1), device=scores.device)
@@ -209,7 +235,11 @@ def math_attention(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Eager implementation
 
     This implementation uses vmap to vectorize the score_mod function over the batch, head, m, and n dimensions.
@@ -252,6 +282,7 @@ def math_attention(
     masked_rows = torch.all(post_mod_scores == -float("inf"), dim=-1)
     logsumexp = torch.where(masked_rows, -float("inf"), logsumexp)
 
+<<<<<<< HEAD
     # working precision will be used so no need to cast to fp32
     max_scores = torch.max(post_mod_scores, dim=-1)[0]
 
@@ -265,6 +296,11 @@ def math_attention(
         logsumexp / math.log(2),
         max_scores / math.log(2),
     )
+=======
+    post_mod_scores = torch._safe_softmax(post_mod_scores, dim=-1)
+
+    return post_mod_scores.to(query.dtype) @ value, logsumexp / math.log(2)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @flex_attention.py_impl(DispatchKey.CompositeExplicitAutograd)
@@ -278,8 +314,13 @@ def sdpa_dense(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
     out, lse, max_scores = math_attention(
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+    out, lse = math_attention(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         query,
         key,
         value,
@@ -291,7 +332,11 @@ def sdpa_dense(
         mask_mod_other_buffers,
     )
     out = _permute_strides(out, query.stride())
+<<<<<<< HEAD
     return out, lse, max_scores
+=======
+    return out, lse
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def trace_flex_attention(
@@ -305,7 +350,11 @@ def trace_flex_attention(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Traces the flex_attention operator with the given score_mod function and other_buffers.
 
     Trace SDPA will call make_fx with "fake" example vals and then trace the score_mod function
@@ -354,17 +403,24 @@ def trace_flex_attention(
         score_mod_other_buffers,
         mask_mod_other_buffers,
     )
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     proxy_args = pytree.tree_map(proxy_mode.tracer.unwrap_proxy, node_args)
     out_proxy = proxy_mode.tracer.create_proxy(
         "call_function", flex_attention, proxy_args, {}
     )
     return track_tensor_tree(
+<<<<<<< HEAD
         example_out,
         out_proxy,
         constant=None,
         # pyrefly: ignore [bad-argument-type]
         tracer=proxy_mode.tracer,
+=======
+        example_out, out_proxy, constant=None, tracer=proxy_mode.tracer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -380,7 +436,11 @@ def flex_attention_proxy_torch_dispatch_mode(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     assert mode is not None, "Mode should always be enabled for python fallback key"
     return trace_flex_attention(
         mode,
@@ -408,7 +468,11 @@ def flex_attention_functionalize(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Defines the functionalization rules for the flex_attention operator.
 
     Write now we are unwrapping each tensor and then redispatching to the next, however we want to
@@ -493,7 +557,11 @@ def flex_attention_fake_impl(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple = (),
     mask_mod_other_buffers: tuple = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if has_user_subclass(
         (
             query,
@@ -510,6 +578,7 @@ def flex_attention_fake_impl(
     ):
         return NotImplemented
 
+<<<<<<< HEAD
     v_head_dim = value.size(-1)
     batch_size, num_heads, seq_len_q, _q_head_dim = query.shape
     logsumexp = query.new_empty(batch_size, num_heads, seq_len_q, dtype=torch.float32)
@@ -518,6 +587,21 @@ def flex_attention_fake_impl(
     out = query.new_empty(out_shape)
     out = _permute_strides(out, query.stride())
     return out, logsumexp, max_scores
+=======
+    # TODO: Figure out a better way to handle this for NJT than using sum()
+    if query.is_nested:
+        out = torch.empty_like(query, memory_format=torch.contiguous_format)
+        logsumexp = query.sum(dim=-1)
+        return out, logsumexp
+
+    v_head_dim = value.size(-1)
+    batch_size, num_heads, seq_len_q, _q_head_dim = query.shape
+    logsumexp = query.new_empty(batch_size, num_heads, seq_len_q, dtype=torch.float32)
+    out_shape = (batch_size, num_heads, seq_len_q, v_head_dim)
+    out = query.new_empty(out_shape)
+    out = _permute_strides(out, query.stride())
+    return out, logsumexp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Registers dispatches for SAC
@@ -605,7 +689,11 @@ def create_fw_bw_graph(
             *other_buffers: tuple[Tensor, ...],
         ) -> tuple[Tensor, ...]:
             def fw_with_masks(
+<<<<<<< HEAD
                 *args: tuple[Tensor, ...],
+=======
+                *args: tuple[Tensor, ...]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ) -> tuple[tuple[Tensor], tuple[bool]]:
                 fw_out = score_mod(*args)
                 out_requires_grad = fw_out.requires_grad
@@ -626,7 +714,10 @@ def create_fw_bw_graph(
 
 class FlexAttentionAutogradOp(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(
         ctx: Any,
         query: Tensor,
@@ -639,15 +730,25 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
         kernel_options: dict[str, Any],
         mask_mod_other_buffers: tuple[Any, ...],
         *score_mod_other_buffers: tuple[Any, ...],
+<<<<<<< HEAD
     ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+    ) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         any_buffer_requires_grad = any(
             buffer.requires_grad
             for buffer in mask_mod_other_buffers
             if isinstance(buffer, torch.Tensor)
         )
+<<<<<<< HEAD
         assert not any_buffer_requires_grad, (
             "Captured buffers from mask mod that require grad are not supported."
         )
+=======
+        assert (
+            not any_buffer_requires_grad
+        ), "Captured buffers from mask mod that require grad are not supported."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ctx._fw_graph = fw_graph
         ctx._joint_graph = joint_graph
         ctx._mask_graph = block_mask[-1]
@@ -655,7 +756,11 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
         ctx.kernel_options = kernel_options
         ctx._score_mod_other_buffers_len = len(score_mod_other_buffers)
         with torch._C._AutoDispatchBelowAutograd():
+<<<<<<< HEAD
             out, logsumexp, max_scores = flex_attention(
+=======
+            out, logsumexp = flex_attention(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 query,
                 key,
                 value,
@@ -666,8 +771,12 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
                 score_mod_other_buffers,
                 mask_mod_other_buffers,
             )
+<<<<<<< HEAD
         # no grads for you sir
         ctx.mark_non_differentiable(max_scores)
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         save_tensors_and_symints_for_backward(
             ctx,
             (
@@ -676,12 +785,16 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
                 value,
                 out,
                 logsumexp,
+<<<<<<< HEAD
                 max_scores,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 *block_mask[:-1],
                 *score_mod_other_buffers,
                 *mask_mod_other_buffers,
             ),
         )
+<<<<<<< HEAD
         return out, logsumexp, max_scores
 
     @staticmethod
@@ -691,6 +804,12 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
         grad_logsumexp: Tensor,
         grad_max_scores: Tensor,
     ) -> tuple[Optional[Tensor], ...]:
+=======
+        return out, logsumexp
+
+    @staticmethod
+    def backward(ctx: Any, grad_out: Tensor, grad_logsumexp: Tensor) -> tuple[Optional[Tensor], ...]:  # type: ignore[override]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         fw_args = saved_tensors_and_symints(ctx)
         (
             query,
@@ -698,7 +817,10 @@ class FlexAttentionAutogradOp(torch.autograd.Function):
             value,
             out,
             logsumexp,
+<<<<<<< HEAD
             max_scores,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             query_lengths,
             kv_lengths,
             kv_num_blocks,
@@ -777,7 +899,11 @@ def flex_attention_autograd(
     kernel_options: dict[str, Any],
     score_mod_other_buffers: tuple[Tensor, ...] = (),
     mask_mod_other_buffers: tuple[Tensor, ...] = (),
+<<<<<<< HEAD
 ) -> tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+=======
+) -> tuple[torch.Tensor, torch.Tensor]:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch._dynamo._trace_wrapped_higher_order_op import TransformGetItemToIndex
 
     with TransformGetItemToIndex():
@@ -786,11 +912,14 @@ def flex_attention_autograd(
             for t in (query, key, value, *score_mod_other_buffers)
         )
         if torch.is_grad_enabled() and input_requires_grad:
+<<<<<<< HEAD
             if block_mask[7] is None:
                 raise RuntimeError(
                     "BlockMask q_indices is None. Backward pass requires q_indices to be computed. "
                     "Please create the BlockMask with compute_q_blocks=True"
                 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             example_vals = (
                 query.new_zeros((), requires_grad=input_requires_grad),
                 query.new_zeros((), dtype=torch.int),
@@ -803,7 +932,11 @@ def flex_attention_autograd(
             )
         else:
             fw_graph, bw_graph = score_mod, None
+<<<<<<< HEAD
         out, logsumexp, max_scores = FlexAttentionAutogradOp.apply(
+=======
+        out, logsumexp = FlexAttentionAutogradOp.apply(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             query,
             key,
             value,
@@ -815,7 +948,11 @@ def flex_attention_autograd(
             mask_mod_other_buffers,
             *score_mod_other_buffers,
         )
+<<<<<<< HEAD
     return out, logsumexp, max_scores
+=======
+    return out, logsumexp
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # ---------------------------- Backward HOP Implementation ----------------------------
@@ -902,6 +1039,7 @@ def sdpa_dense_backward(
 
     grad_value = softmax_scores.to(query.dtype).transpose(-2, -1) @ grad_out
 
+<<<<<<< HEAD
     grad_softmax_scores = grad_out.to(dtype=softmax_scores.dtype) @ value.to(
         dtype=softmax_scores.dtype
     ).transpose(-2, -1)
@@ -911,6 +1049,11 @@ def sdpa_dense_backward(
         -1,
         keepdim=True,
     )
+=======
+    grad_softmax_scores = grad_out @ value.transpose(-2, -1)
+
+    sum_scores = torch.sum(out * grad_out, -1, keepdim=True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     grad_score_mod = softmax_scores * (
         grad_softmax_scores - sum_scores + grad_logsumexp.unsqueeze(-1)
     )
@@ -970,9 +1113,15 @@ def sdpa_dense_backward(
     actual_grad_value.copy_(grad_value)
 
     if Bq != Bkv:
+<<<<<<< HEAD
         assert Bq > 1 and Bkv == 1, (
             f"Bq and Bkv must broadcast. Got Bq={Bq} and Bkv={Bkv}"
         )
+=======
+        assert (
+            Bq > 1 and Bkv == 1
+        ), f"Bq and Bkv must broadcast. Got Bq={Bq} and Bkv={Bkv}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         actual_grad_key = torch.sum(actual_grad_key, 0, keepdim=True)
         actual_grad_value = torch.sum(actual_grad_value, 0, keepdim=True)
@@ -1075,7 +1224,10 @@ def trace_flex_attention_backward(
         score_mod_other_buffers,
         mask_mod_other_buffers,
     )
+<<<<<<< HEAD
     # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     proxy_args = pytree.tree_map(proxy_mode.tracer.unwrap_proxy, node_args)
     out_proxy = proxy_mode.tracer.create_proxy(
         "call_function",
@@ -1085,11 +1237,15 @@ def trace_flex_attention_backward(
         name="flex_attention_backward",
     )
     return track_tensor_tree(
+<<<<<<< HEAD
         example_out,
         out_proxy,
         constant=None,
         # pyrefly: ignore [bad-argument-type]
         tracer=proxy_mode.tracer,
+=======
+        example_out, out_proxy, constant=None, tracer=proxy_mode.tracer
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
 
@@ -1273,12 +1429,23 @@ def flex_attention_backward_fake_tensor_mode(
     grad_query = torch.empty_like(query)
     # zeros_and_scatter creates a contiguous zeros tensor -> contiguous_format
     grad_score_mod_captured = tuple(
+<<<<<<< HEAD
         (
             torch.empty_like(buffer, memory_format=torch.contiguous_format)
             if isinstance(buffer, torch.Tensor)
             else None
         )
         for buffer in score_mod_other_buffers
+=======
+        [
+            (
+                torch.empty_like(buffer, memory_format=torch.contiguous_format)
+                if isinstance(buffer, torch.Tensor) and buffer.requires_grad
+                else None
+            )
+            for buffer in score_mod_other_buffers
+        ]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     broadcasted_grad_key = key.new_empty((Bq, Hkv, seq_len_kv, qk_head_dim))

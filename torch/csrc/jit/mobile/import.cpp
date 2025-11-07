@@ -87,6 +87,11 @@ using caffe2::serialize::MemoryReadAdapter;
 using caffe2::serialize::PyTorchStreamReader;
 using caffe2::serialize::ReadAdapterInterface;
 
+<<<<<<< HEAD
+=======
+OpCode parseOpCode(const char* str);
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 TypePtr resolveTypeNameMobile(
     const c10::QualifiedName& qn,
     const std::shared_ptr<CompilationUnit>& compilation_unit) {
@@ -214,7 +219,11 @@ class BytecodeDeserializer final {
       mobile::Function* function);
   std::shared_ptr<CompilationUnit> compilation_unit_;
   std::unordered_set<std::string> imported_libs_;
+<<<<<<< HEAD
   std::unique_ptr<PyTorchStreamReader> reader_;
+=======
+  std::unique_ptr<PyTorchStreamReader> reader_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   std::optional<at::Device> device_;
   uint64_t module_load_options_;
   // From `version` or `.data/version` in model.ptl and it's compute

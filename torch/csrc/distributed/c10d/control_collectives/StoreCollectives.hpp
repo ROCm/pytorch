@@ -62,7 +62,11 @@ class TORCH_API StoreCollectives : public ControlCollectives {
   int rank_;
   int worldSize_;
 
+<<<<<<< HEAD
   c10::FastSet<std::string> seenKeys_;
+=======
+  c10::FastSet<std::string> seenKeys_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 } // namespace c10d

@@ -64,7 +64,10 @@ from torch.testing._internal.common_utils import (
     skipIfCrossRef,
     skipIfRocm,
     skipIfTorchDynamo,
+<<<<<<< HEAD
     skipIfWindows,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     TemporaryFileName,
     TEST_WITH_TORCHDYNAMO,
     TestCase,
@@ -97,7 +100,11 @@ class FakeTensorTest(TestCase):
 
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_cuda_initialized(self):
+<<<<<<< HEAD
         # doesn't error
+=======
+        # doesnt error
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         with FakeTensorMode():
             p = torch.randn(4, 2, requires_grad=True, device="cuda")
             x = torch.randn(8, 4, device="cuda")
@@ -201,6 +208,7 @@ class FakeTensorTest(TestCase):
 
         self.assertEqual(torch.ones([10]), out[0])
 
+<<<<<<< HEAD
     def test_conv_nhwc(self):
         x = torch.randn([1, 1024, 16, 16]).to(memory_format=torch.channels_last)
         w = torch.randn([256, 1024, 4, 4]).to(memory_format=torch.channels_last)
@@ -221,6 +229,8 @@ class FakeTensorTest(TestCase):
         eager_out = model.forward(x, w, b)
         self.assertEqual(fake_out.stride(), eager_out.stride())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_zero_dim(self):
         with FakeTensorMode() as mode:
@@ -231,6 +241,7 @@ class FakeTensorTest(TestCase):
             self.assertEqual(out.device, y.device)
             self.assertTrue(isinstance(out, FakeTensor))
 
+<<<<<<< HEAD
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_op_with_zero_dim_bypassed(self):
         if torch._functorch.config.fake_tensor_propagate_real_tensors:
@@ -247,6 +258,8 @@ class FakeTensorTest(TestCase):
         ) as exc:
             torch.nextafter(fake_x, fake_y)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_nan_to_num(self):
         with FakeTensorMode():
             for dtype in [torch.float16, torch.float32]:
@@ -289,6 +302,7 @@ class FakeTensorTest(TestCase):
             assert x.copy_(y).device.type == "cpu"
             assert y.copy_(x).device.type == "cuda"
 
+<<<<<<< HEAD
     def test_fake_device(self):
         t = torch.ones(3)
         t = t.view(1, 3)
@@ -302,6 +316,8 @@ class FakeTensorTest(TestCase):
 
         self.assertEqual(new_fake_t.device, fake_t.device)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_fake_dispatch_keys(self):
         with FakeTensorMode():
             x = torch.rand([4])
@@ -1068,6 +1084,7 @@ class FakeTensorTest(TestCase):
         y = fast_div(mode, x, 2)
         self.assertEqual(y.dtype, torch.float32)
 
+<<<<<<< HEAD
     def test_nanmean_out(self):
         # Regression test to ensure we don't error out.
         with torch._subclasses.fake_tensor.FakeTensorMode() as mode:
@@ -1088,6 +1105,8 @@ class FakeTensorTest(TestCase):
         self.assertEqual(out[1].dtype, eye.dtype)
         self.assertEqual(out[2].dtype, eye.dtype)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 instantiate_parametrized_tests(FakeTensorTest)
 
@@ -1484,6 +1503,10 @@ class FakeTensorOperatorInvariants(TestCase):
 
             self.assertEqual(ref.size(), meta_out.size())
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION,
         "Does not support SDPA or pre-SM80 hardware",
@@ -1519,7 +1542,11 @@ class FakeTensorOperatorInvariants(TestCase):
                 with torch._subclasses.CrossRefFakeMode():
                     Repro()(*args)
             except MetadataMismatchError as e:
+<<<<<<< HEAD
                 # We expect the cross ref to succeed for the first output to fail
+=======
+                # We expect the cross ref to succed for the first output to fail
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 # for the rng state, see Note [Seed and Offset]
                 self.assertTrue("output[0]" not in str(e))
                 if self.__class__.__name__.startswith("PropagateRealTensors"):
@@ -1536,6 +1563,7 @@ class FakeTensorOperatorInvariants(TestCase):
         # Skip this test, we will try to run CUDA operations to real prop so
         # it clearly will not work on CPU runner
         if torch._functorch.config.fake_tensor_propagate_real_tensors:
+<<<<<<< HEAD
             self.skipTest("Propagate real tensor not supported")
 
         with FakeTensorMode(allow_non_fake_inputs=True):
@@ -1592,6 +1620,18 @@ class FakeTensorOperatorInvariants(TestCase):
             self.assertEqual(meta_tensor.to(device="cpu").device.type, "cpu")
             self.assertEqual(meta_tensor.to(device=GPU_TYPE).device.type, GPU_TYPE)
 
+=======
+            return
+        with FakeTensorMode():
+            torch.empty(10, device=GPU_TYPE)
+            torch.ones(10, device=GPU_TYPE)
+            torch.zeros(10, device=GPU_TYPE)
+            torch.rand(10, device=GPU_TYPE)
+            torch.tensor(3.14, device=GPU_TYPE)
+            torch.tensor([[3.14, 2], [1, 2]], device=GPU_TYPE)
+
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_conv_c1_backward(self):
         class Repro(torch.nn.Module):
@@ -1786,6 +1826,7 @@ class FakeTensorPropTest(TestCase):
 
         self.assertEqual(fake_r.T.is_contiguous(), r.T.is_contiguous())
 
+<<<<<<< HEAD
     def test_nan_to_num(self):
         shape_env = ShapeEnv()
         fake_mode = FakeTensorMode(shape_env=shape_env)
@@ -1796,6 +1837,8 @@ class FakeTensorPropTest(TestCase):
         self.assertEqual(x.size(), y.size())
         self.assertEqual(x.stride(), y.stride())
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_torch_load_with_fake_mode(self):
         model = torch.nn.Linear(5, 10)
@@ -2008,6 +2051,7 @@ class FakeTensorDispatchCache(TestCase):
             self._test_cache_key(fm, 1.0, 1.0, 1)
             self._test_cache_key(fm, 0.0, 0.0, 0)
 
+<<<<<<< HEAD
     def test_empty_list(self):
         with FakeTensorMode() as fm:
             func = aten.any.dims
@@ -2018,6 +2062,8 @@ class FakeTensorDispatchCache(TestCase):
 
         self.assertNotEqual(key_x, key_y)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def assertHitsMisses(self, hits, misses):
         """
         Helper to assert on the number of recorded hits and misses.
@@ -2397,9 +2443,12 @@ class FakeTensorDispatchCache(TestCase):
                 lambda: torch.ops.aten.index(x, [None, idx_tensor1]),
             )
 
+<<<<<<< HEAD
     @skipIfWindows(
         msg="weird bug - cache may not be cleared after https://github.com/pytorch/pytorch/pull/154283"
     )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipIfTorchDynamo("cache hit/miss changes with invoke_subgraph caching")
     def test_invoke_subgraph(self):
         """
@@ -2441,7 +2490,11 @@ class FakeTensorDispatchCache(TestCase):
             self.assertEqual(len(backend.fw_graphs), 1)
             mod = backend.fw_graphs[0]
 
+<<<<<<< HEAD
             # Ensure that we see hits every time
+=======
+            # Ensure that we see hits everytime
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             with FakeTensorMode():
                 x = torch.randn(6, 4)
                 y = torch.randn(6, 4)
@@ -2561,6 +2614,7 @@ class FakeTensorDispatchCache(TestCase):
         self.assertBypasses("unrepresented symbol in output", 2)
 
 
+<<<<<<< HEAD
 class FakeTensorPreferDeviceType(TestCase):
     @unittest.skipIf(not RUN_CUDA, "requires cuda")
     def test_fake_tensor_prefer_device_type(self):
@@ -2637,5 +2691,7 @@ class FakeTensorPreferDeviceType(TestCase):
                 self.assertTrue(isinstance(result, FakeTensor))
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     run_tests()

@@ -18,7 +18,11 @@
 #include <sstream>
 
 static PyObject* THPFInfo_New(const at::ScalarType& type) {
+<<<<<<< HEAD
   auto finfo = &THPFInfoType;
+=======
+  auto finfo = (PyTypeObject*)&THPFInfoType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{finfo->tp_alloc(finfo, 0)};
   if (!self)
     throw python_error();
@@ -28,7 +32,11 @@ static PyObject* THPFInfo_New(const at::ScalarType& type) {
 }
 
 static PyObject* THPIInfo_New(const at::ScalarType& type) {
+<<<<<<< HEAD
   auto iinfo = &THPIInfoType;
+=======
+  auto iinfo = (PyTypeObject*)&THPIInfoType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{iinfo->tp_alloc(iinfo, 0)};
   if (!self)
     throw python_error();
@@ -117,7 +125,11 @@ static PyObject* THPDTypeInfo_compare(
   return Py_INCREF(Py_NotImplemented), Py_NotImplemented;
 }
 
+<<<<<<< HEAD
 static PyObject* THPDTypeInfo_bits(THPDTypeInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPDTypeInfo_bits(THPDTypeInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   uint64_t bits = elementSize(self->type) * CHAR_BIT;
   return THPUtils_packUInt64(bits);
 }
@@ -133,7 +145,11 @@ static PyObject* THPDTypeInfo_bits(THPDTypeInfo* self, void* /*unused*/) {
       at::ScalarType::BFloat16,                   \
       AT_EXPAND(AT_FLOAT8_TYPES))
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_eps(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_eps(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   return _AT_DISPATCH_FINFO_TYPES(self->type, "epsilon", [] {
     return PyFloat_FromDouble(
@@ -142,7 +158,11 @@ static PyObject* THPFInfo_eps(THPFInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_max(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_max(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   return _AT_DISPATCH_FINFO_TYPES(self->type, "max", [] {
     return PyFloat_FromDouble(
@@ -151,7 +171,11 @@ static PyObject* THPFInfo_max(THPFInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_min(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_min(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   return _AT_DISPATCH_FINFO_TYPES(self->type, "lowest", [] {
     return PyFloat_FromDouble(
@@ -164,7 +188,11 @@ static PyObject* THPFInfo_min(THPFInfo* self, void* /*unused*/) {
   AT_DISPATCH_V2(                                \
       TYPE, NAME, AT_WRAP(__VA_ARGS__), AT_EXPAND(AT_INTEGRAL_TYPES_V2))
 
+<<<<<<< HEAD
 static PyObject* THPIInfo_max(THPIInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPIInfo_max(THPIInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (at::isIntegralType(self->type, /*includeBool=*/false)) {
     return AT_DISPATCH_IINFO_TYPES(self->type, "max", [] {
@@ -182,7 +210,11 @@ static PyObject* THPIInfo_max(THPIInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPIInfo_min(THPIInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPIInfo_min(THPIInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   if (at::isIntegralType(self->type, /*includeBool=*/false)) {
     return AT_DISPATCH_IINFO_TYPES(self->type, "min", [] {
@@ -200,7 +232,11 @@ static PyObject* THPIInfo_min(THPIInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPIInfo_dtype(THPIInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPIInfo_dtype(THPIInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto primary_name = c10::getDtypeNames(self->type).first;
   return AT_DISPATCH_IINFO_TYPES(self->type, "dtype", [&primary_name] {
@@ -209,7 +245,11 @@ static PyObject* THPIInfo_dtype(THPIInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_smallest_normal(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_smallest_normal(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   return _AT_DISPATCH_FINFO_TYPES(self->type, "min", [] {
     return PyFloat_FromDouble(
@@ -218,12 +258,20 @@ static PyObject* THPFInfo_smallest_normal(THPFInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_tiny(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_tiny(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // see gh-70909, essentially the array_api prefers smallest_normal over tiny
   return THPFInfo_smallest_normal(self, nullptr);
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_resolution(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_resolution(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   return _AT_DISPATCH_FINFO_TYPES(self->type, "digits10", [] {
     return PyFloat_FromDouble(std::pow(
@@ -233,7 +281,11 @@ static PyObject* THPFInfo_resolution(THPFInfo* self, void* /*unused*/) {
   END_HANDLE_TH_ERRORS
 }
 
+<<<<<<< HEAD
 static PyObject* THPFInfo_dtype(THPFInfo* self, void* /*unused*/) {
+=======
+static PyObject* THPFInfo_dtype(THPFInfo* self, void*) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   HANDLE_TH_ERRORS
   auto primary_name = c10::getDtypeNames(self->type).first;
   return _AT_DISPATCH_FINFO_TYPES(self->type, "dtype", [&primary_name] {
@@ -273,6 +325,7 @@ static PyObject* THPIInfo_str(THPIInfo* self) {
 }
 
 static const std::initializer_list<PyGetSetDef> THPFInfo_properties = {
+<<<<<<< HEAD
     {"bits",
      reinterpret_cast<getter>(THPDTypeInfo_bits),
      nullptr,
@@ -301,6 +354,20 @@ static const std::initializer_list<PyGetSetDef> THPFInfo_properties = {
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"bits", (getter)THPDTypeInfo_bits, nullptr, nullptr, nullptr},
+    {"eps", (getter)THPFInfo_eps, nullptr, nullptr, nullptr},
+    {"max", (getter)THPFInfo_max, nullptr, nullptr, nullptr},
+    {"min", (getter)THPFInfo_min, nullptr, nullptr, nullptr},
+    {"smallest_normal",
+     (getter)THPFInfo_smallest_normal,
+     nullptr,
+     nullptr,
+     nullptr},
+    {"tiny", (getter)THPFInfo_tiny, nullptr, nullptr, nullptr},
+    {"resolution", (getter)THPFInfo_resolution, nullptr, nullptr, nullptr},
+    {"dtype", (getter)THPFInfo_dtype, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 PyTypeObject THPFInfoType = {
@@ -313,13 +380,21 @@ PyTypeObject THPFInfoType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPFInfo_str), /* tp_repr */
+=======
+    (reprfunc)THPFInfo_str, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
     nullptr, /* tp_hash  */
     nullptr, /* tp_call */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPFInfo_str), /* tp_str */
+=======
+    (reprfunc)THPFInfo_str, /* tp_str */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_getattro */
     nullptr, /* tp_setattro */
     nullptr, /* tp_as_buffer */
@@ -327,7 +402,11 @@ PyTypeObject THPFInfoType = {
     nullptr, /* tp_doc */
     nullptr, /* tp_traverse */
     nullptr, /* tp_clear */
+<<<<<<< HEAD
     reinterpret_cast<richcmpfunc>(THPDTypeInfo_compare), /* tp_richcompare */
+=======
+    (richcmpfunc)THPDTypeInfo_compare, /* tp_richcompare */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     0, /* tp_weaklistoffset */
     nullptr, /* tp_iter */
     nullptr, /* tp_iternext */
@@ -346,6 +425,7 @@ PyTypeObject THPFInfoType = {
 };
 
 static const std::initializer_list<PyGetSetDef> THPIInfo_properties = {
+<<<<<<< HEAD
     {"bits",
      reinterpret_cast<getter>(THPDTypeInfo_bits),
      nullptr,
@@ -358,6 +438,12 @@ static const std::initializer_list<PyGetSetDef> THPIInfo_properties = {
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"bits", (getter)THPDTypeInfo_bits, nullptr, nullptr, nullptr},
+    {"max", (getter)THPIInfo_max, nullptr, nullptr, nullptr},
+    {"min", (getter)THPIInfo_min, nullptr, nullptr, nullptr},
+    {"dtype", (getter)THPIInfo_dtype, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 PyTypeObject THPIInfoType = {
@@ -370,13 +456,21 @@ PyTypeObject THPIInfoType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPIInfo_str), /* tp_repr */
+=======
+    (reprfunc)THPIInfo_str, /* tp_repr */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
     nullptr, /* tp_hash  */
     nullptr, /* tp_call */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPIInfo_str), /* tp_str */
+=======
+    (reprfunc)THPIInfo_str, /* tp_str */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_getattro */
     nullptr, /* tp_setattro */
     nullptr, /* tp_as_buffer */
@@ -384,7 +478,11 @@ PyTypeObject THPIInfoType = {
     nullptr, /* tp_doc */
     nullptr, /* tp_traverse */
     nullptr, /* tp_clear */
+<<<<<<< HEAD
     reinterpret_cast<richcmpfunc>(THPDTypeInfo_compare), /* tp_richcompare */
+=======
+    (richcmpfunc)THPDTypeInfo_compare, /* tp_richcompare */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     0, /* tp_weaklistoffset */
     nullptr, /* tp_iter */
     nullptr, /* tp_iternext */
@@ -407,16 +505,24 @@ void THPDTypeInfo_init(PyObject* module) {
     throw python_error();
   }
   Py_INCREF(&THPFInfoType);
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "finfo", reinterpret_cast<PyObject*>(&THPFInfoType)) != 0) {
+=======
+  if (PyModule_AddObject(module, "finfo", (PyObject*)&THPFInfoType) != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
   if (PyType_Ready(&THPIInfoType) < 0) {
     throw python_error();
   }
   Py_INCREF(&THPIInfoType);
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "iinfo", reinterpret_cast<PyObject*>(&THPIInfoType)) != 0) {
+=======
+  if (PyModule_AddObject(module, "iinfo", (PyObject*)&THPIInfoType) != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

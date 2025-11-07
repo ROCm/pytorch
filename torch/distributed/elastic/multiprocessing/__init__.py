@@ -63,8 +63,12 @@ was launched a :class:`api.SubprocessContext` is returned. Both are specific
 implementations of the parent :class:`api.PContext` class.
 """
 
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, Union
+=======
+from typing import Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 from torch.distributed.elastic.multiprocessing.api import (  # noqa: F401
     _validate_full_rank,
@@ -81,7 +85,10 @@ from torch.distributed.elastic.multiprocessing.api import (  # noqa: F401
     to_map,
 )
 from torch.distributed.elastic.utils.logging import get_logger
+<<<<<<< HEAD
 from torch.numa.binding import NumaOptions
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 __all__ = [
@@ -108,9 +115,12 @@ def start_processes(
     logs_specs: LogsSpecs,
     log_line_prefixes: Optional[dict[int, str]] = None,
     start_method: str = "spawn",
+<<<<<<< HEAD
     numa_options: Optional[NumaOptions] = None,
     duplicate_stdout_filters: Optional[list[str]] = None,
     duplicate_stderr_filters: Optional[list[str]] = None,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> PContext:
     """
     Start ``n`` copies of ``entrypoint`` processes with the provided options.
@@ -132,6 +142,7 @@ def start_processes(
               this is done by default and there is no need to manually annotate
               with the ``@record`` annotation.
 
+<<<<<<< HEAD
     Inside ``logs_specs``, ``redirects`` and ``tee`` are bitmasks specifying which std
     stream(s) to redirect to a log file in the ``log_dir``. Valid mask values are defined
     in ``Std``.  To redirect/tee only certain local ranks, pass ``redirects`` as a map
@@ -143,16 +154,29 @@ def start_processes(
     to a file containing only lines that match _any_ of the filter strings. The log
     file is aggregated across all ranks selected by ``tee``.
 
+=======
+    ``redirects`` and ``tee`` are bitmasks specifying which std stream(s) to redirect
+    to a log file in the ``log_dir``. Valid mask values are defined in ``Std``.
+    To redirect/tee only certain local ranks, pass ``redirects`` as a map with the key as
+    the local rank to specify the redirect behavior for.
+    Any missing local ranks will default to ``Std.NONE``.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ``tee`` acts like the unix "tee" command in that it redirects + prints to console.
     To avoid worker stdout/stderr from printing to console, use the ``redirects`` parameter.
 
     For each process, the ``log_dir`` will contain:
 
     #. ``{local_rank}/error.json``: if the process failed, a file with the error info
+<<<<<<< HEAD
     #. ``{local_rank}/stdout.log``: if ``redirect & STDOUT == STDOUT``
     #. ``{local_rank}/stderr.log``: if ``redirect & STDERR == STDERR``
     #. ``filtered_stdout.log``: if ``duplicate_stdout_filters`` is non-empty
     #. ``filtered_stderr.log``: if ``duplicate_stderr_filters`` is non-empty
+=======
+    #. ``{local_rank}/stdout.json``: if ``redirect & STDOUT == STDOUT``
+    #. ``{local_rank}/stderr.json``: if ``redirect & STDERR == STDERR``
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     .. note:: It is expected that the ``log_dir`` exists, is empty, and is a directory.
 
@@ -207,6 +231,7 @@ def start_processes(
         log_dir: directory used to write log files
         start_method: multiprocessing start method (spawn, fork, forkserver)
                       ignored for binaries
+<<<<<<< HEAD
         logs_specs: defines ``log_dir``, ``redirects``, and ``tee``.
                     inside ``logs_specs``:
                     - redirects: which std streams to redirect to a log file
@@ -214,6 +239,11 @@ def start_processes(
         local_ranks_filter: which ranks' logs to print to console
         duplicate_stdout_filters: filters for the duplicated stdout logs
         duplicate_stderr_filters: filters for the duplicated stderr logs
+=======
+        redirects: which std streams to redirect to a log file
+        tee: which std streams to redirect + print to console
+        local_ranks_filter: which ranks' logs to print to console
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     """
 
@@ -228,11 +258,16 @@ def start_processes(
             entrypoint=entrypoint,
             args=args,
             envs=envs,
+<<<<<<< HEAD
             duplicate_stdout_filters=duplicate_stdout_filters,
             duplicate_stderr_filters=duplicate_stderr_filters,
             logs_specs=logs_specs,
             log_line_prefixes=log_line_prefixes,
             numa_options=numa_options,
+=======
+            logs_specs=logs_specs,
+            log_line_prefixes=log_line_prefixes,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     else:
         context = MultiprocessContext(
@@ -240,12 +275,18 @@ def start_processes(
             entrypoint=entrypoint,
             args=args,
             envs=envs,
+<<<<<<< HEAD
             duplicate_stdout_filters=duplicate_stdout_filters,
             duplicate_stderr_filters=duplicate_stderr_filters,
             log_line_prefixes=log_line_prefixes,
             start_method=start_method,
             logs_specs=logs_specs,
             numa_options=numa_options,
+=======
+            log_line_prefixes=log_line_prefixes,
+            start_method=start_method,
+            logs_specs=logs_specs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     try:

@@ -149,8 +149,11 @@ struct TORCH_API MTIAHooksInterface : AcceleratorHooksInterface {
     FAIL_MTIAHOOKS_FUNC(__func__);
     return;
   }
+<<<<<<< HEAD
 
   virtual bool isAvailable() const override;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct TORCH_API MTIAHooksArgs {};

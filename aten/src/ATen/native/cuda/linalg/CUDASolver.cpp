@@ -470,8 +470,13 @@ void gesvdjBatched<c10::complex<double>>(
 }
 
 
+<<<<<<< HEAD
 // ROCM does not implement gesdva correctly before 6.1
 #if defined(CUDART_VERSION) || defined(ROCM_VERSION) && ROCM_VERSION >= 60100
+=======
+// ROCM does not implement gesdva yet
+#ifdef CUDART_VERSION
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template<>
 void gesvdaStridedBatched_buffersize<float>(
     cusolverDnHandle_t handle, cusolverEigMode_t jobz, int rank, int m, int n, float *A, int lda, long long int strideA,

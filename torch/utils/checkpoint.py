@@ -83,7 +83,11 @@ def detach_variable(inputs: Tuple[Any, ...]) -> Tuple[torch.Tensor, ...]:
 def check_backward_validity(inputs: Iterable[Any]) -> None:
     if not any(inp.requires_grad for inp in inputs if isinstance(inp, torch.Tensor)):
         warnings.warn(
+<<<<<<< HEAD
             "None of the inputs have requires_grad=True. Gradients will be None", stacklevel=2
+=======
+            "None of the inputs have requires_grad=True. Gradients will be None"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
 
@@ -132,7 +136,11 @@ def _infer_device_type(*args):
 
     def add_device_types(arg):
         nonlocal device_types
+<<<<<<< HEAD
         if isinstance(arg, torch.Tensor) and arg.device.type != "cpu":
+=======
+        if isinstance(arg, torch.Tensor) and not arg.device.type == "cpu":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             device_types.append(arg.device.type)
     tree_map(add_device_types, args)
 
@@ -144,7 +152,11 @@ def _infer_device_type(*args):
             "devices will be ignored. Consequently, if any checkpointed functions involve randomness, "
             "this may result in incorrect gradients. (Note that if CUDA devices are among the devices "
             "detected, it will be prioritized; otherwise, the first device encountered will be selected.)"
+<<<<<<< HEAD
             f"\nDevice types: {sorted(device_types_set)} first device type: {device_types[0]}", stacklevel=2
+=======
+            f"\nDevice types: {sorted(device_types_set)} first device type: {device_types[0]}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
     if len(device_types) == 0:
         return DefaultDeviceType.get_device_type()
@@ -222,7 +234,10 @@ def _get_autocast_kwargs(device_type="cuda"):
 
 class CheckpointFunction(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(ctx, run_function, preserve_rng_state, *args):
         check_backward_validity(args)
         ctx.run_function = run_function
@@ -348,7 +363,10 @@ def checkpoint(
     context_fn: Callable[[], Tuple[ContextManager, ContextManager]] = noop_context_fn,
     determinism_check: str = _DEFAULT_DETERMINISM_MODE,
     debug: bool = False,
+<<<<<<< HEAD
     early_stop: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     **kwargs
 ):
     r"""Checkpoint a model or part of the model.
@@ -375,7 +393,11 @@ def checkpoint(
     .. warning::
 
         The ``use_reentrant`` parameter should be passed explicitly. In version
+<<<<<<< HEAD
         2.9 we will raise an exception if ``use_reentrant`` is not passed.
+=======
+        2.4 we will raise an exception if ``use_reentrant`` is not passed.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         If you are using the ``use_reentrant=True`` variant, please refer to the
         note below for important considerations and potential limitations.
 
@@ -427,9 +449,12 @@ def checkpoint(
             passed as the tuple. For example, in LSTM, if user passes
             ``(activation, hidden)``, :attr:`function` should correctly use the
             first input as ``activation`` and the second input as ``hidden``
+<<<<<<< HEAD
         args: tuple containing inputs to the :attr:`function`
 
     Keyword args:
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         preserve_rng_state(bool, optional):  Omit stashing and restoring
             the RNG state during each checkpoint. Note that under torch.compile,
             this flag doesn't take effect and we always preserve RNG state.
@@ -437,7 +462,11 @@ def checkpoint(
         use_reentrant(bool):
             specify whether to use the activation checkpoint variant that
             requires reentrant autograd. This parameter should be passed
+<<<<<<< HEAD
             explicitly. In version 2.9 we will raise an exception if
+=======
+            explicitly. In version 2.5 we will raise an exception if
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ``use_reentrant`` is not passed. If ``use_reentrant=False``,
             ``checkpoint`` will use an implementation that does not require
             reentrant autograd. This allows ``checkpoint`` to support additional
@@ -460,11 +489,15 @@ def checkpoint(
             a trace of the operators ran during the original forward computation
             as well as the recomputation. This argument is only supported if
             ``use_reentrant=False``.
+<<<<<<< HEAD
         early_stop(bool, optional): If ``True``, non-reentrant checkpoint stops
             recomputation as soon as it has computed all needed Tensors. This
             argument is ignored if ``use_reentrant=True``. Can be overridden
             globally using :func:`set_checkpoint_early_stop` context manager.
             Default: ``True``.
+=======
+        args: tuple containing inputs to the :attr:`function`
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     Returns:
         Output of running :attr:`function` on :attr:`*args`
@@ -472,8 +505,13 @@ def checkpoint(
     if use_reentrant is None:
         warnings.warn(
             "torch.utils.checkpoint: the use_reentrant parameter should be "
+<<<<<<< HEAD
             "passed explicitly. Starting in PyTorch 2.9, calling checkpoint "
             "without use_reentrant will raise an exception. use_reentrant=False is "
+=======
+            "passed explicitly. In version 2.5 we will raise an exception "
+            "if use_reentrant is not passed. use_reentrant=False is "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             "recommended, but if you need to preserve the current default "
             "behavior, you can pass use_reentrant=True. Refer to docs for more "
             "details on the differences between the two variants.",
@@ -497,7 +535,11 @@ def checkpoint(
         return CheckpointFunction.apply(function, preserve, *args)
     else:
         gen = _checkpoint_without_reentrant_generator(
+<<<<<<< HEAD
             function, preserve, context_fn, determinism_check, debug, early_stop, *args, **kwargs
+=======
+            function, preserve, context_fn, determinism_check, debug, *args, **kwargs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         # Runs pre-forward logic
         next(gen)
@@ -520,7 +562,11 @@ def checkpoint_sequential(functions, segments, input, use_reentrant=None, **kwar
 
     .. warning::
         The ``use_reentrant`` parameter should be passed explicitly. In version
+<<<<<<< HEAD
         2.9 we will raise an exception if ``use_reentrant`` is not passed.
+=======
+        2.4 we will raise an exception if ``use_reentrant`` is not passed.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         If you are using the ``use_reentrant=True` variant, please see
         :func:`~torch.utils.checkpoint.checkpoint` for
         the important considerations and limitations of this variant. It is
@@ -561,11 +607,19 @@ def checkpoint_sequential(functions, segments, input, use_reentrant=None, **kwar
         warnings.warn(
             "torch.utils.checkpoint.checkpoint_sequential: the use_reentrant "
             "parameter should be passed explicitly. "
+<<<<<<< HEAD
             "In version 2.9 we will raise an exception if use_reentrant "
             "is not passed. use_reentrant=False is "
             "recommended, but if you need to preserve the current default "
             "behavior, you can pass use_reentrant=True. Refer to docs for more "
             "details on the differences between the two variants.", stacklevel=2
+=======
+            "In version 2.5 we will raise an exception if use_reentrant "
+            "is not passed. use_reentrant=False is "
+            "recommended, but if you need to preserve the current default "
+            "behavior, you can pass use_reentrant=True. Refer to docs for more "
+            "details on the differences between the two variants."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         use_reentrant = True
 
@@ -740,7 +794,11 @@ def _internal_assert(cond):
 #    by holder=None. We skip over them. We still save x at (4) (since its holder
 #    is still alive.)
 
+<<<<<<< HEAD
 _enable_checkpoint_early_stop: Optional[bool] = None
+=======
+_enable_checkpoint_early_stop = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 @contextlib.contextmanager
@@ -785,7 +843,10 @@ class _Holder:
 
 class _NoopSaveInputs(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(*args):
         return torch.empty((0,))
 
@@ -868,7 +929,11 @@ class _CheckpointFrame:
         if not len(self.weak_holders) == self.recomp_counter[gid]:
             # 2. During recompute, fewer tensors were saved
             #
+<<<<<<< HEAD
             # We know that every time we save something do original forward
+=======
+            # We know that everytime we save something do original forward
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # we append to weak_holder, and every time we save a tensor
             # during recompute we increment recompute_counter.
             raise CheckpointError(
@@ -1008,7 +1073,10 @@ def _get_debug_context_and_cb() -> Tuple[Callable[[], Any], Callable[[Checkpoint
             def logging_mode():
                 with LoggingTensorMode(), \
                      capture_logs(True, python_tb=True, script_tb=True, cpp_tb=cpp_tb) as logs_and_tb:
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self.logs, self.tbs = logs_and_tb
                     yield logs_and_tb
             return logging_mode()
@@ -1034,10 +1102,15 @@ def _get_debug_context_and_cb() -> Tuple[Callable[[], Any], Callable[[Checkpoint
                     out += f"{line['filename']}:{line['line']}:{line['name']}\n"
                 out += "\n\n"
             return out
+<<<<<<< HEAD
         if capture_logs_fwd.logs is None:
             raise AssertionError("capture_logs_fwd.logs is None")
         if capture_logs_recompute.logs is None:
             raise AssertionError("capture_logs_recompute.logs is None")
+=======
+        assert capture_logs_fwd.logs is not None
+        assert capture_logs_recompute.logs is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         raise CheckpointError(
             _checkpoint_error_template.format(
                 forward_traces=get_str_tb("original", capture_logs_fwd),
@@ -1075,14 +1148,22 @@ class _recomputation_hook(torch.autograd.graph.saved_tensors_hooks):
         def pack_hook(x):
             x = x.detach() if x.requires_grad else x
             target_frame = target_frame_ref()
+<<<<<<< HEAD
             if target_frame is None:
                 raise AssertionError("Internal error: target_frame reference is None")
+=======
+            assert target_frame is not None  # appease mypy
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             recomp_idx = target_frame.recomp_counter[gid]
             target_frame.recomp_counter[gid] += 1
 
             if recomp_idx >= len(target_frame.weak_holders):
+<<<<<<< HEAD
                 if target_frame.early_stop:
                     raise AssertionError("Unexpected state: target_frame.early_stop is set")
+=======
+                assert not target_frame.early_stop
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 if not target_frame.forward_completed:
                     # We run into this case when early stop is not enabled and do
                     # grad within checkpoint.
@@ -1191,7 +1272,11 @@ class _checkpoint_hook(torch.autograd.graph.saved_tensors_hooks):
 def _is_compiling(func, args, kwargs):
     # Check if we are under AOTAutograd tracing
     # Checking that a functional mode is active should always do what we want
+<<<<<<< HEAD
     return torch._C._get_dispatch_mode(torch._C._TorchDispatchModeKey.PROXY) is not None
+=======
+    return torch._C._get_dispatch_mode(torch._C._TorchDispatchModeKey.FUNCTIONAL) is not None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _VersionWrapper:
@@ -1285,7 +1370,11 @@ class CheckpointPolicy(enum.Enum):
 
 
 def _policy_from_bool(b):
+<<<<<<< HEAD
     # For backward compatibility
+=======
+    # For backward compatability
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return CheckpointPolicy.MUST_SAVE if b else CheckpointPolicy.PREFER_RECOMPUTE
 
 
@@ -1296,7 +1385,11 @@ SAC_IGNORED_OPS = {
     # With subclasses involved, these metadata ops become dispatchable, this
     # can result in incorrectness if these ops are selected cached.
     torch.ops.prim.device.default,
+<<<<<<< HEAD
 } | set(torch._subclasses.functional_tensor.FunctionalTensor.metadata_fns)  # type: ignore[has-type]
+=======
+} | set(torch._subclasses.functional_tensor.FunctionalTensor.metadata_fns)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class _CachingTorchDispatchMode(TorchDispatchMode):
@@ -1463,7 +1556,10 @@ def _checkpoint_without_reentrant_generator(
     context_fn: Callable[[], Tuple[ContextManager, ContextManager]] = noop_context_fn,
     determinism_check: str = _DEFAULT_DETERMINISM_MODE,
     debug: bool = False,
+<<<<<<< HEAD
     early_stop: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     *args,
     **kwargs
 ):
@@ -1491,10 +1587,13 @@ def _checkpoint_without_reentrant_generator(
         debug(bool, optional): If ``True``, error messages will also include
             a trace of the operators ran during the original forward computation
             as well as the recomputation.
+<<<<<<< HEAD
         early_stop(bool, optional): If ``True``, non-reentrant checkpoint stops
             recomputation as soon as it has computed all needed Tensors. Can be
             overridden globally using :func:`set_checkpoint_early_stop` context
             manager. Default: ``True``.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *args: Arguments to pass in to the given ``function``.
         **kwargs: Keyword arguments to pass into the given ``function``.
     """
@@ -1519,6 +1618,7 @@ def _checkpoint_without_reentrant_generator(
     device_module = _get_device_module(device_type)
     forward_context, recompute_context = context_fn()
     if _is_compiling(fn, args, kwargs) and context_fn != noop_context_fn:
+<<<<<<< HEAD
         if (
             not isinstance(forward_context, TorchDispatchMode)
             or not isinstance(recompute_context, TorchDispatchMode)
@@ -1527,6 +1627,14 @@ def _checkpoint_without_reentrant_generator(
                 "In torch.compile mode, `context_fn` arg passed to `torch.utils.checkpoint` "
                 "must generate a tuple of two `TorchDispatchMode`s."
             )
+=======
+        assert (
+            isinstance(forward_context, TorchDispatchMode) and
+            isinstance(recompute_context, TorchDispatchMode)
+        ), \
+            "In torch.compile mode, `context_fn` arg passed to `torch.utils.checkpoint` " + \
+            "must generate a tuple of two `TorchDispatchMode`s."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # Accommodates the (remote) possibility that autocast is enabled for cpu AND gpu.
     device_autocast_kwargs, cpu_autocast_kwargs = _get_autocast_kwargs(device_type=device_type)
 
@@ -1565,7 +1673,11 @@ def _checkpoint_without_reentrant_generator(
 
     new_frame = _CheckpointFrame(
         recompute_fn,
+<<<<<<< HEAD
         _enable_checkpoint_early_stop if _enable_checkpoint_early_stop is not None else early_stop,
+=======
+        _enable_checkpoint_early_stop,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         unpack_error_cb,
         metadata_fn
     )

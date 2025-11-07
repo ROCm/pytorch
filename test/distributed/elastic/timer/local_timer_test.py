@@ -15,7 +15,10 @@ import torch.distributed.elastic.timer as timer
 from torch.distributed.elastic.timer.api import TimerRequest
 from torch.distributed.elastic.timer.local_timer import MultiprocessingRequestQueue
 from torch.testing._internal.common_utils import (
+<<<<<<< HEAD
     IS_ARM64,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     IS_MACOS,
     IS_WINDOWS,
     run_tests,
@@ -25,10 +28,15 @@ from torch.testing._internal.common_utils import (
 )
 
 
+<<<<<<< HEAD
 # timer is not supported on these platforms
 INVALID_PLATFORMS = IS_WINDOWS or IS_MACOS or TEST_WITH_DEV_DBG_ASAN or IS_ARM64
 
 if not INVALID_PLATFORMS:
+=======
+# timer is not supported on windows or macos
+if not (IS_WINDOWS or IS_MACOS or TEST_WITH_DEV_DBG_ASAN):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # func2 should time out
     def func2(n, mp_queue):
         if mp_queue is not None:
@@ -127,12 +135,21 @@ if not INVALID_PLATFORMS:
         interval seconds. Releases the given semaphore once before going to work.
         """
         sem.release()
+<<<<<<< HEAD
         for i in range(n):
+=======
+        for i in range(0, n):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             mp_queue.put(TimerRequest(i, "test_scope", 0))
             time.sleep(interval)
 
 
+<<<<<<< HEAD
 if not INVALID_PLATFORMS:
+=======
+# timer is not supported on windows or macos
+if not (IS_WINDOWS or IS_MACOS or TEST_WITH_DEV_DBG_ASAN):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class MultiprocessingRequestQueueTest(TestCase):
         def test_get(self):
@@ -199,7 +216,12 @@ if not INVALID_PLATFORMS:
             self.assertLessEqual(n / 2, len(requests))
 
 
+<<<<<<< HEAD
 if not INVALID_PLATFORMS:
+=======
+# timer is not supported on windows or macos
+if not (IS_WINDOWS or IS_MACOS or TEST_WITH_DEV_DBG_ASAN):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     class LocalTimerServerTest(TestCase):
         def setUp(self):

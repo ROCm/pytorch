@@ -200,7 +200,11 @@ class _TensorsAccessed:
         del self.accesses[data_ptr]
 
     def were_there_reads_since_last_write(self, data_ptr: DataPtr) -> bool:
+<<<<<<< HEAD
         return bool(self.accesses[data_ptr].reads)
+=======
+        return True if self.accesses[data_ptr].reads else False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def get_allocation_stack_trace(
         self, data_ptr: DataPtr

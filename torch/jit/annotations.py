@@ -98,7 +98,10 @@ class EvalEnv:
     def __init__(self, rcb):
         self.rcb = rcb
         if torch.distributed.rpc.is_available():
+<<<<<<< HEAD
             # pyrefly: ignore [unsupported-operation]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.env["RRef"] = RRef
 
     def __getitem__(self, name):
@@ -389,8 +392,12 @@ def is_tensor(ann):
         warnings.warn(
             "TorchScript will treat type annotations of Tensor "
             "dtype-specific subtypes as if they are normal Tensors. "
+<<<<<<< HEAD
             "dtype constraints are not enforced in compilation either.",
             stacklevel=2,
+=======
+            "dtype constraints are not enforced in compilation either."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         return True
 

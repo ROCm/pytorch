@@ -505,10 +505,13 @@ The following set of APIs transform your model into a pipeline representation.
 ```
 
 ```{eval-rst}
+<<<<<<< HEAD
 .. autoclass:: ScheduleDualPipeV
 ```
 
 ```{eval-rst}
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 .. autoclass:: PipelineScheduleSingle
   :members:
 ```

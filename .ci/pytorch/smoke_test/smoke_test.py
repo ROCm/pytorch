@@ -385,6 +385,7 @@ def smoke_test_compile(device: str = "cpu") -> None:
     x_pt2 = torch.compile(model, mode="max-autotune")(x)
 
 
+<<<<<<< HEAD
 def smoke_test_nvshmem() -> None:
     if not torch.cuda.is_available() or target_os == "windows":
         print("Windows platform or CUDA is not available, skipping NVSHMEM test")
@@ -410,6 +411,8 @@ def smoke_test_nvshmem() -> None:
     print(f"NVSHMEM available at run time: {_is_nvshmem_available()}")
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def smoke_test_modules():
     cwd = os.getcwd()
     for module in MODULES:
@@ -504,8 +507,11 @@ def main() -> None:
         options.pypi_pkg_check,
     )
 
+<<<<<<< HEAD
     smoke_test_nvshmem()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     main()

@@ -9,6 +9,10 @@
 
 #include <cuda_runtime_api.h>
 #include <future>
+<<<<<<< HEAD
+=======
+#include <unordered_map>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace at::cuda {
 namespace {
@@ -71,6 +75,7 @@ using Block = HostBlock<CUDAStream>;
 struct CUDACachingHostAllocatorImpl
     : public CachingHostAllocatorImpl<CUDAStream, EventPool::Event> {
  private:
+<<<<<<< HEAD
   ska::flat_hash_map<void*, bool> use_host_register;
 
   void allocate_host_memory(size_t size, void** ptr) override {
@@ -85,6 +90,11 @@ struct CUDACachingHostAllocatorImpl
   }
 
   void allocate_host_memory_slowpath(size_t size, void** ptr) {
+=======
+  std::unordered_map<void*, bool> use_host_register;
+
+  void allocate_host_memory(size_t size, void** ptr) override {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // Pinned memory pointers allocated by any device can be directly used by
     // any other device, regardless of the current device at the time of
     // allocation, since we assume unified addressing. So we grab any existing
@@ -123,6 +133,7 @@ struct CUDACachingHostAllocatorImpl
   }
 
   void free_block(Block* block) override {
+<<<<<<< HEAD
     // We never free blocks from the reserve segment
     if (get_reserve_segment().initialized()) {
       // Check if the block is from the reserve segment
@@ -138,6 +149,11 @@ struct CUDACachingHostAllocatorImpl
     auto start = std::chrono::steady_clock::now();
     // Users may change the allocator config at will. torch unit tests do this.
     // However, allocations using cudaHostRegister should use corresponding
+=======
+    auto start = std::chrono::steady_clock::now();
+    // Users may change the allocator config at will. torch unit tests do this.
+    // However, allocations using cudaHostRegister should use corresonding
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // cudaHostUnregister and similarly for cudaHostAlloc / cudaFreeHost.
     void* ptr = block->ptr_;
     bool use_register = false;
@@ -183,12 +199,21 @@ struct CUDACachingHostAllocatorImpl
     return true;
   }
 
+<<<<<<< HEAD
+=======
+  bool pinned_use_background_threads() override {
+    return c10::cuda::CUDACachingAllocator::CUDAAllocatorConfig::
+        pinned_use_background_threads();
+  }
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   EventPool::Event create_event_internal(DeviceIndex idx) {
     // Leak the event pool to avoid shutdown issue.
     static auto* event_pool = new EventPool();
     return event_pool->get(idx);
   }
 
+<<<<<<< HEAD
   PinnedReserveSegment& get_reserve_segment() {
     static auto reserve_segment = [&]() {
       if (c10::cuda::CUDACachingAllocator::CUDAAllocatorConfig::pinned_reserve_segment_size_mb() > 0) {
@@ -203,6 +228,8 @@ struct CUDACachingHostAllocatorImpl
     return reserve_segment;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TaskThreadPool* getThreadPool() {
     static TaskThreadPool* pool = new TaskThreadPool(
         static_cast<int>(c10::cuda::CUDACachingAllocator::CUDAAllocatorConfig::
@@ -217,15 +244,24 @@ struct CUDACachingHostAllocatorImpl
       size_t numThreads,
       size_t pageSize) {
     uintptr_t start = (uintptr_t)ptr + (size * i / numThreads);
+<<<<<<< HEAD
     uintptr_t end = start + (size / numThreads);
+=======
+    uintptr_t end = (uintptr_t)start + (size / numThreads);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (i == (numThreads - 1)) {
       end = (uintptr_t)ptr + size;
     }
 
     // pre-fault/map the pages by setting the first byte of the page
     uintptr_t alignedStart =
+<<<<<<< HEAD
         ((start + pageSize - 1) & ~(pageSize - 1));
     for (uintptr_t p = alignedStart; p < (end); p += pageSize) {
+=======
+        (((uintptr_t)start + pageSize - 1) & ~(pageSize - 1));
+    for (uintptr_t p = alignedStart; p < ((uintptr_t)end); p += pageSize) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // NOLINTNEXTLINE(performance-no-int-to-ptr)
       memset((void*)p, 0, 1);
     }
@@ -289,7 +325,11 @@ DECLARE_HOST_ALLOCATOR(
     CUDACachingHostAllocator,
     CUDACachingHostAllocatorImpl,
     raw_local_deleter,
+<<<<<<< HEAD
     caching_host_allocator)
+=======
+    caching_host_allocator);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 REGISTER_HOST_ALLOCATOR(at::kCUDA, &caching_host_allocator)
 

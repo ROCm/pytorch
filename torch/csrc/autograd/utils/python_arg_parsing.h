@@ -17,8 +17,13 @@ inline std::tuple<
     std::optional<at::MemoryFormat>>
 parse_to_conversion(PythonArgs& r, bool allow_copy) {
   if (r.idx == 0) {
+<<<<<<< HEAD
     TORCH_CHECK(
         allow_copy || r.isNone(3), ".to() does not accept copy argument");
+=======
+    if (!allow_copy && !r.isNone(3))
+      throw std::runtime_error(".to() does not accept copy argument");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::make_tuple(
         r.deviceOptional(0),
         r.scalartypeOptional(1),
@@ -26,8 +31,13 @@ parse_to_conversion(PythonArgs& r, bool allow_copy) {
         r.toBool(3),
         r.memoryformatOptional(4));
   } else if (r.idx == 1) {
+<<<<<<< HEAD
     TORCH_CHECK(
         allow_copy || r.isNone(2), ".to() does not accept copy argument");
+=======
+    if (!allow_copy && !r.isNone(2))
+      throw std::runtime_error(".to() does not accept copy argument");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::make_tuple(
         std::nullopt,
         r.scalartype(0),
@@ -36,8 +46,13 @@ parse_to_conversion(PythonArgs& r, bool allow_copy) {
         r.memoryformatOptional(3));
   } else {
     auto tensor = r.tensor(0);
+<<<<<<< HEAD
     TORCH_CHECK(
         allow_copy || r.isNone(2), ".to() does not accept copy argument");
+=======
+    if (!allow_copy && !r.isNone(2))
+      throw std::runtime_error(".to() does not accept copy argument");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return std::make_tuple(
         tensor.device(),
         tensor.scalar_type(),

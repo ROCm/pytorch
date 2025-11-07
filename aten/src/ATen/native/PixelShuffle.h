@@ -11,8 +11,11 @@ inline void check_pixel_shuffle_shapes(const Tensor& self, int64_t upscale_facto
               "pixel_shuffle expects a positive upscale_factor, but got ",
               upscale_factor);
   int64_t c = self.size(-3);
+<<<<<<< HEAD
   TORCH_CHECK_VALUE(upscale_factor <= std::numeric_limits<decltype(upscale_factor)>::max() / upscale_factor,
         "upscale factor is too large, (upscale_factor)^2 overflowed: upscale_factor=", upscale_factor);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   int64_t upscale_factor_squared = upscale_factor * upscale_factor;
   TORCH_CHECK(c % upscale_factor_squared == 0,
               "pixel_shuffle expects its input's 'channel' dimension to be divisible by the square of "

@@ -30,7 +30,11 @@ cov_data = CoverageData(basename=f".coverage.jit.{time()}")
 
 
 def is_not_builtin_class(obj: Any) -> bool:
+<<<<<<< HEAD
     return isclass(obj) and type(obj).__module__ != "builtins"
+=======
+    return isclass(obj) and not type(obj).__module__ == "builtins"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class JitPlugin(CoveragePlugin):  # type: ignore[misc, no-any-unimported]

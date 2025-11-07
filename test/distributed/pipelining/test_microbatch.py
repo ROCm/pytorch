@@ -9,11 +9,15 @@ from torch.distributed.pipelining.microbatch import (
     split_args_kwargs_into_chunks,
     TensorChunkSpec,
 )
+<<<<<<< HEAD
 from torch.nn.attention.flex_attention import create_block_mask, flex_attention
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     skipXPUIf,
 )
+=======
+from torch.testing._internal.common_device_type import instantiate_device_type_tests
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import run_tests, TestCase
 
 
@@ -60,6 +64,7 @@ class MicrobatchTests(TestCase):
         torch.testing.assert_close(merged_kwargs, kwargs)
         print("Microbatch test passed")
 
+<<<<<<< HEAD
     def test_split_block_mask(self, device):
         B = 6
         H = 1
@@ -270,6 +275,8 @@ class MicrobatchTests(TestCase):
             self.assertIsNone(kwarg_split[i]["attention_mask"])
 
     @skipXPUIf(True, "https://github.com/intel/torch-xpu-ops/issues/1682")
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_chunk_spec(self, device):
         mod = ModelWithKwargs().to(device)
         batch_size = ModelWithKwargs.DEFAULT_BATCH_SIZE
@@ -298,15 +305,22 @@ class MicrobatchTests(TestCase):
 
         ref = mod(x, y)
         out = pipe(x, y)[0]
+<<<<<<< HEAD
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         torch.testing.assert_close(out, ref)
         print(f"equivalence test passed {torch.sum(out)} ref {torch.sum(ref)}")
 
 
 devices = ["cpu", "cuda", "hpu", "xpu"]
+<<<<<<< HEAD
 instantiate_device_type_tests(
     MicrobatchTests, globals(), only_for=devices, allow_xpu=True
 )
+=======
+instantiate_device_type_tests(MicrobatchTests, globals(), only_for=devices)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

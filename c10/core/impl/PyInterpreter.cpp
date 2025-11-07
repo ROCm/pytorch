@@ -35,7 +35,11 @@ struct NoopPyInterpreterVTable final : public PyInterpreterVTable {
 
   void python_op_registration_trampoline(
       const c10::OperatorHandle& op,
+<<<<<<< HEAD
       c10::DispatchKey /*unused*/,
+=======
+      c10::DispatchKey,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       c10::DispatchKeySet keyset,
       torch::jit::Stack* stack,
       bool with_keyset,
@@ -52,11 +56,16 @@ struct NoopPyInterpreterVTable final : public PyInterpreterVTable {
 
   void python_dispatcher(
       const c10::OperatorHandle& op,
+<<<<<<< HEAD
       c10::DispatchKeySet /*unused*/,
+=======
+      c10::DispatchKeySet,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       torch::jit::Stack* stack) const override {
     PANIC(python_dispatcher);
   }
 
+<<<<<<< HEAD
   bool is_contiguous(const TensorImpl* self, at::MemoryFormat /*unused*/)
       const override {
     PANIC(is_contiguous);
@@ -67,6 +76,12 @@ struct NoopPyInterpreterVTable final : public PyInterpreterVTable {
     PANIC(sym_is_contiguous);
   }
   bool is_strides_like(const TensorImpl* self, at::MemoryFormat /*unused*/)
+=======
+  bool is_contiguous(const TensorImpl* self, at::MemoryFormat) const override {
+    PANIC(is_contiguous);
+  }
+  bool is_strides_like(const TensorImpl* self, at::MemoryFormat)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       const override {
     PANIC(is_strides_like);
   }

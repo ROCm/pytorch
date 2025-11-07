@@ -184,6 +184,7 @@ std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_ba
           0 & \text{ else }
         \end{cases}
   */
+<<<<<<< HEAD
 
   bool is_bfloat16 = (X.scalar_type() == at::kBFloat16);
 
@@ -201,6 +202,17 @@ std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_ba
   TORCH_CHECK(scale_.scalar_type() == ScalarType::Float);
   TORCH_CHECK(zero_point_.scalar_type() == ScalarType::Float);
   TORCH_CHECK(X_.numel() == dY_.numel(), "`X` and `dY` are not the same size");
+=======
+  float scale_val = scale[0].item<float>();
+  float inv_scale_val = 1.0f / scale_val;
+  int64_t zero_point_val = native::_get_zero_point_from_tensor(zero_point, quant_min, quant_max, false);
+
+  TORCH_CHECK(dY.scalar_type() == ScalarType::Float);
+  TORCH_CHECK(X.scalar_type() == ScalarType::Float);
+  TORCH_CHECK(scale.scalar_type() == ScalarType::Float);
+  TORCH_CHECK(zero_point.scalar_type() == ScalarType::Float);
+  TORCH_CHECK(X.numel() == dY.numel(), "`X` and `dY` are not the same size");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(
       quant_min <= 0 && quant_max >= 0,
       "`quant_min` should be less than or \
@@ -208,6 +220,7 @@ std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_ba
   TORCH_CHECK(
       zero_point_val >= quant_min && zero_point_val <= quant_max,
       "`zero_point` must be between `quant_min` and `quant_max`.");
+<<<<<<< HEAD
   if (X_.numel() <= 0) {
     return std::make_tuple(X, scale, zero_point);
   }
@@ -215,11 +228,21 @@ std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_ba
   auto dX = at::empty_like(X_, X_.options(), MemoryFormat::Preserve);
   auto dScale_vec = at::empty_like(X_, X_.options(), MemoryFormat::Preserve);
   auto dZeroPoint_vec = at::empty_like(X_, X_.options(), MemoryFormat::Preserve);
+=======
+  if (X.numel() <= 0) {
+    return std::make_tuple(X, scale, zero_point);
+  }
+
+  auto dX = at::empty_like(X, X.options(), MemoryFormat::Preserve);
+  auto dScale_vec = at::empty_like(X, X.options(), MemoryFormat::Preserve);
+  auto dZeroPoint_vec = at::empty_like(X, X.options(), MemoryFormat::Preserve);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   auto iter = TensorIteratorConfig()
     .add_output(dX)
     .add_output(dScale_vec)
     .add_output(dZeroPoint_vec)
+<<<<<<< HEAD
     .add_input(X_)
     .add_input(dY_)
     .build();
@@ -230,6 +253,18 @@ std::tuple<Tensor, Tensor, Tensor> _fake_quantize_learnable_per_tensor_affine_ba
   // The total sums over the scale and zero point gradient vectors are what will be returned in the end.
   auto dScale = dScale_vec.sum().unsqueeze(0).to(scale_.device());
   auto dZeroPoint = dZeroPoint_vec.sum().unsqueeze(0).to(zero_point_.device());
+=======
+    .add_input(X)
+    .add_input(dY)
+    .build();
+
+  fake_quant_grad_learnable_tensor_stub(
+    X.device().type(), iter, scale_val, inv_scale_val, zero_point_val, quant_min, quant_max, grad_factor);
+
+  // The total sums over the scale and zero point gradient vectors are what will be returned in the end.
+  auto dScale = dScale_vec.sum().unsqueeze(0).to(scale.device());
+  auto dZeroPoint = dZeroPoint_vec.sum().unsqueeze(0).to(zero_point.device());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   return std::make_tuple(dX, dScale, dZeroPoint);
 }

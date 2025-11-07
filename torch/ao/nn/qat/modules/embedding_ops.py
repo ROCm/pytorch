@@ -50,7 +50,10 @@ class Embedding(nn.Embedding):
             scale_grad_by_freq,
             sparse,
             _weight,
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             **factory_kwargs,
         )
         assert qconfig, "qconfig must be provided for QAT module"
@@ -79,7 +82,11 @@ class Embedding(nn.Embedding):
         Args: `mod` a float module, either produced by torch.ao.quantization utilities
         or directly from user
         """
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             " qat."
             + cls.__name__
             + ".from_float only works for "
@@ -202,7 +209,11 @@ class EmbeddingBag(nn.EmbeddingBag):
         Args: `mod` a float module, either produced by torch.ao.quantization utilities
         or directly from user
         """
+<<<<<<< HEAD
         assert type(mod) is cls._FLOAT_MODULE, (
+=======
+        assert type(mod) == cls._FLOAT_MODULE, (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             " qat."
             + cls.__name__
             + ".from_float only works for "

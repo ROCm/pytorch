@@ -41,7 +41,11 @@ public:
     *self_data = c10::load(self_data) && c10::load(src_data);
   }
 };
+<<<<<<< HEAD
 ReduceMultiply reduce_multiply;
+=======
+static ReduceMultiply reduce_multiply;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReduceAdd {
 public:
@@ -51,7 +55,11 @@ public:
     *self_data += opmath_t(c10::load(src_data));
   }
 };
+<<<<<<< HEAD
 ReduceAdd reduce_add;
+=======
+static ReduceAdd reduce_add;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReduceMean {
 public:
@@ -61,7 +69,11 @@ public:
     *self_data += opmath_t(c10::load(src_data));
   }
 };
+<<<<<<< HEAD
 ReduceMean reduce_mean;
+=======
+static ReduceMean reduce_mean;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReduceMaximum {
 public:
@@ -73,7 +85,11 @@ public:
     *self_data = at::_isnan<scalar_t>(src_value) ? opmath_t(src_value) : std::max(self_value, opmath_t(src_value));
   }
 };
+<<<<<<< HEAD
 ReduceMaximum reduce_maximum;
+=======
+static ReduceMaximum reduce_maximum;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ReduceMinimum {
 public:
@@ -85,7 +101,11 @@ public:
     *self_data = at::_isnan<scalar_t>(src_value) ? opmath_t(src_value) : std::min(self_value, opmath_t(src_value));
   }
 };
+<<<<<<< HEAD
 ReduceMinimum reduce_minimum;
+=======
+static ReduceMinimum reduce_minimum;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TensorAssign {
 public:
@@ -95,7 +115,11 @@ public:
     *self_data = opmath_t(c10::load(src_data));
   }
 };
+<<<<<<< HEAD
 TensorAssign tensor_assign;
+=======
+static TensorAssign tensor_assign;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 template <bool is_scatter_like = true>
 struct _cpu_scatter_gather_dim_loop {

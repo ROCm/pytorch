@@ -311,7 +311,11 @@ void GroupNormKernelImplChannelsLastInternal(
   const bool gamma_null = (gamma_data == nullptr);
   const bool beta_null = beta_data == nullptr;
 
+<<<<<<< HEAD
   // NB: About algorithm chosen:
+=======
+  // NB: About algorithm choosen:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //
   // On channels last, GroupNorm has a input shape of {N, H, W, GD},
   // Mean and rstd are collected per each n and g, which involves reduction

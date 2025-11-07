@@ -6,6 +6,13 @@ AlbertForMaskedLM,pass,4
 
 
 
+<<<<<<< HEAD
+=======
+AlbertForQuestionAnswering,pass,5
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 AllenaiLongformerBase,pass,9
 
 
@@ -14,23 +21,75 @@ BartForCausalLM,pass,6
 
 
 
+<<<<<<< HEAD
+=======
+BartForConditionalGeneration,pass,8
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BertForMaskedLM,pass,5
 
 
 
+<<<<<<< HEAD
+=======
+BertForQuestionAnswering,pass,5
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 BlenderbotForCausalLM,eager_fail_to_run,0
 
 
 
+<<<<<<< HEAD
+=======
+BlenderbotSmallForCausalLM,pass,6
+
+
+
+BlenderbotSmallForConditionalGeneration,pass,8
+
+
+
+CamemBert,pass,5
+
+
+
+DebertaForMaskedLM,pass,5
+
+
+
+DebertaForQuestionAnswering,pass,5
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DebertaV2ForMaskedLM,pass_due_to_skip,0
 
 
 
+<<<<<<< HEAD
+=======
+DebertaV2ForQuestionAnswering,eager_1st_run_OOM,0
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 DistilBertForMaskedLM,pass,5
 
 
 
+<<<<<<< HEAD
 DistillGPT2,pass,7
+=======
+DistilBertForQuestionAnswering,pass,5
+
+
+
+DistillGPT2,pass,5
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -38,6 +97,13 @@ ElectraForCausalLM,pass,4
 
 
 
+<<<<<<< HEAD
+=======
+ElectraForQuestionAnswering,pass,5
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 GPT2ForSequenceClassification,pass,6
 
 
@@ -50,6 +116,13 @@ LayoutLMForMaskedLM,pass,5
 
 
 
+<<<<<<< HEAD
+=======
+LayoutLMForSequenceClassification,pass,6
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 M2M100ForConditionalGeneration,pass,4
 
 
@@ -58,6 +131,13 @@ MBartForCausalLM,pass,6
 
 
 
+<<<<<<< HEAD
+=======
+MBartForConditionalGeneration,pass,8
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MT5ForConditionalGeneration,pass,5
 
 
@@ -66,11 +146,26 @@ MegatronBertForCausalLM,pass,5
 
 
 
+<<<<<<< HEAD
+=======
+MegatronBertForQuestionAnswering,pass,5
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 MobileBertForMaskedLM,pass,3
 
 
 
+<<<<<<< HEAD
 OPTForCausalLM,pass,8
+=======
+MobileBertForQuestionAnswering,pass,3
+
+
+
+OPTForCausalLM,pass,6
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 
@@ -78,14 +173,39 @@ PLBartForCausalLM,pass,6
 
 
 
+<<<<<<< HEAD
+=======
+PLBartForConditionalGeneration,pass,8
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 PegasusForCausalLM,pass,6
 
 
 
+<<<<<<< HEAD
+=======
+PegasusForConditionalGeneration,pass,7
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 RobertaForCausalLM,pass,5
 
 
 
+<<<<<<< HEAD
+=======
+RobertaForQuestionAnswering,pass,5
+
+
+
+Speech2Text2ForCausalLM,pass,6
+
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 T5ForConditionalGeneration,pass,5
 
 
@@ -107,6 +227,7 @@ XLNetLMHeadModel,pass,5
 
 
 YituTechConvBert,pass,5
+<<<<<<< HEAD
 
 
 
@@ -127,3 +248,5 @@ openai/whisper-tiny,eager_fail_to_run,0
 
 
 Qwen/Qwen3-0.6B,eager_fail_to_run,0
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

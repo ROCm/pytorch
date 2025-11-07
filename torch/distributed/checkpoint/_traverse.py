@@ -1,6 +1,11 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
+<<<<<<< HEAD
 from collections.abc import Callable, Collection, Mapping, MutableMapping
 from typing import cast, Optional, TypeVar, Union
+=======
+from collections.abc import Collection, Mapping, MutableMapping
+from typing import Callable, cast, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.distributed._shard.sharded_tensor.api import ShardedTensor
@@ -121,21 +126,32 @@ def set_element(
     for i in range(1, len(path)):
         prev_key = path[i - 1]
         key = path[i]
+<<<<<<< HEAD
         def_val = cast(STATE_DICT_ITEM, {} if type(key) is str else [])
+=======
+        def_val = cast(STATE_DICT_ITEM, {} if type(key) == str else [])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if isinstance(cur_container, Mapping):
             cur_container = cast(
                 CONTAINER_TYPE, cur_container.setdefault(prev_key, def_val)
             )
         else:
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             extend_list(cur_container, prev_key)
             if cur_container[prev_key] is None:
                 cur_container[prev_key] = def_val
             cur_container = cur_container[prev_key]
 
     key = path[-1]
+<<<<<<< HEAD
     if type(key) is int:
+=======
+    if type(key) == int:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         extend_list(cast(list[STATE_DICT_ITEM], cur_container), key)
 
     cur_container[key] = value
@@ -155,7 +171,10 @@ def get_element(
         elif not isinstance(cur_value, Mapping) or part not in cur_value:
             return default_value
 
+<<<<<<< HEAD
         # pyrefly: ignore [index-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cur_value = cast(CONTAINER_TYPE, cur_value[part])
     return cast(Optional[T], cur_value)
 

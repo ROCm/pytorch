@@ -5,7 +5,11 @@
 # Tensor Parallelism - torch.distributed.tensor.parallel
 
 Tensor Parallelism(TP) is built on top of the PyTorch DistributedTensor
+<<<<<<< HEAD
 ([DTensor](https://github.com/pytorch/pytorch/blob/main/torch/distributed/tensor/README.md))
+=======
+(DTensor)[https://github.com/pytorch/pytorch/blob/main/torch/distributed/tensor/README.md]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 and provides different parallelism styles: Colwise, Rowwise, and Sequence Parallelism.
 
 :::{warning}
@@ -89,4 +93,8 @@ Parallelized cross-entropy loss computation (loss parallelism), is supported via
 ```
 :::{warning}
     The loss_parallel API is experimental and subject to change.
+<<<<<<< HEAD
 :::
+=======
+:::
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

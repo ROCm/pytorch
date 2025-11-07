@@ -37,7 +37,11 @@ class Benchmark(BenchmarkBase):
         def f(a, b):
             xs = b.tolist()
             for x in xs:
+<<<<<<< HEAD
                 torch._check(x >= 0)
+=======
+                torch._check_is_size(x)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 torch._check(x <= self.N)
             return a.split(xs)
 

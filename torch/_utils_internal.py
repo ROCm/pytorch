@@ -4,9 +4,13 @@ import logging
 import os
 import sys
 import tempfile
+<<<<<<< HEAD
 import typing_extensions
 from collections.abc import Callable
 from typing import Any, Optional, TypeVar
+=======
+from typing import Any, Callable, Optional, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -30,6 +34,7 @@ if os.environ.get("TORCH_COMPILE_STROBELIGHT", False):
         StrobelightCompileTimeProfiler.enable()
 
 # this arbitrary-looking assortment of functionality is provided here
+<<<<<<< HEAD
 # to have a central place for overridable behavior. The motivating
 # use is the FB build environment, where this source file is replaced
 # by an equivalent.
@@ -38,6 +43,22 @@ if os.path.basename(os.path.dirname(__file__)) == "shared":
     torch_parent = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 else:
     torch_parent = os.path.dirname(os.path.dirname(__file__))
+=======
+# to have a central place for overrideable behavior. The motivating
+# use is the FB build environment, where this source file is replaced
+# by an equivalent.
+
+if torch._running_with_deploy():
+    # __file__ is meaningless in the context of frozen torch used in torch deploy.
+    # setting empty torch_parent should allow below functions to operate without crashing,
+    # but it's unclear if there is a valid use case for them in the context of deploy.
+    torch_parent = ""
+else:
+    if os.path.basename(os.path.dirname(__file__)) == "shared":
+        torch_parent = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
+    else:
+        torch_parent = os.path.dirname(os.path.dirname(__file__))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def get_file_path(*path_components: str) -> str:
@@ -84,11 +105,15 @@ def compile_time_strobelight_meta(
     ) -> Callable[_P, _T]:
         @functools.wraps(function)
         def wrapper_function(*args: _P.args, **kwargs: _P.kwargs) -> _T:
+<<<<<<< HEAD
             if "skip" in kwargs and isinstance(
                 # pyrefly: ignore [unsupported-operation]
                 skip := kwargs["skip"],
                 int,
             ):
+=======
+            if "skip" in kwargs and isinstance(skip := kwargs["skip"], int):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 kwargs["skip"] = skip + 1
 
             # This is not needed but we have it here to avoid having profile_compile_time
@@ -122,10 +147,13 @@ def signpost_event(category: str, name: str, parameters: dict[str, Any]):
     log.info("%s %s: %r", category, name, parameters)
 
 
+<<<<<<< HEAD
 def add_mlhub_insight(category: str, insight: str, insight_description: str):
     pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def log_compilation_event(metrics):
     log.info("%s", metrics)
 
@@ -142,10 +170,13 @@ def log_export_usage(**kwargs):
     pass
 
 
+<<<<<<< HEAD
 def log_draft_export_usage(**kwargs):
     pass
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def log_trace_structured_event(*args, **kwargs) -> None:
     pass
 
@@ -181,9 +212,12 @@ def log_torch_jit_trace_exportability(
     return
 
 
+<<<<<<< HEAD
 DISABLE_JUSTKNOBS = True
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def justknobs_check(name: str, default: bool = True) -> bool:
     """
     This function can be used to killswitch functionality in FB prod,
@@ -223,9 +257,12 @@ def is_fb_unit_test() -> bool:
 
 @functools.cache
 def max_clock_rate():
+<<<<<<< HEAD
     """
     unit: MHz
     """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if not torch.version.hip:
         from triton.testing import nvsmi
 
@@ -296,6 +333,7 @@ def record_chromium_event_internal(
 
 def profiler_allow_cudagraph_cupti_lazy_reinit_cuda12():
     return True
+<<<<<<< HEAD
 
 
 def deprecated():
@@ -376,3 +414,5 @@ def find_compile_subproc_binary() -> Optional[str]:
     Allows overriding the binary used for subprocesses
     """
     return None
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

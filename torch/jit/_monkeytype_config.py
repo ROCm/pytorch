@@ -14,8 +14,11 @@ import torch
 _IS_MONKEYTYPE_INSTALLED = True
 try:
     import monkeytype  # type: ignore[import]
+<<<<<<< HEAD
 
     # pyrefly: ignore [import-error]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from monkeytype import trace as monkeytype_trace
     from monkeytype.config import _startswith, LIB_PATHS  # type: ignore[import]
     from monkeytype.db.base import (  # type: ignore[import]
@@ -28,7 +31,11 @@ except ImportError:
     _IS_MONKEYTYPE_INSTALLED = False
 
 
+<<<<<<< HEAD
 # Checks whether a class is defined in `torch.*` modules
+=======
+# Checks whether a class is defind in `torch.*` modules
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def is_torch_native_class(cls):
     if not hasattr(cls, "__module__"):
         return False
@@ -68,7 +75,11 @@ def get_optional_of_element_type(types):
     from the list of consolidated types and returns `Optional[element type]`.
     TODO: To remove this check once Union support lands.
     """
+<<<<<<< HEAD
     elem_type = types[1] if type(None) is types[0] else types[0]
+=======
+    elem_type = types[1] if type(None) == types[0] else types[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     elem_type = get_type(elem_type)
 
     # Optional type is internally converted to Union[type, NoneType], which
@@ -89,7 +100,10 @@ if _IS_MONKEYTYPE_INSTALLED:
             super().__init__(store)
 
         def log(self, trace: CallTrace) -> None:
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.traces.append(trace)
 
     class JitTypeTraceStore(CallTraceStore):
@@ -133,7 +147,11 @@ if _IS_MONKEYTYPE_INSTALLED:
                 types = list(types)
                 type_length = len(types)
                 if type_length == 2 and type(None) in types:
+<<<<<<< HEAD
                     # TODO: To remove this check once Union support in TorchScript lands.
+=======
+                    # TODO: To remove this check once Union suppport in TorchScript lands.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     all_args[arg] = get_optional_of_element_type(types)
                 elif type_length > 1:
                     all_args[arg] = "Any"
@@ -151,7 +169,10 @@ if _IS_MONKEYTYPE_INSTALLED:
 
         def trace_logger(self) -> JitTypeTraceStoreLogger:
             """Return a JitCallTraceStoreLogger that logs to the configured trace store."""
+<<<<<<< HEAD
             # pyrefly: ignore [bad-argument-count]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return JitTypeTraceStoreLogger(self.trace_store())
 
         def trace_store(self) -> CallTraceStore:

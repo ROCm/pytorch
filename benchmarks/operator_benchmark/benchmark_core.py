@@ -4,7 +4,10 @@ import csv
 import functools
 import json
 import os
+<<<<<<< HEAD
 import platform
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import timeit
 from collections import namedtuple
 from dataclasses import asdict, dataclass
@@ -18,7 +21,10 @@ import torch
 
 # needs to be imported after torch
 import torch.utils.cpp_extension as cpp_extension  # noqa: F401
+<<<<<<< HEAD
 from torch.utils.benchmark import Timer
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 """Performance microbenchmarks.
@@ -193,11 +199,14 @@ class BenchmarkRunner:
         self.predefined_minimum_secs = 1
         self.max_iters = 1e6
         self.use_jit = args.use_jit
+<<<<<<< HEAD
         self.use_compile = args.use_compile
         if self.use_jit and self.use_compile:
             raise ValueError(
                 "use_jit and use_compile are mutually exclusive, please specify one."
             )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self.num_runs = args.num_runs
         self.print_per_iter = False
         self.output_csv = args.output_csv
@@ -229,7 +238,11 @@ class BenchmarkRunner:
             if self.args.operators:
                 print(f"# {self.args.operators}")
 
+<<<<<<< HEAD
     def _print_perf_result(self, results, test_case):
+=======
+    def _print_perf_result(self, reported_run_time_us, test_case):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if self.args.report_aibench:
             # Output for AIBench
             # Print out per iteration execution time instead of avg time
@@ -243,14 +256,22 @@ class BenchmarkRunner:
                             "type": test_name,
                             "metric": "latency",
                             "unit": "us",
+<<<<<<< HEAD
                             "value": str(results["reported_run_time_us"[run]]),
+=======
+                            "value": str(reported_run_time_us[run]),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         }
                     )
                 )
         else:
+<<<<<<< HEAD
             print(
                 f"# Mode: {'JIT' if self.use_jit else 'Compile' if self.use_compile else 'Eager'}"
             )
+=======
+            print(f"# Mode: {'JIT' if self.use_jit else 'Eager'}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             print(
                 f"# Name: {test_case.test_config.test_name}\n# Input: {test_case.test_config.input_config}"
             )
@@ -259,6 +280,7 @@ class BenchmarkRunner:
             if self.num_runs > 1:
                 for run in range(self.num_runs):
                     print(
+<<<<<<< HEAD
                         f"Run: {run}, {mode} Execution Time (us) : {results['reported_run_time_us'][run]:.3f}"
                     )
                 print()
@@ -269,11 +291,21 @@ class BenchmarkRunner:
                 print(f"Peak Memory (KB) : {results['peak_memory']}\n")
 
     def _perf_result_to_dict(self, results, test_case):
+=======
+                        f"Run: {run}, {mode} Execution Time (us) : {reported_run_time_us[run]:.3f}"
+                    )
+                print()
+            else:
+                print(f"{mode} Execution Time (us) : {reported_run_time_us[0]:.3f}\n")
+
+    def _perf_result_to_dict(self, reported_run_time_us, test_case):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """This function is the parallel of _print_perf_result, which instead of
         writing information to terminal, returns a dictionary.
         """
         if self.args.report_aibench:
             return {}
+<<<<<<< HEAD
 
         out = {
             "test_name": test_case.test_config.test_name,
@@ -286,6 +318,15 @@ class BenchmarkRunner:
             "latency unit": "us",
             "peak memory": results["peak_memory"],
             "memory unit": "KB",
+=======
+        out = {
+            "test_name": test_case.test_config.test_name,
+            "input_config": test_case.test_config.input_config,
+            "mode": "JIT" if self.use_jit else "Eager",
+            "run": "Backward" if test_case.test_config.run_backward else "Forward",
+            "latency": round(reported_run_time_us[0], 3),
+            "latency unit": "us",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
 
         # parsing test_case.test_config.input_config, adding it as entries to the 'out' dictionary
@@ -347,6 +388,7 @@ class BenchmarkRunner:
         func = test_case.run_forward
         if self.use_jit:
             func = test_case.run_jit_forward
+<<<<<<< HEAD
         if self.use_compile:
             func = test_case.run_compile_forward
 
@@ -367,6 +409,12 @@ class BenchmarkRunner:
         )
         result = timer.adaptive_autorange(min_run_time=0.0001)
         return result.median * iters
+=======
+        forward_time = timeit.timeit(
+            functools.partial(func, iters, print_per_iter, cuda_sync), number=1
+        )
+        return forward_time
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _launch_backward(self, test_case, iters, print_per_iter=False):
         """This function runs forward path of an op to get an output. Then the backward path is executed
@@ -379,7 +427,11 @@ class BenchmarkRunner:
         )
         return backward_time
 
+<<<<<<< HEAD
     def _measure_metrics(self, launch_test, test_case, iters, print_per_iter):
+=======
+    def _measure_time(self, launch_test, test_case, iters, print_per_iter):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         This function execute the operator for <iters> iterations then look at the time.
         If it's not significant, the number of iterations will be increased before rerun.
@@ -387,6 +439,7 @@ class BenchmarkRunner:
         """
         curr_test_total_time = 0
         time_trace = []
+<<<<<<< HEAD
         peak_memory = 0
         input_values = test_case.op_bench.inputs.values()
         device, device_module = None, None
@@ -406,6 +459,10 @@ class BenchmarkRunner:
             # Memory measurement process
             if hasattr(device_module, "max_memory_allocated"):
                 peak_memory = device_module.max_memory_allocated(device)
+=======
+        while True:
+            run_time_sec = launch_test(test_case, iters, print_per_iter)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             curr_test_total_time += run_time_sec
             # Analyze time after each run to decide if the result is stable
             results_are_significant = self._iteration_result_is_significant(
@@ -419,6 +476,7 @@ class BenchmarkRunner:
             time_trace.append(report_run_time)
             # Print out the time spent in each epoch in ms
             if self.args.report_aibench:
+<<<<<<< HEAD
                 mode = (
                     "JIT"
                     if self.use_jit
@@ -426,6 +484,9 @@ class BenchmarkRunner:
                     if self.use_compile
                     else "Eager"
                 )
+=======
+                mode = "JIT" if self.use_jit else "Eager"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 test_name = "_".join(
                     [test_case.framework, test_case.test_config.test_name, mode]
                 )
@@ -437,7 +498,11 @@ class BenchmarkRunner:
                             "metric": "latency",
                             "unit": "ms",
                             "value": str(report_run_time / 1e3),
+<<<<<<< HEAD
                         },
+=======
+                        }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     )
                 )
             if results_are_significant:
@@ -447,7 +512,11 @@ class BenchmarkRunner:
             # iteration count, and run the benchmark again...
             iters = self._predict_num_iter_needed(iters)
         reported_run_time_us = np.percentile(np.array(time_trace), 50)
+<<<<<<< HEAD
         return reported_run_time_us, peak_memory / 1024
+=======
+        return reported_run_time_us
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _check_keep(self, test_flag, cmd_flag):
         return cmd_flag is None or test_flag == cmd_flag
@@ -534,7 +603,10 @@ class BenchmarkRunner:
         self,
         perf_list,
         output_file,
+<<<<<<< HEAD
         benchmark_name="PyTorch operator benchmark",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Write the result into JSON format, so that it can be uploaded to the benchmark database
@@ -552,10 +624,15 @@ class BenchmarkRunner:
             input_config = perf_item.get("input_config", "")
             run_type = perf_item.get("run")
             latency = perf_item.get("latency", 0)
+<<<<<<< HEAD
             peak_memory = perf_item.get("peak memory", 0)
             device = perf_item.get("device", "unknown")
             dtype = perf_item.get("dtype", "torch.float").split(".")[1]
             runtime = perf_item.get("runtime", None)
+=======
+
+            dtype = "float32"  # default
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             # Extract mode based on run_type
             mode = None
@@ -564,6 +641,7 @@ class BenchmarkRunner:
             elif run_type == "Backward":
                 mode = "training"
 
+<<<<<<< HEAD
             # Extract use_compile from it
             if runtime == "Compile":
                 use_compile = True
@@ -583,6 +661,8 @@ class BenchmarkRunner:
             # Extract operator name from test_name
             operator_name = test_name.split("_")[0]
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # Create the record
             @dataclass
             class BenchmarkInfo:
@@ -596,7 +676,10 @@ class BenchmarkRunner:
                 name: str
                 type: str
                 origins: list[str]
+<<<<<<< HEAD
                 extra_info: dict[str, Any]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             @dataclass
             class MetricInfo:
@@ -611,6 +694,7 @@ class BenchmarkRunner:
                 model: ModelInfo
                 metric: MetricInfo
 
+<<<<<<< HEAD
             # Add record for latency
             record_latency = BenchmarkRecord(
                 benchmark=BenchmarkInfo(
@@ -630,6 +714,17 @@ class BenchmarkRunner:
                     type="micro-benchmark",
                     origins=["pytorch"],
                     extra_info={"operator_name": operator_name},
+=======
+            record = BenchmarkRecord(
+                benchmark=BenchmarkInfo(
+                    name="PyTorch operator benchmark",
+                    mode=mode,
+                    dtype=dtype,
+                    extra_info={"input_config": input_config},
+                ),
+                model=ModelInfo(
+                    name=test_name, type="micro-benchmark", origins=["pytorch"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 ),
                 metric=MetricInfo(
                     name="latency",
@@ -638,6 +733,7 @@ class BenchmarkRunner:
                     target_value=None,
                 ),
             )
+<<<<<<< HEAD
             records.append(asdict(record_latency))
 
             # Add record for peak memory
@@ -649,6 +745,10 @@ class BenchmarkRunner:
                 target_value=None,
             )
             records.append(asdict(record_memory))
+=======
+
+            records.append(asdict(record))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         # Write all records to the output file
         with open(output_file, "w", encoding="utf-8") as f:
@@ -664,7 +764,10 @@ class BenchmarkRunner:
             "tag",
             "run_backward",
             "Execution Time",
+<<<<<<< HEAD
             "Peak Memory (KB)",
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ]
 
         if self.args.output_json or self.args.output_json_for_dashboard:
@@ -702,16 +805,25 @@ class BenchmarkRunner:
                     test_case, self.args.warmup_iterations, print_per_iter=False
                 )
                 # Actual Execution
+<<<<<<< HEAD
                 results = [
                     self._measure_metrics(
+=======
+                reported_time = [
+                    self._measure_time(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         launch_func, test_case, self.iters, self.print_per_iter
                     )
                     for _ in range(self.num_runs)
                 ]
+<<<<<<< HEAD
                 result_dict = dict()
                 result_dict["reported_run_time_us"] = [r[0] for r in results]
                 result_dict["peak_memory"] = results[0][1]
                 self._print_perf_result(results=result_dict, test_case=test_case)
+=======
+                self._print_perf_result(reported_time, test_case)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # output results to csv
                 self._output_csv(
@@ -727,6 +839,7 @@ class BenchmarkRunner:
                         ),
                         test_case.test_config.tag,
                         test_case.test_config.run_backward,
+<<<<<<< HEAD
                         result_dict["reported_run_time_us"][0],
                         result_dict["peak_memory"],
                     ],
@@ -738,6 +851,18 @@ class BenchmarkRunner:
             self._output_json(
                 perf_list, self.args.output_json_for_dashboard, self.args.benchmark_name
             )
+=======
+                        reported_time[0],
+                    ],
+                )
+                if self.args.output_json or self.args.output_json_for_dashboard:
+                    perf_list.append(
+                        self._perf_result_to_dict(reported_time, test_case)
+                    )
+
+        if self.args.output_json_for_dashboard:
+            self._output_json(perf_list, self.args.output_json_for_dashboard)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if self.args.output_json:
             with open(self.args.output_json, "w") as f:

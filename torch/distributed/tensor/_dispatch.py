@@ -1,6 +1,12 @@
 # Copyright (c) Meta Platforms, Inc. and affiliates
 import contextlib
+<<<<<<< HEAD
 import logging
+=======
+import functools
+import logging
+import operator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 import warnings
 from collections.abc import Sequence
 from typing import cast, Optional
@@ -21,8 +27,11 @@ from torch.distributed.tensor._tp_conv import (
 )
 from torch.distributed.tensor._utils import try_find_mesh_from_args
 from torch.distributed.tensor.placement_types import Partial, Placement, Replicate
+<<<<<<< HEAD
 from torch.utils._debug_mode import get_active_debug_mode
 from torch.utils._python_dispatch import return_and_correct_aliasing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 try:
@@ -78,11 +87,16 @@ def found_inf_reduce_handler(
             dtype=target_tensor.dtype,
         ),
     )
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
     found_inf_dtensor = dtensor.DTensor(
         local_tensor=target_tensor,  # pyrefly: ignore [unexpected-keyword]
         spec=spec,  # pyrefly: ignore [unexpected-keyword]
         requires_grad=False,  # pyrefly: ignore [unexpected-keyword]
+=======
+    found_inf_dtensor = dtensor.DTensor(
+        local_tensor=target_tensor, spec=spec, requires_grad=False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     found_inf = found_inf_dtensor.full_tensor()
     target_tensor.copy_(found_inf)
@@ -123,6 +137,7 @@ class OpDispatcher:
             aten._amp_foreach_non_finite_check_and_unscale_.default: found_inf_reduce_handler,
         }
 
+<<<<<<< HEAD
     # This flag is used internally to control whether we treat the torch.Tensor(non-DTensor)
     # as implicitly replicated or we throw error to user.
     # NOTE: It is EXTREMELY UNSAFE to turn this flag on by default so we intentionally leave
@@ -134,6 +149,13 @@ class OpDispatcher:
     @_allow_implicit_replication.setter
     def _allow_implicit_replication(self, value: bool) -> None:
         return torch._C._set_dtensor_allow_implicit_replication(value)
+=======
+        # This flag is used internally to control whether we treat the torch.Tensor(non-DTensor)
+        # as implicitly replicated or we throw error to user.
+        # NOTE: It is EXTREMELY UNSAFE to turn this flag on by default so we intentionally leave
+        # it as False by default.
+        self._allow_implicit_replication = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def dispatch(
         self,
@@ -142,16 +164,31 @@ class OpDispatcher:
         kwargs: dict[str, object],
     ) -> object:
         """
+<<<<<<< HEAD
         Main dispatching logic.  Follows precedence order:
         (1) custom_op_handler
         (2) registered sharding strategy, then rule
         (3) composite implicit autograd decomposition
         """
+=======
+        Main dispatching logic
+        """
+        # operators that does not need to go through sharding propagation
+        if torch._C._dispatch_has_kernel_for_dispatch_key(
+            op_call.name(), torch._C.DispatchKey.CompositeImplicitAutograd
+        ):
+            # When running under inference mode, CompositeImplicitAutograd ops show up in __torch_dispatch__,
+            # so we manually decompose them, here
+            out = op_call.decompose(*args, **kwargs)
+            assert out is not NotImplemented
+            return out
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if op_call in self._custom_op_handlers:
             return self._custom_op_handlers[op_call](op_call, args, kwargs)  # type: ignore[operator]
 
         # extract local tensor and sharding infos to a OpInfo
         op_info = self.unwrap_to_op_info(op_call, args, kwargs)
+<<<<<<< HEAD
 
         try:
             self.sharding_propagator.propagate(op_info)
@@ -178,22 +215,41 @@ class OpDispatcher:
         participating = mesh.get_coordinate() is not None
         local_results = None
         if participating:
+=======
+        logger.debug("Dispatching op_call: %s", op_info.schema)
+
+        self.sharding_propagator.propagate(op_info)
+        output_sharding = op_info.output_sharding
+        logger.debug("output_sharding for %s: %s", op_call, output_sharding)
+        assert output_sharding is not None, "output sharding should not be None"
+
+        mesh = op_info.compute_mesh
+        if mesh.get_coordinate() is not None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # computation that happens in the current rank of the mesh, normal case
             if output_sharding.needs_redistribute:
                 # If sharding propagation decision needs redistribute, perform redistribute
                 # on args first, which could potentially modify args (i.e. allgather certain arg)
                 assert output_sharding.redistribute_schema is not None
                 self.redistribute_local_args(
+<<<<<<< HEAD
                     op_info,
                     output_sharding.redistribute_schema,
                     output_sharding.use_val_from_redistribute_schema,
+=======
+                    op_info, output_sharding.redistribute_schema
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
 
             local_tensor_args = (
                 pytree.tree_unflatten(
+<<<<<<< HEAD
                     cast(list[object], op_info.local_args),
                     # pyrefly: ignore [bad-argument-type]
                     op_info.args_tree_spec,
+=======
+                    cast(list[object], op_info.local_args), op_info.args_tree_spec
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 if op_info.args_tree_spec
                 else op_info.local_args
@@ -211,6 +267,7 @@ class OpDispatcher:
                     cast(dtensor.DTensor, args[0]),
                     cast(torch.Tensor, local_tensor_args[0]),
                 )
+<<<<<<< HEAD
 
                 # If the user provided a generator, we hook it up to our RNG manager, but we also pop it from kwargs
                 # so the op_call does not directly use it (we want op_call to fall back to the 'default' which is
@@ -224,6 +281,10 @@ class OpDispatcher:
                     random._rng_tracker._distribute_region(
                         first_arg._spec, generator=maybe_user_generator
                     )
+=======
+                rng_context = (
+                    random._rng_tracker._distribute_region(first_arg._spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if random._rng_tracker and not first_local_arg.is_meta
                     else contextlib.nullcontext()
                 )
@@ -280,6 +341,7 @@ class OpDispatcher:
 
         if output_sharding.output_spec is None:
             if op_call == aten.equal.default:
+<<<<<<< HEAD
                 # The output of the equal op is a bool, by converting it into a
                 # a single value tensor, we can use all-reduce with min reduce op
                 # to simulate logical and.
@@ -290,10 +352,21 @@ class OpDispatcher:
                 )
                 dist.all_reduce(r, op=dist.ReduceOp.MIN)
                 local_results = bool(r.item())
+=======
+                # For equal operator, The local results from all devices should be all-gathered
+                # and a reduce op (AND) will be performed on the list of results to ensure SPMD
+                # execution. We can extend this for more ops if necessary.
+                obj_list = [None for _ in range(dist.get_world_size())]
+                dist.all_gather_object(obj_list, local_results)  # type: ignore[possibly-undefined]
+                obj_list = list(filter(lambda x: x is not None, obj_list))
+                # perform reduce on the collection with AND op
+                local_results = functools.reduce(operator.and_, obj_list, True)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if op_info.schema.is_inplace_op():
             # inplace op should return self instead of re-wrapping
             if output_sharding.output_spec is not None:
+<<<<<<< HEAD
                 # NOTE: aten.squeeze_.dim is an inplace op but it also may change
                 # the inplace argument's tensor meta. Here we choose to special case
                 # this op because as far as I know this is the only inplace op that
@@ -308,6 +381,9 @@ class OpDispatcher:
                     return return_and_correct_aliasing(op_call, args, kwargs, args[0])
                 else:
                     return args[0]
+=======
+                return args[0]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             else:
                 return None
         elif op_info.schema.is_out_variant_op():
@@ -329,20 +405,28 @@ class OpDispatcher:
             assert len(out_dts) >= 1, "out variant should have at least one out arg"
             return tuple(out_dts) if len(out_dts) > 1 else out_dts[0]
         else:
+<<<<<<< HEAD
             ret = self.wrap(local_results, output_sharding.output_spec)  # type: ignore[possibly-undefined]
             if participating and op_info.schema.is_view_op():
                 return return_and_correct_aliasing(op_call, args, kwargs, ret)
             else:
                 return ret
+=======
+            return self.wrap(local_results, output_sharding.output_spec)  # type: ignore[possibly-undefined]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def redistribute_local_args(
         op_info: OpInfo,
         suggested_input_schema: OpSchema,
+<<<<<<< HEAD
         use_val_from_redistribute_schema: bool,
     ) -> None:
         debug_mode = get_active_debug_mode()
 
+=======
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # NOTE: it's very rare that we need to reshard kwargs so we intentionally skip it
         if op_info.args_tree_spec is not None:
             flatten_args_schema_to_reshard = tuple(
@@ -357,6 +441,7 @@ class OpDispatcher:
             if isinstance(arg_spec, DTensorSpec):
                 local_tensor = cast(torch.Tensor, op_info.local_args[i])
                 if arg_spec != reshard_arg_spec:
+<<<<<<< HEAD
                     redistribute_context = (
                         debug_mode.record_redistribute_calls(  # type: ignore[union-attr]
                             i, arg_spec, reshard_arg_spec
@@ -372,16 +457,25 @@ class OpDispatcher:
                             # pyrefly: ignore [bad-argument-type]
                             reshard_arg_spec,
                         )
+=======
+                    resharded_local_tensor = redistribute_local_tensor(
+                        local_tensor, arg_spec, reshard_arg_spec
+                    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     new_local_args.append(resharded_local_tensor)
                 else:
                     new_local_args.append(local_tensor)
             else:
+<<<<<<< HEAD
                 if use_val_from_redistribute_schema:
                     # args can be updated for view related ops, we refer to the
                     # update in redistribute_schema.
                     new_local_args.append(reshard_arg_spec)
                 else:
                     new_local_args.append(arg_spec)
+=======
+                new_local_args.append(reshard_arg_spec)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         op_info.local_args = tuple(new_local_args)
 
@@ -440,10 +534,14 @@ class OpDispatcher:
                     op_call, args_list
                 )
                 kwargs_schema[k] = self._try_replicate_spec_for_scalar_tensor(
+<<<<<<< HEAD
                     op_call,
                     v,
                     # pyrefly: ignore [bad-argument-type]
                     compute_mesh,
+=======
+                    op_call, v, compute_mesh
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
                 local_kwargs[k] = v
             else:
@@ -459,7 +557,10 @@ class OpDispatcher:
             OpSchema(
                 op_call,
                 (
+<<<<<<< HEAD
                     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     pytree.tree_unflatten(args_schema, args_spec)
                     if args_spec
                     else tuple(args_schema)
@@ -481,7 +582,10 @@ class OpDispatcher:
                 assert isinstance(spec, DTensorSpec), (
                     f"output spec does not match with output! Expected DTensorSpec, got {spec}."
                 )
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type, bad-argument-count, unexpected-keyword]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 return dtensor.DTensor(res, spec, requires_grad=res.requires_grad)
             else:
                 # if output does not have a DTensorSpec due to specific ops, it must be a scalar tensor
@@ -513,8 +617,12 @@ class OpDispatcher:
                 "Found a non-scalar tensor with numel=1 and ndim!=0, "
                 "we are implicitly creating a replicated DTensor for it. "
                 "However, please consider changing it to a scalar tensor "
+<<<<<<< HEAD
                 "or explicitly create a DTensor under distributed environment.",
                 stacklevel=2,
+=======
+                "or explicitly create a DTensor under distributed enviroment."
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         if tensor_arg.numel() == 1 or self._allow_implicit_replication:
@@ -532,7 +640,10 @@ class OpDispatcher:
             raise RuntimeError(
                 f"{op_call}: got mixed torch.Tensor and DTensor, need to convert all"
                 " torch.Tensor to DTensor before calling distributed operators!"
+<<<<<<< HEAD
                 " Please see https://docs.pytorch.org/docs/main/distributed.tensor.html#mixed-tensor-and-dtensor-operations"
                 " for more details."
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         return replication_spec

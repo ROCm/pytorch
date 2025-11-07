@@ -64,6 +64,13 @@ namespace cuda::CUDACachingAllocator {
 using namespace c10::CachingAllocator;
 using namespace c10::CachingDeviceAllocator;
 
+<<<<<<< HEAD
+=======
+// Included here as this is externally used in CUDAAllocatorConfig
+const size_t kLargeBuffer =
+    20971520; // "large" allocations may be packed in 20 MiB blocks
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 namespace Native {
 
 //
@@ -131,6 +138,18 @@ namespace Native {
  *                  notifyCaptureDestroy.
  */
 
+<<<<<<< HEAD
+=======
+constexpr size_t kMinBlockSize =
+    512; // all sizes are rounded to at least 512 bytes
+constexpr size_t kSmallSize = 1048576; // largest "small" allocation is 1 MiB
+constexpr size_t kSmallBuffer =
+    2097152; // "small" allocations are packed in 2 MiB blocks
+constexpr size_t kMinLargeAlloc =
+    10485760; // allocations between 1 and 10 MiB may use kLargeBuffer
+constexpr size_t kRoundLarge = 2097152; // round up large allocations to 2 MiB
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static char SHAREABLE_HANDLE_VERSION = 2;
 enum ShareableHandleType : char {
   SHAREABLE_CUDA_MALLOC = 'c',
@@ -360,16 +379,27 @@ struct ExpandableSegment {
   ExpandableSegment(
       c10::DeviceIndex device,
       std::optional<cudaStream_t> stream,
+<<<<<<< HEAD
+=======
+      size_t address_space_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       size_t segment_size,
       std::vector<c10::DeviceIndex> peers)
       : device_(device),
         stream_(stream),
         // 2MB for small pool, 20MB for large pool
         segment_size_(segment_size),
+<<<<<<< HEAD
         peers_(std::move(peers)) {
     cudaDeviceProp prop{};
     C10_CUDA_CHECK(cudaGetDeviceProperties(&prop, device_));
     mapped_size_ = 0;
+=======
+        max_handles_(numSegments(address_space_size)),
+        peers_(std::move(peers)) {
+    cudaDeviceProp prop{};
+    C10_CUDA_CHECK(cudaGetDeviceProperties(&prop, device_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // we allocate enough address space for 1 1/8 the total memory on the GPU.
     // This allows for some cases where we have to unmap pages earlier in the
     // segment to put them at the end.
@@ -481,7 +511,10 @@ struct ExpandableSegment {
       return SegmentRange{range.ptr, 0};
     }
     unmapHandles(begin, end);
+<<<<<<< HEAD
     mapped_size_ -= (end - begin) * segment_size_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return rangeFromHandles(begin, end);
   }
 
@@ -493,6 +526,7 @@ struct ExpandableSegment {
   SegmentRange share(SegmentRange range, std::ostream& buf) {
     auto begin = segmentLeft(range.ptr);
     auto end = segmentRight(range.ptr + range.size);
+<<<<<<< HEAD
 
     // header.pid needs to be padded with 4 bytes and initialized with
     // 0 values ​​to avoid random padding of different bytes each time,
@@ -504,6 +538,10 @@ struct ExpandableSegment {
     header.num_handles = end - begin;
 
     buf.write(reinterpret_cast<const char*>(&header), sizeof(ShareHeader));
+=======
+    ShareHeader header{getpid(), segment_size_, end - begin};
+    buf.write((const char*)&header, sizeof(ShareHeader));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto i : c10::irange(begin, end)) {
       // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
       auto& handle = handles_.at(i).value();
@@ -519,9 +557,13 @@ struct ExpandableSegment {
         TORCH_CHECK(
             handle.shareable_handle != std::nullopt,
             "shareable_handle is null");
+<<<<<<< HEAD
         buf.write(
             reinterpret_cast<const char*>(&*handle.shareable_handle),
             sizeof(int));
+=======
+        buf.write((const char*)&*handle.shareable_handle, sizeof(int));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else {
         if (!handle.shareable_handle) {
           CUmemFabricHandle fabric_handle;
@@ -534,8 +576,12 @@ struct ExpandableSegment {
             handle.shareable_handle != std::nullopt,
             "shareable_handle is null");
         buf.write(
+<<<<<<< HEAD
             reinterpret_cast<const char*>(&*handle.shareable_handle),
             sizeof(CUmemFabricHandle));
+=======
+            (const char*)&*handle.shareable_handle, sizeof(CUmemFabricHandle));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
     return rangeFromHandles(begin, end);
@@ -546,9 +592,19 @@ struct ExpandableSegment {
       std::vector<c10::DeviceIndex> peers,
       std::istream& buf) {
     ShareHeader header{};
+<<<<<<< HEAD
     buf.read(reinterpret_cast<char*>(&header), sizeof(ShareHeader));
     auto segment = std::make_unique<ExpandableSegment>(
         device, std::nullopt, header.segment_size, std::move(peers));
+=======
+    buf.read((char*)&header, sizeof(ShareHeader));
+    auto segment = std::make_unique<ExpandableSegment>(
+        device,
+        std::nullopt,
+        header.num_handles * header.segment_size,
+        header.segment_size,
+        std::move(peers));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 // older build setups (e.g. multiwheels) do not have this syscall, added 2020
 // but the kernel on the system might still support it.
 #ifndef SYS_pidfd_open
@@ -568,11 +624,19 @@ struct ExpandableSegment {
       for (auto i : c10::irange(header.num_handles)) {
         (void)i;
         int fd = 0;
+<<<<<<< HEAD
         buf.read(reinterpret_cast<char*>(&fd), sizeof(int));
         auto myfd = syscall(SYS_pidfd_getfd, pidfd, fd, 0);
         if (myfd == -1) {
           auto err = errno;
           close(static_cast<int>(pidfd));
+=======
+        buf.read((char*)&fd, sizeof(int));
+        auto myfd = syscall(SYS_pidfd_getfd, pidfd, fd, 0);
+        if (myfd == -1) {
+          auto err = errno;
+          close((int)pidfd);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           for (auto& h : segment->handles_) {
             C10_CUDA_DRIVER_CHECK(
                 // NOLINTNEXTLINE(bugprone-unchecked-optional-access)
@@ -592,16 +656,27 @@ struct ExpandableSegment {
             (void*)(uintptr_t)myfd,
             CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR));
         LOG(INFO) << "use posix fd to import expandable segments.";
+<<<<<<< HEAD
         close(static_cast<int>(myfd));
         segment->handles_.emplace_back(Handle{handle, std::nullopt});
       }
       close(static_cast<int>(pidfd));
+=======
+        close((int)myfd);
+        segment->handles_.emplace_back(Handle{handle, std::nullopt});
+      }
+      close((int)pidfd);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       for (auto i : c10::irange(header.num_handles)) {
         (void)i;
         CUmemFabricHandle fabric_handle;
+<<<<<<< HEAD
         buf.read(
             reinterpret_cast<char*>(&fabric_handle), sizeof(CUmemFabricHandle));
+=======
+        buf.read((char*)&fabric_handle, sizeof(CUmemFabricHandle));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         CUmemGenericAllocationHandle handle = 0;
         C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemImportFromShareableHandle_(
             &handle,
@@ -625,6 +700,7 @@ struct ExpandableSegment {
     return max_handles_ * segment_size_;
   }
 
+<<<<<<< HEAD
   cudaStream_t getStream() {
     return *stream_;
   }
@@ -637,6 +713,8 @@ struct ExpandableSegment {
     return segment_size_;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void addPeer(c10::DeviceIndex device) {
     peers_.push_back(device);
     forEachAllocatedRange(
@@ -671,7 +749,10 @@ struct ExpandableSegment {
           handles_.at(i).value().handle,
           0ULL));
     }
+<<<<<<< HEAD
     mapped_size_ += (end - begin) * segment_size_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     setAccess(device_, begin, end);
     for (auto p : peers_) {
       setAccess(p, begin, end);
@@ -740,7 +821,10 @@ struct ExpandableSegment {
   std::optional<cudaStream_t> stream_;
   CUdeviceptr ptr_{};
   size_t segment_size_;
+<<<<<<< HEAD
   size_t mapped_size_;
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t max_handles_;
   struct Handle {
     CUmemGenericAllocationHandle handle;
@@ -761,6 +845,10 @@ struct ExpandableSegment {
   ExpandableSegment(
       c10::DeviceIndex device,
       std::optional<cudaStream_t> stream,
+<<<<<<< HEAD
+=======
+      size_t address_space_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       size_t segment_size,
       std::vector<c10::DeviceIndex> peers) {
     TORCH_INTERNAL_ASSERT(false, "expandable segment not supported");
@@ -786,6 +874,7 @@ struct ExpandableSegment {
   size_t size() const {
     return 0;
   }
+<<<<<<< HEAD
   cudaStream_t getStream() {
     return nullptr;
   }
@@ -797,6 +886,8 @@ struct ExpandableSegment {
   size_t getSegmentSize() const {
     return 0;
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void addPeer(c10::DeviceIndex device) {}
 };
 #endif
@@ -807,7 +898,11 @@ struct ExpandableSegment {
 struct BlockState {
   c10::DeviceIndex device = 0;
   cudaStream_t stream = nullptr;
+<<<<<<< HEAD
   stream_set stream_uses;
+=======
+  stream_set stream_uses = {};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t size = 0;
   void* ptr = nullptr;
   bool allocated = false;
@@ -815,14 +910,22 @@ struct BlockState {
   // maintain invariant that event_count == 0 ;
   // history will be left alone in checkpoint
 
+<<<<<<< HEAD
   explicit BlockState(Block* block);
+=======
+  BlockState(Block* block);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct SegmentState {
   std::vector<BlockState> blocks;
   bool is_small = false;
 
+<<<<<<< HEAD
   explicit SegmentState(Block* head);
+=======
+  SegmentState(Block* head);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 struct PrivatePoolState : AllocatorState {
@@ -841,7 +944,11 @@ struct RestoreResult {
   std::vector<Block*> allocations_created;
 };
 
+<<<<<<< HEAD
 bool BlockComparatorSize(const Block* a, const Block* b) {
+=======
+static bool BlockComparatorSize(const Block* a, const Block* b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (a->stream != b->stream) {
     return (uintptr_t)a->stream < (uintptr_t)b->stream;
   }
@@ -850,7 +957,11 @@ bool BlockComparatorSize(const Block* a, const Block* b) {
   }
   return (uintptr_t)a->ptr < (uintptr_t)b->ptr;
 }
+<<<<<<< HEAD
 bool BlockComparatorAddress(const Block* a, const Block* b) {
+=======
+static bool BlockComparatorAddress(const Block* a, const Block* b) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (a->stream != b->stream) {
     return (uintptr_t)a->stream < (uintptr_t)b->stream;
   }
@@ -863,7 +974,12 @@ struct AllocParams {
       size_t size,
       cudaStream_t stream,
       BlockPool* pool,
+<<<<<<< HEAD
       size_t alloc_size)
+=======
+      size_t alloc_size,
+      DeviceStats& stats)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : search_key(device, stream, size), pool(pool), alloc_size(alloc_size) {}
 
   c10::DeviceIndex device() const {
@@ -932,7 +1048,11 @@ class EventPool {
 
  private:
   struct PerDevicePool {
+<<<<<<< HEAD
     alignas(hardware_destructive_interference_size) std::mutex mutex_;
+=======
+    alignas(64) std::mutex mutex_;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<std::unique_ptr<cudaEvent_t>> event_pool_;
   };
   std::vector<PerDevicePool> pools_;
@@ -940,7 +1060,11 @@ class EventPool {
 
 // CUDA graphs helper
 struct PrivatePool {
+<<<<<<< HEAD
   explicit PrivatePool(MempoolId_t id, CUDAAllocator* allocator = nullptr)
+=======
+  PrivatePool(MempoolId_t id, CUDAAllocator* allocator = nullptr)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : id(std::move(id)),
         allocator_(allocator),
         large_blocks(/*small=*/false, this),
@@ -1054,7 +1178,11 @@ class RingBuffer {
 
   void setMaxEntries(size_t size) {
     std::lock_guard<std::mutex> lk(alloc_trace_lock);
+<<<<<<< HEAD
     alloc_trace_max_entries_ = std::max(static_cast<size_t>(1), size);
+=======
+    alloc_trace_max_entries_ = std::max(size_t(1), size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void insertEntries(const T& entry) {
@@ -1069,6 +1197,7 @@ class RingBuffer {
     }
   }
 
+<<<<<<< HEAD
   void getEntries(std::vector<T>& result) const {
     std::lock_guard<std::mutex> lk(alloc_trace_lock);
     result.reserve(result.size() + alloc_trace->size());
@@ -1077,6 +1206,23 @@ class RingBuffer {
         std::next(alloc_trace->begin(), alloc_trace_next),
         alloc_trace->end(),
         std::back_inserter(result));
+=======
+  void getEntries(std::vector<T>& result) {
+    std::lock_guard<std::mutex> lk(alloc_trace_lock);
+    result.reserve(alloc_trace->size());
+    result.insert(
+        result.end(),
+        alloc_trace->begin() +
+            static_cast<typename std::vector<T>::difference_type>(
+                alloc_trace_next),
+        alloc_trace->end());
+    result.insert(
+        result.end(),
+        alloc_trace->begin(),
+        alloc_trace->begin() +
+            static_cast<typename std::vector<T>::difference_type>(
+                alloc_trace_next));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void clear() {
@@ -1090,7 +1236,11 @@ class RingBuffer {
 
   // Both alloc_trace and alloc_trace_next needs to be used
   // under alloc_trace_lock.
+<<<<<<< HEAD
   mutable std::mutex alloc_trace_lock;
+=======
+  std::mutex alloc_trace_lock;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   size_t alloc_trace_next = 0;
   std::vector<T>*
       alloc_trace; // pointer because we need to intentionally leak this on
@@ -1167,8 +1317,11 @@ class DeviceCachingAllocator {
   // device statistics
   DeviceStats stats;
 
+<<<<<<< HEAD
   c10::DeviceIndex device_id;
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // unallocated cached blocks larger than 1 MB
   BlockPool large_blocks;
 
@@ -1189,6 +1342,7 @@ class DeviceCachingAllocator {
   // tracks which pools we can use as a last resort before ooming
   ska::flat_hash_set<MempoolId_t, MempoolIdHash> use_on_oom_pools;
 
+<<<<<<< HEAD
   // Map of blocks whose freeing is deferred until after CUDA graph capture.
   //   - Key: Block* to be freed.
   //   - Value: List of "empty nodes" inserted as free markers during capture.
@@ -1206,6 +1360,10 @@ class DeviceCachingAllocator {
       mempool_to_capture_id;
   ska::flat_hash_map<CaptureId_t, GraphReuseContext> graph_reuse_context;
 
+=======
+  // See free() for this thing's purpose
+  std::vector<Block*> needs_events_deferred_until_no_capture;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   // outstanding cuda events
   ska::flat_hash_map<
       cuda::CUDAStream,
@@ -1255,6 +1413,7 @@ class DeviceCachingAllocator {
   // thread local compile context for each device
   static thread_local std::stack<std::string> compile_context;
 
+<<<<<<< HEAD
   // thread local user metadata for annotating allocations
   static thread_local std::string user_metadata;
 
@@ -1266,6 +1425,14 @@ class DeviceCachingAllocator {
         small_blocks(/*small=*/true) {
     stats.max_split_size =
         static_cast<int64_t>(AcceleratorAllocatorConfig::max_split_size());
+=======
+ public:
+  // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+  DeviceCachingAllocator()
+      : large_blocks(/*small=*/false), small_blocks(/*small=*/true) {
+    stats.max_split_size =
+        static_cast<int64_t>(CUDAAllocatorConfig::max_split_size());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     context_recorder_.store(nullptr);
   }
 
@@ -1286,7 +1453,11 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   bool isHistoryEnabled() const {
+=======
+  bool isHistoryEnabled() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return record_history;
   }
 
@@ -1300,6 +1471,7 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   void setUserMetadata(const std::string& metadata) {
     user_metadata = metadata;
   }
@@ -1311,6 +1483,11 @@ class DeviceCachingAllocator {
   bool checkPoolLiveAllocations(
       MempoolId_t mempool_id,
       const std::unordered_set<void*>& expected_live_allocations) const {
+=======
+  bool checkPoolLiveAllocations(
+      MempoolId_t mempool_id,
+      const std::unordered_set<void*>& expected_live_allocations) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::unique_lock<std::recursive_mutex> lock(mutex);
 
     PrivatePool* pool = nullptr;
@@ -1357,7 +1534,14 @@ class DeviceCachingAllocator {
   // All public methods (except the above) acquire the allocator mutex.
   // Thus, do not call a public method from another public method.
 
+<<<<<<< HEAD
   Block* malloc(size_t orig_size, cudaStream_t stream) {
+=======
+  Block* malloc(
+      c10::DeviceIndex device,
+      size_t orig_size,
+      cudaStream_t stream) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // done outside the lock because we don't know what locks the recorder needs
     // to have...
     auto context = maybeGatherContext(RecordContext::STATE);
@@ -1376,16 +1560,23 @@ class DeviceCachingAllocator {
       //    capture. Cross-stream memory use is uncommon, so the deferral's
       //    effect on memory use during capture should be small.
       process_events(context);
+<<<<<<< HEAD
     } else {
       if (CUDAAllocatorConfig::graph_capture_record_stream_reuse()) {
         // We check if there is some block that is safe to reuse on this stream
         free_safe_blocks_in_capture(context, stream);
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     size_t size = round_size(orig_size);
     auto& pool = get_pool(size, stream);
     const size_t alloc_size = get_allocation_size(size);
+<<<<<<< HEAD
     AllocParams params(device_id, size, stream, &pool, alloc_size);
+=======
+    AllocParams params(device, size, stream, &pool, alloc_size, stats);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     params.stat_types = get_stat_types_for_pool(pool);
 
     // First, try to get a block from the existing pool.
@@ -1400,8 +1591,12 @@ class DeviceCachingAllocator {
       // Do garbage collection if the flag is set.
       if (C10_UNLIKELY(
               set_fraction &&
+<<<<<<< HEAD
               AcceleratorAllocatorConfig::garbage_collection_threshold() >
                   0.0)) {
+=======
+              CUDAAllocatorConfig::garbage_collection_threshold() > 0.0)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         garbage_collect_cached_blocks(context);
       }
       // Attempt allocate
@@ -1433,7 +1628,11 @@ class DeviceCachingAllocator {
           beginAllocateToPool(mempool_id, filter);
           auto& mempool = get_pool(size, stream);
           AllocParams mempool_params(
+<<<<<<< HEAD
               device_id, size, stream, &mempool, alloc_size);
+=======
+              device, size, stream, &mempool, alloc_size, stats);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           mempool_params.stat_types = get_stat_types_for_pool(mempool);
           block_found = get_free_block(mempool_params);
           endAllocateToPool(mempool_id);
@@ -1460,7 +1659,11 @@ class DeviceCachingAllocator {
         allowed_info = format_size(allowed_memory_maximum) + " allowed; ";
       }
 
+<<<<<<< HEAD
       std::string proc_info = reportProcessMemoryInfo(device_id);
+=======
+      std::string proc_info = reportProcessMemoryInfo(device);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       record_trace(
           TraceEntry::OOM,
@@ -1478,7 +1681,11 @@ class DeviceCachingAllocator {
               .current,
           stats.reserved_bytes[static_cast<int64_t>(StatType::AGGREGATE)]
               .current,
+<<<<<<< HEAD
           c10::Device(c10::DeviceType::CUDA, device_id));
+=======
+          c10::Device(c10::DeviceType::CUDA, device));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
       auto allocated_bytes =
           stats.allocated_bytes[static_cast<size_t>(StatType::AGGREGATE)]
@@ -1516,7 +1723,11 @@ class DeviceCachingAllocator {
       lock.unlock();
 
       for (const auto& obs : observers_local) {
+<<<<<<< HEAD
         obs(device_id,
+=======
+        obs(device,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             alloc_size,
             set_fraction ? allowed_memory_maximum : device_total,
             device_free);
@@ -1546,7 +1757,11 @@ class DeviceCachingAllocator {
           "CUDA out of memory. Tried to allocate ",
           format_size(alloc_size),
           ". GPU ",
+<<<<<<< HEAD
           static_cast<int>(device_id),
+=======
+          static_cast<int>(device),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           " has a total capacity of ",
           format_size(device_total),
           " of which ",
@@ -1653,7 +1868,11 @@ class DeviceCachingAllocator {
       stats.active_bytes[stat_type].increase(block->size);
       stats.requested_bytes[stat_type].increase(block->requested_size);
     });
+<<<<<<< HEAD
     if (block->size >= AcceleratorAllocatorConfig::max_split_size())
+=======
+    if (block->size >= CUDAAllocatorConfig::max_split_size())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       stats.oversize_allocations.increase(1);
 
     auto allocated_bytes_gauge =
@@ -1672,6 +1891,7 @@ class DeviceCachingAllocator {
     return block;
   }
 
+<<<<<<< HEAD
   struct CaptureInfo {
     cudaGraph_t graph{};
     CaptureId_t capture_id{0};
@@ -1890,6 +2110,8 @@ class DeviceCachingAllocator {
     }
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void free(Block* block) {
     std::shared_ptr<GatheredContext> context =
         maybeGatherContext(RecordContext::ALL);
@@ -1922,6 +2144,7 @@ class DeviceCachingAllocator {
         block->pool->owner_MempoolId(),
         context ? context : block->context_when_allocated);
 
+<<<<<<< HEAD
     if (block->size >= AcceleratorAllocatorConfig::max_split_size())
       stats.oversize_allocations.decrease(1);
 
@@ -1941,6 +2164,19 @@ class DeviceCachingAllocator {
         }
       } else {
         // If not in a capture, insert events for the block.
+=======
+    if (block->size >= CUDAAllocatorConfig::max_split_size())
+      stats.oversize_allocations.decrease(1);
+
+    if (!block->stream_uses.empty()) {
+      if (C10_UNLIKELY(!captures_underway.empty())) {
+        // It's forbidden to cudaEventQuery an event recorded during CUDA graph
+        // capture. We conservatively defer recording end-of-life events until
+        // the next call to process_events() (which won't happen until no
+        // captures are underway)
+        needs_events_deferred_until_no_capture.push_back(block);
+      } else {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         insert_events(block);
       }
     } else {
@@ -1986,16 +2222,27 @@ class DeviceCachingAllocator {
       while (base_block->prev) {
         base_block = base_block->prev;
       }
+<<<<<<< HEAD
       offset = static_cast<const char*>(block->ptr) -
           static_cast<const char*>(base_block->ptr);
       cudaIpcMemHandle_t handle;
       C10_CUDA_CHECK(cudaIpcGetMemHandle(&handle, base_block->ptr));
       ss.write(reinterpret_cast<const char*>(&handle), CUDA_IPC_HANDLE_SIZE);
+=======
+      offset = (char*)block->ptr - (char*)base_block->ptr;
+      cudaIpcMemHandle_t handle;
+      C10_CUDA_CHECK(cudaIpcGetMemHandle(&handle, base_block->ptr));
+      ss.write((char*)&handle, CUDA_IPC_HANDLE_SIZE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       ss.put(SHAREABLE_CUDA_EXPANDABLE_SEGMENT);
       auto full_range = block->expandable_segment_->share(
           SegmentRange(block->ptr, block->size), ss);
+<<<<<<< HEAD
       offset = static_cast<const char*>(block->ptr) - full_range.ptr;
+=======
+      offset = (char*)block->ptr - (char*)full_range.ptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     return ShareableHandle{offset, ss.str()};
   }
@@ -2036,6 +2283,7 @@ class DeviceCachingAllocator {
     set_fraction = true;
   }
 
+<<<<<<< HEAD
   /** get expandable segment size for all the streams on device **/
   std::vector<StreamSegmentSize> getExpandableSegmentSizes() {
     std::lock_guard<std::recursive_mutex> lock(mutex);
@@ -2052,6 +2300,8 @@ class DeviceCachingAllocator {
     return sizes;
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   /** returns cached blocks to the system allocator **/
   void emptyCache(MempoolId_t mempool_id) {
     auto context = maybeGatherContext(RecordContext::ALL);
@@ -2078,7 +2328,11 @@ class DeviceCachingAllocator {
   }
 
   /** Returns a copy of the memory allocator stats **/
+<<<<<<< HEAD
   DeviceStats getStats() const {
+=======
+  DeviceStats getStats() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::lock_guard<std::recursive_mutex> lock(mutex);
     return stats;
   }
@@ -2217,7 +2471,12 @@ class DeviceCachingAllocator {
           block_state.size,
           block_state.stream,
           &pool,
+<<<<<<< HEAD
           block_state.size);
+=======
+          block_state.size,
+          stats);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       pool.blocks.erase(curr_block);
       params.block = curr_block;
       params.stat_types = get_stat_types_for_pool(pool);
@@ -2454,7 +2713,11 @@ class DeviceCachingAllocator {
   }
 
   std::vector<TraceEntry> trace(
+<<<<<<< HEAD
       const std::function<time_t(approx_time_t)>& tsc_to_us) const {
+=======
+      const std::function<time_t(approx_time_t)>& tsc_to_us) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::lock_guard<std::recursive_mutex> lock(mutex);
     std::vector<TraceEntry> result;
     alloc_buffer.getEntries(result);
@@ -2496,8 +2759,12 @@ class DeviceCachingAllocator {
     if (size < kMinBlockSize) {
       return kMinBlockSize;
     } else {
+<<<<<<< HEAD
       auto divisions =
           AcceleratorAllocatorConfig::roundup_power2_divisions(size);
+=======
+      auto divisions = CUDAAllocatorConfig::roundup_power2_divisions(size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       if (divisions > 1 && size > (kMinBlockSize * divisions)) {
         return roundup_power2_next_division(size, divisions);
       } else {
@@ -2539,6 +2806,7 @@ class DeviceCachingAllocator {
   // Called by CUDAGraph::capture_end
   void endAllocateToPool(MempoolId_t mempool_id) {
     std::lock_guard<std::recursive_mutex> lock(mutex);
+<<<<<<< HEAD
 
     if (CUDAAllocatorConfig::graph_capture_record_stream_reuse() &&
         !graph_reuse_context.empty()) {
@@ -2554,6 +2822,8 @@ class DeviceCachingAllocator {
       mempool_to_capture_id.erase(mempool_id);
     }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for (auto it = captures_underway.begin(); it != captures_underway.end();
          ++it) {
       if (it->first == mempool_id) {
@@ -2589,7 +2859,11 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   int getPoolUseCount(MempoolId_t mempool_id) const {
+=======
+  int getPoolUseCount(MempoolId_t mempool_id) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::lock_guard<std::recursive_mutex> lock(mutex);
     auto pp = get_private_pool(mempool_id);
     return pp->use_count;
@@ -2685,7 +2959,11 @@ class DeviceCachingAllocator {
     }
   }
 
+<<<<<<< HEAD
   PrivatePool* get_private_pool(MempoolId_t mempool_id) const {
+=======
+  PrivatePool* get_private_pool(MempoolId_t mempool_id) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto it = graph_pools.find(mempool_id);
     TORCH_INTERNAL_ASSERT(it != graph_pools.end());
     return it->second.get();
@@ -2728,8 +3006,24 @@ class DeviceCachingAllocator {
       }
     }
     auto segment_size = pool->is_small ? kSmallBuffer : kLargeBuffer;
+<<<<<<< HEAD
     expandable_segments_.emplace_back(new ExpandableSegment(
         device, stream, segment_size, devices_with_peer_access_));
+=======
+    cudaDeviceProp prop{};
+    C10_CUDA_CHECK(cudaGetDeviceProperties(&prop, device));
+    // we allocate enough address space for 1 1/8 the total memory on the GPU.
+    // This allows for some cases where we have to unmap pages earlier in the
+    // segment to put them at the end.
+    size_t address_space_size = prop.totalGlobalMem + prop.totalGlobalMem / 8;
+
+    expandable_segments_.emplace_back(new ExpandableSegment(
+        device,
+        stream,
+        address_space_size,
+        segment_size,
+        devices_with_peer_access_));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     ExpandableSegment* es = expandable_segments_.back();
     Block* candidate = new Block(device, stream, es->size(), pool, es->ptr());
@@ -2991,7 +3285,11 @@ class DeviceCachingAllocator {
     if (block->pool->is_small || CUDAAllocatorConfig::expandable_segments()) {
       return remaining >= kMinBlockSize;
     } else {
+<<<<<<< HEAD
       return (size < AcceleratorAllocatorConfig::max_split_size()) &&
+=======
+      return (size < CUDAAllocatorConfig::max_split_size()) &&
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           (remaining > kSmallSize);
     }
   }
@@ -3011,7 +3309,11 @@ class DeviceCachingAllocator {
 
     if (C10_UNLIKELY(
             set_fraction &&
+<<<<<<< HEAD
             AcceleratorAllocatorConfig::garbage_collection_threshold() > 0.0)) {
+=======
+            CUDAAllocatorConfig::garbage_collection_threshold() > 0.0)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Track block reuse interval only when garbage collection is enabled.
       ++pool.get_free_blocks_call_count;
     }
@@ -3053,6 +3355,7 @@ class DeviceCachingAllocator {
     }
 
     // Do not return an oversized block for a large request
+<<<<<<< HEAD
     if ((p.size() < AcceleratorAllocatorConfig::max_split_size()) &&
         ((*it)->size >= AcceleratorAllocatorConfig::max_split_size()))
       return false;
@@ -3060,6 +3363,15 @@ class DeviceCachingAllocator {
     if ((p.size() >= AcceleratorAllocatorConfig::max_split_size()) &&
         ((*it)->size >=
          p.size() + AcceleratorAllocatorConfig::max_non_split_rounding_size()))
+=======
+    if ((p.size() < CUDAAllocatorConfig::max_split_size()) &&
+        ((*it)->size >= CUDAAllocatorConfig::max_split_size()))
+      return false;
+    // Allow oversized block size to be rounded up but within a limit
+    if ((p.size() >= CUDAAllocatorConfig::max_split_size()) &&
+        ((*it)->size >=
+         p.size() + CUDAAllocatorConfig::max_non_split_rounding_size()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       return false;
     p.block = *it;
     pool.blocks.erase(it);
@@ -3082,7 +3394,11 @@ class DeviceCachingAllocator {
     // therefore should be of less overheads.
 
     size_t gc_threshold = static_cast<size_t>(
+<<<<<<< HEAD
         AcceleratorAllocatorConfig::garbage_collection_threshold() *
+=======
+        CUDAAllocatorConfig::garbage_collection_threshold() *
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         static_cast<double>(allowed_memory_maximum));
     // No need to trigger GC yet
     if (total_allocated_memory <= gc_threshold) {
@@ -3225,13 +3541,21 @@ class DeviceCachingAllocator {
     }
 
     total_allocated_memory += size;
+<<<<<<< HEAD
     p.block = new Block(
         p.device(), p.stream(), size, p.pool, static_cast<char*>(ptr));
+=======
+    p.block = new Block(p.device(), p.stream(), size, p.pool, (char*)ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     for_each_selected_stat_type(p.stat_types, [&](size_t stat_type) {
       stats.segment[stat_type].increase(1);
       stats.reserved_bytes[stat_type].increase(size);
     });
+<<<<<<< HEAD
     if (size >= AcceleratorAllocatorConfig::max_split_size())
+=======
+    if (size >= CUDAAllocatorConfig::max_split_size())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       stats.oversize_segments.increase(1);
     auto reserved_bytes_gauge =
         STATIC_GAUGE(pytorch.CUDACachingAllocator.reserved_bytes);
@@ -3260,7 +3584,11 @@ class DeviceCachingAllocator {
   bool release_available_cached_blocks(
       const AllocParams& p,
       const std::shared_ptr<GatheredContext>& context) {
+<<<<<<< HEAD
     if (AcceleratorAllocatorConfig::max_split_size() ==
+=======
+    if (CUDAAllocatorConfig::max_split_size() ==
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         std::numeric_limits<size_t>::max())
       return false;
     BlockPool& pool = *p.pool;
@@ -3268,8 +3596,13 @@ class DeviceCachingAllocator {
     // because of std::unique_ptr, block cannot be trivially copied
     // Use constructor for search key.
     Block key(p.search_key.device, p.search_key.stream, p.search_key.size);
+<<<<<<< HEAD
     key.size = (key.size < AcceleratorAllocatorConfig::max_split_size())
         ? AcceleratorAllocatorConfig::max_split_size()
+=======
+    key.size = (key.size < CUDAAllocatorConfig::max_split_size())
+        ? CUDAAllocatorConfig::max_split_size()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         : key.size;
     auto it = pool.blocks.lower_bound(&key);
     if (it == pool.blocks.end() || (*it)->stream != p.stream() ||
@@ -3282,7 +3615,11 @@ class DeviceCachingAllocator {
       --it; // Back up one item.  Now on the largest block for the correct
             // stream
       while ((totalReleased < key.size) &&
+<<<<<<< HEAD
              ((*it)->size >= AcceleratorAllocatorConfig::max_split_size()) &&
+=======
+             ((*it)->size >= CUDAAllocatorConfig::max_split_size()) &&
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
              ((*it)->stream == p.stream())) {
         auto cur = it;
         bool is_first = cur == pool.blocks.begin();
@@ -3290,8 +3627,13 @@ class DeviceCachingAllocator {
           --it;
         }
         if (!(*cur)->expandable_segment_) {
+<<<<<<< HEAD
           totalReleased += (*cur)->size;
           release_block(*cur, context);
+=======
+          release_block(*cur, context);
+          totalReleased += (*cur)->size;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         }
         if (is_first) {
           break;
@@ -3384,7 +3726,11 @@ class DeviceCachingAllocator {
     if (pool->owner_PrivatePool && pool->owner_PrivatePool->allocator()) {
       // If there is an active mempool with a given allocator,
       // we use the given allocator's delete function.
+<<<<<<< HEAD
       pool->owner_PrivatePool->allocator()->raw_delete(block->ptr);
+=======
+      pool->owner_PrivatePool->allocator()->raw_delete((void*)block->ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     } else {
       C10_CUDA_CHECK(cudaFree((void*)block->ptr));
     }
@@ -3407,7 +3753,11 @@ class DeviceCachingAllocator {
         stats.reserved_bytes[static_cast<int64_t>(StatType::AGGREGATE)]
             .current);
 
+<<<<<<< HEAD
     if (block->size >= AcceleratorAllocatorConfig::max_split_size())
+=======
+    if (block->size >= CUDAAllocatorConfig::max_split_size())
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       stats.oversize_segments.decrease(1);
     pool->blocks.erase(block);
     delete block;
@@ -3423,7 +3773,12 @@ class DeviceCachingAllocator {
     }
     block->pool->blocks.erase(block);
 
+<<<<<<< HEAD
     ptrdiff_t before_size = unmapped.ptr - static_cast<char*>(block->ptr);
+=======
+    ptrdiff_t before_size =
+        static_cast<char*>(unmapped.ptr) - static_cast<char*>(block->ptr);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (before_size > 0) {
       // prev? -> before_free -> block
       Block* before_free = new Block(
@@ -3441,7 +3796,11 @@ class DeviceCachingAllocator {
           block->stream,
           after_size,
           block->pool,
+<<<<<<< HEAD
           unmapped.ptr + unmapped.size);
+=======
+          static_cast<char*>(unmapped.ptr) + unmapped.size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       after_free->expandable_segment_ = block->expandable_segment_;
       after_free->splice(block, block->next);
       block->pool->insert_into_blocks(after_free);
@@ -3599,8 +3958,13 @@ class DeviceCachingAllocator {
 
   void insert_events_deferred_until_no_capture(
       const std::shared_ptr<GatheredContext>& context) {
+<<<<<<< HEAD
     if (C10_UNLIKELY(!deferred_blocks.empty())) {
       for (auto& [block, inserted_empty_nodes] : deferred_blocks) {
+=======
+    if (C10_UNLIKELY(!needs_events_deferred_until_no_capture.empty())) {
+      for (auto* block : needs_events_deferred_until_no_capture) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         TORCH_INTERNAL_ASSERT(!block->stream_uses.empty());
         // only streams recorded before cudagraph will be used to insert events
         // since we know all streams recorded during cudagraph must have
@@ -3612,7 +3976,11 @@ class DeviceCachingAllocator {
           free_block(block, context);
         }
       }
+<<<<<<< HEAD
       deferred_blocks.clear();
+=======
+      needs_events_deferred_until_no_capture.clear();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
 
@@ -3683,7 +4051,11 @@ class DeviceCachingAllocator {
     if (!compile_context.empty()) {
       compile_string = compile_context.top();
     }
+<<<<<<< HEAD
     TraceEntry te(
+=======
+    auto te = TraceEntry(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         action,
         device,
         addr,
@@ -3692,8 +4064,12 @@ class DeviceCachingAllocator {
         mempool_id,
         getApproximateTime(),
         record_context_ >= RecordContext::ALLOC ? std::move(context) : nullptr,
+<<<<<<< HEAD
         compile_string,
         user_metadata);
+=======
+        compile_string);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     // Callbacks should not include any Pytorch call
     for (const auto& cb : trace_trackers_) {
@@ -3748,7 +4124,15 @@ static void uncached_delete(void* ptr) {
 
 static void local_raw_delete(void* ptr);
 thread_local std::stack<std::string> DeviceCachingAllocator::compile_context;
+<<<<<<< HEAD
 thread_local std::string DeviceCachingAllocator::user_metadata;
+=======
+#ifdef __cpp_lib_hardware_interference_size
+using std::hardware_destructive_interference_size;
+#else
+static constexpr std::size_t hardware_destructive_interference_size = 64;
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class NativeCachingAllocator : public CUDAAllocator {
  private:
@@ -3769,7 +4153,11 @@ class NativeCachingAllocator : public CUDAAllocator {
       allocated_blocks;
 
   static size_t get_mutex_shard_id(void* ptr) {
+<<<<<<< HEAD
     return twang_mix64(reinterpret_cast<uintptr_t>(ptr)) % kNumMutexShard;
+=======
+    return twang_mix64((size_t)ptr) % kNumMutexShard;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   void add_allocated_block(Block* block) {
@@ -3806,8 +4194,12 @@ class NativeCachingAllocator : public CUDAAllocator {
     if (size < device_count) {
       device_allocator.resize(device_count);
       for (const auto i : c10::irange(size, device_count)) {
+<<<<<<< HEAD
         device_allocator[i] = std::make_unique<DeviceCachingAllocator>(
             static_cast<c10::DeviceIndex>(i));
+=======
+        device_allocator[i] = std::make_unique<DeviceCachingAllocator>();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       }
     }
   }
@@ -3827,9 +4219,15 @@ class NativeCachingAllocator : public CUDAAllocator {
         "Allocator not initialized for device ",
         device,
         ": did you call init?");
+<<<<<<< HEAD
     Block* block = device_allocator[device]->malloc(size, stream);
     add_allocated_block(block);
     *devPtr = block->ptr;
+=======
+    Block* block = device_allocator[device]->malloc(device, size, stream);
+    add_allocated_block(block);
+    *devPtr = (void*)block->ptr;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const c10::impl::PyInterpreter* interp = c10::impl::GPUTrace::get_trace();
     if (C10_UNLIKELY(interp)) {
       (*interp)->trace_gpu_memory_allocation(
@@ -3878,6 +4276,7 @@ class NativeCachingAllocator : public CUDAAllocator {
     device_allocator[device]->setMemoryFraction(fraction);
   }
 
+<<<<<<< HEAD
   std::vector<StreamSegmentSize> getExpandableSegmentSizes(
       c10::DeviceIndex device) override {
     TORCH_INTERNAL_ASSERT(
@@ -3888,6 +4287,8 @@ class NativeCachingAllocator : public CUDAAllocator {
     return device_allocator[device]->getExpandableSegmentSizes();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void recordHistory(
       bool enabled,
       CreateContextFn context_recorder,
@@ -3941,6 +4342,7 @@ class NativeCachingAllocator : public CUDAAllocator {
     device_allocator[device]->popCompileContext();
   }
 
+<<<<<<< HEAD
   void setUserMetadata(const std::string& metadata) override {
     c10::DeviceIndex device = 0;
     C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
@@ -3953,6 +4355,8 @@ class NativeCachingAllocator : public CUDAAllocator {
     return device_allocator[device]->getUserMetadata();
   }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   bool isHistoryEnabled() override {
     c10::DeviceIndex device = 0;
     C10_CUDA_CHECK(c10::cuda::GetDevice(&device));
@@ -4053,8 +4457,13 @@ class NativeCachingAllocator : public CUDAAllocator {
 
     auto& md = result.config_metadata;
     md.garbage_collection_threshold =
+<<<<<<< HEAD
         AcceleratorAllocatorConfig::garbage_collection_threshold();
     md.max_split_size = AcceleratorAllocatorConfig::max_split_size();
+=======
+        CUDAAllocatorConfig::garbage_collection_threshold();
+    md.max_split_size = CUDAAllocatorConfig::max_split_size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     md.pinned_num_register_threads =
         CUDAAllocatorConfig::pinned_num_register_threads();
     md.expandable_segments = CUDAAllocatorConfig::expandable_segments();
@@ -4062,12 +4471,18 @@ class NativeCachingAllocator : public CUDAAllocator {
         CUDAAllocatorConfig::release_lock_on_cudamalloc();
     md.pinned_use_host_register =
         CUDAAllocatorConfig::pinned_use_cuda_host_register();
+<<<<<<< HEAD
     md.last_allocator_settings =
         AcceleratorAllocatorConfig::last_allocator_settings();
     md.graph_capture_record_stream_reuse =
         CUDAAllocatorConfig::graph_capture_record_stream_reuse();
     md.roundup_power2_divisions =
         AcceleratorAllocatorConfig::roundup_power2_divisions();
+=======
+    md.last_allocator_settings = CUDAAllocatorConfig::last_allocator_settings();
+    md.roundup_power2_divisions =
+        CUDAAllocatorConfig::roundup_power2_divisions();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     return result;
   }
@@ -4336,7 +4751,11 @@ class NativeCachingAllocator : public CUDAAllocator {
         // SHARABLE_CUDA_MALLOC
       if (type == SHAREABLE_CUDA_MALLOC) {
         cudaIpcMemHandle_t cuda_handle;
+<<<<<<< HEAD
         ss.read(reinterpret_cast<char*>(&cuda_handle), CUDA_IPC_HANDLE_SIZE);
+=======
+        ss.read((char*)&cuda_handle, CUDA_IPC_HANDLE_SIZE);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         C10_CUDA_CHECK(cudaIpcOpenMemHandle(
             &cuda_ipc_ptr_, cuda_handle, cudaIpcMemLazyEnablePeerAccess));
       } else if (type == SHAREABLE_CUDA_EXPANDABLE_SEGMENT) {
@@ -4445,12 +4864,20 @@ CUDAAllocator* allocator();
 } // namespace CudaMallocAsync
 
 struct BackendStaticInitializer {
+<<<<<<< HEAD
   // Parses the environment configuration for CUDA/ROCm allocator backend at
   // load time. This duplicates some logic from CUDAAllocatorConfig to ensure
   // lazy initialization without triggering global static constructors. The
   // function looks for the key "backend" and returns the appropriate allocator
   // instance based on its value. If no valid configuration is found, it falls
   // back to the default Native allocator.
+=======
+  // Parses env for backend at load time, duplicating some logic from
+  // CUDAAllocatorConfig. CUDAAllocatorConfig double-checks it later (at
+  // runtime). Defers verbose exceptions and error checks, including Cuda
+  // version checks, to CUDAAllocatorConfig's runtime doublecheck. If this
+  // works, maybe we should move all of CUDAAllocatorConfig here?
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   CUDAAllocator* parseEnvForBackend() {
     auto val = c10::utils::get_env("PYTORCH_CUDA_ALLOC_CONF");
 #ifdef USE_ROCM
@@ -4459,6 +4886,7 @@ struct BackendStaticInitializer {
       val = c10::utils::get_env("PYTORCH_HIP_ALLOC_CONF");
     }
 #endif
+<<<<<<< HEAD
     if (!val.has_value()) {
       val = c10::utils::get_env("PYTORCH_ALLOC_CONF");
     }
@@ -4491,11 +4919,45 @@ struct BackendStaticInitializer {
       }
     }
     // Default fallback allocator.
+=======
+    if (val.has_value()) {
+      const std::string& config = val.value();
+
+      std::regex exp("[\\s,]+");
+      std::sregex_token_iterator it(config.begin(), config.end(), exp, -1);
+      std::sregex_token_iterator end;
+      std::vector<std::string> options(it, end);
+
+      for (auto option : options) {
+        std::regex exp2("[:]+");
+        std::sregex_token_iterator it2(option.begin(), option.end(), exp2, -1);
+        std::sregex_token_iterator end2;
+        std::vector<std::string> kv(it2, end2);
+        if (kv.size() >= 2) {
+          if (kv[0] == "backend") {
+#ifdef USE_ROCM
+            // convenience for ROCm users to allow either CUDA or HIP env var
+            if (kv[1] ==
+                    "cud"
+                    "aMallocAsync" ||
+                kv[1] == "hipMallocAsync")
+#else
+            if (kv[1] == "cudaMallocAsync")
+#endif
+              return CudaMallocAsync::allocator();
+            if (kv[1] == "native")
+              return &Native::allocator;
+          }
+        }
+      }
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return &Native::allocator;
   }
 
   BackendStaticInitializer() {
     auto r = parseEnvForBackend();
+<<<<<<< HEAD
 // Register this HIP allocator as the CUDA allocator to allow it to work
 // with both c10::GetAllocator(kCUDA) and c10::getDeviceAllocator(kCUDA)
 // APIs. We don't perform this masquerading inside
@@ -4506,6 +4968,9 @@ struct BackendStaticInitializer {
     at::SetAllocator(c10::Device(HIP_MASQUERADING_AS_CUDA).type(), r, 0);
     allocator.store(r);
 #undef HIP_MASQUERADING_AS_CUDA
+=======
+    allocator.store(r);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 };
 
@@ -4532,8 +4997,16 @@ std::atomic<CaptureId_t> MemPool::uuid_{1};
 MemPool::MemPool(
     CUDACachingAllocator::CUDAAllocator* allocator,
     bool is_user_created,
+<<<<<<< HEAD
     bool use_on_oom)
     : allocator_(allocator), is_user_created_(is_user_created) {
+=======
+    bool use_on_oom,
+    bool symmetric)
+    : allocator_(allocator),
+      is_user_created_(is_user_created),
+      symmetric_(symmetric) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (is_user_created_) {
     id_ = {0, uid_++};
   } else {
@@ -4556,6 +5029,13 @@ MempoolId_t MemPool::id() {
   return id_;
 }
 
+<<<<<<< HEAD
+=======
+bool MemPool::is_symmetric() {
+  return symmetric_;
+}
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 CUDACachingAllocator::CUDAAllocator* MemPool::allocator() {
   return allocator_;
 }

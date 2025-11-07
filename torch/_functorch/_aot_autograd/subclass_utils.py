@@ -7,8 +7,13 @@ and this includes tensor subclasses that implement __torch_dispatch__.
 
 import collections
 import typing
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable
 from typing import Any, Optional, TypeGuard, TypeVar, Union
+=======
+from collections.abc import Iterable
+from typing import Any, Callable, Optional, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.utils._pytree as pytree
@@ -17,6 +22,7 @@ from torch._subclasses.fake_tensor import get_plain_tensors
 from torch.types import IntLikeType
 from torch.utils._python_dispatch import is_traceable_wrapper_subclass
 
+<<<<<<< HEAD
 from .descriptors import (
     AOTInput,
     AOTOutput,
@@ -30,6 +36,9 @@ from .descriptors import (
 )
 from .schemas import (
     FxValue,
+=======
+from .schemas import (
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     MutationType,
     PlainTensorMeta,
     SubclassCreationMeta,
@@ -124,8 +133,13 @@ def create_subclass_metadata(
 
     new_start_idx = (
         new_start_idx
+<<<<<<< HEAD
         + count_symints * len(enumerate_filter_symints(a.size()))
         + count_symints * len(enumerate_filter_symints(a.stride()))
+=======
+        + count_symints * len(filter_symints(a.size()))
+        + count_symints * len(filter_symints(a.stride()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
 
     return (
@@ -179,12 +193,21 @@ def create_subclass_meta(
     return infos
 
 
+<<<<<<< HEAD
 def enumerate_filter_symints(lst: Iterable[IntLikeType]) -> list[tuple[int, SymInt]]:
     # Capture all SymInts from the iterable.
     def symint_check(s: IntLikeType) -> TypeGuard[SymInt]:
         return isinstance(s, SymInt) and not s.node.is_nested_int()
 
     return [(i, s) for i, s in enumerate(lst) if symint_check(s)]
+=======
+def filter_symints(lst: Iterable[IntLikeType]):
+    # Capture all SymInts from the iterable.
+    def symint_check(s: IntLikeType) -> bool:
+        return isinstance(s, SymInt) and not s.node.is_nested_int()
+
+    return [s for s in lst if symint_check(s)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def compute_symint_placeholders(lst: Iterable[Union[None, int, SymInt]]) -> list[bool]:
@@ -192,12 +215,15 @@ def compute_symint_placeholders(lst: Iterable[Union[None, int, SymInt]]) -> list
     return [s is None for s in lst]
 
 
+<<<<<<< HEAD
 # Intended to make it easier to define function that is
 # either (AOTInput -> AOTInput) or (AOTOutput -> AOTOutput)
 # but not the other combos
 AOTDescriptor = TypeVar("AOTDescriptor", AOTInput, AOTOutput)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # This function takes in a pytree of arguments and unwraps any tensor
 # subclasses.
 #
@@ -212,6 +238,7 @@ AOTDescriptor = TypeVar("AOTDescriptor", AOTInput, AOTOutput)
 # primals (but not tangents) on entry to the forward. See the runtime version of
 # this function below.
 def unwrap_tensor_subclasses(
+<<<<<<< HEAD
     wrapped_args: list[FxValue],
     wrapped_args_descs: list[AOTDescriptor],
     *,
@@ -228,12 +255,24 @@ def unwrap_tensor_subclasses(
         if not is_traceable_wrapper_subclass(t):
             out[0].append(t)
             out[1].append(desc)
+=======
+    wrapped_args: list[Union[Tensor, int]],
+    *,
+    append_symints: bool,
+):
+    def flatten_subclass(t: Union[Tensor, int], *, out=None):
+        # unwrap a subclass into plain tensors and their size/stride if "append_symint"
+        # is True
+        if not is_traceable_wrapper_subclass(t):
+            out.append(t)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return
 
         attrs, _ = t.__tensor_flatten__()
 
         for attr in attrs:
             inner_tensor = getattr(t, attr)
+<<<<<<< HEAD
             n_desc: Any = (
                 SubclassGetAttrAOTInput(desc, attr)
                 if isinstance(desc, AOTInput)
@@ -262,6 +301,20 @@ def unwrap_tensor_subclasses(
         flatten_subclass(typing.cast(Tensor, x), desc, out=(xs_inner, descs_inner))
 
     return xs_inner, descs_inner
+=======
+            flatten_subclass(inner_tensor, out=out)
+
+        if append_symints:
+            out.extend(filter_symints(t.size()))
+            out.extend(filter_symints(t.stride()))
+
+    xs_inner: list[Union[int, Tensor, SymInt]] = []
+
+    for x in wrapped_args:
+        flatten_subclass(typing.cast(Tensor, x), out=xs_inner)
+
+    return xs_inner
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # subclass_metas is needed at runtime to compute which indices are symints in
@@ -283,7 +336,10 @@ def runtime_unwrap_tensor_subclasses(
 
         for attr in attrs:
             inner_tensor = getattr(x, attr)
+<<<<<<< HEAD
             # pyrefly: ignore [missing-attribute]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             inner_meta = meta.attrs.get(attr)
             flatten_subclass(inner_tensor, inner_meta, out=out)
 
@@ -330,9 +386,13 @@ def unwrap_tensor_subclasses_with_indices_to_original(wrapped_args):
     ret_unwrapped = []
     ret_indices_to_original = []
     for i, a in enumerate(wrapped_args):
+<<<<<<< HEAD
         a_unwrapped, _ = unwrap_tensor_subclasses(
             [a], [DummyAOTInput(9999)], append_symints=False
         )
+=======
+        a_unwrapped = unwrap_tensor_subclasses([a], append_symints=False)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ret_unwrapped.extend(a_unwrapped)
         n = len(a_unwrapped)
         ret_indices_to_original.extend([i] * n)
@@ -349,8 +409,13 @@ def remap_unwrapped_subclass_arg_indices(wrapped_args, static_input_indices):
         if is_traceable_wrapper_subclass(arg):
             num_indices = (
                 len(get_plain_tensors(typing.cast(Tensor, arg), out=[]))
+<<<<<<< HEAD
                 + len(enumerate_filter_symints(arg.size()))
                 + len(enumerate_filter_symints(arg.stride()))
+=======
+                + len(filter_symints(arg.size()))
+                + len(filter_symints(arg.stride()))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
 
         for _ in range(num_indices):
@@ -414,7 +479,11 @@ def wrap_tensor_subclasses(
     # we computed subclass metadata on every forward output, but this did **not** include activations
     # created by the partitioner.
     # as a result, `unwrapped_args` here will correspond to (*unwrapped_user_fw_outs, *activations),
+<<<<<<< HEAD
     # but `subclass_metas` will only correspond to subclass metadata on `user_fw_outs`.
+=======
+    # but `subclass_metas` will only correspond to subclass metatadata on `user_fw_outs`.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     # We then need to make sure that we return (*wrapped_user_fw_outs, *activations).
     if num_fw_outs_saved_for_bw is not None:
         assert len(unwrapped_args) == num_args_tallied + num_fw_outs_saved_for_bw, (
@@ -427,9 +496,15 @@ def wrap_tensor_subclasses(
             return wrapped_args + activations
         return tuple(list(wrapped_args) + list(activations))
     else:
+<<<<<<< HEAD
         assert len(unwrapped_args) == num_args_tallied, (
             f"Expected {len(unwrapped_args)} == {num_args_tallied}"
         )
+=======
+        assert (
+            len(unwrapped_args) == num_args_tallied
+        ), f"Expected {len(unwrapped_args)} == {num_args_tallied}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return tuple(wrapped_args)
 
 
@@ -440,7 +515,11 @@ def wrap_tensor_subclasses(
 def wrap_tensor_subclasses_maybe_joint(
     unwrapped_args, *, is_joint_structure: bool, meta: ViewAndMutationMeta
 ) -> Union[tuple[Any, ...], list[Any]]:
+<<<<<<< HEAD
     # Since this function is reused for both inference and joint graphs,
+=======
+    # Since this function is re-used for both inference and joint graphs,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if is_joint_structure:
         assert isinstance(unwrapped_args, tuple) and len(unwrapped_args) == 2
         assert isinstance(unwrapped_args[0], (tuple, list)) and isinstance(

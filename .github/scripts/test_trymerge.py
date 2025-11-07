@@ -27,17 +27,26 @@ from trymerge import (
     get_drci_classifications,
     gh_get_team_members,
     GitHubPR,
+<<<<<<< HEAD
     iter_issue_timeline_until_comment,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     JobCheckState,
     main as trymerge_main,
     MandatoryChecksMissingError,
     MergeRule,
+<<<<<<< HEAD
     PostCommentError,
     RE_GHSTACK_DESC,
     read_merge_rules,
     remove_job_name_suffix,
     sha_from_committed_event,
     sha_from_force_push_after,
+=======
+    RE_GHSTACK_DESC,
+    read_merge_rules,
+    remove_job_name_suffix,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     validate_revert,
 )
 
@@ -74,9 +83,12 @@ def mock_query(
     if key in mocked_queries:
         return mocked_queries[key]
 
+<<<<<<< HEAD
     # TODO: Remove me once https://github.com/pytorch/pytorch/issues/160489 is resolved
     raise ValueError(f"Key {key} could not be found in gql_mocks")
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     try:
         rc = fallback_function(*args)
     except HTTPError as err:
@@ -128,7 +140,11 @@ def mock_parse_args(revert: bool = False, force: bool = False) -> Any:
             self.force = force
             self.pr_num = 76123
             self.dry_run = True
+<<<<<<< HEAD
             self.comment_id = 12345  # Set to non-zero value
+=======
+            self.comment_id = 0
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self.reason = "this is for testing"
             self.ignore_current = False
             self.check_mergeability = False
@@ -156,9 +172,15 @@ def mock_revert(
 def mock_merge(
     pr: GitHubPR,
     repo: GitRepo,
+<<<<<<< HEAD
     comment_id: int,
     dry_run: bool = False,
     skip_mandatory_checks: bool = False,
+=======
+    dry_run: bool = False,
+    skip_mandatory_checks: bool = False,
+    comment_id: Optional[int] = None,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     timeout_minutes: int = 400,
     stale_pr_days: int = 3,
     ignore_current: bool = False,
@@ -474,9 +496,15 @@ class TestTryMerge(TestCase):
         mock_merge.assert_called_once_with(
             mock.ANY,
             mock.ANY,
+<<<<<<< HEAD
             comment_id=mock.ANY,
             dry_run=mock.ANY,
             skip_mandatory_checks=True,
+=======
+            dry_run=mock.ANY,
+            skip_mandatory_checks=True,
+            comment_id=mock.ANY,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_current=False,
         )
 
@@ -489,9 +517,15 @@ class TestTryMerge(TestCase):
         mock_merge.assert_called_once_with(
             mock.ANY,
             mock.ANY,
+<<<<<<< HEAD
             comment_id=mock.ANY,
             dry_run=mock.ANY,
             skip_mandatory_checks=False,
+=======
+            dry_run=mock.ANY,
+            skip_mandatory_checks=False,
+            comment_id=mock.ANY,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ignore_current=False,
         )
 
@@ -589,6 +623,7 @@ class TestTryMerge(TestCase):
             self.assertEqual(mock_merge_base, pr.get_merge_base())
             mocked_gh_fetch_merge_base.assert_called_once()
 
+<<<<<<< HEAD
     def test_app_can_revert(self, *args: Any) -> None:
         pr = GitHubPR("pytorch", "pytorch", 164660)
         repo = DummyGitRepo()
@@ -606,6 +641,8 @@ class TestTryMerge(TestCase):
             "pytorch-auto-revert",
         )
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 @mock.patch("trymerge.gh_graphql", side_effect=mocked_gh_graphql)
 @mock.patch("trymerge.gh_fetch_merge_base", return_value="")
@@ -1159,6 +1196,7 @@ Pull Request resolved: https://github.com/pytorch/pytorch/pull/154394"""
         )
 
 
+<<<<<<< HEAD
 @mock.patch("trymerge.gh_graphql", side_effect=mocked_gh_graphql)
 @mock.patch("trymerge.gh_fetch_merge_base", return_value="")
 @mock.patch(
@@ -1330,5 +1368,7 @@ class TestTimelineFunctions(TestCase):
         self.assertIsNone(sha)
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 if __name__ == "__main__":
     main()

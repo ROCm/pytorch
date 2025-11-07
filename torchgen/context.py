@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import contextlib
 import functools
+<<<<<<< HEAD
 from typing import Any, Optional, TYPE_CHECKING, TypeVar, Union
+=======
+from typing import Any, Callable, Optional, TYPE_CHECKING, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torchgen.local as local
 from torchgen.model import (
@@ -16,7 +20,11 @@ from torchgen.utils import context, S, T
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable, Iterator
+=======
+    from collections.abc import Iterator
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Helper functions for defining generators on things in the model

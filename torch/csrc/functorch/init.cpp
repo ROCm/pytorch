@@ -363,6 +363,7 @@ static int64_t maybe_get_level(const Tensor& tensor) {
   return -1;
 }
 
+<<<<<<< HEAD
 static void maybe_unsafe_set_level(const Tensor& tensor, int64_t level) {
   auto* batched = maybeGetBatchedImpl(tensor);
   if (batched) {
@@ -370,6 +371,8 @@ static void maybe_unsafe_set_level(const Tensor& tensor, int64_t level) {
   }
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 static int64_t maybe_get_bdim(const Tensor& tensor) {
   auto* batched = maybeGetBatchedImpl(tensor);
   if (batched) {
@@ -526,7 +529,10 @@ void initFuncTorchBindings(PyObject* module) {
   m.def("is_functionaltensor", &is_functionaltensor);
   m.def("get_unwrapped", &get_unwrapped);
   m.def("maybe_get_level", &maybe_get_level);
+<<<<<<< HEAD
   m.def("_maybe_unsafe_set_level", &maybe_unsafe_set_level);
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.def("maybe_get_bdim", &maybe_get_bdim);
   m.def("maybe_current_level", &maybe_current_level);
   m.def("current_level", &currentLevel);

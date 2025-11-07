@@ -1,3 +1,8 @@
+<<<<<<< HEAD
+=======
+# mypy: allow-untyped-defs
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """
 This module provides the public comptime interface to TorchDynamo, enabling users to execute
 arbitrary Python code during symbolic evaluation of their programs.
@@ -38,6 +43,7 @@ import builtins
 import dis
 import time
 import traceback
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from typing import Any, Optional, TextIO, Union
 
@@ -45,6 +51,11 @@ import torch
 from torch._dynamo.symbolic_convert import InstructionTranslatorBase
 from torch._dynamo.variables.base import VariableTracker
 from torch._subclasses.fake_tensor import FakeTensor
+=======
+from typing import Optional, Union
+
+import torch
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.fx.experimental.symbolic_shapes import free_symbols
 
 from .exc import unimplemented_v2
@@ -64,10 +75,17 @@ class ComptimeVar:
     actual data in the Tensor is.)
     """
 
+<<<<<<< HEAD
     def __init__(self, v: VariableTracker) -> None:
         self.__variable = v
 
     def as_proxy(self) -> Union[VariableTracker, Sequence[VariableTracker]]:
+=======
+    def __init__(self, v) -> None:
+        self.__variable = v
+
+    def as_proxy(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns an fx.Proxy (or tuple/list of fx.Proxy) representing
         this variable in the FX graph we are assembling to pass
@@ -81,13 +99,21 @@ class ComptimeVar:
         """
         return self.__variable.as_proxy()
 
+<<<<<<< HEAD
     def is_proxy(self) -> bool:
+=======
+    def is_proxy(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns True if as_proxy() would succeed.
         """
         return self.__variable.is_proxy()
 
+<<<<<<< HEAD
     def as_fake(self) -> Union[FakeTensor, torch.SymInt]:
+=======
+    def as_fake(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns a "fake" value (either a FakeTensor or a SymInt)
         representing the variable in question.  This only works
@@ -104,16 +130,26 @@ class ComptimeVar:
         Returns the size of the tensor (if dim is None) or the size
         at the dimension dim.  The returned size may be a SymInt.
         """
+<<<<<<< HEAD
         return self.as_fake().size(dim)  # type: ignore[union-attr, return-value]
 
     def python_type(self) -> type:
+=======
+        return self.as_fake().size(dim)
+
+    def python_type(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns what type(v) would have returned for the variable
         at compile time.
         """
         return self.__variable.python_type()
 
+<<<<<<< HEAD
     def as_python_constant(self) -> Any:
+=======
+    def as_python_constant(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns the Python value this variable would have, but only if it is
         completely known at compile-time (e.g., it is constant).
@@ -125,19 +161,31 @@ class ComptimeVar:
         """
         return self.__variable.as_python_constant()
 
+<<<<<<< HEAD
     def is_python_constant(self) -> bool:
+=======
+    def is_python_constant(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns True if as_python_constant would succeed.
         """
         return self.__variable.is_python_constant()
 
+<<<<<<< HEAD
     def is_dynamic(self) -> bool:
+=======
+    def is_dynamic(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if isinstance(self.__variable, SymNodeVariable):
             fs = free_symbols(self.__variable.sym_num)
             return bool(fs)
         return False
 
+<<<<<<< HEAD
     def force_static(self) -> None:
+=======
+    def force_static(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Forces that a value is static, inducing a guard on its specific value
         """
@@ -151,7 +199,11 @@ class ComptimeVar:
                 f"cannot force {self.__variable} ({type(self.__variable)}) static"
             )
 
+<<<<<<< HEAD
     def _i_will_not_complain_if_bc_breaks_VariableTracker(self) -> VariableTracker:
+=======
+    def _i_will_not_complain_if_bc_breaks_VariableTracker(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns the internal data structure VariableTracker that Dynamo uses
         to represent variables at compile time.  There are no BC guarantees on
@@ -173,10 +225,17 @@ class ComptimeContext:
     file a feature request at https://github.com/pytorch/pytorch/
     """
 
+<<<<<<< HEAD
     def __init__(self, tx: InstructionTranslatorBase) -> None:
         self.__tx = tx
 
     def get_local(self, name: str, *, stacklevel: int = 0) -> ComptimeVar:
+=======
+    def __init__(self, tx) -> None:
+        self.__tx = tx
+
+    def get_local(self, name: str, *, stacklevel=0) -> ComptimeVar:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Retrieve the compile-time known information about a local.
         """
@@ -189,7 +248,11 @@ class ComptimeContext:
 
         return ComptimeVar(var)
 
+<<<<<<< HEAD
     def graph_break(self, msg: str = "ComptimeContext.graph_break") -> None:
+=======
+    def graph_break(self, msg="ComptimeContext.graph_break"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Manually trigger a graph break
         """
@@ -200,14 +263,22 @@ class ComptimeContext:
             hints=[],
         )
 
+<<<<<<< HEAD
     def graph(self) -> torch.fx.Graph:
+=======
+    def graph(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Retrieve the partially constructed FX graph that would be
         passed to the user compiler after compilation.
         """
         return self.__tx.output.graph
 
+<<<<<<< HEAD
     def assert_static(self, val: ComptimeVar) -> None:
+=======
+    def assert_static(self, val):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Asserts that the int is static (and not dynamic, per dynamic shapes)
         """
@@ -215,9 +286,13 @@ class ComptimeContext:
             "expected static but got dynamic (run with TORCH_LOGS=dynamic for more info)"
         )
 
+<<<<<<< HEAD
     def print_graph(
         self, *, verbose: bool = True, file: Optional[TextIO] = None
     ) -> None:
+=======
+    def print_graph(self, *, verbose=True, file=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print the partially constructed FX graph that would be passed
         to the user compiler after compilation.
@@ -226,6 +301,7 @@ class ComptimeContext:
             self.__tx.output.graph.python_code("self", verbose=verbose).src, file=file
         )
 
+<<<<<<< HEAD
     def parent(self) -> "ComptimeContext":
         return ComptimeContext(self.__tx.parent)  # type: ignore[arg-type]
 
@@ -241,6 +317,21 @@ class ComptimeContext:
     def print_disas(
         self, *, file: Optional[TextIO] = None, stacklevel: int = 0
     ) -> None:
+=======
+    def parent(self):
+        return ComptimeContext(self.__tx.parent)
+
+    def __get_tx(self, stacklevel):
+        tx = self.__tx
+        for _ in range(stacklevel):
+            tx = tx.parent
+        return tx
+
+    def print(self, val, *, file=None):
+        print(repr(val), file=file)
+
+    def print_disas(self, *, file=None, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print the current series of opcodes being executed (not including
         parent frames), including where you are in the particular opcode
@@ -255,9 +346,13 @@ class ComptimeContext:
             file=file,
         )
 
+<<<<<<< HEAD
     def print_value_stack(
         self, *, file: Optional[TextIO] = None, stacklevel: int = 0
     ) -> None:
+=======
+    def print_value_stack(self, *, file=None, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print the current Python value stack.  Note that this is NOT the same
         as the traceback; use print_bt() to print that.  Note that at
@@ -272,9 +367,13 @@ class ComptimeContext:
         for s in tx.stack:
             print(f"- {s.debug_repr()}", file=file)
 
+<<<<<<< HEAD
     def print_locals(
         self, *, file: Optional[TextIO] = None, stacklevel: int = 0
     ) -> None:
+=======
+    def print_locals(self, *, file=None, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print all of the locals available in the current context.
         By default this view is very limited; you can get more information
@@ -284,7 +383,11 @@ class ComptimeContext:
         for k, v in tx.symbolic_locals.items():
             print(f"{k} = {v.debug_repr()}", file=file)
 
+<<<<<<< HEAD
     def print_bt(self, *, file: Optional[TextIO] = None, stacklevel: int = 0) -> None:
+=======
+    def print_bt(self, *, file=None, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print the user code backtrace, starting at the beginning of the
         frame Dynamo started evaluating.  Note that this MAY NOT go all
@@ -303,7 +406,11 @@ class ComptimeContext:
             file=file,
         )
 
+<<<<<<< HEAD
     def print_guards(self, *, file: Optional[TextIO] = None) -> None:
+=======
+    def print_guards(self, *, file=None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Print the currently installed guards for the Dynamo context.
         This does NOT include guards associated with variables that
@@ -317,9 +424,13 @@ class ComptimeContext:
             file=file,
         )
 
+<<<<<<< HEAD
     def _i_will_not_complain_if_bc_breaks_InstructionTranslator(
         self,
     ) -> InstructionTranslatorBase:
+=======
+    def _i_will_not_complain_if_bc_breaks_InstructionTranslator(self):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Returns the internal data structure InstructionTranslator that Dynamo
         uses to track state of symbolic evaluation.  There are no BC
@@ -328,22 +439,31 @@ class ComptimeContext:
         """
         return self.__tx
 
+<<<<<<< HEAD
     def sleep(self, sec: Union[int, float]) -> None:
+=======
+    def sleep(self, sec):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         time.sleep(sec)
 
 
 class _Comptime:
     @staticmethod
+<<<<<<< HEAD
     def __call__(
         fn: Callable[[ComptimeContext], Any],
         fallback_fn: Callable[[], Any] = lambda: None,
     ) -> Any:
+=======
+    def __call__(fn, fallback_fn=lambda: None):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """fn gets called at compile time in TorchDynamo, calls fallback_fn otherwise"""
         fallback_fn()
 
     # Convenience wrappers that are more compact to use
 
     @staticmethod
+<<<<<<< HEAD
     def graph_break() -> None:
         comptime(lambda ctx: ctx.graph_break())
 
@@ -357,6 +477,21 @@ class _Comptime:
 
     @staticmethod
     def print_disas(*, stacklevel: int = 0) -> None:
+=======
+    def graph_break():
+        comptime(lambda ctx: ctx.graph_break())
+
+    @staticmethod
+    def print(e):
+        comptime(lambda ctx: ctx.print(ctx.get_local("e")), lambda: print(e))
+
+    @staticmethod
+    def print_graph():
+        comptime(lambda ctx: ctx.print_graph())
+
+    @staticmethod
+    def print_disas(*, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(
             lambda ctx: ctx.print_disas(
                 stacklevel=ctx.get_local("stacklevel").as_python_constant() + 1
@@ -364,7 +499,11 @@ class _Comptime:
         )
 
     @staticmethod
+<<<<<<< HEAD
     def print_value_stack(*, stacklevel: int = 0) -> None:
+=======
+    def print_value_stack(*, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(
             lambda ctx: ctx.print_value_stack(
                 stacklevel=ctx.get_local("stacklevel").as_python_constant() + 1
@@ -375,7 +514,11 @@ class _Comptime:
     # in an expression context; e.g., x + print_value_stack_and_return(y + z),
     # you will see x on the stack prior to the addition operation
     @staticmethod
+<<<<<<< HEAD
     def print_value_stack_and_return(e: Any, *, stacklevel: int = 0) -> Any:
+=======
+    def print_value_stack_and_return(e, *, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(
             lambda ctx: ctx.print_value_stack(
                 stacklevel=ctx.get_local("stacklevel").as_python_constant() + 1
@@ -384,7 +527,11 @@ class _Comptime:
         return e
 
     @staticmethod
+<<<<<<< HEAD
     def print_locals(*, stacklevel: int = 0) -> None:
+=======
+    def print_locals(*, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(
             lambda ctx: ctx.print_locals(
                 stacklevel=ctx.get_local("stacklevel").as_python_constant() + 1
@@ -392,7 +539,11 @@ class _Comptime:
         )
 
     @staticmethod
+<<<<<<< HEAD
     def print_bt(*, stacklevel: int = 0) -> None:
+=======
+    def print_bt(*, stacklevel=0):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(
             lambda ctx: ctx.print_bt(
                 stacklevel=ctx.get_local("stacklevel").as_python_constant() + 1
@@ -400,6 +551,7 @@ class _Comptime:
         )
 
     @staticmethod
+<<<<<<< HEAD
     def print_guards() -> None:
         comptime(lambda ctx: ctx.print_guards())
 
@@ -413,6 +565,21 @@ class _Comptime:
 
     @staticmethod
     def breakpoint() -> None:
+=======
+    def print_guards():
+        comptime(lambda ctx: ctx.print_guards())
+
+    @staticmethod
+    def assert_static(val):
+        comptime(lambda ctx: ctx.assert_static(ctx.get_local("val")))
+
+    @staticmethod
+    def force_static(val):
+        comptime(lambda ctx: ctx.get_local("val").force_static())
+
+    @staticmethod
+    def breakpoint():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Like pdb breakpoint(), but drop into pdb whenever this line
         of code is compiled by dynamo.  Use it by putting
@@ -430,14 +597,22 @@ class _Comptime:
             (Pdb) p ctx.get_local("attention").as_fake()
         """
 
+<<<<<<< HEAD
         def inner(inner_ctx: ComptimeContext) -> None:
+=======
+        def inner(inner_ctx):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             ctx = inner_ctx.parent()  # noqa: F841
             builtins.breakpoint()
 
         comptime(inner)
 
     @staticmethod
+<<<<<<< HEAD
     def sleep(sec: Union[int, float]) -> None:
+=======
+    def sleep(sec):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         comptime(lambda ctx: ctx.sleep(ctx.get_local("sec").as_python_constant()))
 
 

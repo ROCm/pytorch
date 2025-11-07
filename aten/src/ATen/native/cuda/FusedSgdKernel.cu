@@ -62,7 +62,11 @@ struct FusedSgdMathFunctor {
       depth == 2 || depth == 3,
       "depth of 2 for SGD w/ momentum == 0, 3 for SGD w/ momentum != 0");
   C10_DEVICE __forceinline__ void operator()(
+<<<<<<< HEAD
       const int64_t chunk_size,
+=======
+      const int chunk_size,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TensorListMetadata<depth>& tl,
       const double weight_decay,
       const double momentum,

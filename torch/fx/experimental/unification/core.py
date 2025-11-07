@@ -77,7 +77,11 @@ def reify(e, s):
 seq = tuple, list, Iterator
 
 
+<<<<<<< HEAD
 @dispatch(seq, seq, dict)  # type: ignore[arg-type]
+=======
+@dispatch(seq, seq, dict)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _unify(u, v, s):
     if len(u) != len(v):
         return False

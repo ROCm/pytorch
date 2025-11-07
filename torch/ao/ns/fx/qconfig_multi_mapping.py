@@ -2,7 +2,11 @@
 from __future__ import annotations
 
 import copy
+<<<<<<< HEAD
 from typing import Any, TYPE_CHECKING, Union
+=======
+from typing import Any, Callable, TYPE_CHECKING, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch.ao.quantization import QConfigMapping
@@ -10,8 +14,11 @@ from torch.ao.quantization.qconfig_mapping import _QCONFIG_STYLE_ORDER
 
 
 if TYPE_CHECKING:
+<<<<<<< HEAD
     from collections.abc import Callable
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     from torch.ao.quantization.qconfig import QConfigAny
 
 __all__ = ["QConfigMultiMapping"]
@@ -111,7 +118,11 @@ class QConfigMultiMapping:
                         target_qconfigs_dict[key] = None
                 break
 
+<<<<<<< HEAD
             # insert copies of this new QConfigMapping until all entries
+=======
+            # insert copies of this new QConfigMapping until all entires
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             # in qconfig_list can fit among the QConfigMappings
             while len(qconfig_list) > len(self.qconfig_mappings_list):
                 self.qconfig_mappings_list.append(copy.deepcopy(new_qconfig_mapping))

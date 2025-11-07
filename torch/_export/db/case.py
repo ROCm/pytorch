@@ -132,7 +132,10 @@ def _make_export_case(m, name, configs):
             m.__doc__ is not None
         ), f"Could not find description or docstring for export case: {m}"
         configs = {**configs, "description": m.__doc__}
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return ExportCase(**{**configs, "model": m, "name": name})
 
 

@@ -11,7 +11,11 @@ import torch
 import torch.onnx
 from torch.nn import Module
 from torch.onnx import producer_name, producer_version
+<<<<<<< HEAD
 from torch.onnx._internal.torchscript_exporter._globals import GLOBALS
+=======
+from torch.onnx._globals import GLOBALS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal import common_utils
 
 
@@ -36,12 +40,20 @@ def check_onnx_opset_operator(
     # but the op's attributes can optionally be
     # specified as well
     assert len(ops) == len(graph.node)
+<<<<<<< HEAD
     for i in range(len(ops)):
+=======
+    for i in range(0, len(ops)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         assert graph.node[i].op_type == ops[i]["op_name"]
         if "attributes" in ops[i]:
             attributes = ops[i]["attributes"]
             assert len(attributes) == len(graph.node[i].attribute)
+<<<<<<< HEAD
             for j in range(len(attributes)):
+=======
+            for j in range(0, len(attributes)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 for attribute_field in attributes[j].keys():
                     assert attributes[j][attribute_field] == getattr(
                         graph.node[i].attribute[j], attribute_field
@@ -67,7 +79,10 @@ def check_onnx_opsets_operator(
             training=training,
             input_names=input_names,
             dynamic_axes=dynamic_axes,
+<<<<<<< HEAD
             dynamo=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         model = onnx.load(io.BytesIO(f.getvalue()))
         check_onnx_opset_operator(model, ops[opset_version], opset_version)

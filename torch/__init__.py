@@ -22,10 +22,16 @@ import platform
 import sys
 import textwrap
 import threading
+<<<<<<< HEAD
 import warnings
 from collections.abc import Callable as _Callable
 from typing import (
     Any as _Any,
+=======
+from typing import (
+    Any as _Any,
+    Callable as _Callable,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     get_origin as _get_origin,
     Optional as _Optional,
     overload as _overload,
@@ -33,6 +39,7 @@ from typing import (
     TypeVar as _TypeVar,
     Union as _Union,
 )
+<<<<<<< HEAD
 from typing_extensions import ParamSpec as _ParamSpec, TypeIs as _TypeIs
 
 
@@ -41,6 +48,20 @@ from typing_extensions import ParamSpec as _ParamSpec, TypeIs as _TypeIs
 # they are likely stale.
 def _running_with_deploy() -> builtins.bool:
     return False
+=======
+from typing_extensions import ParamSpec as _ParamSpec
+
+
+if TYPE_CHECKING:
+    from .types import Device, IntLikeType
+
+
+# multipy/deploy is setting this import before importing torch, this is the most
+# reliable way we have to detect if we're running within deploy.
+# https://github.com/pytorch/multipy/blob/d60f34ad38c371e441fe7ffdb77a3c3dda5a5d19/multipy/runtime/interpreter/interpreter_impl.cpp#L134-L137
+def _running_with_deploy() -> builtins.bool:
+    return sys.modules.get("torch._meta_registrations", None) is object
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 from torch._utils import (
@@ -55,12 +76,30 @@ from torch._utils_internal import (
     USE_GLOBAL_DEPS,
     USE_RTLD_GLOBAL_WITH_LIBTORCH,
 )
+<<<<<<< HEAD
 from torch.torch_version import __version__ as __version__
 
 
 if TYPE_CHECKING:
     from torch.types import Device, IntLikeType
 
+=======
+
+
+# TODO(torch_deploy) figure out how to freeze version.py in fbcode build
+if _running_with_deploy():
+    __version__ = "torch-deploy-1.8"
+    # TODO: Remove this ugly hack when deploy typing extensions are updated to 4.10+
+    if not TYPE_CHECKING:
+        import typing_extensions
+
+        _TypeIs = typing_extensions.TypeGuard
+        typing_extensions.TypeIs = _TypeIs
+else:
+    from typing_extensions import TypeIs as _TypeIs
+
+    from torch.torch_version import __version__ as __version__
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 __all__ = [
     "BoolStorage",
@@ -194,6 +233,7 @@ if sys.platform == "win32":
             if os.path.exists(p)
         ]
 
+<<<<<<< HEAD
         if not builtins.any(
             os.path.exists(os.path.join(p, "nvToolsExt64_1.dll")) for p in dll_paths
         ):
@@ -208,6 +248,8 @@ if sys.platform == "win32":
         else:
             nvtoolsext_dll_path = ""
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if cuda_version and builtins.all(
             not glob.glob(os.path.join(p, "cudart64*.dll")) for p in dll_paths
         ):
@@ -220,9 +262,13 @@ if sys.platform == "win32":
         else:
             cuda_path = ""
 
+<<<<<<< HEAD
         dll_paths.extend(
             p for p in (nvtoolsext_dll_path, cuda_path) if os.path.exists(p)
         )
+=======
+        dll_paths.extend(p for p in (cuda_path,) if os.path.exists(p))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         kernel32 = ctypes.WinDLL("kernel32.dll", use_last_error=True)
         with_load_library_flags = hasattr(kernel32, "AddDllDirectory")
@@ -245,7 +291,11 @@ if sys.platform == "win32":
                 textwrap.dedent(
                     """
                     Microsoft Visual C++ Redistributable is not installed, this may lead to the DLL load failure.
+<<<<<<< HEAD
                     It can be downloaded at https://aka.ms/vs/17/release/vc_redist.x64.exe
+=======
+                    It can be downloaded at https://aka.ms/vs/16/release/vc_redist.x64.exe
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     """
                 ).strip()
             )
@@ -284,6 +334,7 @@ if sys.platform == "win32":
 
 
 def _get_cuda_dep_paths(path: str, lib_folder: str, lib_name: str) -> list[str]:
+<<<<<<< HEAD
     # Libraries can either be in
     # path/nvidia/lib_folder/lib or
     # path/nvidia/cuXX/lib (since CUDA 13.0) or
@@ -298,12 +349,22 @@ def _get_cuda_dep_paths(path: str, lib_folder: str, lib_name: str) -> list[str]:
         nvidia_lib_paths += glob.glob(
             os.path.join(path, "nvidia", f"cu{maj_cuda_version}", "lib", lib_name)
         )
+=======
+    # Libraries can either be in path/nvidia/lib_folder/lib or path/lib_folder/lib
+    nvidia_lib_paths = glob.glob(
+        os.path.join(path, "nvidia", lib_folder, "lib", lib_name)
+    )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     lib_paths = glob.glob(os.path.join(path, lib_folder, "lib", lib_name))
 
     return nvidia_lib_paths + lib_paths
 
 
+<<<<<<< HEAD
 def _preload_cuda_deps(lib_folder: str, lib_name: str, required: bool = True) -> None:  # type: ignore[valid-type]
+=======
+def _preload_cuda_deps(lib_folder: str, lib_name: str) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Preloads cuda deps if they could not be found otherwise."""
     # Should only be called on Linux if default path resolution have failed
     assert platform.system() == "Linux", "Should only be called on Linux"
@@ -314,15 +375,25 @@ def _preload_cuda_deps(lib_folder: str, lib_name: str, required: bool = True) ->
         if candidate_lib_paths:
             lib_path = candidate_lib_paths[0]
             break
+<<<<<<< HEAD
     if not lib_path and required:
         raise ValueError(f"{lib_name} not found in the system path {sys.path}")
     if lib_path:
         ctypes.CDLL(lib_path)
+=======
+    if not lib_path:
+        raise ValueError(f"{lib_name} not found in the system path {sys.path}")
+    ctypes.CDLL(lib_path)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # See Note [Global dependencies]
 def _load_global_deps() -> None:
+<<<<<<< HEAD
     if platform.system() == "Windows":
+=======
+    if _running_with_deploy() or platform.system() == "Windows":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return
 
     # Determine the file extension based on the platform
@@ -342,6 +413,7 @@ def _load_global_deps() -> None:
         try:
             with open("/proc/self/maps") as f:
                 _maps = f.read()
+<<<<<<< HEAD
 
             # libtorch_global_deps.so always depends in cudart, check if its installed and loaded
             if "libcudart.so" not in _maps:
@@ -349,6 +421,14 @@ def _load_global_deps() -> None:
             # If all above-mentioned conditions are met, preload nvrtc and nvjitlink
             _preload_cuda_deps("cuda_nvrtc", "libnvrtc.so.*[0-9]")
             _preload_cuda_deps("cuda_nvrtc", "libnvrtc-builtins.so.*[0-9]")
+=======
+            # libtorch_global_deps.so always depends in cudart, check if its installed via wheel
+            if "nvidia/cuda_runtime/lib/libcudart.so" not in _maps:
+                return
+            # If all above-mentioned conditions are met, preload nvrtc and nvjitlink
+            # Please note that order are important for CUDA-11.8 , as nvjitlink does not exist there
+            _preload_cuda_deps("cuda_nvrtc", "libnvrtc.so.*[0-9]")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             _preload_cuda_deps("nvjitlink", "libnvJitLink.so.*[0-9]")
         except Exception:
             pass
@@ -356,6 +436,11 @@ def _load_global_deps() -> None:
     except OSError as err:
         # Can only happen for wheel with cuda libs as PYPI deps
         # As PyTorch is not purelib, but nvidia-*-cu12 is
+<<<<<<< HEAD
+=======
+        from torch.version import cuda as cuda_version
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         cuda_libs: dict[str, str] = {
             "cublas": "libcublas.so.*[0-9]",
             "cudnn": "libcudnn.so.*[0-9]",
@@ -369,9 +454,20 @@ def _load_global_deps() -> None:
             "cusparselt": "libcusparseLt.so.*[0-9]",
             "cusolver": "libcusolver.so.*[0-9]",
             "nccl": "libnccl.so.*[0-9]",
+<<<<<<< HEAD
             "nvshmem": "libnvshmem_host.so.*[0-9]",
             "cufile": "libcufile.so.*[0-9]",
         }
+=======
+        }
+        # cufiile is only available on cuda 12+
+        # TODO: Remove once CUDA 11.8 binaries are deprecated
+        if cuda_version is not None:
+            t_version = cuda_version.split(".")
+            t_major = int(t_version[0])  # type: ignore[operator]
+            if t_major >= 12:
+                cuda_libs["cufile"] = "libcufile.so.*[0-9]"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         is_cuda_lib_err = [
             lib for lib in cuda_libs.values() if lib.split(".")[0] in err.args[0]
@@ -380,14 +476,21 @@ def _load_global_deps() -> None:
             raise err
         for lib_folder, lib_name in cuda_libs.items():
             _preload_cuda_deps(lib_folder, lib_name)
+<<<<<<< HEAD
 
         # libnvToolsExt is Optional Dependency
         _preload_cuda_deps("nvtx", "libnvToolsExt.so.*[0-9]", required=False)
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ctypes.CDLL(global_deps_lib_path, mode=ctypes.RTLD_GLOBAL)
 
 
 if (USE_RTLD_GLOBAL_WITH_LIBTORCH or os.getenv("TORCH_USE_RTLD_GLOBAL")) and (
+<<<<<<< HEAD
     platform.system() != "Windows"
+=======
+    _running_with_deploy() or platform.system() != "Windows"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     # Do it the hard way.  You might want to load libtorch with RTLD_GLOBAL in a
     # few circumstances:
@@ -990,7 +1093,11 @@ def sym_ite(b, t, f):
     """SymInt-aware utility for ternary operator (``t if b else f``.)"""
     if overrides.has_torch_function((b, t, f)):
         return overrides.handle_torch_function(sym_ite, (b, t, f), b, t, f)
+<<<<<<< HEAD
     assert isinstance(b, (SymBool, builtins.bool)) and type(t) is type(f)
+=======
+    assert isinstance(b, (SymBool, builtins.bool)) and type(t) == type(f)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if isinstance(b, SymBool):
         return b.__sym_ite__(t, f)
     return t if b else f
@@ -1019,10 +1126,17 @@ except ImportError:
                     of the PyTorch repository rather than the C extensions which
                     are expected in the `torch._C` namespace. This can occur when
                     using the `install` workflow. e.g.
+<<<<<<< HEAD
                         $ python -m pip install --no-build-isolation -v . && python -c "import torch"
 
                     This error can generally be solved using the `develop` workflow
                         $ python -m pip install --no-build-isolation -v -e . && python -c "import torch"  # This should succeed
+=======
+                        $ python setup.py install && python -c "import torch"
+
+                    This error can generally be solved using the `develop` workflow
+                        $ python setup.py develop && python -c "import torch"  # This should succeed
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     or by running Python from a different directory.
                 """
             ).strip()
@@ -1120,6 +1234,14 @@ def typename(obj: _Any, /) -> str:
 def is_tensor(obj: _Any, /) -> _TypeIs["torch.Tensor"]:
     r"""Returns True if `obj` is a PyTorch tensor.
 
+<<<<<<< HEAD
+=======
+    Note that this function is simply doing ``isinstance(obj, Tensor)``.
+    Using that ``isinstance`` check is better for typechecking with mypy,
+    and more explicit - so it's recommended to use that instead of
+    ``is_tensor``.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Args:
         obj (object): Object to test
     Example::
@@ -1137,6 +1259,7 @@ def is_storage(obj: _Any, /) -> _TypeIs[_Union["TypedStorage", "UntypedStorage"]
 
     Args:
         obj (Object): Object to test
+<<<<<<< HEAD
     Example::
 
         >>> x = torch.tensor([1, 2, 3])
@@ -1145,6 +1268,8 @@ def is_storage(obj: _Any, /) -> _TypeIs[_Union["TypedStorage", "UntypedStorage"]
         >>> torch.is_storage(x.untyped_storage())
         True
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     return type(obj) in _storage_classes
 
@@ -1412,6 +1537,10 @@ def use_deterministic_algorithms(
         * :func:`torch.histc` when called on a CUDA tensor
         * :func:`torch.bincount` when called on a CUDA tensor and ``weights``
           tensor is given
+<<<<<<< HEAD
+=======
+        * :func:`torch.kthvalue` with called on a CUDA tensor
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         * :func:`torch.median` with indices output when called on a CUDA tensor
         * :func:`torch.nn.functional.grid_sample` when attempting to differentiate a CUDA tensor
         * :func:`torch.cumsum` when called on a CUDA tensor when dtype is floating point or complex
@@ -1423,6 +1552,7 @@ def use_deterministic_algorithms(
     :attr:`torch.utils.deterministic.fill_uninitialized_memory` is turned on.
     See the documentation for that attribute for more information.
 
+<<<<<<< HEAD
     Note that deterministic operations tend to have worse performance than
     nondeterministic operations.
 
@@ -1447,6 +1577,22 @@ def use_deterministic_algorithms(
         occupancy.
 
 
+=======
+    A handful of CUDA operations are nondeterministic if the CUDA version is
+    10.2 or greater, unless the environment variable ``CUBLAS_WORKSPACE_CONFIG=:4096:8``
+    or ``CUBLAS_WORKSPACE_CONFIG=:16:8`` is set. See the CUDA documentation for more
+    details: `<https://docs.nvidia.com/cuda/cublas/index.html#results-reproducibility>`_
+    If one of these environment variable configurations is not set, a :class:`RuntimeError`
+    will be raised from these operations when called with CUDA tensors:
+
+        * :func:`torch.mm`
+        * :func:`torch.mv`
+        * :func:`torch.bmm`
+
+    Note that deterministic operations tend to have worse performance than
+    nondeterministic operations.
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     .. note::
 
         This flag does not detect or prevent nondeterministic behavior caused
@@ -1470,14 +1616,25 @@ def use_deterministic_algorithms(
         >>> # xdoctest: +SKIP
         >>> torch.use_deterministic_algorithms(True)
 
+<<<<<<< HEAD
+=======
+        # Forward mode nondeterministic error
+        >>> torch.randn(10, device='cuda').kthvalue(1)
+        ...
+        RuntimeError: kthvalue CUDA does not have a deterministic implementation...
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # Backward mode nondeterministic error
         >>> torch.nn.AvgPool3d(1)(torch.randn(3, 4, 5, 6, requires_grad=True).cuda()).sum().backward()
         ...
         RuntimeError: avg_pool3d_backward_cuda does not have a deterministic implementation...
     """
+<<<<<<< HEAD
     import torch._inductor.config as inductor_config
 
     inductor_config.deterministic = mode
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _C._set_deterministic_algorithms(mode, warn_only=warn_only)
 
 
@@ -1703,10 +1860,16 @@ def _check(cond, message=None):  # noqa: F811
             an object that has a ``__str__()`` method to be used as the error
             message. Default: ``None``
     """
+<<<<<<< HEAD
     _check_with(RuntimeError, cond, message)  # pyrefly: ignore [bad-argument-type]
 
 
 # TODO add deprecation annotation
+=======
+    _check_with(RuntimeError, cond, message)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _check_is_size(i, message=None, *, max=None):
     """Checks that a given integer is a valid size (i.e., is non-negative).
     You should use this over ``_check(i >= 0)`` because it can prevent
@@ -1753,7 +1916,11 @@ def _check_index(cond, message=None):  # noqa: F811
             an object that has a ``__str__()`` method to be used as the error
             message. Default: ``None``
     """
+<<<<<<< HEAD
     _check_with(IndexError, cond, message)  # pyrefly: ignore [bad-argument-type]
+=======
+    _check_with(IndexError, cond, message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_value(cond, message=None):  # noqa: F811
@@ -1771,7 +1938,11 @@ def _check_value(cond, message=None):  # noqa: F811
             an object that has a ``__str__()`` method to be used as the error
             message. Default: ``None``
     """
+<<<<<<< HEAD
     _check_with(ValueError, cond, message)  # pyrefly: ignore [bad-argument-type]
+=======
+    _check_with(ValueError, cond, message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_type(cond, message=None):  # noqa: F811
@@ -1789,7 +1960,11 @@ def _check_type(cond, message=None):  # noqa: F811
             an object that has a ``__str__()`` method to be used as the error
             message. Default: ``None``
     """
+<<<<<<< HEAD
     _check_with(TypeError, cond, message)  # pyrefly: ignore [bad-argument-type]
+=======
+    _check_with(TypeError, cond, message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_not_implemented(cond, message=None):  # noqa: F811
@@ -1807,12 +1982,16 @@ def _check_not_implemented(cond, message=None):  # noqa: F811
             an object that has a ``__str__()`` method to be used as the error
             message. Default: ``None``
     """
+<<<<<<< HEAD
     _check_with(
         NotImplementedError,
         cond,
         # pyrefly: ignore [bad-argument-type]
         message,
     )
+=======
+    _check_with(NotImplementedError, cond, message)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 def _check_tensor_all_with(error_type, cond, message=None):  # noqa: F811
@@ -2104,7 +2283,11 @@ from torch.serialization import load, save
 
 # Shared memory manager needs to know the exact location of manager executable
 def _manager_path():
+<<<<<<< HEAD
     if platform.system() == "Windows":
+=======
+    if _running_with_deploy() or platform.system() == "Windows":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return b""
     path = get_file_path("torch", "bin", "torch_shm_manager")
     prepare_multiprocessing_environment(get_file_path("torch"))
@@ -2164,7 +2347,11 @@ __all__.extend(
 )
 
 ################################################################################
+<<<<<<< HEAD
 # Import TorchDynamo's lazy APIs to avoid circular dependencies
+=======
+# Import TorchDynamo's lazy APIs to avoid circular dependenices
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ################################################################################
 
 # needs to be before from torch.functional import * to avoid circular dependencies
@@ -2247,7 +2434,10 @@ from torch import (
     testing as testing,
     types as types,
     utils as utils,
+<<<<<<< HEAD
     version as version,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     xpu as xpu,
 )
 from torch.signal import windows as windows
@@ -2516,7 +2706,11 @@ def compile(
     to compile it and cache the compiled result on the code object for future
     use.  A single frame may be compiled multiple times if previous compiled
     results are not applicable for subsequent calls (this is called a "guard
+<<<<<<< HEAD
     failure"), you can use TORCH_LOGS=guards to debug these situations.
+=======
+    failure), you can use TORCH_LOGS=guards to debug these situations.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Multiple compiled results can be associated with a frame up to
     ``torch._dynamo.config.recompile_limit``, which defaults to 8; at which
     point we will fall back to eager.  Note that compile caches are per
@@ -2525,11 +2719,18 @@ def compile(
 
     Args:
        model (Callable or None): Module/function to optimize
+<<<<<<< HEAD
        fullgraph (bool): If False (default), torch.compile attempts to discover compilable regions
         in the function that it will optimize. If True, then we require that the entire function be
         capturable into a single graph. If this is not possible (that is, if there are graph breaks),
         then this will raise an error. This also opts into unbacked semantics, notably it will turn on
         capture_scalar_outputs and capture_dynamic_output_shape_ops on by default.
+=======
+       fullgraph (bool): If False (default), torch.compile attempts to discover compileable regions
+        in the function that it will optimize. If True, then we require that the entire function be
+        capturable into a single graph. If this is not possible (that is, if there are graph breaks),
+        then this will raise an error.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
        dynamic (bool or None): Use dynamic shape tracing.  When this is True, we will up-front attempt
         to generate a kernel that is as dynamic as possible to avoid recompilations when
         sizes change.  This may not always work as some operations/optimizations will
@@ -2622,7 +2823,11 @@ def compile(
         def fn(model: _Callable[_InputT, _RetT]) -> _Callable[_InputT, _RetT]:
             if model is None:
                 raise RuntimeError("Model can't be None")
+<<<<<<< HEAD
             return compile(  # pyrefly: ignore  # no-matching-overload
+=======
+            return compile(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 model,
                 fullgraph=fullgraph,
                 dynamic=dynamic,
@@ -2650,6 +2855,7 @@ def compile(
     if options and isinstance(options, dict):
         guard_filter_fn = options.pop("guard_filter_fn", None)
 
+<<<<<<< HEAD
     if torch.compiler.is_exporting():
         warnings.warn(
             "You are calling torch.compile inside torch.export region. "
@@ -2674,6 +2880,8 @@ def compile(
 
         return export_wrapped_fn
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if backend == "inductor":
         backend = _TorchCompileInductorWrapper(mode, options, dynamic)
     else:
@@ -2735,6 +2943,7 @@ from torch import fx as fx
 # Register MPS specific decomps
 torch.backends.mps._init()
 
+<<<<<<< HEAD
 from torch import compiler as compiler
 
 
@@ -2750,6 +2959,23 @@ class _TritonLibrary:
             cls.ops_table[(op_key, dispatch_key)] = op_impl
 
         return cls.ops_table[(op_key, dispatch_key)]
+=======
+if not _running_with_deploy():
+    from torch import compiler as compiler
+
+    class _TritonLibrary:
+        lib = torch.library.Library("triton", "DEF")
+        ops_table: dict[tuple[str, str], _Callable] = {}
+
+        @classmethod
+        def registerOp(cls, op_key, full_schema, op_impl, dispatch_key):
+            if (op_key, dispatch_key) not in cls.ops_table:
+                cls.lib.define(full_schema)
+                cls.lib.impl("triton::" + op_key, op_impl, dispatch_key)
+                cls.ops_table[(op_key, dispatch_key)] = op_impl
+
+            return cls.ops_table[(op_key, dispatch_key)]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 # Deprecated attributes
@@ -2864,7 +3090,14 @@ def _import_device_backends():
     from importlib.metadata import entry_points
 
     group_name = "torch.backends"
+<<<<<<< HEAD
     backend_extensions = entry_points(group=group_name)
+=======
+    if sys.version_info < (3, 10):
+        backend_extensions = entry_points().get(group_name, ())
+    else:
+        backend_extensions = entry_points(group=group_name)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     for backend_extension in backend_extensions:
         try:

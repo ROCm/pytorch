@@ -7,14 +7,20 @@ from pprint import pformat
 from typing import NamedTuple
 
 import torch
+<<<<<<< HEAD
 import torch.distributed as dist
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.tensor import (
     DeviceMesh,
     distribute_module,
     distribute_tensor,
     DTensor,
+<<<<<<< HEAD
     Partial,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     Replicate,
     Shard,
 )
@@ -26,11 +32,17 @@ from torch.distributed.tensor.parallel import (
     RowwiseParallel,
     SequenceParallel,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import run_tests
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     create_local_tensor_test_class,
     DTensorTestBase,
     map_local_for_rank,
+=======
+from torch.testing._internal.common_utils import run_tests, skipIfRocm
+from torch.testing._internal.distributed._tensor.common_dtensor import (
+    DTensorTestBase,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     skip_unless_torch_gpu,
     with_comms,
 )
@@ -275,6 +287,7 @@ class DistMathOpsTest(DTensorTestBase):
         norm_shape_idx_list = list(range(x.ndim))
         shard_dims = [-1, 0, 1, 2]
         elementwise_affine_list = [False, True]
+<<<<<<< HEAD
 
         # Test RMSNorm as well if CUDA
         norm_types = [torch.nn.LayerNorm]
@@ -291,6 +304,16 @@ class DistMathOpsTest(DTensorTestBase):
         for norm_type, shard_dim, norm_idx, elementwise_affine in test_config_list:
             normalized_shape = x.shape[norm_idx:]
             layer_norm = norm_type(
+=======
+        test_config_list = list(
+            itertools.product(shard_dims, norm_shape_idx_list, elementwise_affine_list)
+        )
+
+        # normalized shape is a torch.Size object
+        for shard_dim, norm_idx, elementwise_affine in test_config_list:
+            normalized_shape = x.shape[norm_idx:]
+            layer_norm = torch.nn.LayerNorm(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 normalized_shape,
                 elementwise_affine=elementwise_affine,
                 device=self.device_type,
@@ -299,7 +322,10 @@ class DistMathOpsTest(DTensorTestBase):
 
             def _replicate_fn(name, module, device_mesh):
                 for name, param in module.named_parameters():
+<<<<<<< HEAD
                     # RMSNorm only has weight, LayerNorm has both weight and bias
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     if name in ["weight", "bias"]:
                         param_dist = torch.nn.Parameter(
                             distribute_tensor(param, device_mesh, [Replicate()])
@@ -320,7 +346,11 @@ class DistMathOpsTest(DTensorTestBase):
             self.assertLessEqual(
                 comm_mode.get_total_counts(),
                 1,  # TODO: This should be 0!
+<<<<<<< HEAD
                 f"comm count={comm_mode.get_total_counts()}, norm_type={norm_type.__name__}, "
+=======
+                f"comm count={comm_mode.get_total_counts()}, "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"shard_dim={shard_dim}, norm_shape={normalized_shape}, elem_affine={elementwise_affine}",
             )
 
@@ -342,6 +372,7 @@ class DistMathOpsTest(DTensorTestBase):
         norm_shape_idx_list = list(range(3))
         shard_dims = [0, 1, 2]
         elementwise_affine_list = [False, True]
+<<<<<<< HEAD
 
         # Test both LayerNorm and RMSNorm (if CUDA)
         norm_types = [torch.nn.LayerNorm]
@@ -356,6 +387,14 @@ class DistMathOpsTest(DTensorTestBase):
 
         # normalized shape is a torch.Size object
         for norm_type, shard_dim, norm_idx, elementwise_affine in test_config_list:
+=======
+        test_config_list = list(
+            itertools.product(shard_dims, norm_shape_idx_list, elementwise_affine_list)
+        )
+
+        # normalized shape is a torch.Size object
+        for shard_dim, norm_idx, elementwise_affine in test_config_list:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             x = torch.rand(
                 batch,
                 sentence_length,
@@ -364,7 +403,11 @@ class DistMathOpsTest(DTensorTestBase):
                 requires_grad=True,
             )
             normalized_shape = x.shape[norm_idx:]
+<<<<<<< HEAD
             layer_norm = norm_type(
+=======
+            layer_norm = torch.nn.LayerNorm(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 normalized_shape,
                 elementwise_affine=elementwise_affine,
                 device=self.device_type,
@@ -385,11 +428,17 @@ class DistMathOpsTest(DTensorTestBase):
                 self.assertEqual(
                     layer_norm_local.weight, layer_norm_dist.weight.full_tensor()
                 )
+<<<<<<< HEAD
                 # RMSNorm doesn't have bias
                 if hasattr(layer_norm_local, "bias"):
                     self.assertEqual(
                         layer_norm_local.bias, layer_norm_dist.bias.full_tensor()
                     )
+=======
+                self.assertEqual(
+                    layer_norm_local.bias, layer_norm_dist.bias.full_tensor()
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             x_local = x.detach().clone().requires_grad_(True)
             x_dist = distribute_tensor(x, device_mesh, [Shard(shard_dim)])
@@ -407,7 +456,11 @@ class DistMathOpsTest(DTensorTestBase):
             self.assertEqual(
                 sum(comm_mode.comm_module_counts["Global"]["forward"].values()),
                 expected_fwd_comm,
+<<<<<<< HEAD
                 f"comm count={comm_mode.get_total_counts()}, norm_type={norm_type.__name__}, "
+=======
+                f"comm count={comm_mode.get_total_counts()}, "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"shard_dim={shard_dim}, norm_shape={normalized_shape}, elem_affine={elementwise_affine}",
             )
 
@@ -421,7 +474,11 @@ class DistMathOpsTest(DTensorTestBase):
             self.assertEqual(
                 sum(comm_mode.comm_module_counts["Global"]["backward"].values()),
                 expected_bwd_comm,
+<<<<<<< HEAD
                 f"comm count={comm_mode.get_total_counts()}, norm_type={norm_type.__name__}, "
+=======
+                f"comm count={comm_mode.get_total_counts()}, "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 f"shard_dim={shard_dim}, norm_shape={normalized_shape}, elem_affine={elementwise_affine}",
             )
 
@@ -435,22 +492,36 @@ class DistMathOpsTest(DTensorTestBase):
                     is_tensor_partial(layer_norm_dist.weight.grad._spec),
                     needs_reduction,
                 )
+<<<<<<< HEAD
                 # RMSNorm doesn't have bias
                 if hasattr(layer_norm_dist, "bias"):
                     self.assertEqual(
                         is_tensor_partial(layer_norm_dist.bias.grad._spec),
                         needs_reduction,
                     )
+=======
+                self.assertEqual(
+                    is_tensor_partial(layer_norm_dist.bias.grad._spec),
+                    needs_reduction,
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 self.assertEqual(
                     layer_norm_local.weight.grad,
                     layer_norm_dist.weight.grad.full_tensor(),
                 )
+<<<<<<< HEAD
                 # RMSNorm doesn't have bias
                 if hasattr(layer_norm_local, "bias"):
                     self.assertEqual(
                         layer_norm_local.bias.grad,
                         layer_norm_dist.bias.grad.full_tensor(),
                     )
+=======
+                self.assertEqual(
+                    layer_norm_local.bias.grad,
+                    layer_norm_dist.bias.grad.full_tensor(),
+                )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             self.assertEqual(x_local.grad, x_dist.grad.full_tensor())
 
@@ -459,6 +530,7 @@ class DistMathOpsTest(DTensorTestBase):
         device_mesh = self.build_device_mesh()
         batch, seq_len, embedding_dim, vocab_size = 8, 8, 10, 32
 
+<<<<<<< HEAD
         # Test both LayerNorm and RMSNorm (if CUDA)
         norm_types = [torch.nn.LayerNorm]
         if self.device_type == "cuda" and hasattr(torch.nn, "RMSNorm"):
@@ -467,6 +539,10 @@ class DistMathOpsTest(DTensorTestBase):
         # build our subtest configurations and filter out invalid ones
         class SubTest(NamedTuple):
             norm_type: type
+=======
+        # build our subtest configurations and filter out invalid ones
+        class SubTest(NamedTuple):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             multidim_norm: bool
             elementwise_affine: bool
             emb_req_grad: bool
@@ -474,6 +550,7 @@ class DistMathOpsTest(DTensorTestBase):
             out_req_grad: bool
 
         subtest_fails = {}
+<<<<<<< HEAD
 
         def valid_filter(cfg):
             return not (cfg.ln_req_grad and not cfg.elementwise_affine) and any(cfg[3:])
@@ -486,13 +563,27 @@ class DistMathOpsTest(DTensorTestBase):
                     for norm_type in norm_types
                     for cfg in itertools.product(*(((False, True),) * 5))
                 ],
+=======
+        valid_filter = (  # noqa: E731
+            lambda cfg: (
+                not (cfg.ln_req_grad and not cfg.elementwise_affine) and any(cfg[2:])
+            )
+        )
+        subtest_cfgs = list(
+            filter(
+                valid_filter,
+                [SubTest(*cfg) for cfg in itertools.product(*(((False, True),) * 5))],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
         )
 
         for subtest_cfg in subtest_cfgs:
             try:
                 (
+<<<<<<< HEAD
                     norm_type,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     multidim_norm,
                     elementwise_affine,
                     emb_req_grad,
@@ -510,7 +601,11 @@ class DistMathOpsTest(DTensorTestBase):
                         self.preln_embeddings = torch.nn.Embedding(
                             vocab_size, embedding_dim
                         )
+<<<<<<< HEAD
                         self.layer_norm = norm_type(
+=======
+                        self.layer_norm = torch.nn.LayerNorm(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             normalized_shape, elementwise_affine=elementwise_affine
                         )
                         self.postln_linear = torch.nn.Linear(
@@ -653,6 +748,7 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(comm_counts[funcol.all_gather_into_tensor], 1)
 
     @with_comms
+<<<<<<< HEAD
     def test_vector_norm(self):
         device_mesh = self.build_device_mesh()
 
@@ -689,6 +785,8 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(partial_out.full_tensor(), out)
 
     @with_comms
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_norm(self):
         device_mesh = self.build_device_mesh()
 
@@ -708,6 +806,7 @@ class DistMathOpsTest(DTensorTestBase):
             self.assertEqual(so.full_tensor(), o)
 
     @with_comms
+<<<<<<< HEAD
     def test_foreach_norm_partial(self):
         device_mesh = self.build_device_mesh()
 
@@ -738,6 +837,8 @@ class DistMathOpsTest(DTensorTestBase):
             self.assertEqual(po.full_tensor(), o)
 
     @with_comms
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_norm_different_mesh(self):
         mesh_shape = (2, self.world_size // 2)
         mesh_2d = init_device_mesh(
@@ -764,6 +865,10 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(grad1_norm.device_mesh, mesh_y)
 
     @with_comms
+<<<<<<< HEAD
+=======
+    @skipIfRocm
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_foreach_add_different_mesh(self):
         mesh_shape = (2, self.world_size // 2)
         mesh_2d = init_device_mesh(
@@ -792,7 +897,11 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(out0.device_mesh, mesh_x)
         self.assertEqual(out1.device_mesh, mesh_y)
 
+<<<<<<< HEAD
         with self.assertRaisesRegex(RuntimeError, "Sharding propagation failed"):
+=======
+        with self.assertRaisesRegex(ValueError, "computation across different mesh"):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             torch.ops.aten._foreach_add(
                 [replica_inp00, replica_inp01], [replica_inp10, replica_inp11]
             )
@@ -861,6 +970,7 @@ class DistMathOpsTest(DTensorTestBase):
                     self.assertTrue(output_dtensor.placements[0].is_shard(shard_dim))
                 self.assertEqual(output_dtensor.full_tensor(), output)
 
+<<<<<<< HEAD
     @with_comms
     def test_conj_complex_dtensor(self):
         mesh = self.build_device_mesh()
@@ -1039,6 +1149,8 @@ class DistMathOpsTest(DTensorTestBase):
 DistMathOpsTestWithLocalTensor = create_local_tensor_test_class(
     DistMathOpsTest,
 )
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     run_tests()

@@ -14,7 +14,11 @@ DEFINE_DISPATCH(index_put_kernel_quantized_stub);
 DEFINE_DISPATCH(index_put_with_sort_quantized_stub);
 
 namespace {
+<<<<<<< HEAD
 TensorIterator make_index_put_iterator(const AdvancedIndex& info, const Tensor& value) {
+=======
+static TensorIterator make_index_put_iterator(const AdvancedIndex& info, const Tensor& value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   TORCH_CHECK(is_expandable_to(value.sizes(), info.src.sizes()), "shape mismatch: value tensor of shape ", value.sizes(),
              " cannot be broadcast to indexing result of shape ", info.src.sizes());
   TensorIteratorConfig config;
@@ -30,7 +34,11 @@ TensorIterator make_index_put_iterator(const AdvancedIndex& info, const Tensor& 
   return config.build();
 }
 
+<<<<<<< HEAD
 Tensor & masked_fill_impl_quantized_cpu(Tensor & self, const Tensor & mask, const Scalar& value) {
+=======
+static Tensor & masked_fill_impl_quantized_cpu(Tensor & self, const Tensor & mask, const Scalar& value) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   NoNamesGuard guard;
   TORCH_CHECK(mask.dtype() == ScalarType::Bool, "masked_fill only supports boolean masks, "
     "but got dtype ", mask.dtype());

@@ -33,7 +33,11 @@ std::atomic<int64_t> defaultNodeId(-1);
 std::atomic<uint64_t> next_thread_id_{0};
 thread_local uint64_t current_thread_id_ = 0;
 
+<<<<<<< HEAD
 constexpr size_t NumRecordScopes =
+=======
+static constexpr size_t NumRecordScopes =
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     static_cast<size_t>(RecordScope::NUM_SCOPES);
 
 RecordFunctionCallbacks::iterator findCallback(
@@ -203,7 +207,11 @@ class LocalCallbackManager {
   // Runtime cache.
   size_t global_version_{GlobalCallbackManager::NoVersion};
   std::array<CacheEntry, NumRecordScopes> active_callbacks_;
+<<<<<<< HEAD
   std::mt19937 generator_;
+=======
+  std::mt19937 generator_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 // ============================================================================
@@ -724,6 +732,7 @@ uint64_t RecordFunction::currentThreadId() {
   return current_thread_id_;
 }
 
+<<<<<<< HEAD
 void RecordFunction::before(RecordFunction::FunctionDescriptor fn, int64_t sequence_nr) {
   std::visit([this](auto&& fn) {
     if constexpr (std::is_same_v<std::decay_t<decltype(fn)>, std::string_view>) {
@@ -735,6 +744,38 @@ void RecordFunction::before(RecordFunction::FunctionDescriptor fn, int64_t seque
     }
   }, fn);
   sequence_nr_ = sequence_nr;
+=======
+void RecordFunction::before(const char* name, int64_t sequence_nr) {
+  fn_ = name;
+  sequence_nr_ = sequence_nr;
+  is_nccl_meta_ = (std::strcmp(name, kParamCommsCallName.c_str()) == 0);
+
+#ifndef NDEBUG
+  inputs_valid_ = true;
+#endif
+  runStartCallbacks();
+  invalidateInputs();
+}
+
+void RecordFunction::before(std::string name, int64_t sequence_nr) {
+  is_nccl_meta_ = (name == kParamCommsCallName);
+  fn_ = std::move(name);
+  sequence_nr_ = sequence_nr;
+
+#ifndef NDEBUG
+  inputs_valid_ = true;
+#endif
+  runStartCallbacks();
+  invalidateInputs();
+}
+
+void RecordFunction::before(
+    RecordFunction::schema_ref_t schema,
+    int64_t sequence_nr) {
+  sequence_nr_ = sequence_nr;
+  fn_ = schema;
+  is_nccl_meta_ = (schema.get().name() == kParamCommsCallName);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #ifndef NDEBUG
   inputs_valid_ = true;

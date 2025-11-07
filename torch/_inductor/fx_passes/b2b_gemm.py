@@ -12,7 +12,10 @@ from ..ir import (
     FixedLayout,
     FlexibleLayout,
     InputBuffer,
+<<<<<<< HEAD
     ShapeAsConstantBuffer,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     StorageBox,
     Subgraph,
     TensorBox,
@@ -122,7 +125,11 @@ b2b_gemm_left_template = TritonTemplate(
     idx_p = offs_p[None, :]
     out_mask = (idx_m < M) & (idx_p < P)
 
+<<<<<<< HEAD
     {{store_output(("idx_m", "idx_p"), "acc", "out_mask", val_shape=("BLOCK_SIZE_M", "BLOCK_SIZE_P"))}}
+=======
+    {{store_output(("idx_m", "idx_p"), "acc", "out_mask")}}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -204,7 +211,11 @@ b2b_gemm_right_template = TritonTemplate(
     idx_p = offs_p[None, :]
     out_mask = (idx_m < M) & (idx_p < P)
 
+<<<<<<< HEAD
     {{store_output(("idx_m", "idx_p"), "acc", "out_mask", val_shape=("BLOCK_SIZE_M", "BLOCK_SIZE_P"))}}
+=======
+    {{store_output(("idx_m", "idx_p"), "acc", "out_mask")}}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 """,
 )
 
@@ -475,7 +486,13 @@ def build_subgraph_buffer(
         elif node.op == "call_function":
             # For call_function we use the default lowerings and pass in the
             # already created TensorBoxes as args
+<<<<<<< HEAD
             args, kwargs = tree_map(lambda x: env.get(x, x), (node.args, node.kwargs))
+=======
+            args, kwargs = tree_map(
+                lambda x: env[x] if x in env else x, (node.args, node.kwargs)
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             env[node] = lowerings[node.target](*args, **kwargs)
         elif node.op == "output":
 
@@ -492,12 +509,19 @@ def build_subgraph_buffer(
                     "The output node for B2B-GEMM's subgraph must be a StorageBox, but got: ",
                     type(output_buffer),
                 )
+<<<<<<< HEAD
                 device = output_buffer.data.get_device()
                 assert device is not None
                 subgraph_buffer = ComputedBuffer(
                     name=None,
                     layout=FlexibleLayout(
                         device=device,
+=======
+                subgraph_buffer = ComputedBuffer(
+                    name=None,
+                    layout=FlexibleLayout(
+                        device=output_buffer.data.get_device(),
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         dtype=output_buffer.data.get_dtype(),
                         size=output_buffer.data.get_size(),
                     ),
@@ -513,7 +537,11 @@ def build_subgraph_buffer(
 
 def create_placeholder(
     name: str, dtype: torch.dtype, device: torch.device
+<<<<<<< HEAD
 ) -> TensorBox | ShapeAsConstantBuffer:
+=======
+) -> TensorBox:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """
     Creates a placeholder input buffers for producing subgraph_output
     """
@@ -539,11 +567,16 @@ def tuned_b2b_gemm(
         A.get_dtype(),
         [A.shape[0], C.shape[1]],  # type: ignore[index]
     )
+<<<<<<< HEAD
     placeholders = [
         create_placeholder("inner_mm", A.get_dtype(), A.get_device_or_error())
     ]
     subgraph_buffer = build_subgraph_buffer(
         placeholders,  # type: ignore[arg-type, list-item]
+=======
+    subgraph_buffer = build_subgraph_buffer(
+        [create_placeholder("inner_mm", A.get_dtype(), A.get_device_or_error())],
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         subgraph,
     )
     choices: list[TritonTemplateCaller] = []
@@ -577,7 +610,10 @@ def tuned_b2b_gemm(
 # match the inner mm of a potential b2b_gemm
 @register_graph_pattern(
     CallFunction(torch.ops.aten.mm, Arg(), Arg()),
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     pass_dict=B2B_GEMM_PASS,
 )
 def b2b_gemm_handler(match: Match, mat1: torch.fx.Node, mat2: torch.fx.Node) -> None:
@@ -689,12 +725,19 @@ def b2b_gemm_handler(match: Match, mat1: torch.fx.Node, mat2: torch.fx.Node) -> 
     for node in graph.nodes:  # preserve the order of nodes
         if node in subgraph_node_set:
             subgraph_node_list.append(node)
+<<<<<<< HEAD
             new_node = new_graph.node_copy(node, lambda x: node_remapping.get(x, x))
+=======
+            new_node = new_graph.node_copy(
+                node, lambda x: node_remapping[x] if x in node_remapping else x
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             node_remapping[node] = new_node
             if node is inner_mm:
                 new_input_anchor = new_node
             if node is f_node:
                 new_output_anchor = new_node
+<<<<<<< HEAD
     # pyrefly: ignore [unbound-name]
     if new_input_anchor is not new_output_anchor:  # subgraph is non-trivial
         # update the input node
@@ -722,6 +765,24 @@ def b2b_gemm_handler(match: Match, mat1: torch.fx.Node, mat2: torch.fx.Node) -> 
             # pyrefly: ignore [unbound-name]
             new_input_anchor.replace_all_uses_with(new_input_node)
         # pyrefly: ignore [unbound-name]
+=======
+    if new_input_anchor is not new_output_anchor:  # subgraph is non-trivial
+        # update the input node
+        with new_graph.inserting_before(new_input_anchor):
+            new_input_node = new_graph.placeholder(name="subgraph_input")
+            new_input_node.meta.update(new_input_anchor.meta)
+            new_input_anchor.replace_all_uses_with(new_input_node)
+        new_graph.erase_node(new_input_anchor)
+        # add the output node
+        new_output_node = new_graph.output(new_output_anchor)
+        new_output_node.meta.update(new_output_anchor.meta)
+    else:  # subgraph is trivial, e.g. (A @ (B @ C))
+        # update the input node
+        with new_graph.inserting_before(new_input_anchor):
+            new_input_node = new_graph.placeholder(name="subgraph_input")
+            new_input_node.meta.update(new_input_anchor.meta)
+            new_input_anchor.replace_all_uses_with(new_input_node)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         new_graph.erase_node(new_input_anchor)
         # update the output node (don't use new_output_anchor since it has been erased)
         new_output_node = new_graph.output(new_input_node)

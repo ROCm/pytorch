@@ -4,11 +4,18 @@ import copy
 import logging
 import operator
 from collections import defaultdict
+<<<<<<< HEAD
 from collections.abc import Callable
 from enum import Enum
 from inspect import Parameter, Signature, signature
 from types import MethodType
 from typing import Any, Optional, Union
+=======
+from enum import Enum
+from inspect import Parameter, Signature, signature
+from types import MethodType
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.fx as fx
@@ -36,6 +43,7 @@ logger = logging.getLogger(__name__)
 # 2. Add parameter movement to split_module
 
 
+<<<<<<< HEAD
 PP_SUBMOD_PREFIX = "submod_pp"
 
 
@@ -46,6 +54,8 @@ def get_submod_name(stage_idx: int):
     return "_".join([PP_SUBMOD_PREFIX, str(stage_idx)])
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def _find_loss_from_output_and_spec(output_val, spec_val):
     if spec_val is False:
         return None
@@ -189,7 +199,11 @@ def _insert_stage_symbolic_backward(
                 output_grads: Union[tuple[Optional[fx.Node], ...], Optional[fx.Node]]
                 if node in tuples:
                     stage_output = tuples[node]
+<<<<<<< HEAD
                     output_grads = tuple(val_to_grad.get(n) for n in tuples[node])
+=======
+                    output_grads = tuple(val_to_grad.get(n, None) for n in tuples[node])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     outputs_with_grads_idxs = [
                         i for i, n in enumerate(tuples[node]) if n in live_nodes
                     ]
@@ -282,7 +296,10 @@ class LossWrapper(torch.nn.Module):
 
 
 class TrivialLossWrapper(LossWrapper):
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(self, x, targets):
         model_out = self.module(x)
         return self.loss_fn(model_out, targets)
@@ -391,7 +408,11 @@ class DetachExecutor(fx.Interpreter):
 
         """
         def dont_traverse_size(a):
+<<<<<<< HEAD
             return type(a) is not torch.Size
+=======
+            return type(a) != torch.Size
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
 
         args = map_aggregate(
@@ -605,7 +626,11 @@ class Pipe(torch.nn.Module):
         i = 0
         while True:
             try:
+<<<<<<< HEAD
                 name = get_submod_name(i)
+=======
+                name = f"submod_{i}"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 submod = getattr(self.split_gm, name)
                 submod.__class__.__reduce__ = _direct_serialization_reduce
                 i += 1
@@ -651,17 +676,26 @@ class Pipe(torch.nn.Module):
         """
         if stage_idx < 0 or stage_idx >= self.num_stages:
             raise ValueError(f"Invalid stage index {stage_idx}!")
+<<<<<<< HEAD
 
         submod_name = get_submod_name(stage_idx)
         return getattr(self.split_gm, submod_name)
+=======
+        return getattr(self.split_gm, f"submod_{stage_idx}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @staticmethod
     def _number_and_count_forward_stages(gm: fx.GraphModule):
         num_stages = 0
         found_idxs: dict[int, None] = {}
         for node in gm.graph.nodes:
+<<<<<<< HEAD
             if node.op == "call_module" and node.target.startswith(PP_SUBMOD_PREFIX):
                 node.meta["stage_idx"] = int(node.target[len(PP_SUBMOD_PREFIX) + 1 :])
+=======
+            if node.op == "call_module" and node.target.startswith("submod_"):
+                node.meta["stage_idx"] = int(node.target[len("submod_") :])
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 found_idxs.setdefault(node.meta["stage_idx"])
                 num_stages += 1
 
@@ -695,7 +729,11 @@ class Pipe(torch.nn.Module):
         ``output_loss_value_spec={'loss': True, 'model_out': False}``
         """
 
+<<<<<<< HEAD
         traced = exported_program.module(check_guards=False)
+=======
+        traced = exported_program.module()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         if split_policy is not None:
             logger.info("Auto-splitting model")
@@ -743,7 +781,11 @@ class Pipe(torch.nn.Module):
 
         # TODO: what does split do with module invocations? does it move the modules
         # into the submodules?
+<<<<<<< HEAD
         split = split_module(traced, mod, split_callback, partition_affix="pp")  # type: ignore[arg-type]
+=======
+        split = split_module(traced, mod, split_callback)  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         # a (custom) tracer can produce dead code like orphan get_attr nodes
         split.graph.eliminate_dead_code()
 
@@ -1016,7 +1058,13 @@ class Pipe(torch.nn.Module):
     ) -> ExportedProgram:
         logger.info("Tracing model ...")
         try:
+<<<<<<< HEAD
             ep = torch.export.export(mod, example_args, example_kwargs)
+=======
+            ep = torch.export.export_for_training(
+                mod, example_args, example_kwargs, strict=True
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         except Exception as e:
             raise RuntimeError(
                 "It seems that we cannot capture your model as a full graph. "

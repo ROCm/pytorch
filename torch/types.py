@@ -12,12 +12,18 @@ from builtins import (  # noqa: F401
     str as _str,
 )
 from collections.abc import Sequence
+<<<<<<< HEAD
 from typing import Any, IO, TYPE_CHECKING, TypeAlias, Union
 from typing_extensions import Self
+=======
+from typing import Any, IO, TYPE_CHECKING, Union
+from typing_extensions import Self, TypeAlias
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 # `as` imports have better static analysis support than assignment `ExposedType: TypeAlias = HiddenType`
 from torch import (  # noqa: F401
     device as _device,
+<<<<<<< HEAD
     DispatchKey,
     dtype as _dtype,
     layout as _layout,
@@ -27,6 +33,17 @@ from torch import (  # noqa: F401
     SymFloat,
     SymInt,
     Tensor,
+=======
+    DispatchKey as DispatchKey,
+    dtype as _dtype,
+    layout as _layout,
+    qscheme as _qscheme,
+    Size as Size,
+    SymBool as SymBool,
+    SymFloat as SymFloat,
+    SymInt as SymInt,
+    Tensor as Tensor,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 )
 
 

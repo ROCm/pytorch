@@ -4,8 +4,12 @@ circular dependencies.
 """
 
 import functools
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional, overload, TypeVar, Union
+=======
+from typing import Callable, Literal, Optional, overload, TypeVar, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 
@@ -21,7 +25,11 @@ def _disable_dynamo(
 
 @overload
 def _disable_dynamo(
+<<<<<<< HEAD
     fn: None = None, recursive: bool = True
+=======
+    fn: Literal[None] = None, recursive: bool = True
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ) -> Callable[[Callable[_P, _T]], Callable[_P, _T]]: ...
 
 

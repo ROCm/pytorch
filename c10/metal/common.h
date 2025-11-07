@@ -2,6 +2,7 @@
 // Set of global constants that could be shareable between CPU and Metal code
 
 #ifdef __METAL__
+<<<<<<< HEAD
 #include <metal_array>
 #define C10_METAL_CONSTEXPR constant constexpr
 #else
@@ -9,6 +10,14 @@
 #define C10_METAL_CONSTEXPR constexpr
 #endif
 
+=======
+#define C10_METAL_CONSTEXPR constant constexpr
+#else
+#define C10_METAL_CONSTEXPR constexpr
+#endif
+
+#if !defined(__METAL__) || __METAL_VERSION__ >= 310
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #define C10_METAL_ALL_TYPES_FUNCTOR(_) \
   _(Byte, 0)                           \
   _(Char, 1)                           \
@@ -21,10 +30,27 @@
   _(ComplexFloat, 9)                   \
   _(Bool, 11)                          \
   _(BFloat16, 15)
+<<<<<<< HEAD
+=======
+#else
+#define C10_METAL_ALL_TYPES_FUNCTOR(_) \
+  _(Byte, 0)                           \
+  _(Char, 1)                           \
+  _(Short, 2)                          \
+  _(Int, 3)                            \
+  _(Long, 4)                           \
+  _(Half, 5)                           \
+  _(Float, 6)                          \
+  _(ComplexHalf, 8)                    \
+  _(ComplexFloat, 9)                   \
+  _(Bool, 11)
+#endif
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace c10 {
 namespace metal {
 C10_METAL_CONSTEXPR unsigned max_ndim = 16;
+<<<<<<< HEAD
 C10_METAL_CONSTEXPR unsigned simdgroup_size = 32;
 
 #ifdef __METAL__
@@ -34,6 +60,8 @@ using array = ::metal::array<T, N>;
 template <typename T, unsigned N>
 using array = std::array<T, N>;
 #endif
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 enum class ScalarType {
 #define _DEFINE_ENUM_VAL_(_v, _n) _v = _n,

@@ -68,18 +68,30 @@ namespace at::functorch {
 
 namespace{
 // PyTorch allows operations to specify dim 0 and dim -1 on a scalar tensor.
+<<<<<<< HEAD
 bool is_allowed_dim_on_scalar_tensor(int64_t dim) {
   return dim == 0 || dim == -1;
 }
 
 int64_t get_current_level() {
+=======
+static bool is_allowed_dim_on_scalar_tensor(int64_t dim) {
+  return dim == 0 || dim == -1;
+}
+
+static int64_t get_current_level() {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto maybe_level = maybeCurrentDynamicLayer();
   TORCH_INTERNAL_ASSERT(maybe_level.has_value());
   return maybe_level->layerId();
 }
 
 // This check should probably go into the dispatcher...
+<<<<<<< HEAD
 bool participatesInCurrentLevel(const Tensor& self) {
+=======
+static bool participatesInCurrentLevel(const Tensor& self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto current_level = get_current_level();
   auto* maybe_batched_impl = maybeGetBatchedImpl(self);
   if (!maybe_batched_impl) {
@@ -90,7 +102,11 @@ bool participatesInCurrentLevel(const Tensor& self) {
   return self_level == current_level;
 }
 
+<<<<<<< HEAD
 bool participatesInCurrentLevel(ITensorListRef self) {
+=======
+static bool participatesInCurrentLevel(ITensorListRef self) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const Tensor& tensor : self) {
     if (participatesInCurrentLevel(tensor)) {
       return true;
@@ -285,7 +301,11 @@ std::vector<Tensor> unbind_batching_rule(const Tensor& self, int64_t dim) {
 // given (sizes, strides, storage_offset) returns the maximum location that
 // can be indexed (or nullopt if such a location doesn't exist, e.g., tensors
 // with zero-size dims).
+<<<<<<< HEAD
 std::optional<c10::SymInt> maximum_indexable_location(
+=======
+static std::optional<c10::SymInt> maximum_indexable_location(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     c10::SymIntArrayRef sizes, c10::SymIntArrayRef strides, const c10::SymInt& storage_offset) {
   auto result = native::storage_size_for(sizes, strides);
   if (result == 0) {
@@ -298,7 +318,11 @@ std::optional<c10::SymInt> maximum_indexable_location(
 // This checks that the range of possible memory locations accessible by
 // x.as_strided(sizes, strides, maybe_storage_offset)
 // are within the bounds of possible memory locations accessible by x.
+<<<<<<< HEAD
 void checkBasicAsStridedValidForSlice(
+=======
+static void checkBasicAsStridedValidForSlice(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     const Tensor& physical_tensor,
     int64_t num_batch_dims,
     c10::SymIntArrayRef sizes,
@@ -733,7 +757,11 @@ TORCH_LIBRARY_IMPL(_, FuncTorchBatched, m) {
 }
 
 TORCH_LIBRARY_IMPL(aten, FuncTorchBatched, m) {
+<<<<<<< HEAD
   // still legacy b/c returns multiple tensors
+=======
+  // still legacy b/c teturns multiple tensors
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   m.impl("split.Tensor", split_batching_rule);
   m.impl("split_with_sizes", split_with_sizes_batching_rule);
   m.impl("split_with_sizes_copy", split_with_sizes_copy_batching_rule);

@@ -2,7 +2,11 @@
 r"""Dynamically quantized convolution modules."""
 
 import warnings
+<<<<<<< HEAD
 from typing import ClassVar, Literal, Optional
+=======
+from typing import ClassVar, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.ao.nn.quantized as nnq
@@ -62,19 +66,30 @@ class Conv1d(nnq.Conv1d):
         dilation: _size_1_t = 1,
         groups: int = 1,
         bias: bool = True,
+<<<<<<< HEAD
         padding_mode: Literal["zeros", "reflect", "replicate", "circular"] = "zeros",
+=======
+        padding_mode: str = "zeros",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         device=None,
         dtype=None,
         reduce_range=True,
     ):
         warnings.warn(
+<<<<<<< HEAD
             f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended",  # noqa: B950
             stacklevel=2,
+=======
+            f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         factory_kwargs = {"device": device, "dtype": dtype}
         kernel_size = _single(kernel_size)
         stride = _single(stride)
+<<<<<<< HEAD
         # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         padding = padding if isinstance(padding, str) else _single(padding)
         dilation = _single(dilation)
 
@@ -156,8 +171,12 @@ class Conv2d(nnq.Conv2d):
     ):
         warnings.warn(
             f"The current implementation of the {self._get_name()} module "
+<<<<<<< HEAD
             "has poor numerical accuracy and its use is not recommended",
             stacklevel=2,
+=======
+            "has poor numerical accuracy and its use is not recommended"
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         factory_kwargs = {"device": device, "dtype": dtype}
         kernel_size = _pair(kernel_size)
@@ -241,8 +260,12 @@ class Conv3d(nnq.Conv3d):
         dtype=None,
     ):
         warnings.warn(
+<<<<<<< HEAD
             f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended",  # noqa: B950
             stacklevel=2,
+=======
+            f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         assert padding_mode != "reflect", "Conv3d does not support reflection padding"
         factory_kwargs = {"device": device, "dtype": dtype}
@@ -333,8 +356,12 @@ class ConvTranspose1d(nnq.ConvTranspose1d):
         dtype=None,
     ):
         warnings.warn(
+<<<<<<< HEAD
             f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended",  # noqa: B950
             stacklevel=2,
+=======
+            f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__(
@@ -416,8 +443,12 @@ class ConvTranspose2d(nnq.ConvTranspose2d):
         dtype=None,
     ):
         warnings.warn(
+<<<<<<< HEAD
             f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended",  # noqa: B950
             stacklevel=2,
+=======
+            f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__(
@@ -499,8 +530,12 @@ class ConvTranspose3d(nnq.ConvTranspose3d):
         dtype=None,
     ):
         warnings.warn(
+<<<<<<< HEAD
             f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended",  # noqa: B950
             stacklevel=2,
+=======
+            f"The current implementation of the {self._get_name()} module has poor numerical accuracy and its use is not recommended"  # noqa: B950
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         factory_kwargs = {"device": device, "dtype": dtype}
         super().__init__(

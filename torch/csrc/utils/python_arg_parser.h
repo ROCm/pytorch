@@ -39,7 +39,10 @@
 //      Scalar and Tensor, UNLESS they require grad (in which case
 //      they only bind to Tensor).
 
+<<<<<<< HEAD
 #include <fmt/format.h>
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <pybind11/pytypes.h>
 #include <torch/csrc/python_headers.h>
 
@@ -89,7 +92,11 @@ inline bool THPUtils_checkScalar(PyObject* obj) {
   }
 #endif
   return PyFloat_Check(obj) || PyLong_Check(obj) || PyComplex_Check(obj) ||
+<<<<<<< HEAD
       torch::is_symint(py::handle(obj)) || torch::is_dynint(py::handle(obj)) ||
+=======
+      torch::is_symint(py::handle(obj)) ||
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       torch::is_symfloat(py::handle(obj)) || torch::is_symbool(py::handle(obj));
 }
 
@@ -322,12 +329,15 @@ struct FunctionParameter {
       int argnum,
       int64_t* failed_idx = nullptr);
 
+<<<<<<< HEAD
   bool _check(
       PyObject* obj,
       std::vector<PyObject*>& overloaded_args,
       int argnum,
       int64_t* failed_idx = nullptr);
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   void set_default_str(const std::string& str);
   TORCH_PYTHON_API std::string type_name() const;
 
@@ -497,9 +507,13 @@ inline std::array<at::Tensor, N> PythonArgs::tensorlist_n(int i) {
   // NOLINTNEXTLINE(bugprone-branch-clone)
   auto size = tuple ? PyTuple_GET_SIZE(arg.get()) : PyList_GET_SIZE(arg.get());
   if (size != N) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format("expected tuple of {} elements but got {}", N, size));
+=======
+    throw TypeError("expected tuple of %d elements but got %d", N, (int)size);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   for (const auto idx : c10::irange(size)) {
     PyObject* obj = tuple ? PyTuple_GET_ITEM(arg.get(), idx)
@@ -537,6 +551,7 @@ inline void throw_intlist_exception(
       ? e.what()
       : std::string("type must be ") + args->signature.params[i].type_name() +
           ",but got " + Py_TYPE(obj)->tp_name;
+<<<<<<< HEAD
   TORCH_CHECK_TYPE(
       false,
       fmt::format(
@@ -545,6 +560,14 @@ inline void throw_intlist_exception(
           args->signature.params[i].name,
           idx + 1,
           error));
+=======
+  throw TypeError(
+      "%s(): argument '%s' failed to unpack the object at pos %zu with error \"%s\"",
+      args->signature.name.c_str(),
+      args->signature.params[i].name.c_str(),
+      idx + 1,
+      error.c_str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline std::vector<c10::SymInt> PythonArgs::symintlist(int i) {
@@ -612,8 +635,11 @@ inline std::vector<c10::SymInt> PythonArgs::symintlist(int i) {
         try {
           if (is_symint(py::handle(obj))) {
             res.push_back(py::handle(obj).cast<c10::SymInt>());
+<<<<<<< HEAD
           } else if (is_dynint(py::handle(obj))) {
             res.push_back(py::handle(obj).cast<int>());
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           } else {
             res.emplace_back(THPUtils_unpackIndex(obj));
           }
@@ -642,9 +668,12 @@ inline std::vector<int64_t> PythonArgs::intlistWithDefault(
         size1,
         py::handle(arg).cast<c10::SymInt>().guard_int(__FILE__, __LINE__));
   }
+<<<<<<< HEAD
   if (size1 > 0 && torch::is_dynint(py::handle(arg))) {
     return std::vector<int64_t>(size1, py::handle(arg).cast<int>());
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto tuple = PyTuple_Check(arg);
   // NOLINTNEXTLINE(bugprone-branch-clone)
   const auto size2 = tuple ? PyTuple_GET_SIZE(arg) : PyList_GET_SIZE(arg);
@@ -677,8 +706,11 @@ inline std::vector<int64_t> PythonArgs::intlistWithDefault(
       } else if (torch::is_symint(py::handle(obj))) {
         res[idx] = py::cast<c10::SymInt>(py::handle(obj))
                        .guard_int(__FILE__, __LINE__);
+<<<<<<< HEAD
       } else if (torch::is_dynint(py::handle(obj))) {
         res[idx] = py::handle(obj).cast<int>();
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       } else if (THPVariable_Check(obj)) {
         auto& var = THPVariable_Unpack(obj);
         if (var.numel() != 1 ||
@@ -730,6 +762,7 @@ inline std::vector<double> PythonArgs::getDoublelist(int i) {
         res[idx] = THPUtils_unpackDouble(obj);
       }
     } catch (const std::exception&) {
+<<<<<<< HEAD
       TORCH_CHECK_TYPE(
           false,
           fmt::format(
@@ -739,6 +772,15 @@ inline std::vector<double> PythonArgs::getDoublelist(int i) {
               signature.params[i].type_name(),
               Py_TYPE(obj)->tp_name,
               idx + 1));
+=======
+      throw TypeError(
+          "%s(): argument '%s' must be %s, but found element of type %s at pos %zu",
+          signature.name.c_str(),
+          signature.params[i].name.c_str(),
+          signature.params[i].type_name().c_str(),
+          Py_TYPE(obj)->tp_name,
+          idx + 1);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
   }
   return res;
@@ -853,10 +895,13 @@ inline at::Device toDevice(PyObject* obj) {
         py::cast<c10::SymInt>(py::handle(obj)).guard_int(__FILE__, __LINE__);
     return deviceFromLong(device_index);
   }
+<<<<<<< HEAD
   if (torch::is_dynint(py::handle(obj))) {
     auto device_index = py::cast<int>(py::handle(obj));
     return deviceFromLong(device_index);
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   const std::string& device_str = THPUtils_unpackString(obj);
   return at::Device(device_str);
 }
@@ -993,9 +1038,12 @@ inline int64_t PythonArgs::toInt64(int i) {
     return py::cast<c10::SymInt>(py::handle(args[i]))
         .guard_int(__FILE__, __LINE__);
   }
+<<<<<<< HEAD
   if (torch::is_dynint(py::handle(args[i]))) {
     return py::cast<int>(py::handle(args[i]));
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_unpackLong(args[i]);
 }
 
@@ -1069,13 +1117,17 @@ inline double PythonArgs::toDouble(int i) {
     return static_cast<double>(py::cast<c10::SymInt>(py::handle(args[i]))
                                    .guard_int(__FILE__, __LINE__));
   }
+<<<<<<< HEAD
   if (torch::is_dynint(py::handle(args[i]))) {
     return static_cast<double>(py::cast<int>(py::handle(args[i])));
   }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   return THPUtils_unpackDouble(args[i]);
 }
 
 inline bool PythonArgs::toBool(int i) {
+<<<<<<< HEAD
   if (!args[i]) {
     return signature.params[i].default_bool;
   }
@@ -1085,11 +1137,19 @@ inline bool PythonArgs::toBool(int i) {
   if (args[i] == Py_False) {
     return false;
   }
+=======
+  if (!args[i])
+    return signature.params[i].default_bool;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   if (torch::is_symbool(py::handle(args[i]))) {
     return py::cast<c10::SymBool>(py::handle(args[i]))
         .guard_bool(__FILE__, __LINE__);
   }
+<<<<<<< HEAD
   return false;
+=======
+  return args[i] == Py_True;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 inline double PythonArgs::toDoubleWithDefault(int i, double default_double) {
@@ -1156,10 +1216,15 @@ inline c10::Stream PythonArgs::stream(int i) {
     return c10::Stream(
         c10::Stream::Default::DEFAULT, c10::Device(c10::DeviceType::CPU, -1));
   if (!THPStream_Check(args[i])) {
+<<<<<<< HEAD
     TORCH_CHECK_TYPE(
         false,
         fmt::format(
             "expected Stream object. Got '{}'", Py_TYPE(args[i])->tp_name));
+=======
+    throw TypeError(
+        "expected Stream object. Got '%s'", Py_TYPE(args[i])->tp_name);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   return c10::Stream::unpack3(
       ((THPStream*)args[i])->stream_id,

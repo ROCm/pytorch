@@ -96,16 +96,28 @@ struct CUDAGraph;
 struct CUDAGeneratorState : public c10::intrusive_ptr_target {
   uint64_t seed_;
   uint64_t philox_offset_per_thread_;
+<<<<<<< HEAD
   uint64_t offset_intragraph_;
   bool capturing_{};
   std::unordered_set<cuda::CUDAGraph*> registered_graphs_;
   at::TensorBase seed_extragraph_;
   at::TensorBase offset_extragraph_;
+=======
+  uint32_t offset_intragraph_;
+  bool capturing_{};
+  std::unordered_set<cuda::CUDAGraph*> registered_graphs_;
+  at::TensorBase seed_extragraph_{};
+  at::TensorBase offset_extragraph_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
   CUDAGeneratorState(
       uint64_t seed = default_rng_seed_val,
       uint64_t philox_offset_per_thread = 0,
+<<<<<<< HEAD
       uint64_t offset_intragraph = 0)
+=======
+      uint32_t offset_intragraph = 0)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       : seed_(seed),
         philox_offset_per_thread_(philox_offset_per_thread),
         offset_intragraph_(offset_intragraph) {}
@@ -167,7 +179,11 @@ struct TORCH_CUDA_CPP_API CUDAGeneratorImpl : public c10::GeneratorImpl {
   CUDAGeneratorImpl* clone_impl() const override;
 
   c10::intrusive_ptr<CUDAGeneratorState> state_;
+<<<<<<< HEAD
   std::atomic_flag no_reset_rnn_state_;
+=======
+  std::atomic_flag no_reset_rnn_state_{};
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 };
 
 namespace cuda::detail {

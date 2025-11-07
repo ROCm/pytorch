@@ -167,12 +167,21 @@ Value* TracingState::getValue(const IValue& var) {
     // Didn't find it. Bake in a constant
     if (ten.requires_grad()) {
       pauseTracing();
+<<<<<<< HEAD
       TORCH_CHECK(
           false,
           "Cannot insert a Tensor that requires grad as a constant. ",
           "Consider making it a parameter or input, or detaching the gradient\n",
           "Tensor:\n",
           ten);
+=======
+      std::ostringstream oss;
+      oss << "Cannot insert a Tensor that requires grad as a constant. "
+          << "Consider making it a parameter or input, or detaching the gradient\n"
+          << "Tensor:\n"
+          << ten;
+      throw std::runtime_error(oss.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
 
     Value* constant = graph->insertConstant(ten);
@@ -208,6 +217,7 @@ Value* TracingState::getValue(const IValue& var) {
       }
     }
 
+<<<<<<< HEAD
     if (var.isFuture()) {
       TORCH_CHECK(
           false,
@@ -221,6 +231,17 @@ Value* TracingState::getValue(const IValue& var) {
           " must be registered as submodules of the thing being traced.");
     }
 
+=======
+    std::ostringstream oss;
+    if (var.isFuture()) {
+      oss << "Tried to trace Future or Object that the tracer was not aware of.";
+    } else {
+      oss << "Tried to trace " << var
+          << " but it is not part of the active trace. Modules that are called during a trace"
+          << " must be registered as submodules of the thing being traced.";
+    }
+    throw std::runtime_error(oss.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   } else {
     // If the values are non-tensors, we try to create constants
     // and bake those constants into the traced graph
@@ -229,12 +250,20 @@ Value* TracingState::getValue(const IValue& var) {
       recordSourceLocation(constant.value()->node());
       return *constant;
     }
+<<<<<<< HEAD
     TORCH_CHECK(
         false,
         "Tracer cannot get value trace for type ",
         var.tagKind(),
         ". The below value could not be materialized as a constant:\n",
         var);
+=======
+    std::ostringstream os;
+    os << "Tracer cannot get value trace for type " << var.tagKind() << ". "
+       << "The below value could not be materialized as a constant:\n"
+       << var;
+    throw std::runtime_error(os.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 bool TracingState::hasValue(const IValue& var) const {
@@ -257,6 +286,7 @@ Value* TracingState::getOutput(const IValue& iv, size_t i) {
 
     auto& value_map = getTracingState()->env_stack.back();
     auto it = value_map.find(iv);
+<<<<<<< HEAD
     TORCH_CHECK(
         it != value_map.end(),
         "output ",
@@ -265,6 +295,17 @@ Value* TracingState::getOutput(const IValue& iv, size_t i) {
         var,
         ") of traced region did not have observable data dependence with trace inputs; ",
         "this probably indicates your program cannot be understood by the tracer.");
+=======
+    if (it == value_map.end()) {
+      std::ostringstream os;
+      os << "output " << i << " (" << var
+         << ") of traced region did not have observable "
+         << "data dependence with trace inputs; this probably indicates your "
+            "program "
+         << "cannot be understood by the tracer.";
+      throw std::runtime_error(os.str());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     return it->second;
   } else if (iv.isTensorList()) {
     if (tracing_mode_strict) {
@@ -285,10 +326,18 @@ Value* TracingState::getOutput(const IValue& iv, size_t i) {
     graph->insertNode(tuple_node);
     return tuple_node->output();
   } else if (iv.isGenericDict()) {
+<<<<<<< HEAD
     TORCH_CHECK(
         !tracing_mode_strict,
         "Encountering a dict at the output of the tracer",
         STRICT_TRACER_MSG);
+=======
+    if (tracing_mode_strict) {
+      throw std::runtime_error(
+          "Encountering a dict at the output of the tracer" +
+          std::string(STRICT_TRACER_MSG));
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto dict = iv.toGenericDict();
     TypePtr key_type = dict.keyType();
     TypePtr value_type = dict.valueType();
@@ -307,6 +356,7 @@ Value* TracingState::getOutput(const IValue& iv, size_t i) {
         }
       }
     }
+<<<<<<< HEAD
     TORCH_CHECK(
         key_type_valid && value_type_valid,
         "output ",
@@ -316,6 +366,17 @@ Value* TracingState::getOutput(const IValue& iv, size_t i) {
         ") of traced region cannot be understood by the tracer, only outputs matching ",
         "dict[Union[str, Tensor], Union[Tensor, Tuple[Tensor, ...]]] ",
         "can be a dictionary output of a traced function");
+=======
+
+    if (!key_type_valid || !value_type_valid) {
+      std::ostringstream os;
+      os << "output " << i << " (" << dict << ") of traced region "
+         << "cannot be understood by the tracer, only outputs matching"
+         << "dict[Union[str, Tensor], Union[Tensor, Tuple[Tensor, ...]]] "
+         << "can be a dictionary output of a traced function";
+      throw std::runtime_error(os.str());
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     std::vector<Value*> keys;
     std::vector<Value*> values;
     for (const auto& entry : dict) {
@@ -560,7 +621,11 @@ void TracingState::setValue(const IValue& v, Value* value) {
 
     // If the value comes from a CallFunction or CallMethod, it may not have
     // shape information attached. For debuggability, we enhance the type
+<<<<<<< HEAD
     // information by assigning the concrete value's type to the jit::Value.
+=======
+    // information by assigning the concrete value's tupe to the jit::Value.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (auto tensor_type = value->type()->cast<TensorType>()) {
       if (!tensor_type->isComplete()) {
         value->inferTypeFrom(var);
@@ -601,11 +666,18 @@ void TracingState::setValue(const IValue& v, Value* value) {
       setValue(entry.value(), static_value);
     }
   } else {
+<<<<<<< HEAD
     TORCH_CHECK(
         false,
         "Tracer cannot set value trace for type ",
         v.tagKind(),
         ". Supported types are tensor, tensor list, and tuple of tensors.");
+=======
+    std::ostringstream os;
+    os << "Tracer cannot set value trace for type " << v.tagKind() << ". "
+       << "Supported types are tensor, tensor list, and tuple of tensors.";
+    throw std::runtime_error(os.str());
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 }
 
@@ -805,10 +877,18 @@ void addInputs(Node* n, const char* name, at::IntArrayRef value) {
     recordSourceLocation(info[i]->node());
   }
   for (jit::Value* v : info) {
+<<<<<<< HEAD
     TORCH_CHECK(
         *v->type() == *jit::IntType::get(),
         "Type mismatch in setposattr for IntArrayRef. Check that your program "
         "is valid without tracing, and please file a bug report if it is.");
+=======
+    if (*v->type() != *jit::IntType::get()) {
+      throw std::runtime_error(
+          "Type mismatch in setposattr for IntArrayRef. Check that your program "
+          "is valid without tracing, and please file a bug report if it is.");
+    }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   n->addInput(
       g->insertNode(g->createList(jit::IntType::get(), info))->output());

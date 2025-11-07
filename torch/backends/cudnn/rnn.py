@@ -12,6 +12,7 @@ except ImportError:
 
 def get_cudnn_mode(mode):
     if mode == "RNN_RELU":
+<<<<<<< HEAD
         # pyrefly: ignore [missing-attribute]
         return int(_cudnn.RNNMode.rnn_relu)
     elif mode == "RNN_TANH":
@@ -22,6 +23,14 @@ def get_cudnn_mode(mode):
         return int(_cudnn.RNNMode.lstm)
     elif mode == "GRU":
         # pyrefly: ignore [missing-attribute]
+=======
+        return int(_cudnn.RNNMode.rnn_relu)
+    elif mode == "RNN_TANH":
+        return int(_cudnn.RNNMode.rnn_tanh)
+    elif mode == "LSTM":
+        return int(_cudnn.RNNMode.lstm)
+    elif mode == "GRU":
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return int(_cudnn.RNNMode.gru)
     else:
         raise Exception(f"Unknown mode: {mode}")  # noqa: TRY002
@@ -60,7 +69,10 @@ def init_dropout_state(dropout, train, dropout_seed, dropout_state):
                     dropout_p,
                     train,
                     dropout_seed,
+<<<<<<< HEAD
                     # pyrefly: ignore [unexpected-keyword]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     self_ty=torch.uint8,
                     device=torch.device("cuda"),
                 )

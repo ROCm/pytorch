@@ -2,16 +2,37 @@
 import dataclasses
 import inspect
 import sys
+<<<<<<< HEAD
 from collections.abc import Callable, Iterable, Iterator
 from typing import Any, Literal, Optional, overload, Union
 
 import torch
 import torch.utils._pytree as pytree
 import torchgen
+=======
+import warnings
+from collections.abc import Iterable, Iterator
+from typing import Any, Callable, Union
+
+import torch
+import torch.utils._pytree as pytree
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch import _C, _utils_internal
 from torch._ops import OpOverload
 
 
+<<<<<<< HEAD
+=======
+def warn_deploy(stacklevel=3):
+    warnings.warn(
+        "Python torch.library APIs do nothing under torch::deploy (multipy). "
+        "Please instead use C++ custom operator registration APIs.",
+        RuntimeWarning,
+        stacklevel=stacklevel,
+    )
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 @dataclasses.dataclass
 class Kernel:
     """Models a (function, source location)"""
@@ -75,15 +96,23 @@ def is_builtin(op: OpOverload) -> bool:
     return op.namespace in {"aten", "prim", "prims"}
 
 
+<<<<<<< HEAD
 def is_functional_schema(schema: Any, *, allow_valid_view: bool = False) -> bool:
+=======
+def is_functional_schema(schema: Any) -> bool:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     """Check if the schema is functional.
 
     An operator is functional if:
     - it does not mutate any of its inputs
+<<<<<<< HEAD
     - If no view are allowed
         - it does not return a view on any of its inputs
     - If valid views are allowed
         - it is not a view or a view with a single input Tensor and single output Tensor
+=======
+    - it does not return a view on any of its inputs
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     - it has at least one return
     """
 
@@ -94,6 +123,7 @@ def is_functional_schema(schema: Any, *, allow_valid_view: bool = False) -> bool
         is_non_mutating_view = len(rets) > 0 and any(
             r.alias_info is not None and not r.alias_info.is_write for r in rets
         )
+<<<<<<< HEAD
         num_tensor_inputs = 0
         num_tensor_outputs = 0
 
@@ -119,6 +149,10 @@ def is_functional_schema(schema: Any, *, allow_valid_view: bool = False) -> bool
             return allow_valid_view and (
                 num_tensor_inputs == 1 and num_tensor_outputs == 1
             )
+=======
+        if is_non_mutating_view:
+            return False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if not schema.returns:
             return False
         return True
@@ -162,7 +196,11 @@ def mutates_and_returns_first_arg(op: OpOverload):
     if op.namespace != "aten":
         return False
     schema = op._schema
+<<<<<<< HEAD
     if len(schema.returns) != 1:
+=======
+    if not len(schema.returns) == 1:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         return False
     if schema.returns[0].alias_info is None:
         return False
@@ -368,13 +406,22 @@ def check_aliasing_constraint(name, prev, result, get_module=lambda: "???"):
     """
     custom operators' outputs must not alias any inputs or other outputs.
     """
+<<<<<<< HEAD
     storages = {t.untyped_storage()._cdata for t in prev if isinstance(t, torch.Tensor)}
+=======
+    storages = {id(t.untyped_storage()) for t in prev if isinstance(t, torch.Tensor)}
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     tuple_result = result
     if not isinstance(result, tuple):
         tuple_result = (result,)
     for tensor in iter_tensors(tuple_result, {}):
+<<<<<<< HEAD
         key = tensor.untyped_storage()._cdata
         if tensor.untyped_storage()._cdata in storages:
+=======
+        key = id(tensor.untyped_storage())
+        if id(tensor.untyped_storage()) in storages:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             raise RuntimeError(
                 f"{name} (with implementation in {get_module()}): "
                 f"The output of this custom operator (1) must not "
@@ -459,7 +506,11 @@ class MutationChecker:
                     f"{self.op._name}: for argument '{info.name}': the operator's schema "
                     f"{self.op._schema} specified that "
                     f"the operator {'mutates' if info.is_write else 'does not mutate'} "
+<<<<<<< HEAD
                     f"the argument, but this seems to be empirically wrong. "
+=======
+                    f"the argument, but this seems to be emperically wrong. "
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     f"Please make the schema and operator behavior consistent. "
                     f"You can specify that an operator mutates a Tensor by "
                     f"e.g. changing its schema type from 'Tensor name' to 'Tensor(a!) name'"
@@ -528,6 +579,7 @@ tags_by_priority = [
 ]
 
 
+<<<<<<< HEAD
 # Case 1: with_default=True (or omitted). Return type is guaranteed to be a Tag.
 @overload
 def get_layout_constraint_tag(
@@ -542,6 +594,8 @@ def get_layout_constraint_tag(
 ) -> Optional[_C.Tag]: ...
 
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 def get_layout_constraint_tag(fn, *, with_default=True):
     for tag in tags_by_priority:
         if tag in fn.tags:

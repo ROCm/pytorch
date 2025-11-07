@@ -3,7 +3,10 @@ from __future__ import annotations
 
 import dataclasses
 import re
+<<<<<<< HEAD
 import sys
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from itertools import count, zip_longest
 from typing import Any, Optional, Union
 from typing_extensions import Self
@@ -200,11 +203,14 @@ class DeferredTritonCallWrapper:
         prefix.writeline("}")
 
     def generate_launch_kernel(self, prefix, wrapper, kernel_var_name, params):
+<<<<<<< HEAD
         """
         Generate the GPU kernel launching code.
         This is where all the call args being sorted out and generated.
         If enable_kernel_profile is enabled, all args related information would be packed in this function.
         """
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         triton_meta = params["triton_meta"]
         assert len(self.arg_types) == len(params["def_args"]), (
             self.arg_types,
@@ -217,17 +223,24 @@ class DeferredTritonCallWrapper:
         ]
         arg_types = [arg_type_loookup[name] for name in call_args]
         arg_signatures = [triton_meta["signature"][name] for name in call_args]
+<<<<<<< HEAD
         scratch_spaces = {
             name: params[name]
             for name in ["global_scratch", "profile_scratch"]
             if params.get(name, None) is not None
         }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         call_args_str = wrapper.generate_args_decl(
             prefix,
             call_args,
             arg_types,
             arg_signatures,
+<<<<<<< HEAD
             scratch_spaces=scratch_spaces,
+=======
+            workspace_size=params.get("global_scratch") or 0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
         prefix.writeline(f"void* kernel_args_[] = {{{call_args_str}}};")
         launch_kernel_args = [
@@ -240,6 +253,7 @@ class DeferredTritonCallWrapper:
             "kernel_args_",
             "stream_",
         ]
+<<<<<<< HEAD
         if wrapper.device == "xpu":
             launch_kernel_args.append(str(params["threads_per_warp"]))
 
@@ -396,6 +410,9 @@ class DeferredTritonCallWrapper:
             prefix.writeline("}")
         else:
             prefix.writeline(f"launchKernel({', '.join(launch_kernel_args)});")
+=======
+        prefix.writeline(f"launchKernel({', '.join(launch_kernel_args)});")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 
 class CppWrapperGpu(CppWrapperCpu):
@@ -480,7 +497,11 @@ class CppWrapperGpu(CppWrapperCpu):
                 )
                 self.prefix.splice(
                     f"""
+<<<<<<< HEAD
                     if ((reinterpret_cast<std::uintptr_t>({input_name}.data_ptr()) & ({GPU_ALIGN_BYTES} -1)) != 0) {{
+=======
+                    if ((long({input_name}.data_ptr()) & ({GPU_ALIGN_BYTES} -1)) != 0) {{
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                         AOTI_TORCH_WARN("{warn_msg}");
                         AtenTensorHandle {input_name}_aligned;
                         aoti_torch_clone_preserve_strides({input_name}, &{input_name}_aligned);
@@ -620,7 +641,11 @@ class CppWrapperGpu(CppWrapperCpu):
         arg_types,
         arg_signatures,
         is_triton_kernel=True,
+<<<<<<< HEAD
         scratch_spaces: Optional[dict[str, int]] = None,
+=======
+        workspace_size=0,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Generates any declarations of args to pass into a kernel call, and then returns the arg names.
@@ -738,6 +763,7 @@ class CppWrapperGpu(CppWrapperCpu):
         ):
             process_args(arg, arg_type, arg_signature)
 
+<<<<<<< HEAD
         for scratch_name, workspace_size in (scratch_spaces or {}).items():
             if (
                 is_triton_kernel
@@ -758,6 +784,24 @@ class CppWrapperGpu(CppWrapperCpu):
                 scratch_def, scratch_var = scratch
                 code.writelines([maybe_hipify_code_wrapper(x) for x in scratch_def])
                 new_args.append(f"&{scratch_var}")
+=======
+        if (
+            is_triton_kernel
+            and (
+                global_scratch := self.device_codegen.cpp_global_scratch(
+                    next(self.arg_var_id),
+                    workspace=TritonScratchWorkspace(
+                        size=workspace_size,
+                        generate_dtype_str=(lambda: self.codegen_dtype(torch.uint8)),
+                    ),
+                )
+            )
+            is not None
+        ):
+            global_scratch_def, global_scratch_var = global_scratch
+            code.writelines([maybe_hipify_code_wrapper(x) for x in global_scratch_def])
+            new_args.append(f"&{global_scratch_var}")
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         return ", ".join(new_args)
 
@@ -822,9 +866,13 @@ class CppWrapperGpu(CppWrapperCpu):
 
         if triton:
             call_args, arg_types = self.prepare_triton_wrapper_args(
+<<<<<<< HEAD
                 call_args,
                 # pyrefly: ignore [bad-argument-type]
                 arg_types,
+=======
+                call_args, arg_types
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             wrapper_name = f"call_{kernel_name}"
             if wrapper_name not in self._triton_call_wrappers:
@@ -848,12 +896,18 @@ class CppWrapperGpu(CppWrapperCpu):
                 self.writeline(f"{wrapper_name}({', '.join(call_args)});")
         else:
             casted = []
+<<<<<<< HEAD
             # pyrefly: ignore [no-matching-overload]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             for arg_type, arg in zip(arg_types, call_args):
                 new_arg = arg
                 if arg_type.endswith("*") and arg != "nullptr":
                     new_arg = f"{arg}.data_ptr()"
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 casted.append(f"({arg_type}){cexpr(new_arg)}")
             call_args_str = ", ".join(casted)
             self.writeline(f"kernels.{kernel_name}({call_args_str}, {stream});")

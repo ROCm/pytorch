@@ -7,9 +7,14 @@ import os
 import sys
 import traceback
 import warnings
+<<<<<<< HEAD
 from collections.abc import Callable
 from pathlib import Path
 from typing import Any, Optional, Union
+=======
+from pathlib import Path
+from typing import Any, Callable, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch.nn as nn
@@ -19,7 +24,10 @@ from torch.package import Importer, PackageExporter, PackageImporter, sys_import
 
 from ._compatibility import compatibility
 from .graph import (
+<<<<<<< HEAD
     _BoxedCodeGen,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     _custom_builtins,
     _is_from_torch,
     _override_sym_repr,
@@ -32,6 +40,10 @@ from .graph import (
 __all__ = [
     "reduce_graph_module",
     "reduce_package_graph_module",
+<<<<<<< HEAD
+=======
+    "reduce_deploy_graph_module",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     "GraphModule",
 ]
 
@@ -148,6 +160,21 @@ def reduce_package_graph_module(
     return _deserialize_graph_module(forward, body)
 
 
+<<<<<<< HEAD
+=======
+@compatibility(is_backward_compatible=True)
+def reduce_deploy_graph_module(
+    importer: PackageImporter, body: dict[Any, Any], import_block: str
+) -> torch.nn.Module:
+    ns = {}
+    ns["__builtins__"] = importer.patched_builtins
+    fn_src = body.get("_code")
+    assert fn_src is not None
+    forward = _forward_from_src(import_block + fn_src, ns)
+    return _deserialize_graph_module(forward, body)
+
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 # We create a dummy class here because symbolic_trace pulls the forward()
 # function off of the class, rather than the instance. This class is used
 # in _deserialize_graph_module() below.
@@ -194,7 +221,11 @@ def _deserialize_graph_module(
     graph = KeepModules().trace(com, **tracer_extras)
 
     # Recover node.meta["stack_trace"] after re-tracing
+<<<<<<< HEAD
     node_meta_stack_trace = body.get("_graphmodule_graph_node_meta_stack_trace")
+=======
+    node_meta_stack_trace = body.get("_graphmodule_graph_node_meta_stack_trace", None)
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if node_meta_stack_trace is not None:
         del body["_graphmodule_graph_node_meta_stack_trace"]
         for node in graph.nodes:
@@ -311,7 +342,10 @@ def _print_readable(
     include_stride=False,
     include_device=False,
     colored=False,
+<<<<<<< HEAD
     expanded_def=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 ):
     graph = module.graph
     assert graph is not None and isinstance(graph, torch.fx.Graph), (
@@ -324,7 +358,10 @@ def _print_readable(
         include_stride=include_stride,
         include_device=include_device,
         colored=colored,
+<<<<<<< HEAD
         expanded_def=expanded_def,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     )
     module_code = verbose_python_code.src
     module_code = module_code.lstrip("\n")
@@ -535,7 +572,10 @@ class GraphModule(torch.nn.Module):
             self.graph._tracer_cls
             and "<locals>" not in self.graph._tracer_cls.__qualname__
         ):
+<<<<<<< HEAD
             # pyrefly: ignore [bad-assignment]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             self._tracer_cls = self.graph._tracer_cls
 
         self._tracer_extras = {}
@@ -549,17 +589,24 @@ class GraphModule(torch.nn.Module):
         self._erase_node_hooks: list[Callable] = []
         # Used to remove hooks from deepcopied graph modules within a context manager.
         self._deepcopy_hooks: list[Callable] = []
+<<<<<<< HEAD
         self.shape_env = None  # optional not always set even when dynamic shapes exist.
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     # TorchScript breaks trying to compile the graph setter because of the
     # continued string literal. Issue here: https://github.com/pytorch/pytorch/issues/44842
     #
     # Shouldn't be an issue since these methods shouldn't be used in TorchScript anyway
+<<<<<<< HEAD
     __jit_unused_properties__ = ["graph", "_boxed_call"]
 
     @property
     def _boxed_call(self) -> bool:
         return isinstance(self._graph._codegen, _BoxedCodeGen)
+=======
+    __jit_unused_properties__ = ["graph"]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     @property
     def graph(self) -> Graph:
@@ -841,8 +888,11 @@ class {module_name}(torch.nn.Module):
         if "_wrapped_call" not in vars(cls):
             cls._wrapped_call = _WrappedCall(cls, cls_call)  # type: ignore[attr-defined]
 
+<<<<<<< HEAD
         self._recompile_submodules()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def call_wrapped(self, *args, **kwargs):
             return self._wrapped_call(self, *args, **kwargs)
 
@@ -850,6 +900,7 @@ class {module_name}(torch.nn.Module):
 
         return python_code
 
+<<<<<<< HEAD
     def _recompile_submodules(self) -> list[tuple[str, PythonCode]]:
         """
         Recompile all submodules of this graph module, returning their respective PythonCodes
@@ -863,6 +914,18 @@ class {module_name}(torch.nn.Module):
 
     # Passing Tracer as argument allows subclasses extending fx.GraphModule
     # define their own Tracer (extending fx.Tracer).
+=======
+    # Passing Tracer as argument allows subclasses extending fx.GraphModule
+    # define their own Tracer (extending fx.Tracer).
+    def __reduce_deploy__(self, importer: Importer):
+        dict_without_graph = self.__dict__.copy()
+        dict_without_graph["_graphmodule_cls_name"] = self.__class__.__name__
+        del dict_without_graph["_graph"]
+
+        python_code = self.recompile()
+        import_block = _format_import_block(python_code.globals, importer)
+        return (reduce_deploy_graph_module, (dict_without_graph, import_block))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def __reduce_package__(self, exporter: PackageExporter):
         dict_without_graph = self.__dict__.copy()
@@ -958,7 +1021,10 @@ class {module_name}(torch.nn.Module):
         # If `fast_sympy_print` is True then we use a sympy printer which is faster
         # but may result in less-readable output.
         fast_sympy_print: bool = False,
+<<<<<<< HEAD
         expanded_def: bool = False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ):
         """
         Return the Python code generated for current GraphModule and its children GraphModules
@@ -980,7 +1046,10 @@ class {module_name}(torch.nn.Module):
                 include_stride,
                 include_device,
                 colored,
+<<<<<<< HEAD
                 expanded_def,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             )
             return r
 
@@ -999,7 +1068,11 @@ class {module_name}(torch.nn.Module):
     @contextlib.contextmanager
     def _set_replace_hook(self, f):
         """
+<<<<<<< HEAD
         Takes a callable which will be called every time when we replace a node
+=======
+        Takes a callable which will be called everytime when we replace a node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to a new node, or change the node's name. Callable takes three arguments:
         the old node we're changing, and NAME of the new node, followed by the
         user node which consumes the old node to be replaced.
@@ -1013,7 +1086,11 @@ class {module_name}(torch.nn.Module):
 
     def _register_replace_node_hook(self, f):
         """
+<<<<<<< HEAD
         Takes a callable which will be called every time when we replace a node
+=======
+        Takes a callable which will be called everytime when we replace a node
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         to a new node, or change the node's name. Callable takes three arguments:
         the old node we're changing, and NAME of the new node, followed by the
         user node which consumes the old node to be replaced.
@@ -1023,7 +1100,11 @@ class {module_name}(torch.nn.Module):
 
     def _unregister_replace_node_hook(self, f):
         """
+<<<<<<< HEAD
         Takes a callable which was previously registered to be called every time when we replace a node.
+=======
+        Takes a callable which was previously registered to be called everytime when we replace a node.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         This function will unregister that callable so it is no longer invoked on node replacement.
         """
         assert callable(f), "create_node hook must be a callable."

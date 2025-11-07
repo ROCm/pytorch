@@ -62,7 +62,21 @@ static const auto& getDispatchTableIndexToKey() {
 }
 
 OperatorEntry::OperatorEntry(OperatorName&& operator_name)
+<<<<<<< HEAD
 : name_(std::move(operator_name)), dispatchTable_(), dispatchKeyExtractor_(DispatchKeyExtractor::makeUninitialized()), is_observed_(ObservedOperators::isObserved(name_))
+=======
+: name_(std::move(operator_name))
+, schema_()
+#ifndef C10_MOBILE
+, tags_()
+#endif
+, dispatchTable_()
+, dispatchKeyExtractor_(DispatchKeyExtractor::makeUninitialized())
+, kernels_()
+, cpp_signature_()
+, sym_cpp_signature_()
+, is_observed_(ObservedOperators::isObserved(name_))
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 {
   // Pick up any backend fallbacks that were registered prior to this
   // OperatorEntry being created.
@@ -329,7 +343,11 @@ std::pair<const AnnotatedKernel&, const char*> OperatorEntry::computeDispatchTab
   //          For autograd keys, we only use kernel from CompositeImplicitAutograd when there's no direct registration
   //          to its corresponding backend key or CompositeExplicitAutograd. See Note [CompositeExplicitAutograd and CompositeImplicitAutograd].
   //          For AutogradOther, we eagerly return ambiguousAutogradOtherKernel() if there's registration to any of
+<<<<<<< HEAD
   //          its backends and ask backend extender to request a dedicated Autograd key for the backend.
+=======
+  //          its backends and ask backend extender to request a decicated Autograd key for the backend.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   //          See Note [Ambiguity in AutogradOther kernel] for more details.
   //          A CompositeExplicitAutograd kernel prevents CompositeImplicitAutograd kernel being used for Autograd keys, but it doesn't
   //          cause confusion for AutogradOther. It's pretty straightforward to use Autograd (if available)

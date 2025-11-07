@@ -18,7 +18,11 @@
 static PyObject* THPUpperModuleOfDevice = nullptr;
 
 PyObject* THPDevice_New(const at::Device& device) {
+<<<<<<< HEAD
   auto type = &THPDeviceType;
+=======
+  auto type = (PyTypeObject*)&THPDeviceType;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto self = THPObjectPtr{type->tp_alloc(type, 0)};
   if (!self)
     throw python_error();
@@ -67,11 +71,18 @@ static PyObject* THPDevice_pynew(
     auto as_device = r.device(0); // this works, because device can take strings
     if (as_device.has_index()) {
       auto device_type = r.string(0);
+<<<<<<< HEAD
       TORCH_CHECK(
           false,
           "type (string) must not include an index because index "
           "was passed explicitly: " +
               device_type);
+=======
+      throw std::runtime_error(
+          "type (string) must not include an index because index "
+          "was passed explicitly: " +
+          device_type);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     }
     int64_t device_index = -1;
     if (!r.isNone(1)) {
@@ -142,16 +153,26 @@ static PyObject* THPDevice_rc(PyObject* a, PyObject* b, int op) {
     case Py_LE:
     case Py_GT:
     case Py_GE:
+<<<<<<< HEAD
       TORCH_CHECK_TYPE(false, "comparison not implemented");
     default:
       TORCH_CHECK_TYPE(false, "unexpected comparison op");
+=======
+      throw torch::TypeError("comparison not implemented");
+    default:
+      throw torch::TypeError("unexpected comparison op");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
   END_HANDLE_TH_ERRORS
 }
 
 static PyObject* THPDevice_reduce(PyObject* _self, PyObject* noargs) {
   HANDLE_TH_ERRORS
+<<<<<<< HEAD
   auto self = reinterpret_cast<THPDevice*>(_self);
+=======
+  auto self = (THPDevice*)_self;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   auto ret = THPObjectPtr{PyTuple_New(2)};
   if (!ret)
     throw python_error();
@@ -221,6 +242,7 @@ typedef PyObject* (*getter)(PyObject*, void*);
 // NB: If you edit these properties/methods, update torch/_C/__init__.pyi.in
 
 static const std::initializer_list<PyGetSetDef> THPDevice_properties = {
+<<<<<<< HEAD
     {"type",
      reinterpret_cast<getter>(THPDevice_type),
      nullptr,
@@ -231,6 +253,10 @@ static const std::initializer_list<PyGetSetDef> THPDevice_properties = {
      nullptr,
      nullptr,
      nullptr},
+=======
+    {"type", (getter)THPDevice_type, nullptr, nullptr, nullptr},
+    {"index", (getter)THPDevice_index, nullptr, nullptr, nullptr},
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     {nullptr}};
 
 static const std::initializer_list<PyMethodDef> THPDevice_methods = {
@@ -250,18 +276,30 @@ PyTypeObject THPDeviceType = {
     nullptr, /* tp_getattr */
     nullptr, /* tp_setattr */
     nullptr, /* tp_reserved */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPDevice_repr), /* tp_repr */
     nullptr, /* tp_as_number */
     nullptr, /* tp_as_sequence */
     nullptr, /* tp_as_mapping */
     reinterpret_cast<hashfunc>(THPDevice_hash), /* tp_hash  */
+=======
+    (reprfunc)THPDevice_repr, /* tp_repr */
+    nullptr, /* tp_as_number */
+    nullptr, /* tp_as_sequence */
+    nullptr, /* tp_as_mapping */
+    (hashfunc)THPDevice_hash, /* tp_hash  */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     // TODO: We're not sure if this is a good idea or not, because making
     // torch.device callable means that it will start returning true
     // for callable() queries, and that is unexpected.  We can always add
     // this later, so for now, don't actually implement this
     // THPDevice_call, /* tp_call */
     nullptr, /* tp_call */
+<<<<<<< HEAD
     reinterpret_cast<reprfunc>(THPDevice_str), /* tp_str */
+=======
+    (reprfunc)THPDevice_str, /* tp_str */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     nullptr, /* tp_getattro */
     nullptr, /* tp_setattro */
     nullptr, /* tp_as_buffer */
@@ -269,7 +307,11 @@ PyTypeObject THPDeviceType = {
     nullptr, /* tp_doc */
     nullptr, /* tp_traverse */
     nullptr, /* tp_clear */
+<<<<<<< HEAD
     static_cast<richcmpfunc>(THPDevice_rc), /* tp_richcompare */
+=======
+    (richcmpfunc)THPDevice_rc, /* tp_richcompare */
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     0, /* tp_weaklistoffset */
     nullptr, /* tp_iter */
     nullptr, /* tp_iternext */
@@ -294,8 +336,12 @@ void THPDevice_init(PyObject* module) {
   }
   Py_INCREF(&THPDeviceType);
   THPUpperModuleOfDevice = module;
+<<<<<<< HEAD
   if (PyModule_AddObject(
           module, "device", reinterpret_cast<PyObject*>(&THPDeviceType)) != 0) {
+=======
+  if (PyModule_AddObject(module, "device", (PyObject*)&THPDeviceType) != 0) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     throw python_error();
   }
 }

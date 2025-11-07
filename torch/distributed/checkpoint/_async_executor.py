@@ -15,14 +15,21 @@ class _AsyncCheckpointExecutor(abc.ABC):
     @abc.abstractmethod
     def execute_save(
         self,
+<<<<<<< HEAD
         staging_future_or_state_dict: Union[STATE_DICT_TYPE, Future[STATE_DICT_TYPE]],
+=======
+        staged_state_dict: STATE_DICT_TYPE,
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         *,
         checkpoint_id: Union[str, os.PathLike, None] = None,
         storage_writer: Optional[StorageWriter] = None,
         planner: Optional[SavePlanner] = None,
         process_group: Optional[dist.ProcessGroup] = None,
+<<<<<<< HEAD
         no_dist: bool = False,
         use_collectives: bool = True,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     ) -> Future:
         """
         Execute the checkpoint save request asynchronously.

@@ -1,14 +1,24 @@
 # mypy: allow-untyped-defs
 import threading
+<<<<<<< HEAD
 from collections.abc import Callable, Sequence
 from functools import lru_cache
 from itertools import chain
 from typing import cast, Optional, Union
+=======
+from collections.abc import Sequence
+from functools import lru_cache
+from itertools import chain
+from typing import Callable, cast, Optional, Union
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 from torch._ops import OpOverload
 from torch._subclasses import FakeTensorMode
+<<<<<<< HEAD
 from torch.distributed._functional_collectives import _are_we_tracing
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.distributed.tensor._dtensor_spec import DTensorSpec, TensorMeta
 from torch.distributed.tensor._op_schema import (
     OpInfo,
@@ -48,9 +58,12 @@ class LocalLRUCache(threading.local):
     def cache_info(self):
         return self.cache.cache_info()
 
+<<<<<<< HEAD
     def cache_clear(self):
         return self.cache.cache_clear()
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class ShardingPropagator:
     def __init__(self) -> None:
@@ -105,6 +118,7 @@ class ShardingPropagator:
         schema_info: Optional[RuntimeSchemaInfo] = None,
     ):
         """
+<<<<<<< HEAD
         Register a :class:`OpStrategy` generator for an operator.
 
         During the sharding propagation, DTensor wants to enumerate all
@@ -148,6 +162,9 @@ class ShardingPropagator:
         last two would affect sharding propagation along with the :class:`DTensor` argument
         ``self``. Since the argument index of ``min`` is 2, the `schema_info` should be
         `RuntimeSchemaInfo(static_argnum=2)`.
+=======
+        Register a sharding strategy generator for an operator.
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         self.op_strategy_funcs[op_overload] = strategy_func
         if schema_info is not None:
@@ -164,12 +181,18 @@ class ShardingPropagator:
             # data dependent ops can't be used for fake propagation
             return None
 
+<<<<<<< HEAD
         # NOTE: We must call the tracing in fake tensor mode so that it avoids
         # materializing memory. Also disable the proxy mode tracing to prevent
         # these operators to be inserted in the fx graph.
         from torch.fx.experimental.proxy_tensor import disable_proxy_modes_tracing
 
         with FakeTensorMode(), disable_proxy_modes_tracing():
+=======
+        # NOTE: We must call the tracing in fake tensor mode so that it
+        # avoids materializing memory
+        with FakeTensorMode():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             fake_args = op_schema.gen_fake_args()
             fake_kwargs = op_schema.gen_fake_kwargs()
             fake_out = op_schema.op(*fake_args, **fake_kwargs)
@@ -205,6 +228,7 @@ class ShardingPropagator:
     def _propagate_tensor_meta(
         self, op_schema: OpSchema
     ) -> Union[None, TensorMeta, Sequence[Optional[TensorMeta]]]:
+<<<<<<< HEAD
         """
         Cached version of _propagate_tensor_meta_non_cached
         This is a private API. Use propagate_tensor_meta instead.
@@ -225,11 +249,20 @@ class ShardingPropagator:
             return self._propagate_tensor_meta(op_schema)
 
     def _create_output_spec_with_new_tensor_meta(
+=======
+        return self._propagate_tensor_meta_non_cached(op_schema)
+
+    def _wrap_output_spec_tensor_meta(
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         self,
         op: OpOverload,
         output_specs: OutputSpecType,
         output_tensor_meta: Union[None, TensorMeta, Sequence[Optional[TensorMeta]]],
+<<<<<<< HEAD
     ) -> OutputSpecType:
+=======
+    ) -> None:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         """
         Wrap the output_specs with the tensor metadata from the output.
         """
@@ -247,9 +280,14 @@ class ShardingPropagator:
                     "not equal the "
                     f"number of op outputs: {len(output_tensor_meta)}."
                 )
+<<<<<<< HEAD
             return output_specs.shallow_copy_with_tensor_meta(output_tensor_meta)
         elif isinstance(output_specs, (tuple, list)):
             new_specs: list[Optional[DTensorSpec]] = []
+=======
+            output_specs.tensor_meta = output_tensor_meta
+        elif isinstance(output_specs, (tuple, list)):
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             if not isinstance(output_tensor_meta, (tuple, list)) or len(
                 output_specs
             ) != len(output_tensor_meta):
@@ -275,7 +313,11 @@ class ShardingPropagator:
                             and output_tensor_meta_i is None
                         ):
                             assert isinstance(output_specs, list)
+<<<<<<< HEAD
                             new_specs.append(None)
+=======
+                            output_specs[i] = None
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                             continue
                         else:
                             raise ValueError(
@@ -283,6 +325,7 @@ class ShardingPropagator:
                                 "does not have an associated TensorMeta"
                             )
 
+<<<<<<< HEAD
                     new_specs.append(
                         spec.shallow_copy_with_tensor_meta(output_tensor_meta_i)
                     )
@@ -293,6 +336,9 @@ class ShardingPropagator:
         else:
             assert output_specs is None
             return output_specs
+=======
+                    spec.tensor_meta = output_tensor_meta_i
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _wrap_with_op_strategy(self, op_schema: OpSchema) -> OpSchema:
         """
@@ -328,7 +374,10 @@ class ShardingPropagator:
             op=op_schema.op,
             args_schema=tuple(args_op_strategy),
             kwargs_schema=kwargs_op_strategy,
+<<<<<<< HEAD
             schema_info=op_schema.schema_info,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         )
 
     def propagate(self, op_info: OpInfo) -> None:
@@ -336,7 +385,11 @@ class ShardingPropagator:
         # because SymInts are not hashable.
         # This is generally ok because this only happens during tracing in torch.compile,
         # and tracing does not need to be as fast as eagermode DTensor usages.
+<<<<<<< HEAD
         if _are_we_tracing():
+=======
+        if op_info.schema.has_symints:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             output_sharding = self.propagate_op_sharding_non_cached(op_info.schema)
         else:
             output_sharding = cast(
@@ -354,6 +407,10 @@ class ShardingPropagator:
             return OutputSharding(None, op_schema)
 
         out_tensor_meta = self._propagate_tensor_meta_non_cached(op_schema)
+<<<<<<< HEAD
+=======
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if op_schema.op in self.op_strategy_funcs:
             # wrap the op_schema with op strategy for sharding strategy propagation
             strategy_schema = self._wrap_with_op_strategy(op_schema)
@@ -363,12 +420,19 @@ class ShardingPropagator:
 
             if isinstance(op_strategy, OpStrategy):
                 # single Op strategy
+<<<<<<< HEAD
                 output_strategy = self._select_strategy(op_strategy, op_schema)
 
                 # check if we need to redistribute the input
                 needs_redistribute = False
                 # check if we want to use args value from redistribute_schema
                 use_val_from_redistribute_schema = False
+=======
+                output_strategy = self._select_strategy(op_strategy)
+
+                # check if we need to redistribute the input
+                needs_redistribute = False
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 expected_input_specs: list[DTensorSpec] = []
 
                 # in case where the op does not specify input_specs and output_specs
@@ -411,7 +475,10 @@ class ShardingPropagator:
                             out_tensor_meta, schema, output_strategy.output_spec
                         )
                         needs_redistribute = True
+<<<<<<< HEAD
                         use_val_from_redistribute_schema = True
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
                 # construct output spec for the op
                 if op_schema.return_type_tuple_tensor_like():
@@ -421,6 +488,7 @@ class ShardingPropagator:
                     output_specs: OutputSpecType = output_strategy.output_specs
                     if isinstance(output_specs, DTensorSpec):
                         output_specs = tuple(
+<<<<<<< HEAD
                             # create a new DTensorSpec with the same placement as the
                             # output_specs in output_strategy
                             DTensorSpec(
@@ -434,6 +502,20 @@ class ShardingPropagator:
                     op_schema.return_type_tensor()
                     or op_schema.return_type_list_tensor_like()
                 ):
+=======
+                            [
+                                # create a new DTensorSpec with the same placement as the
+                                # output_specs in output_strategy
+                                DTensorSpec(
+                                    mesh=output_specs.mesh,
+                                    placements=output_specs.placements,
+                                    tensor_meta=output_specs.tensor_meta,
+                                )
+                                for _ in range(len(op_schema.op._schema.returns))
+                            ]
+                        )
+                elif op_schema.return_type_tensor():
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     output_specs = output_strategy.output_specs
                 else:
                     output_specs = None
@@ -442,14 +524,21 @@ class ShardingPropagator:
                     output_specs,
                     suggestion_schema,
                     needs_redistribute=needs_redistribute,
+<<<<<<< HEAD
                     use_val_from_redistribute_schema=use_val_from_redistribute_schema,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             elif isinstance(op_strategy, TupleStrategy):
                 # tuple strategy output sharding processing
                 # runtime select OpSpec for each TupleStrategy input arg
                 selected_strategies: list[OpSpec] = []
                 out_spec_list: list[DTensorSpec] = []
+<<<<<<< HEAD
                 for strategy in op_strategy.children:
+=======
+                for strategy in op_strategy.childs:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                     assert isinstance(strategy, OpStrategy)
                     selected_strategy = self._select_strategy(strategy)
                     selected_strategies.append(selected_strategy)
@@ -511,16 +600,25 @@ class ShardingPropagator:
                     tuple(out_spec_list) if out_tensor_meta is not None else None,
                     suggestion_schema,
                     needs_redistribute=needs_redistribute,
+<<<<<<< HEAD
                     use_val_from_redistribute_schema=False,
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 )
             else:
                 raise ValueError("Unsupported op strategy type")
 
             # associate the output sharding with the output tensor metadata
+<<<<<<< HEAD
             new_output_spec = self._create_output_spec_with_new_tensor_meta(
                 op_schema.op, output_sharding.output_spec, out_tensor_meta
             )
             output_sharding.output_spec = new_output_spec
+=======
+            self._wrap_output_spec_tensor_meta(
+                op_schema.op, output_sharding.output_spec, out_tensor_meta
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             return output_sharding
         elif op_schema.op in self.op_to_rules:
             # propagate the sharding with rule
@@ -560,10 +658,16 @@ class ShardingPropagator:
                     output_sharding.needs_redistribute = True
 
             # associate the output sharding with the output tensor metadata
+<<<<<<< HEAD
             new_output_spec = self._create_output_spec_with_new_tensor_meta(
                 op_schema.op, output_sharding.output_spec, out_tensor_meta
             )
             output_sharding.output_spec = new_output_spec
+=======
+            self._wrap_output_spec_tensor_meta(
+                op_schema.op, output_sharding.output_spec, out_tensor_meta
+            )
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
             return output_sharding
         else:
@@ -571,22 +675,31 @@ class ShardingPropagator:
                 f"Operator {op_schema.op} does not have a sharding strategy registered."
             )
 
+<<<<<<< HEAD
     def _select_strategy(
         self, strategy: OpStrategy, op_schema: Optional[OpSchema] = None
     ) -> OpSpec:
+=======
+    def _select_strategy(self, strategy: OpStrategy) -> OpSpec:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         if len(strategy.strategies) == 1:
             # short cut with only one possible OpSpec
             return strategy.strategies[0]
 
         op_spec_costs: list[float] = []
+<<<<<<< HEAD
         no_redistribute_strategy_index: int = -1
         for strategy_idx, op_spec in enumerate(strategy.strategies):
+=======
+        for op_spec in strategy.strategies:
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             assert op_spec.redistribute_cost is not None, (
                 "must set redistribute cost each OpSpec!"
             )
             redistribute_cost = sum(chain.from_iterable(op_spec.redistribute_cost))
             op_spec_costs.append(redistribute_cost)
 
+<<<<<<< HEAD
             # If there's no redistribute cost, we record the index of the strategy
             # which doesn't need redistribute.
             # TODO: Currently this only applies to OpStrategy selection. Requires extra
@@ -621,6 +734,10 @@ class ShardingPropagator:
             selected_strategy_index = op_spec_costs.index(min_cost)
 
         return strategy.strategies[selected_strategy_index]
+=======
+        # for eager execution, we just select the one with the minimal redistribute cost
+        return strategy.strategies[op_spec_costs.index(min(op_spec_costs))]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
     def _adjust_shape_and_stride_args(
         self,

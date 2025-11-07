@@ -1,7 +1,13 @@
 #include <torch/nativert/kernels/AutoFunctionalizeKernel.h>
 
+<<<<<<< HEAD
 #include <c10/util/Enumerate.h>
 #include <c10/util/Exception.h>
+=======
+#include <fmt/format.h>
+
+#include <c10/util/Enumerate.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 namespace torch::nativert {
 
@@ -10,14 +16,23 @@ UnsafeAutoFunctionalizeKernel::UnsafeAutoFunctionalizeKernel(const Node* node)
       op_(getOperatorForTarget(
           std::get<std::string>(node->attributes()[0].value))),
       schema_(op_.schema()),
+<<<<<<< HEAD
       arguments_(prefillStackWithStaticArgs(node, schema_)),
       numOutputs_(static_cast<int>(schema_.returns().size())) {
+=======
+      arguments_(prefillStackWithStaticArgs(node, schema_)) {
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   for (const auto& [idx, schemaArg] : c10::enumerate(schema_.arguments())) {
     if (schemaArg.alias_info() != nullptr &&
         schemaArg.alias_info()->isWrite()) {
       mutatingInputArgs_.push_back(node->getInput(schemaArg.name()).value);
     }
   }
+<<<<<<< HEAD
+=======
+
+  numOutputs_ = schema_.returns().size();
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 void UnsafeAutoFunctionalizeKernel::computeInternal(
@@ -36,12 +51,19 @@ void UnsafeAutoFunctionalizeKernel::computeInternal(
     // IndexError, ValueError). If retaining this information is important
     // to us, we'll have to change this up a little.
     auto stackTrace = node_->getMetadata("stack_trace");
+<<<<<<< HEAD
     TORCH_CHECK(
         false,
         "Oringinal Python stacktrace:\n",
         stackTrace ? *stackTrace : "<no stack trace>",
         "\n",
         ex.what())
+=======
+    throw std::runtime_error(fmt::format(
+        "Original Python stacktrace:\n{}\n{}",
+        stackTrace ? *stackTrace : "<no stack trace>",
+        ex.what()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   }
 
   const auto& outputValues = node_->outputs();

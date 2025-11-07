@@ -1,5 +1,9 @@
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Any, TypeVar
+=======
+from typing import Any, Callable, TypeVar
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from typing_extensions import ParamSpec
 
 import torch
@@ -24,7 +28,10 @@ from .expanded_weights_utils import forward_helper
 @implements_per_sample_grads(F.conv3d)
 class ConvPerSampleGrad(torch.autograd.Function):
     @staticmethod
+<<<<<<< HEAD
     # pyrefly: ignore [bad-override]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def forward(
         ctx: Any,
         kwarg_names: list[str],
@@ -57,7 +64,10 @@ class ConvPerSampleGrad(torch.autograd.Function):
                 f"unbatched input of dim {input.dim()}, expected input of dim {batched_dim_size}"
             )
 
+<<<<<<< HEAD
         # pyrefly: ignore [invalid-type-var]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         ctx.conv_fn = conv_fn
 
         ctx.batch_size = orig_input.shape[0]

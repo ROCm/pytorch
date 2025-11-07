@@ -81,8 +81,12 @@ namespace torch::jit {
 using ::c10::TensorTypePtr;
 using Dimension = int64_t;
 
+<<<<<<< HEAD
 TORCH_API void RegisterProfilingNode(
     const std::function<bool(const Node*)>& /*func*/);
+=======
+TORCH_API void RegisterProfilingNode(const std::function<bool(const Node*)>&);
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 struct ProfilingRecord;
 

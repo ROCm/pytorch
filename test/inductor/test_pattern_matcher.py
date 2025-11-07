@@ -3,8 +3,12 @@ import copy
 import itertools
 import os
 import unittest
+<<<<<<< HEAD
 from collections.abc import Callable
 from typing import Optional
+=======
+from typing import Callable, Optional
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 import torch
 import torch._dynamo.config as dynamo_config
@@ -35,7 +39,11 @@ from torch._inductor.virtualized import V
 from torch.fx.experimental.proxy_tensor import make_fx
 from torch.testing import FileCheck
 from torch.testing._internal.common_cuda import SM80OrLater, xfailIfSM89
+<<<<<<< HEAD
 from torch.testing._internal.common_device_type import skipCUDAIf
+=======
+from torch.testing._internal.common_device_type import expectedFailureXPU, skipCUDAIf
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     IS_LINUX,
@@ -139,7 +147,11 @@ class TestPatternMatcher(TestCase):
                 ref[indices], test[indices]
             )  # also checks that dtype is correct
 
+<<<<<<< HEAD
     # @skipIfXpu
+=======
+    @skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -181,7 +193,12 @@ class TestPatternMatcher(TestCase):
             self._test_fused_int_mm_mul_impl(fn2, args, True)
 
     def test_duplicate_search(self):
+<<<<<<< HEAD
         from collections.abc import Callable, Iterable
+=======
+        from collections.abc import Iterable
+        from typing import Callable
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
         import torch
         from torch._inductor.pattern_matcher import (
@@ -239,6 +256,10 @@ class TestPatternMatcher(TestCase):
         self.assertEqual(f(inp), f_replaced(inp))
         self.assertEqual(count, 2)
 
+<<<<<<< HEAD
+=======
+    @skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -287,6 +308,10 @@ class TestPatternMatcher(TestCase):
             self._test_fused_int_mm_mul_impl(fn2, args, True)
 
     @skipIfRocm
+<<<<<<< HEAD
+=======
+    @skipIfXpu
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -334,6 +359,10 @@ class TestPatternMatcher(TestCase):
                 "triton_tem" if not extern_mm else "extern_kernels.mm"
             ).run(code)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -369,6 +398,10 @@ class TestPatternMatcher(TestCase):
         for args in args_list:
             self._test_mixed_impl(fn, args, True, False)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -395,6 +428,10 @@ class TestPatternMatcher(TestCase):
             )
             self._test_mixed_impl(fn, args, True, False, rtol=0.16, atol=1e-4)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -426,6 +463,10 @@ class TestPatternMatcher(TestCase):
         for args in args_list:
             self._test_mixed_impl(fn, args, True, False)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @inductor_config.patch(
         {
@@ -463,6 +504,10 @@ class TestPatternMatcher(TestCase):
         for args in args_list:
             self._test_mixed_impl(fn, args, True, False)
 
+<<<<<<< HEAD
+=======
+    @expectedFailureXPU
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @skipCUDAIf(not SM80OrLater, "need sm_80")
     @unittest.skipIf(not IS_BIG_GPU, "templates require big gpu")
     def test_mixed_mm_gating(self):
@@ -746,9 +791,12 @@ class TestPatternMatcher(TestCase):
         ]
         self.common(fn, args, 1, 3)
 
+<<<<<<< HEAD
     # called in test_gpu_cpp_wrapper
     test_cat_slice_cat_xpu = test_cat_slice_cat_cuda
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_pointless_view_pair(self):
         def f(x):
             x = aten.view.default(x, [3, 5, 7])
@@ -1000,7 +1048,11 @@ class TestPatternMatcher(TestCase):
         ]
         self.common(fn, args, 0, 0)
 
+<<<<<<< HEAD
         # cat and split lengths are different
+=======
+        # cat and split lenghts are different
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
         def fn(a, b, c):
             cat = torch.ops.aten.cat.default([a, b, c], 1)
             split_with_sizes = torch.ops.aten.split_with_sizes.default(cat, [5, 5], 1)
@@ -1350,6 +1402,7 @@ class TestPatternMatcher(TestCase):
                 # addmm should be replaced
                 FileCheck().check_not("extern_kernels.addmm(").run(code[0])
 
+<<<<<<< HEAD
     def test_addmm_dtype_mismatch(self):
         a = torch.nn.Linear(1024, 1024, bias=False).to(GPU_TYPE)
         a = a.to(dtype=torch.float16)
@@ -1366,6 +1419,8 @@ class TestPatternMatcher(TestCase):
         self.assertEqual(actual, func())
         FileCheck().check_not("addmm").run(code[0])
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     def test_replace_mul_zero(self):
         def test(x, y):
             return x + (y * 0)
@@ -1425,6 +1480,7 @@ class TestPatternMatcher(TestCase):
                 self.assertEqual(counter, 1)
                 torch.testing.assert_close(actual, expected)
 
+<<<<<<< HEAD
     def test_input_output_same(self):
         def pattern(x, y):
             out1 = torch.add(x, y)
@@ -1460,6 +1516,8 @@ class TestPatternMatcher(TestCase):
         self.assertTrue("aten.add.default" not in code)
         self.assertTrue("aten.mul.default" not in code)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     @inductor_config.patch(fx_graph_remote_cache=False)
     def test_match_equivalent_function_invocations3(self):
         counter = 0
@@ -1783,6 +1841,7 @@ class TestPatternMatcher(TestCase):
         test, (code,) = run_and_get_code(my_func_static, *inputs)
         self.assertTrue("static_scaled_int8_quant" not in code)
 
+<<<<<<< HEAD
     def test_fwd_only_generate_original_aten_meta(self):
         def f(x):
             return torch.ops.aten.sigmoid(x)
@@ -1795,6 +1854,8 @@ class TestPatternMatcher(TestCase):
         self.assertEqual(len(sigmoid_nodes), 1)
         self.assertTrue("original_aten" in sigmoid_nodes[0].meta)
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 if __name__ == "__main__":
     if IS_LINUX and HAS_GPU:

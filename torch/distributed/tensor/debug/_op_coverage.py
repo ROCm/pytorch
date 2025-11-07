@@ -90,7 +90,10 @@ def print_op_coverage_summary(model: nn.Module, args, kwargs, *, output_csv=Fals
     op_infos.sort(key=itemgetter(count_idx), reverse=True)
 
     headers = ["Operator", "Schema", "Total Count", "Supported"]
+<<<<<<< HEAD
     # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     print(tabulate(op_infos, headers=headers))
 
     if output_csv:
@@ -102,5 +105,8 @@ def print_op_coverage_summary(model: nn.Module, args, kwargs, *, output_csv=Fals
             csv_writer.writerow(headers)
             # Write each table row to the CSV file
             for row in op_infos:
+<<<<<<< HEAD
                 # pyrefly: ignore [bad-argument-type]
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
                 csv_writer.writerow(row)

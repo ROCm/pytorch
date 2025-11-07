@@ -160,8 +160,12 @@ def _run_sympy_handler(analysis, args, expr, index_dtype=torch.int64):
     handler = getattr(analysis, handler_name)
     try:
         if handler_name in ASSOCIATIVE_OPS:
+<<<<<<< HEAD
             if len(args) <= 1:
                 raise AssertionError("associative op needs >1 args")
+=======
+            assert len(args) > 1
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
             acc = handler(args[0], args[1])
             for i in range(2, len(args)):
                 acc = handler(acc, args[i])
@@ -220,7 +224,14 @@ def sympy_interp(
                 missing_handler=missing_handler,
             )
             for arg in expr.args
+<<<<<<< HEAD
         ],
         expr,
         index_dtype=index_dtype,
     )
+=======
+        ],  # type: ignore[arg-type]
+        expr,
+        index_dtype=index_dtype,
+    )  # type: ignore[arg-type]
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))

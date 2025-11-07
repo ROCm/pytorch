@@ -468,7 +468,11 @@ inline Tensor _sum_to(
       // if we assume no reduction due to unbacked we ensure that at runtime.
       TORCH_MAYBE_SYM_CHECK(
           sym_eq(shape[i - leading_dims], sizes[i]),
+<<<<<<< HEAD
           "non-reduction path was assumed due to unbacked symbols expected those two sizes to be the same:",
+=======
+          "non-reduction path was assumed due to unabcked symbols expected those two sizes to be the same:",
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           shape[i - leading_dims],
           ", ",
           sizes[i])

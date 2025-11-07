@@ -35,6 +35,10 @@ class CuSparseDescriptor {
   std::unique_ptr<T, CuSparseDescriptorDeleter<T, destructor>> descriptor_;
 };
 
+<<<<<<< HEAD
+=======
+#if AT_USE_CUSPARSE_CONST_DESCRIPTORS() || AT_USE_HIPSPARSE_CONST_DESCRIPTORS()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 template <typename T, cusparseStatus_t (*destructor)(const T*)>
 struct ConstCuSparseDescriptorDeleter {
   void operator()(T* x) {
@@ -57,6 +61,10 @@ class ConstCuSparseDescriptor {
  protected:
   std::unique_ptr<T, ConstCuSparseDescriptorDeleter<T, destructor>> descriptor_;
 };
+<<<<<<< HEAD
+=======
+#endif // AT_USE_CUSPARSE_CONST_DESCRIPTORS || AT_USE_HIPSPARSE_CONST_DESCRIPTORS
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 #if defined(USE_ROCM)
 using cusparseMatDescr = std::remove_pointer_t<hipsparseMatDescr_t>;
@@ -121,8 +129,44 @@ class TORCH_CUDA_CPP_API CuSparseBsrsm2Info
 
 #endif // AT_USE_HIPSPARSE_TRIANGULAR_SOLVE
 
+<<<<<<< HEAD
 cusparseIndexType_t getCuSparseIndexType(const c10::ScalarType& scalar_type);
 
+=======
+#if AT_USE_CUSPARSE_GENERIC_API() || AT_USE_HIPSPARSE_GENERIC_API()
+
+cusparseIndexType_t getCuSparseIndexType(const c10::ScalarType& scalar_type);
+
+#if AT_USE_CUSPARSE_NON_CONST_DESCRIPTORS() || AT_USE_HIPSPARSE_NON_CONST_DESCRIPTORS()
+class TORCH_CUDA_CPP_API CuSparseDnMatDescriptor
+    : public CuSparseDescriptor<cusparseDnMatDescr, &cusparseDestroyDnMat> {
+ public:
+  explicit CuSparseDnMatDescriptor(const Tensor& input, int64_t batch_offset = -1);
+};
+
+class TORCH_CUDA_CPP_API CuSparseConstDnMatDescriptor
+    : public CuSparseDescriptor<const cusparseDnMatDescr, &destroyConstDnMat> {
+ public:
+  explicit CuSparseConstDnMatDescriptor(const Tensor& input, int64_t batch_offset = -1);
+  cusparseDnMatDescr* unsafe_mutable_descriptor() const {
+    return const_cast<cusparseDnMatDescr*>(descriptor());
+  }
+  cusparseDnMatDescr* unsafe_mutable_descriptor() {
+    return const_cast<cusparseDnMatDescr*>(descriptor());
+  }
+};
+
+class TORCH_CUDA_CPP_API CuSparseDnVecDescriptor
+    : public CuSparseDescriptor<cusparseDnVecDescr, &cusparseDestroyDnVec> {
+ public:
+  explicit CuSparseDnVecDescriptor(const Tensor& input);
+};
+
+class TORCH_CUDA_CPP_API CuSparseSpMatDescriptor
+    : public CuSparseDescriptor<cusparseSpMatDescr, &cusparseDestroySpMat> {};
+
+#elif AT_USE_CUSPARSE_CONST_DESCRIPTORS() || AT_USE_HIPSPARSE_CONST_DESCRIPTORS()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
   class TORCH_CUDA_CPP_API CuSparseDnMatDescriptor
       : public ConstCuSparseDescriptor<
             cusparseDnMatDescr,
@@ -161,6 +205,10 @@ cusparseIndexType_t getCuSparseIndexType(const c10::ScalarType& scalar_type);
       : public ConstCuSparseDescriptor<
             cusparseSpMatDescr,
             &cusparseDestroySpMat> {};
+<<<<<<< HEAD
+=======
+#endif // AT_USE_CUSPARSE_CONST_DESCRIPTORS() || AT_USE_HIPSPARSE_CONST_DESCRIPTORS()
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 
 class TORCH_CUDA_CPP_API CuSparseSpMatCsrDescriptor
     : public CuSparseSpMatDescriptor {
@@ -249,4 +297,9 @@ class TORCH_CUDA_CPP_API CuSparseSpGEMMDescriptor
   }
 };
 
+<<<<<<< HEAD
+=======
+#endif // AT_USE_CUSPARSE_GENERIC_API() || AT_USE_HIPSPARSE_GENERIC_API()
+
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 } // namespace at::cuda::sparse

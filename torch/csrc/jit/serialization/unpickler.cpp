@@ -5,6 +5,10 @@
 #endif
 #include <torch/csrc/jit/api/function_impl.h>
 #include <torch/csrc/jit/mobile/type_parser.h>
+<<<<<<< HEAD
+=======
+#include <torch/csrc/jit/serialization/pickler.h>
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #include <torch/csrc/jit/serialization/storage_context.h>
 #include <torch/csrc/jit/serialization/unpickler.h>
 #include <torch/csrc/utils/byte_order.h>
@@ -44,7 +48,11 @@ void restoreAccurateTypeTags(const IValue& root, const TypePtr& type_tag) {
     to_process.pop_back();
     // ensure we only scan each pointer value once, otherwise this
     // can become exponential (and if we allow recursive data in the future,
+<<<<<<< HEAD
     // it would not terminate).
+=======
+    // it would not terminiate).
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     if (w.value.isPtrType()) {
       const void* key = w.value.internalToPointer();
       auto it = scanned.find(key);
@@ -261,9 +269,18 @@ void Unpickler::run() {
 void Unpickler::setInput(size_t memo_id) {
   AT_ASSERT(!stack_.empty());
   if (memo_id >= memo_table_.size()) {
+<<<<<<< HEAD
     memo_table_.resize(memo_id + 1);
   }
   memo_table_[memo_id] = stack_.back();
+=======
+    memo_table_.insert(
+        memo_table_.end(), memo_id - memo_table_.size(), IValue());
+    memo_table_.push_back(stack_.back());
+  } else {
+    memo_table_[memo_id] = stack_.back();
+  }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 }
 
 static std::vector<int64_t> tupleToIntList(const IValue& v) {
@@ -351,6 +368,10 @@ PickleOpCode Unpickler::readInstruction() {
       TORCH_CHECK(!marks_.empty(), "Parsing error: marks_ is empty");
       size_t start = marks_.back();
       marks_.pop_back();
+<<<<<<< HEAD
+=======
+      std::vector<IValue> elements;
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       TORCH_CHECK(
           stack_.size() >= start,
           "Parsing error: wrong start index ",
@@ -378,10 +399,18 @@ PickleOpCode Unpickler::readInstruction() {
           stack_.emplace_back(c10::ivalue::Tuple::create(pop(stack_)));
           break;
         default: {
+<<<<<<< HEAD
           auto start_it = stack_.begin() + static_cast<std::ptrdiff_t>(start);
           std::vector<IValue> elements{
               std::make_move_iterator(start_it),
               std::make_move_iterator(stack_.end())};
+=======
+          elements.reserve(stack_.size() - start);
+          auto start_it = stack_.begin() + static_cast<std::ptrdiff_t>(start);
+          for (auto it = start_it; it != stack_.end(); ++it) {
+            elements.emplace_back(std::move(*it));
+          }
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
           stack_.erase(start_it, stack_.end());
           stack_.emplace_back(c10::ivalue::Tuple::create(std::move(elements)));
           break;
@@ -485,7 +514,11 @@ PickleOpCode Unpickler::readInstruction() {
           stack_.size(),
           " and start index is ",
           start,
+<<<<<<< HEAD
           ", but stack_ is iterated by two elements at a time");
+=======
+          ", but stack_ is iterated by two elemenst at a time");
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       for (size_t i = start; i < stack_.size(); i += 2) {
         dict.insert_or_assign(stack_[i], stack_[i + 1]);
       }
@@ -664,6 +697,7 @@ void Unpickler::readGlobal(
     // See [NOTE] skip_next_read_global
     this->skip_next_read_global--;
     if (this->skip_next_read_global == 1) {
+<<<<<<< HEAD
       if (module_name == "torch" && class_name == "Tensor") {
         // This is a special case when we are unpickling a subclassed tensor
         // with type torch.nn.Buffer. We didn't frequently run into this because
@@ -674,6 +708,8 @@ void Unpickler::readGlobal(
         this->skip_next_read_global = 0;
         return;
       }
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       // Pass through to the correct handler
     } else if (this->skip_next_read_global == 0) {
       // Corresponds to the type of `Tensor` being unpickled
@@ -779,10 +815,13 @@ void Unpickler::readGlobal(
     // a Subclassed Tensor.
     rebuildTensorFromTypeV2();
   } else if (
+<<<<<<< HEAD
       module_name == "torch._utils" && (class_name == "_rebuild_parameter")) {
     // Unpickle a Parameter
     rebuildParameter();
   } else if (
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
       module_name == "torch._utils" && class_name == "_rebuild_sparse_tensor") {
     rebuildSparseTensor();
   } else if (module_name == "builtins" && class_name == "complex") {
@@ -1033,6 +1072,7 @@ void Unpickler::rebuildTensorFromTypeV2() {
   });
 }
 
+<<<<<<< HEAD
 void Unpickler::rebuildParameter() {
   globals_.emplace_back([this] {
     auto args = pop(stack_).toTuple();
@@ -1045,6 +1085,8 @@ void Unpickler::rebuildParameter() {
   });
 }
 
+=======
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
 #ifdef USE_RPC
 void Unpickler::rebuildRRef() {
   globals_.emplace_back([this] {
@@ -1061,10 +1103,17 @@ void Unpickler::rebuildRRef() {
     // const reference will extend the lifetime of the temporary variable
     const auto& rrefId = distributed::rpc::RRefId(
         static_cast<int16_t>(args.at(distributed::rpc::RREFID_ON_IDX).toInt()),
+<<<<<<< HEAD
         args.at(distributed::rpc::RREFID_ID_IDX).toInt());
     const auto& forkId = distributed::rpc::RRefId(
         static_cast<int16_t>(args.at(distributed::rpc::FORKID_ON_IDX).toInt()),
         args.at(distributed::rpc::FORKID_ID_IDX).toInt());
+=======
+        static_cast<int64_t>(args.at(distributed::rpc::RREFID_ID_IDX).toInt()));
+    const auto& forkId = distributed::rpc::RRefId(
+        static_cast<int16_t>(args.at(distributed::rpc::FORKID_ON_IDX).toInt()),
+        static_cast<int64_t>(args.at(distributed::rpc::FORKID_ID_IDX).toInt()));
+>>>>>>> 5729657180 ([ROCm] Specialized binary elementwise broadcast kernel for mixed dtypes with float/bfloat16/half (#2791))
     auto parent =
         static_cast<int16_t>(args.at(distributed::rpc::PARENT_IDX).toInt());
     const auto& typeStr = static_cast<std::string>(
