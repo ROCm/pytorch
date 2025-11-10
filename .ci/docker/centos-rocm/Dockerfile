@@ -48,7 +48,6 @@ COPY ./common/install_conda.sh install_conda.sh
 COPY ./common/common_utils.sh common_utils.sh
 RUN bash ./install_conda.sh && rm install_conda.sh common_utils.sh /opt/conda/requirements-ci.txt
 
-
 # (optional) Install vision packages like OpenCV
 ARG VISION
 COPY ./common/install_vision.sh ./common/cache_vision_models.sh ./common/common_utils.sh ./
@@ -82,7 +81,6 @@ ENV MAGMA_HOME /opt/rocm/magma
 ENV LANG en_US.utf8
 ENV LC_ALL en_US.utf8
 
-
 # (optional) Install non-default Ninja version
 ARG NINJA_VERSION
 COPY ./common/install_ninja.sh install_ninja.sh
@@ -98,7 +96,7 @@ COPY ./common/install_triton.sh install_triton.sh
 COPY ./common/common_utils.sh common_utils.sh
 COPY ci_commit_pins/triton.txt triton.txt
 COPY triton_version.txt triton_version.txt
-#RUN if [ -n "${TRITON}" ]; then bash ./install_triton.sh; fi
+RUN if [ -n "${TRITON}" ]; then bash ./install_triton.sh; fi
 RUN rm install_triton.sh common_utils.sh triton.txt triton_version.txt
 
 # Install ccache/sccache (do this last, so we get priority in PATH)
