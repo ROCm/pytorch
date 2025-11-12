@@ -1232,7 +1232,12 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def tanh(x):
-        return f"libdevice.fast_tanhf({x})"
+        # On ROCm, always use fast_tanhf
+        # Requires ROCm fork of Triton 3.3, 3.4, 3.5 or upstream Triton 3.6+
+        if torch.version.hip:
+            return f"libdevice.fast_tanhf({x})"
+        else:
+            return f"libdevice.tanh({x})"
 
     @staticmethod
     @maybe_upcast_float32()
