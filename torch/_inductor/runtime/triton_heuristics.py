@@ -2572,7 +2572,7 @@ def pointwise(
                     """add 2D tiling configs, but don't use triton_config_with_settings function
                     as it is buggy and might change the tiling randomly
                     """
-                    def addConfig__(xblock:int, yblock:int, num_warps:int):
+                    def addConfig__(xblock:int, yblock:int, num_warps:int, num_stages:int):
                         # only add a tiling config if size is bigger than the tile
                         # check also for grid overflow
                         xgrid = (size_hints["x"] + xblock - 1) // xblock
@@ -2586,12 +2586,12 @@ def pointwise(
                         if size_hints["y"] < yblock:
                             return
                         # all good, add the config
-                        configs.append(Config({"XBLOCK": xblock, "YBLOCK": yblock}, num_warps=num_warps))
-                    addConfig__(512, 8, 8) # wrt1/t21 # triton_poi_fused__unsafe_view_add_addmm_cat_clone_permute_split_with_sizes_view_19
-                    addConfig__(32, 128, 4) # wrt2: 570us : triton_poi_fused_add_transpose_view_52
-                    addConfig__(64, 32, 8) # wrt3: 150us: triton_poi_fused__to_copy_add_native_layer_norm_native_layer_norm_backward_permute_view_103
-                    addConfig__(64, 256, 4) # wri0: 70us: triton_poi_fused_clone_tanh_transpose_19
-                    addConfig__(512, 64, 8) # wri0: 58us: triton_poi_fused_clone_53
+                        configs.append(Config({"XBLOCK": xblock, "YBLOCK": yblock}, num_warps=num_warps, num_stages=num_stages))
+                    addConfig__(512, 8, 8,1 ) # wrt1/t21 # triton_poi_fused__unsafe_view_add_addmm_cat_clone_permute_split_with_sizes_view_19
+                    addConfig__(32, 128, 4, 1) # wrt2: 570us : triton_poi_fused_add_transpose_view_52
+                    addConfig__(64, 32, 8, 1) # wrt3: 150us: triton_poi_fused__to_copy_add_native_layer_norm_native_layer_norm_backward_permute_view_103
+                    addConfig__(64, 256, 4, 1) # wri0: 70us: triton_poi_fused_clone_tanh_transpose_19
+                    addConfig__(512, 64, 8, 1) # wri0: 58us: triton_poi_fused_clone_53
 
     if len(size_hints) == 3:
         if disable_pointwise_autotuning(inductor_meta):
