@@ -25,7 +25,7 @@ from torch._dynamo.utils import identity, preserve_rng_state
 from torch._prims_common import is_integer_dtype
 from torch.utils._ordered_set import OrderedSet
 from torch.utils._sympy.functions import CeilDiv, FloorDiv, ModularIndexing
-from torch.utils._triton import has_triton_package
+from torch.utils._triton import has_triton_package, get_triton_version
 
 from ...utils._sympy.symbol import free_symbol_is_type, prefix_str, symbol_is_type, SymT
 from ...utils._sympy.value_ranges import ValueRanges
@@ -1217,9 +1217,9 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def tanh(x):
-        # On ROCm, always use fast_tanhf
-        # Requires ROCm fork of Triton 3.3, 3.4, 3.5 or upstream Triton 3.6+
-        if torch.version.hip:
+        if torch.version.hip and get_triton_version() > (3, 2):
+            # On ROCm, use fast_tanhf depending on Triton version
+            # Requires ROCm fork of Triton 3.3, 3.4, 3.5 or upstream Triton 3.6+
             return f"libdevice.fast_tanhf({x})"
         else:
             return f"libdevice.tanh({x})"
