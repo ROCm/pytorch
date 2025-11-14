@@ -2097,9 +2097,14 @@ def _persistent_reduction_configs(
         or inductor_meta.get("max_autotune_pointwise")
     )
 
+    if torch.version.hip:
+        xblock_vals = [1, 4, 8, 16, 32, 64, 128, 256]
+    else:
+        xblock_vals = [1, 8, 32, 128]
+
     configs = [
         triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
-        for xblock in (1, 8, 32, 128)
+        for xblock in xblock_vals
         if xblock == 1 or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
     ]
 
