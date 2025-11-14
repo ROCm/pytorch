@@ -2574,8 +2574,19 @@ def pointwise(
                     """
                     def addConfig__(xblock:int, yblock:int, num_warps:int):
                         # only add a tiling config if size is bigger than the tile
-                        if size_hints["x"] >= xblock and size_hints["y"] >= yblock:
-                            configs.append(Config({"XBLOCK": xblock, "YBLOCK": yblock}, num_warps=num_warps))
+                        # check also for grid overflow
+                        xgrid = (size_hints["x"] + xblock - 1) // xblock
+                        ygrid = (size_hints["y"] + yblock - 1) // yblock
+                        if xgrid > 2147483647:
+                            return
+                        if ygrid > 65535:
+                            return
+                        if size_hints["x"] < xblock:
+                            return
+                        if size_hints["y"] < yblock:
+                            return
+                        # all good, add the config
+                        configs.append(Config({"XBLOCK": xblock, "YBLOCK": yblock}, num_warps=num_warps))
                     addConfig__(512, 8, 8) # wrt1/t21 # triton_poi_fused__unsafe_view_add_addmm_cat_clone_permute_split_with_sizes_view_19
                     addConfig__(32, 128, 4) # wrt2: 570us : triton_poi_fused_add_transpose_view_52
                     addConfig__(64, 32, 8) # wrt3: 150us: triton_poi_fused__to_copy_add_native_layer_norm_native_layer_norm_backward_permute_view_103
