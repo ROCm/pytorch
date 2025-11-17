@@ -220,7 +220,7 @@ __device__ __forceinline__ void fastAtomicAdd(
 }
 
 
-#if (defined(USE_ROCM) && (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) || defined(__gfx950__)))
+#ifdef USE_ROCM
 // This function implements a committed store.
 // Upon returning, the store is committed to global memory.
 // This is useful in avoiding the need for fences.
