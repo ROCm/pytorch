@@ -69,6 +69,14 @@ from .triton_compat import (
 )
 
 
+class InductorConfig(Config):
+    """Inductor-specific Triton config with additional control flags"""
+
+    def __init__(self, *args, dynamic_scale_rblock=True, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.dynamic_scale_rblock = dynamic_scale_rblock
+
+
 class NoTritonConfigsError(RuntimeError):
     pass
 
