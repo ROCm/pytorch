@@ -491,6 +491,7 @@ add_custom_target(
     --is-debug=${TORCH_VERSION_DEBUG}
     --cuda-version=${CUDA_VERSION}
     --hip-version=${HIP_VERSION}
+    --rocm-version=${ROCM_VERSION_DEV}
     --xpu-version=${SYCL_COMPILER_VERSION}
   BYPRODUCTS ${TORCH_SRC_DIR}/version.py
   COMMENT "Regenerating version file..."
