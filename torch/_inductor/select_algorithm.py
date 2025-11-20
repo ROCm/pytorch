@@ -749,6 +749,54 @@ class TritonTemplateKernel(TritonKernel):
             return texpr(self.rename_indexing(val[index]))
         return ", ".join([texpr(self.rename_indexing(i)) for i in val])
 
+    def ptr(self, name: str):
+        """
+        Hook called from template code to get the pointer of an input/output arg.
+        Returns the variable name that represents the pointer for the given buffer.
+        """
+        assert isinstance(name, str)
+        if name in self.named_input_nodes:
+            # For input nodes, return the argument name
+            return self.args.input(name)
+        elif name == "C":
+            # For output buffer, return the output argument name
+            # Use the buffer's name string, not the node object
+            output_name = self.output_node.get_name()
+            return self.args.output(output_name)
+        else:
+            # Handle special StreamK buffers - they should also be in named_input_nodes
+            # but if not found, try to get as input argument
+            try:
+                return self.args.input(name)
+            except Exception:
+                # If all else fails, assume it's an output-like buffer
+                output_name = self.output_node.get_name()
+                return self.args.output(output_name)
+
+    def dtype(self, name: str):
+        """
+        Hook called from template code to get the Triton dtype string for a buffer.
+        Returns the Triton dtype representation (e.g., 'tl.float32') for the given buffer.
+        """
+        assert isinstance(name, str)
+        if name in self.named_input_nodes:
+            # For input nodes, get dtype from the node
+            torch_dtype = self.named_input_nodes[name].get_dtype()
+        elif name == "C":
+            # For output buffer, get dtype from output node
+            torch_dtype = self.output_node.get_dtype()
+        else:
+            # Handle special StreamK buffers - try to find the appropriate dtype
+            if name in self.named_input_nodes:
+                torch_dtype = self.named_input_nodes[name].get_dtype()
+            else:
+                # Default fallback - use output dtype for unknown buffers
+                torch_dtype = self.output_node.get_dtype()
+
+        # Convert torch.dtype to Triton type string
+        from torch._inductor.codegen.triton import triton_type
+        return triton_type(torch_dtype)
+
     def _get_subgraph(self, subgraph_number: int):
         assert isinstance(subgraph_number, int)
         assert isinstance(self.subgraphs, list)
@@ -1154,6 +1202,8 @@ class TritonTemplateKernel(TritonKernel):
                 self.def_kernel,
                 self.size,
                 self.stride,
+                self.ptr,
+                self.dtype,
                 self.store_output,
                 self.load_input,
                 self.make_load,
@@ -1855,6 +1905,7 @@ class TritonTemplate(KernelTemplate):
             workspace_arg=workspace_arg,
             allowed_prologue_inps=result.prologue_supported_inputs,
             hint_override=hint_override,
+            allow_epilogue_fusion=kwargs.get("allow_epilogue_fusion", True),
         )
 
 
@@ -1961,6 +2012,7 @@ class TritonTemplateCaller(ir.TritonTemplateCallerBase):
         workspace_arg: Optional[WorkspaceArg] = None,
         allowed_prologue_inps: Optional[OrderedSet[str]] = None,
         hint_override: Optional[int] = None,
+        allow_epilogue_fusion: bool = True,
     ) -> None:
         super().__init__(name, input_nodes, layout, description)
         self.make_kernel_render = make_kernel_render
@@ -1981,9 +2033,18 @@ class TritonTemplateCaller(ir.TritonTemplateCallerBase):
             allowed_prologue_inps if allowed_prologue_inps is not None else OrderedSet()
         )
         self.hint_override = hint_override
+        self.allow_epilogue_fusion = allow_epilogue_fusion
 
     def benchmark(self, *args, out):
         assert self.bmreq is not None
+        # Check if the number of passed inputs matches what the kernel expects
+        expected_input_count = len(self.bmreq.input_tensor_meta) if hasattr(self.bmreq, 'input_tensor_meta') else len(args)
+        if len(args) != expected_input_count:
+            # Generate our own input tensors from the stored metadata
+            # This happens when a template (like StreamK) has more inputs than the base operation
+            from .autotune_process import TensorMeta
+            args = tuple(meta.to_tensor() for meta in self.bmreq.input_tensor_meta)
+            out = self.bmreq.output_tensor_meta.to_tensor()
         if config.profile_bandwidth_with_do_bench_using_profiling:
             algo = self.bmreq.make_run_fn(*args, out=out)
             return do_bench_using_profiling(algo)
@@ -2015,6 +2076,7 @@ class TritonTemplateCaller(ir.TritonTemplateCallerBase):
                 make_kernel_render=self.make_kernel_render,
                 mutated_inputs=self.mutated_inputs,
                 allowed_prologue_inps=self.allowed_prologue_inps,
+                allow_epilogue_fusion=self.allow_epilogue_fusion,
             )
         )
 

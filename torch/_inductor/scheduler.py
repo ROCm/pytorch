@@ -4257,13 +4257,21 @@ class Scheduler:
             if not self.check_prologue_fusion_heuristics_fusable(node1, node2, why):
                 return False
 
-        if node1.is_template() and (
-            node2.has_aliasing_or_mutation()
-            or node2.is_reduction()
-            or not config.epilogue_fusion
-        ):
-            why("template epilogue not satisfied")
-            return False
+        if node1.is_template():
+            # Check if the template supports epilogue fusion
+            template = node1.get_template_node()
+            template_allows_epilogue = True
+            if template is not None and isinstance(template, ir.TritonTemplateBuffer):
+                template_allows_epilogue = getattr(template, 'allow_epilogue_fusion', True)
+
+            if (
+                node2.has_aliasing_or_mutation()
+                or node2.is_reduction()
+                or not config.epilogue_fusion
+                or not template_allows_epilogue
+            ):
+                why("template epilogue not satisfied")
+                return False
 
         if (node1.get_buffer_names() & V.graph.no_fuse_buffer_names) or (
             node2.get_buffer_names() & V.graph.no_fuse_buffer_names

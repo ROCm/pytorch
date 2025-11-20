@@ -4967,6 +4967,7 @@ class TritonTemplateBuffer(TemplateBuffer):
         make_kernel_render: Optional[Callable[_P, _T]],
         mutated_inputs: Optional[Iterable[IRNode]] = None,
         allowed_prologue_inps: Optional[OrderedSet[str]] = None,
+        allow_epilogue_fusion: bool = True,
     ) -> None:
         """
         NOTE:[TritonTemplates with multiple outputs]
@@ -4985,6 +4986,8 @@ class TritonTemplateBuffer(TemplateBuffer):
             allowed_set = (
                 torch.ops.higher_order.flex_attention,
                 torch.ops.higher_order.flex_attention_backward,
+                torch.ops.aten.mm.default,  # Allow for StreamK matrix multiplication
+                torch.ops.aten.convolution.default,
             )
             current_node = V.graph.current_node.target
             assert current_node in allowed_set, (
@@ -5000,6 +5003,7 @@ class TritonTemplateBuffer(TemplateBuffer):
         self.allowed_prologue_inps = (
             allowed_prologue_inps if allowed_prologue_inps else OrderedSet()
         )
+        self.allow_epilogue_fusion = allow_epilogue_fusion
 
         self.subgraph_inps: Optional[list[Optional[Union[IRNode, sympy.Expr]]]] = None
         self.subgraph_outs: Optional[list[Optional[IRNode]]] = None

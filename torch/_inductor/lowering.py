@@ -3420,6 +3420,47 @@ def empty_strided(
     return pointwise
 
 
+def zeros_strided(
+    size, stride, *, dtype=None, layout=None, device=None, pin_memory=None
+):
+    """
+    Like empty_strided but actually zero-initializes the buffer at runtime.
+
+    empty_strided creates a NOP kernel by setting ranges to [0] * len(size),
+    which means the zero-fill never actually happens. This function creates
+    a proper zero-initialized buffer by not NOP-ifying the pointwise operation.
+
+    This is useful for workspace buffers in StreamK that require zeroing to
+    avoid race conditions from memory aliasing.
+    """
+    assert isinstance(size, (list, tuple))
+    assert isinstance(stride, (list, tuple, type(None)))
+    assert_nyi(not pin_memory, "pin_memory")
+    assert_nyi(layout in (None, torch.strided), f"layout={layout}")
+    dtype = decode_dtype(dtype) or torch.get_default_dtype()
+    device = device or torch.tensor(0.0).device
+    device = decode_device(device)
+    pointwise = _full(fill_value=0, device=device, dtype=dtype, size=size)
+    pointwise.realize()
+    buffer = pointwise.data.data
+    # NOTE: Unlike empty_strided, we do NOT set ranges to zeros
+    # This ensures the zero-fill kernel actually executes at runtime
+    assert isinstance(buffer, ir.ComputedBuffer)
+    size = [sympy.expand(s) for s in size]
+    stride = (
+        [sympy.expand(s) for s in stride]
+        if stride
+        else ir.FlexibleLayout.contiguous_strides(size)
+    )
+    buffer.layout = ir.FixedLayout(
+        device=device,
+        dtype=dtype,
+        size=size,
+        stride=stride,
+    )
+    return pointwise
+
+
 @register_lowering(aten.new_empty_strided)
 def new_empty_strided(
     x, size, stride, *, dtype=None, layout=None, device=None, pin_memory=None
