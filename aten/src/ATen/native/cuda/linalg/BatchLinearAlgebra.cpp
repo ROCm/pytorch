@@ -2102,7 +2102,7 @@ void linalg_eig_kernel(Tensor& eigenvalues, Tensor& eigenvectors, Tensor& infos,
   // 'linalg_eig_cusolver_xgeev' both geev routines modify the provided input matrix in-place, therefore we need a copy
 
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(input.is_cuda());
-#if defined(CUSOLVER_VERSION) && (CUSOLVER_VERSION >= 11702)
+#if (defined(CUSOLVER_VERSION) && (CUSOLVER_VERSION >= 11702)) || AT_ROCM_ENABLED()
   auto preferred_backend = at::globalContext().linalgPreferredBackend();
   switch (preferred_backend) {
     case at::LinalgBackend::Cusolver:
@@ -2771,7 +2771,7 @@ void lstsq_kernel(const Tensor& a, Tensor& b, Tensor& /*rank*/, Tensor& /*singul
         "Please rebuild with cuSOLVER.");
 #endif
   } else { // m >= n
-#if !AT_ROCM_ENABLED()
+#if !AT_ROCM_ENABLED() || (AT_ROCM_ENABLED() && !AT_MAGMA_ENABLED())
     // On CUDA platform we use either cuBLAS or cuSOLVER here
     // the batched vs looped dispatch is implemented based on the following performance results
     // https://github.com/pytorch/pytorch/pull/54725#issuecomment-832234456

@@ -8699,6 +8699,7 @@ CUDA_SPECIAL_MAP = collections.OrderedDict(
 
         ("gesvdjInfo_t", ("hipsolverGesvdjInfo_t", CONV_TYPE, API_SPECIAL)),
         ("cusolverDnCreateGesvdjInfo", ("hipsolverDnCreateGesvdjInfo", CONV_MATH_FUNC, API_SPECIAL)),
+        ("cusolverDnCreateParams", ("hipsolverDnCreateParams", CONV_MATH_FUNC, API_SPECIAL)),
         ("cusolverDnXgesvdjSetSortEig", ("hipsolverDnXgesvdjSetSortEig", CONV_MATH_FUNC, API_SPECIAL)),
         ("cusolverDnDestroyGesvdjInfo", ("hipsolverDnDestroyGesvdjInfo", CONV_MATH_FUNC, API_SPECIAL)),
 
