@@ -1315,7 +1315,12 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def tanh(x):
-        if torch.version.hip and get_triton_version() > (3, 2):
+        dtype = V.kernel.cse.varname_map.get(x).dtype
+        if (
+            torch.version.hip
+            and get_triton_version() > (3, 4)
+            and dtype != torch.float64
+        ):
             # On ROCm, use fast_tanhf depending on Triton version
             # Requires ROCm fork of Triton 3.3, 3.4, 3.5 or upstream Triton 3.6+
             return f"libdevice.fast_tanhf({x})"
