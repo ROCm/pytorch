@@ -1957,9 +1957,9 @@ def pointwise(
                 configs += [
                     triton_config_with_settings(size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1), # 20% improvement # .. in where?
                     triton_config_with_settings(size_hints, 4096), # wrt1: better than the max_block for some kernel
-                    triton_config_with_settings(size_hints, 128, num_warps=2, num_stages=2, waves_per_eu=1), 
-                    # -> wrt1/t18: 2X improvement: triton_poi_fused_index_put_new_zeros_37, 
-                    # triton_poi_fused_index_put_new_zeros_45 
+                    triton_config_with_settings(size_hints, 128, num_warps=2, num_stages=2, waves_per_eu=1),
+                    # -> wrt1/t18: 2X improvement: triton_poi_fused_index_put_new_zeros_37,
+                    # triton_poi_fused_index_put_new_zeros_45
                     # triton_poi_fused_index_put_new_zeros_49
                     # triton_poi_fused_index_put_new_zeros_54
                 ]
@@ -1992,7 +1992,7 @@ def pointwise(
                     size_hints, 64, 32
                 ),  # better for some kernels
                 triton_config_with_settings(size_hints, 64, 64),  # ~8% better for fp16
-                triton_config_with_settings(size_hints, 256, 16), 
+                triton_config_with_settings(size_hints, 256, 16),
                 triton_config_with_settings(size_hints, 16, 256),
                 triton_config_with_settings(
                     size_hints, 128, 16
@@ -2604,7 +2604,7 @@ def foreach(triton_meta, filename=None, inductor_meta=None):
     Compile a triton foreach kernel
     """
     configs = []
-    
+
     # Naive autotuning path for num_warps
     if disable_pointwise_autotuning(inductor_meta) and not (
         inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
