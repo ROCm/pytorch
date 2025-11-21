@@ -1938,26 +1938,32 @@ def pointwise(
                 triton_config_with_settings(
                     size_hints, bs // 2, num_elements_per_warp=64
                 ),
-                triton_config_with_settings(
-                    size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
-                ),
-                triton_config_with_settings(
-                    size_hints,
-                    4096,  # wrt: better than the max_block for some kernel
-                ),
                 *hinted_configs,
             ]
             # Additional reduction configs appended for ROCm builds
             if torch.version.hip:
-                configs.append(
-                    triton_config_with_settings(
-                        size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1
-                    )
-                )  # 20% improvement
+                configs.extend(
+                    [
+                        triton_config_with_settings(
+                            size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
+                        ),
+                        triton_config_with_settings(
+                            size_hints,
+                            4096,  # wrt: better than the max_block for some kernel
+                        ),
+                        triton_config_with_settings(
+                            size_hints,
+                            2048,
+                            num_warps=8,
+                            num_stages=2,
+                            waves_per_eu=1,  # 20% improvement
+                        ),
+                    ]
+                )
                 configs += [
-                    triton_config_with_settings(size_hints, 2048, num_warps=8, num_stages=2, waves_per_eu=1), # 20% improvement # .. in where?
-                    triton_config_with_settings(size_hints, 4096), # wrt1: better than the max_block for some kernel
-                    triton_config_with_settings(size_hints, 128, num_warps=2, num_stages=2, waves_per_eu=1),
+                    triton_config_with_settings(
+                        size_hints, 128, num_warps=2, num_stages=2, waves_per_eu=1
+                    ),
                     # -> wrt1/t18: 2X improvement: triton_poi_fused_index_put_new_zeros_37,
                     # triton_poi_fused_index_put_new_zeros_45
                     # triton_poi_fused_index_put_new_zeros_49
