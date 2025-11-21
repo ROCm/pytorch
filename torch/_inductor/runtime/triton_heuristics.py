@@ -1963,6 +1963,17 @@ def pointwise(
                     # triton_poi_fused_index_put_new_zeros_49
                     # triton_poi_fused_index_put_new_zeros_54
                 ]
+                if inductor_meta.get("atomic_add_found"):
+                    configs.extend(
+                        [
+                            triton_config_with_settings(
+                                size_hints,
+                                64,
+                                num_warps=1,
+                                num_stages=1,  # 250% improvement
+                            )
+                        ]
+                    )
     if len(size_hints) == 2:
         # Only avoiding tuning on TileHint.SQUARE if not on ROCm builds
         # ROCm has observed improvement by diverging here

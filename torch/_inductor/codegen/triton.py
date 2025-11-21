@@ -2294,6 +2294,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         elif mode is None:
             line = f"tl.store({var} + ({indexing.index_str}), {value}, {indexing.mask_str})"
         elif mode == "atomic_add":
+            self.atomic_add_found = True
             line = f"tl.atomic_add({var} + ({indexing.index_str}), {value}, {indexing.mask_str}, sem='relaxed')"
         else:
             raise NotImplementedError(f"store mode={mode}")
@@ -3611,6 +3612,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             "mutated_arg_names": mutated_args,
             "optimize_mem": optimize_mem,
             "no_x_dim": self.no_x_dim,
+            "atomic_add_found": self.atomic_add_found,
             "num_load": self.num_load,
             "num_reduction": self.num_reduction,
             **self.inductor_meta_common(),
