@@ -2084,7 +2084,6 @@ def _reduction_configs(
     *,
     size_hints: dict[str, int],
     inductor_meta: dict[str, Any],
-    triton_meta: dict[str, Any],
     num_dynamic=0,
 ) -> list[Config]:
     reduction_hint = inductor_meta.get("reduction_hint", None)
@@ -2390,7 +2389,6 @@ def reduction(
     configs = _reduction_configs(
         size_hints=size_hints,
         inductor_meta=inductor_meta,
-        triton_meta=triton_meta,
         num_dynamic=num_dynamic,
     )
 
