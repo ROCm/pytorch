@@ -1632,7 +1632,7 @@ class MMTemplateConfigMixin(GemmMaxAutotuneTemplateConfigHeuristics):
         import origami
         from helper import MatmulHeuristicResult
         OrigamiGemmSelector = MatmulHeuristicResult(m, n, k, dtype, dtype, dtype)
-        import pdb;pdb.set_trace()
+        #import pdb;pdb.set_trace()
         # Generate and process configs
         if config.origami:
             print(m,n,k)
