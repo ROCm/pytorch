@@ -1628,14 +1628,14 @@ class MMTemplateConfigMixin(GemmMaxAutotuneTemplateConfigHeuristics):
         # Get the appropriate config generator
         configs = self._get_config_generator()
         
+        #import pdb;pdb.set_trace()
         from triton import Config as TritonConfig
         import origami
         from helper import MatmulHeuristicResult
         OrigamiGemmSelector = MatmulHeuristicResult(m, n, k, dtype, dtype, dtype)
-        #import pdb;pdb.set_trace()
         # Generate and process configs
         if config.origami:
-            print(m,n,k)
+            print("Origami config")
             origami_config_kwargs = {
                                     'EVEN_K': True, 'USE_FAST_ACCUM': False,
                                     'ACC_TYPE': 'tl.float32',
@@ -1651,6 +1651,7 @@ class MMTemplateConfigMixin(GemmMaxAutotuneTemplateConfigHeuristics):
                                     }
             yield origami_config_kwargs
         else:
+            print("Autotuning config")
             for c in configs(m, n, k, dtype_size=dtype.itemsize, op_name=op_name):
                 template_kwargs = self._convert_config_to_template_kwargs(
                     c,
