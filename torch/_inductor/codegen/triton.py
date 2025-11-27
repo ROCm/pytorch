@@ -1322,7 +1322,7 @@ class TritonOverrides(OpOverrides):
             dtype = None
         if (
             torch.version.hip
-            and get_triton_version() > (3, 4)
+            and get_triton_version() > (3, 2)
             and dtype != torch.float64
         ):
             # On ROCm, use fast_tanhf depending on Triton version
