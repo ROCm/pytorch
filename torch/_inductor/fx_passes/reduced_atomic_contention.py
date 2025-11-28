@@ -66,14 +66,14 @@ def lazy_init():
     register_graph_pattern(
         CallFunction(aten.index_put.default, Arg(), Arg(), Arg(), True),
         extra_check=validate_match,
-        pass_dict=partitioned_scatter_patterns,
+        pass_dict=partitioned_scatter_patterns,  # type: ignore[arg-type]
     )(create_replacement)
 
     # Pattern: index_put_(input, indices, values, accumulate=True)
     register_graph_pattern(
         CallFunction(aten.index_put_.default, Arg(), Arg(), Arg(), True),
         extra_check=validate_match,
-        pass_dict=partitioned_scatter_patterns,
+        pass_dict=partitioned_scatter_patterns,  # type: ignore[arg-type]
     )(create_replacement)
 
 
@@ -91,7 +91,11 @@ def validate_match(match: Match) -> bool:
     # Extract metadata
     input_node = output_node.args[0]
     indices_arg = output_node.args[1]
-    
+
+    # Validate input_node is an FX Node
+    if not isinstance(input_node, fx.Node):
+        return False
+
     scatter_dim, index_node = _extract_scatter_dim_and_index(indices_arg)
     if scatter_dim is None or index_node is None:
         return False
@@ -121,9 +125,10 @@ def validate_match(match: Match) -> bool:
     output_size = input_meta["numel"]
     index_size = index_meta["numel"]
 
-    # Calculate estimated contention
+    # Safety check (also done in _estimate_optimal_partitions)
     if output_size == 0 or index_size == 0:
         return False
+    
     contention_ratio = index_size / output_size
     
     # Check minimum index size threshold
@@ -133,7 +138,7 @@ def validate_match(match: Match) -> bool:
         return False
 
     # Only use if index_size is small enough and estimated contention is relevant
-    if not (index_size < (min_index_size * 8) and contention_ratio < 4):
+    if not (index_size < (min_index_size * 8)) and contention_ratio < 4:
         return False
     
     # Get optimal partitions and adjust for memory constraints
@@ -148,8 +153,8 @@ def validate_match(match: Match) -> bool:
         return False
 
     # Store optimization parameters for replacement
-    match._num_partitions = num_partitions
-    match._scatter_dim = scatter_dim
+    match._num_partitions = num_partitions  # type: ignore[attr-defined]
+    match._scatter_dim = scatter_dim  # type: ignore[attr-defined]
     
     log.debug(
         f"Applying optimization: {num_partitions} partitions, "
@@ -170,9 +175,9 @@ def create_replacement(
     graph = match.graph
     matched_node = match.output_node()
     
-    # Get optimization parameters
-    num_partitions = getattr(match, "_num_partitions", MIN_PARTITIONS)
-    scatter_dim = getattr(match, "_scatter_dim", 0)
+    # Get optimization parameters (dynamically set in validate_match)
+    num_partitions: int = getattr(match, "_num_partitions", MIN_PARTITIONS)
+    scatter_dim: int = getattr(match, "_scatter_dim", 0)
     
     # Extract index node and metadata
     _, index_node = _extract_scatter_dim_and_index(indices)
@@ -210,6 +215,22 @@ def create_replacement(
     return output
 
 
+def _get_max_partitions_for_size(output_size: int) -> int:
+    """
+    Get maximum partitions based on output tensor size.
+    
+    Larger tensors use fewer partitions to limit memory overhead.
+    """
+    if output_size >= 100_000_000:  # >= 100M elements
+        return 4
+    elif output_size >= 10_000_000:  # >= 10M elements
+        return 8
+    elif output_size >= 1_000_000:  # >= 1M elements
+        return 16
+    else:  # < 1M elements
+        return MAX_PARTITIONS
+
+
 def _estimate_optimal_partitions(output_size: int, index_size: int) -> int:
     """Estimate optimal number of partitions based on contention ratio."""
     # Safety check for edge cases
@@ -219,14 +240,7 @@ def _estimate_optimal_partitions(output_size: int, index_size: int) -> int:
     contention_ratio = index_size / output_size
     
     # Size-aware partition limits (larger tensors = fewer partitions to limit memory)
-    if output_size >= 100_000_000:  # >= 100M elements
-        max_partitions_for_size = 4
-    elif output_size >= 10_000_000:  # >= 10M elements
-        max_partitions_for_size = 8
-    elif output_size >= 1_000_000:  # >= 1M elements
-        max_partitions_for_size = 16
-    else:  # < 1M elements
-        max_partitions_for_size = MAX_PARTITIONS
+    max_partitions_for_size = _get_max_partitions_for_size(output_size)
     
     # Contention-based calculation - square root scaling
     # Use max to ensure we never go below MIN_PARTITIONS for the base calculation
@@ -261,7 +275,10 @@ def _fit_to_memory_budget(
             overhead = output_size * element_bytes * (current_partitions - 1)
             
             if overhead <= budget:
-                if current_partitions < num_partitions:
+                # Only format debug string if debug logging is enabled
+                if current_partitions < num_partitions and log.isEnabledFor(
+                    logging.DEBUG
+                ):
                     log.debug(
                         f"Reduced partitions from {num_partitions} to "
                         f"{current_partitions} to fit memory budget "
@@ -273,11 +290,12 @@ def _fit_to_memory_budget(
             current_partitions //= 2
 
         # Even MIN_PARTITIONS doesn't fit
-        overhead = output_size * element_bytes * (MIN_PARTITIONS - 1)
-        log.debug(
-            f"Insufficient memory even for {MIN_PARTITIONS} partitions: "
-            f"{overhead/1e9:.2f}GB > {budget/1e9:.2f}GB"
-        )
+        if log.isEnabledFor(logging.DEBUG):
+            overhead = output_size * element_bytes * (MIN_PARTITIONS - 1)
+            log.debug(
+                f"Insufficient memory even for {MIN_PARTITIONS} partitions: "
+                f"{overhead/1e9:.2f}GB > {budget/1e9:.2f}GB"
+            )
         return 0
 
     except Exception as e:
@@ -287,7 +305,7 @@ def _fit_to_memory_budget(
 
 def _extract_scatter_dim_and_index(indices_arg: Any) -> tuple[Optional[int], Optional[fx.Node]]:
     """Extract scatter dimension and index node from indices argument."""
-    # Single index → dim=0
+    # Case 1: Single index → dim=0
     if not isinstance(indices_arg, (list, tuple)):
         return 0, indices_arg
     
@@ -295,6 +313,7 @@ def _extract_scatter_dim_and_index(indices_arg: Any) -> tuple[Optional[int], Opt
     index_node = None
     scatter_dim = None
     
+    # Case 2 -> Find the first non-None index as the scatter dimension
     for dim, idx in enumerate(indices_arg):
         if idx is not None:
             if index_node is not None:
