@@ -133,6 +133,11 @@ COPY ./common/install_openmpi.sh install_openmpi.sh
 RUN if [ -n "${CUDA_VERSION}" ]; then bash install_openmpi.sh; fi
 RUN rm install_openmpi.sh
 
+RUN git clone https://github.com/ROCm/rocm-libraries.git
+RUN cd rocm-libraries/shared/origami/python
+RUN python setup.py build_ext --inplace
+RUN export PYTHONPATH=$(pwd):$PYTHONPATH
+
 # Include BUILD_ENVIRONMENT environment variable in image
 ARG BUILD_ENVIRONMENT
 ENV BUILD_ENVIRONMENT ${BUILD_ENVIRONMENT}

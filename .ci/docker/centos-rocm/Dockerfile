@@ -101,6 +101,11 @@ COPY ./common/install_cache.sh install_cache.sh
 ENV PATH /opt/cache/bin:$PATH
 RUN bash ./install_cache.sh && rm install_cache.sh
 
+RUN git clone https://github.com/ROCm/rocm-libraries.git
+RUN cd rocm-libraries/shared/origami/python
+RUN python setup.py build_ext --inplace
+RUN export PYTHONPATH=$(pwd):$PYTHONPATH
+
 # Include BUILD_ENVIRONMENT environment variable in image
 ARG BUILD_ENVIRONMENT
 ENV BUILD_ENVIRONMENT ${BUILD_ENVIRONMENT}
