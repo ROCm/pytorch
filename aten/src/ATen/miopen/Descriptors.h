@@ -12,6 +12,8 @@ namespace at::native {
 
 std::string miopenTypeToString(miopenDataType_t dtype);
 
+std::string miopenTypeToString(miopenDataType_t dtype);
+
 inline int dataSize(miopenDataType_t dataType)
 {
   switch (dataType) {
@@ -22,18 +24,7 @@ inline int dataSize(miopenDataType_t dataType)
   }
 }
 
-// The stride for a size-1 dimensions is not uniquely determined; in
-// fact, it can be anything you want, because the fact that the
-// tensor is size 1 at this dimension means that you will never actually
-// try advancing your pointer by this stride.
-//
-// We duplicate the CuDNN restriction here for MIOpen.
-//
-// However, CuDNN has a much more stringent requirement on strides:
-// if you are passing a contiguous input, it better be the case
-// that the stride for dim i is the product of the sizes of dims
-// i+1 to the end.  This stride is indeed uniquely determined.  This
-// function modifies 'stride' in place so this invariant holds.
+// See NOTE [ cudnn fixSizeOneDimStride ] in aten/src/ATen/cudnn/Descriptors.h
 template <typename T>
 static inline void fixSizeOneDimStride(int dim, const T *size, T *stride, bool nhwc) {
   int64_t z = 1;
@@ -117,19 +108,7 @@ class TORCH_HIP_CPP_API TensorDescriptor : public Descriptor<
     set(t, pad);
   }
 
-  // Note [MIOpen broadcast padding]
-  // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  // pad specifies the minimum dimensionality of the tensor descriptor
-  // we produce (it doesn't have anything to do with, e.g., convolution
-  // padding).  If 't' is lower-dimensional than 'pad', the remaining
-  // dimensions (on the right) are padded with ones.  This doesn't
-  // affect the underlying data layout.  This is particularly useful for
-  // dealing with a peculiarity of the MIOpen API, which is that broadcasting in MIOpen is
-  // done in two steps: first, the client code is expected to pad out
-  // (the dimensions) input tensors to be the same dimension as the
-  // target broadcast, and then second, MIOpen takes of actually
-  // broadcasting size 1 dimensions.
-
+  // See Note [CuDNN broadcast padding]
   void set(const at::Tensor &t, size_t pad = 0);
   void set(const at::Tensor &t, at::MemoryFormat memory_format, size_t pad = 0);
   void set(miopenDataType_t dataType, IntArrayRef sizes, IntArrayRef strides, size_t pad = 0);
@@ -161,8 +140,10 @@ class TORCH_HIP_CPP_API FilterDescriptor : public Descriptor<
 
   void print();
 private:
-  void set(miopenDataType_t dataType, int dim, int* size, int* stride) {
-    MIOPEN_CHECK(miopenSetTensorDescriptor(mut_desc(), dataType, dim, size, stride));
+  void set(miopenDataType_t dataType, int dim, int* size, int* stride, bool nhwc) {
+    std::vector<int> strides_copy(stride, stride + dim);
+    fixSizeOneDimStride<int>(dim, size, strides_copy.data(), nhwc);
+    MIOPEN_CHECK(miopenSetTensorDescriptor(mut_desc(), dataType, dim, size, strides_copy.data()));
   }
 };
 
@@ -229,4 +210,4 @@ union Constant
   }
 };
 
-} // namespace
+}} // namespace

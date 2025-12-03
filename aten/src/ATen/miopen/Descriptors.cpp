@@ -19,13 +19,16 @@ inline miopenDataType_t getDataType(const at::Tensor& t) {
     return miopenHalf;
   } else if (scalar_type == at::kBFloat16) {
     return miopenBFloat16;
+  } else {
+    TORCH_CHECK(
+        false,
+        "TensorDescriptor does not support ", scalar_type);
   }
-  TORCH_CHECK(false, "TensorDescriptor does not support ", scalar_type);
 }
 
-constexpr size_t MIOPEN_DIM_MAX = 5;
-
 } // anonymous namespace
+
+constexpr size_t MIOPEN_DIM_MAX = 5;
 
 void TensorDescriptor::set(const at::Tensor &t, at::MemoryFormat memory_format, size_t pad) {
   set(getDataType(t), t.sizes(), t.strides(), pad,
@@ -73,32 +76,32 @@ std::string miopenTypeToString(miopenDataType_t dtype) {
       return "miopenBFloat16";
     default:
       std::ostringstream oss;
-      oss << "(unknown data-type " << static_cast<int>(dtype) << ")";
+      oss << "(unknown data-type " << static_cast<int>(dtype) << ')';
       return oss.str();
   }
 }
 
 std::ostream& operator<<(std::ostream & out, const TensorDescriptor& d) {
-  out << "TensorDescriptor " << static_cast<void*>(d.desc()) << "\n";
+  out << "TensorDescriptor " << static_cast<void*>(d.desc()) << '\n';
   int nbDims = 0;
   int dimA[MIOPEN_DIM_MAX];
   int strideA[MIOPEN_DIM_MAX];
   miopenDataType_t dtype;
   miopenGetTensorDescriptorSize(d.desc(), &nbDims);
   miopenGetTensorDescriptor(d.desc(), &dtype, dimA, strideA);
-  out << "    type = " << miopenTypeToString(dtype) << "\n";
-  out << "    nbDims = " << nbDims << "\n";
+  out << "    type = " << miopenTypeToString(dtype) << '\n';
+  out << "    nbDims = " << nbDims << '\n';
   // Read out only nbDims of the arrays!
   out << "    dimA = ";
   for (auto i : ArrayRef<int>{dimA, static_cast<size_t>(nbDims)}) {
     out << i << ", ";
   }
-  out << "\n";
+  out << '\n';
   out << "    strideA = ";
   for (auto i : ArrayRef<int>{strideA, static_cast<size_t>(nbDims)}) {
     out << i << ", ";
   }
-  out << "\n";
+  out << '\n';
   return out;
 }
 
@@ -136,7 +139,9 @@ void FilterDescriptor::set(const at::Tensor &t, const at::MemoryFormat memory_fo
   }
 
   dim = std::max<int64_t>(dim, pad);
-  set(getDataType(t), static_cast<int>(dim), size, stride);
+  set(getDataType(t), static_cast<int>(dim), size, stride,
+    memory_format == at::MemoryFormat::ChannelsLast ||
+    memory_format == at::MemoryFormat::ChannelsLast3d);
 }
 
 std::ostream& operator<<(std::ostream & out, const FilterDescriptor& d) {

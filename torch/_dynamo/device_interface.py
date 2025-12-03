@@ -18,9 +18,9 @@ specialized implementations for each hardware backend's unique features.
 import inspect
 import time
 from collections import namedtuple
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from dataclasses import dataclass
-from typing import Any, Callable, Literal, Optional, Union
+from typing import Any, Literal, Optional, Union
 
 import torch
 
@@ -149,10 +149,6 @@ class DeviceInterface:
         raise NotImplementedError
 
     @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return None
-
-    @staticmethod
     def is_triton_capable(device: torch.types.Device = None) -> bool:
         """
         Returns True if the device has Triton support, False otherwise, even if
@@ -209,6 +205,7 @@ class CudaInterface(DeviceInterface):
     Event = torch.cuda.Event  # type: ignore[assignment]
     Stream = torch.cuda.Stream  # type: ignore[assignment]
 
+    # pyrefly: ignore [bad-override]
     class Worker:
         @staticmethod
         def set_device(device: int) -> None:
@@ -244,6 +241,7 @@ class CudaInterface(DeviceInterface):
     set_device = staticmethod(torch.cuda.set_device)
     device_count = staticmethod(torch.cuda.device_count)
     stream = staticmethod(torch.cuda.stream)  # type: ignore[assignment]
+    # pyrefly: ignore [bad-override]
     current_stream = staticmethod(torch.cuda.current_stream)
     set_stream = staticmethod(torch.cuda.set_stream)  # type: ignore[assignment]
     _set_stream_by_id = staticmethod(torch.cuda._set_stream_by_id)  # type: ignore[assignment]
@@ -267,10 +265,6 @@ class CudaInterface(DeviceInterface):
             return major * 10 + min
         else:
             return torch.cuda.get_device_properties(device).gcnArchName.split(":", 1)[0]
-
-    @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return torch._inductor.config.cuda_backend
 
     @staticmethod
     def is_triton_capable(device: torch.types.Device = None) -> bool:
@@ -308,6 +302,7 @@ class MtiaInterface(DeviceInterface):
     Event = torch.mtia.Event  # type: ignore[assignment]
     Stream = torch.mtia.Stream  # type: ignore[assignment]
 
+    # pyrefly: ignore [bad-override]
     class Worker:
         @staticmethod
         def set_device(device: int) -> None:
@@ -343,14 +338,15 @@ class MtiaInterface(DeviceInterface):
     set_device = staticmethod(torch.mtia.set_device)  # type: ignore[assignment]
     device_count = staticmethod(torch.mtia.device_count)
     stream = staticmethod(torch.mtia.stream)  # type: ignore[assignment]
+    # pyrefly: ignore [bad-override]
     current_stream = staticmethod(torch.mtia.current_stream)
     set_stream = staticmethod(torch.mtia.set_stream)  # type: ignore[assignment]
     _set_stream_by_id = staticmethod(torch.mtia._set_stream_by_id)  # type: ignore[assignment]
     synchronize = staticmethod(torch.mtia.synchronize)
     get_device_properties = staticmethod(torch.mtia.get_device_properties)  # type: ignore[assignment]
     get_raw_stream = staticmethod(get_mtia_stream)  # type: ignore[assignment, arg-type]
-    exchange_device = staticmethod(torch.mtia._exchange_device)  # type: ignore[arg-type]
-    maybe_exchange_device = staticmethod(torch.mtia._maybe_exchange_device)  # type: ignore[arg-type]
+    exchange_device = staticmethod(torch.mtia._exchange_device)  # type: ignore[arg-type, has-type]
+    maybe_exchange_device = staticmethod(torch.mtia._maybe_exchange_device)  # type: ignore[arg-type, has-type]
     memory_allocated = staticmethod(torch.mtia.memory_allocated)  # type: ignore[assignment]
     is_bf16_supported = staticmethod(torch.mtia.is_bf16_supported)  # type: ignore[arg-type]
 
@@ -364,10 +360,6 @@ class MtiaInterface(DeviceInterface):
     def get_compute_capability(device: torch.types.Device = None) -> Any:
         cc = torch.mtia.get_device_capability(device)
         return cc
-
-    @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return "triton"
 
     @staticmethod
     def is_triton_capable(device: torch.types.Device = None) -> bool:
@@ -393,6 +385,7 @@ class XpuInterface(DeviceInterface):
     Event = torch.xpu.Event  # type: ignore[assignment]
     Stream = torch.xpu.Stream  # type: ignore[assignment]
 
+    # pyrefly: ignore [bad-override]
     class Worker:
         @staticmethod
         def set_device(device: int) -> None:
@@ -426,16 +419,17 @@ class XpuInterface(DeviceInterface):
 
     current_device = staticmethod(torch.xpu.current_device)
     set_device = staticmethod(torch.xpu.set_device)
-    device_count = staticmethod(torch.xpu.device_count)
+    device_count = staticmethod(torch.xpu.device_count)  # type: ignore[has-type]
     stream = staticmethod(torch.xpu.stream)  # type: ignore[assignment]
+    # pyrefly: ignore [bad-override]
     current_stream = staticmethod(torch.xpu.current_stream)
     set_stream = staticmethod(torch.xpu.set_stream)  # type: ignore[assignment]
     _set_stream_by_id = staticmethod(torch.xpu._set_stream_by_id)  # type: ignore[assignment]
     synchronize = staticmethod(torch.xpu.synchronize)
     get_device_properties = staticmethod(torch.xpu.get_device_properties)  # type: ignore[assignment]
     get_raw_stream = staticmethod(get_xpu_stream)  # type: ignore[assignment, arg-type]
-    exchange_device = staticmethod(torch.xpu._exchange_device)  # type: ignore[arg-type]
-    maybe_exchange_device = staticmethod(torch.xpu._maybe_exchange_device)  # type: ignore[arg-type]
+    exchange_device = staticmethod(torch.xpu._exchange_device)  # type: ignore[arg-type, has-type]
+    maybe_exchange_device = staticmethod(torch.xpu._maybe_exchange_device)  # type: ignore[arg-type, has-type]
     memory_allocated = staticmethod(torch.xpu.memory_allocated)
 
     # Can be mock patched by @patch decorator.
@@ -451,10 +445,6 @@ class XpuInterface(DeviceInterface):
     @staticmethod
     def is_bf16_supported(including_emulation: bool = False) -> bool:
         return torch.xpu.is_bf16_supported()
-
-    @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return "triton"
 
     @staticmethod
     def is_triton_capable(device: torch.types.Device = None) -> bool:
@@ -474,6 +464,7 @@ class CpuDeviceProperties:
 
 
 class CpuInterface(DeviceInterface):
+    # pyrefly: ignore [bad-override]
     class Event(torch.Event):
         def __init__(self, enable_timing: bool = True) -> None:
             self.time = 0.0
@@ -484,6 +475,7 @@ class CpuInterface(DeviceInterface):
         def record(self, stream: Any = None) -> None:
             self.time = time.perf_counter()
 
+    # pyrefly: ignore [bad-override]
     class Worker:
         @staticmethod
         def get_device_properties(
@@ -529,10 +521,6 @@ class CpuInterface(DeviceInterface):
         if "cpu" not in triton.backends.backends:
             raise RuntimeError("triton not built with the 'cpu' backend")
 
-    @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return torch._inductor.config.cpu_backend
-
 
 class MpsInterface(DeviceInterface):
     @staticmethod
@@ -563,6 +551,7 @@ class MpsInterface(DeviceInterface):
     def synchronize(device: torch.types.Device = None) -> None:
         torch.mps.synchronize()
 
+    # pyrefly: ignore [bad-override]
     class Worker:
         @staticmethod
         def get_device_properties(device: torch.types.Device = None) -> Any:
@@ -573,10 +562,6 @@ class MpsInterface(DeviceInterface):
         @staticmethod
         def current_device() -> int:
             return 0
-
-    @staticmethod
-    def inductor_backend() -> Optional[str]:
-        return "mps"
 
 
 device_interfaces: dict[str, type[DeviceInterface]] = {}
