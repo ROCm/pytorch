@@ -1638,13 +1638,13 @@ class MMTemplateConfigMixin(GemmMaxAutotuneTemplateConfigHeuristics):
                                     'EVEN_K': True, 'USE_FAST_ACCUM': False,
                                     'ACC_TYPE': 'tl.float32',
                                     'num_stages': 2,
-                                    'num_warps': 1,
+                                    'num_warps': 8,
                                     'BLOCK_M':OrigamiGemmSelector.config[0],
                                     'BLOCK_N':OrigamiGemmSelector.config[1],
                                     'BLOCK_K':OrigamiGemmSelector.config[2],
                                     'GROUP_M':OrigamiGemmSelector.config[3],
                                     'matrix_instr_nonkdim': 16,
-                                    'waves_per_eu': 8,
+                                    'waves_per_eu': 0,
                                     'kpack': 2,
                                     }
             yield origami_config_kwargs
