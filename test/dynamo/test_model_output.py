@@ -37,11 +37,15 @@ class TestHFPretrained(torch._dynamo.test_case.TestCase):
             if hasattr(tmp, "somekey"):
                 a = a + 1
             if tmp.return_dict:
-                return a + torch.ones(2) * tmp.max_length
+                if hasattr(tmp, "max_length"):
+                    return a + torch.ones(2) * tmp.max_length
+                else:
+                    # older hf transformers attr
+                    return a + torch.ones(2) * tmp.generate_max_length
             return a
 
         x = torch.randn(2)
-        tmp = PretrainedConfig(return_dict=True, max_length=20)
+        tmp = PretrainedConfig(return_dict=True)
         ref = fn(x, tmp)
         opt_fn = torch.compile(fn, backend="eager", fullgraph=True)
         res = opt_fn(x, tmp)
