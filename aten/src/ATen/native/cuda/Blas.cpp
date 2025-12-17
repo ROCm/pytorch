@@ -5,6 +5,7 @@
 #include <c10/core/Scalar.h>
 #include <c10/core/ScalarType.h>
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
+#include <ATen/Context.h>
 #include <ATen/core/Tensor.h>
 #include <ATen/core/NamedTensor.h>
 #include <ATen/Dispatch.h>
@@ -123,10 +124,13 @@ static bool isGloballyDisabledAddmmCudaLt(const at::Device& device) {
   static const std::vector<std::string> archs = {
         "gfx90a", "gfx942",
     #if ROCM_VERSION >= 60300
-        "gfx1100", "gfx1101", "gfx1200", "gfx1201", "gfx908",
+        "gfx1100", "gfx1101","gfx1102", "gfx1200", "gfx1201", "gfx908",
     #endif
-    #if ROCM_VERSION >= 70000
-        "gfx950", "gfx1150", "gfx1151"
+    #if ROCM_VERSION >= 60402
+        "gfx1150", "gfx1151",
+    #endif
+    #if ROCM_VERSION >= 60500
+    "gfx950",
     #endif
   };
   const auto is_hipblas_lt_arch_supported = at::detail::getCUDAHooks().isGPUArch(archs, device.index());

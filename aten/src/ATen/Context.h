@@ -381,7 +381,8 @@ class TORCH_API Context {
       bool allow_reduced_precision,
       bool allow_splitk = true);
   bool allowFP16AccumulationCuBLAS() const;
-  void setAllowFP16AccumulationCuBLAS(bool /*b*/);
+  void setAllowFP16AccumulationCuBLAS(bool);
+  bool rocmAllowGroupGemmCk() const;
 
   // Matmuls can use a so-called "persistent" kernel which launches one CUDA
   // block for each SM on the GPU, and each block then iterates over multiple

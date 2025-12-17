@@ -276,6 +276,10 @@ bool Context::userEnabledOverrideableSDP() const {
   return enabled_overrideable;
 }
 
+#ifdef USE_ROCM
+static constexpr const auto rocm_allow_group_gemm_ck = "ROCM_ALLOW_GROUP_GEMM_CK";
+#endif
+
 bool Context::benchmarkCuDNN() const {
   return benchmark_cudnn;
 }
@@ -316,6 +320,13 @@ void Context::setAllowTF32CuBLAS(bool b) {
   float32_matmul_precision = b ? at::Float32MatmulPrecision::HIGH : at::Float32MatmulPrecision::HIGHEST;
   setFloat32Precision(Float32Backend::CUDA, Float32Op::MATMUL, b ? Float32Precision::TF32 : Float32Precision::IEEE);
 }
+
+#ifdef USE_ROCM
+bool Context::rocmAllowGroupGemmCk() const {
+    const auto allow_group_gemm_ck = c10::utils::check_env(rocm_allow_group_gemm_ck) == true;
+    return allow_group_gemm_ck;
+}
+#endif
 
 Float32MatmulPrecision Context::float32MatmulPrecision() const {
   bool invalid = float32Precision(Float32Backend::CUDA, Float32Op::MATMUL) == Float32Precision::TF32 &&
@@ -431,8 +442,11 @@ at::BlasBackend Context::blasPreferredBackend() {
     static const bool hipblaslt_preferred = []() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
-#if ROCM_VERSION >= 60400
-          "gfx1200", "gfx1201",
+#if ROCM_VERSION >= 60300
+          "gfx1100", "gfx1101", "gfx1102", "gfx1200", "gfx1201",
+#endif
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
 #endif
 #if ROCM_VERSION >= 60500
           "gfx950"
@@ -462,7 +476,10 @@ at::BlasBackend Context::blasPreferredBackend() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
 #if ROCM_VERSION >= 60300
-          "gfx1100", "gfx1101", "gfx1200", "gfx1201", "gfx908",
+          "gfx1100", "gfx1101", "gfx1102", "gfx1200", "gfx1201", "gfx908",
+#endif
+#if ROCM_VERSION >= 60402
+          "gfx1150", "gfx1151",
 #endif
 #if ROCM_VERSION >= 70000
           "gfx950", "gfx1150", "gfx1151"

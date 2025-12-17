@@ -1284,11 +1284,17 @@ class TritonOverrides(OpOverrides):
 
     @staticmethod
     def minimum(a, b):
-        return f"triton_helpers.minimum({a}, {b})"
+        if torch.version.hip:
+            return f"tl.minimum({a}, {b}, tl.PropagateNan.ALL)"
+        else:
+            return f"triton_helpers.minimum({a}, {b})"
 
     @staticmethod
     def maximum(a, b):
-        return f"triton_helpers.maximum({a}, {b})"
+        if torch.version.hip:
+            return f"tl.maximum({a}, {b}, tl.PropagateNan.ALL)"
+        else:
+            return f"triton_helpers.maximum({a}, {b})"
 
     @staticmethod
     def where(a, b, c):
@@ -1661,7 +1667,10 @@ class TritonOverrides(OpOverrides):
     @staticmethod
     @maybe_upcast_float32()
     def rsqrt(x):
-        return f"libdevice.rsqrt({x})"
+        if torch.version.hip:
+            return f"tl.rsqrt({x})"
+        else:
+            return f"libdevice.rsqrt({x})"
 
     @staticmethod
     @maybe_upcast_float32()
@@ -2665,12 +2674,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         )
 
     def want_no_x_dim(self):
-        return (
-            self.persistent_reduction
-            and len(self.numels) == self.num_reduction_dims + 1
-            and self.fixed_config
-            and self.fixed_config["XBLOCK"] == 1
-        )
+        """
+        ROCm branch change: Remove want_no_x_dim for persistent reduction.
+        Inductor benchmarks show no perf advantage and simplifies autotune flow.
+        """
+        return False
 
     @property
     def assert_function(self) -> str:
@@ -4847,8 +4855,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     loop_end = (
                         "rsplit_end" if self.cooperative_reduction else f"{prefix}numel"
                     )
+                    num_stages = ", num_stages = 2" if torch.version.hip else ""
                     self.body.writeline(
-                        f"for {prefix}offset in range({loop_start}, {loop_end}, {prefix.upper()}BLOCK):"
+                        f"for {prefix}offset in tl.range({loop_start}, {loop_end}, {prefix.upper()}BLOCK{num_stages}):"
                     )
                 with self.body.indent(offset=level + 1):
                     self.iteration_ranges_codegen_header(tree, self.body)
