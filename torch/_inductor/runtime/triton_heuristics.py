@@ -34,7 +34,7 @@ from torch._dynamo.utils import set_feature_use
 from torch._environment import is_fbcode
 from torch._prims_common import compute_required_storage_length
 from torch.utils._ordered_set import OrderedSet
-from torch._inductor.config import triton as inuctor_triton_config
+from torch._inductor.config import triton as inductor_triton_config
 
 from ..triton_bundler import TritonBundler
 from ..utils import prefix_is_reduction, triton_version_uses_attrs_dict
@@ -284,13 +284,13 @@ def _dump_launch_tensors(args, kernel_path, kernel_hash, kernel_name):
         kernel_hash = kernel_name
 
     # Saving only the last N runs of the kernels to avoid bloating the folder
-    if kernel_hash in inuctor_triton_config.kernel_dump_occurency_map:
-        run_index = inuctor_triton_config.kernel_dump_occurency_map[kernel_hash] + 1
+    if kernel_hash in inductor_triton_config.kernel_dump_occurrence_map:
+        run_index = inductor_triton_config.kernel_dump_occurrence_map[kernel_hash] + 1
 
-        if run_index >= inuctor_triton_config.max_kernel_dump_occurencies:
+        if run_index >= inductor_triton_config.max_kernel_dump_occurrences:
             run_index = 0
 
-    inuctor_triton_config.kernel_dump_occurency_map[kernel_hash] = run_index
+    inductor_triton_config.kernel_dump_occurrence_map[kernel_hash] = run_index
 
     # Default path for kernels with no hash
     if not kernel_path:
