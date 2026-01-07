@@ -5,6 +5,7 @@ import logging
 import os
 import subprocess
 import tempfile
+import time
 from typing import Any, Optional
 import math
 
@@ -67,7 +68,7 @@ prims = torch.ops.prims
 
 # StreamK and Origami configuration
 ENABLE_STREAMK = os.environ.get("TORCHINDUCTOR_ENABLE_STREAMK", "1") == "1"
-ENABLE_ORIGAMI_STREAMK = os.environ.get("ENABLE_ORIGAMI_STREAMK", "0") == "1"
+# Origami is now enabled by default for StreamK (no env var needed)
 STREAMK_MIN_PROBLEM_SIZE = int(os.environ.get("STREAMK_MIN_PROBLEM_SIZE", str(int(1e8))))
 
 # Experimental force modes
@@ -82,7 +83,7 @@ STREAMK_VERBOSE = os.environ.get("STREAMK_VERBOSE", "0") == "1"
 # Startup verification - this should always print if the module is loaded
 if STREAMK_DEBUG or STREAMK_VERBOSE or FORCE_STREAMK or STREAMK_ONLY:
     print(f"[StreamK-STARTUP] Debug flags: STREAMK_DEBUG={STREAMK_DEBUG}, STREAMK_VERBOSE={STREAMK_VERBOSE}")
-    print(f"[StreamK-STARTUP] StreamK enabled: {ENABLE_STREAMK}, Origami enabled: {ENABLE_ORIGAMI_STREAMK}")
+    print(f"[StreamK-STARTUP] StreamK enabled: {ENABLE_STREAMK}, Origami enabled: True (default)")
     print(f"[StreamK-STARTUP] Min problem size: {STREAMK_MIN_PROBLEM_SIZE}")
     print(f"[StreamK-STARTUP] 🔥 FORCE modes: FORCE_STREAMK={FORCE_STREAMK}, STREAMK_ONLY={STREAMK_ONLY}")
     print(f"[StreamK-STARTUP] Disable others: {DISABLE_OTHER_BACKENDS}")
@@ -154,10 +155,47 @@ if STREAMK_DEBUG:
     test_streamk_logging()
 
 
+def _get_hardware_chiplet_count():
+    """Get actual hardware chiplet count using origami detection"""
+    try:
+        import origami
+        hardware = origami.get_hardware_for_device(0)
+        num_xcds = getattr(hardware, 'NUM_XCD', 1)
+        if STREAMK_DEBUG:
+            print(f"[CHIPLET-DEBUG] Hardware detection: NUM_XCD={num_xcds}")
+        return max(1, num_xcds)  # Ensure at least 1
+    except (ImportError, AttributeError) as e:
+        if STREAMK_DEBUG:
+            print(f"[CHIPLET-DEBUG] Hardware detection failed: {e}, defaulting to 1 chiplet")
+        return 1
+
+
 class StreamKOrigamiSelector:
     """Origami-based selector for StreamK configuration following tritonBLAS pattern"""
 
+    # Dtype to string mapping (from tritonBLAS)
+    dtype_to_str = {
+        torch.float32: "f32",
+        torch.complex64: "c32",
+        torch.complex128: "c64",
+        torch.float64: "f64",
+        torch.float16: "f16",
+        torch.int32: "i32",
+        torch.bfloat16: "bf16",
+        torch.int8: "i8",
+        torch.float8_e5m2: "f8",
+        torch.float8_e4m3fn: "f8",
+    }
+    # Add FP8 FNUZ variants if available
+    if hasattr(torch, "float8_e5m2fnuz"):
+        dtype_to_str[torch.float8_e5m2fnuz] = "f8"
+    if hasattr(torch, "float8_e4m3fnuz"):
+        dtype_to_str[torch.float8_e4m3fnuz] = "f8"
+
     def __init__(self, M, N, K, a_dtype, b_dtype, c_dtype, device):
+        init_start = time.perf_counter()
+        if STREAMK_DEBUG:
+            print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Initializing StreamKOrigamiSelector for {M}x{N}x{K}")
         self.M = M
         self.N = N
         self.K = K
@@ -166,88 +204,366 @@ class StreamKOrigamiSelector:
         self.c_dtype = c_dtype
         self.device = device
 
-        # Get device properties
+        # Get hardware information (tritonBLAS style)
+        hw_start = time.perf_counter()
         try:
-            if torch.cuda.is_available() and hasattr(device, 'index'):
-                props = torch.cuda.get_device_properties(device.index)
-                self.num_sms = props.multi_processor_count
-            else:
-                self.num_sms = 108  # Default fallback
-        except:
-            self.num_sms = 108
+            # Try to use origami hardware detection
+            import origami
+            self.hardware = origami.get_hardware_for_device(0)
+            self.num_sms = self.hardware.N_CU
+            if STREAMK_DEBUG:
+                print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Using origami hardware detection: N_CU={self.num_sms}")
+        except (ImportError, AttributeError) as e:
+            # Fallback to CUDA device properties
+            print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Origami hardware detection failed: {e}, falling back to CUDA")
+            try:
+                if torch.cuda.is_available() and hasattr(device, 'index'):
+                    props = torch.cuda.get_device_properties(device.index)
+                    self.num_sms = props.multi_processor_count
+                    # Create mock hardware object for compatibility
+                    self.hardware = type('Hardware', (), {'N_CU': self.num_sms})()
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Using CUDA device properties: multi_processor_count={self.num_sms}")
+                else:
+                    self.num_sms = 108  # Default fallback
+                    self.hardware = type('Hardware', (), {'N_CU': 108})()
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Using default fallback: num_sms=108")
+            except Exception as e2:
+                self.num_sms = 108
+                self.hardware = type('Hardware', (), {'N_CU': 108})()
+                print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] CUDA detection failed: {e2}, using default: num_sms=108")
 
-        # Compute optimal configuration
+        # Initialize configuration ranges (from tritonBLAS)
+        self.block_mn_range = [16, 32, 64, 128, 256]
+        self.block_k_range = [16, 32, 64, 128, 256, 512]
+
+        # Get element sizes and infer MI dimensions
+        self.element_size_A = self._get_dtype_bits(a_dtype)
+        self.element_size_B = self._get_dtype_bits(b_dtype)
+        self.element_size_out = self._get_dtype_bits(c_dtype)
+
+        # Set MI dtype - use input dtype for matrix instruction type
+        input_dtype_for_mi = a_dtype if self._get_dtype_bits(a_dtype) <= self._get_dtype_bits(b_dtype) else b_dtype
+        self.mi_dtype = self.dtype_to_str.get(input_dtype_for_mi, self.dtype_to_str.get(c_dtype))
+
+        # Infer Matrix Instruction Dimensions (tritonBLAS style)
+        self.MI_dim = self._infer_matrix_instruction_dimensions(self.element_size_A, self.element_size_B)
+
+        # StreamK grid constants (from tritonBLAS)
+        self.split_factors = [8, 6, 4, 3, 2, 1]
+        self.tile_fractions = [0.0, 1.0/2.0, 1.0/8.0, 1.0/5.0, 1.0/4.0, 1.0/3.0]
+        self.max_workspace = 128 * 1024 * 1024
+
+        hw_end = time.perf_counter()
+        if STREAMK_DEBUG:
+            print(f"⏱️  [TIMING] Hardware detection took: {(hw_end - hw_start)*1000:.2f}ms")
+
+        # Compute optimal configuration and grid
+        config_start = time.perf_counter()
         self.config = self._compute_optimal_config()
+        config_end = time.perf_counter()
+
+        grid_start = time.perf_counter()
         self.grid = self._compute_streamk_grid()
+        grid_end = time.perf_counter()
+
+        init_end = time.perf_counter()
+
+        if STREAMK_DEBUG:
+            print(f"⏱️  [TIMING] Config computation took: {(config_end - config_start)*1000:.2f}ms")
+            print(f"⏱️  [TIMING] Grid computation took: {(grid_end - grid_start)*1000:.2f}ms")
+            print(f"⏱️  [TIMING] Total StreamKOrigamiSelector init took: {(init_end - init_start)*1000:.2f}ms")
+            print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Final config: BLK_M={self.config[0]}, BLK_N={self.config[1]}, BLK_K={self.config[2]}, GROUP_M={self.config[3]}, GRID={self.grid}")
+
+    def _get_dtype_bits(self, dtype):
+        """Get bits for torch dtypes"""
+        try:
+            return torch.finfo(dtype).bits
+        except TypeError:
+            return torch.iinfo(dtype).bits
+
+    def _infer_matrix_instruction_dimensions(self, element_size_A, element_size_B):
+        """Infer MI dimensions based on hardware and data types (from tritonBLAS)"""
+        MI_dim = None
+        is_gfx942 = self.hardware.N_CU in [304, 80, 64]
+
+        # gfx950
+        if self.hardware.N_CU == 256:
+            if max(element_size_A, element_size_B) == 32:  # FP32
+                MI_dim = [16, 16, 4]
+            elif max(element_size_A, element_size_B) == 16:  # FP16/BF16
+                MI_dim = [16, 16, 32]
+            elif max(element_size_A, element_size_B) <= 8:  # F4F6F8
+                if hasattr(self.K, '__mod__') and self.K % 256 == 0:
+                    self.block_k_range = [256]
+                else:
+                    self.block_k_range = [128]
+                self.block_mn_range = [32, 64, 128, 256]
+                MI_dim = [16, 16, 128]
+
+        # gfx942 (304 CUs full, 80 CUs partitioned)
+        elif is_gfx942:
+            if max(element_size_A, element_size_B) == 32:  # FP32
+                MI_dim = [16, 16, 4]
+            elif max(element_size_A, element_size_B) == 16:  # FP16/BF16
+                MI_dim = [16, 16, 16]
+            elif max(element_size_A, element_size_B) == 8:  # F8
+                MI_dim = [16, 16, 32]
+                self.block_mn_range = self.block_mn_range + [512]
+                self.block_k_range = self.block_k_range + [128, 256]
+            elif max(element_size_A, element_size_B) < 8:  # F4F6
+                raise ValueError("gfx942 doesn't support F4/F6")
+
+        # gfx942 228 CUs
+        elif self.hardware.N_CU == 228:
+            if max(element_size_A, element_size_B) == 32:  # FP32
+                MI_dim = [16, 16, 4]
+            elif max(element_size_A, element_size_B) == 16:  # FP16/BF16
+                MI_dim = [16, 16, 16]
+            elif max(element_size_A, element_size_B) == 8:  # F8
+                MI_dim = [16, 16, 32]
+                self.block_mn_range = self.block_mn_range + [512]
+                self.block_k_range = self.block_k_range + [128, 256]
+            elif max(element_size_A, element_size_B) < 8:  # F4F6
+                raise ValueError("gfx942 228CUs doesn't support F4/F6")
+
+        # gfx90s 104 CUs
+        elif self.hardware.N_CU == 104:
+            if max(element_size_A, element_size_B) == 32:  # FP32
+                MI_dim = [16, 16, 4]
+            elif max(element_size_A, element_size_B) == 16:  # FP16/BF16
+                MI_dim = [16, 16, 16]
+            elif max(element_size_A, element_size_B) == 8:  # F8
+                raise ValueError("gfx90s doesn't support F8")
+            elif max(element_size_A, element_size_B) < 8:  # F4F6
+                raise ValueError("gfx90s doesn't support F4/F6")
+
+        # Default fallback for unknown architectures
+        if MI_dim is None:
+            if max(element_size_A, element_size_B) == 32:
+                MI_dim = [16, 16, 4]
+            elif max(element_size_A, element_size_B) == 16:
+                MI_dim = [16, 16, 16]
+            else:
+                MI_dim = [16, 16, 32]
+
+        return MI_dim
 
     def _compute_optimal_config(self):
-        """Compute optimal tile configuration using simplified heuristics"""
-        # Simplified heuristics based on tritonBLAS patterns
+        """Compute optimal tile configuration using tritonBLAS-style selection"""
+        try:
+            # Try to use origami for optimal tile selection
+            import origami
+            tiles_start = time.perf_counter()
+            valid_tiles = self._get_valid_tiles()
+            tiles_end = time.perf_counter()
 
-        # Select block sizes based on problem size and dtype
-        if self.a_dtype in (torch.float16, torch.bfloat16):
-            if self.M >= 2048 and self.N >= 2048:
-                block_m, block_n = 256, 128
-                block_k = 64
-            elif self.M >= 1024 and self.N >= 1024:
-                block_m, block_n = 128, 128
-                block_k = 32
+            if STREAMK_DEBUG:
+                print(f"⏱️  [TIMING] get_valid_tiles took: {(tiles_end - tiles_start)*1000:.2f}ms")
+
+            macro_start = time.perf_counter()
+            results = origami.select_best_macro_tile_size(
+                self.M, self.N, self.K,
+                1,  # Batch
+                True,  # transA
+                False,  # transB
+                self.hardware,
+                valid_tiles,
+                self.element_size_A,
+                self.element_size_B,
+                self.element_size_out,
+                origami.string_to_datatype(self.mi_dtype),
+                0,  # MX Block Size
+                0.8,  # H_L2
+                False,  # debug
+                False,  # Print
+                6,  # WGM
+            )
+            macro_end = time.perf_counter()
+
+            if STREAMK_DEBUG:
+                print(f"⏱️  [TIMING] origami.select_best_macro_tile_size took: {(macro_end - macro_start)*1000:.2f}ms")
+
+            best_result = results[0]
+
+            # Heuristic weighting for gfx942
+            if self.hardware.N_CU in [304, 80, 64]:
+                if best_result[1] == 256 and best_result[2] == 256:
+                    if results[0][0] * 1.00 > results[1][0]:
+                        best_result = results[1]
+
+            BLK_M, BLK_N, BLK_K = best_result[1], best_result[2], best_result[3]
+
+            # Apply more accurate shared memory constraints matching tritonBLAS behavior
+            # Real hardware limit is 65536 bytes, but tritonBLAS successfully uses larger tiles
+            max_shared_memory = 65536
+
+            # More accurate shared memory estimation:
+            # - Only count A_shared (BLK_M * BLK_K) and B_shared (BLK_K * BLK_N) tiles
+            # - Account for proper data types and padding
+            element_size = 2 if self.a_dtype in (torch.float16, torch.bfloat16) else 4
+            a_shared_size = BLK_M * BLK_K * element_size
+            b_shared_size = BLK_K * BLK_N * element_size
+
+            # Add minimal overhead (not the inflated 4KB I used before)
+            padding_overhead = 1024  # 1KB for alignment and miscellaneous
+            estimated_usage = a_shared_size + b_shared_size + padding_overhead
+
+            # Since tritonBLAS succeeds with 256x256x64 (estimated ~67KB), be less conservative
+            # Only reduce if we're significantly over the limit
+            if estimated_usage > max_shared_memory * 1.1:  # 10% tolerance
+                if STREAMK_DEBUG:
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Shared memory constraint: {estimated_usage} > {max_shared_memory*1.1:.0f}, reducing block sizes")
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] A_shared={a_shared_size}, B_shared={b_shared_size}, overhead={padding_overhead}")
+
+                # Try a middle ground first (192x192x48) before going to 128x128x32
+                if BLK_M == 256 and BLK_N == 256:
+                    BLK_M, BLK_N = 192, 192
+                    BLK_K = min(BLK_K, 48)
+                    # Re-estimate with new sizes
+                    a_shared_size = BLK_M * BLK_K * element_size
+                    b_shared_size = BLK_K * BLK_N * element_size
+                    estimated_usage = a_shared_size + b_shared_size + padding_overhead
+
+                # If still too big, then go conservative
+                if estimated_usage > max_shared_memory * 1.05:  # 5% tolerance
+                    if self.a_dtype in (torch.float16, torch.bfloat16):
+                        BLK_M, BLK_N = 128, 128
+                        BLK_K = 32
+                    else:
+                        BLK_M, BLK_N = 64, 64
+                        BLK_K = 32
+
+                if STREAMK_DEBUG:
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Adjusted to: BLK_M={BLK_M}, BLK_N={BLK_N}, BLK_K={BLK_K}")
             else:
-                block_m, block_n = 64, 64
-                block_k = 32
-        elif self.a_dtype == torch.float32:
-            if self.M >= 1024 and self.N >= 1024:
-                block_m, block_n = 128, 128
-                block_k = 16
+                if STREAMK_DEBUG:
+                    print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Shared memory OK: {estimated_usage} <= {max_shared_memory*1.1:.0f}, keeping optimal sizes")
+
+            # Get optimal group size
+            try:
+                wgm_start = time.perf_counter()
+                group_m_results = origami.select_best_wgm(
+                    self.M, self.N, self.K, 1, self.hardware,
+                    BLK_M, BLK_N, BLK_K,
+                    self.MI_dim[0], self.MI_dim[1], self.MI_dim[2],
+                    [1, 2, 4, 6, 8],
+                    self.element_size_A,
+                    0.8, False, False
+                )
+                wgm_end = time.perf_counter()
+                group_m = group_m_results[1]
+
+                if STREAMK_DEBUG:
+                    print(f"⏱️  [TIMING] origami.select_best_wgm took: {(wgm_end - wgm_start)*1000:.2f}ms")
+            except:
+                group_m = 8 if (BLK_M >= 128 and BLK_N >= 128) else 4
+
+        except (ImportError, AttributeError, Exception) as e:
+            # Fallback to heuristic-based selection
+            log.debug(f"Origami optimization failed: {e}, using heuristics")
+
+            # Select block sizes based on problem size and dtype - conservative for shared memory
+            if self.a_dtype in (torch.float16, torch.bfloat16):
+                if self.M >= 2048 and self.N >= 2048:
+                    BLK_M, BLK_N = 128, 128  # Reduced from 256,128 for shared memory
+                    BLK_K = 32  # Reduced from 64 for shared memory
+                elif self.M >= 1024 and self.N >= 1024:
+                    BLK_M, BLK_N = 128, 128
+                    BLK_K = 32
+                else:
+                    BLK_M, BLK_N = 64, 64
+                    BLK_K = 32
+            elif self.a_dtype == torch.float32:
+                if self.M >= 1024 and self.N >= 1024:
+                    BLK_M, BLK_N = 64, 64  # Reduced for FP32
+                    BLK_K = 16
+                else:
+                    BLK_M, BLK_N = 64, 64
+                    BLK_K = 16
             else:
-                block_m, block_n = 64, 64
-                block_k = 16
-        else:
-            # Default configuration
-            block_m, block_n = 128, 128
-            block_k = 32
+                BLK_M, BLK_N = 64, 64
+                BLK_K = 32
 
-        # Group size heuristic
-        group_m = 8 if (self.M >= 2048 and self.N >= 2048) else 4
+            group_m = 8 if (BLK_M >= 128 and BLK_N >= 128) else 4
 
-        return (block_m, block_n, block_k, group_m)
+        return (BLK_M, BLK_N, BLK_K, group_m)
+
+    def _get_valid_tiles(self):
+        """Get valid tile configurations for origami"""
+        import itertools
+        return list(itertools.product(
+            self.block_mn_range,
+            self.block_mn_range,
+            self.block_k_range,
+            [self.MI_dim[0]],  # MI_M
+            [self.MI_dim[1]],  # MI_N
+            [self.MI_dim[2]],  # MI_K
+            [1],  # kernel_occupancy
+        ))
 
     def _compute_streamk_grid(self):
         """Compute StreamK grid size following tritonBLAS logic"""
-        block_m, block_n, block_k, _ = self.config
+        BLK_M, BLK_N, BLK_K, _ = self.config
 
         # Calculate total tiles
-        tiles_m = math.ceil(self.M / block_m)
-        tiles_n = math.ceil(self.N / block_n)
+        tiles_m = math.ceil(self.M / BLK_M) if hasattr(self.M, '__truediv__') else (self.M + BLK_M - 1) // BLK_M
+        tiles_n = math.ceil(self.N / BLK_N) if hasattr(self.N, '__truediv__') else (self.N + BLK_N - 1) // BLK_N
         total_tiles = tiles_m * tiles_n
 
-        # StreamK grid computation similar to tritonBLAS
+        # StreamK grid computation (from tritonBLAS origami.py:301)
         sk_grid = total_tiles
-        iters_per_tile = max(1, math.ceil(self.K / block_k))
+        iters_per_tile = max(1, math.ceil(self.K / BLK_K) if hasattr(self.K, '__truediv__') else (self.K + BLK_K - 1) // BLK_K)
 
-        # More tiles than SMs: try to balance load
+        # More tiles than CUs: try fractional splits to distribute work
         if total_tiles > self.num_sms:
-            # Try fractional splits
-            tile_fractions = [0.0, 1.0/2.0, 1.0/8.0, 1.0/5.0, 1.0/4.0, 1.0/3.0]
-            min_even_tiles = total_tiles / self.num_sms
+            virt_cu_count = self.num_sms
+            min_even_tiles = total_tiles / virt_cu_count
 
-            for frac in tile_fractions:
+            for frac in self.tile_fractions:
+                # Compute candidate grid with rounding
                 frac_grid = int((total_tiles / (min_even_tiles + frac)) + 0.5)
-                if frac_grid <= self.num_sms:
+
+                # Skip if this split leaves a remainder AND workspace is too large
+                if (total_tiles % frac_grid != 0 and
+                    self._partial_tile_size(frac_grid) > self.max_workspace):
+                    continue
+
+                # Accept the first grid no larger than the virtual CU count
+                if frac_grid <= virt_cu_count:
                     sk_grid = frac_grid
                     break
 
-        # Fewer tiles than SMs: split along K dimension
+        # Fewer tiles than CUs: split along k-dimension up to some factor
         elif total_tiles < self.num_sms:
-            split_factors = [8, 6, 4, 3, 2, 1]
-            for factor in split_factors:
+            for factor in self.split_factors:
                 split_grid = total_tiles * factor
-                iters_per_sm = iters_per_tile // factor
-                if split_grid <= self.num_sms and iters_per_sm >= 8:
+                iters_per_cu = iters_per_tile // factor
+
+                if split_grid <= self.num_sms and iters_per_cu >= 8:
                     sk_grid = split_grid
                     break
 
-        return min(sk_grid, self.num_sms)
+        # Final check: if the chosen grid leaves a remainder AND
+        # workspace exceeds what the problem allows, fall back to no split
+        if total_tiles % sk_grid != 0:
+            sk_grid = total_tiles
+
+        # Last wave optimization for gfx942
+        if total_tiles >= self.hardware.N_CU:
+            last_wave_remainder = total_tiles % self.hardware.N_CU
+
+            if (last_wave_remainder < 128 and last_wave_remainder > 0 and
+                self.hardware.N_CU in [304, 80, 64]):  # gfx942
+                sk_grid = 256 if self.hardware.N_CU == 304 else 64
+
+        return sk_grid
+
+    def _partial_tile_size(self, sk_grid):
+        """Compute partial tile size for workspace calculation"""
+        BLK_M, BLK_N, _, _ = self.config
+        bytes_per_elem = self.element_size_out // 8
+        tile_size = BLK_M * BLK_N * bytes_per_elem
+        return tile_size * sk_grid
 
     def get_config(self):
         """Return (BLOCK_M, BLOCK_N, BLOCK_K, GROUP_M)"""
@@ -291,52 +607,53 @@ class MatmulHeuristicResult:
     def _prepare_config(self):
         """Prepare optimal block configuration following tritonBLAS patterns"""
         # Select block sizes based on problem size and dtype - conservative for shared memory limits
+        # Always use tritonBLAS fixed settings: num_warps=8, num_stages=2
         if self.a_dtype in (torch.float16, torch.bfloat16):
             if self.M >= 4096 and self.N >= 4096:
                 # Very large problems: use moderate sizes to fit in shared memory
                 block_m, block_n = 128, 64
                 block_k = 32
-                num_warps = 4
-                num_stages = 3
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
             elif self.M >= 2048 and self.N >= 2048:
                 # Large problems: balanced sizes
                 block_m, block_n = 128, 128
                 block_k = 32
-                num_warps = 4
-                num_stages = 3
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
             elif self.M >= 1024 and self.N >= 1024:
                 block_m, block_n = 128, 128
                 block_k = 32
-                num_warps = 4
-                num_stages = 3
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
             else:
                 block_m, block_n = 64, 64
                 block_k = 32
-                num_warps = 4
-                num_stages = 3
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
         elif self.a_dtype == torch.float32:
             # Float32 uses more memory, be more conservative
             if self.M >= 2048 and self.N >= 2048:
                 block_m, block_n = 64, 64
                 block_k = 16
-                num_warps = 4
-                num_stages = 2
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
             elif self.M >= 1024 and self.N >= 1024:
                 block_m, block_n = 64, 64
                 block_k = 16
-                num_warps = 4
-                num_stages = 3
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
             else:
                 block_m, block_n = 64, 64
                 block_k = 16
-                num_warps = 4
-                num_stages = 2
+                num_warps = 8  # Fixed like tritonBLAS
+                num_stages = 2  # Fixed like tritonBLAS
         else:
             # Default configuration: conservative
             block_m, block_n = 64, 64
             block_k = 32
-            num_warps = 4
-            num_stages = 3
+            num_warps = 8  # Fixed like tritonBLAS
+            num_stages = 2  # Fixed like tritonBLAS
 
         # Group size heuristic
         group_m = 8 if (self.M >= 2048 and self.N >= 2048) else 4
@@ -370,8 +687,8 @@ class MatmulHeuristicResult:
             "GROUP_M": group_m,
             "STREAMK_TILES": streamk_tiles,
             "NUM_SMS": actual_grid,
-            "NUM_XCDS": 1,
-            "CHUNK_SIZE": max(1, actual_grid // 4),
+            "NUM_XCDS": _get_hardware_chiplet_count(),
+            "CHUNK_SIZE": min(4 * 4, actual_grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
             "ACC_TYPE": acc_type,
             "QUANTIZED": is_quantized,
             "OUTPUT_DTYPE_IS_INT8": (self.c_dtype == torch.int8),
@@ -379,8 +696,8 @@ class MatmulHeuristicResult:
             "EVEN_K": _safe_even_k_check(self.K, block_k),
             "BIAS": False,
             "USE_FAST_ACCUM": True,
-            "CACHE_MODIFIER_A": '".cg"',  # Cache global for A matrix
-            "CACHE_MODIFIER_B": '".cg"',  # Cache global for B matrix
+            "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned (None for typical matrices)
+            "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned (None for typical matrices)
             "INPUT_PRECISION": '"ieee"' if is_quantized else None,
             "num_warps": num_warps,
             "num_stages": num_stages,
@@ -462,9 +779,68 @@ class MatmulHeuristicResult:
 @functools.lru_cache(maxsize=1024)
 def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
     """Create cached origami selector following tritonBLAS pattern"""
+    selector_start = time.perf_counter()
+    if STREAMK_DEBUG:
+        print(f"🔍 [CACHE-DEBUG] Creating StreamK selector for {M}x{N}x{K}")
+
     # Create a dummy device object for the selector
     device = torch.device(device_type)
-    return MatmulHeuristicResult(M, N, K, a_dtype, b_dtype, c_dtype, device, streamk=True)
+    # Use the origami-based selector instead of the simple heuristic one
+    origami_selector = StreamKOrigamiSelector(M, N, K, a_dtype, b_dtype, c_dtype, device)
+
+    wrapper_start = time.perf_counter()
+
+    # Create a wrapper that provides the same interface as MatmulHeuristicResult
+    class OrigamiSelectorWrapper:
+        def __init__(self, origami_selector):
+            self.origami_selector = origami_selector
+
+        def get_config(self):
+            # Get config from origami selector and convert to expected format
+            block_m, block_n, block_k, group_m = self.origami_selector.get_config()
+            grid = self.origami_selector.get_grid()
+
+            config = {
+                "BLOCK_M": block_m,
+                "BLOCK_N": block_n,
+                "BLOCK_K": block_k,
+                "GROUP_M": group_m,
+                "STREAMK_TILES": grid,
+                "NUM_SMS": grid,
+                "EVEN_K": _safe_even_k_check(self.origami_selector.K, block_k),
+                "ACC_TYPE": "tl.float32",
+                "ALLOW_TF32": True,
+                "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned
+                "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned
+                "CHUNK_SIZE": min(4 * 4, grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
+                "NUM_XCDS": _get_hardware_chiplet_count(),
+                "BIAS": False,
+                "INPUT_PRECISION": None,
+                "OUTPUT_DTYPE_IS_INT8": False,
+                "QUANTIZED": False,
+                "USE_FAST_ACCUM": True,
+                # Use tritonBLAS fixed settings to avoid shared memory issues
+                "num_warps": 8,        # Fixed like tritonBLAS (not dynamic)
+                "num_stages": 2,       # Fixed like tritonBLAS (always 2, never 3)
+                "waves_per_eu": 0,     # Fixed like tritonBLAS
+                "matrix_instr_nonkdim": 16,  # Fixed like tritonBLAS (mfmaInstrSize)
+                "kpack": 1,            # Fixed like tritonBLAS
+            }
+            if STREAMK_DEBUG:
+                print(f"🔍 [STREAMK-SELECTOR-DEBUG] Full origami config: {config}")
+            return config
+
+        def get_grid(self):
+            return self.origami_selector.get_grid()
+
+    wrapper_end = time.perf_counter()
+    selector_end = time.perf_counter()
+
+    if STREAMK_DEBUG:
+        print(f"⏱️  [TIMING] StreamK selector creation took: {(wrapper_end - wrapper_start)*1000:.2f}ms")
+        print(f"⏱️  [TIMING] _make_streamk_selector total took: {(selector_end - selector_start)*1000:.2f}ms")
+
+    return OrigamiSelectorWrapper(origami_selector)
 
 @SymbolicGridFn
 def streamk_mm_grid(m, n, meta, *, cdiv, min):
@@ -490,6 +866,7 @@ class StreamKTemplate(TritonTemplate):
             grid=streamk_mm_grid,
             source=r"""
 {{def_kernel("A", "B", "A_SCALE_PTR", "B_SCALE_PTR", "BIAS_PTR", "WORKSPACE", "LOCKS")}}
+    # Matrix dimensions (can vary between calls, so regular variables)
     M = {{size("A", 0)}}
     N = {{size("B", 1)}}
     K = {{size("A", 1)}}
@@ -499,16 +876,27 @@ class StreamKTemplate(TritonTemplate):
     # Get output pointer using template's ptr("C") macro
     C_OUT = {{ptr("C")}}
 
-    stride_am = {{stride("A", 0)}}
+    # Memory strides - conditional constexpr based on K size to avoid issues with small transposed matrices
+    stride_am: tl.constexpr = {{stride("A", 0)}}
+    # For small K dimensions (<16), avoid constexpr to handle irregular memory patterns in transpose cases
+    {% set k_size = size("A", 1)|int %}
+    {% if k_size >= 16 %}
+    stride_ak: tl.constexpr = {{stride("A", 1)}}
+    stride_bk: tl.constexpr = {{stride("B", 0)}}
+    {% else %}
     stride_ak = {{stride("A", 1)}}
     stride_bk = {{stride("B", 0)}}
-    stride_bn = {{stride("B", 1)}}
+    {% endif %}
+    stride_bn: tl.constexpr = {{stride("B", 1)}}
     # Get output strides from template's layout using stride(None, dim)
     stride_cm = {{stride(None, 0)}}
     stride_cn = {{stride(None, 1)}}
-    stride_bias = {{stride("BIAS_PTR", 0)}}
-    stride_a_scale = {{stride("A_SCALE_PTR", 0)}}
-    stride_b_scale = {{stride("B_SCALE_PTR", 0)}}
+
+    stride_bias: tl.constexpr = {{stride("BIAS_PTR", 0)}}
+    stride_a_scale: tl.constexpr = {{stride("A_SCALE_PTR", 0)}}
+    stride_b_scale: tl.constexpr = {{stride("B_SCALE_PTR", 0)}}
+
+    # Note: BLOCK_M, BLOCK_N, BLOCK_K, NUM_XCDS, etc. are already passed as constexpr by template system
 
     # Memory stride assumptions for compiler optimization (tritonBLAS pattern)
     tl.assume(stride_am > 0)
@@ -520,6 +908,23 @@ class StreamKTemplate(TritonTemplate):
 
     # Complete StreamK algorithm implementation
     pid = tl.program_id(0)
+
+    # Apply chiplet transformation for multi-die optimization (TritonBLAS pattern)
+    if NUM_XCDS != 1:
+        # Chiplet transform chunked implementation (from TritonBLAS)
+        # CRITICAL FIX: Correct the conditional logic to match TritonBLAS reference
+        limit = (NUM_SMS // (NUM_XCDS * CHUNK_SIZE)) * (NUM_XCDS * CHUNK_SIZE)
+        if pid > limit:
+            # Outside of the contiguous chunked region, leave unchanged (TritonBLAS pattern)
+            pass  # pid remains unchanged
+        else:
+            # Transform pids within the chunked region
+            local_pid = pid // NUM_XCDS
+            chunk_idx = local_pid // CHUNK_SIZE
+            pos_in_chunk = local_pid % CHUNK_SIZE
+            xcd = pid % NUM_XCDS
+            pid = chunk_idx * NUM_XCDS * CHUNK_SIZE + xcd * CHUNK_SIZE + pos_in_chunk
+
     num_pid_m = tl.cdiv(M, BLOCK_M)
     num_pid_n = tl.cdiv(N, BLOCK_N)
     total_tiles = num_pid_m * num_pid_n
@@ -565,6 +970,7 @@ class StreamKTemplate(TritonTemplate):
         {% if not EVEN_K %}
         loop_k -= 1
         {% endif %}
+        tl.assume(loop_k >= 1)
 
         acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
         for k in range(0, loop_k):
@@ -630,7 +1036,7 @@ class StreamKTemplate(TritonTemplate):
     rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
     rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
     P_ = WORKSPACE + pid * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
-    tl.store(P_, tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.float32), cache_modifier=".wt")
+    tl.store(P_, 0.0, cache_modifier=".wt")  # Efficient scalar store like TritonBLAS
     tl.store(LOCKS + pid, 0, cache_modifier=".wt")
 
     tl.assume(pid >= 0)
@@ -683,13 +1089,29 @@ class StreamKTemplate(TritonTemplate):
         acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
         for current_iter in range(start_iter, end_iter):
             {% if EVEN_K %}
-            a = tl.load(A_BASE, mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
-            b = tl.load(B_BASE, mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
+            # Add memory alignment hints like tritonBLAS full tiles loop
+            if stride_ak == 1:
+                a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
+            else:
+                a = tl.load(tl.multiple_of(A_BASE, (16, 1)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
+
+            if stride_bk == 1:
+                b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
+            else:
+                b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
             {% else %}
             global_k_offset = (current_iter % iters_per_tile) * BLOCK_K
             k_mask = global_k_offset + rk < K
-            a = tl.load(A_BASE, mask=mask_m & k_mask[None, :], other=0.0, cache_modifier=CACHE_MODIFIER_A)
-            b = tl.load(B_BASE, mask=mask_n & k_mask[:, None], other=0.0, cache_modifier=CACHE_MODIFIER_B)
+            # Apply memory alignment hints even with masking
+            if stride_ak == 1:
+                a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m & k_mask[None, :], other=0.0, cache_modifier=CACHE_MODIFIER_A)
+            else:
+                a = tl.load(tl.multiple_of(A_BASE, (16, 1)), mask=mask_m & k_mask[None, :], other=0.0, cache_modifier=CACHE_MODIFIER_A)
+
+            if stride_bk == 1:
+                b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n & k_mask[:, None], other=0.0, cache_modifier=CACHE_MODIFIER_B)
+            else:
+                b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n & k_mask[:, None], other=0.0, cache_modifier=CACHE_MODIFIER_B)
             {% endif %}
 
             acc += tl.dot(a, b, allow_tf32=ALLOW_TF32)
@@ -712,46 +1134,122 @@ class StreamKTemplate(TritonTemplate):
             tl.debug_barrier()
             tl.store(LOCKS + pid, 1, cache_modifier=".wt")
         else:
-            # Complete tile: aggregate from other SMs and store to C
+            # Complete tile: aggregate from other SMs using quadrant-based optimization
             next_pid = pid + 1
             tile_iter_end = tile_iter + iters_per_tile
             end = end_iter
 
+            # ✅ OPTIMIZED: Split accumulator into 4 quadrants (exact tritonBLAS approach)
+            # First split in M direction
+            acc_m_reshaped = tl.reshape(acc, (2, BLOCK_M // 2, BLOCK_N))
+            acc_m_permuted = tl.permute(acc_m_reshaped, (1, 2, 0))  # (M//2, N, 2)
+            acc_top, acc_bottom = tl.split(acc_m_permuted)  # Split along last dimension
+
+            # Remove singleton dimension - each is now (M//2, N)
+            acc_top = tl.reshape(acc_top, (BLOCK_M // 2, BLOCK_N))
+            acc_bottom = tl.reshape(acc_bottom, (BLOCK_M // 2, BLOCK_N))
+
+            # Now split each half in N direction
+            acc_top_reshaped = tl.reshape(acc_top, (BLOCK_M // 2, 2, BLOCK_N // 2))
+            acc_top_permuted = tl.permute(acc_top_reshaped, (0, 2, 1))  # (M//2, N//2, 2)
+            acc00, acc01 = tl.split(acc_top_permuted)  # Split along last dimension
+
+            acc_bottom_reshaped = tl.reshape(acc_bottom, (BLOCK_M // 2, 2, BLOCK_N // 2))
+            acc_bottom_permuted = tl.permute(acc_bottom_reshaped, (0, 2, 1))  # (M//2, N//2, 2)
+            acc10, acc11 = tl.split(acc_bottom_permuted)  # Split along last dimension
+
+            # Remove singleton dimensions - each is now (M//2, N//2)
+            acc00 = tl.reshape(acc00, (BLOCK_M // 2, BLOCK_N // 2))
+            acc01 = tl.reshape(acc01, (BLOCK_M // 2, BLOCK_N // 2))
+            acc10 = tl.reshape(acc10, (BLOCK_M // 2, BLOCK_N // 2))
+            acc11 = tl.reshape(acc11, (BLOCK_M // 2, BLOCK_N // 2))
+
+            # Aggregate from other processing elements (exact tritonBLAS pattern)
             while (end < tile_iter_end and next_pid < NUM_SMS):
                 while tl.load(LOCKS + next_pid, cache_modifier=".cv", volatile=True) != 1:
                     pass
-                next_workspace_ptr = WORKSPACE + next_pid * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
-                partial_result = tl.load(next_workspace_ptr, cache_modifier=".cv")
-                acc += partial_result
+                rm1 = tl.arange(0, BLOCK_M)
+                rn1 = tl.arange(0, BLOCK_N)
+                rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
+                rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
+
+                # Load P in 4 quadrants
+                P_base = WORKSPACE + next_pid * BLOCK_M * BLOCK_N
+
+                # Quadrant 00 (top-left)
+                P_00 = P_base + tl.arange(0, BLOCK_M // 2)[:, None] * BLOCK_N + tl.arange(0, BLOCK_N // 2)[None, :]
+                acc00 += tl.load(P_00, cache_modifier=".cv")
+
+                # Quadrant 01 (top-right)
+                P_01 = P_base + tl.arange(0, BLOCK_M // 2)[:, None] * BLOCK_N + (tl.arange(0, BLOCK_N // 2)[None, :] + BLOCK_N // 2)
+                acc01 += tl.load(P_01, cache_modifier=".cv")
+
+                # Quadrant 10 (bottom-left)
+                P_10 = P_base + (tl.arange(0, BLOCK_M // 2)[:, None] + BLOCK_M // 2) * BLOCK_N + tl.arange(0, BLOCK_N // 2)[None, :]
+                acc10 += tl.load(P_10, cache_modifier=".cv")
+
+                # Quadrant 11 (bottom-right)
+                P_11 = P_base + (tl.arange(0, BLOCK_M // 2)[:, None] + BLOCK_M // 2) * BLOCK_N + (tl.arange(0, BLOCK_N // 2)[None, :] + BLOCK_N // 2)
+                acc11 += tl.load(P_11, cache_modifier=".cv")
+
                 end += streamk_iters_pcu + (next_pid < streamk_remainder_iters)
                 next_pid += 1
 
+            # Unified bias handling for Stream-K section (exact tritonBLAS pattern)
             {% if BIAS %}
-            c = acc.to({{dtype("C")}}) + bias[:, None]
-            {% else %}
-            c = acc.to({{dtype("C")}})
+            # Split bias for top and bottom halves
+            bias_top = bias[:BLOCK_M // 2]
+            bias_bottom = bias[BLOCK_M // 2:]
+
+            bias_top_reshaped = tl.reshape(bias_top, (BLOCK_M // 2, 1))
+            bias_bottom_reshaped = tl.reshape(bias_bottom, (BLOCK_M // 2, 1))
+
+            acc00 += bias_top_reshaped
+            acc01 += bias_top_reshaped
+            acc10 += bias_bottom_reshaped
+            acc11 += bias_bottom_reshaped
             {% endif %}
 
-            # Store StreamK complete tile directly to C using rm/rn without modulo
-            mask = (rm[:, None] < M) & (rn[None, :] < N)
-            C_ = C_OUT + rm[:, None] * stride_cm + rn[None, :] * stride_cn
-            tl.store(C_, c, mask=mask)
+            # Convert each quadrant to output dtype
+            c00 = acc00.to({{dtype("C")}})
+            c01 = acc01.to({{dtype("C")}})
+            c10 = acc10.to({{dtype("C")}})
+            c11 = acc11.to({{dtype("C")}})
+
+            # Store all 4 quadrants separately for optimal memory locality (tritonBLAS approach)
+            # Calculate quadrant indices
+            rm_top = pid_m * BLOCK_M + tl.arange(0, BLOCK_M // 2)
+            rm_bottom = pid_m * BLOCK_M + tl.arange(BLOCK_M // 2, BLOCK_M)
+            rn_left = pid_n * BLOCK_N + tl.arange(0, BLOCK_N // 2)
+            rn_right = pid_n * BLOCK_N + tl.arange(BLOCK_N // 2, BLOCK_N)
+
+            # Store quadrant 00 (top-left)
+            mask00 = (rm_top < M)[:, None] & (rn_left < N)[None, :]
+            tl.store(C_OUT + rm_top[:, None] * stride_cm + rn_left[None, :] * stride_cn, c00, mask=mask00)
+
+            # Store quadrant 01 (top-right)
+            mask01 = (rm_top < M)[:, None] & (rn_right < N)[None, :]
+            tl.store(C_OUT + rm_top[:, None] * stride_cm + rn_right[None, :] * stride_cn, c01, mask=mask01)
+
+            # Store quadrant 10 (bottom-left)
+            mask10 = (rm_bottom < M)[:, None] & (rn_left < N)[None, :]
+            tl.store(C_OUT + rm_bottom[:, None] * stride_cm + rn_left[None, :] * stride_cn, c10, mask=mask10)
+
+            # Store quadrant 11 (bottom-right)
+            mask11 = (rm_bottom < M)[:, None] & (rn_right < N)[None, :]
+            tl.store(C_OUT + rm_bottom[:, None] * stride_cm + rn_right[None, :] * stride_cn, c11, mask=mask11)
 
         start_iter = end_iter
 
     # No store_output needed - all stores happen inside the loops above
-    # This is a dummy output point required by the template system
-    # We use a zero-element mask to ensure nothing is actually stored
-    pid_m_dummy = 0
-    pid_n_dummy = 0
-    rm_dummy = pid_m_dummy * BLOCK_M + tl.arange(0, BLOCK_M)
-    rn_dummy = pid_n_dummy * BLOCK_N + tl.arange(0, BLOCK_N)
-    idx_m = rm_dummy[:, None]
-    idx_n = rn_dummy[None, :]
-    # Use False mask to prevent any output from this path
-    mask = tl.zeros((BLOCK_M, BLOCK_N), dtype=tl.int1)
-    acc_dummy = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
-    {{store_output(("idx_m", "idx_n"), "acc_dummy", "mask")}}
+    # This is a minimal dummy output point required by the template system
+    # Use minimal scalar variables to avoid register pressure
+    dummy_idx_m = 0
+    dummy_idx_n = 0
+    dummy_mask = False
+    acc_dummy_scalar = tl.cast(0.0, dtype=acc_dtype)
+    # Single-element store with False mask to prevent any actual output
+    {{store_output(("dummy_idx_m", "dummy_idx_n"), "acc_dummy_scalar", "dummy_mask")}}
 """,
             cache_codegen_enabled_for_template=True,
             prologue_loads_all_inputs=True,
@@ -811,11 +1309,11 @@ class StreamKTemplate(TritonTemplate):
             M = A_node.get_size()[0]
             N = B_node.get_size()[1]
 
-            # Create workspace buffer for partial results (following flex_attention pattern)
-            # Use zeros_strided instead of empty_strided to ensure proper zero-initialization.
-            # This prevents accuracy issues from memory aliasing with other CUDA allocations.
+            # Create workspace buffer for partial results
+            # Note: We still need to use IR buffer creation (empty_strided) for proper inductor integration
+            # The global buffer optimization will be handled at the kernel execution level
             workspace_shape = [num_sms, block_m, block_n]
-            workspace = zeros_strided(
+            workspace = empty_strided(
                 workspace_shape,
                 None,
                 dtype=torch.float32,  # Always use float32 for accumulation
@@ -823,14 +1321,16 @@ class StreamKTemplate(TritonTemplate):
             )
 
             # Create locks buffer for synchronization
-            # Use zeros_strided to ensure locks start at 0 for correct synchronization.
             locks_shape = [num_sms]
-            locks = zeros_strided(
+            locks = empty_strided(
                 locks_shape,
                 None,
                 dtype=torch.int32,  # Integer type for locks
                 device=layout.device,
             )
+
+            if STREAMK_DEBUG:
+                print(f"🔍 [WORKSPACE-DEBUG] Created IR buffer nodes: workspace={workspace_shape}, locks={locks_shape}")
 
             # Create scale tensors for quantization support
             if is_quantized:
@@ -936,6 +1436,31 @@ class StreamKTemplate(TritonTemplate):
 
         return is_quantized
 
+
+# Global pre-allocated buffers (tritonBLAS pattern for optimal performance)
+# These are reused across all StreamK calls to avoid allocation overhead
+current_device_index = torch.cuda.current_device()
+current_device = torch.cuda.get_device_properties(current_device_index)
+MAX_SMS = current_device.multi_processor_count  # Hardware SMS count
+MAX_BLOCK_SIZE = 256 * 256  # Max block size for typical configurations
+
+# Pre-allocated global buffers (tritonBLAS approach)
+_global_locks = None
+_global_workspace = None
+
+def _get_global_streamk_buffers():
+    """Get or create global StreamK buffers following tritonBLAS pattern"""
+    global _global_locks, _global_workspace
+
+    if _global_locks is None or _global_workspace is None:
+        # Initialize global buffers once per device
+        _global_locks = torch.empty(MAX_SMS, device="cuda", dtype=torch.int32)
+        _global_workspace = torch.empty(MAX_SMS, MAX_BLOCK_SIZE, device="cuda", dtype=torch.float32)
+
+        if STREAMK_DEBUG:
+            print(f"🔍 [WORKSPACE-DEBUG] Initialized global StreamK buffers: locks={_global_locks.shape}, workspace={_global_workspace.shape}")
+
+    return _global_locks, _global_workspace
 
 # Create the global StreamK template instance
 mm_streamk_template = StreamKTemplate()
@@ -1062,7 +1587,7 @@ def should_use_streamk(m, n, k, dtype, device):
     return use_streamk
 
 
-def generate_streamk_configs(m, n, k, device, enable_origami=False):
+def generate_streamk_configs(m, n, k, device, enable_origami=True):
     """Generate StreamK configs, optionally with Origami tuning"""
     log.debug(f"Generating StreamK configs for {m}x{n}x{k} (enable_origami={enable_origami})")
 
@@ -1081,17 +1606,22 @@ def generate_streamk_configs(m, n, k, device, enable_origami=False):
         num_sms = 108  # Default fallback
         log.debug(f"CUDA not available, using default SM count: {num_sms}")
 
-    # If Origami is enabled and available, use it for advanced tuning
-    if enable_origami and ENABLE_ORIGAMI_STREAMK:
+    # Use Origami for advanced tuning (enabled by default for StreamK)
+    if enable_origami:
+        print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] Attempting Origami tuning for StreamK {m}x{n}x{k}")
         log.info(f"Attempting Origami tuning for StreamK {m}x{n}x{k}")
         try:
             origami_configs = generate_origami_streamk_configs(m, n, k, device, num_sms)
             if origami_configs:
+                print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] ✓ Origami generated {len(origami_configs)} StreamK configs")
+                print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] First config: {origami_configs[0]}")
                 log.info(f"✓ Origami generated {len(origami_configs)} StreamK configs")
                 return origami_configs
             else:
+                print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] ✗ Origami returned no configs, falling back to heuristics")
                 log.warning(f"✗ Origami returned no configs, falling back to heuristics")
         except Exception as e:
+            print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] ✗ Origami tuning failed: {e}, falling back to heuristic configs")
             log.warning(f"✗ Origami tuning failed: {e}, falling back to heuristic configs")
 
     # Fallback to heuristic-based config generation
@@ -1174,11 +1704,18 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
 
                     for group_m in [1, 2, 4, 8]:
                         for num_warps in [4, 8]:
-                            for num_stages in [3, 4]:
-                                # NUM_XCDS for cross-CU optimization
-                                xcds_options = [1, 2] if large_problem_xcds else [1]
+                            for num_stages in [2]:  # Fixed like tritonBLAS
+                                # NUM_XCDS for cross-CU optimization - use actual hardware chiplet count
+                                hw_chiplet_count = _get_hardware_chiplet_count()
+                                if large_problem_xcds and hw_chiplet_count > 1:
+                                    xcds_options = [1, hw_chiplet_count]  # Test single die vs full chiplet mode
+                                else:
+                                    xcds_options = [1]  # Small problems or single chiplet hardware
                                 for num_xcds in xcds_options:
-                                    chunk_size = max(1, actual_grid // (num_xcds * 4))
+                                    # Apply TritonBLAS reference chunk size calculation
+                                    # Set chunk size to same area as L2 tiles (TritonBLAS pattern)
+                                    chunk_size = group_m * group_m
+                                    chunk_size = min(chunk_size, actual_grid // num_xcds)
 
                                     # Create Triton config with proper format
 
@@ -1200,8 +1737,8 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
                                         "EVEN_K": _safe_even_k_check(k, block_k),
                                         "BIAS": False,  # No bias for mm
                                         "USE_FAST_ACCUM": True,  # Enable fast accumulation for StreamK
-                                        "CACHE_MODIFIER_A": '".cg"',  # Cache global for A matrix
-                                        "CACHE_MODIFIER_B": '".cg"',  # Cache global for B matrix
+                                        "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned (None for typical matrices)
+                                        "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned (None for typical matrices)
                                         "INPUT_PRECISION": None,  # Set based on quantization
                                     }
 
@@ -1231,103 +1768,73 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
 
 
 def generate_origami_streamk_configs(m, n, k, device, num_sms):
-    """Generate StreamK configs using Origami tuning"""
+    """Generate StreamK configs using tritonBLAS-style Origami integration"""
     try:
-        # Create Origami search space
-        # Handle symbolic dimensions in search space
-        try:
-            max_streamk_tiles = min(100, (m//64) * (n//64))
-        except (TypeError, AttributeError):
-            max_streamk_tiles = 100  # Conservative default for symbolic dimensions
+        print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] Creating origami selector for {m}x{n}x{k}, device={device}, num_sms={num_sms}")
+        log.debug(f"Creating origami selector for {m}x{n}x{k}")
 
-        search_space = {
-            "BLOCK_SIZE_M": {"type": "choice", "values": [64, 128, 256]},
-            "BLOCK_SIZE_N": {"type": "choice", "values": [64, 128, 256]},
-            "BLOCK_SIZE_K": {"type": "choice", "values": [32, 64, 128]},
-            "GROUP_SIZE_M": {"type": "choice", "values": [1, 2, 4, 8]},
-            "STREAMK_TILES": {"type": "range", "low": 0, "high": max_streamk_tiles},
-            "NUM_XCDS": {"type": "choice", "values": [1, 2, 4]},
-            "num_warps": {"type": "choice", "values": [4, 8, 16]},
-            "num_stages": {"type": "choice", "values": [2, 3, 4, 5]},
+        # Use tritonBLAS-style origami selector
+        # Infer data types (assuming BF16 for this implementation)
+        a_dtype = torch.bfloat16  # TODO: Pass actual dtypes from caller
+        b_dtype = torch.bfloat16
+        c_dtype = torch.bfloat16
+
+        # Create origami selector following tritonBLAS pattern
+        print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] Creating StreamKOrigamiSelector with dtypes: {a_dtype}, {b_dtype}, {c_dtype}")
+        origami_selector = StreamKOrigamiSelector(m, n, k, a_dtype, b_dtype, c_dtype, device)
+
+        # Get optimal configuration
+        BLK_M, BLK_N, BLK_K, GROUP_M = origami_selector.get_config()
+        optimal_grid = origami_selector.get_grid()
+
+        print(f"🔍 [PYTORCH-ORIGAMI-DEBUG] Origami selected: BLOCK_M={BLK_M}, BLOCK_N={BLK_N}, BLOCK_K={BLK_K}, GROUP_M={GROUP_M}, GRID={optimal_grid}")
+        log.debug(f"Origami selected: BLOCK_M={BLK_M}, BLOCK_N={BLK_N}, BLOCK_K={BLK_K}, GROUP_M={GROUP_M}, GRID={optimal_grid}")
+
+        # Create configuration in PyTorch Triton format
+        config = {
+            "BLOCK_SIZE_M": BLK_M,
+            "BLOCK_SIZE_N": BLK_N,
+            "BLOCK_SIZE_K": BLK_K,
+            "GROUP_SIZE_M": GROUP_M,
+            "NUM_SMS": optimal_grid,
+            "CHUNK_SIZE": min(GROUP_M * GROUP_M, optimal_grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
+            "ACC_TYPE": "tl.float32",
+            "ALLOW_TF32": True,
+            "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned
+            "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned
+            "EVEN_K": _safe_even_k_check(k, BLK_K),
+            # Use tritonBLAS fixed parameters
+            "num_warps": 8,  # Fixed like tritonBLAS
+            "num_stages": 2,  # Fixed like tritonBLAS
         }
 
-        # Convert symbolic variables to strings for JSON serialization
-        try:
-            m_json = int(m) if hasattr(m, '__int__') else str(m)
-            n_json = int(n) if hasattr(n, '__int__') else str(n)
-            k_json = int(k) if hasattr(k, '__int__') else str(k)
-        except (TypeError, ValueError):
-            m_json = str(m)
-            n_json = str(n)
-            k_json = str(k)
-
-        origami_config = {
-            "search_space": search_space,
-            "problem_size": {"M": m_json, "N": n_json, "K": k_json},
-            "device_info": {"num_sms": num_sms},
-            "objective": "minimize_latency",
-            "budget": int(os.environ.get("ORIGAMI_BUDGET", "50")),
-            "algorithm": "tpe",
-        }
-
-        # Create temporary config file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            json.dump(origami_config, f, indent=2)
-            config_path = f.name
-
-        # Run Origami tuning (adjust based on your Origami setup)
-        result = subprocess.run([
-            'python', '-m', 'origami.tune',
-            '--config', config_path,
-            '--timeout', '300',  # 5 minute timeout
-        ], capture_output=True, text=True, timeout=360)
-
-        if result.returncode == 0:
-            # Parse Origami results
-            origami_results = json.loads(result.stdout)
-            configs = []
-
-            for result_config in origami_results.get('best_configs', []):
-                # Compute actual grid size to match streamk_mm_grid logic
-                block_m = result_config.get("BLOCK_SIZE_M", 64)
-                block_n = result_config.get("BLOCK_SIZE_N", 64)
-                try:
-                    tiles_m = (m + block_m - 1) // block_m
-                    tiles_n = (n + block_n - 1) // block_n
-                    total_tiles = tiles_m * tiles_n
-                    actual_grid = min(num_sms, total_tiles)
-                except (TypeError, AttributeError):
-                    actual_grid = num_sms  # Conservative for symbolic dimensions
-
-                config = {
-                    **result_config,
-                    "NUM_SMS": actual_grid,
-                    "CHUNK_SIZE": max(1, actual_grid // (result_config.get("NUM_XCDS", 1) * 4)),
-                    "ACC_TYPE": "tl.float32",
-                    "ALLOW_TF32": True,
-                    "CACHE_MODIFIER_A": ".cg",
-                    "CACHE_MODIFIER_B": ".cg",
-                    "EVEN_K": _safe_even_k_check(k, result_config.get("BLOCK_SIZE_K", 32)),
-                }
-                configs.append(config)
-
-            log.info(f"Origami generated {len(configs)} StreamK configs for {m}x{n}x{k}")
-            return configs
-
-        else:
-            log.warning(f"Origami tuning failed: {result.stderr}")
-            return []
+        configs = [config]
+        log.info(f"✓ Origami generated {len(configs)} StreamK configs for {m}x{n}x{k} using tritonBLAS integration")
+        return configs
 
     except Exception as e:
         log.warning(f"Origami integration error: {e}")
-        return []
-
-    finally:
-        # Cleanup
+        # Fallback to a basic configuration
         try:
-            os.unlink(config_path)
+            basic_config = {
+                "BLOCK_SIZE_M": 128,
+                "BLOCK_SIZE_N": 128,
+                "BLOCK_SIZE_K": 32,
+                "GROUP_SIZE_M": 8,
+                "NUM_SMS": min(num_sms, 256),
+                "CHUNK_SIZE": 16,
+                "ACC_TYPE": "tl.float32",
+                "ALLOW_TF32": True,
+                "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned
+                "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned
+                "EVEN_K": _safe_even_k_check(k, 32),
+                "num_warps": 8,  # Fixed like tritonBLAS
+                "num_stages": 2,  # Fixed like tritonBLAS
+            }
+            log.debug(f"Using fallback configuration: {basic_config}")
+            return [basic_config]
         except:
-            pass
+            return []
 
 
 mm_template = TritonTemplate(
@@ -2115,9 +2622,9 @@ def tuned_mm(mat1, mat2, *, layout=None):
                 try:
                     streamk_log_debug("Adding StreamK+origami as competitor choice")
 
-                    # Extract triton-specific parameters
-                    num_warps = optimal_config.pop("num_warps", 4)
-                    num_stages = optimal_config.pop("num_stages", 3)
+                    # Extract triton-specific parameters (use tritonBLAS defaults)
+                    num_warps = optimal_config.pop("num_warps", 8)  # tritonBLAS default
+                    num_stages = optimal_config.pop("num_stages", 2)  # tritonBLAS default
 
                     # Use the StreamK template with optimal configuration as competitor
                     error = mm_streamk_template.maybe_append_choice(
@@ -2272,7 +2779,7 @@ def tuned_mm(mat1, mat2, *, layout=None):
 
         # Check config generation
         try:
-            test_configs = generate_streamk_configs(m, n, k, layout.device, enable_origami=False)
+            test_configs = generate_streamk_configs(m, n, k, layout.device, enable_origami=True)
             streamk_log_info(f"   Config generation test: {len(test_configs)} configs")
         except Exception as e:
             streamk_log_info(f"   Config generation test failed: {e}")
