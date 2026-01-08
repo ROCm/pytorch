@@ -7,6 +7,7 @@ import torch
 import torch._inductor.config as inductor_config
 import torch.nn.functional as F
 from torch._dynamo.utils import rmse, same
+from torch._inductor.runtime.hints import DeviceProperties
 from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.utils import run_and_get_code
 from torch.testing._internal.common_utils import (
@@ -132,14 +133,26 @@ class TestOnlineSoftmax(TestCase):
     @parametrize("nrow", [2, 2048])
     @parametrize("dim", [-1, 0, 1])
     def test_prepare_softmax(self, dim, nrow):
-        x = torch.randn(nrow, 2048, dtype=torch.bfloat16, device=GPU_TYPE)
+        ncol = 2048
+        x = torch.randn(nrow, ncol, dtype=torch.bfloat16, device=GPU_TYPE)
         act, (code,) = run_and_get_code(torch.compile(_prepare_softmax), x, dim)
         ref = _prepare_softmax(x, dim)
         self.assertTrue(same(ref, act, tol=1e-2))
 
         if nrow == 2048 and dim == 0:
-            # split reduction is triggered. We have multiple kernels
-            self.assertTrue(code.count("def triton") >= 2)
+            # split reduction may be triggered depending on the device's SM/CU count.
+            # The heuristic in num_splits() in ir.py returns split=1 (no split) when:
+            #   numel_hint >= num_sm * 2 * 32
+            # When dim=0, numel_hint (output size) = ncol
+            # split is expected only when num_sm > 32
+            props = DeviceProperties.create(torch.device(GPU_TYPE))
+            num_sm = props.multi_processor_count
+            split_expected = ncol < num_sm * 2 * 32
+            if split_expected:
+                # split reduction is triggered. We have multiple kernels
+                self.assertTrue(code.count("def triton") >= 2)
+            else:
+                self.assertTrue(code.count("def triton") == 1)
         else:
             if nrow == 2 and dim == 0:
                 # persistent reduction triggered
