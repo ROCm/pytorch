@@ -436,6 +436,14 @@ use_experimental_benchmarker: bool = Config(
     justknob="pytorch/inductor:use_experimental_benchmarker",
 )
 
+# use torch profiler to benchmark kernels during autotuning
+# when enabled, this takes precedence over use_experimental_benchmarker
+use_torch_profiler_benchmarker: bool = Config(
+    default=False,
+    env_name_force="TORCHINDUCTOR_USE_TORCH_PROFILER_BENCHMARKER",
+    justknob="pytorch/inductor:use_torch_profiler_benchmarker",
+)
+
 # enable slow autotuning passes to select algorithms
 max_autotune = os.environ.get("TORCHINDUCTOR_MAX_AUTOTUNE") == "1"
 
