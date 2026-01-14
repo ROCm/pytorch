@@ -632,7 +632,7 @@ print(t.is_pinned())
                 # CUDA logic is easy, it's always cublas
                 self.assertTrue(default == torch._C._BlasBackend.Cublas)
             else:
-                # ROCm logic is less so, it's cublaslt for some Instinct, cublas for all else
+                # ROCm logic is less so, it's cublaslt for some Instinct and RDNA4, cublas for all else
                 gcn_arch = str(
                     torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
                 )
