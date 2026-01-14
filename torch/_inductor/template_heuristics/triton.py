@@ -1185,7 +1185,8 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
 
         for conf in configs:
             # Each warp computes a 16x16 tile = 256 elements
-            conf.num_warps = min(conf.num_warps, conf.block_m * conf.block_n // 256)
+            # Don't modify conf.num_warps
+            # conf.num_warps = min(conf.num_warps, conf.block_m * conf.block_n // 256)
 
             # Defaults for AMD triton backend kern args if not set
             matrix_instr_nonkdim = getattr(conf, "matrix_instr_nonkdim", 16)
@@ -1216,8 +1217,9 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             if group_m is not None:
                 key += (group_m,)
 
-            if waves_per_eu != 0:
-                waves_per_eu = int(8 // conf.num_warps)
+            # Don't override waves_per_eu from the config
+            # if waves_per_eu != 0:
+            #     waves_per_eu = int(8 // conf.num_warps)
 
             if key not in used and (
                 max_mm_configs is None or len(used) < max_mm_configs
