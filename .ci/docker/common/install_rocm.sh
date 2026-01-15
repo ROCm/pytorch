@@ -26,6 +26,47 @@ install_ubuntu() {
     apt-get install -y libc++1
     apt-get install -y libc++abi1
 
+    # When ROCM_VERSION=nightly, install ROCm from TheRock nightly wheels
+    if [[ "${ROCM_VERSION}" == "nightly" ]]; then
+      echo "install_rocm.sh: installing ROCm from TheRock nightly wheels"
+
+      # Clean any previous ROCm installation in the base CI image.
+      if [[ -d /opt/rocm ]]; then
+        echo "Removing existing /opt/rocm from base image"
+        rm -rf /opt/rocm
+      fi
+
+      # Determine theRock nightly URL based on GPU architecture
+      # Check BUILD_ENVIRONMENT or PYTORCH_ROCM_ARCH for the target GPU
+      if [[ -z "${THEROCK_NIGHTLY_INDEX_URL:-}" ]]; then
+        DATE=$(date +%Y%m%d)
+        S3="https://therock-nightly-tarball.s3.amazonaws.com"
+        if [[ "${BUILD_ENVIRONMENT}" == *"gfx950"* ]] || [[ "${PYTORCH_ROCM_ARCH}" == *"gfx950"* ]]; then
+          # MI350 (gfx950)
+          THEROCK_NIGHTLY_INDEX_URL="${S3}/therock-dist-linux-gfx950-dcgpu-7.11.0a${DATE}.tar.gz"
+          echo "Detected gfx950 architecture - using MI350 theRock nightly repository"
+        elif [[ "${BUILD_ENVIRONMENT}" == *"gfx942"* ]] || [[ "${PYTORCH_ROCM_ARCH}" == *"gfx942"* ]]; then
+          # MI300 (gfx942/gfx94X)
+          THEROCK_NIGHTLY_INDEX_URL="${S3}/therock-dist-linux-gfx94X-dcgpu-7.11.0a${DATE}.tar.gz"
+          echo "Detected gfx942 architecture - using MI300 theRock nightly repository"
+        elif [[ "${BUILD_ENVIRONMENT}" == *"gfx90a"* ]] || [[ "${PYTORCH_ROCM_ARCH}" == *"gfx90a"* ]]; then
+          # MI200 (gfx90a)
+          THEROCK_NIGHTLY_INDEX_URL="${S3}/therock-dist-linux-gfx90X-dcgpu-7.11.0a${DATE}.tar.gz"
+          echo "Detected gfx90a architecture - using MI200 theRock nightly repository"
+        else
+          echo "Could not determine gfx target for theRock download"
+          exit 1
+        fi
+      fi
+
+      export THEROCK_NIGHTLY_INDEX_URL
+      echo "TheRock Index URL: ${THEROCK_NIGHTLY_INDEX_URL}"
+      mkdir -p /opt/rocm
+      cd /opt/rocm
+      wget -qO - "${THEROCK_NIGHTLY_INDEX_URL}" | tar -xvz
+      exit 0
+    fi
+
     # Make sure rocm packages from repo.radeon.com have highest priority
     cat << EOF > /etc/apt/preferences.d/rocm-pin-600
 Package: *
