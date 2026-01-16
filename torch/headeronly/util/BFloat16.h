@@ -55,6 +55,11 @@ struct alignas(2) BFloat16 {
   explicit inline C10_HOST_DEVICE operator __nv_bfloat16() const;
 #endif
 
+#if defined(USE_ROCM) && defined(__HIPCC__)
+  inline C10_HOST_DEVICE BFloat16(const hip_bfloat16& value);
+  explicit inline C10_HOST_DEVICE operator hip_bfloat16() const;
+#endif  
+
 #if defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
   inline C10_HOST_DEVICE BFloat16(const sycl::ext::oneapi::bfloat16& value);
   explicit inline C10_HOST_DEVICE operator sycl::ext::oneapi::bfloat16() const;
