@@ -130,6 +130,8 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 #if defined(__CUDACC__) && !defined(USE_ROCM) && defined(__CUDA_ARCH__) && \
     __CUDA_ARCH__ >= 800
       x(__bfloat16_as_ushort(__float2bfloat16(value)))
+#elif defined(USE_ROCM) && defined(__HIPCC__)
+      x(__bfloat16_as_ushort(__float2bfloat16(value)))
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
       x(c10::bit_cast<uint16_t>(sycl::ext::oneapi::bfloat16(value)))
@@ -144,6 +146,8 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 inline C10_HOST_DEVICE BFloat16::operator float() const {
 #if defined(__CUDACC__) && !defined(USE_ROCM)
   return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
+#elif defined(USE_ROCM) && defined(__HIPCC__)
+  return __bfloat162float(*reinterpret_cast<const hip_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
   return float(*reinterpret_cast<const sycl::ext::oneapi::bfloat16*>(&x));
@@ -158,6 +162,15 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(const __nv_bfloat16& value) {
 }
 inline C10_HOST_DEVICE BFloat16::operator __nv_bfloat16() const {
   return *reinterpret_cast<const __nv_bfloat16*>(&x);
+}
+#endif
+
+#if defined(USE_ROCM) && defined(__HIPCC__)
+inline C10_HOST_DEVICE BFloat16::BFloat16(const hip_bfloat16& value) {
+  x = *reinterpret_cast<const unsigned short*>(&value);
+}
+inline C10_HOST_DEVICE BFloat16::operator hip_bfloat16() const {
+  return *reinterpret_cast<const hip_bfloat16*>(&x);
 }
 #endif
 
