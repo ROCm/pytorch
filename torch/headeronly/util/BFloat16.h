@@ -56,8 +56,8 @@ struct alignas(2) BFloat16 {
 #endif
 
 #if defined(USE_ROCM) && defined(__HIPCC__)
-  inline C10_HOST_DEVICE BFloat16(const hip_bfloat16& value);
-  explicit inline C10_HOST_DEVICE operator hip_bfloat16() const;
+  inline C10_HOST_DEVICE BFloat16(const __hip_bfloat16& value);
+  explicit inline C10_HOST_DEVICE operator __hip_bfloat16() const;
 #endif  
 
 #if defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
@@ -153,7 +153,7 @@ inline C10_HOST_DEVICE BFloat16::operator float() const {
 #if defined(__CUDACC__) && !defined(USE_ROCM)
   return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
 #elif defined(USE_ROCM) && defined(__HIPCC__)
-  return __bfloat162float(*reinterpret_cast<const hip_bfloat16*>(&x));
+  return __bfloat162float(*reinterpret_cast<const __hip_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
   return float(*reinterpret_cast<const sycl::ext::oneapi::bfloat16*>(&x));
@@ -172,11 +172,11 @@ inline C10_HOST_DEVICE BFloat16::operator __nv_bfloat16() const {
 #endif
 
 #if defined(USE_ROCM) && defined(__HIPCC__)
-inline C10_HOST_DEVICE BFloat16::BFloat16(const hip_bfloat16& value) {
+inline C10_HOST_DEVICE BFloat16::BFloat16(const __hip_bfloat16& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
 }
-inline C10_HOST_DEVICE BFloat16::operator hip_bfloat16() const {
-  return *reinterpret_cast<const hip_bfloat16*>(&x);
+inline C10_HOST_DEVICE BFloat16::operator __hip_bfloat16() const {
+  return *reinterpret_cast<const __hip_bfloat16*>(&x);
 }
 #endif
 
