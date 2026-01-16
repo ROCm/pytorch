@@ -16,6 +16,10 @@
 #include <cuda_bf16.h>
 #endif
 
+#if defined(USE_ROCM) && defined(__HIPCC__)
+#include <hip/hip_bf16.h>
+#endif
+
 #if defined(CL_SYCL_LANGUAGE_VERSION)
 #include <CL/sycl.hpp> // for SYCL 1.2.1
 #elif defined(SYCL_LANGUAGE_VERSION)
