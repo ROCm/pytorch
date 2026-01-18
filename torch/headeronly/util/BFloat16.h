@@ -12,7 +12,7 @@
 #include <iosfwd>
 #include <ostream>
 
-#if defined(__CUDACC__) && !defined(USE_ROCM)
+#if defined(__CUDACC__)
 #include <cuda_bf16.h>
 #endif
 
@@ -28,7 +28,7 @@ struct alignas(2) BFloat16 {
   uint16_t x;
 
   // HIP wants __host__ __device__ tag, CUDA does not
-#if defined(USE_ROCM) && defined(__HIPCC__)
+#if defined(__HIPCC__)
   C10_HOST_DEVICE BFloat16() = default;
 #else
   BFloat16() = default;
@@ -44,7 +44,7 @@ struct alignas(2) BFloat16 {
   /* implicit */ inline C10_HOST_DEVICE BFloat16(float value);
   inline C10_HOST_DEVICE operator float() const;
 
-#if defined(__CUDACC__) && !defined(USE_ROCM)
+#if defined(__CUDACC__)
   inline C10_HOST_DEVICE BFloat16(const __nv_bfloat16& value);
   explicit inline C10_HOST_DEVICE operator __nv_bfloat16() const;
 #endif
@@ -66,7 +66,7 @@ inline C10_HOST_DEVICE float f32_from_bits(uint16_t src) {
   uint32_t tmp = src;
   tmp <<= 16;
 
-#if defined(USE_ROCM) && defined(__HIPCC__)
+#if defined(__HIPCC__)
   float* tempRes;
 
   // We should be using memcpy in order to respect the strict aliasing rule
@@ -83,7 +83,7 @@ inline C10_HOST_DEVICE float f32_from_bits(uint16_t src) {
 inline C10_HOST_DEVICE uint16_t bits_from_f32(float src) {
   uint32_t res = 0;
 
-#if defined(USE_ROCM) && defined(__HIPCC__)
+#if defined(__HIPCC__)
   // We should be using memcpy in order to respect the strict aliasing rule
   // but it fails in the HIP environment.
   uint32_t* tempRes = reinterpret_cast<uint32_t*>(&src);
@@ -96,7 +96,7 @@ inline C10_HOST_DEVICE uint16_t bits_from_f32(float src) {
 }
 
 inline C10_HOST_DEVICE uint16_t round_to_nearest_even(float src) {
-#if defined(USE_ROCM) && defined(__HIPCC__)
+#if defined(__HIPCC__)
   if (src != src) {
 #elif defined(_MSC_VER)
   if (isnan(src)) {
@@ -122,13 +122,13 @@ C10_CLANG_DIAGNOSTIC_IGNORE("-Wimplicit-int-float-conversion")
 /// Constructors
 inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
     :
-#if defined(__CUDACC__) && !defined(USE_ROCM) && defined(__CUDA_ARCH__) && \
-    __CUDA_ARCH__ >= 800
+#if defined(__CUDACC__) && defined(__CUDA_ARCH__) && \
+    __CUDA_ARCH__ >= 800 || defined(__HIPCC__)
       x(__bfloat16_as_ushort(__float2bfloat16(value)))
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
       x(c10::bit_cast<uint16_t>(sycl::ext::oneapi::bfloat16(value)))
-#else
+#else 
       // RNE by default
       x(detail::round_to_nearest_even(value))
 #endif
@@ -137,7 +137,7 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 
 /// Implicit conversions
 inline C10_HOST_DEVICE BFloat16::operator float() const {
-#if defined(__CUDACC__) && !defined(USE_ROCM)
+#if defined(__CUDACC__)
   return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
@@ -147,7 +147,7 @@ inline C10_HOST_DEVICE BFloat16::operator float() const {
 #endif
 }
 
-#if defined(__CUDACC__) && !defined(USE_ROCM)
+#if defined(__CUDACC__)
 inline C10_HOST_DEVICE BFloat16::BFloat16(const __nv_bfloat16& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
 }
