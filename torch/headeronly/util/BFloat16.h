@@ -170,7 +170,7 @@ inline C10_HOST_DEVICE BFloat16::operator sycl::ext::oneapi::bfloat16() const {
 
 #if defined(__CUDACC__) || defined(__HIPCC__)
 inline C10_DEVICE BFloat16 __ldg(const BFloat16* ptr) {
-#if !defined(USE_ROCM) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
+#if defined(__CUDACC__) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800 || defined(__HIPCC__)
   return __ldg(reinterpret_cast<const __nv_bfloat16*>(ptr));
 #else
   return *ptr;
