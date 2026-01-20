@@ -753,3 +753,49 @@ def if_mask(mask: Any, val, *, _builder: object = None) -> tl.constexpr:
     if isinstance(mask, tl.constexpr) and mask.value is None:
         return tl.constexpr(None)
     return val
+
+
+@triton.jit
+def chiplet_transform_chunked(
+    pid,
+    num_sms: tl.constexpr,
+    num_xcds: tl.constexpr,
+    chunk_size: tl.constexpr
+):
+    """
+    Transform PID for chunked multi-chiplet execution pattern.
+
+    This transformation optimizes memory access patterns by chunking work groups
+    across multiple chiplets (XCDs). Work is distributed in chunks to improve
+    cache locality and reduce inter-chiplet communication.
+
+    Args:
+        pid: Program ID to transform
+        num_sms: Total number of streaming multiprocessors
+        num_xcds: Number of chiplets/dies available
+        chunk_size: Size of chunks for distribution
+
+    Returns:
+        Transformed PID for optimized chiplet execution
+    """
+    # Calculate the limit for the contiguous chunked region
+    limit = (num_sms // (num_xcds * chunk_size)) * (num_xcds * chunk_size)
+
+    # Outside of the contiguous chunked region, leave PID unchanged
+    if pid >= limit:
+        return pid
+
+    # Transform PIDs within the chunked region for optimal chiplet distribution
+    local_pid = pid // num_xcds
+
+    # Calculate chunk index and position within chunk
+    chunk_idx = local_pid // chunk_size
+    pos_in_chunk = local_pid % chunk_size
+
+    # Calculate which chiplet this PID belongs to
+    xcd = pid % num_xcds
+
+    # Calculate new PID for optimized memory access pattern
+    new_pid = chunk_idx * num_xcds * chunk_size + xcd * chunk_size + pos_in_chunk
+
+    return new_pid

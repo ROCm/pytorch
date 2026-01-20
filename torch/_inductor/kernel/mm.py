@@ -658,14 +658,22 @@ class MatmulHeuristicResult:
         # Group size heuristic
         group_m = 8 if (self.M >= 2048 and self.N >= 2048) else 4
 
-        # Calculate StreamK tiles for optimal load balancing
+        # Calculate StreamK tiles following TritonBLAS logic
         try:
             tiles_m = (self.M + block_m - 1) // block_m
             tiles_n = (self.N + block_n - 1) // block_n
             total_tiles = tiles_m * tiles_n
-            streamk_tiles = max(1, min(total_tiles // 2, self.num_sms))
             # CRITICAL: actual_grid must match streamk_mm_grid logic to prevent hang
             actual_grid = min(self.num_sms, total_tiles)
+            # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
+            # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
+            streamk_tiles = total_tiles % actual_grid if actual_grid > 0 else 0
+
+            if STREAMK_DEBUG:
+                print(f"🔍 [FALLBACK-STREAMK-DEBUG] TritonBLAS logic applied (fallback path):")
+                print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
+                print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % actual_grid)")
+                print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
         except (TypeError, AttributeError):
             # Handle symbolic dimensions
             streamk_tiles = min(32, self.num_sms)
@@ -800,12 +808,28 @@ def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
             block_m, block_n, block_k, group_m = self.origami_selector.get_config()
             grid = self.origami_selector.get_grid()
 
+            # Calculate total tiles for TritonBLAS-aligned STREAMK_TILES logic
+            import math
+            total_tiles_m = math.ceil(self.origami_selector.M / block_m)
+            total_tiles_n = math.ceil(self.origami_selector.N / block_n)
+            total_tiles = total_tiles_m * total_tiles_n
+
+            # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
+            # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
+            streamk_tiles = total_tiles % grid if grid > 0 else 0
+
+            if STREAMK_DEBUG:
+                print(f"🔍 [STREAMK-SELECTOR-DEBUG] TritonBLAS logic applied:")
+                print(f"   total_tiles={total_tiles}, grid={grid}")
+                print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % grid)")
+                print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
+
             config = {
                 "BLOCK_M": block_m,
                 "BLOCK_N": block_n,
                 "BLOCK_K": block_k,
                 "GROUP_M": group_m,
-                "STREAMK_TILES": grid,
+                "STREAMK_TILES": streamk_tiles,
                 "NUM_SMS": grid,
                 "EVEN_K": _safe_even_k_check(self.origami_selector.K, block_k),
                 "ACC_TYPE": "tl.float32",
@@ -911,19 +935,7 @@ class StreamKTemplate(TritonTemplate):
 
     # Apply chiplet transformation for multi-die optimization (TritonBLAS pattern)
     if NUM_XCDS != 1:
-        # Chiplet transform chunked implementation (from TritonBLAS)
-        # CRITICAL FIX: Correct the conditional logic to match TritonBLAS reference
-        limit = (NUM_SMS // (NUM_XCDS * CHUNK_SIZE)) * (NUM_XCDS * CHUNK_SIZE)
-        if pid > limit:
-            # Outside of the contiguous chunked region, leave unchanged (TritonBLAS pattern)
-            pass  # pid remains unchanged
-        else:
-            # Transform pids within the chunked region
-            local_pid = pid // NUM_XCDS
-            chunk_idx = local_pid // CHUNK_SIZE
-            pos_in_chunk = local_pid % CHUNK_SIZE
-            xcd = pid % NUM_XCDS
-            pid = chunk_idx * NUM_XCDS * CHUNK_SIZE + xcd * CHUNK_SIZE + pos_in_chunk
+        pid = triton_helpers.chiplet_transform_chunked(pid, NUM_SMS, NUM_XCDS, CHUNK_SIZE)
 
     num_pid_m = tl.cdiv(M, BLOCK_M)
     num_pid_n = tl.cdiv(N, BLOCK_N)
@@ -970,7 +982,10 @@ class StreamKTemplate(TritonTemplate):
         {% if not EVEN_K %}
         loop_k -= 1
         {% endif %}
+        # Fixed: Only assume when valid to prevent failure with K < BLOCK_K
+        {% if EVEN_K %}
         tl.assume(loop_k >= 1)
+        {% endif %}
 
         acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
         for k in range(0, loop_k):
@@ -1688,19 +1703,29 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
                     total_tiles = tiles_m * tiles_n
                     large_problem_xcds = True  # Assume could be large
 
-                # Calculate good STREAMK_TILES values - skip 0.0 ratio for StreamK
-                for streamk_ratio in [0.2, 0.4, 0.6, 0.8]:
-                    try:
-                        # Try the multiplication and conversion
-                        streamk_tiles_calc = total_tiles * streamk_ratio
-                        streamk_tiles = max(1, int(streamk_tiles_calc))  # Ensure at least 1 tile
-                    except (TypeError, AttributeError, ValueError):
-                        # Handle symbolic total_tiles or failed conversion
-                        streamk_tiles = max(1, int(32 * streamk_ratio))  # Conservative fallback with minimum 1
+                # Compute actual grid size - must match streamk_mm_grid logic
+                # Grid is min(num_sms, total_tiles) to ensure all launched SMs have work
+                actual_grid = min(num_sms, total_tiles)
 
-                    # Compute actual grid size - must match streamk_mm_grid logic
-                    # Grid is min(num_sms, total_tiles) to ensure all launched SMs have work
-                    actual_grid = min(num_sms, total_tiles)
+                # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
+                # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
+                try:
+                    streamk_tiles = total_tiles % actual_grid if actual_grid > 0 else 0
+                except (TypeError, AttributeError):
+                    # Handle symbolic dimensions
+                    streamk_tiles = 0  # Conservative fallback
+
+                if STREAMK_DEBUG:
+                    print(f"🔍 [AUTO-STREAMK-DEBUG] TritonBLAS logic applied (autotune path):")
+                    print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
+                    print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % actual_grid)")
+                    print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
+
+                # Only create StreamK configs when there are actual partial tiles to process
+                # This aligns with TritonBLAS behavior: classical tiling when streamk_tiles == 0
+                streamk_configs_to_try = [streamk_tiles] if streamk_tiles > 0 else [0]
+
+                for streamk_tiles in streamk_configs_to_try:
 
                     for group_m in [1, 2, 4, 8]:
                         for num_warps in [4, 8]:
