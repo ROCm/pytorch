@@ -1218,7 +1218,7 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
                 key += (group_m,)
 
             # Don't override waves_per_eu from the config
-            # if waves_per_eu != 0:
+            # if waves_per_eu == 0 or waves_per_eu is None:
             #     waves_per_eu = int(8 // conf.num_warps)
 
             if key not in used and (
