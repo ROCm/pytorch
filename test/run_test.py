@@ -50,6 +50,8 @@ from tools.stats.import_test_stats import (
     ADDITIONAL_CI_FILES_FOLDER,
     TEST_CLASS_TIMES_FILE,
     TEST_TIMES_FILE,
+    get_test_times,
+    get_test_class_times,
 )
 from tools.stats.upload_metrics import add_global_metric, emit_metric
 from tools.testing.discover_tests import (
@@ -1822,12 +1824,14 @@ def load_test_times_from_file(file: str) -> dict[str, Any]:
 def load_test_file_times(
     file: str = ADDITIONAL_CI_FILES_FOLDER / TEST_TIMES_FILE,
 ) -> dict[str, float]:
+    get_test_times()
     return cast(dict[str, float], load_test_times_from_file(file))
 
 
 def load_test_class_times(
     file: str = ADDITIONAL_CI_FILES_FOLDER / TEST_CLASS_TIMES_FILE,
 ) -> dict[str, dict[str, float]]:
+    get_test_class_times()
     return cast(dict[str, dict[str, float]], load_test_times_from_file(file))
 
 
