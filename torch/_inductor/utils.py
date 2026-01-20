@@ -1080,8 +1080,14 @@ def sympy_subs(expr: sympy.Expr, replacements: dict[sympy.Expr, Any]) -> sympy.E
                 integer=replaced.is_integer,  # type: ignore[attr-defined]
                 nonnegative=replaced.is_nonnegative,  # type: ignore[attr-defined]
             )
-        else:
-            return replacement
+
+        if isinstance(replacement, bool):
+            return sympy.true if replacement else sympy.false
+        if isinstance(replacement, int):
+            return sympy.Integer(replacement)
+        if isinstance(replacement, float):
+            return sympy.Float(replacement)
+        return replacement
 
     # xreplace is faster than subs, but is way more picky
     return sympy.sympify(expr).xreplace(
