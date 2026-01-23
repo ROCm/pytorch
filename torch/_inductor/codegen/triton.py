@@ -2665,11 +2665,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         )
 
     def want_no_x_dim(self):
-        """
-        ROCm branch change: Remove want_no_x_dim for persistent reduction.
-        Inductor benchmarks show no perf advantage and simplifies autotune flow.
-        """
-        return False
+        return (
+            self.persistent_reduction
+            and len(self.numels) == self.num_reduction_dims + 1
+            and self.fixed_config
+            and self.fixed_config["XBLOCK"] == 1
+        )
 
     @property
     def assert_function(self) -> str:
