@@ -220,19 +220,21 @@ if HAS_CUDA_AND_TRITON:
 
                 x = torch.randn(int(16e6), device="cuda:1")
 
-                orig_benchmark_fused_nodes = TritonScheduling.benchmark_fused_nodes
+                orig_benchmark_codegened_module = (
+                    TritonScheduling.benchmark_codegened_module
+                )
 
-                def mock_benchmark_fused_nodes(*args, **kwargs):
+                def benchmark_codegened_module(*args, **kwargs):
                     nonlocal hit_count
                     hit_count += 1
-                    ms, path = orig_benchmark_fused_nodes(*args, **kwargs)
+                    ms, path = orig_benchmark_codegened_module(*args, **kwargs)
                     self.assertTrue(ms > 0)
                     return ms, path
 
                 with unittest.mock.patch.object(
                     TritonScheduling,
-                    "benchmark_fused_nodes",
-                    mock_benchmark_fused_nodes,
+                    "benchmark_codegened_module",
+                    benchmark_codegened_module,
                 ):
                     relu(x)
                 self.assertTrue(hit_count > 0)
