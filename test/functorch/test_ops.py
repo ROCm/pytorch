@@ -788,6 +788,7 @@ class TestOperators(TestCase):
                 {torch.float32: tol(atol=5e-05, rtol=9e-05)},
                 device_type="cuda",
             ),
+            tol1("nn.functional.conv3d", {torch.float32: tol(atol=5e-05, rtol=5e-05)}),
             tol1(
                 "nn.functional.binary_cross_entropy_with_logits",
                 {torch.float32: tol(atol=1e-04, rtol=1e-04)},
@@ -1844,6 +1845,7 @@ class TestOperators(TestCase):
             tol2(
                 "linalg.pinv", "hermitian", {torch.float32: tol(atol=5e-03, rtol=5e-03)}
             ),
+            tol1("nn.functional.conv3d", {torch.float32: tol(atol=5e-05, rtol=5e-05)}),
         ),
     )
     def test_jvpvjp(self, device, dtype, op):
