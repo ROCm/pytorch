@@ -2785,23 +2785,37 @@ class TestFakeTensor(TestCase):
                 aten.is_same_size.default,
             )
 
+            # Disable caching for operations that may pollute the cache
+            # and cause metadata mismatches in subsequent tests
+            disable_cache_ops = {"cholesky_inverse"}
+
             # TODO: enable check_aliasing, batch norm fails
             try:
-                with torch._subclasses.CrossRefFakeMode(
-                    ignore_op_fn=lambda fn: fn in common_skip_ops, check_aliasing=True
-                ):
-                    with (
-                        warnings.catch_warnings(),
-                        context(),
-                        torch.autograd.set_multithreading_enabled(False),
+                # Conditionally disable cache for problematic operations
+                cache_context = (
+                    unittest.mock.patch(
+                        "torch._dynamo.config.fake_tensor_cache_enabled", False
+                    )
+                    if op.name in disable_cache_ops
+                    else contextlib.nullcontext()
+                )
+
+                with cache_context:
+                    with torch._subclasses.CrossRefFakeMode(
+                        ignore_op_fn=lambda fn: fn in common_skip_ops, check_aliasing=True
                     ):
-                        composite_compliance.compute_expected_grads(
-                            op.get_op(),
-                            args,
-                            kwargs,
-                            sample.output_process_fn_grad,
-                            op.gradcheck_wrapper,
-                        )
+                        with (
+                            warnings.catch_warnings(),
+                            context(),
+                            torch.autograd.set_multithreading_enabled(False),
+                        ):
+                            composite_compliance.compute_expected_grads(
+                                op.get_op(),
+                                args,
+                                kwargs,
+                                sample.output_process_fn_grad,
+                                op.gradcheck_wrapper,
+                            )
             except torch._subclasses.fake_tensor.UnsupportedOperatorException:
                 pass
 
