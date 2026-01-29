@@ -63,6 +63,7 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     serialTest,
+    skipIfRocm,
     skipIfTorchDynamo,
     TemporaryDirectoryName,
     TemporaryFileName,
@@ -1443,6 +1444,7 @@ class TestProfiler(TestCase):
 
     @unittest.skipIf(not kineto_available(), "Kineto is required")
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
+    @skipIfRocm(msg="hipDeviceSynchronize does not log 'cuda_sync' events")
     def test_profiler_cuda_sync_events(self):
         device = torch.device("cuda:0")
         t1, t2 = torch.ones(1, device=device), torch.ones(1, device=device)
