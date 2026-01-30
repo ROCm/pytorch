@@ -25,11 +25,6 @@ sudo rm -rf original
 popd
 sudo rm -rf /opt/cache
 
-# patch fbgemm to work around build failure
-pushd third_party/fbgemm
-patch -p1 -i ../../.ci/pytorch/fbgemm.patch || true
-popd
-
 # patch XNNPACK to work around build failure
 pushd third_party/XNNPACK
 patch -p1 -i ../../.ci/pytorch/XNNPACK.patch || true
