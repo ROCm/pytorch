@@ -268,11 +268,20 @@ inline c10::cuda::CUDAStream getDefaultHIPStream(
     DeviceIndex device_index = -1) {
   return c10::cuda::getDefaultCUDAStream(device_index);
 }
+inline c10::cuda::CUDAStream getDefaultCUDAStream(
+    DeviceIndex device_index = -1) {
+  return c10::cuda::getDefaultCUDAStream(device_index);
+}
 inline c10::cuda::CUDAStream getCurrentHIPStream(
     DeviceIndex device_index = -1) {
   return c10::cuda::getCurrentCUDAStream(device_index);
 }
+inline c10::cuda::CUDAStream getCurrentCUDAStream(
+    DeviceIndex device_index = -1) {
+  return c10::cuda::getCurrentCUDAStream(device_index);
+}
 inline auto& setCurrentHIPStream = c10::cuda::setCurrentCUDAStream;
+inline auto& setCurrentCUDAStream = c10::cuda::setCurrentCUDAStream;
 } // namespace c10::hip
 #endif
 
