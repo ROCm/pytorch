@@ -2714,7 +2714,7 @@ def _reduction_configs(
     )
 
     register_intensive = False
-    MAX_R0_BLOCK = 4096 if torch.version else 2048
+    MAX_R0_BLOCK = 4096 if torch.version.hip else 2048
     loads_and_red = inductor_meta.get("num_load", 0) + inductor_meta.get(
         "num_reduction", 0
     )
