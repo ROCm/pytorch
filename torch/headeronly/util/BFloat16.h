@@ -122,8 +122,16 @@ C10_CLANG_DIAGNOSTIC_IGNORE("-Wimplicit-int-float-conversion")
 /// Constructors
 inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
     :
-#if defined(__CUDACC__) && defined(__CUDA_ARCH__) && \
-    __CUDA_ARCH__ >= 800 || defined(__HIPCC__)
+#if defined(__HIPCC__)
+      //x(__bfloat16_as_ushort(__float2bfloat16(value)))
+      static_assert(sizeof(__hip_bfloat16) == sizeof(uint16_t));
+      union {
+        __hip_bfloat16 bf16;
+        uint16_t usi;
+      } u{__float2bfloat16(value)};
+      x(u.usi);    
+#elif defined(__CUDACC__) && defined(__CUDA_ARCH__) && \
+    __CUDA_ARCH__ >= 800
       x(__bfloat16_as_ushort(__float2bfloat16(value)))
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
