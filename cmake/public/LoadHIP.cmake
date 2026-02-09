@@ -75,6 +75,36 @@ macro(find_package_and_print_version PACKAGE_NAME)
   endif()
 endmacro()
 
+macro(find_package_and_print_version_2 PACKAGE_NAME)
+    # Parse optional TARGET argument
+    cmake_parse_arguments(_ARG "" "TARGET" "" ${ARGN})
+
+    find_package("${PACKAGE_NAME}" ${_ARG_UNPARSED_ARGUMENTS})
+    if(NOT ${PACKAGE_NAME}_FOUND)
+      message("Optional package ${PACKAGE_NAME} not found")
+    else()
+      message("${PACKAGE_NAME} VERSION: ${${PACKAGE_NAME}_VERSION}")
+
+      # Determine target name: use TARGET argument if provided, otherwise use PACKAGE_NAME
+      if(_ARG_TARGET)
+        set(_target_name ${_ARG_TARGET})
+      else()
+        set(_target_name ${PACKAGE_NAME})
+      endif()
+
+      # Get include directories from target's INTERFACE_INCLUDE_DIRECTORIES
+      if(TARGET ${_target_name})
+        get_target_property(_dep_includes ${_target_name} INTERFACE_INCLUDE_DIRECTORIES)
+        if(_dep_includes)
+          list(APPEND ROCM_INCLUDE_DIRS ${_dep_includes})
+        endif()
+      elseif(${PACKAGE_NAME}_INCLUDE_DIR)
+        # Fallback to variable-based include dir if target doesn't exist
+        list(APPEND ROCM_INCLUDE_DIRS ${${PACKAGE_NAME}_INCLUDE_DIR})
+      endif()
+    endif()
+  endmacro()
+
 # Find the HIP Package
 # MODULE argument is added for clarity that CMake is searching
 # for FindHIP.cmake in Module mode
@@ -183,7 +213,9 @@ if(HIP_FOUND)
   find_package_and_print_version(hipcub REQUIRED)
   find_package_and_print_version(rocthrust REQUIRED)
   find_package_and_print_version(hipsolver REQUIRED)
-  find_package_and_print_version(rocsolver REQUIRED)
+  find_package_and_print_version_2(hipdnn_frontend CONFIG REQUIRED)
+  find_package_and_print_version_2(hipdnn_data_sdk CONFIG REQUIRED)
+  
   # workaround cmake 4 build issue
   if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
     message(WARNING "Work around hiprtc cmake failure for cmake >= 4")
@@ -202,7 +234,19 @@ if(HIP_FOUND)
 
   # Optional components.
   find_package_and_print_version(hipsparselt)  # Will be required when ready.
-  find_package_and_print_version(hipdnn_frontend)
+
+  # message("HIPDNN package INCLUDE")
+
+  # get_cmake_property(_all_vars VARIABLES)
+  # list(FILTER _all_vars INCLUDE REGEX "HIPDNN.*")
+  # list(SORT _all_vars)
+  # message("HIPDNN START")
+  # foreach(_var_name ${_all_vars})
+  #     message(STATUS "${_var_name} = ${${_var_name}}")
+  # endforeach()
+  # message("HIPDNN END")
+  # # message(FATAL_ERROR "STOP")
+
 
   list(REMOVE_DUPLICATES ROCM_INCLUDE_DIRS)
 
