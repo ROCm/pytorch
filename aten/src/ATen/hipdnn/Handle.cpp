@@ -9,6 +9,9 @@
 namespace at::native {
 namespace {
 
+using namespace hipdnn_frontend;
+using namespace hipdnn_data_sdk;
+
 void createHipdnnHandle(hipdnnHandle_t *handle) {
   HIPDNN_CHECK(hipdnnBackend()->create(handle));
 }
