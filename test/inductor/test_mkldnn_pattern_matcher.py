@@ -1079,16 +1079,16 @@ class TestPatternMatcher(TestPatternMatcherBase):
         )
 
         def matcher_check_fn():
-            # 1. Dequant-Conv2D pattern matched in QConv2D weight prepack * 1
-            #    int8_mixed_fp32: [dequant_node, dequantize_per_channel, clone, convolution]
-            #    int8_mixed_bf16: [dequant_node, optional(convert_element_type_4),
-            #     dequantize_per_channel, optional(convert_element_type_3), clone, convolution]
+            # 1. Dequant-Conv2D pattern matched in QConv2D weight prepack * 3 (one per conv)
+            #    int8_mixed_fp32: [dequant_node, dequantize_per_channel, convolution] = 3 nodes per conv
+            #    int8_mixed_bf16: [dequant_node, optional(convert_element_type),
+            #     dequantize_per_channel, optional(convert_element_type), convolution] = 5 nodes per conv
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_count"], 3
             )
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_nodes"],
-                18 if int8_mixed_bf16 else 12,
+                15 if int8_mixed_bf16 else 9,
             )
             self.assertEqual(
                 counters["inductor"]["qconv_unary_lower_count"], 0 if TEST_ACL else 3
@@ -1879,12 +1879,12 @@ class TestPatternMatcher(TestPatternMatcherBase):
 
         def matcher_check_fn():
             # 1. Dequant-conv pattern matched in quantization weight prepack * 1
-            #    [dequantize_per_tensor, dequantize_per_channel, clone, convolution]
+            #    [dequantize_per_tensor, dequantize_per_channel, convolution]
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_count"], 1
             )
             self.assertEqual(
-                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 4
+                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 3
             )
             # 2. QConv2D Unary fusion in post-grad fusion pass * 1
             #    [qconv2d_pointwise_default, quantize_per_tensor]
@@ -2033,12 +2033,12 @@ class TestPatternMatcher(TestPatternMatcherBase):
 
         def matcher_check_fn():
             # 1. Dequant-conv pattern matched in quantization weight prepack * 2
-            #    [dequantize_per_tensor, dequantize_per_channel, clone, convolution]
+            #    [dequantize_per_tensor, dequantize_per_channel, convolution]
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_count"], 2
             )
             self.assertEqual(
-                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 8
+                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 6
             )
             # 2. Qconv2d Binary fusion in post-grad fusion pass * 1
             #    [qconv2d_pointwise_default_1, dequantize_per_tensor, add_3, quantize_per_tensor]
@@ -2102,12 +2102,12 @@ class TestPatternMatcher(TestPatternMatcherBase):
 
         def matcher_check_fn():
             # 1. Dequant-conv pattern matched in quantization weight prepack * 2
-            #    [dequantize_per_tensor, dequantize_per_channel, clone, convolution]
+            #    [dequantize_per_tensor, dequantize_per_channel, convolution]
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_count"], 2
             )
             self.assertEqual(
-                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 8
+                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 6
             )
             # 2. Qconv2d Binary fusion in post-grad fusion pass * 1
             #    [qconv2d_pointwise_default_1, dequantize_per_tensor, add_3, relu, quantize_per_tensor]
@@ -2174,12 +2174,12 @@ class TestPatternMatcher(TestPatternMatcherBase):
             self.assertEqual(counters["inductor"]["dequant_promotion_matcher_count"], 1)
             self.assertEqual(counters["inductor"]["dequant_promotion_matcher_nodes"], 1)
             # 2. Dequant-conv pattern matched in quantization weight prepack * 3
-            #    [dequantize_per_tensor, dequantize_per_channel, clone, convolution]
+            #    [dequantize_per_tensor, dequantize_per_channel, convolution]
             self.assertEqual(
                 counters["inductor"]["qconv_weight_prepack_matcher_count"], 3
             )
             self.assertEqual(
-                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 12
+                counters["inductor"]["qconv_weight_prepack_matcher_nodes"], 9
             )
             # 3. Qconv2d Binary fusion in post-grad fusion pass * 1
             #    [qconv2d_pointwise_default_1, add_3]
