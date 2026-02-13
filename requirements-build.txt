@@ -1,6 +1,9 @@
 # Build System requirements
 setuptools==79.0.1
 cmake==4.0.0
+mkl==2024.2.0
+mkl-include==2024.2.0
+mkl-static==2024.2.0
 ninja==1.11.1.4
 numpy==2.1.2
 packaging==25.0
