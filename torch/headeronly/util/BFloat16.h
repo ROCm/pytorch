@@ -24,18 +24,19 @@
 
 namespace c10 {
 
-struct alignas(2) BFloat16 {
+
 #if defined(__HIPCC__)
-protected:    
-  __hip_bfloat16 x;
-public:
+struct alignas(2) BFloat16 : protected __hip_bfloat16 {
 // HIP wants __host__ __device__ tag, CUDA does not
   C10_HOST_DEVICE BFloat16() = default;    
-  inline unsigned short& bits() { return x.__x; }
-#else  
+  inline C10_HOST_DEVICE unsigned short& bits() { return __x; }
+  inline C10_HOST_DEVICE const unsigned short& bits() const { return __x; }
+  #else  
+struct alignas(2) BFloat16 {
   uint16_t x;
-  BFloat16() = default;
-  uint16_t& bits() { return x; }
+  inline C10_HOST_DEVICE BFloat16() = default;
+  inline C10_HOST_DEVICE uint16_t& bits() { return x; }
+  inline C10_HOST_DEVICE const uint16_t& bits() const { return x; }
 #endif
 
   struct from_bits_t {};
@@ -44,7 +45,7 @@ public:
   }
 
   constexpr C10_HOST_DEVICE BFloat16(unsigned short bits, from_bits_t)
-      : x(bits) {}
+      : __hip_bfloat16(bits) {}
   inline C10_HOST_DEVICE BFloat16(float value);
   inline C10_HOST_DEVICE operator float() const;
 
@@ -130,7 +131,7 @@ C10_CLANG_DIAGNOSTIC_IGNORE("-Wimplicit-int-float-conversion")
 inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
     :
 #if defined(__HIPCC__)
-      x(value)
+      __hip_bfloat16(value)
 #elif defined(__CUDACC__) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
       x(__bfloat16_as_ushort(__float2bfloat16(value)))
 #elif defined(__SYCL_DEVICE_ONLY__) && \
@@ -146,7 +147,7 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 /// Implicit conversions
 inline C10_HOST_DEVICE BFloat16::operator float() const {
 #if defined(__HIPCC__)  
-  return x;
+  return __hip_bfloat16::float();
 #elif defined(__CUDACC__)
   return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
@@ -158,9 +159,7 @@ inline C10_HOST_DEVICE BFloat16::operator float() const {
 }
 
 #if defined(__HIPCC__)
-inline C10_HOST_DEVICE BFloat16::BFloat16(const __hip_bfloat16& value) : x(value) {}
-inline C10_HOST_DEVICE BFloat16::operator __hip_bfloat16() const { 
-  return x; }
+inline C10_HOST_DEVICE BFloat16::BFloat16(const __hip_bfloat16& value) : __hip_bfloat16(value) {}
 #elif defined(__CUDACC__)
 inline C10_HOST_DEVICE BFloat16::BFloat16(const __nv_bfloat16& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
