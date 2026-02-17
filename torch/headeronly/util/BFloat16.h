@@ -45,7 +45,7 @@ struct alignas(2) BFloat16 {
   }
 
   constexpr C10_HOST_DEVICE BFloat16(unsigned short bits, from_bits_t)
-      : __hip_bfloat16(bits) {}
+      : __x(bits) {}
   inline C10_HOST_DEVICE BFloat16(float value);
   inline C10_HOST_DEVICE operator float() const;
 
@@ -160,6 +160,9 @@ inline C10_HOST_DEVICE BFloat16::operator float() const {
 
 #if defined(__HIPCC__)
 inline C10_HOST_DEVICE BFloat16::BFloat16(const __hip_bfloat16& value) : __hip_bfloat16(value) {}
+inline C10_HOST_DEVICE BFloat16::operator __hip_bfloat16() const {
+  return __hip_bfloat16::operator __hip_bfloat16();
+}
 #elif defined(__CUDACC__)
 inline C10_HOST_DEVICE BFloat16::BFloat16(const __nv_bfloat16& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
