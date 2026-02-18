@@ -19,7 +19,7 @@ permissions: read-all
 
 jobs:
   target-determination:
-    if: github.repository_owner == 'pytorch'
+    if: github.repository_owner == 'ROCm'
     name: before-test
     uses: ./.github/workflows/target_determination.yml
     permissions:
@@ -37,7 +37,7 @@ jobs:
       curr_ref_type: ${{ github.ref_type }}
 
   linux-jammy-rocm-py3_10-build:
-    if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
+    if: ${{ (github.event_name != 'schedule' || github.repository == 'ROCm/pytorch') && github.repository_owner == 'ROCm' }}
     name: linux-jammy-rocm-py3.10
     uses: ./.github/workflows/_linux-build.yml
     needs: get-label-type
