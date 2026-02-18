@@ -196,11 +196,15 @@ jobs:
         shell: bash
         run: |
           DOCKER_IMAGE_INPUT="${{ inputs.docker-image-name }}"
-          IMAGE_NAME="${DOCKER_IMAGE_INPUT%%:*}"
-          TAG_PREFIX="${DOCKER_IMAGE_INPUT#*:}"
-          DOCKER_DIR_HASH=$(git rev-parse HEAD:.ci/docker)
-          DOCKER_TAG="${TAG_PREFIX}-${DOCKER_DIR_HASH}"
-          GHCR_IMAGE="ghcr.io/pytorch/${IMAGE_NAME}:${DOCKER_TAG}"
+          if [[ "${DOCKER_IMAGE_INPUT}" == ghcr.io/* ]]; then
+            GHCR_IMAGE="${DOCKER_IMAGE_INPUT}"
+          else
+            IMAGE_NAME="${DOCKER_IMAGE_INPUT%%:*}"
+            TAG_PREFIX="${DOCKER_IMAGE_INPUT#*:}"
+            DOCKER_DIR_HASH=$(git rev-parse HEAD:.ci/docker)
+            DOCKER_TAG="${TAG_PREFIX}-${DOCKER_DIR_HASH}"
+            GHCR_IMAGE="ghcr.io/pytorch/${IMAGE_NAME}:${DOCKER_TAG}"
+          fi
           echo "docker-image=${GHCR_IMAGE}" >> "$GITHUB_OUTPUT"
           echo "Using GHCR image: ${GHCR_IMAGE}"
 

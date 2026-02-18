@@ -43,7 +43,7 @@ jobs:
     with:
       runner_prefix: ""
       build-environment: linux-jammy-rocm-py3.10
-      docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
+      docker-image-name: ghcr.io/pytorch/ci-image:pytorch-linux-jammy-rocm-n-py3-69d4c1f80b5e7da224d4f9c2170ef100e75dfe03
       sync-tag: rocm-build
       test-matrix: |
         { include: [
