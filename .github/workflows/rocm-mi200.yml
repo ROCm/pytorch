@@ -40,9 +40,8 @@ jobs:
     if: ${{ (github.event_name != 'schedule' || github.repository == 'ROCm/pytorch') && github.repository_owner == 'ROCm' }}
     name: linux-jammy-rocm-py3.10
     uses: ./.github/workflows/_linux-build.yml
-    needs: get-label-type
     with:
-      runner_prefix: "${{ needs.get-label-type.outputs.label-type }}"
+      runner_prefix: ""
       build-environment: linux-jammy-rocm-py3.10
       docker-image-name: ci-image:pytorch-linux-jammy-rocm-n-py3
       sync-tag: rocm-build
