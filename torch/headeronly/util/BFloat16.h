@@ -12,7 +12,7 @@
 #include <iosfwd>
 #include <ostream>
 
-#if defined(__CUDACC__) && !defined(USE_ROCM)
+#if defined(__CUDACC__)
 #include <cuda_bf16.h>
 #endif
 
