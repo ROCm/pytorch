@@ -143,6 +143,7 @@ jobs:
         uses: ./.github/actions/download-build-artifacts
         with:
           name: ${{ inputs.build-environment }}
+          use-gha: ${{ github.repository_owner == 'ROCm' && 'true' || '' }}
 
       - name: Download TD artifacts
         continue-on-error: true
@@ -326,6 +327,7 @@ jobs:
           path: ./**/core.[1-9]*
 
       - name: Authenticate with AWS
+        if: github.repository_owner != 'ROCm'
         uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722 # v4.1.0
         with:
           role-to-assume: arn:aws:iam::308535385114:role/gha_workflow_upload-benchmark-results
@@ -334,6 +336,7 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload the benchmark results
+        if: github.repository_owner != 'ROCm'
         uses: pytorch/test-infra/.github/actions/upload-benchmark-results@main
         with:
           benchmark-results-dir: test/test-reports

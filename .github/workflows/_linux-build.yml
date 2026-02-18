@@ -286,9 +286,9 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
           # Do not set SCCACHE_S3_KEY_PREFIX to share the cache between all build jobs
-          SCCACHE_BUCKET: ossci-compiler-cache-circleci-v2
-          SCCACHE_REGION: us-east-1
-          XLA_CLANG_CACHE_S3_BUCKET_NAME: ossci-compiler-clang-cache-circleci-xla
+          SCCACHE_BUCKET: ${{ github.repository_owner != 'ROCm' && 'ossci-compiler-cache-circleci-v2' || '' }}
+          SCCACHE_REGION: ${{ github.repository_owner != 'ROCm' && 'us-east-1' || '' }}
+          XLA_CLANG_CACHE_S3_BUCKET_NAME: ${{ github.repository_owner != 'ROCm' && 'ossci-compiler-clang-cache-circleci-xla' || '' }}
           PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
           TORCH_CUDA_ARCH_LIST: ${{ inputs.cuda-arch-list }}
           DOCKER_IMAGE: ${{ steps.calculate-docker-image-rocm.outputs.docker-image || steps.calculate-docker-image.outputs.docker-image }}
@@ -435,13 +435,22 @@ jobs:
 
       - name: Store PyTorch Build Artifacts on S3
         uses: seemethere/upload-artifact-s3@baba72d0712b404f646cebe0730933554ebce96a # v5.1.0
-        if: inputs.build-generates-artifacts && (steps.build.outcome != 'skipped' || steps.use-old-whl.outputs.reuse == 'true') && inputs.build-environment != 'linux-s390x-binary-manywheel'
+        if: inputs.build-generates-artifacts && (steps.build.outcome != 'skipped' || steps.use-old-whl.outputs.reuse == 'true') && inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner != 'ROCm'
         with:
           name: ${{ inputs.build-environment }}
           retention-days: 14
           if-no-files-found: error
           path: artifacts.zip
           s3-bucket: ${{ inputs.s3-bucket }}
+
+      - name: Store PyTorch Build Artifacts on GHA (ROCm)
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: inputs.build-generates-artifacts && (steps.build.outcome != 'skipped' || steps.use-old-whl.outputs.reuse == 'true') && github.repository_owner == 'ROCm'
+        with:
+          name: ${{ inputs.build-environment }}
+          retention-days: 14
+          if-no-files-found: error
+          path: artifacts.zip
 
       - name: Store PyTorch Build Artifacts for s390x
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
@@ -462,7 +471,7 @@ jobs:
           cp ../../usage_logs/usage_log_build_*.txt ./usage_logs/
 
       - name: Upload raw usage log to s3
-        if: ${{ always() && steps.build.outcome != 'skipped' && !inputs.disable-monitor && inputs.build-environment != 'linux-s390x-binary-manywheel'}}
+        if: ${{ always() && steps.build.outcome != 'skipped' && !inputs.disable-monitor && inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner != 'ROCm' }}
         uses: seemethere/upload-artifact-s3@v5
         with:
           s3-prefix: |
@@ -472,7 +481,7 @@ jobs:
           path: usage_logs/usage_log_build_*.txt
 
       - name: Upload sccache stats
-        if: steps.build.outcome != 'skipped' && inputs.build-environment != 'linux-s390x-binary-manywheel'
+        if: steps.build.outcome != 'skipped' && inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner != 'ROCm'
         uses: ./.github/actions/upload-sccache-stats
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
