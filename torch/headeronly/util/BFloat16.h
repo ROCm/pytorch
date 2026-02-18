@@ -143,7 +143,7 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 /// Implicit conversions
 inline C10_HOST_DEVICE BFloat16::operator float() const {
 #if defined(__HIPCC__)
-  return static_cast<float>(__x_bf16);
+  return static_cast<float>(x__bf16);
 #elif defined(__CUDACC__)
   return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
