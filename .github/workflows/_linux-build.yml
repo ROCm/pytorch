@@ -133,7 +133,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 480
     outputs:
-      docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
+      docker-image: ${{ steps.calculate-docker-image-rocm.outputs.docker-image || steps.calculate-docker-image.outputs.docker-image }}
       test-matrix: ${{ steps.filter.outputs.test-matrix }}
       build-environment: ${{ inputs.build-environment }}
     steps:
@@ -186,13 +186,27 @@ jobs:
       - name: Calculate docker image
         id: calculate-docker-image
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@main
-        if: inputs.build-environment != 'linux-s390x-binary-manywheel'
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner != 'ROCm'
         with:
           docker-image-name: ${{ inputs.docker-image-name }}
 
+      - name: Calculate docker image (ROCm - use GHCR directly)
+        id: calculate-docker-image-rocm
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner == 'ROCm'
+        shell: bash
+        run: |
+          DOCKER_IMAGE_INPUT="${{ inputs.docker-image-name }}"
+          IMAGE_NAME="${DOCKER_IMAGE_INPUT%%:*}"
+          TAG_PREFIX="${DOCKER_IMAGE_INPUT#*:}"
+          DOCKER_DIR_HASH=$(git rev-parse HEAD:.ci/docker)
+          DOCKER_TAG="${TAG_PREFIX}-${DOCKER_DIR_HASH}"
+          GHCR_IMAGE="ghcr.io/pytorch/${IMAGE_NAME}:${DOCKER_TAG}"
+          echo "docker-image=${GHCR_IMAGE}" >> "$GITHUB_OUTPUT"
+          echo "Using GHCR image: ${GHCR_IMAGE}"
+
       - name: Use following to pull public copy of the image
         id: print-ghcr-mirror
-        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true'
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true' && github.repository_owner != 'ROCm'
         env:
           ECR_DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
         shell: bash
@@ -200,22 +214,18 @@ jobs:
           tag=${ECR_DOCKER_IMAGE##*:}
           echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
 
-      - name: Pull from GHCR mirror (ROCm - no ECR access)
+      - name: Pull from GHCR (ROCm - no ECR access)
         if: github.repository_owner == 'ROCm' && inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true'
         env:
-          ECR_DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+          GHCR_IMAGE: ${{ steps.calculate-docker-image-rocm.outputs.docker-image }}
         shell: bash
         run: |
-          tag=${ECR_DOCKER_IMAGE##*:}
-          GHCR_IMAGE="ghcr.io/pytorch/ci-image:${tag}"
-          echo "Pulling from GHCR mirror: ${GHCR_IMAGE}"
+          echo "Pulling from GHCR: ${GHCR_IMAGE}"
           docker pull "${GHCR_IMAGE}"
-          echo "Tagging as ECR image name for downstream compatibility..."
-          docker tag "${GHCR_IMAGE}" "${ECR_DOCKER_IMAGE}"
 
       - name: Pull docker image
         uses: pytorch/test-infra/.github/actions/pull-docker-image@main
-        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true'
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true' && github.repository_owner != 'ROCm'
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -277,7 +287,7 @@ jobs:
           XLA_CLANG_CACHE_S3_BUCKET_NAME: ossci-compiler-clang-cache-circleci-xla
           PR_LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
           TORCH_CUDA_ARCH_LIST: ${{ inputs.cuda-arch-list }}
-          DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+          DOCKER_IMAGE: ${{ steps.calculate-docker-image-rocm.outputs.docker-image || steps.calculate-docker-image.outputs.docker-image }}
           DOCKER_IMAGE_S390X: ${{ inputs.docker-image-name }}
           XLA_CUDA: ${{ contains(inputs.build-environment, 'xla') && '0' || '' }}
           OUR_GITHUB_JOB_ID: ${{ steps.get-job-id.outputs.job-id }}
@@ -391,7 +401,7 @@ jobs:
         uses: ./.github/actions/build-external-packages
         with:
           build-targets: ${{ inputs.build-external-packages }}
-          docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
+          docker-image: ${{ steps.calculate-docker-image-rocm.outputs.docker-image || steps.calculate-docker-image.outputs.docker-image }}
           cuda-arch-list: ${{ inputs.cuda-arch-list }}
           output-dir: external
 

@@ -105,11 +105,13 @@ jobs:
       - name: Calculate docker image
         id: calculate-docker-image
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@main
+        if: github.repository_owner != 'ROCm'
         with:
           docker-image-name: ${{ inputs.docker-image }}
 
       - name: Pull docker image
         uses: pytorch/test-infra/.github/actions/pull-docker-image@main
+        if: github.repository_owner != 'ROCm'
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
