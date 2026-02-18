@@ -1050,15 +1050,9 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             ROCmGemmConfig(256, 256, 64, self.default_num_stages, 8, group_m=4),
             ROCmGemmConfig(16, 16, 256, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
             ROCmGemmConfig(16, 16, 128, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(64, 256, 64, 2, 16, group_m=1, waves_per_eu=0, kpack=1),
             ROCmGemmConfig(32, 32, 16, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(64, 64, 32, 2, 4, group_m=2, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(64, 64, 64, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
             ROCmGemmConfig(16, 16, 256, 2, 4, group_m=2, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(16, 16, 128, 2, 4, group_m=2, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(16, 128, 64, 2, 8, group_m=8, waves_per_eu=0, kpack=1),
             ROCmGemmConfig(32, 32, 64, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
-            ROCmGemmConfig(128, 128, 64, 2, 8, group_m=1, waves_per_eu=0, kpack=1),
         ]
 
         # Exhaustive search for mm configs
