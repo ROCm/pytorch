@@ -8,7 +8,7 @@ jobs:
   get-label-type:
     name: get-label-type
     # Don't run on forked repos
-    if: github.repository_owner == 'pytorch'
+    if: github.repository_owner == 'pytorch' || github.repository_owner == 'ROCm'
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@main
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -18,7 +18,7 @@ jobs:
 
   target-determination:
     # Don't run on forked repos
-    if: github.repository_owner == 'pytorch'
+    if: github.repository_owner == 'pytorch' || github.repository_owner == 'ROCm'
     runs-on: "${{ needs.get-label-type.outputs.label-type }}linux.2xlarge"
     needs: get-label-type
     steps:

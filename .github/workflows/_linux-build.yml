@@ -129,7 +129,7 @@ jobs:
   build:
     environment: ${{ github.ref == 'refs/heads/main' && 'scribe-protected' || startsWith(github.ref, 'refs/heads/release/') && 'scribe-protected' || contains(github.event.pull_request.labels.*.name, 'ci-scribe') && 'scribe-pr' || '' }}
     # Don't run on forked repos
-    if: github.repository_owner == 'pytorch'
+    if: github.repository_owner == 'pytorch' || github.repository_owner == 'ROCm'
     runs-on: ubuntu-latest
     timeout-minutes: 480
     outputs:
