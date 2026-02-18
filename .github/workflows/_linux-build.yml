@@ -160,7 +160,7 @@ jobs:
         if: inputs.build-environment != 'linux-s390x-binary-manywheel'
 
       - name: Login to ECR
-        if: inputs.build-environment != 'linux-s390x-binary-manywheel'
+        if: inputs.build-environment != 'linux-s390x-binary-manywheel' && github.repository_owner != 'ROCm'
         uses: ./.github/actions/ecr-login
         with:
           aws-role-to-assume: ${{ inputs.aws-role-to-assume }}
@@ -199,6 +199,19 @@ jobs:
         run: |
           tag=${ECR_DOCKER_IMAGE##*:}
           echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
+
+      - name: Pull from GHCR mirror (ROCm - no ECR access)
+        if: github.repository_owner == 'ROCm' && inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.use-old-whl.outputs.reuse != 'true'
+        env:
+          ECR_DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+        shell: bash
+        run: |
+          tag=${ECR_DOCKER_IMAGE##*:}
+          GHCR_IMAGE="ghcr.io/pytorch/ci-image:${tag}"
+          echo "Pulling from GHCR mirror: ${GHCR_IMAGE}"
+          docker pull "${GHCR_IMAGE}"
+          echo "Tagging as ECR image name for downstream compatibility..."
+          docker tag "${GHCR_IMAGE}" "${ECR_DOCKER_IMAGE}"
 
       - name: Pull docker image
         uses: pytorch/test-infra/.github/actions/pull-docker-image@main
