@@ -39,7 +39,7 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
 )
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
-from torch.testing._internal.common_utils import run_tests, skipIfRocm, skipIfRocmArch, NAVI4_ARCH
+from torch.testing._internal.common_utils import run_tests, skipIfRocm, skipIfRocmArch, NAVI3_ARCH, NAVI4_ARCH
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     ModelArgs,
@@ -686,7 +686,7 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
-    @skipIfRocmArch(NAVI4_ARCH)
+    @skipIfRocmArch(NAVI3_ARCH + NAVI4_ARCH)
     def test_ring_flex_attention(self) -> None:
         self.run_subtests(
             {"qkv_size": [128 * self.world_size, 2048]},
@@ -706,7 +706,7 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
-    @skipIfRocmArch(NAVI4_ARCH)
+    @skipIfRocmArch(NAVI3_ARCH + NAVI4_ARCH)
     def test_ring_flex_attention_document_mask(self) -> None:
         random.seed(10)
 
