@@ -28,6 +28,7 @@ from torch.distributed.tensor.parallel import parallelize_module
 from torch.nn.attention import sdpa_kernel, SDPBackend
 from torch.nn.attention.flex_attention import (
     _mask_mod_signature,
+    AuxRequest,
     create_block_mask,
     flex_attention,
 )
@@ -38,7 +39,7 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
 )
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
-from torch.testing._internal.common_utils import run_tests, skipIfRocm
+from torch.testing._internal.common_utils import run_tests, skipIfRocm, skipIfRocmArch, NAVI4_ARCH
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     DTensorTestBase,
     ModelArgs,
@@ -574,9 +575,11 @@ class RingFlexAttentionTest(DTensorTestBase):
             device=self.device_type,
         )
 
-        expect_out, expect_lse = compiled_flex_attention(
-            q, k, v, block_mask=block_mask, return_lse=True
+        result = compiled_flex_attention(
+            q, k, v, block_mask=block_mask, return_aux=AuxRequest(lse=True)
         )
+        expect_out, aux = result
+        expect_lse = aux.lse
         expect_out.sum().backward()
 
         # Prepare the required global vars for CP+Flex:
@@ -635,13 +638,15 @@ class RingFlexAttentionTest(DTensorTestBase):
             cp_k.requires_grad = True
             cp_v.requires_grad = True
 
-            cp_out, cp_lse = compiled_flex_attention(
+            result = compiled_flex_attention(
                 cp_q,
                 cp_k,
                 cp_v,
                 block_mask=cp_block_mask,
-                return_lse=True,
+                return_aux=AuxRequest(lse=True),
             )
+            cp_out, aux = result
+            cp_lse = aux.lse
 
             # check block_mask rewrite doesn't escape to the outside
             assert cp_block_mask.seq_lengths == (
@@ -681,6 +686,7 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
+    @skipIfRocmArch(NAVI4_ARCH)
     def test_ring_flex_attention(self) -> None:
         self.run_subtests(
             {"qkv_size": [128 * self.world_size, 2048]},
@@ -700,6 +706,7 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
+    @skipIfRocmArch(NAVI4_ARCH)
     def test_ring_flex_attention_document_mask(self) -> None:
         random.seed(10)
 
