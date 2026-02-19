@@ -4,7 +4,7 @@
 import functools
 from collections import namedtuple
 from typing import Callable, Optional, Union
-from unittest import expectedFailure, skipUnless
+from unittest import expectedFailure, skipIf, skipUnless
 from unittest.mock import patch
 
 import torch
@@ -1438,6 +1438,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         self.run_test_with_call(attention, sdpa_attention, Q_H=16, KV_H=16, Q_S=8)
 
     @supported_platform
+    @skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_windowed_full_mask_vs_sdpa(self):
         def mask_mod(b, h, q, kv):
             return q + 1000 >= kv
@@ -1457,6 +1458,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         self.run_test_with_call(attention, sdpa_attention, Q_H=16, KV_H=16, Q_S=8)
 
     @supported_platform
+    @skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_windowed_partial_block_vs_sdpa(self):
         def mask_mod(b, h, q, kv):
             return q + 1000 >= kv
@@ -1472,6 +1474,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         self.run_test_with_call(attention, sdpa_attention, Q_H=16, KV_H=16, Q_S=8)
 
     @supported_platform
+    @skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_windowed_no_mask_vs_sdpa_paged_attention(self):
         score_mod = _generate_windowed(1000)
 
@@ -1482,6 +1485,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         )
 
     @supported_platform
+    @skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_windowed_full_mask_vs_sdpa_paged_attention(self):
         def mask_mod(b, h, q, kv):
             return q + 1000 >= kv
@@ -1493,6 +1497,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         )
 
     @supported_platform
+    @skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Some archs don't support SDPA")
     def test_windowed_partial_block_vs_sdpa_paged_attention(self):
         def mask_mod(b, h, q, kv):
             return q + 1000 >= kv
