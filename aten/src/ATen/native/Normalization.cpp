@@ -47,6 +47,8 @@
 #include <ATen/ops/mean.h>
 #include <ATen/ops/miopen_batch_norm.h>
 #include <ATen/ops/miopen_batch_norm_backward.h>
+#include <ATen/ops/hipdnn_batch_norm.h>
+#include <ATen/ops/hipdnn_batch_norm_backward.h>
 #include <ATen/ops/mul.h>
 #include <ATen/ops/native_batch_norm.h>
 #include <ATen/ops/native_batch_norm_backward.h>
@@ -640,7 +642,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
   if (backend == BatchNormBackend::Hipdnn) {
     std::cout << "~~~~~ HIPDNN batch norm" << std::endl;
     return std::tuple_cat(
-             at::miopen_batch_norm(
+             at::hipdnn_batch_norm(
                input.contiguous(input.suggest_memory_format()),
                weight.contiguous(),
                bias.contiguous(),

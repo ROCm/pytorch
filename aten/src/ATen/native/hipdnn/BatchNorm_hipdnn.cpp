@@ -62,6 +62,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     const Tensor& input_t, const Tensor& weight_t, const std::optional<Tensor>& bias_t_opt, const std::optional<Tensor>& running_mean_t_opt, const std::optional<Tensor>& running_var_t_opt,
     bool training, double exponential_average_factor, double epsilon)
 {
+  std::cout << ">>> hipdnn_batch_norm: " << std::endl;
   // See [Note: hacky wrapper removal for optional tensor]
   c10::MaybeOwned<Tensor> bias_t_maybe_owned = at::borrow_from_optional_tensor(bias_t_opt);
   const Tensor& bias_t = *bias_t_maybe_owned;
@@ -170,6 +171,8 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
     const std::optional<Tensor>& save_mean_t_opt,
     const std::optional<Tensor>& save_var_t_opt,
     double epsilon) {
+
+      std::cout << ">>> hipdnn_batch_norm_backward: " << std::endl;
   // See [Note: hacky wrapper removal for optional tensor]
   const Tensor& save_mean_t = save_mean_t_opt.value_or(Tensor());
   const Tensor& save_var_t = save_var_t_opt.value_or(Tensor());
