@@ -6307,6 +6307,20 @@ class TestDevicePrecision(TestCase):
 
         self.assertEqual(out_cpu, out_gpu, atol=1e-2, rtol=0)
 
+    @onlyCUDA
+    def test_index_add_half(self, device):
+        inp_tensor = torch.randn(5, 3, device='cpu').half()
+        t = torch.tensor([[1, 2, 3], [4, 5, 6], [7, 8, 9]], dtype=torch.half, device='cpu')
+        index = torch.tensor([0, 4, 2], device='cpu')
+        out_cpu = inp_tensor.index_add(0, index, t)
+
+        inp_tensor = inp_tensor.to(device=device)
+        t = t.to(device=device)
+        index = index.to(device=device)
+        out_gpu = inp_tensor.index_add(0, index, t)
+
+        self.assertEqual(out_cpu, out_gpu, atol=1e-2, rtol=0)
+
     # FIXME: move to serialization test suite
     def test_device_serialization(self, device):
         x = torch.randn(4, 4, device=device)

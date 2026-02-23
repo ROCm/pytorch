@@ -17,10 +17,10 @@ template <>
 struct AtomicFPOp<at::Half> {
   template <typename func_t>
   inline __device__ at::Half operator() (at::Half *address, at::Half val, const func_t& func) {
-    unsigned int * address_as_ui =
-      (unsigned int *) ((char *)address - ((size_t)address & 2));
-    unsigned int old = *address_as_ui;
-    unsigned int assumed;
+    unsigned short * address_as_us =
+      (unsigned short *) ((char *)address - ((size_t)address & 2));
+    unsigned short old = *address_as_us;
+    unsigned short assumed;
 
     at::Half hsum;
     do {
@@ -28,7 +28,7 @@ struct AtomicFPOp<at::Half> {
       hsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
       hsum = func(hsum, val);
       old = (size_t)address & 2 ? (old & 0xffff) | (hsum.x << 16) : (old & 0xffff0000) | hsum.x;
-      old = atomicCAS(address_as_ui, assumed, old);
+      old = atomicCAS(address_as_us, assumed, old);
     } while (assumed != old);
     hsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
     return hsum;
@@ -39,10 +39,10 @@ template <>
 struct AtomicFPOp<at::BFloat16> {
   template <typename func_t>
   inline __device__ at::BFloat16 operator() (at::BFloat16 *address, at::BFloat16 val, const func_t& func) {
-    unsigned int * address_as_ui =
-      (unsigned int *) ((char *)address - ((size_t)address & 2));
-    unsigned int old = *address_as_ui;
-    unsigned int assumed;
+    unsigned short * address_as_us =
+      (unsigned short *) ((char *)address - ((size_t)address & 2));
+    unsigned short old = *address_as_us;
+    unsigned short assumed;
 
     at::BFloat16 bsum;
     do {
@@ -50,7 +50,7 @@ struct AtomicFPOp<at::BFloat16> {
       bsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
       bsum = func(bsum, val);
       old = (size_t)address & 2 ? (old & 0xffff) | (bsum.x << 16) : (old & 0xffff0000) | bsum.x;
-      old = atomicCAS(address_as_ui, assumed, old);
+      old = atomicCAS(address_as_us, assumed, old);
     } while (assumed != old);
     bsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
     return bsum.x;
