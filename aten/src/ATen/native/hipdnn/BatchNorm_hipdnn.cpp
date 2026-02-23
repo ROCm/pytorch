@@ -8,8 +8,8 @@
 #else
 #include <ATen/ops/empty.h>
 #include <ATen/ops/empty_like.h>
-#include <ATen/ops/miopen_batch_norm_native.h>
-#include <ATen/ops/miopen_batch_norm_backward_native.h>
+#include <ATen/ops/hipdnn_batch_norm_native.h>
+#include <ATen/ops/hipdnn_batch_norm_backward_native.h>
 #endif
 
 // TODO: Remove the condition on AT_ROCM_ENABLED entirely,
@@ -28,7 +28,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
   TORCH_CHECK(false, "hipdnn_batch_norm: ATen not compiled with ROCM support");
 }
 
-std::tuple<Tensor, Tensor, Tensor> miopen_batch_norm_backward(
+std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
     const Tensor& input, const Tensor& grad_output, const Tensor& weight, const std::optional<Tensor>& running_mean_opt, const std::optional<Tensor>& running_var_opt, const std::optional<Tensor>& save_mean_opt, const std::optional<Tensor>& save_var_opt,
     double epsilon) {
   TORCH_CHECK(false, "hipdnn_batch_norm_backward: ATen not compiled with ROCM support");
