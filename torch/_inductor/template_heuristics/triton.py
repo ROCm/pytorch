@@ -1167,8 +1167,7 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
 
         for conf in configs:
             # Each warp computes a 16x16 tile = 256 elements
-            # Don't modify conf.num_warps
-            # conf.num_warps = min(conf.num_warps, conf.block_m * conf.block_n // 256)
+            conf.num_warps = min(conf.num_warps, conf.block_m * conf.block_n // 256)
 
             # Defaults for AMD triton backend kern args if not set
             matrix_instr_nonkdim = getattr(conf, "matrix_instr_nonkdim", 16)
