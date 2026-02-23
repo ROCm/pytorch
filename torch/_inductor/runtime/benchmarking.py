@@ -250,7 +250,12 @@ class TorchProfilerBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
                 buffer.zero_()
                 _callable()
         torch.cuda.synchronize()
-        
+
+        # DEBUG: print all profiler events when no triton_ kernel (remove later)
+        # if not any(event.key.startswith("triton_") for event in prof.key_averages()):
+        #     for event in prof.key_averages():
+        #         print(f"[benchmark profiler] {event.key!r} device_type={event.device_type} device_time_total={event.device_time_total}")
+
         # Extract CUDA kernel time from profiler events
         # First, try to find Triton kernels (kernel names starting with "triton_")
         triton_kernel_time_us = sum(
