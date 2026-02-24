@@ -42,6 +42,10 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
 #include <ATen/miopen/Types.h>
 #include <ATen/miopen/Utils.h>
 
+#include <hipdnn_frontend.hpp>
+#include <ATen/hipdnn/Types.h>
+#include <ATen/hipdnn/Handle.h>
+
 #include <ATen/TensorUtils.h>
 
 namespace at { namespace native {
@@ -57,6 +61,16 @@ Tensor expandScale(const Tensor& t, int64_t dim) {
 }
 
 }  // namespace
+
+inline std::shared_ptr<hipdnn_frontend::graph::Tensor_attributes>
+    createTensorAttributes(const Tensor& t)
+{
+    auto tensor = std::make_shared<hipdnn_frontend::graph::Tensor_attributes>();
+    tensor->set_dim(t.sizes().vec()).set_data_type(getHipdnnDataType(t));
+    tensor->set_stride(t.strides().vec());
+
+    return tensor;
+}
 
 std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     const Tensor& input_t, const Tensor& weight_t, const std::optional<Tensor>& bias_t_opt, const std::optional<Tensor>& running_mean_t_opt, const std::optional<Tensor>& running_var_t_opt,
@@ -74,7 +88,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
             bias{ bias_t, "bias", 3 },
             running_mean{ running_mean_t, "running_mean", 4 },
             running_var{ running_var_t, "running_var", 5 };
-  CheckedFrom c = "miopen_batch_norm";
+  CheckedFrom c = "hipdnn_batch_norm";
 
   checkAllDefined(c, {input, weight, bias});
   if (!training) {
@@ -136,7 +150,54 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
       epsilon,
       save_mean.mutable_data_ptr(),
       save_var.mutable_data_ptr()));
+      {
+    // auto bnAttributes = graph::BatchnormAttributes();
+    // bnAttributes.set_name("bn_training_node");
+
+    // auto inputType = getHipdnnDataType(*input);
+    // auto intermediateType = getHipdnnDataType(*weight);
+    // auto graph = std::make_shared<graph::Graph>();
+    // graph->set_io_data_type(inputType)
+    //     .set_intermediate_data_type(intermediateType)
+    //     .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
+
+    // auto input_attr = createTensorAttributes(*input);
+    // auto weight_attr = createTensorAttributes(*weight);
+    // auto bias_attr = createTensorAttributes(*bias);
+
+    // auto epsilon = std::make_shared<graph::TensorAttributes>();
+    // epsilon->set_value(epsilon);
+    // bnAttributes.set_epsilon(epsilon);
+
+    // bool useRunningStats = running_mean->defined();
+
+    // // double momentum = 1 - exponential_average_factor;
+    // // std::shared_ptr<graph::TensorAttributes> running_mean_attr;
+    // // std::shared_ptr<graph::TensorAttributes> running_var_attr;
+
+    // if (useRunningStats) {`
+    //   auto prevRunningMean = createTensorAttributes(*running_mean);
+    //   auto prevRunningVar = createTensorAttributes(*running_var);
+    //   auto momentum = std::make_shared<graph::TensorAttributes>();
+    //   momentum->set_value(1 - exponential_average_factor);
+    //   bnAttributes.set_previous_running_stats(prevRunningMean, prevRunningVar, momentum);
+    // }
+    // auto [y, savedMean, savedInvVariance, nextRunningMean, nextRunningVariance]
+    //     = graph->batchnorm(x, scale, bias, bnAttributes);
+
+    // y->set_output(true);
+    // savedMean->set_output(true).set_data_type(intermediateType);
+    // savedInvVariance->set_output(true).set_data_type(intermediateType);
+
+    // if(useRunningStats)
+    // {
+    //     nextRunningMean->set_output(true).set_data_type(intermediateType);
+    //     nextRunningVariance->set_output(true).set_data_type(intermediateType);
+    // }
+      }
+
   } else {
+
     save_mean = at::empty({0}, weight_t.options());
     save_var = at::empty({0}, weight_t.options());
     MIOPEN_CHECK(miopenBatchNormalizationForwardInference(
@@ -152,6 +213,23 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
       running_mean->data_ptr(),
       running_var->data_ptr(),
       epsilon));
+
+    std::cout << "+++++++ HIPDNN INFERENCE" << std::endl;
+    auto handle = getHipdnnHandle();
+    auto dataType = getHipdnnDataType(*input);
+    auto inputType = getHipdnnDataType(*input);
+    auto intermediateType = getHipdnnDataType(*weight);
+    auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
+    graph->set_io_data_type(inputType)
+        .set_intermediate_data_type(intermediateType)
+        .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
+    auto bnAttributes = hipdnn_frontend::graph::BatchnormInferenceAttributes();
+    bnAttributes.set_name("bn_inference_node");
+
+    auto input_attr = createTensorAttributes(*input);
+    auto weight_attr = createTensorAttributes(*weight);
+    auto bias_attr = createTensorAttributes(*bias);
+
   }
 
   // save_mean and save_var can be undefined
