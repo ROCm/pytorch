@@ -270,6 +270,9 @@ bool Context::userEnabledOverrideableSDP() const {
 
 static constexpr const auto cublas_config_var_name = "CUBLAS_WORKSPACE_CONFIG";
 static constexpr const std::array<const char*, 2> cublas_deterministic_configs = {":4096:8", ":16:8"};
+#ifdef USE_ROCM
+static constexpr const auto rocm_allow_group_gemm_ck = "ROCM_ALLOW_GROUP_GEMM_CK";
+#endif
 
 bool Context::checkCuBLASConfigDeterministic() {
   // If using CUDA 10.2 or greater, need to make sure CuBLAS workspace config
@@ -344,6 +347,13 @@ void Context::setAllowTF32CuBLAS(bool b) {
   float32_matmul_precision = b ? at::Float32MatmulPrecision::HIGH : at::Float32MatmulPrecision::HIGHEST;
   setFloat32Precision("cuda", "matmul", b ? "tf32" : "ieee");
 }
+
+#ifdef USE_ROCM
+bool Context::rocmAllowGroupGemmCk() const {
+    const auto allow_group_gemm_ck = c10::utils::check_env(rocm_allow_group_gemm_ck) == true;
+    return allow_group_gemm_ck;
+}
+#endif
 
 Float32MatmulPrecision Context::float32MatmulPrecision() const {
   bool invalid = float32Precision("cuda", "matmul") == "tf32" &&
@@ -458,10 +468,7 @@ at::BlasBackend Context::blasPreferredBackend() {
       static const std::vector<std::string> archs = {
           "gfx90a", "gfx942",
 #if ROCM_VERSION >= 60300
-          "gfx1100", "gfx1101", "gfx1102", "gfx1200", "gfx1201",
-#endif
-#if ROCM_VERSION >= 60402
-          "gfx1150", "gfx1151",
+          "gfx1200", "gfx1201",
 #endif
 #if ROCM_VERSION >= 60500
           "gfx950"

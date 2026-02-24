@@ -187,26 +187,29 @@ if(USE_FLASH_ATTENTION)
     caffe2_update_option(USE_ROCM_CK_SDPA ON)
   endif()
   if(USE_ROCM_CK_SDPA)
-    if(DEFINED ENV{PYTORCH_ROCM_ARCH})
-      list(LENGTH PYTORCH_ROCM_ARCH NUM_ARCHS)
-      if(NUM_ARCHS GREATER 1)
-        message(WARNING "Building CK for multiple archs can increase build time considerably!
-        Consider setting PYTORCH_ROCM_ARCH env var value as the gfx arch you need to build for")
-      endif()
-    endif()
     message(STATUS "USE_ROCM_CK_SDPA is set; building PyTorch with CK SDPA enabled")
-    message(STATUS "Generating CK kernel instances...")
-    add_subdirectory(native/transformers/hip/flash_attn/ck)
+    if(DEFINED CK_KERNELS_INSTALL_FROM_SOURCE)
+      if(DEFINED ENV{PYTORCH_ROCM_ARCH})
+        list(LENGTH PYTORCH_ROCM_ARCH NUM_ARCHS)
+        if(NUM_ARCHS GREATER 1)
+          message(WARNING "Building CK for multiple archs can increase build time considerably!
+          Consider setting PYTORCH_ROCM_ARCH env var value as the gfx arch you need to build for")
+        endif()
+      endif()
+      # building CK kernels from source
+      message(STATUS "Generating CK kernel instances...")
+      add_subdirectory(native/transformers/hip/flash_attn/ck)
+      add_subdirectory(native/transformers/hip/flash_attn/ck/fav_v3)
+    endif() # end of CK_KERNELS_INSTALL_FROM_SOURCE
     file(GLOB flash_attention_hip_ck_hip "native/transformers/hip/flash_attn/ck/*.hip")
     list(APPEND native_transformers_hip_hip ${flash_attention_hip_ck_hip})
     # FAv3 Generation
-    add_subdirectory(native/transformers/hip/flash_attn/ck/fav_v3)
     file(GLOB flash_attention_v3_hip "native/transformers/hip/flash_attn/ck/fav_v3/*.hip")
     list(APPEND native_transformers_hip_hip ${flash_attention_v3_hip})
-  endif()
+  endif() # end of USE_ROCM_CK_SDPA
   file(GLOB flash_attention_hip_aot_hip "native/transformers/hip/flash_attn/aot/*.hip")
   file(GLOB flash_attention_src_hip_hip "native/transformers/hip/flash_attn/src/*.hip")
-endif()
+endif() # end of USE_FLASH_ATTENTION
 
 #Mem_eff attention sources
 file(GLOB mem_eff_attention_cuda_cu "native/transformers/cuda/mem_eff_attention/*.cu")
@@ -293,6 +296,26 @@ IF(USE_FBGEMM_GENAI)
     )
   else()
     if(USE_ROCM)
+      # Generate ck/config.h from ck/config.h.in into the build tree
+      function(_fbgemm_rocm_generate_ck_conf)
+        set(CK_ENABLE_INT8 "ON")
+        set(CK_ENABLE_FP16 "ON")
+        set(CK_ENABLE_FP32 "ON")
+        set(CK_ENABLE_FP64 "ON")
+        set(CK_ENABLE_BF16 "ON")
+        set(CK_ENABLE_FP8 "ON")
+        set(CK_ENABLE_BF8 "ON")
+        set(CK_USE_XDL "ON")
+        set(CK_USE_WMMA "ON")
+        # Path to vendored CK
+        set(FBGEMM_CK_DIR "${FBGEMM_THIRD_PARTY}/composable_kernel")
+        configure_file(
+          "${FBGEMM_CK_DIR}/include/ck/config.h.in"
+          "${FBGEMM_CK_DIR}/include/ck/config.h"
+          @ONLY
+        )
+      endfunction()
+      _fbgemm_rocm_generate_ck_conf()
       # Only include the kernels we want to build to avoid increasing binary size.
       file(GLOB_RECURSE fbgemm_genai_native_rocm_hip
         "${FBGEMM_GENAI_SRCS}/ck_extensions/fp8_rowwise_grouped/kernels/fp8_rowwise_grouped*.hip"
