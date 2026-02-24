@@ -202,6 +202,7 @@ if(HIP_FOUND)
 
   # Optional components.
   find_package_and_print_version(hipsparselt)  # Will be required when ready.
+  find_package_and_print_version(hipdnn_frontend)
 
   list(REMOVE_DUPLICATES ROCM_INCLUDE_DIRS)
 
