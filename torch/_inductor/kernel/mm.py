@@ -393,6 +393,21 @@ class StreamKOrigamiSelector:
 
             BLK_M, BLK_N, BLK_K = best_result[1], best_result[2], best_result[3]
 
+            # Triton requires tl.arange ranges to be powers of 2.
+            # Round down any non-power-of-2 tile sizes from origami.
+            def _round_down_pow2(v):
+                if v <= 0:
+                    return 16
+                p = 1
+                while p * 2 <= v:
+                    p *= 2
+                return p
+
+            if BLK_M & (BLK_M - 1) != 0:
+                BLK_M = _round_down_pow2(BLK_M)
+            if BLK_N & (BLK_N - 1) != 0:
+                BLK_N = _round_down_pow2(BLK_N)
+
             # Apply more accurate shared memory constraints matching tritonBLAS behavior
             # Real hardware limit is 65536 bytes, but tritonBLAS successfully uses larger tiles
             max_shared_memory = 65536
@@ -415,16 +430,7 @@ class StreamKOrigamiSelector:
                     print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] Shared memory constraint: {estimated_usage} > {max_shared_memory*1.1:.0f}, reducing block sizes")
                     print(f"🔍 [ORIGAMI-SELECTOR-DEBUG] A_shared={a_shared_size}, B_shared={b_shared_size}, overhead={padding_overhead}")
 
-                # Try a middle ground first (192x192x48) before going to 128x128x32
-                if BLK_M == 256 and BLK_N == 256:
-                    BLK_M, BLK_N = 192, 192
-                    BLK_K = min(BLK_K, 48)
-                    # Re-estimate with new sizes
-                    a_shared_size = BLK_M * BLK_K * element_size
-                    b_shared_size = BLK_K * BLK_N * element_size
-                    estimated_usage = a_shared_size + b_shared_size + padding_overhead
-
-                # If still too big, then go conservative
+                # Go directly to 128x128 (must be power of 2 for tl.arange)
                 if estimated_usage > max_shared_memory * 1.05:  # 5% tolerance
                     if self.a_dtype in (torch.float16, torch.bfloat16):
                         BLK_M, BLK_N = 128, 128
@@ -533,20 +539,25 @@ class StreamKOrigamiSelector:
                     sk_grid = frac_grid
                     break
 
-        # Fewer tiles than CUs: split along k-dimension up to some factor
+        # Fewer tiles than CUs: use all CUs and split K via StreamK
         elif total_tiles < self.num_sms:
-            for factor in self.split_factors:
-                split_grid = total_tiles * factor
-                iters_per_cu = iters_per_tile // factor
+            # Use all hardware CUs; StreamK Phase 2 distributes K-iterations
+            # across the excess CUs. Each CU gets ~(total_iters / num_sms)
+            # K-iterations, which is enough work when iters_per_tile is large.
+            total_iters = total_tiles * iters_per_tile
+            min_iters_per_cu = 4  # Minimum useful work per CU
+            if total_iters >= self.num_sms * min_iters_per_cu:
+                sk_grid = self.num_sms
+            else:
+                # Not enough K-work to spread across all CUs
+                sk_grid = max(1, total_iters // min_iters_per_cu)
+                sk_grid = min(sk_grid, total_tiles)
 
-                if split_grid <= self.num_sms and iters_per_cu >= 8:
-                    sk_grid = split_grid
-                    break
-
-        # Final check: if the chosen grid leaves a remainder AND
-        # workspace exceeds what the problem allows, fall back to no split
+        # Only revert if workspace would exceed budget
         if total_tiles % sk_grid != 0:
-            sk_grid = total_tiles
+            partial_ws = self._partial_tile_size(sk_grid)
+            if partial_ws > self.max_workspace:
+                sk_grid = total_tiles
 
         # Last wave optimization for gfx942
         if total_tiles >= self.hardware.N_CU:
@@ -658,26 +669,22 @@ class MatmulHeuristicResult:
         # Group size heuristic
         group_m = 8 if (self.M >= 2048 and self.N >= 2048) else 4
 
-        # Calculate StreamK tiles following TritonBLAS logic
+        # Phase-1-only: launch all CUs, no StreamK Phase 2
         try:
-            tiles_m = (self.M + block_m - 1) // block_m
-            tiles_n = (self.N + block_n - 1) // block_n
-            total_tiles = tiles_m * tiles_n
-            # CRITICAL: actual_grid must match streamk_mm_grid logic to prevent hang
-            actual_grid = min(self.num_sms, total_tiles)
-            # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
-            # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
-            streamk_tiles = total_tiles % actual_grid if actual_grid > 0 else 0
+            actual_grid = self.num_sms
+            streamk_tiles = 0
 
             if STREAMK_DEBUG:
-                print(f"🔍 [FALLBACK-STREAMK-DEBUG] TritonBLAS logic applied (fallback path):")
+                tiles_m = (self.M + block_m - 1) // block_m
+                tiles_n = (self.N + block_n - 1) // block_n
+                total_tiles = tiles_m * tiles_n
+                print(f"🔍 [FALLBACK-STREAMK-DEBUG] Phase-1-only policy (fallback path):")
                 print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
-                print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % actual_grid)")
-                print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
+                print(f"   STREAMK_TILES=0 (Phase 2 disabled)")
         except (TypeError, AttributeError):
             # Handle symbolic dimensions
-            streamk_tiles = min(32, self.num_sms)
-            actual_grid = self.num_sms  # Conservative for symbolic
+            streamk_tiles = 0
+            actual_grid = self.num_sms
 
         # Detect quantization from input/output dtypes
         is_quantized = self._is_quantized_operation()
@@ -696,7 +703,7 @@ class MatmulHeuristicResult:
             "STREAMK_TILES": streamk_tiles,
             "NUM_SMS": actual_grid,
             "NUM_XCDS": _get_hardware_chiplet_count(),
-            "CHUNK_SIZE": min(4 * 4, actual_grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
+            "CHUNK_SIZE": max(1, min(4 * 4, actual_grid // _get_hardware_chiplet_count())),  # TritonBLAS-aligned, min 1 to avoid div-by-zero
             "ACC_TYPE": acc_type,
             "QUANTIZED": is_quantized,
             "OUTPUT_DTYPE_IS_INT8": (self.c_dtype == torch.int8),
@@ -762,17 +769,17 @@ class MatmulHeuristicResult:
                     sk_grid = frac_grid
                     break
 
-        # Fewer tiles than SMs: split along K dimension
+        # Fewer tiles than SMs: use all CUs and split K via StreamK
         elif total_tiles < self.num_sms:
-            split_factors = [8, 6, 4, 3, 2, 1]
-            for factor in split_factors:
-                split_grid = total_tiles * factor
-                iters_per_sm = iters_per_tile // factor
-                if split_grid <= self.num_sms and iters_per_sm >= 8:
-                    sk_grid = split_grid
-                    break
+            total_iters = total_tiles * iters_per_tile
+            min_iters_per_cu = 4
+            if total_iters >= self.num_sms * min_iters_per_cu:
+                sk_grid = self.num_sms
+            else:
+                sk_grid = max(1, total_iters // min_iters_per_cu)
+                sk_grid = min(sk_grid, total_tiles)
 
-        return min(sk_grid, self.num_sms)
+        return sk_grid
 
     def get_config(self):
         """Return configuration dict following tritonBLAS pattern"""
@@ -814,15 +821,17 @@ def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
             total_tiles_n = math.ceil(self.origami_selector.N / block_n)
             total_tiles = total_tiles_m * total_tiles_n
 
-            # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
-            # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
-            streamk_tiles = total_tiles % grid if grid > 0 else 0
+            # Phase-1-only policy: STREAMK_TILES = 0 so the kernel uses only
+            # the cheap full-tile loop.  The grid is still set to NUM_SMS so
+            # all CUs are launched; WGs whose pid >= total_tiles simply loop
+            # zero times and exit.  This avoids the Phase-2 workspace /
+            # lock / quadrant-split overhead that causes 3x register spills.
+            streamk_tiles = 0
 
             if STREAMK_DEBUG:
-                print(f"🔍 [STREAMK-SELECTOR-DEBUG] TritonBLAS logic applied:")
+                print(f"🔍 [STREAMK-SELECTOR-DEBUG] Phase-1-only policy:")
                 print(f"   total_tiles={total_tiles}, grid={grid}")
-                print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % grid)")
-                print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
+                print(f"   STREAMK_TILES=0 (Phase 2 disabled, all tiles via Phase 1)")
 
             config = {
                 "BLOCK_M": block_m,
@@ -836,7 +845,7 @@ def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
                 "ALLOW_TF32": True,
                 "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned
                 "CACHE_MODIFIER_B": None,  # TritonBLAS-aligned
-                "CHUNK_SIZE": min(4 * 4, grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
+                "CHUNK_SIZE": max(1, min(4 * 4, grid // _get_hardware_chiplet_count())),  # TritonBLAS-aligned, min 1 to avoid div-by-zero
                 "NUM_XCDS": _get_hardware_chiplet_count(),
                 "BIAS": False,
                 "INPUT_PRECISION": None,
@@ -868,10 +877,11 @@ def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
 
 @SymbolicGridFn
 def streamk_mm_grid(m, n, meta, *, cdiv, min):
-    """True StreamK grid: one thread per SM for work distribution"""
+    """Launch NUM_SMS workgroups so every CU is occupied.
+    Phase 1 naturally handles the case where pid >= total_tiles
+    by looping zero times."""
     num_sms = meta.get("NUM_SMS", 108)
-    total_tiles = cdiv(m, meta["BLOCK_M"]) * cdiv(n, meta["BLOCK_N"])
-    return (min(num_sms, total_tiles), 1, 1)  # One thread per SM for StreamK algorithm
+    return (num_sms, 1, 1)
 
 
 class StreamKTemplate(TritonTemplate):
@@ -934,7 +944,7 @@ class StreamKTemplate(TritonTemplate):
     pid = tl.program_id(0)
 
     # Apply chiplet transformation for multi-die optimization (TritonBLAS pattern)
-    if NUM_XCDS != 1:
+    if NUM_XCDS != 1 and CHUNK_SIZE >= 1:
         pid = triton_helpers.chiplet_transform_chunked(pid, NUM_SMS, NUM_XCDS, CHUNK_SIZE)
 
     num_pid_m = tl.cdiv(M, BLOCK_M)
@@ -945,8 +955,6 @@ class StreamKTemplate(TritonTemplate):
     acc_dtype = tl.float32
 
     # ========== Phase 1: Process Full Tiles ==========
-    # Each SM processes multiple full tiles in a strided loop
-    # Key fix: Store each tile INSIDE the loop (like tritonBLAS lines 152-158)
     for tile_id in range(pid, total_full_tiles, NUM_SMS):
         # Calculate tile coordinates with group reordering
         num_pid_in_group = GROUP_M * num_pid_n
@@ -959,74 +967,82 @@ class StreamKTemplate(TritonTemplate):
         tl.assume(pid_m >= 0)
         tl.assume(pid_n >= 0)
 
-        # Calculate matrix indices - NOTE: Do NOT use modulo for correct boundary masking
         rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
         rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
-        rk = tl.arange(0, BLOCK_K)
-
-        # Set up base pointers
-        A_BASE = A + rm[:, None] * stride_am + rk[None, :] * stride_ak
-        B_BASE = B + rk[:, None] * stride_bk + rn[None, :] * stride_bn
-
-        # Compute masks for boundary handling
-        mask_m = rm[:, None] < M
-        mask_n = rn[None, :] < N
 
         {% if BIAS %}
         bias_ = BIAS_PTR + rm * stride_bias
         bias = tl.load(bias_, mask=rm < M, other=0.0)
         {% endif %}
 
-        # K dimension loop
-        loop_k = tl.cdiv(K, BLOCK_K)
-        {% if not EVEN_K %}
-        loop_k -= 1
-        {% endif %}
-        # Fixed: Only assume when valid to prevent failure with K < BLOCK_K
-        {% if EVEN_K %}
-        tl.assume(loop_k >= 1)
-        {% endif %}
-
         acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
+
+        {% if EVEN_K %}
+        # EVEN_K: index-based loads with contiguity hints enable Triton to
+        # pipeline through LDS (num_stages=2).  No masking needed.
+        if ((stride_am == 1 and stride_ak == M) or (stride_am == K and stride_ak == 1)):
+            offs_a_m = tl.max_contiguous(tl.multiple_of(rm % M, BLOCK_M), BLOCK_M)
+        else:
+            offs_a_m = rm % M
+        if ((stride_bk == 1 and stride_bn == K) or (stride_bk == N and stride_bn == 1)):
+            offs_b_n = tl.max_contiguous(tl.multiple_of(rn % N, BLOCK_N), BLOCK_N)
+        else:
+            offs_b_n = rn % N
+        offs_k = tl.arange(0, BLOCK_K)
+
+        for k_idx in range(0, tl.cdiv(K, BLOCK_K)):
+            a_k_offs = offs_k[None, :] + (k_idx * BLOCK_K)
+            b_k_offs = offs_k[:, None] + (k_idx * BLOCK_K)
+            a = tl.load(A + offs_a_m[:, None] * stride_am + a_k_offs * stride_ak)
+            b = tl.load(B + b_k_offs * stride_bk + offs_b_n[None, :] * stride_bn)
+            acc = tl.dot(a, b, acc, allow_tf32=ALLOW_TF32, out_dtype=acc_dtype)
+
+        {% else %}
+        # NOT EVEN_K: use pointer-based loads (lower register pressure).
+        # Masked loads prevent LDS pipelining anyway, so index-based
+        # addressing just wastes registers here.
+        rk = tl.arange(0, BLOCK_K)
+        A_BASE = A + rm[:, None] * stride_am + rk[None, :] * stride_ak
+        B_BASE = B + rk[:, None] * stride_bk + rn[None, :] * stride_bn
+        mask_m = rm[:, None] < M
+        mask_n = rn[None, :] < N
+
+        loop_k = tl.cdiv(K, BLOCK_K) - 1
         for k in range(0, loop_k):
             if stride_ak == 1:
-                a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
+                a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m, other=0.0)
             else:
-                a = tl.load(tl.multiple_of(A_BASE, (16, 1)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
-
+                a = tl.load(tl.multiple_of(A_BASE, (16, 1)), mask=mask_m, other=0.0)
             if stride_bk == 1:
-                b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
+                b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n, other=0.0)
             else:
-                b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
-
+                b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n, other=0.0)
             acc += tl.dot(a, b, allow_tf32=ALLOW_TF32)
             A_BASE += BLOCK_K * stride_ak
             B_BASE += BLOCK_K * stride_bk
 
-        {% if not EVEN_K %}
-        # Handle remaining K
-        k = loop_k
-        rk_rem = k * BLOCK_K + tl.arange(0, BLOCK_K)
-        A_BASE = A + rm[:, None] * stride_am + rk_rem[None, :] * stride_ak
-        B_BASE = B + rk_rem[:, None] * stride_bk + rn[None, :] * stride_bn
+        # Tail iteration with K-boundary mask
+        rk_tail = loop_k * BLOCK_K + tl.arange(0, BLOCK_K)
+        A_TAIL = A + rm[:, None] * stride_am + rk_tail[None, :] * stride_ak
+        B_TAIL = B + rk_tail[:, None] * stride_bk + rn[None, :] * stride_bn
         if stride_ak == 1:
-            A_BASE = tl.multiple_of(A_BASE, (1, 16))
+            A_TAIL = tl.multiple_of(A_TAIL, (1, 16))
         else:
-            A_BASE = tl.multiple_of(A_BASE, (16, 1))
+            A_TAIL = tl.multiple_of(A_TAIL, (16, 1))
         if stride_bk == 1:
-            B_BASE = tl.multiple_of(B_BASE, (16, 1))
+            B_TAIL = tl.multiple_of(B_TAIL, (16, 1))
         else:
-            B_BASE = tl.multiple_of(B_BASE, (1, 16))
-        a = tl.load(A_BASE, mask=mask_m & (rk_rem[None, :] < K), other=0.0, cache_modifier=CACHE_MODIFIER_A)
-        b = tl.load(B_BASE, mask=mask_n & (rk_rem[:, None] < K), other=0.0, cache_modifier=CACHE_MODIFIER_B)
+            B_TAIL = tl.multiple_of(B_TAIL, (1, 16))
+        a = tl.load(A_TAIL, mask=mask_m & (rk_tail[None, :] < K), other=0.0)
+        b = tl.load(B_TAIL, mask=mask_n & (rk_tail[:, None] < K), other=0.0)
         acc += tl.dot(a, b, allow_tf32=ALLOW_TF32)
         {% endif %}
 
         {% if QUANTIZED %}
-        rm_A_scale = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
-        rn_B_scale = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
-        A_scale = tl.load(A_SCALE_PTR + rm_A_scale * stride_a_scale, mask=rm_A_scale < M, other=0.0)
-        B_scale = tl.load(B_SCALE_PTR + rn_B_scale * stride_b_scale, mask=rn_B_scale < N, other=0.0)
+        rm_q = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+        rn_q = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+        A_scale = tl.load(A_SCALE_PTR + rm_q * stride_a_scale, mask=rm_q < M, other=0.0)
+        B_scale = tl.load(B_SCALE_PTR + rn_q * stride_b_scale, mask=rn_q < N, other=0.0)
         acc *= A_scale[:, None] * B_scale[None, :]
         {% endif %}
 
@@ -1036,7 +1052,9 @@ class StreamKTemplate(TritonTemplate):
         c = acc.to({{dtype("C")}})
         {% endif %}
 
-        # Store directly to output C using rm/rn without modulo for correct masking
+        # Rematerialize rm/rn to save registers
+        rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+        rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
         mask = (rm[:, None] < M) & (rn[None, :] < N)
         C_ = C_OUT + rm[:, None] * stride_cm + rn[None, :] * stride_cn
         tl.store(C_, c, mask=mask)
@@ -1703,27 +1721,20 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
                     total_tiles = tiles_m * tiles_n
                     large_problem_xcds = True  # Assume could be large
 
-                # Compute actual grid size - must match streamk_mm_grid logic
-                # Grid is min(num_sms, total_tiles) to ensure all launched SMs have work
-                actual_grid = min(num_sms, total_tiles)
+                # Use hardware CU count as grid so all CUs participate.
+                # When total_tiles < num_sms, StreamK Phase 2 splits
+                # K-iterations across excess CUs.
+                actual_grid = num_sms
 
-                # TritonBLAS-aligned logic: STREAMK_TILES = total_tiles % grid
-                # When total_tiles % grid == 0, no StreamK needed (classical tiling optimal)
-                try:
-                    streamk_tiles = total_tiles % actual_grid if actual_grid > 0 else 0
-                except (TypeError, AttributeError):
-                    # Handle symbolic dimensions
-                    streamk_tiles = 0  # Conservative fallback
+                # Phase-1-only: always set STREAMK_TILES = 0
+                streamk_tiles = 0
 
                 if STREAMK_DEBUG:
-                    print(f"🔍 [AUTO-STREAMK-DEBUG] TritonBLAS logic applied (autotune path):")
+                    print(f"🔍 [AUTO-STREAMK-DEBUG] Phase-1-only policy (autotune path):")
                     print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
-                    print(f"   STREAMK_TILES={streamk_tiles} (total_tiles % actual_grid)")
-                    print(f"   StreamK {'ENABLED' if streamk_tiles > 0 else 'DISABLED'} (classical tiling)")
+                    print(f"   STREAMK_TILES=0 (Phase 2 disabled)")
 
-                # Only create StreamK configs when there are actual partial tiles to process
-                # This aligns with TritonBLAS behavior: classical tiling when streamk_tiles == 0
-                streamk_configs_to_try = [streamk_tiles] if streamk_tiles > 0 else [0]
+                streamk_configs_to_try = [0]
 
                 for streamk_tiles in streamk_configs_to_try:
 
@@ -1740,7 +1751,7 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
                                     # Apply TritonBLAS reference chunk size calculation
                                     # Set chunk size to same area as L2 tiles (TritonBLAS pattern)
                                     chunk_size = group_m * group_m
-                                    chunk_size = min(chunk_size, actual_grid // num_xcds)
+                                    chunk_size = max(1, min(chunk_size, actual_grid // num_xcds))
 
                                     # Create Triton config with proper format
 
@@ -1822,7 +1833,7 @@ def generate_origami_streamk_configs(m, n, k, device, num_sms):
             "BLOCK_SIZE_K": BLK_K,
             "GROUP_SIZE_M": GROUP_M,
             "NUM_SMS": optimal_grid,
-            "CHUNK_SIZE": min(GROUP_M * GROUP_M, optimal_grid // _get_hardware_chiplet_count()),  # TritonBLAS-aligned
+            "CHUNK_SIZE": max(1, min(GROUP_M * GROUP_M, optimal_grid // _get_hardware_chiplet_count())),  # TritonBLAS-aligned, min 1 to avoid div-by-zero
             "ACC_TYPE": "tl.float32",
             "ALLOW_TF32": True,
             "CACHE_MODIFIER_A": None,  # TritonBLAS-aligned
