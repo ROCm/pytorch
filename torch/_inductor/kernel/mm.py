@@ -539,19 +539,17 @@ class StreamKOrigamiSelector:
                     sk_grid = frac_grid
                     break
 
-        # Fewer tiles than CUs: use all CUs and split K via StreamK
+        # Fewer tiles than CUs
         elif total_tiles < self.num_sms:
-            # Use all hardware CUs; StreamK Phase 2 distributes K-iterations
-            # across the excess CUs. Each CU gets ~(total_iters / num_sms)
-            # K-iterations, which is enough work when iters_per_tile is large.
             total_iters = total_tiles * iters_per_tile
-            min_iters_per_cu = 4  # Minimum useful work per CU
+            min_iters_per_cu = 4
             if total_iters >= self.num_sms * min_iters_per_cu:
+                # Enough K-work: use all CUs (same as 'after' baseline)
                 sk_grid = self.num_sms
             else:
-                # Not enough K-work to spread across all CUs
-                sk_grid = max(1, total_iters // min_iters_per_cu)
-                sk_grid = min(sk_grid, total_tiles)
+                # Tiny problem: 1 WG per tile to avoid serializing tiles
+                # within WGs (reference: TritonBLAS uses total_tiles)
+                sk_grid = total_tiles
 
         # Only revert if workspace would exceed budget
         if total_tiles % sk_grid != 0:
@@ -669,18 +667,15 @@ class MatmulHeuristicResult:
         # Group size heuristic
         group_m = 8 if (self.M >= 2048 and self.N >= 2048) else 4
 
-        # Phase-1-only: launch all CUs, no StreamK Phase 2
+        # Phase-1-only: K-splitting is handled by the origami selector path
         try:
             actual_grid = self.num_sms
             streamk_tiles = 0
 
             if STREAMK_DEBUG:
-                tiles_m = (self.M + block_m - 1) // block_m
-                tiles_n = (self.N + block_n - 1) // block_n
-                total_tiles = tiles_m * tiles_n
-                print(f"🔍 [FALLBACK-STREAMK-DEBUG] Phase-1-only policy (fallback path):")
-                print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
-                print(f"   STREAMK_TILES=0 (Phase 2 disabled)")
+                print(f"🔍 [FALLBACK-STREAMK-DEBUG] K-split policy (fallback path):")
+                print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}, iters_per_tile={iters_per_tile}")
+                print(f"   STREAMK_TILES={streamk_tiles}")
         except (TypeError, AttributeError):
             # Handle symbolic dimensions
             streamk_tiles = 0
@@ -769,15 +764,14 @@ class MatmulHeuristicResult:
                     sk_grid = frac_grid
                     break
 
-        # Fewer tiles than SMs: use all CUs and split K via StreamK
+        # Fewer tiles than SMs
         elif total_tiles < self.num_sms:
             total_iters = total_tiles * iters_per_tile
             min_iters_per_cu = 4
             if total_iters >= self.num_sms * min_iters_per_cu:
                 sk_grid = self.num_sms
             else:
-                sk_grid = max(1, total_iters // min_iters_per_cu)
-                sk_grid = min(sk_grid, total_tiles)
+                sk_grid = total_tiles
 
         return sk_grid
 
@@ -821,17 +815,65 @@ def _make_streamk_selector(M, N, K, a_dtype, b_dtype, c_dtype, device_type):
             total_tiles_n = math.ceil(self.origami_selector.N / block_n)
             total_tiles = total_tiles_m * total_tiles_n
 
-            # Phase-1-only policy: STREAMK_TILES = 0 so the kernel uses only
-            # the cheap full-tile loop.  The grid is still set to NUM_SMS so
-            # all CUs are launched; WGs whose pid >= total_tiles simply loop
-            # zero times and exit.  This avoids the Phase-2 workspace /
-            # lock / quadrant-split overhead that causes 3x register spills.
-            streamk_tiles = 0
+            # Enable K-splitting only for truly K-dominant problems:
+            # (1) very few spatial tiles vs CUs, (2) enough total K-iters,
+            # (3) K >> max(M, N) so the problem is memory-bandwidth limited
+            #     on spatial dims (reference: hipBLASLt parallel reduction)
+            iters_per_tile = math.ceil(self.origami_selector.K / block_k)
+            cu_count = self.origami_selector.num_sms
+            K_ = self.origami_selector.K
+            M_ = self.origami_selector.M
+            N_ = self.origami_selector.N
+            k_dominant = K_ >= 4 * max(M_, N_)
+            if total_tiles * 4 <= cu_count and k_dominant and total_tiles * iters_per_tile >= cu_count * 2:
+                # K-dominant: all tiles need K-splitting across excess CUs
+                streamk_tiles = total_tiles
+                # Compute grid with power-of-2 split factor for tree reduction
+                grid = total_tiles  # fallback
+                for factor in [8, 4, 2, 1]:
+                    split_grid = total_tiles * factor
+                    iters_per_wg = iters_per_tile // factor
+                    if split_grid <= cu_count and iters_per_wg >= 8:
+                        grid = split_grid
+                        break
+            else:
+                streamk_tiles = 0
+
+            # If origami picked tiny blocks that fill all CUs but K is large,
+            # override with larger blocks to enable K-splitting.
+            # (hipBLASLt uses large tiles + K-splitting for K-dominant shapes)
+            if streamk_tiles == 0 and k_dominant and total_tiles >= grid:
+                # Try block sizes from large to small (larger tiles have
+                # better MFMA compute efficiency on MI300X).
+                for try_bm, try_bn, try_bk in [(128, 128, 64), (64, 64, 64), (64, 32, 64)]:
+                    t_m = math.ceil(M_ / try_bm)
+                    t_n = math.ceil(N_ / try_bn)
+                    t_tiles = t_m * t_n
+                    t_iters = math.ceil(K_ / try_bk)
+                    if t_tiles * 4 > cu_count or t_tiles * t_iters < cu_count * 2:
+                        continue
+                    block_m, block_n, block_k = try_bm, try_bn, try_bk
+                    total_tiles = t_tiles
+                    iters_per_tile = t_iters
+                    group_m = 8 if (block_m >= 128 and block_n >= 128) else 4
+                    streamk_tiles = total_tiles
+                    # Compute grid with split-factor logic (power-of-2 for
+                    # tree reduction).  Each WG needs >= 8 K-iters so
+                    # compute dominates over workspace overhead.
+                    grid = t_tiles
+                    for factor in [8, 4, 2, 1]:
+                        split_grid = t_tiles * factor
+                        iters_per_wg = t_iters // factor
+                        if split_grid <= cu_count and iters_per_wg >= 8:
+                            grid = split_grid
+                            break
+                    break
 
             if STREAMK_DEBUG:
-                print(f"🔍 [STREAMK-SELECTOR-DEBUG] Phase-1-only policy:")
-                print(f"   total_tiles={total_tiles}, grid={grid}")
-                print(f"   STREAMK_TILES=0 (Phase 2 disabled, all tiles via Phase 1)")
+                print(f"🔍 [STREAMK-SELECTOR-DEBUG] K-split policy:")
+                print(f"   total_tiles={total_tiles}, grid={grid}, iters_per_tile={iters_per_tile}")
+                print(f"   block_m={block_m}, block_n={block_n}, block_k={block_k}")
+                print(f"   STREAMK_TILES={streamk_tiles}")
 
             config = {
                 "BLOCK_M": block_m,
@@ -1095,9 +1137,41 @@ class StreamKTemplate(TritonTemplate):
         tl.assume(pid_m >= 0)
         tl.assume(pid_n >= 0)
 
-        # NOTE: Do NOT use modulo for correct boundary masking
         rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
         rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+
+        {% if BIAS %}
+        bias_ = BIAS_PTR + rm * stride_bias
+        bias = tl.load(bias_, mask=rm < M, other=0.0)
+        {% endif %}
+
+        acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
+
+        {% if EVEN_K %}
+        # EVEN_K: use index-based unmasked loads (same as Phase 1)
+        # to enable Triton software pipelining.  Wrap with % M/N
+        # so out-of-bounds indices read valid memory; the final
+        # output store uses a proper mask.
+        if ((stride_am == 1 and stride_ak == M) or (stride_am == K and stride_ak == 1)):
+            offs_a_m = tl.max_contiguous(tl.multiple_of(rm % M, BLOCK_M), BLOCK_M)
+        else:
+            offs_a_m = rm % M
+        if ((stride_bk == 1 and stride_bn == K) or (stride_bk == N and stride_bn == 1)):
+            offs_b_n = tl.max_contiguous(tl.multiple_of(rn % N, BLOCK_N), BLOCK_N)
+        else:
+            offs_b_n = rn % N
+        offs_k = tl.arange(0, BLOCK_K)
+
+        for current_iter in range(start_iter, end_iter):
+            k_offset = (current_iter % iters_per_tile) * BLOCK_K
+            a_k_offs = offs_k[None, :] + k_offset
+            b_k_offs = offs_k[:, None] + k_offset
+            a = tl.load(A + offs_a_m[:, None] * stride_am + a_k_offs * stride_ak)
+            b = tl.load(B + b_k_offs * stride_bk + offs_b_n[None, :] * stride_bn)
+            acc = tl.dot(a, b, acc, allow_tf32=ALLOW_TF32, out_dtype=acc_dtype)
+
+        {% else %}
+        # NOT EVEN_K: use pointer-based masked loads
         rk = tl.arange(0, BLOCK_K)
         A_BASE = A + rm[:, None] * stride_am + rk[None, :] * stride_ak + BLOCK_K * stride_ak * remainder
         B_BASE = B + rk[:, None] * stride_bk + rn[None, :] * stride_bn + BLOCK_K * stride_bk * remainder
@@ -1109,33 +1183,12 @@ class StreamKTemplate(TritonTemplate):
             B_BASE = tl.multiple_of(B_BASE, (16, 1))
         else:
             B_BASE = tl.multiple_of(B_BASE, (1, 16))
-
-        # Compute masks for boundary handling
         mask_m = rm[:, None] < M
         mask_n = rn[None, :] < N
 
-        {% if BIAS %}
-        bias_ = BIAS_PTR + rm * stride_bias
-        bias = tl.load(bias_, mask=rm < M, other=0.0)
-        {% endif %}
-
-        acc = tl.zeros((BLOCK_M, BLOCK_N), dtype=acc_dtype)
         for current_iter in range(start_iter, end_iter):
-            {% if EVEN_K %}
-            # Add memory alignment hints like tritonBLAS full tiles loop
-            if stride_ak == 1:
-                a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
-            else:
-                a = tl.load(tl.multiple_of(A_BASE, (16, 1)), mask=mask_m, other=0.0, cache_modifier=CACHE_MODIFIER_A)
-
-            if stride_bk == 1:
-                b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
-            else:
-                b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n, other=0.0, cache_modifier=CACHE_MODIFIER_B)
-            {% else %}
             global_k_offset = (current_iter % iters_per_tile) * BLOCK_K
             k_mask = global_k_offset + rk < K
-            # Apply memory alignment hints even with masking
             if stride_ak == 1:
                 a = tl.load(tl.multiple_of(A_BASE, (1, 16)), mask=mask_m & k_mask[None, :], other=0.0, cache_modifier=CACHE_MODIFIER_A)
             else:
@@ -1145,11 +1198,11 @@ class StreamKTemplate(TritonTemplate):
                 b = tl.load(tl.multiple_of(B_BASE, (16, 1)), mask=mask_n & k_mask[:, None], other=0.0, cache_modifier=CACHE_MODIFIER_B)
             else:
                 b = tl.load(tl.multiple_of(B_BASE, (1, 16)), mask=mask_n & k_mask[:, None], other=0.0, cache_modifier=CACHE_MODIFIER_B)
-            {% endif %}
 
             acc += tl.dot(a, b, allow_tf32=ALLOW_TF32)
             A_BASE += BLOCK_K * stride_ak
             B_BASE += BLOCK_K * stride_bk
+        {% endif %}
 
         {% if QUANTIZED %}
         rm_A_scale = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
@@ -1159,118 +1212,94 @@ class StreamKTemplate(TritonTemplate):
         acc *= A_scale[:, None] * B_scale[None, :]
         {% endif %}
 
+        # ---- All WGs store their partial to workspace and signal ----
+        tl.store(P_, acc, cache_modifier=".wt")
+        tl.debug_barrier()
+        tl.store(LOCKS + pid, 1, cache_modifier=".wt")
+
+        # ---- Tree-based parallel reduction (log2 rounds) ----
+        # Determine this WG's position within its tile.
+        # split_factor = NUM_SMS // STREAMK_TILES (WGs per tile).
         tile_iter = tile_id * iters_per_tile
+        split_factor = NUM_SMS // tl.maximum(STREAMK_TILES, 1)
+        tile_local = pid % split_factor
+        tile_base  = pid - tile_local
 
-        if start_iter != tile_iter:
-            # Partial tile: store to workspace and signal
-            tl.store(P_, acc, cache_modifier=".wt")
-            tl.debug_barrier()
-            tl.store(LOCKS + pid, 1, cache_modifier=".wt")
-        else:
-            # Complete tile: aggregate from other SMs using quadrant-based optimization
-            next_pid = pid + 1
-            tile_iter_end = tile_iter + iters_per_tile
-            end = end_iter
-
-            # ✅ OPTIMIZED: Split accumulator into 4 quadrants (exact tritonBLAS approach)
-            # First split in M direction
-            acc_m_reshaped = tl.reshape(acc, (2, BLOCK_M // 2, BLOCK_N))
-            acc_m_permuted = tl.permute(acc_m_reshaped, (1, 2, 0))  # (M//2, N, 2)
-            acc_top, acc_bottom = tl.split(acc_m_permuted)  # Split along last dimension
-
-            # Remove singleton dimension - each is now (M//2, N)
-            acc_top = tl.reshape(acc_top, (BLOCK_M // 2, BLOCK_N))
-            acc_bottom = tl.reshape(acc_bottom, (BLOCK_M // 2, BLOCK_N))
-
-            # Now split each half in N direction
-            acc_top_reshaped = tl.reshape(acc_top, (BLOCK_M // 2, 2, BLOCK_N // 2))
-            acc_top_permuted = tl.permute(acc_top_reshaped, (0, 2, 1))  # (M//2, N//2, 2)
-            acc00, acc01 = tl.split(acc_top_permuted)  # Split along last dimension
-
-            acc_bottom_reshaped = tl.reshape(acc_bottom, (BLOCK_M // 2, 2, BLOCK_N // 2))
-            acc_bottom_permuted = tl.permute(acc_bottom_reshaped, (0, 2, 1))  # (M//2, N//2, 2)
-            acc10, acc11 = tl.split(acc_bottom_permuted)  # Split along last dimension
-
-            # Remove singleton dimensions - each is now (M//2, N//2)
-            acc00 = tl.reshape(acc00, (BLOCK_M // 2, BLOCK_N // 2))
-            acc01 = tl.reshape(acc01, (BLOCK_M // 2, BLOCK_N // 2))
-            acc10 = tl.reshape(acc10, (BLOCK_M // 2, BLOCK_N // 2))
-            acc11 = tl.reshape(acc11, (BLOCK_M // 2, BLOCK_N // 2))
-
-            # Aggregate from other processing elements (exact tritonBLAS pattern)
-            while (end < tile_iter_end and next_pid < NUM_SMS):
-                while tl.load(LOCKS + next_pid, cache_modifier=".cv", volatile=True) != 1:
+        # Round 1: stride 1 – even positions accumulate odd neighbours
+        if split_factor > 1 and tile_local % 2 == 0:
+            partner = tile_base + tile_local + 1
+            if partner < NUM_SMS:
+                while tl.load(LOCKS + partner, cache_modifier=".cv", volatile=True) < 1:
                     pass
                 rm1 = tl.arange(0, BLOCK_M)
                 rn1 = tl.arange(0, BLOCK_N)
                 rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
                 rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
+                P_partner = WORKSPACE + partner * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
+                acc += tl.load(P_partner, cache_modifier=".cv")
+                tl.store(P_, acc, cache_modifier=".wt")
+                tl.debug_barrier()
+                tl.store(LOCKS + pid, 2, cache_modifier=".wt")
 
-                # Load P in 4 quadrants
-                P_base = WORKSPACE + next_pid * BLOCK_M * BLOCK_N
+        # Round 2: stride 2
+        if split_factor > 2 and tile_local % 4 == 0:
+            partner = tile_base + tile_local + 2
+            if partner < NUM_SMS:
+                while tl.load(LOCKS + partner, cache_modifier=".cv", volatile=True) < 2:
+                    pass
+                rm1 = tl.arange(0, BLOCK_M)
+                rn1 = tl.arange(0, BLOCK_N)
+                rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
+                rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
+                P_partner = WORKSPACE + partner * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
+                acc += tl.load(P_partner, cache_modifier=".cv")
+                tl.store(P_, acc, cache_modifier=".wt")
+                tl.debug_barrier()
+                tl.store(LOCKS + pid, 3, cache_modifier=".wt")
 
-                # Quadrant 00 (top-left)
-                P_00 = P_base + tl.arange(0, BLOCK_M // 2)[:, None] * BLOCK_N + tl.arange(0, BLOCK_N // 2)[None, :]
-                acc00 += tl.load(P_00, cache_modifier=".cv")
+        # Round 3: stride 4
+        if split_factor > 4 and tile_local % 8 == 0:
+            partner = tile_base + tile_local + 4
+            if partner < NUM_SMS:
+                while tl.load(LOCKS + partner, cache_modifier=".cv", volatile=True) < 3:
+                    pass
+                rm1 = tl.arange(0, BLOCK_M)
+                rn1 = tl.arange(0, BLOCK_N)
+                rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
+                rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
+                P_partner = WORKSPACE + partner * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
+                acc += tl.load(P_partner, cache_modifier=".cv")
+                tl.store(P_, acc, cache_modifier=".wt")
+                tl.debug_barrier()
+                tl.store(LOCKS + pid, 4, cache_modifier=".wt")
 
-                # Quadrant 01 (top-right)
-                P_01 = P_base + tl.arange(0, BLOCK_M // 2)[:, None] * BLOCK_N + (tl.arange(0, BLOCK_N // 2)[None, :] + BLOCK_N // 2)
-                acc01 += tl.load(P_01, cache_modifier=".cv")
+        # Round 4: stride 8
+        if split_factor > 8 and tile_local % 16 == 0:
+            partner = tile_base + tile_local + 8
+            if partner < NUM_SMS:
+                while tl.load(LOCKS + partner, cache_modifier=".cv", volatile=True) < 4:
+                    pass
+                rm1 = tl.arange(0, BLOCK_M)
+                rn1 = tl.arange(0, BLOCK_N)
+                rm1 = tl.max_contiguous(tl.multiple_of(rm1, BLOCK_M), BLOCK_M)
+                rn1 = tl.max_contiguous(tl.multiple_of(rn1, BLOCK_N), BLOCK_N)
+                P_partner = WORKSPACE + partner * BLOCK_M * BLOCK_N + rm1[:, None] * BLOCK_N + rn1[None, :]
+                acc += tl.load(P_partner, cache_modifier=".cv")
 
-                # Quadrant 10 (bottom-left)
-                P_10 = P_base + (tl.arange(0, BLOCK_M // 2)[:, None] + BLOCK_M // 2) * BLOCK_N + tl.arange(0, BLOCK_N // 2)[None, :]
-                acc10 += tl.load(P_10, cache_modifier=".cv")
-
-                # Quadrant 11 (bottom-right)
-                P_11 = P_base + (tl.arange(0, BLOCK_M // 2)[:, None] + BLOCK_M // 2) * BLOCK_N + (tl.arange(0, BLOCK_N // 2)[None, :] + BLOCK_N // 2)
-                acc11 += tl.load(P_11, cache_modifier=".cv")
-
-                end += streamk_iters_pcu + (next_pid < streamk_remainder_iters)
-                next_pid += 1
-
-            # Unified bias handling for Stream-K section (exact tritonBLAS pattern)
+        # ---- Root WG of each tile stores the final result ----
+        if tile_local == 0:
             {% if BIAS %}
-            # Split bias for top and bottom halves
-            bias_top = bias[:BLOCK_M // 2]
-            bias_bottom = bias[BLOCK_M // 2:]
-
-            bias_top_reshaped = tl.reshape(bias_top, (BLOCK_M // 2, 1))
-            bias_bottom_reshaped = tl.reshape(bias_bottom, (BLOCK_M // 2, 1))
-
-            acc00 += bias_top_reshaped
-            acc01 += bias_top_reshaped
-            acc10 += bias_bottom_reshaped
-            acc11 += bias_bottom_reshaped
+            acc += bias[:, None]
             {% endif %}
 
-            # Convert each quadrant to output dtype
-            c00 = acc00.to({{dtype("C")}})
-            c01 = acc01.to({{dtype("C")}})
-            c10 = acc10.to({{dtype("C")}})
-            c11 = acc11.to({{dtype("C")}})
+            c = acc.to({{dtype("C")}})
 
-            # Store all 4 quadrants separately for optimal memory locality (tritonBLAS approach)
-            # Calculate quadrant indices
-            rm_top = pid_m * BLOCK_M + tl.arange(0, BLOCK_M // 2)
-            rm_bottom = pid_m * BLOCK_M + tl.arange(BLOCK_M // 2, BLOCK_M)
-            rn_left = pid_n * BLOCK_N + tl.arange(0, BLOCK_N // 2)
-            rn_right = pid_n * BLOCK_N + tl.arange(BLOCK_N // 2, BLOCK_N)
-
-            # Store quadrant 00 (top-left)
-            mask00 = (rm_top < M)[:, None] & (rn_left < N)[None, :]
-            tl.store(C_OUT + rm_top[:, None] * stride_cm + rn_left[None, :] * stride_cn, c00, mask=mask00)
-
-            # Store quadrant 01 (top-right)
-            mask01 = (rm_top < M)[:, None] & (rn_right < N)[None, :]
-            tl.store(C_OUT + rm_top[:, None] * stride_cm + rn_right[None, :] * stride_cn, c01, mask=mask01)
-
-            # Store quadrant 10 (bottom-left)
-            mask10 = (rm_bottom < M)[:, None] & (rn_left < N)[None, :]
-            tl.store(C_OUT + rm_bottom[:, None] * stride_cm + rn_left[None, :] * stride_cn, c10, mask=mask10)
-
-            # Store quadrant 11 (bottom-right)
-            mask11 = (rm_bottom < M)[:, None] & (rn_right < N)[None, :]
-            tl.store(C_OUT + rm_bottom[:, None] * stride_cm + rn_right[None, :] * stride_cn, c11, mask=mask11)
+            # Rematerialize rm/rn to save registers
+            rm = pid_m * BLOCK_M + tl.arange(0, BLOCK_M)
+            rn = pid_n * BLOCK_N + tl.arange(0, BLOCK_N)
+            mask = (rm[:, None] < M) & (rn[None, :] < N)
+            C_ = C_OUT + rm[:, None] * stride_cm + rn[None, :] * stride_cn
+            tl.store(C_, c, mask=mask)
 
         start_iter = end_iter
 
@@ -1337,28 +1366,33 @@ class StreamKTemplate(TritonTemplate):
             num_sms = template_kwargs.get('NUM_SMS', 108)
             block_m = template_kwargs.get('BLOCK_M', 128)
             block_n = template_kwargs.get('BLOCK_N', 128)
+            streamk_tiles = template_kwargs.get('STREAMK_TILES', 0)
 
             # Get matrix dimensions
             M = A_node.get_size()[0]
             N = B_node.get_size()[1]
 
-            # Create workspace buffer for partial results
-            # Note: We still need to use IR buffer creation (empty_strided) for proper inductor integration
-            # The global buffer optimization will be handled at the kernel execution level
-            workspace_shape = [num_sms, block_m, block_n]
+            # Create workspace/locks buffers.
+            # When STREAMK_TILES=0 (Phase-1 only), workspace/locks are never
+            # accessed by the kernel, so use minimal 1-element buffers to
+            # avoid allocation and FillFunctor zeroing overhead.
+            if streamk_tiles > 0:
+                workspace_shape = [num_sms, block_m, block_n]
+                locks_shape = [num_sms]
+            else:
+                workspace_shape = [1]
+                locks_shape = [1]
+
             workspace = empty_strided(
                 workspace_shape,
                 None,
-                dtype=torch.float32,  # Always use float32 for accumulation
+                dtype=torch.float32,
                 device=layout.device,
             )
-
-            # Create locks buffer for synchronization
-            locks_shape = [num_sms]
             locks = empty_strided(
                 locks_shape,
                 None,
-                dtype=torch.int32,  # Integer type for locks
+                dtype=torch.int32,
                 device=layout.device,
             )
 
@@ -1726,13 +1760,16 @@ def generate_heuristic_streamk_configs(m, n, k, num_sms):
                 # K-iterations across excess CUs.
                 actual_grid = num_sms
 
-                # Phase-1-only: always set STREAMK_TILES = 0
+                # Phase-1-only for autotune configs: K-splitting is handled
+                # exclusively by the origami selector path, not by autotune
+                # configs, to avoid regressions from slow Phase 2 serial
+                # reduction on large spatial problems.
                 streamk_tiles = 0
 
                 if STREAMK_DEBUG:
-                    print(f"🔍 [AUTO-STREAMK-DEBUG] Phase-1-only policy (autotune path):")
+                    print(f"🔍 [AUTO-STREAMK-DEBUG] Phase-1-only (autotune path):")
                     print(f"   total_tiles={total_tiles}, actual_grid={actual_grid}")
-                    print(f"   STREAMK_TILES=0 (Phase 2 disabled)")
+                    print(f"   STREAMK_TILES=0")
 
                 streamk_configs_to_try = [0]
 
