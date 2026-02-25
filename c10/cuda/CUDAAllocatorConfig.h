@@ -30,7 +30,7 @@ class C10_CUDA_API CUDAAllocatorConfig {
   }
 
   static bool expandable_segments() {
-#ifndef PYTORCH_C10_DRIVER_API_SUPPORTED
+#if !defined(PYTORCH_C10_DRIVER_API_SUPPORTED) && !defined(USE_ROCM)
     if (instance().m_expandable_segments) {
       TORCH_WARN_ONCE("expandable_segments not supported on this platform")
     }

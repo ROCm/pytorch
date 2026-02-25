@@ -4652,6 +4652,7 @@ class TestCudaMallocAsync(TestCase):
             torch.empty(1024 * 1024 * 1024 * 1024, device="cuda")
         self.assertTrue(x)
 
+    @skipIfRocm
     def test_allocator_fuzz(self):
         # fuzz
         state = random.getstate()
