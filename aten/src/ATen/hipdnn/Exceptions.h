@@ -19,6 +19,17 @@ public:
       , status(status) {}
 };
 
+class hipdnn_frontend_exception : public std::runtime_error {
+  public:
+    const hipdnn_frontend::Error status;
+    hipdnn_frontend_exception(hipdnn_frontend::Error status, const char* msg)
+        : std::runtime_error(msg)
+        , status(status) {}
+    hipdnn_frontend_exception(hipdnn_frontend::Error status, const std::string& msg)
+        : std::runtime_error(msg)
+        , status(status) {}
+  };
+
 inline void HIPDNN_CHECK(hipdnnStatus_t status)
 {
   if (status != HIPDNN_STATUS_SUCCESS ) {
@@ -30,13 +41,23 @@ inline void HIPDNN_CHECK(hipdnnStatus_t status)
   }
 }
 
-inline void HIP_CHECK(hipError_t error)
-{
-  if (error != hipSuccess) {
-    std::string msg("HIP error: ");
-    msg += hipGetErrorString(error);
-    throw std::runtime_error(msg);
-  }
+inline void HIPDNN_FE_CHECK(const hipdnn_frontend::Error& status)
+{          
+    std::cout << "+++++++ HIPDNN_FE_CHECK status: " << status.code 
+              << "\n+++++++ HIPDNN_FE_CHECK message:" << status.get_message()<< std::endl;
+    if(!status.is_good())
+    {
+      throw hipdnn_frontend_exception(status, status.get_message());
+    }
 }
+
+// inline void HIP_CHECK(hipError_t error)
+// {
+//   if (error != hipSuccess) {
+//     std::string msg("HIP error: ");
+//     msg += hipGetErrorString(error);
+//     throw std::runtime_error(msg);
+//   }
+// }
 
 }} // namespace at::native
