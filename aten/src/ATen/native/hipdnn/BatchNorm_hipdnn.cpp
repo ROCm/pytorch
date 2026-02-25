@@ -45,6 +45,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
 #include <hipdnn_frontend.hpp>
 #include <ATen/hipdnn/Types.h>
 #include <ATen/hipdnn/Handle.h>
+#include <ATen/hipdnn/Exceptions.h>
 
 #include <ATen/TensorUtils.h>
 
@@ -216,7 +217,6 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
 
     std::cout << "+++++++ HIPDNN INFERENCE" << std::endl;
     auto handle = getHipdnnHandle();
-    auto dataType = getHipdnnDataType(*input);
     auto inputType = getHipdnnDataType(*input);
     auto intermediateType = getHipdnnDataType(*weight);
     auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
@@ -232,11 +232,24 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     auto mean_attr = createTensorAttributes(*running_mean);
     auto invVariance_attr = createTensorAttributes(*running_var);
 
-    auto y = graph->batchnorm_inference(x, mean, invVariance, scale, bias, bnAttributes);
+    auto y = graph->batchnorm_inference(
+      input_attr, mean_attr, invVariance_attr, weight_attr, bias_attr, bnAttributes);
     y->set_output(true);
 
+    std::cout << "+++++++ HIPDNN INFERENCE BUILD ~~~" << std::endl;
     HIPDNN_FE_CHECK(graph->build(handle));
+    
+    std::cout << "+++++++ HIPDNN INFERENCE variantPack" << std::endl;
+    std::unordered_map<int64_t, void*> variantPack;
+    variantPack[input_attr->get_uid()] = input->data_ptr();
+    variantPack[weight_attr->get_uid()] = weight->data_ptr();
+    variantPack[bias_attr->get_uid()] = bias->data_ptr();
+    variantPack[mean_attr->get_uid()] = running_mean->data_ptr();
+    variantPack[invVariance_attr->get_uid()] = running_var->data_ptr();
+    variantPack[y->get_uid()] = output->data_ptr();
 
+    std::cout << "+++++++ HIPDNN INFERENCE EXECUTE" << std::endl;
+    HIPDNN_FE_CHECK(graph->execute(handle, variantPack, nullptr));
   }
 
   // save_mean and save_var can be undefined
