@@ -229,6 +229,13 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     auto input_attr = createTensorAttributes(*input);
     auto weight_attr = createTensorAttributes(*weight);
     auto bias_attr = createTensorAttributes(*bias);
+    auto mean_attr = createTensorAttributes(*running_mean);
+    auto invVariance_attr = createTensorAttributes(*running_var);
+
+    auto y = graph->batchnorm_inference(x, mean, invVariance, scale, bias, bnAttributes);
+    y->set_output(true);
+
+    HIPDNN_FE_CHECK(graph->build(handle));
 
   }
 
@@ -315,6 +322,24 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
     epsilon,
     save_mean->const_data_ptr(),
     save_var->const_data_ptr()));
+
+    // std::cout << "+++++++ HIPDNN BACKWARD" << std::endl;
+    // auto handle = getHipdnnHandle();
+    // auto dataType = getHipdnnDataType(*input);
+    // auto inputType = getHipdnnDataType(*input);
+    // auto intermediateType = getHipdnnDataType(*weight);
+    // auto savedMeanAttr = createTensorAttributes(*save_mean);
+    // auto savedInvVarianceAttr = createTensorAttributes(*save_var);
+
+    // auto graph = std::make_shared<graph::Graph>();
+    // graph->set_io_data_type(inputType)
+    //     .set_intermediate_data_type(intermediateType)
+    //     .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
+    //     auto bnBwdAttributes = graph::BatchnormBackwardAttributes();
+    // bnBwdAttributes.set_name("bn_backward_node");
+    // bnBwdAttributes.set_saved_mean_and_inv_variance(savedMeanAttr, savedInvVarianceAttr);
+
+    // auto [dx, dscale, dbias] = graph->batchnorm_backward(dy, x, scale, bnBwdAttributes);
 
   return std::tuple<Tensor,Tensor,Tensor>{grad_input_t, grad_weight_t, grad_bias_t};
 }
