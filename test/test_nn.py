@@ -5081,6 +5081,77 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         run_test(input, grad)
 
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
+    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    def test_batchnorm_hipdnn_inference(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.empty(c, device="cuda").uniform_(-1, 1)
+        running_var = torch.empty(c, device="cuda").uniform_(0.5, 2.0)
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
+            input, weight, bias, running_mean, running_var,
+            False, 0.1, 1e-5)
+        out_miopen, _, _ = torch.miopen_batch_norm(
+            input, weight, bias, running_mean, running_var,
+            False, 0.1, 1e-5)
+
+        self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
+
+    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
+    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    def test_batchnorm_hipdnn_training(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.zeros(c, device="cuda")
+        running_var = torch.ones(c, device="cuda")
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        input_hipdnn = input.clone().requires_grad_(True)
+        input_miopen = input.clone().requires_grad_(True)
+
+        out_hipdnn, save_mean_h, save_var_h = torch.hipdnn_batch_norm(
+            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_hipdnn.sum().backward()
+
+        out_miopen, save_mean_m, save_var_m = torch.miopen_batch_norm(
+            input_miopen, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_miopen.sum().backward()
+
+        self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
+        self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-5, rtol=1e-5)
+
+    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
+    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    def test_batchnorm_hipdnn_half(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.zeros(c, device="cuda")
+        running_var = torch.ones(c, device="cuda")
+        input = torch.randn(4, c, 8, 8, device="cuda", dtype=torch.half)
+
+        input_hipdnn = input.clone().requires_grad_(True)
+        input_miopen = input.clone().requires_grad_(True)
+
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
+            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_hipdnn.sum().backward()
+
+        out_miopen, _, _ = torch.miopen_batch_norm(
+            input_miopen, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_miopen.sum().backward()
+
+        self.assertEqual(out_hipdnn, out_miopen, atol=1e-3, rtol=1e-3)
+        self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-3, rtol=1e-3)
+
+    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     def test_batchnorm_cudnn_half(self):
         # THNN
         input = torch.randint(1, 10, (2, 3, 2, 2), dtype=torch.half, device="cuda", requires_grad=True)
