@@ -971,9 +971,7 @@ else()
   set_property(TARGET torch::nvtoolsext PROPERTY INTERFACE_LINK_LIBRARIES CUDA::nvToolsExt)
 endif()
 
-if(NOT TARGET fmt::fmt)
-add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
-endif()
+
 # ---[ HIP
 if(USE_ROCM)
   include(${CMAKE_CURRENT_LIST_DIR}/public/LoadHIP.cmake)
@@ -1083,7 +1081,7 @@ if(USE_ROCM)
 
     # Math libraries
     list(APPEND Caffe2_PUBLIC_HIP_DEPENDENCY_LIBS
-      roc::hipblas roc::rocblas hip::hipfft hip::hiprand roc::hipsparse roc::hipsolver roc::hipblaslt)
+      roc::hipblas roc::rocblas hip::hipfft hip::hiprand roc::hipsparse roc::hipsolver roc::hipblaslt roc::rocsolver)
     # hipsparselt is an optional component that will eventually be enabled by default.
     if(hipsparselt_FOUND)
       list(APPEND Caffe2_PUBLIC_HIP_DEPENDENCY_LIBS
@@ -1597,7 +1595,7 @@ endif()
 set(FMT_INSTALL ON)
 set(TEMP_BUILD_SHARED_LIBS ${BUILD_SHARED_LIBS})
 set(BUILD_SHARED_LIBS OFF CACHE BOOL "Build shared libs" FORCE)
-# add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
+add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/fmt)
 
 # Disable compiler feature checks for `fmt`.
 #

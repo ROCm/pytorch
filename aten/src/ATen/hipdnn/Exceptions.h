@@ -1,6 +1,5 @@
 #pragma once
 
-// #include <ATen/miopen/miopen-wrapper.h>
 #include <string>
 #include <stdexcept>
 #include <sstream>
@@ -42,22 +41,11 @@ inline void HIPDNN_CHECK(hipdnnStatus_t status)
 }
 
 inline void HIPDNN_FE_CHECK(const hipdnn_frontend::Error& status)
-{          
-    std::cout << "+++++++ HIPDNN_FE_CHECK status: " << status.code 
-              << "\n+++++++ HIPDNN_FE_CHECK message:" << status.get_message()<< std::endl;
+{
     if(!status.is_good())
     {
       throw hipdnn_frontend_exception(status, status.get_message());
     }
 }
-
-// inline void HIP_CHECK(hipError_t error)
-// {
-//   if (error != hipSuccess) {
-//     std::string msg("HIP error: ");
-//     msg += hipGetErrorString(error);
-//     throw std::runtime_error(msg);
-//   }
-// }
 
 }} // namespace at::native

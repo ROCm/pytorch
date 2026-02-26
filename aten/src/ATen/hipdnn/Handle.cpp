@@ -4,7 +4,6 @@
 
 #include <ATen/hip/Exceptions.h>
 #include <ATen/hipdnn/Exceptions.h>
-// #include <hipdnn_frontend.hpp>
 
 namespace at::native {
 namespace {
@@ -29,10 +28,8 @@ void destroyHipdnnHandle(hipdnnHandle_t handle) {
   // the same issue as mentioned above in CUDA 11 CI.
   //   - @zasdfgbnm
   //
-  // #ifdef NO_MIOPEN_DESTROY_HANDLE
-  // #else
-  //   miopenDestroy(handle);
-  // #endif
+  // Intentionally not destroying handle to avoid shutdown ordering issues.
+  // See comments in the miopen equivalent (Handle.cpp).
 }
 
 using HipdnnPoolType = at::cuda::DeviceThreadHandlePool<
