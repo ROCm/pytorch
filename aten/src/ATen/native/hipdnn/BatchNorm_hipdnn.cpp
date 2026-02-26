@@ -36,7 +36,25 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
 
 }  // namespace at::native
 
-#else // AT_ROCM_ENABLED
+#elif !defined(USE_HIPDNN) // AT_ROCM_ENABLED but no hipDNN
+
+namespace at::native {
+
+std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
+    const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt, const std::optional<Tensor>& running_mean_opt, const std::optional<Tensor>& running_var_opt,
+    bool training, double exponential_average_factor, double epsilon) {
+  TORCH_CHECK(false, "hipdnn_batch_norm: not compiled with hipDNN support");
+}
+
+std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm_backward(
+    const Tensor& input, const Tensor& grad_output, const Tensor& weight, const std::optional<Tensor>& running_mean_opt, const std::optional<Tensor>& running_var_opt, const std::optional<Tensor>& save_mean_opt, const std::optional<Tensor>& save_var_opt,
+    double epsilon) {
+  TORCH_CHECK(false, "hipdnn_batch_norm_backward: not compiled with hipDNN support");
+}
+
+}  // namespace at::native
+
+#else // AT_ROCM_ENABLED && USE_HIPDNN
 
 #include <hipdnn_frontend.hpp>
 #include <ATen/hipdnn/Types.h>
