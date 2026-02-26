@@ -227,14 +227,14 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     bnAttributes.set_name("bn_inference_node");
 
     auto input_attr = createTensorAttributes(*input);
-    auto weight_attr = createTensorAttributes(*weight);
-    auto bias_attr = createTensorAttributes(*bias);
-    auto mean_attr = createTensorAttributes(*running_mean);
-    auto invVariance_attr = createTensorAttributes(*running_var);
+    auto weight_attr = createTensorAttributes(expandScale(*weight, input->dim()));
+    auto bias_attr = createTensorAttributes(expandScale(*bias, input->dim()));
+    auto mean_attr = createTensorAttributes(expandScale(*running_mean, input->dim()));
+    auto invVariance_attr = createTensorAttributes(expandScale(*running_var, input->dim()));
 
-    auto y = graph->batchnorm_inference(
+    auto output_attr = graph->batchnorm_inference(
       input_attr, mean_attr, invVariance_attr, weight_attr, bias_attr, bnAttributes);
-    y->set_output(true);
+    output_attr->set_output(true);
 
     std::cout << "+++++++ HIPDNN INFERENCE BUILD ~~~" << std::endl;
     HIPDNN_FE_CHECK(graph->build(handle));
@@ -246,7 +246,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
     variantPack[bias_attr->get_uid()] = bias->data_ptr();
     variantPack[mean_attr->get_uid()] = running_mean->data_ptr();
     variantPack[invVariance_attr->get_uid()] = running_var->data_ptr();
-    variantPack[y->get_uid()] = output->data_ptr();
+    variantPack[output_attr->get_uid()] = output->data_ptr();
 
     std::cout << "+++++++ HIPDNN INFERENCE EXECUTE" << std::endl;
     HIPDNN_FE_CHECK(graph->execute(handle, variantPack, nullptr));
