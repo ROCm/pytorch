@@ -2824,12 +2824,29 @@ def _persistent_reduction_configs(
     else:
         xblock_vals = [1, 8, 32, 128]
 
-    configs = [
-        triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
-        for xblock in xblock_vals
-        if xblock == 1
-        or (xblock <= xnumel and (max_autotune_enabled or rnumel * xblock <= 4096))
-    ]
+    if "y" not in size_hints:
+        configs = [
+            triton_config_reduction(size_hints, xblock, rnumel, register_intensive=True)
+            for xblock in xblock_vals
+            if xblock == 1
+            or (rnumel * xblock <= MAX_PERSISTENT_BLOCK_NUMEL and xblock <= xnumel)
+        ]
+    else:
+        configs = []
+        assert "tiling_scores" in inductor_meta
+        x_y_scores = {dim: inductor_meta["tiling_scores"][dim] for dim in ("x", "y")}
+        for target_block_size in xblock_vals:
+            if target_block_size * rnumel > MAX_PERSISTENT_BLOCK_NUMEL:
+                continue
+
+            block_sizes = match_target_block_product(
+                size_hints, x_y_scores, target_block_size
+            )
+            configs.append(
+                triton_config_tiled_reduction(
+                    size_hints, block_sizes["x"], block_sizes["y"], rnumel
+                )
+            )
 
     tiny_configs = [
         triton_config_reduction(
