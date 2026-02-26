@@ -91,9 +91,11 @@ set(TORCH_PYTHON_LINK_LIBRARIES
 if(USE_ASAN AND TARGET Sanitizer::address)
   list(APPEND TORCH_PYTHON_LINK_LIBRARIES Sanitizer::address)
 endif()
-if(USE_ASAN AND TARGET Sanitizer::undefined)
-  list(APPEND TORCH_PYTHON_LINK_LIBRARIES Sanitizer::undefined)
-endif()
+# GPU ASAN: prevent cmake to add -fsanitize=undefined to compile
+# options.
+#if(USE_ASAN AND TARGET Sanitizer::undefined)
+#  list(APPEND TORCH_PYTHON_LINK_LIBRARIES Sanitizer::undefined)
+#endif()
 if(USE_LSAN AND TARGET Sanitizer::leak)
   list(APPEND TORCH_PYTHON_LINK_LIBRARIES Sanitizer::leak)
 endif()

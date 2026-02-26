@@ -1282,7 +1282,7 @@ endif()
 # Prefix path to Caffe2 headers. If a directory containing installed Caffe2
 # headers was inadvertently added to the list of include directories, prefixing
 # PROJECT_SOURCE_DIR means this source tree always takes precedence.
-include_directories(BEFORE ${PROJECT_SOURCE_DIR})
+include_directories(BEFORE SYSTEM ${PROJECT_SOURCE_DIR})
 
 # Prefix path to generated Caffe2 headers. These need to take precedence over
 # their empty counterparts located in PROJECT_SOURCE_DIR.
