@@ -201,19 +201,19 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_batch_norm(
 
     save_mean = at::empty({0}, weight_t.options());
     save_var = at::empty({0}, weight_t.options());
-    MIOPEN_CHECK(miopenBatchNormalizationForwardInference(
-      handle, mode, &one, &zero,
-      idesc.desc(), input->const_data_ptr(),
-      idesc.desc(), output->data_ptr(),
-      wdesc.desc(),
-      // NOTE: MIOpen docs say that the bnScale and bnBias args are only inputs,
-      // not outputs. However, unfortunately the function signature only takes
-      // non-const pointers, presumably by accident
-      const_cast<void*>(weight->const_data_ptr()),
-      const_cast<void*>(bias->const_data_ptr()),
-      running_mean->data_ptr(),
-      running_var->data_ptr(),
-      epsilon));
+    // MIOPEN_CHECK(miopenBatchNormalizationForwardInference(
+    //   handle, mode, &one, &zero,
+    //  idesc.desc(), input->const_data_ptr(),
+    //  idesc.desc(), output->data_ptr(),
+    //  wdesc.desc(),
+    //  // NOTE: MIOpen docs say that the bnScale and bnBias args are only inputs,
+    //  // not outputs. However, unfortunately the function signature only takes
+    //  // non-const pointers, presumably by accident
+    //  const_cast<void*>(weight->const_data_ptr()),
+    //  const_cast<void*>(bias->const_data_ptr()),
+    //  running_mean->data_ptr(),
+    //  running_var->data_ptr(),
+    //  epsilon));
 
     std::cout << "+++++++ HIPDNN INFERENCE" << std::endl;
     auto handle = getHipdnnHandle();
