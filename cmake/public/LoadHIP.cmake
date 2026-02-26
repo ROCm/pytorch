@@ -213,8 +213,16 @@ if(HIP_FOUND)
   find_package_and_print_version(hipcub REQUIRED)
   find_package_and_print_version(rocthrust REQUIRED)
   find_package_and_print_version(hipsolver REQUIRED)
-  find_package_and_print_version_2(hipdnn_frontend CONFIG REQUIRED)
-  find_package_and_print_version_2(hipdnn_data_sdk CONFIG REQUIRED)
+  find_package_and_print_version(rocsolver REQUIRED)
+  find_package_and_print_version_2(hipdnn_frontend CONFIG)
+  find_package_and_print_version_2(hipdnn_data_sdk CONFIG)
+  if(hipdnn_frontend_FOUND AND hipdnn_data_sdk_FOUND)
+    set(USE_HIPDNN ON)
+    message(STATUS "Found hipDNN, enabling USE_HIPDNN")
+  else()
+    set(USE_HIPDNN OFF)
+    message(STATUS "hipDNN not found, disabling USE_HIPDNN")
+  endif()
   
   # workaround cmake 4 build issue
   if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
@@ -234,19 +242,6 @@ if(HIP_FOUND)
 
   # Optional components.
   find_package_and_print_version(hipsparselt)  # Will be required when ready.
-
-  # message("HIPDNN package INCLUDE")
-
-  # get_cmake_property(_all_vars VARIABLES)
-  # list(FILTER _all_vars INCLUDE REGEX "HIPDNN.*")
-  # list(SORT _all_vars)
-  # message("HIPDNN START")
-  # foreach(_var_name ${_all_vars})
-  #     message(STATUS "${_var_name} = ${${_var_name}}")
-  # endforeach()
-  # message("HIPDNN END")
-  # # message(FATAL_ERROR "STOP")
-
 
   list(REMOVE_DUPLICATES ROCM_INCLUDE_DIRS)
 

@@ -39,7 +39,7 @@ from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, r
     parametrize as parametrize_test, subtest, instantiate_parametrized_tests, \
     skipIfTorchDynamo, gcIfJetson, set_default_dtype
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_MULTIGPU, TEST_CUDNN, \
-    _get_torch_rocm_version
+    TEST_HIPDNN, _get_torch_rocm_version
 from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, CriterionTest, \
     module_tests, criterion_tests, loss_reference_fns, _create_basic_net, \
     ctcloss_reference, get_new_module_tests, single_batch_reference_fn, _test_bfloat16_ops, _test_module_empty_input
@@ -5080,8 +5080,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         grad = grad.permute(0, 2, 1, 3)
         run_test(input, grad)
 
-    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
-    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_inference(self):
         c = 16
         weight = torch.empty(c, device="cuda").uniform_()
@@ -5099,8 +5098,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
         self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
-    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_training(self):
         c = 16
         weight = torch.empty(c, device="cuda").uniform_()
@@ -5125,8 +5123,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
         self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-5, rtol=1e-5)
 
-    @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
-    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm only")
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_half(self):
         c = 16
         weight = torch.empty(c, device="cuda").uniform_()
