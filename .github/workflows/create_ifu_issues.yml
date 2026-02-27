@@ -15,17 +15,17 @@ on:
       target_repo:
         description: "Target repo for issue creation"
         required: false
-        default: "chinmaydk99/pytorch"
+        default: "ROCm/pytorch"
         type: string
       project_number:
         description: "GitHub Project number"
         required: false
-        default: "7"
+        default: "114"
         type: string
       project_owner:
         description: "Project owner"
         required: false
-        default: "chinmaydk99"
+        default: "ROCm"
         type: string
 
   # Called by create_ifu_tag.yml after tagging
@@ -42,17 +42,17 @@ on:
       target_repo:
         description: "Target repo for issue creation"
         required: false
-        default: "chinmaydk99/pytorch"
+        default: "ROCm/pytorch"
         type: string
       project_number:
         description: "GitHub Project number"
         required: false
-        default: "7"
+        default: "114"
         type: string
       project_owner:
         description: "Project owner"
         required: false
-        default: "chinmaydk99"
+        default: "ROCm"
         type: string
     secrets:
       IFU_GITHUB_TOKEN:
@@ -87,10 +87,15 @@ jobs:
           echo "Branch: $branch"
           echo "branch=$branch" >> $GITHUB_OUTPUT
 
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/pytorch/pytorch.git 2>/dev/null || true
+          git fetch upstream main --force
+
       - name: List commits in range
         run: |
-          echo "Commits between start ref ${{ inputs.prev_post_tag }} and end ref ${{ inputs.curr_pre_tag }}:"
-          git log ${{ inputs.prev_post_tag }}..${{ inputs.curr_pre_tag }} --oneline --no-merges
+          echo "ROCm-only commits between ${{ inputs.prev_post_tag }} and ${{ inputs.curr_pre_tag }}:"
+          git log ${{ inputs.prev_post_tag }}..${{ inputs.curr_pre_tag }} --oneline --no-merges --not upstream/main
 
       - name: Get or create project fields
         id: project_fields
@@ -129,7 +134,7 @@ jobs:
           echo "Project ID: $project_id"
 
           if [[ "$project_id" == "null" || -z "$project_id" ]]; then
-            echo "Error: Could not find project. Trying organization query..."
+            echo "User project not found. Trying organization query..."
             project_data=$(gh api graphql -f query='
               query($owner: String!, $number: Int!) {
                 organization(login: $owner) {
@@ -217,15 +222,15 @@ jobs:
         run: |
           echo "Creating issues for commits..."
 
-          commit_count=$(git rev-list --count --no-merges "${PREV_POST_TAG}..${CURR_PRE_TAG}")
+          commit_count=$(git rev-list --count --no-merges "${PREV_POST_TAG}..${CURR_PRE_TAG}" --not upstream/main)
           if [[ "${commit_count}" -eq 0 ]]; then
-            echo "No non-merge commits in range ${PREV_POST_TAG}..${CURR_PRE_TAG}; no issues to create."
+            echo "No ROCm-only commits in range ${PREV_POST_TAG}..${CURR_PRE_TAG}; nothing to create."
             exit 0
           fi
 
-          echo "Found ${commit_count} non-merge commits to process."
+          echo "Found ${commit_count} ROCm-only commits to process."
 
-          git log "${PREV_POST_TAG}..${CURR_PRE_TAG}" --format="%H" --no-merges | while read hash; do
+          git log "${PREV_POST_TAG}..${CURR_PRE_TAG}" --format="%H" --no-merges --not upstream/main | while read hash; do
             short_hash="${hash:0:5}"
             subject=$(git log -1 --format="%s" "$hash")
             author=$(git log -1 --format="%an" "$hash")
