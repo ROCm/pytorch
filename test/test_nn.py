@@ -5448,10 +5448,11 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 ref_out = ref_mod(ref_inp)
             self.assertEqual(out, ref_out)
 
-        if mode == "train":
-            _train(memory_format, ref_backend, mixed, dtype)
-        else:
-            _inference(memory_format, ref_backend, mixed, dtype)
+        with torch.backends.hipdnn.flags(enabled=torch.backends.hipdnn.is_available()):
+            if mode == "train":
+                _train(memory_format, ref_backend, mixed, dtype)
+            else:
+                _inference(memory_format, ref_backend, mixed, dtype)
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_batchnorm_nhwc_cuda(self):
