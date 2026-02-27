@@ -21,7 +21,7 @@ def set_flags(
 
 @contextmanager
 def flags(
-    enabled=True,
+    enabled=None,
 ):
     with __allow_nonbracketed_mutation():
         orig_flags = set_flags(

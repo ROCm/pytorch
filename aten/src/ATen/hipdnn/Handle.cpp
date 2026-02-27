@@ -17,17 +17,6 @@ void createHipdnnHandle(hipdnnHandle_t *handle) {
 }
 
 void destroyHipdnnHandle(hipdnnHandle_t handle) {
-  // this is because of something dumb in the ordering of
-  // destruction. Sometimes atexit, the cuda context (or something)
-  // would already be destroyed by the time this gets destroyed. It
-  // happens in fbcode setting. @colesbury and I decided to not destroy
-  // the handle as a workaround.
-  //   - @soumith
-  //
-  // Further note: this is now disabled globally, because we are seeing
-  // the same issue as mentioned above in CUDA 11 CI.
-  //   - @zasdfgbnm
-  //
   // Intentionally not destroying handle to avoid shutdown ordering issues.
   // See comments in the miopen equivalent (Handle.cpp).
 }
