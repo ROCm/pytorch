@@ -2,7 +2,6 @@
 #include <hipdnn_frontend/Types.hpp>
 
 #include <ATen/ATen.h>
-// #include <miopen/version.h>
 
 namespace at { namespace native {
 
@@ -22,8 +21,4 @@ hipdnn_frontend::DataType getHipdnnDataType(const at::Tensor& tensor) {
   }
 }
 
-// int64_t miopen_version() {
-//   return (MIOPEN_VERSION_MAJOR<<8) + (MIOPEN_VERSION_MINOR<<4) + MIOPEN_VERSION_PATCH;
-// }
-
-}}  // namespace at::miopen
+}}  // namespace at::native

@@ -530,7 +530,7 @@ BatchNormBackend _select_batch_norm_backend(
   bool is_miopen_3_4 = miopen_version >= 30400;  // ROCm 6.4
   bool is_miopen_3_5 = miopen_version >= 30500;  // ROCm 7.0
   bool PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM = c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM").value_or(is_miopen_3_5);
-  bool PYTORCH_ENABLE_HIPDNN_BATCHNORM = c10::utils::check_env("PYTORCH_ENABLE_HIPDNN_BATCHNORM").value_or(false);
+  bool hipdnn_enabled = at::globalContext().userEnabledHipdnn();
   
 
   if (
@@ -550,7 +550,8 @@ BatchNormBackend _select_batch_norm_backend(
               (input.suggest_memory_format() == MemoryFormat::ChannelsLast
                || input.suggest_memory_format() == MemoryFormat::ChannelsLast3d)))
   ) {
-    return PYTORCH_ENABLE_HIPDNN_BATCHNORM ? BatchNormBackend::Hipdnn : BatchNormBackend::Miopen;
+    return (hipdnn_enabled && detail::getCUDAHooks().compiledWithHipDNN())
+        ? BatchNormBackend::Hipdnn : BatchNormBackend::Miopen;
   }
 
   return BatchNormBackend::Native;
@@ -626,7 +627,6 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
   Tensor reserve = at::empty({0}, input.options().dtype(kByte));
 
   if (backend == BatchNormBackend::Miopen) {
-    std::cout << "~~~~~ MIOPEN batch norm" << std::endl;
     return std::tuple_cat(
              at::miopen_batch_norm(
                input.contiguous(input.suggest_memory_format()),
@@ -640,7 +640,6 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
   }
 
   if (backend == BatchNormBackend::Hipdnn) {
-    std::cout << "~~~~~ HIPDNN batch norm" << std::endl;
     return std::tuple_cat(
              at::hipdnn_batch_norm(
                input.contiguous(input.suggest_memory_format()),
@@ -650,7 +649,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
                running_var.defined() ? running_var.contiguous() : running_var,
                training, momentum, eps),
              std::tuple<Tensor>(reserve),
-             std::make_tuple(2));
+             std::make_tuple(3));
   }
 
   return std::tuple_cat(
@@ -701,10 +700,9 @@ std::tuple<Tensor, Tensor, Tensor> _batch_norm_impl_index_backward(
     // format conversion is done inside cudnn_batch_norm_backward instead
     return at::cudnn_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon, reservedSpace);
   } else if (impl_index == 2) {
-    bool PYTORCH_ENABLE_HIPDNN_BATCHNORM = c10::utils::check_env("PYTORCH_ENABLE_HIPDNN_BATCHNORM").value_or(false);
-    return PYTORCH_ENABLE_HIPDNN_BATCHNORM ?
-      at::miopen_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon) :
-      at::miopen_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
+    return at::miopen_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
+  } else if (impl_index == 3) {
+    return at::hipdnn_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
   }
   TORCH_INTERNAL_ASSERT(false, "Unsupported impl_index in _batch_norm_impl_index_backward: ", impl_index);
 }

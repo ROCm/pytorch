@@ -39,7 +39,7 @@ from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, r
     parametrize as parametrize_test, subtest, instantiate_parametrized_tests, \
     skipIfTorchDynamo, gcIfJetson, set_default_dtype
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_MULTIGPU, TEST_CUDNN, \
-    _get_torch_rocm_version
+    TEST_HIPDNN, _get_torch_rocm_version
 from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, CriterionTest, \
     module_tests, criterion_tests, loss_reference_fns, _create_basic_net, \
     ctcloss_reference, get_new_module_tests, single_batch_reference_fn, _test_bfloat16_ops, _test_module_empty_input
@@ -5079,6 +5079,98 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         grad = torch.randint(1, 10, (2, 8, 8, 1), dtype=torch.float32, device="cuda")
         grad = grad.permute(0, 2, 1, 3)
         run_test(input, grad)
+
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
+    def test_batchnorm_hipdnn_inference(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.empty(c, device="cuda").uniform_(-1, 1)
+        running_var = torch.empty(c, device="cuda").uniform_(0.5, 2.0)
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
+            input, weight, bias, running_mean, running_var,
+            False, 0.1, 1e-5)
+        out_ref = torch.nn.functional.batch_norm(
+            input.cpu(), running_mean.cpu(), running_var.cpu(),
+            weight.cpu(), bias.cpu(),
+            training=False, momentum=0.1, eps=1e-5)
+
+        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
+
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
+    def test_batchnorm_hipdnn_training(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.zeros(c, device="cuda")
+        running_var = torch.ones(c, device="cuda")
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        input_hipdnn = input.clone().requires_grad_(True)
+        input_ref = input.cpu().clone().requires_grad_(True)
+
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
+            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_hipdnn.sum().backward()
+
+        out_ref = torch.nn.functional.batch_norm(
+            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
+            weight.cpu(), bias.cpu(),
+            training=True, momentum=0.1, eps=1e-5)
+        out_ref.sum().backward()
+
+        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
+        self.assertEqual(input_hipdnn.grad.cpu(), input_ref.grad, atol=1e-5, rtol=1e-5)
+
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
+    def test_batchnorm_hipdnn_half(self):
+        c = 16
+        weight = torch.empty(c, device="cuda").uniform_()
+        bias = torch.empty(c, device="cuda").uniform_()
+        running_mean = torch.zeros(c, device="cuda")
+        running_var = torch.ones(c, device="cuda")
+        input = torch.randn(4, c, 8, 8, device="cuda", dtype=torch.half)
+
+        input_hipdnn = input.clone().requires_grad_(True)
+        input_ref = input.cpu().float().clone().requires_grad_(True)
+
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
+            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
+            True, 0.1, 1e-5)
+        out_hipdnn.sum().backward()
+
+        out_ref = torch.nn.functional.batch_norm(
+            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
+            weight.cpu(), bias.cpu(),
+            training=True, momentum=0.1, eps=1e-5)
+        out_ref.sum().backward()
+
+        self.assertEqual(out_hipdnn.cpu().float(), out_ref, atol=1e-3, rtol=1e-3)
+        self.assertEqual(input_hipdnn.grad.cpu().float(), input_ref.grad, atol=1e-3, rtol=1e-3)
+
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
+    def test_batchnorm_hipdnn_backend_selection(self):
+        # impl_index: 0=Native, 1=cuDNN, 2=MIOpen, 3=hipDNN
+        c = 16
+        bn = torch.nn.BatchNorm2d(c).cuda()
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        # With hipdnn enabled, should select hipDNN backend (index 3)
+        with torch.backends.hipdnn.flags(enabled=True):
+            _, _, _, _, impl_index = torch._batch_norm_impl_index(
+                input, bn.weight, bn.bias, bn.running_mean, bn.running_var,
+                bn.training, bn.momentum, bn.eps, torch.backends.cudnn.enabled)
+            self.assertEqual(impl_index, 3)
+
+        # With hipdnn disabled, should fall back to MIOpen (index 2)
+        with torch.backends.hipdnn.flags(enabled=False):
+            _, _, _, _, impl_index = torch._batch_norm_impl_index(
+                input, bn.weight, bn.bias, bn.running_mean, bn.running_var,
+                bn.training, bn.momentum, bn.eps, torch.backends.cudnn.enabled)
+            self.assertEqual(impl_index, 2)
 
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     def test_batchnorm_cudnn_half(self):

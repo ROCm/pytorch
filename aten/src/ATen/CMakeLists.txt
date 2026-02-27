@@ -54,6 +54,7 @@ set_bool(CAFFE2_STATIC_LINK_CUDA_INT CAFFE2_STATIC_LINK_CUDA)
 set_bool(AT_CUDNN_ENABLED CAFFE2_USE_CUDNN)
 set_bool(AT_CUSPARSELT_ENABLED CAFFE2_USE_CUSPARSELT)
 set_bool(AT_HIPSPARSELT_ENABLED CAFFE2_USE_HIPSPARSELT)
+set_bool(AT_HIPDNN_ENABLED USE_HIPDNN)
 
 configure_file(Config.h.in "${CMAKE_CURRENT_SOURCE_DIR}/Config.h")
 # TODO: Do not generate CUDAConfig.h for ROCm BUILDS
@@ -654,9 +655,11 @@ if(USE_ROCM)
     ${native_hipdnn_cpp}
     ${native_cudnn_hip_cpp}
     ${miopen_cpp}
-    ${hipdnn_cpp}
     ${all_hip_cpp}
   )
+  if(USE_HIPDNN)
+    list(APPEND all_hip_cpp ${hipdnn_cpp})
+  endif()
 endif()
 
 if(USE_XPU)
