@@ -5092,11 +5092,12 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         out_hipdnn, _, _ = torch.hipdnn_batch_norm(
             input, weight, bias, running_mean, running_var,
             False, 0.1, 1e-5)
-        out_miopen, _, _ = torch.miopen_batch_norm(
-            input, weight, bias, running_mean, running_var,
-            False, 0.1, 1e-5)
+        out_ref = torch.nn.functional.batch_norm(
+            input.cpu(), running_mean.cpu(), running_var.cpu(),
+            weight.cpu(), bias.cpu(),
+            training=False, momentum=0.1, eps=1e-5)
 
-        self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
+        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
 
     @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_training(self):
@@ -5108,20 +5109,21 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         input = torch.randn(4, c, 8, 8, device="cuda")
 
         input_hipdnn = input.clone().requires_grad_(True)
-        input_miopen = input.clone().requires_grad_(True)
+        input_ref = input.cpu().clone().requires_grad_(True)
 
-        out_hipdnn, save_mean_h, save_var_h = torch.hipdnn_batch_norm(
+        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
             input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
             True, 0.1, 1e-5)
         out_hipdnn.sum().backward()
 
-        out_miopen, save_mean_m, save_var_m = torch.miopen_batch_norm(
-            input_miopen, weight, bias, running_mean.clone(), running_var.clone(),
-            True, 0.1, 1e-5)
-        out_miopen.sum().backward()
+        out_ref = torch.nn.functional.batch_norm(
+            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
+            weight.cpu(), bias.cpu(),
+            training=True, momentum=0.1, eps=1e-5)
+        out_ref.sum().backward()
 
-        self.assertEqual(out_hipdnn, out_miopen, atol=1e-5, rtol=1e-5)
-        self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-5, rtol=1e-5)
+        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
+        self.assertEqual(input_hipdnn.grad.cpu(), input_ref.grad, atol=1e-5, rtol=1e-5)
 
     @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_half(self):
@@ -5133,20 +5135,21 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         input = torch.randn(4, c, 8, 8, device="cuda", dtype=torch.half)
 
         input_hipdnn = input.clone().requires_grad_(True)
-        input_miopen = input.clone().requires_grad_(True)
+        input_ref = input.cpu().float().clone().requires_grad_(True)
 
         out_hipdnn, _, _ = torch.hipdnn_batch_norm(
             input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
             True, 0.1, 1e-5)
         out_hipdnn.sum().backward()
 
-        out_miopen, _, _ = torch.miopen_batch_norm(
-            input_miopen, weight, bias, running_mean.clone(), running_var.clone(),
-            True, 0.1, 1e-5)
-        out_miopen.sum().backward()
+        out_ref = torch.nn.functional.batch_norm(
+            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
+            weight.cpu(), bias.cpu(),
+            training=True, momentum=0.1, eps=1e-5)
+        out_ref.sum().backward()
 
-        self.assertEqual(out_hipdnn, out_miopen, atol=1e-3, rtol=1e-3)
-        self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-3, rtol=1e-3)
+        self.assertEqual(out_hipdnn.cpu().float(), out_ref, atol=1e-3, rtol=1e-3)
+        self.assertEqual(input_hipdnn.grad.cpu().float(), input_ref.grad, atol=1e-3, rtol=1e-3)
 
     @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_backend_selection(self):
