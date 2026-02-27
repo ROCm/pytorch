@@ -5148,6 +5148,27 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         self.assertEqual(out_hipdnn, out_miopen, atol=1e-3, rtol=1e-3)
         self.assertEqual(input_hipdnn.grad, input_miopen.grad, atol=1e-3, rtol=1e-3)
 
+    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
+    def test_batchnorm_hipdnn_backend_selection(self):
+        # impl_index: 0=Native, 1=cuDNN, 2=MIOpen, 3=hipDNN
+        c = 16
+        bn = torch.nn.BatchNorm2d(c).cuda()
+        input = torch.randn(4, c, 8, 8, device="cuda")
+
+        # With hipdnn enabled, should select hipDNN backend (index 3)
+        with torch.backends.hipdnn.flags(enabled=True):
+            _, _, _, _, impl_index = torch._batch_norm_impl_index(
+                input, bn.weight, bn.bias, bn.running_mean, bn.running_var,
+                bn.training, bn.momentum, bn.eps, torch.backends.cudnn.enabled)
+            self.assertEqual(impl_index, 3)
+
+        # With hipdnn disabled, should fall back to MIOpen (index 2)
+        with torch.backends.hipdnn.flags(enabled=False):
+            _, _, _, _, impl_index = torch._batch_norm_impl_index(
+                input, bn.weight, bn.bias, bn.running_mean, bn.running_var,
+                bn.training, bn.momentum, bn.eps, torch.backends.cudnn.enabled)
+            self.assertEqual(impl_index, 2)
+
     @unittest.skipIf(not TEST_CUDA, "CUDA unavailable")
     def test_batchnorm_cudnn_half(self):
         # THNN
