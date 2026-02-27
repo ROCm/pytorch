@@ -479,7 +479,7 @@ class TORCH_API Context {
   bool allow_fp16_bf16_reduction_mathSDP = false;
   bool benchmark_cudnn = false;
   bool immediate_miopen = false;
-  bool enabled_hipdnn = true;
+  bool enabled_hipdnn = false;
   Float32MatmulPrecision float32_matmul_precision =
       c10::utils::check_env("TORCH_ALLOW_TF32_CUBLAS_OVERRIDE") == true
       ? at::Float32MatmulPrecision::HIGH
