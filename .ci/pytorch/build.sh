@@ -246,9 +246,12 @@ elif [[ "$BUILD_ENVIRONMENT" == *-debug* ]]; then
   export CMAKE_BUILD_TYPE=RelWithAssert
 fi
 
-# Do not change workspace permissions for ROCm and s390x CI jobs
-# as it can leave workspace with bad permissions for cancelled jobs
-if [[ "$BUILD_ENVIRONMENT" != *rocm* && "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && -d /var/lib/jenkins/workspace ]]; then
+# Do not change workspace permissions for s390x CI jobs
+# as it can leave workspace with bad permissions for cancelled jobs.
+# ROCm builds need this chown so build_amd.py can write to third_party submodule files.
+# The EXIT trap below restores original ownership, and ephemeral runners (GHA-hosted
+# or k8s ARC pods) destroy the workspace on termination regardless.
+if [[ "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && -d /var/lib/jenkins/workspace ]]; then
   # Workaround for dind-rootless userid mapping (https://github.com/pytorch/ci-infra/issues/96)
   WORKSPACE_ORIGINAL_OWNER_ID=$(stat -c '%u' "/var/lib/jenkins/workspace")
   cleanup_workspace() {
