@@ -77,10 +77,10 @@ Tensor expandScale(const Tensor& t, int64_t dim) {
 
 }  // namespace
 
-inline std::shared_ptr<hipdnn_frontend::graph::Tensor_attributes>
+inline std::shared_ptr<hipdnn_frontend::graph::TensorAttributes>
     createTensorAttributes(const Tensor& t)
 {
-    auto tensor = std::make_shared<hipdnn_frontend::graph::Tensor_attributes>();
+    auto tensor = std::make_shared<hipdnn_frontend::graph::TensorAttributes>();
     tensor->set_dim(t.sizes().vec()).set_data_type(getHipdnnDataType(t));
     tensor->set_stride(t.strides().vec());
     return tensor;

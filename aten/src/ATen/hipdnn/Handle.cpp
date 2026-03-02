@@ -4,16 +4,18 @@
 
 #include <ATen/hip/Exceptions.h>
 #include <ATen/hipdnn/Exceptions.h>
+#include <hipdnn/frontend/hipdnn_frontend/Handle.hpp>
 
 namespace at::native {
 namespace {
 
 using namespace hipdnn_frontend;
 using namespace hipdnn_frontend::detail;
-using namespace hipdnn_data_sdk;
 
 void createHipdnnHandle(hipdnnHandle_t *handle) {
-  HIPDNN_CHECK(hipdnnBackend()->create(handle));
+  // HIPDNN_CHECK(hipdnnBackend()->create(handle));
+  // HIPDNN_FE_CHECK(hipdnn_frontend::createHipdnnHandle(handle, c10::hip::getCurrentHIPStream()));  
+  HIPDNN_CHECK(hipdnnCreate(handle));
 }
 
 void destroyHipdnnHandle(hipdnnHandle_t handle) {
@@ -42,7 +44,9 @@ hipdnnHandle_t getHipdnnHandle() {
       pool->newPoolWindow());
 
   auto handle = myPoolWindow->reserve(device);
-  HIPDNN_CHECK(hipdnnBackend()->setStream(handle, c10::hip::getCurrentHIPStream()));
+  // HIPDNN_CHECK(hipdnnBackend()->setStream(handle, c10::hip::getCurrentHIPStream()));
+  // HIPDNN_FE_CHECK(hipdnn_frontend::setHipdnnHandleStream(*handle, c10::hip::getCurrentHIPStream()));
+  HIPDNN_CHECK(hipdnnSetStream(handle, c10::hip::getCurrentHIPStream()));
   return handle;
 }
 
