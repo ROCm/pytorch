@@ -20,16 +20,16 @@ namespace at::native {
 
 Tensor hipdnn_convolution(
     const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding, c10::SymIntArrayRef stride, c10::SymIntArrayRef dilation,
-    c10::SymInt groups, bool benchmark, bool deterministic) {
+    IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation,
+    int64_t groups, bool benchmark, bool deterministic) {
   TORCH_CHECK(false, "hipdnn_convolution: ATen not compiled with ROCm support");
 }
 
 Tensor hipdnn_convolution_transpose(
     const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding, c10::SymIntArrayRef output_padding,
-    c10::SymIntArrayRef stride, c10::SymIntArrayRef dilation,
-    c10::SymInt groups, bool benchmark, bool deterministic) {
+    IntArrayRef padding, IntArrayRef output_padding,
+    IntArrayRef stride, IntArrayRef dilation,
+    int64_t groups, bool benchmark, bool deterministic) {
   TORCH_CHECK(false, "hipdnn_convolution_transpose: ATen not compiled with ROCm support");
 }
 
@@ -41,16 +41,16 @@ namespace at::native {
 
 Tensor hipdnn_convolution(
     const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding, c10::SymIntArrayRef stride, c10::SymIntArrayRef dilation,
-    c10::SymInt groups, bool benchmark, bool deterministic) {
+    IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation,
+    int64_t groups, bool benchmark, bool deterministic) {
   TORCH_CHECK(false, "hipdnn_convolution: not compiled with hipDNN support");
 }
 
 Tensor hipdnn_convolution_transpose(
     const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding, c10::SymIntArrayRef output_padding,
-    c10::SymIntArrayRef stride, c10::SymIntArrayRef dilation,
-    c10::SymInt groups, bool benchmark, bool deterministic) {
+    IntArrayRef padding, IntArrayRef output_padding,
+    IntArrayRef stride, IntArrayRef dilation,
+    int64_t groups, bool benchmark, bool deterministic) {
   TORCH_CHECK(false, "hipdnn_convolution_transpose: not compiled with hipDNN support");
 }
 
@@ -428,17 +428,12 @@ Tensor hipdnn_convolution(
     const Tensor& input_t,
     const Tensor& weight_t,
     const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding_,
-    c10::SymIntArrayRef stride_,
-    c10::SymIntArrayRef dilation_,
-    c10::SymInt groups_,
+    IntArrayRef padding,
+    IntArrayRef stride,
+    IntArrayRef dilation,
+    int64_t groups,
     bool benchmark,
     bool deterministic) {
-
-  auto padding = C10_AS_INTARRAYREF_SLOW(padding_);
-  auto stride = C10_AS_INTARRAYREF_SLOW(stride_);
-  auto dilation = C10_AS_INTARRAYREF_SLOW(dilation_);
-  auto groups = groups_.expect_int();
 
   TensorArg input{input_t, "input", 1};
   TensorArg weight{weight_t, "weight", 2};
@@ -468,19 +463,13 @@ Tensor hipdnn_convolution_transpose(
     const Tensor& input_t,
     const Tensor& weight_t,
     const std::optional<Tensor>& bias_opt,
-    c10::SymIntArrayRef padding_,
-    c10::SymIntArrayRef output_padding_,
-    c10::SymIntArrayRef stride_,
-    c10::SymIntArrayRef dilation_,
-    c10::SymInt groups_,
+    IntArrayRef padding,
+    IntArrayRef output_padding,
+    IntArrayRef stride,
+    IntArrayRef dilation,
+    int64_t groups,
     bool benchmark,
     bool deterministic) {
-
-  auto padding = C10_AS_INTARRAYREF_SLOW(padding_);
-  auto output_padding = C10_AS_INTARRAYREF_SLOW(output_padding_);
-  auto stride = C10_AS_INTARRAYREF_SLOW(stride_);
-  auto dilation = C10_AS_INTARRAYREF_SLOW(dilation_);
-  auto groups = groups_.expect_int();
 
   TensorArg input{input_t, "input", 1};
   TensorArg weight{weight_t, "weight", 2};
