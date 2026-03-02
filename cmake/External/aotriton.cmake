@@ -38,6 +38,8 @@ if(NOT __AOTRITON_INCLUDED)
       "amd-gfx950"
       "amd-gfx11xx"
       "amd-gfx120x"
+      # TODO: Update on AOTriton integration
+      #"amd-gfx1250"
      )
   set(__AOTRITON_IMAGE_SHA256_LIST
      "fe9f04b66bf52ac27cd025e1d89cfd04974dd3fb3ae076192f783641a4d80fdf" # amd-gfx90a
@@ -45,6 +47,9 @@ if(NOT __AOTRITON_INCLUDED)
      "c1ba3bfe84217fd67df3dd1f8b67c80a7f7b33d0ad4d74b41d6567036e032ace" # amd-gfx950
      "6632040c405d833be6ff72029249c776838baf5f03a3c13ba4e8d37a87b7a740" # amd-gfx11xx
      "0a4ff324bffdac0c2fde87a8a7f70563d3c84a80ad4e8f31345f2b40a1384e95" # amd-gfx120x
+     # TODO: Update when AOTriton publishes gfx1250 images.
+     # Until then, may need to set AOTRITON_INSTALL_FROM_SOURCE=1 to build from source.
+     #"0000000000000000000000000000000000000000000000000000000000000000" # amd-gfx1250
      )
   set(__AOTRITON_BASE_URL "https://github.com/ROCm/aotriton/releases/download/")  # @lint-ignore
   set(__AOTRITON_Z "gz")

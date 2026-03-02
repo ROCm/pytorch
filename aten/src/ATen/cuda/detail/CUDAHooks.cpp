@@ -539,6 +539,43 @@ bool CUDAHooks::isGPUArch(const std::vector<std::string>& archs, DeviceIndex dev
   }
   return false;
 }
+
+#if 0
+// 1) The following two methods are missing from
+// the corresponding header because it's behind the upstream.
+// 2) `gfx1250` should be involved in these two methods.
+const std::vector<std::string>& CUDAHooks::getHipblasltPreferredArchs() const {
+  static const std::vector<std::string> archs = {
+    "gfx90a", "gfx942",
+#if ROCM_VERSION >= 60400
+    "gfx1200", "gfx1201",
+#endif
+#if ROCM_VERSION >= 70000
+    "gfx950",
+#endif
+#if ROCM_VERSION >= 70200
+    "gfx1250"
+#endif
+  };
+  return archs;
+}
+
+const std::vector<std::string>& CUDAHooks::getHipblasltSupportedArchs() const {
+  static const std::vector<std::string> archs = {
+    "gfx90a", "gfx942",
+#if ROCM_VERSION >= 60300
+    "gfx1100", "gfx1101", "gfx1103", "gfx1200", "gfx1201", "gfx908",
+#endif
+#if ROCM_VERSION >= 70000
+    "gfx950", "gfx1150", "gfx1151",
+#endif
+#if ROCM_VERSION >= 70200
+    "gfx1250"
+#endif
+  };
+  return archs;
+}
+#endif
 #endif
 
 void CUDAHooks::deviceSynchronize(DeviceIndex device_index) const {

@@ -940,6 +940,10 @@ cmake_dependent_option(
   OFF)
 
 
+# TODO:
+# MSLK related parts are missing that already exists upstream.
+# gfx1250 for MSLK needs to be involved as well.
+
 IF(USE_ROCM AND "gfx942" IN_LIST PYTORCH_ROCM_ARCH)
   message(WARNING "Setting USE_FBGEMM_GENAI for gfx942 to ON by default, doing ROCM build")
   set(USE_FBGEMM_GENAI_DEFAULT ON)

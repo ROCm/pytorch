@@ -12,7 +12,8 @@
 #include <hip/hip_bf16.h>
 
 __device__ inline __hip_bfloat162 preview_unsafeAtomicAdd(__hip_bfloat162* address, __hip_bfloat162 value) {
-#if (defined(__gfx942__)) && \
+// `__gfx1250__`-specific `s_wait_loadcnt(0)` path for committed store already there
+#if (defined(__gfx942__) || defined(__gfx1250__)) && \
   __has_builtin(__builtin_amdgcn_flat_atomic_fadd_v2bf16)
   typedef unsigned short __attribute__((ext_vector_type(2))) vec_short2;
   static_assert(sizeof(vec_short2) == sizeof(__hip_bfloat162_raw));
@@ -263,7 +264,8 @@ __device__ inline void cmtdStore(void* address, T value) {
 }
 #endif
 
-#if (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) || defined(__gfx950__))
+// opportunistic_fastAtomicAdd uses Wave64 assumptions.
+#if (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) || defined(__gfx950__)) && !defined(__gfx1250__)
 // This function implements warp-level opportunistic fastatomics
 // To reduce contention on an atomicAdd, this replaces per-thread atomicAdd with a per-warp atomicAdd.
 // We identify all the threads within a warp that will perform an atomicAdd on the same destination

@@ -30,7 +30,7 @@ static void initHipSparseLtSupport() {
     // Check only the first available device
     try {
         if (at::cuda::device_count() > 0) {
-            g_hipSparseLtSupported = at::detail::getCUDAHooks().isGPUArch({"gfx950", "gfx942"}, 0);
+            g_hipSparseLtSupported = at::detail::getCUDAHooks().isGPUArch({"gfx950", "gfx942", "gfx1250"}, 0);
         }
     } catch (const std::exception&) {
         // If an exception occurs during device property check, we assume hipSparseLt is not supported

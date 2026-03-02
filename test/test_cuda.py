@@ -625,7 +625,7 @@ print(t.is_pinned())
                 gcn_arch = str(
                     torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
                 )
-                if gcn_arch in ["gfx90a", "gfx942", "gfx950", "gfx1200", "gfx1201"]:
+                if gcn_arch in ["gfx90a", "gfx942", "gfx950", "gfx1200", "gfx1201", "gfx1250"]:
                     self.assertTrue(default == torch._C._BlasBackend.Cublaslt)
                 else:
                     self.assertTrue(default == torch._C._BlasBackend.Cublas)
@@ -692,7 +692,7 @@ print(t.is_pinned())
             gcn_arch = str(
                 torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
             )
-            if "gfx94" in gcn_arch or "gfx95" in gcn_arch:
+            if "gfx94" in gcn_arch or "gfx95" in gcn_arch or "gfx1250" in gcn_arch:
                 default_workspace_size = 1024 * 128 * 1024  # :1024:128
         else:
             default_workspace_size = (
@@ -7114,7 +7114,7 @@ class TestCompileKernel(TestCase):
         if torch.version.hip:
             max_smem = (
                 65536
-                if get_device_properties().gcnArchName not in ["gfx950"]
+                if get_device_properties().gcnArchName not in ["gfx950", "gfx1250"]
                 else 160 * 1024
             )
         else:

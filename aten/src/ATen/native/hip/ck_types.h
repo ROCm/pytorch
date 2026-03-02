@@ -7,6 +7,7 @@
  */
 
 // work around CK assuming only a single FP8 interpretation at a time
+// Correct for CDNA 5 (GFX1250)
 #if(defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__)) && __HIP_DEVICE_COMPILE__
 #define CK_USE_FNUZ_FP8 1
 #undef CK_USE_OCP_FP8
