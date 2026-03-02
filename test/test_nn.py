@@ -5283,8 +5283,9 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
+    @parametrize_test("backend", ["default", "hipdnn"] if torch.backends.hipdnn.is_available() else ["default"], name_fn=lambda x: x if x == "hipdnn" else x)
     @parametrize_test("dims", [2, 3], name_fn=lambda x: f"{x}D")
-    @parametrize_test("mode", ["train", "inference"], name_fn=lambda x: x)
+    @parametrize_test("mode", ["train", "inference"], name_fn=lambda x: x)    
     @parametrize_test(
         # test verifies cudnn/miopen batchnorm with the reference backend or memory format
         # memory_format - one of ("NCHW", NHWC")
@@ -5319,7 +5320,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         ],
         name_fn=lambda f, b, m, t: f"{f}_vs_{b}{'_mixed' if m else ''}_{dtype_name(t)}"
     )
-    def test_batchnorm(self, dims, mode, memory_format, ref_backend, mixed, dtype):
+    def test_batchnorm(self, backend, dims, mode, memory_format, ref_backend, mixed, dtype):
         if torch.version.cuda:
             if self._testMethodName in ("test_batchnorm_2D_train_NCHW_vs_cpu_mixed_bfloat16",
                                         "test_batchnorm_3D_train_NCHW_vs_cpu_mixed_bfloat16",
@@ -5448,7 +5449,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 ref_out = ref_mod(ref_inp)
             self.assertEqual(out, ref_out)
 
-        with torch.backends.hipdnn.flags(enabled=torch.backends.hipdnn.is_available()):
+        with torch.backends.hipdnn.flags(enabled=True) if backend == "hipdnn" else contextlib.nullcontext():
             if mode == "train":
                 _train(memory_format, ref_backend, mixed, dtype)
             else:
