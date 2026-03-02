@@ -5081,77 +5081,6 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
         run_test(input, grad)
 
     @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
-    def test_batchnorm_hipdnn_inference(self):
-        c = 16
-        weight = torch.empty(c, device="cuda").uniform_()
-        bias = torch.empty(c, device="cuda").uniform_()
-        running_mean = torch.empty(c, device="cuda").uniform_(-1, 1)
-        running_var = torch.empty(c, device="cuda").uniform_(0.5, 2.0)
-        input = torch.randn(4, c, 8, 8, device="cuda")
-
-        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
-            input, weight, bias, running_mean, running_var,
-            False, 0.1, 1e-5)
-        out_ref = torch.nn.functional.batch_norm(
-            input.cpu(), running_mean.cpu(), running_var.cpu(),
-            weight.cpu(), bias.cpu(),
-            training=False, momentum=0.1, eps=1e-5)
-
-        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
-
-    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
-    def test_batchnorm_hipdnn_training(self):
-        c = 16
-        weight = torch.empty(c, device="cuda").uniform_()
-        bias = torch.empty(c, device="cuda").uniform_()
-        running_mean = torch.zeros(c, device="cuda")
-        running_var = torch.ones(c, device="cuda")
-        input = torch.randn(4, c, 8, 8, device="cuda")
-
-        input_hipdnn = input.clone().requires_grad_(True)
-        input_ref = input.cpu().clone().requires_grad_(True)
-
-        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
-            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
-            True, 0.1, 1e-5)
-        out_hipdnn.sum().backward()
-
-        out_ref = torch.nn.functional.batch_norm(
-            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
-            weight.cpu(), bias.cpu(),
-            training=True, momentum=0.1, eps=1e-5)
-        out_ref.sum().backward()
-
-        self.assertEqual(out_hipdnn.cpu(), out_ref, atol=1e-5, rtol=1e-5)
-        self.assertEqual(input_hipdnn.grad.cpu(), input_ref.grad, atol=1e-5, rtol=1e-5)
-
-    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
-    def test_batchnorm_hipdnn_half(self):
-        c = 16
-        weight = torch.empty(c, device="cuda").uniform_()
-        bias = torch.empty(c, device="cuda").uniform_()
-        running_mean = torch.zeros(c, device="cuda")
-        running_var = torch.ones(c, device="cuda")
-        input = torch.randn(4, c, 8, 8, device="cuda", dtype=torch.half)
-
-        input_hipdnn = input.clone().requires_grad_(True)
-        input_ref = input.cpu().float().clone().requires_grad_(True)
-
-        out_hipdnn, _, _ = torch.hipdnn_batch_norm(
-            input_hipdnn, weight, bias, running_mean.clone(), running_var.clone(),
-            True, 0.1, 1e-5)
-        out_hipdnn.sum().backward()
-
-        out_ref = torch.nn.functional.batch_norm(
-            input_ref, running_mean.cpu().clone(), running_var.cpu().clone(),
-            weight.cpu(), bias.cpu(),
-            training=True, momentum=0.1, eps=1e-5)
-        out_ref.sum().backward()
-
-        self.assertEqual(out_hipdnn.cpu().float(), out_ref, atol=1e-3, rtol=1e-3)
-        self.assertEqual(input_hipdnn.grad.cpu().float(), input_ref.grad, atol=1e-3, rtol=1e-3)
-
-    @unittest.skipIf(not TEST_HIPDNN, "hipDNN not available")
     def test_batchnorm_hipdnn_backend_selection(self):
         # impl_index: 0=Native, 1=cuDNN, 2=MIOpen, 3=hipDNN
         c = 16
@@ -5283,7 +5212,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    @parametrize_test("backend", ["default", "hipdnn"] if torch.backends.hipdnn.is_available() else ["default"], name_fn=lambda x: x if x == "hipdnn" else x)
+    @parametrize_test("backend", ["default", "hipdnn"] if TEST_HIPDNN else ["default"], name_fn=lambda x: x if x == "hipdnn" else "")
     @parametrize_test("dims", [2, 3], name_fn=lambda x: f"{x}D")
     @parametrize_test("mode", ["train", "inference"], name_fn=lambda x: x)    
     @parametrize_test(
