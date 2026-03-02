@@ -150,6 +150,27 @@ if [[ "$BUILD_ENVIRONMENT" == *vulkan* ]]; then
   source /var/lib/jenkins/vulkansdk/setup-env.sh
 fi
 
+# Do not change workspace permissions for s390x CI jobs
+# as it can leave workspace with bad permissions for cancelled jobs.
+# ROCm builds need this chown so build_amd.py can write to third_party submodule files.
+# The EXIT trap below restores original ownership, and ephemeral runners (GHA-hosted
+# or k8s ARC pods) destroy the workspace on termination regardless.
+if [[ "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && -d /var/lib/jenkins/workspace ]]; then
+  # Workaround for dind-rootless userid mapping (https://github.com/pytorch/ci-infra/issues/96)
+  WORKSPACE_ORIGINAL_OWNER_ID=$(stat -c '%u' "/var/lib/jenkins/workspace")
+  cleanup_workspace() {
+    echo "sudo may print the following warning message that can be ignored. The chown command will still run."
+    echo "    sudo: setrlimit(RLIMIT_STACK): Operation not permitted"
+    echo "For more details refer to https://github.com/sudo-project/sudo/issues/42"
+    sudo chown -R "$WORKSPACE_ORIGINAL_OWNER_ID" /var/lib/jenkins/workspace
+  }
+  # Disable shellcheck SC2064 as we want to parse the original owner immediately.
+  # shellcheck disable=SC2064
+  trap_add cleanup_workspace EXIT
+  sudo chown -R jenkins /var/lib/jenkins/workspace
+  git config --global --add safe.directory /var/lib/jenkins/workspace
+fi
+
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   # hcc used to run out of memory, silently exiting without stopping
   # the build process, leaving undefined symbols in the shared lib,
@@ -244,27 +265,6 @@ if [[ "$BUILD_ENVIRONMENT" == *-full-debug* ]]; then
   export CMAKE_BUILD_TYPE=Debug
 elif [[ "$BUILD_ENVIRONMENT" == *-debug* ]]; then
   export CMAKE_BUILD_TYPE=RelWithAssert
-fi
-
-# Do not change workspace permissions for s390x CI jobs
-# as it can leave workspace with bad permissions for cancelled jobs.
-# ROCm builds need this chown so build_amd.py can write to third_party submodule files.
-# The EXIT trap below restores original ownership, and ephemeral runners (GHA-hosted
-# or k8s ARC pods) destroy the workspace on termination regardless.
-if [[ "$BUILD_ENVIRONMENT" != *s390x* && "$BUILD_ENVIRONMENT" != *riscv64* && -d /var/lib/jenkins/workspace ]]; then
-  # Workaround for dind-rootless userid mapping (https://github.com/pytorch/ci-infra/issues/96)
-  WORKSPACE_ORIGINAL_OWNER_ID=$(stat -c '%u' "/var/lib/jenkins/workspace")
-  cleanup_workspace() {
-    echo "sudo may print the following warning message that can be ignored. The chown command will still run."
-    echo "    sudo: setrlimit(RLIMIT_STACK): Operation not permitted"
-    echo "For more details refer to https://github.com/sudo-project/sudo/issues/42"
-    sudo chown -R "$WORKSPACE_ORIGINAL_OWNER_ID" /var/lib/jenkins/workspace
-  }
-  # Disable shellcheck SC2064 as we want to parse the original owner immediately.
-  # shellcheck disable=SC2064
-  trap_add cleanup_workspace EXIT
-  sudo chown -R jenkins /var/lib/jenkins/workspace
-  git config --global --add safe.directory /var/lib/jenkins/workspace
 fi
 
 if [[ "$BUILD_ENVIRONMENT" == *-bazel-* ]]; then
