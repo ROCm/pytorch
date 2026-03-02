@@ -106,7 +106,7 @@ jobs:
         run: |
           echo "Getting project information..."
 
-          # Get project node ID and existing fields
+          # Try user-owned project first.
           project_data=$(gh api graphql -f query='
             query($owner: String!, $number: Int!) {
               user(login: $owner) {
@@ -128,13 +128,13 @@ jobs:
                   }
                 }
               }
-            }' -f owner="${PROJECT_OWNER}" -F number="${PROJECT_NUMBER}")
+            }' -f owner="${PROJECT_OWNER}" -F number="${PROJECT_NUMBER}" 2>/dev/null || true)
 
-          project_id=$(echo "$project_data" | jq -r '.data.user.projectV2.id')
-          echo "Project ID: $project_id"
+          project_id=$(echo "$project_data" | jq -r '.data.user.projectV2.id // empty' 2>/dev/null || true)
+          echo "User project ID: ${project_id:-'(none)'}"
 
-          if [[ "$project_id" == "null" || -z "$project_id" ]]; then
-            echo "User project not found. Trying organization query..."
+          if [[ -z "$project_id" ]]; then
+            echo "User project not found (or owner is an org). Trying organization query..."
             project_data=$(gh api graphql -f query='
               query($owner: String!, $number: Int!) {
                 organization(login: $owner) {
@@ -156,12 +156,18 @@ jobs:
                     }
                   }
                 }
-              }' -f owner="${PROJECT_OWNER}" -F number="${PROJECT_NUMBER}")
+              }' -f owner="${PROJECT_OWNER}" -F number="${PROJECT_NUMBER}" 2>/dev/null || true)
 
-            project_id=$(echo "$project_data" | jq -r '.data.organization.projectV2.id')
-            fields_json=$(echo "$project_data" | jq -r '.data.organization.projectV2.fields.nodes')
+            project_id=$(echo "$project_data" | jq -r '.data.organization.projectV2.id // empty' 2>/dev/null || true)
+            fields_json=$(echo "$project_data" | jq -r '.data.organization.projectV2.fields.nodes // empty' 2>/dev/null || true)
           else
-            fields_json=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes')
+            fields_json=$(echo "$project_data" | jq -r '.data.user.projectV2.fields.nodes // empty' 2>/dev/null || true)
+          fi
+
+          if [[ -z "$project_id" || -z "$fields_json" ]]; then
+            echo "Error: Could not resolve project owner '${PROJECT_OWNER}' project #${PROJECT_NUMBER}."
+            echo "If PROJECT_OWNER is an organization, ensure PROJECT_OWNER is exactly the org login and token has org access."
+            exit 1
           fi
 
           echo "Project ID: $project_id"
@@ -272,7 +278,12 @@ jobs:
             issue_url=$(gh issue create \
               --repo "${TARGET_REPO}" \
               --title "${subject}" \
-              --body "${body}")
+              --body "${body}" 2>/dev/null || true)
+
+            if [[ -z "${issue_url}" ]]; then
+              echo "  ERROR: Failed to create issue for ${short_hash}. Skipping."
+              continue
+            fi
 
             echo "  Created: ${issue_url}"
 
