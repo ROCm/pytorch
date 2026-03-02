@@ -70,6 +70,8 @@
 #include <ATen/ops/empty.h>
 #include <ATen/ops/empty_like.h>
 #include <ATen/ops/empty_native.h>
+#include <ATen/ops/hipdnn_convolution.h>
+#include <ATen/ops/hipdnn_convolution_transpose.h>
 #include <ATen/ops/miopen_convolution.h>
 #include <ATen/ops/miopen_convolution_transpose.h>
 #include <ATen/ops/miopen_depthwise_convolution.h>
@@ -492,6 +494,16 @@ struct ConvParams {
            && !(groups > 1 && is_dilated()) // MIOpen currently does not support dilation with groups of size > 1
            ;
   }
+  bool use_hipdnn(const at::Tensor& input, const at::Tensor& weight) const {
+    if (!at::globalContext().userEnabledHipdnn()) return false;
+    if (!detail::getCUDAHooks().compiledWithHipDNN()) return false;
+    if (!input.is_cuda()) return false;
+    auto dtype = input.scalar_type();
+    if (dtype != at::kFloat && dtype != at::kHalf && dtype != at::kBFloat16) return false;
+    if (input.dim() < 4 || input.dim() > 5) return false;
+    if (!cudnn_enabled) return false;
+    return true;
+  }
   bool use_mkldnn(const at::Tensor& input, const at::Tensor& weight) const  {
 #if AT_MKLDNN_ENABLED()
     if (!at::globalContext().userEnabledMkldnn()) {
@@ -623,6 +635,8 @@ DEFINE_DISPATCH(convolution_depthwise3x3_winograd_stub);
 DEFINE_DISPATCH(miopen_convolution_backward_stub);
 DEFINE_DISPATCH(miopen_convolution_transpose_backward_stub);
 DEFINE_DISPATCH(miopen_depthwise_convolution_backward_stub);
+DEFINE_DISPATCH(hipdnn_convolution_backward_stub);
+DEFINE_DISPATCH(hipdnn_convolution_transpose_backward_stub);
 DEFINE_DISPATCH(mkldnn_convolution_backward_stub);
 DEFINE_DISPATCH(mkldnn_convolution_transpose_stub);
 DEFINE_DISPATCH(mkldnn_convolution_transpose_backward_stub);
@@ -636,6 +650,8 @@ REGISTER_NO_CPU_DISPATCH(cudnn_convolution_transpose_backward_stub)
 REGISTER_NO_CPU_DISPATCH(miopen_convolution_backward_stub)
 REGISTER_NO_CPU_DISPATCH(miopen_convolution_transpose_backward_stub)
 REGISTER_NO_CPU_DISPATCH(miopen_depthwise_convolution_backward_stub)
+REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_backward_stub)
+REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_transpose_backward_stub)
 
 template <typename T>
 static std::ostream& operator<<(std::ostream & out, const ConvParams<T>& params) {
@@ -1275,6 +1291,8 @@ static ConvBackend _select_conv_backend(
   if (params.is_depthwise(input, weight)) {
     if (params.use_cudnn_depthwise(input, weight)) {
       return ConvBackend::Cudnn;
+    } else if (params.use_hipdnn(input, weight)) {
+      return ConvBackend::Hipdnn;
     } else if (params.use_miopen(input, weight, bias_sizes_opt.has_value())) {
       return ConvBackend::MiopenDepthwise;
     } else {
@@ -1291,6 +1309,12 @@ static ConvBackend _select_conv_backend(
       return ConvBackend::CudnnTranspose;
     } else {
       return ConvBackend::Cudnn;
+    }
+  } else if (params.use_hipdnn(input, weight)) {
+    if (params.transposed) {
+      return ConvBackend::HipdnnTranspose;
+    } else {
+      return ConvBackend::Hipdnn;
     }
   } else if (params.use_miopen(input, weight, bias_sizes_opt.has_value())) {
     if (params.transposed) {
@@ -1489,6 +1513,10 @@ static inline at::MemoryFormat determine_backend_memory_format(
         backend_memory_format = miopen_conv_suggest_memory_format(input, weight);
       }
       break;
+    case ConvBackend::Hipdnn:
+    case ConvBackend::HipdnnTranspose:
+      backend_memory_format = hipdnn_conv_suggest_memory_format(input, weight);
+      break;
     case ConvBackend::Mkldnn:
     case ConvBackend::MkldnnTranspose:
       if (mkldnn_conv_use_channels_last(input, weight)) {
@@ -1629,6 +1657,18 @@ at::Tensor _convolution(
       output = output.view(calc_output_size(input, weight, params));
       break;
     }
+    case ConvBackend::Hipdnn:
+      check_input_same_type_as_parameters(input, weight, bias);
+      output = at::hipdnn_convolution(
+          input.contiguous(backend_memory_format), weight, bias, params.padding, params.stride,
+          params.dilation, params.groups, params.benchmark, params.deterministic);
+      break;
+    case ConvBackend::HipdnnTranspose:
+      check_input_same_type_as_parameters(input, weight, bias);
+      output = at::hipdnn_convolution_transpose(
+          input.contiguous(backend_memory_format), weight, bias, params.padding, params.output_padding,
+          params.stride, params.dilation, params.groups, params.benchmark, params.deterministic);
+      break;
     case ConvBackend::Miopen:
       check_input_same_type_as_parameters(input, weight, bias);
       output = at::miopen_convolution(
@@ -2200,6 +2240,22 @@ std::tuple<Tensor, Tensor, Tensor> convolution_backward(
 #else
       TORCH_INTERNAL_ASSERT(false, "Mkldnn backend was selected in PyTorch compiled without mkldnn support");
 #endif
+      break;
+    case ConvBackend::Hipdnn:
+      check_input_same_type_as_parameters(input, weight);
+      std::tie(backend_grad_input, backend_grad_weight, backend_grad_bias) =
+        hipdnn_convolution_backward_stub(
+          input.device().type(),
+          input.contiguous(backend_memory_format), grad_output, weight, params.padding, params.stride,
+          params.dilation, params.groups, params.benchmark, params.deterministic, output_mask);
+      break;
+    case ConvBackend::HipdnnTranspose:
+      check_input_same_type_as_parameters(input, weight);
+      std::tie(backend_grad_input, backend_grad_weight, backend_grad_bias) =
+        hipdnn_convolution_transpose_backward_stub(
+          input.device().type(),
+          input.contiguous(backend_memory_format), grad_output, weight, params.padding, params.output_padding,
+          params.stride, params.dilation, params.groups, params.benchmark, params.deterministic, output_mask);
       break;
     case ConvBackend::Miopen:
       check_input_same_type_as_parameters(input, weight);
