@@ -686,7 +686,6 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
-    @skipIfRocmArch(NAVI3_ARCH + NAVI4_ARCH)
     def test_ring_flex_attention(self) -> None:
         self.run_subtests(
             {"qkv_size": [128 * self.world_size, 2048]},
@@ -706,7 +705,6 @@ class RingFlexAttentionTest(DTensorTestBase):
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention"
     )
-    @skipIfRocmArch(NAVI3_ARCH + NAVI4_ARCH)
     def test_ring_flex_attention_document_mask(self) -> None:
         random.seed(10)
 
