@@ -12,9 +12,7 @@ namespace {
 using namespace hipdnn_frontend;
 using namespace hipdnn_frontend::detail;
 
-void createHipdnnHandle(hipdnnHandle_t *handle) {
-  // HIPDNN_CHECK(hipdnnBackend()->create(handle));
-  // HIPDNN_FE_CHECK(hipdnn_frontend::createHipdnnHandle(handle, c10::hip::getCurrentHIPStream()));  
+void createHipdnnHandle(hipdnnHandle_t *handle) { 
   HIPDNN_CHECK(hipdnnCreate(handle));
 }
 
@@ -44,8 +42,6 @@ hipdnnHandle_t getHipdnnHandle() {
       pool->newPoolWindow());
 
   auto handle = myPoolWindow->reserve(device);
-  // HIPDNN_CHECK(hipdnnBackend()->setStream(handle, c10::hip::getCurrentHIPStream()));
-  // HIPDNN_FE_CHECK(hipdnn_frontend::setHipdnnHandleStream(*handle, c10::hip::getCurrentHIPStream()));
   HIPDNN_CHECK(hipdnnSetStream(handle, c10::hip::getCurrentHIPStream()));
   return handle;
 }
