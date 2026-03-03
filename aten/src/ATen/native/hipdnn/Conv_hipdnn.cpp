@@ -249,6 +249,7 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
   auto inputType = getHipdnnDataType(input);
   auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
   graph->set_io_data_type(inputType)
+      .set_intermediate_data_type(hipdnn_frontend::DataType::FLOAT)
       .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
 
   auto x_attr = createTensorAttributes(input);
@@ -265,7 +266,6 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
 
   int64_t bias_uid = 0;
   if (bias) {
-    // Set intermediate tensor dims/strides so pointwise can derive shapes
     conv_out->set_dim(output.sizes().vec());
     conv_out->set_stride(output.strides().vec());
 
@@ -276,6 +276,7 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
 
     hipdnn_frontend::graph::PointwiseAttributes add_attrs;
     add_attrs.set_mode(hipdnn_frontend::PointwiseMode::ADD);
+    add_attrs.set_compute_data_type(inputType);
 
     auto y_attr = graph->pointwise(conv_out, b_attr, add_attrs);
     y_attr->set_output(true).set_uid(UID_OUTPUT);
