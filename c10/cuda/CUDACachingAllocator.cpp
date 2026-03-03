@@ -21,9 +21,17 @@
 #if defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
 #include <c10/cuda/driver_api.h>
 #endif
+#if !defined(_WIN32)
 #include <sys/syscall.h>
 #include <sys/types.h>
 #include <unistd.h>
+#else
+#include <io.h>
+#include <process.h>
+using pid_t = int;
+#define getpid _getpid
+#define close _close
+#endif
 #endif
 
 #include <c10/util/Exception.h>
@@ -622,6 +630,11 @@ struct ExpandableSegment {
     buf.read(reinterpret_cast<char*>(&header), sizeof(ShareHeader));
     auto segment = std::make_unique<ExpandableSegment>(
         device, std::nullopt, header.segment_size, std::move(peers));
+    if (CUDAAllocatorConfig::expandable_segments_handle_type() !=
+        Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
+#ifdef _WIN32
+      TORCH_CHECK(false, "expandable segments IPC via posix fd is not supported on Windows");
+#else
 // older build setups (e.g. multiwheels) do not have this syscall, added 2020
 // but the kernel on the system might still support it.
 #ifndef SYS_pidfd_open
@@ -630,8 +643,6 @@ struct ExpandableSegment {
 #ifndef SYS_pidfd_getfd
 #define SYS_pidfd_getfd 438
 #endif
-    if (CUDAAllocatorConfig::expandable_segments_handle_type() !=
-        Expandable_Segments_Handle_Type::FABRIC_HANDLE) {
       auto pidfd = syscall(SYS_pidfd_open, header.pid, 0);
       TORCH_CHECK(
           pidfd != -1 || errno != ENOSYS,
@@ -683,6 +694,7 @@ struct ExpandableSegment {
         segment->handles_.emplace_back(Handle{handle, std::nullopt});
       }
       close(static_cast<int>(pidfd));
+#endif // !_WIN32
     } else {
 #ifdef USE_ROCM
       TORCH_INTERNAL_ASSERT(
