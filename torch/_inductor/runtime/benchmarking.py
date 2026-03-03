@@ -239,7 +239,6 @@ class TorchProfilerBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         # benchmark with profiler
         # Use both CPU and CUDA activities, otherwise record_function
         # will not record the region.
-        timings = []
         with torch.profiler.profile(
             activities=[
                 torch.profiler.ProfilerActivity.CPU,
