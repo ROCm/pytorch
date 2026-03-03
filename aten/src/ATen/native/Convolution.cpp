@@ -501,7 +501,6 @@ struct ConvParams {
     auto dtype = input.scalar_type();
     if (dtype != at::kFloat && dtype != at::kHalf && dtype != at::kBFloat16) return false;
     if (input.dim() < 4 || input.dim() > 5) return false;
-    if (!cudnn_enabled) return false;
     return true;
   }
   bool use_mkldnn(const at::Tensor& input, const at::Tensor& weight) const  {

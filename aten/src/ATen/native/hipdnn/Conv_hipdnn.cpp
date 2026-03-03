@@ -71,10 +71,9 @@ Tensor hipdnn_convolution_transpose(
 #include <c10/util/irange.h>
 
 #include <list>
-#include <mutex>
 #include <unordered_map>
 
-namespace at { namespace native {
+namespace at::native {
 
 // ---------------------------------------------------------------------------
 // Cache key: captures everything that determines graph topology
@@ -92,6 +91,7 @@ struct HipdnnConvParams {
   int stride[hipdnn_max_dim];
   int dilation[hipdnn_max_dim];
   int64_t groups;
+  bool has_bias;
   int operation; // 0=fprop, 1=dgrad, 2=wgrad
 };
 
@@ -103,6 +103,7 @@ static void setHipdnnConvParams(
     IntArrayRef stride,
     IntArrayRef dilation,
     int64_t groups,
+    bool has_bias,
     at::MemoryFormat memory_format,
     int operation) {
   memset(params, 0, sizeof(*params));
@@ -111,6 +112,7 @@ static void setHipdnnConvParams(
   params->input_dim = static_cast<uint8_t>(input.dim());
   params->memory_format = memory_format;
   params->groups = groups;
+  params->has_bias = has_bias;
   params->operation = operation;
   for (int i = 0; i < input.dim(); i++) {
     params->input_size[i] = static_cast<int>(input.size(i));
@@ -134,6 +136,7 @@ struct HipdnnConvCachedGraph {
   int64_t workspace_size;
   int64_t input_uid;
   int64_t weight_uid;
+  int64_t bias_uid; // 0 if no bias in graph
   int64_t output_uid;
 };
 
@@ -142,8 +145,27 @@ struct HipdnnConvCachedGraph {
 // ---------------------------------------------------------------------------
 static int getHipdnnConvCacheLimit() {
   static int limit = []{
-    auto val = c10::utils::check_env("TORCH_HIPDNN_CONV_LRU_CACHE_LIMIT");
-    return val.has_value() ? (val.value() ? 10000 : -1) : 10000;
+    constexpr int DEFAULT_LIMIT = 10000;
+    const auto val = c10::utils::get_env("TORCH_HIPDNN_CONV_LRU_CACHE_LIMIT");
+    if (!val) {
+      return DEFAULT_LIMIT;
+    }
+    try {
+      return std::stoi(val.value());
+    } catch (std::invalid_argument const&) {
+      TORCH_WARN(
+          "invalid TORCH_HIPDNN_CONV_LRU_CACHE_LIMIT,",
+          " using default LRU cache limit of ",
+          DEFAULT_LIMIT,
+          " entries.");
+    } catch (std::out_of_range const&) {
+      TORCH_WARN(
+          "invalid TORCH_HIPDNN_CONV_LRU_CACHE_LIMIT,",
+          " using default LRU cache limit of ",
+          DEFAULT_LIMIT,
+          " entries.");
+    }
+    return DEFAULT_LIMIT;
   }();
   return limit;
 }
@@ -204,15 +226,22 @@ enum HipdnnConvUid : int64_t {
   UID_INPUT = 1,
   UID_WEIGHT = 2,
   UID_OUTPUT = 3,
+  UID_BIAS = 4,
 };
 
 // ---------------------------------------------------------------------------
 // Graph builders
+//
+// Note: groups are not explicitly passed to graph builders. HipDNN infers
+// groupCount from tensor dimensions (input_channels / weight_channels_per_group).
+// PyTorch provides correctly-shaped weight tensors [C_out, C_in/groups, kH, kW].
 // ---------------------------------------------------------------------------
 static HipdnnConvCachedGraph buildConvFpropGraph(
     hipdnnHandle_t handle,
     const Tensor& input,
     const Tensor& weight,
+    const Tensor& output,
+    const Tensor* bias,
     IntArrayRef padding,
     IntArrayRef stride,
     IntArrayRef dilation) {
@@ -232,15 +261,34 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
   conv_attrs.set_stride(std::vector<int64_t>(stride.begin(), stride.end()));
   conv_attrs.set_dilation(std::vector<int64_t>(dilation.begin(), dilation.end()));
 
-  auto y_attr = graph->conv_fprop(x_attr, w_attr, conv_attrs);
-  y_attr->set_output(true).set_uid(UID_OUTPUT);
+  auto conv_out = graph->conv_fprop(x_attr, w_attr, conv_attrs);
+
+  int64_t bias_uid = 0;
+  if (bias) {
+    // Set intermediate tensor dims/strides so pointwise can derive shapes
+    conv_out->set_dim(output.sizes().vec());
+    conv_out->set_stride(output.strides().vec());
+
+    auto bias_reshaped = reshape_bias(input.dim(), *bias);
+    auto b_attr = createTensorAttributes(bias_reshaped);
+    b_attr->set_uid(UID_BIAS);
+    bias_uid = UID_BIAS;
+
+    hipdnn_frontend::graph::PointwiseAttributes add_attrs;
+    add_attrs.set_mode(hipdnn_frontend::PointwiseMode::ADD);
+
+    auto y_attr = graph->pointwise(conv_out, b_attr, add_attrs);
+    y_attr->set_output(true).set_uid(UID_OUTPUT);
+  } else {
+    conv_out->set_output(true).set_uid(UID_OUTPUT);
+  }
 
   HIPDNN_FE_CHECK(graph->build(handle));
 
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, UID_OUTPUT};
+  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, bias_uid, UID_OUTPUT};
 }
 
 static HipdnnConvCachedGraph buildConvDgradGraph(
@@ -275,7 +323,7 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, UID_OUTPUT};
+  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, /*bias_uid=*/0, UID_OUTPUT};
 }
 
 static HipdnnConvCachedGraph buildConvWgradGraph(
@@ -310,7 +358,7 @@ static HipdnnConvCachedGraph buildConvWgradGraph(
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, UID_OUTPUT};
+  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, /*bias_uid=*/0, UID_OUTPUT};
 }
 
 // ---------------------------------------------------------------------------
@@ -320,6 +368,7 @@ static void runHipdnnConvFprop(
     const Tensor& input,
     const Tensor& weight,
     const Tensor& output,
+    const Tensor* bias,
     IntArrayRef padding,
     IntArrayRef stride,
     IntArrayRef dilation,
@@ -329,13 +378,15 @@ static void runHipdnnConvFprop(
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
 
+  bool has_bias = bias != nullptr;
   HipdnnConvParams key;
   setHipdnnConvParams(&key, input, weight, padding, stride, dilation,
-                      groups, memory_format, /*operation=*/0);
+                      groups, has_bias, memory_format, /*operation=*/0);
 
   auto* cached = cache->find(key);
   if (!cached) {
-    auto entry = buildConvFpropGraph(handle, input, weight, padding, stride, dilation);
+    auto entry = buildConvFpropGraph(
+        handle, input, weight, output, bias, padding, stride, dilation);
     cache->update(key, std::move(entry));
     cached = cache->find(key);
   }
@@ -344,6 +395,9 @@ static void runHipdnnConvFprop(
   variantPack[cached->input_uid] = input.data_ptr();
   variantPack[cached->weight_uid] = weight.data_ptr();
   variantPack[cached->output_uid] = output.data_ptr();
+  if (cached->bias_uid) {
+    variantPack[cached->bias_uid] = bias->data_ptr();
+  }
 
   auto workspace = at::empty({cached->workspace_size}, input.options().dtype(at::kByte));
   HIPDNN_FE_CHECK(cached->graph->execute(handle, variantPack, workspace.data_ptr()));
@@ -366,7 +420,7 @@ static void runHipdnnConvDgrad(
   HipdnnConvParams key;
   // For dgrad, use grad_output as the "input" for the cache key
   setHipdnnConvParams(&key, grad_output, weight, padding, stride, dilation,
-                      groups, memory_format, /*operation=*/1);
+                      groups, /*has_bias=*/false, memory_format, /*operation=*/1);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -402,7 +456,7 @@ static void runHipdnnConvWgrad(
   HipdnnConvParams key;
   // For wgrad, use grad_output+input shape as key
   setHipdnnConvParams(&key, grad_output, input, padding, stride, dilation,
-                      groups, memory_format, /*operation=*/2);
+                      groups, /*has_bias=*/false, memory_format, /*operation=*/2);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -449,12 +503,10 @@ Tensor hipdnn_convolution(
       input_c.sizes(), weight_c.sizes(), padding, stride, dilation);
   auto output = at::empty(output_size, input_c.options(), memory_format);
 
-  runHipdnnConvFprop(input_c, weight_c, output, padding, stride, dilation,
-                     groups, memory_format);
-
-  if (bias_opt.has_value() && bias_opt->defined()) {
-    output.add_(reshape_bias(input_c.dim(), *bias_opt));
-  }
+  bool has_bias = bias_opt.has_value() && bias_opt->defined();
+  const Tensor* bias_ptr = has_bias ? &(*bias_opt) : nullptr;
+  runHipdnnConvFprop(input_c, weight_c, output, bias_ptr,
+                     padding, stride, dilation, groups, memory_format);
 
   return output;
 }
@@ -485,7 +537,7 @@ Tensor hipdnn_convolution_transpose(
       input_c.sizes(), weight_c.sizes(), padding, output_padding, stride, dilation, groups);
   auto output = at::empty(trans_output_size, input_c.options(), memory_format);
 
-  // Transposed conv forward is dgrad
+  // Transposed conv forward is dgrad (no bias fusion — dgrad graph has no bias path)
   runHipdnnConvDgrad(input_c, weight_c, output,
                      trans_output_size, padding, stride, dilation,
                      groups, memory_format);
@@ -532,7 +584,6 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_backward(
   }
 
   if (output_mask[2]) {
-    // Sum over all dims except channel dim (dim 1)
     std::vector<int64_t> reduce_dims;
     reduce_dims.push_back(0);
     for (int64_t i = 2; i < grad_output.dim(); i++) {
@@ -568,7 +619,7 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_transpose_backward(
   if (output_mask[0]) {
     // Transpose backward-input = fprop
     grad_input = at::empty(input_c.sizes(), input_c.options(), memory_format);
-    runHipdnnConvFprop(grad_output, weight_c, grad_input,
+    runHipdnnConvFprop(grad_output, weight_c, grad_input, /*bias=*/nullptr,
                        padding, stride, dilation, groups, memory_format);
   }
 
@@ -598,6 +649,6 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_transpose_backward(
 REGISTER_CUDA_DISPATCH(hipdnn_convolution_backward_stub, &hipdnn_convolution_backward)
 REGISTER_CUDA_DISPATCH(hipdnn_convolution_transpose_backward_stub, &hipdnn_convolution_transpose_backward)
 
-}} // namespace at::native
+} // namespace at::native
 
 #endif
