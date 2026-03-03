@@ -237,9 +237,14 @@ class TorchProfilerBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         torch.cuda.synchronize()
 
         # benchmark with profiler
+        # Use both CPU and CUDA activities, otherwise record_function
+        # will not record the region.
         timings = []
         with torch.profiler.profile(
-            activities=[torch.profiler.ProfilerActivity.CUDA],
+            activities=[
+                torch.profiler.ProfilerActivity.CPU,
+                torch.profiler.ProfilerActivity.CUDA,
+            ],
             record_shapes=False,
         ) as prof:
             for _ in range(rep):
@@ -248,42 +253,25 @@ class TorchProfilerBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
                     for x in grad_to_none:
                         x.grad = None
                 buffer.zero_()
-                _callable()
+
+                with torch.profiler.record_function("_CALLABLE"):
+                    _callable()
+
         torch.cuda.synchronize()
 
-        # DEBUG: print all profiler events when no triton_ kernel (remove later)
-        # if not any(event.key.startswith("triton_") for event in prof.key_averages()):
-        #     for event in prof.key_averages():
-        #         print(f"[benchmark profiler] {event.key!r} device_type={event.device_type} device_time_total={event.device_time_total}")
-
-        # Extract CUDA kernel time from profiler events
-        # First, try to find Triton kernels (kernel names starting with "triton_")
-        triton_kernel_time_us = sum(
-            event.device_time_total
-            for event in prof.key_averages()
-            if event.device_type == torch.profiler.DeviceType.CUDA
-            and event.key.startswith("triton_")
-        )
-        
-        # If no Triton kernels found, fall back to kernels from other backends
-        # - "Cijk" prefix: rocBLAS/hipBLASLt GEMM kernels (rocBLAS/Tensile)
-        # - Contains "gemm": CK GEMM kernels
-        # - Contains "conv": MIOpen kernels
-        # NOTE: This fallback path is not well tested at this time and may need refinement
-        if triton_kernel_time_us == 0:
-            triton_kernel_time_us = sum(
+        # Extract time from the single "_CALLABLE" CUDA event.
+        callable_time_us = next(
+            (
                 event.device_time_total
                 for event in prof.key_averages()
-                if event.device_type == torch.profiler.DeviceType.CUDA
-                and (
-                    event.key.startswith("Cijk")
-                    or "gemm" in event.key.lower()
-                    or "conv" in event.key.lower()
-                )
-            )
-        
+                if event.key == "_CALLABLE"
+                and event.device_type == torch.profiler.DeviceType.CUDA
+            ),
+            0,
+        )
+
         # Convert to milliseconds and compute the average time per iteration
-        avg_time_ms = (triton_kernel_time_us / rep) / 1000.0
+        avg_time_ms = (callable_time_us / rep) / 1000.0
 
         # explicitly delete the buffer, sometimes helps memory
         # footprint metrics in OSS Inductor performance benchmarks
