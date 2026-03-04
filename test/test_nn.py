@@ -5212,9 +5212,10 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
 
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
-    @parametrize_test("backend", ["default", "hipdnn"] if TEST_HIPDNN else ["default"], name_fn=lambda x: x if x == "hipdnn" else "")
+    @parametrize_test("backend", ["default", "hipdnn"] if TEST_HIPDNN else ["default"],
+                      name_fn=lambda x: x if x == "hipdnn" else "")
     @parametrize_test("dims", [2, 3], name_fn=lambda x: f"{x}D")
-    @parametrize_test("mode", ["train", "inference"], name_fn=lambda x: x)    
+    @parametrize_test("mode", ["train", "inference"], name_fn=lambda x: x)
     @parametrize_test(
         # test verifies cudnn/miopen batchnorm with the reference backend or memory format
         # memory_format - one of ("NCHW", NHWC")
