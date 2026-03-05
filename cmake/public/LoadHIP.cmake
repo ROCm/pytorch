@@ -203,7 +203,7 @@ if(HIP_FOUND)
     set(USE_HIPDNN OFF)
     message(STATUS "hipDNN not found, disabling USE_HIPDNN")
   endif()
-  
+
   # workaround cmake 4 build issue
   if(CMAKE_VERSION VERSION_GREATER_EQUAL "4.0.0")
     message(WARNING "Work around hiprtc cmake failure for cmake >= 4")

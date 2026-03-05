@@ -531,7 +531,7 @@ BatchNormBackend _select_batch_norm_backend(
   bool is_miopen_3_5 = miopen_version >= 30500;  // ROCm 7.0
   bool PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM = c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM").value_or(is_miopen_3_5);
   bool hipdnn_enabled = at::globalContext().userEnabledHipdnn();
-  
+
 
   if (
       detail::getCUDAHooks().compiledWithMIOpen()

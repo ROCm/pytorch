@@ -8,7 +8,7 @@ namespace at { namespace native {
 hipdnn_frontend::DataType getHipdnnDataType(const at::Tensor& tensor) {
   switch (tensor.scalar_type())
   {
-    case at::kFloat:  
+    case at::kFloat:
       return hipdnn_frontend::DataType::FLOAT;
     case at::kHalf:
       return hipdnn_frontend::DataType::HALF;
