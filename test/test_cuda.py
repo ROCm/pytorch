@@ -132,7 +132,6 @@ if TEST_CUDA:
 
 _cycles_per_ms = None
 
-
 _wait_for_cpu_kernel = None
 
 
@@ -8379,17 +8378,7 @@ class TestCudaDeviceParametrized(TestCase):
     def test_graph_external_wait_and_record(self):
         torch.cuda.empty_cache()
 
-        kernel_source = r"""
-        __global__ void wait_for_cpu(int *pinned_cpu_flag) {
-            int flag = 0;
-            do {
-                    asm volatile("ld.relaxed.sys.global.s32 %0, [%1];" : "=r"(flag) : "l"(pinned_cpu_flag) : "memory");
-            } while (flag == 0);
-        }
-        """
-        from torch.cuda import _compile_kernel
-
-        spin_wait_kernel = _compile_kernel(kernel_source, "wait_for_cpu")
+        spin_wait_kernel = get_wait_for_cpu_kernel()
 
         x = torch.ones(4, device="cuda")
         x_cpu = torch.zeros(x.shape, device="cpu").pin_memory()
