@@ -173,7 +173,7 @@ if(NOT __AOTRITON_INCLUDED)
 
     string(CONCAT __AOTRITON_FILE "aotriton-"
                                   "${__AOTRITON_VER}-${__AOTRITON_MANYLINUX}"
-                                  "_${__AOTRITON_ARCH}-rocm7.2"
+                                  "_${__AOTRITON_ARCH}-${__AOTRITON_ROCM}"
                                   "-shared.tar.${__AOTRITON_Z}")
     string(CONCAT __AOTRITON_URL
            "${__AOTRITON_BASE_URL}"
@@ -252,7 +252,7 @@ if(NOT __AOTRITON_INCLUDED)
     add_dependencies(__caffe2_aotriton aotriton_external)
     message(STATUS "Using AOTriton compiled from source directory ${__AOTRITON_EXTERN_PREFIX}")
   else()
-    set(__AOTRITON_SYSTEM_ROCM "7.2")
+    set(__AOTRITON_SYSTEM_ROCM "${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR}")
     list(FIND __AOTRITON_ROCM_LIST "rocm${__AOTRITON_SYSTEM_ROCM}" __AOTRITON_RUNTIME_INDEX)
     # Always build aotriton runtime from source on Windows due to lack of pre-built binaries
     if(${__AOTRITON_RUNTIME_INDEX} LESS 0 OR WIN32)
