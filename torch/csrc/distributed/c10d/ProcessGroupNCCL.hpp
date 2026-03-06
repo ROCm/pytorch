@@ -195,6 +195,7 @@ static std::vector<std::string> TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK =
 
 #if defined(__linux__)
 struct DumpPipe {
+<<<<<<< HEAD
   DumpPipe(int rank) {
     std::string fileStem =
         getCvarString({"TORCH_NCCL_DEBUG_INFO_PIPE_FILE"}, "");
@@ -202,9 +203,12 @@ struct DumpPipe {
     // Keep in sync. See FlightRecorder.hpp for details.
     if (fileStem.empty() ||
         getCvarInt({"TORCH_NCCL_TRACE_BUFFER_SIZE"}, 2000) <= 0) {
+=======
+  DumpPipe(int rank, const std::string& fileStem, int traceBufferSize) {
+    if (fileStem.empty() || traceBufferSize <= 0) {
+>>>>>>> cf44b734ed9 ([release/2.9] Move getenv to main thread to avoid NCCL race condition (#3043))
       return;
     }
-    TORCH_CHECK(!fileStem.empty(), "TORCH_NCCL_DEBUG_INFO_PIPE_FILE is empty");
     std::string filename = c10::str(fileStem, rank, ".pipe");
     TORCH_CHECK(
         unlink(filename.c_str()) != -1 || errno == ENOENT,
@@ -1356,6 +1360,9 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
   // Size of ring buffer where we store NCCL Traces for debugging.
   int traceBufferSize_;
+
+  // Stores TORCH_NCCL_DEBUG_INFO_PIPE_FILE
+  std::string debugInfoPipeFile_;
 
   // We gate the cudaEventCache so that we can roll it out gradually.
   std::atomic<bool> cudaEventCacheEnabled_;
