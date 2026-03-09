@@ -303,6 +303,7 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
 
   auto inputType = getHipdnnDataType(grad_output);
   auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
+  // No set_intermediate_data_type needed: single-op graph has no virtual tensors.
   graph->set_io_data_type(inputType)
       .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
 
@@ -317,6 +318,7 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
   conv_attrs.set_dilation(std::vector<int64_t>(dilation.begin(), dilation.end()));
 
   auto dx_attr = graph->conv_dgrad(dy_attr, w_attr, conv_attrs);
+  dx_attr->set_dim(std::vector<int64_t>(input_size.begin(), input_size.end()));
   dx_attr->set_output(true).set_uid(UID_OUTPUT);
 
   HIPDNN_FE_CHECK(graph->build(handle));
@@ -338,6 +340,7 @@ static HipdnnConvCachedGraph buildConvWgradGraph(
 
   auto inputType = getHipdnnDataType(input);
   auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
+  // No set_intermediate_data_type needed: single-op graph has no virtual tensors.
   graph->set_io_data_type(inputType)
       .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
 
@@ -352,6 +355,7 @@ static HipdnnConvCachedGraph buildConvWgradGraph(
   conv_attrs.set_dilation(std::vector<int64_t>(dilation.begin(), dilation.end()));
 
   auto dw_attr = graph->conv_wgrad(dy_attr, x_attr, conv_attrs);
+  dw_attr->set_dim(std::vector<int64_t>(weight_size.begin(), weight_size.end()));
   dw_attr->set_output(true).set_uid(UID_OUTPUT);
 
   HIPDNN_FE_CHECK(graph->build(handle));
