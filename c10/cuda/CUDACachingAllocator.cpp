@@ -763,7 +763,10 @@ struct ExpandableSegment {
     desc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
 #ifdef USE_ROCM
     C10_CUDA_CHECK(hipMemSetAccess(
-        ptr_ + begin * segment_size_, (end - begin) * segment_size_, &desc, 1));
+        reinterpret_cast<char*>(ptr_) + begin * segment_size_,
+        (end - begin) * segment_size_,
+        &desc,
+        1));
 #else
     C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemSetAccess_(
         ptr_ + begin * segment_size_, (end - begin) * segment_size_, &desc, 1));
@@ -774,7 +777,7 @@ struct ExpandableSegment {
     for (auto i : c10::irange(begin, end)) {
 #ifdef USE_ROCM
       C10_CUDA_CHECK(hipMemMap(
-          ptr_ + i * segment_size_,
+          reinterpret_cast<char*>(ptr_) + i * segment_size_,
           segment_size_,
           0,
           handles_.at(i).value().handle,
@@ -815,7 +818,8 @@ struct ExpandableSegment {
       Handle h = handles_.at(i).value();
       handles_.at(i) = std::nullopt;
 #ifdef USE_ROCM
-      C10_CUDA_CHECK(hipMemUnmap(ptr_ + segment_size_ * i, segment_size_));
+      C10_CUDA_CHECK(
+          hipMemUnmap(reinterpret_cast<char*>(ptr_) + segment_size_ * i, segment_size_));
 #else
       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemUnmap_(
           ptr_ + segment_size_ * i, segment_size_));
