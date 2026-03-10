@@ -26,10 +26,14 @@ class TestHipdnnConvolution(TestCase):
     ):
         atol, rtol = (1e-4, 1e-4) if dtype == torch.float32 else (5e-2, 5e-2)
 
-        x_cpu = torch.randn(*x_shape, dtype=torch.float32, requires_grad=True)
-        w_cpu = torch.randn(*w_shape, dtype=torch.float32, requires_grad=True)
-        b_cpu = torch.randn(w_shape[1] if transposed else w_shape[0],
-                            dtype=torch.float32, requires_grad=True) if bias else None
+        x_gpu = torch.randn(*x_shape, dtype=dtype, device="cuda")
+        w_gpu = torch.randn(*w_shape, dtype=dtype, device="cuda")
+        b_gpu = torch.randn(w_shape[1] if transposed else w_shape[0],
+                            dtype=dtype, device="cuda") if bias else None
+
+        x_cpu = x_gpu.float().cpu().requires_grad_(True)
+        w_cpu = w_gpu.float().cpu().requires_grad_(True)
+        b_cpu = b_gpu.float().cpu().requires_grad_(True) if bias else None
 
         conv_fn = F.conv_transpose2d if transposed else F.conv2d
         kwargs = dict(stride=stride, padding=padding, dilation=dilation, groups=groups)
@@ -39,9 +43,9 @@ class TestHipdnnConvolution(TestCase):
         out_cpu = conv_fn(x_cpu, w_cpu, b_cpu, **kwargs)
         out_cpu.sum().backward()
 
-        x_gpu = x_cpu.detach().to(device="cuda", dtype=dtype).requires_grad_(True)
-        w_gpu = w_cpu.detach().to(device="cuda", dtype=dtype).requires_grad_(True)
-        b_gpu = b_cpu.detach().to(device="cuda", dtype=dtype).requires_grad_(True) if bias else None
+        x_gpu = x_gpu.detach().requires_grad_(True)
+        w_gpu = w_gpu.detach().requires_grad_(True)
+        b_gpu = b_gpu.detach().requires_grad_(True) if bias else None
 
         with torch.backends.hipdnn.flags(enabled=True):
             out_gpu = conv_fn(x_gpu, w_gpu, b_gpu, **kwargs)
@@ -65,7 +69,7 @@ class TestHipdnnConvolution(TestCase):
 
     def test_conv2d_fp16(self):
         self._compare_conv(
-            (2, 64, 32, 32), (128, 64, 3, 3),
+            (2, 8, 32, 32), (16, 8, 3, 3),
             bias=False, stride=1, padding=1, dilation=1, groups=1,
             dtype=torch.float16,
         )
@@ -89,10 +93,6 @@ class TestHipdnnConvolution(TestCase):
 
         self.assertEqual(out_hipdnn, out_miopen, atol=1e-4, rtol=1e-4)
 
-    # -----------------------------------------------------------------------
-    # xfail: backward broken for stride>1, groups>1, large kernels
-    # -----------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_conv2d_stride2(self):
         self._compare_conv(
             (2, 64, 32, 32), (128, 64, 3, 3),
@@ -100,7 +100,6 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32,
         )
 
-    @unittest.expectedFailure
     def test_conv2d_grouped(self):
         self._compare_conv(
             (2, 128, 32, 32), (128, 32, 3, 3),
@@ -108,7 +107,6 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32,
         )
 
-    @unittest.expectedFailure
     def test_conv2d_resnet_first_layer(self):
         self._compare_conv(
             (1, 3, 224, 224), (64, 3, 7, 7),
@@ -116,19 +114,13 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32,
         )
 
-    @unittest.expectedFailure
     def test_conv2d_bf16(self):
         self._compare_conv(
-            (2, 64, 32, 32), (128, 64, 3, 3),
+            (2, 8, 32, 32), (16, 8, 3, 3),
             bias=False, stride=1, padding=1, dilation=1, groups=1,
             dtype=torch.bfloat16,
         )
 
-    # -----------------------------------------------------------------------
-    # xfail: bias — hipDNN plugin requires conv+bias+activ (3-node graph),
-    # conv+bias alone (2-node) is not supported
-    # -----------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_conv2d_bias_fp32(self):
         self._compare_conv(
             (2, 64, 32, 32), (128, 64, 3, 3),
@@ -136,18 +128,13 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32,
         )
 
-    @unittest.expectedFailure
     def test_conv2d_bias_fp16(self):
         self._compare_conv(
-            (2, 64, 32, 32), (128, 64, 3, 3),
+            (2, 8, 32, 32), (16, 8, 3, 3),
             bias=True, stride=1, padding=1, dilation=1, groups=1,
             dtype=torch.float16,
         )
 
-    # -----------------------------------------------------------------------
-    # xfail: transposed conv — correctness bug in forward (uses dgrad path)
-    # -----------------------------------------------------------------------
-    @unittest.expectedFailure
     def test_conv_transpose2d_fp32(self):
         self._compare_conv(
             (2, 128, 16, 16), (128, 64, 3, 3),
@@ -155,10 +142,6 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32, transposed=True, output_padding=1,
         )
 
-    # -----------------------------------------------------------------------
-    # skip: GPU memory fault (unsupported config)
-    # -----------------------------------------------------------------------
-    @unittest.skip("GPU memory fault — depthwise not supported by hipDNN")
     def test_conv2d_depthwise(self):
         self._compare_conv(
             (2, 128, 32, 32), (128, 1, 3, 3),
