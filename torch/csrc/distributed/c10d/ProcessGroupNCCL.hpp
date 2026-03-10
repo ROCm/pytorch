@@ -195,18 +195,8 @@ static std::vector<std::string> TORCH_NCCL_USE_TENSOR_REGISTER_ALLOCATOR_HOOK =
 
 #if defined(__linux__)
 struct DumpPipe {
-<<<<<<< HEAD
-  DumpPipe(int rank) {
-    std::string fileStem =
-        getCvarString({"TORCH_NCCL_DEBUG_INFO_PIPE_FILE"}, "");
-    // NOTE: This default value (2000) is duplicated in FlightRecorder.hpp.
-    // Keep in sync. See FlightRecorder.hpp for details.
-    if (fileStem.empty() ||
-        getCvarInt({"TORCH_NCCL_TRACE_BUFFER_SIZE"}, 2000) <= 0) {
-=======
   DumpPipe(int rank, const std::string& fileStem, int traceBufferSize) {
     if (fileStem.empty() || traceBufferSize <= 0) {
->>>>>>> cf44b734ed9 ([release/2.9] Move getenv to main thread to avoid NCCL race condition (#3043))
       return;
     }
     std::string filename = c10::str(fileStem, rank, ".pipe");
