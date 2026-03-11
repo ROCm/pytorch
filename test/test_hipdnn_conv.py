@@ -142,6 +142,13 @@ class TestHipdnnConvolution(TestCase):
             dtype=torch.float32, transposed=True, output_padding=1,
         )
 
+    def test_conv_transpose2d_no_output_padding(self):
+        self._compare_conv(
+            (2, 128, 16, 16), (128, 64, 3, 3),
+            bias=False, stride=2, padding=1, dilation=1, groups=1,
+            dtype=torch.float32, transposed=True, output_padding=0,
+        )
+
     def test_conv2d_depthwise(self):
         self._compare_conv(
             (2, 128, 32, 32), (128, 1, 3, 3),

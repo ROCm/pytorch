@@ -1659,13 +1659,13 @@ at::Tensor _convolution(
     case ConvBackend::Hipdnn:
       check_input_same_type_as_parameters(input, weight, bias);
       output = at::hipdnn_convolution(
-          input.contiguous(backend_memory_format), weight, bias, params.padding, params.stride,
+          input, weight, bias, params.padding, params.stride,
           params.dilation, params.groups, params.benchmark, params.deterministic);
       break;
     case ConvBackend::HipdnnTranspose:
       check_input_same_type_as_parameters(input, weight, bias);
       output = at::hipdnn_convolution_transpose(
-          input.contiguous(backend_memory_format), weight, bias, params.padding, params.output_padding,
+          input, weight, bias, params.padding, params.output_padding,
           params.stride, params.dilation, params.groups, params.benchmark, params.deterministic);
       break;
     case ConvBackend::Miopen:

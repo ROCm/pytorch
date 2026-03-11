@@ -66,12 +66,9 @@ Tensor hipdnn_convolution_transpose(
 
 #include <ATen/TensorUtils.h>
 #include <ATen/native/ConvUtils.h>
-#include <ATen/native/utils/ParamsHash.h>
+#include <ATen/native/utils/ParamsLRUCache.h>
 #include <c10/util/env.h>
 #include <c10/util/irange.h>
-
-#include <list>
-#include <unordered_map>
 
 namespace at::native {
 
@@ -134,10 +131,6 @@ static void setHipdnnConvParams(
 struct HipdnnConvCachedGraph {
   std::shared_ptr<hipdnn_frontend::graph::Graph> graph;
   int64_t workspace_size;
-  int64_t input_uid;
-  int64_t weight_uid;
-  int64_t bias_uid; // 0 if no bias in graph
-  int64_t output_uid;
 };
 
 // ---------------------------------------------------------------------------
@@ -170,52 +163,10 @@ static int getHipdnnConvCacheLimit() {
   return limit;
 }
 
-template <typename KeyType>
-struct HipdnnGraphCache {
-  using KeyWrapper = ParamsWrapper<KeyType>;
-  std::list<KeyWrapper> cache_order;
-  std::unordered_map<
-      KeyWrapper,
-      std::pair<HipdnnConvCachedGraph, typename std::list<KeyWrapper>::iterator>,
-      ParamsWrapperHash<KeyWrapper>> cache;
+using HipdnnConvCache = ParamsLRUCache<HipdnnConvParams, HipdnnConvCachedGraph>;
 
-  HipdnnConvCachedGraph* find(const KeyType& key) {
-    int cache_limit = getHipdnnConvCacheLimit();
-    if (cache_limit < 0) return nullptr;
-    KeyWrapper wrapped;
-    wrapped.pod = key;
-    auto it = cache.find(wrapped);
-    if (it == cache.end()) return nullptr;
-    if (cache_limit) {
-      cache_order.splice(cache_order.begin(), cache_order, it->second.second);
-    }
-    return &(it->second.first);
-  }
-
-  void update(const KeyType& key, HipdnnConvCachedGraph entry) {
-    int cache_limit = getHipdnnConvCacheLimit();
-    if (cache_limit < 0) return;
-    KeyWrapper wrapped;
-    wrapped.pod = key;
-    auto it = cache.find(wrapped);
-    if (it == cache.end()) {
-      if (cache_limit && static_cast<long>(cache.size()) >= cache_limit) {
-        cache.erase(cache_order.back());
-        cache_order.pop_back();
-      }
-      cache_order.emplace_front(wrapped);
-      cache.emplace(wrapped, std::make_pair(std::move(entry), cache_order.begin()));
-    } else {
-      it->second.first = std::move(entry);
-      if (cache_limit) {
-        cache_order.splice(cache_order.begin(), cache_order, it->second.second);
-      }
-    }
-  }
-};
-
-static HipdnnGraphCache<HipdnnConvParams>* getHipdnnConvCache() {
-  static thread_local auto* cache = new HipdnnGraphCache<HipdnnConvParams>();
+static HipdnnConvCache* getHipdnnConvCache() {
+  static thread_local auto* cache = new HipdnnConvCache(getHipdnnConvCacheLimit());
   return cache;
 }
 
@@ -223,10 +174,19 @@ static HipdnnGraphCache<HipdnnConvParams>* getHipdnnConvCache() {
 // Deterministic UID assignment for graph tensors
 // ---------------------------------------------------------------------------
 enum HipdnnConvUid : int64_t {
-  UID_INPUT = 1,
+  // Forward (fprop)
+  UID_INPUT  = 1,
   UID_WEIGHT = 2,
   UID_OUTPUT = 3,
-  UID_BIAS = 4,
+  UID_BIAS   = 4,
+  // Backward data (dgrad) — aliases
+  UID_DGRAD_GRAD_OUTPUT = UID_INPUT,
+  UID_DGRAD_WEIGHT      = UID_WEIGHT,
+  UID_DGRAD_GRAD_INPUT  = UID_OUTPUT,
+  // Backward weight (wgrad) — aliases
+  UID_WGRAD_GRAD_OUTPUT = UID_INPUT,
+  UID_WGRAD_INPUT       = UID_WEIGHT,
+  UID_WGRAD_GRAD_WEIGHT = UID_OUTPUT,
 };
 
 // ---------------------------------------------------------------------------
@@ -264,7 +224,6 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
 
   auto conv_out = graph->conv_fprop(x_attr, w_attr, conv_attrs);
 
-  int64_t bias_uid = 0;
   if (bias) {
     conv_out->set_dim(output.sizes().vec());
     conv_out->set_stride(output.strides().vec());
@@ -272,7 +231,6 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
     auto bias_reshaped = reshape_bias(input.dim(), *bias);
     auto b_attr = createTensorAttributes(bias_reshaped);
     b_attr->set_uid(UID_BIAS);
-    bias_uid = UID_BIAS;
 
     hipdnn_frontend::graph::PointwiseAttributes add_attrs;
     add_attrs.set_mode(hipdnn_frontend::PointwiseMode::ADD);
@@ -289,7 +247,7 @@ static HipdnnConvCachedGraph buildConvFpropGraph(
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, bias_uid, UID_OUTPUT};
+  return {std::move(graph), ws};
 }
 
 static HipdnnConvCachedGraph buildConvDgradGraph(
@@ -326,7 +284,7 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, /*bias_uid=*/0, UID_OUTPUT};
+  return {std::move(graph), ws};
 }
 
 static HipdnnConvCachedGraph buildConvWgradGraph(
@@ -363,7 +321,7 @@ static HipdnnConvCachedGraph buildConvWgradGraph(
   int64_t ws = 0;
   HIPDNN_FE_CHECK(graph->get_workspace_size(ws));
 
-  return {std::move(graph), ws, UID_INPUT, UID_WEIGHT, /*bias_uid=*/0, UID_OUTPUT};
+  return {std::move(graph), ws};
 }
 
 // ---------------------------------------------------------------------------
@@ -397,13 +355,14 @@ static void runHipdnnConvFprop(
   }
 
   std::unordered_map<int64_t, void*> variantPack;
-  variantPack[cached->input_uid] = input.data_ptr();
-  variantPack[cached->weight_uid] = weight.data_ptr();
-  variantPack[cached->output_uid] = output.data_ptr();
-  if (cached->bias_uid) {
-    variantPack[cached->bias_uid] = bias->data_ptr();
+  variantPack[UID_INPUT] = input.data_ptr();
+  variantPack[UID_WEIGHT] = weight.data_ptr();
+  variantPack[UID_OUTPUT] = output.data_ptr();
+  if (bias) {
+    variantPack[UID_BIAS] = bias->data_ptr();
   }
 
+  // Workspace inherits device from input.options()
   auto workspace = at::empty({cached->workspace_size}, input.options().dtype(at::kByte));
   HIPDNN_FE_CHECK(cached->graph->execute(handle, variantPack, workspace.data_ptr()));
 }
@@ -436,10 +395,11 @@ static void runHipdnnConvDgrad(
   }
 
   std::unordered_map<int64_t, void*> variantPack;
-  variantPack[cached->input_uid] = grad_output.data_ptr();
-  variantPack[cached->weight_uid] = weight.data_ptr();
-  variantPack[cached->output_uid] = grad_input.data_ptr();
+  variantPack[UID_DGRAD_GRAD_OUTPUT] = grad_output.data_ptr();
+  variantPack[UID_DGRAD_WEIGHT] = weight.data_ptr();
+  variantPack[UID_DGRAD_GRAD_INPUT] = grad_input.data_ptr();
 
+  // Workspace inherits device from grad_output.options()
   auto workspace = at::empty({cached->workspace_size}, grad_output.options().dtype(at::kByte));
   HIPDNN_FE_CHECK(cached->graph->execute(handle, variantPack, workspace.data_ptr()));
 }
@@ -472,10 +432,11 @@ static void runHipdnnConvWgrad(
   }
 
   std::unordered_map<int64_t, void*> variantPack;
-  variantPack[cached->input_uid] = grad_output.data_ptr();
-  variantPack[cached->weight_uid] = input.data_ptr();
-  variantPack[cached->output_uid] = grad_weight.data_ptr();
+  variantPack[UID_WGRAD_GRAD_OUTPUT] = grad_output.data_ptr();
+  variantPack[UID_WGRAD_INPUT] = input.data_ptr();
+  variantPack[UID_WGRAD_GRAD_WEIGHT] = grad_weight.data_ptr();
 
+  // Workspace inherits device from grad_output.options()
   auto workspace = at::empty({cached->workspace_size}, grad_output.options().dtype(at::kByte));
   HIPDNN_FE_CHECK(cached->graph->execute(handle, variantPack, workspace.data_ptr()));
 }
