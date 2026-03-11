@@ -521,8 +521,13 @@ def meta_copy_(self, src, non_blocking=False):
 
     if isinstance(src, Tensor):
         intermediate = src.to(self, non_blocking)
-        if self.size() != intermediate.size():
-            aten.expand_copy.default(intermediate, self.size())
+        # Validate broadcast compatibility. We call the _refs expand
+        # directly rather than aten.expand_copy.default because the
+        # aten dispatch path hits C++ that cannot handle unbacked
+        # symints. The refs version performs the same checks using
+        # sym_or(x == 1, requested_length == x) which gracefully
+        # handles unbacked symints.
+        torch._refs.expand(intermediate, self.size())
     return self
 
 
@@ -1529,7 +1534,7 @@ def _linalg_svd_meta(
     batch_dims = list(A.shape[:-2])
     m = A.shape[-2]
     n = A.shape[-1]
-    k = min(m, n)
+    k = torch.sym_min(m, n)
 
     if compute_uv:
         U_shape = batch_dims + [m, m if full_matrices else k]
@@ -2420,8 +2425,10 @@ def calc_conv_nd_return_shape(
         out_channels = groups * weight.shape[1]
     else:
         out_channels = weight.shape[0]
-        if weight.shape[1] * groups != input_tensor.shape[1]:
-            raise RuntimeError("Invalid channel dimensions")
+        torch._check(
+            weight.shape[1] * groups == input_tensor.shape[1],
+            lambda: "Invalid channel dimensions",
+        )
 
     ret_shape = [input_tensor.shape[0], out_channels]
     if isinstance(stride, IntLike):
@@ -2566,9 +2573,11 @@ def meta_conv(
         output_padding if is_transposed else None,
     )
 
+    from torch.fx.experimental.symbolic_shapes import guard_or_false
+
     input_channels_dim = 1
     output_channels_dim = 1
-    if input_tensor.size(input_channels_dim) == 0:
+    if guard_or_false(input_tensor.size(input_channels_dim) == 0):
         shape_out[output_channels_dim] = 0
 
     out = input_tensor.new_empty(shape_out)
@@ -4578,12 +4587,14 @@ def common_meta_baddbmm_bmm(batch1, batch2, is_bmm, self_baddbmm=None, out_dtype
     return output
 
 
-@register_meta(aten.bmm.default)
+@register_meta([aten.bmm.default, aten.bmm.out])
+@out_wrapper(exact_dtype=True)
 def meta_bmm(self, mat2):
     return common_meta_baddbmm_bmm(self, mat2, True)
 
 
-@register_meta(aten.bmm.dtype)
+@register_meta([aten.bmm.dtype, aten.bmm.dtype_out])
+@out_wrapper(exact_dtype=True)
 def meta_bmm_dtype(self, mat2, out_dtype):
     return common_meta_baddbmm_bmm(self, mat2, True, out_dtype=out_dtype)
 
@@ -6105,9 +6116,15 @@ def meta__scaled_dot_product_attention_math_for_mps(
     q_, unsqueezed = ensure_4d(query)
     k_, _ = ensure_4d(key)
     v_, _ = ensure_4d(value)
+    mask_ = None
+    if attn_mask is not None:
+        mask_expanded_dims = list(query.shape)
+        mask_expanded_dims[-1] = k_.size(2)
+        mask_ = attn_mask.expand(mask_expanded_dims)
+        mask_, _ = ensure_4d(mask_)
 
-    batch_size, num_head, q_size, head_size = q_.shape
-    _, k_size, max_seq_length, _ = k_.shape
+    batch_size, num_head, q_size, query_head_size = q_.shape
+    _, k_size, max_seq_length, value_head_size = v_.shape
 
     def sdpa_vector_fast_mps():
         out = q_.new_empty(q_.shape)
@@ -6126,10 +6143,42 @@ def meta__scaled_dot_product_attention_math_for_mps(
     def sdpa_vector_2pass_mps():
         blocks = 32
         out = q_.new_empty(q_.shape)
-        intermediate = q_.new_empty((batch_size, num_head, q_size, blocks, head_size))
+        intermediate = q_.new_empty(
+            (batch_size, num_head, q_size, blocks, query_head_size)
+        )
         return out, intermediate
 
-    if (max_seq_length >= 1024) or (k_size < q_size and max_seq_length >= 4096):
+    def sdpa_general_mps():
+        out = q_.new_empty((batch_size, num_head, q_size, value_head_size))
+        attn = q_.new_empty((batch_size, num_head, q_size, max_seq_length))
+        if unsqueezed:
+            if query.dim() == 3:
+                out = out.squeeze(0)
+                attn = attn.squeeze(0)
+            else:
+                out_shape = list(query.shape[:-3]) + list(out.shape[1:4])
+                attn_shape = list(query.shape[:-3]) + list(attn.shape[1:4])
+                out = out.view(out_shape)
+                attn = attn.view(attn_shape)
+        return out, attn
+
+    query_head_dim = q_.size(3)
+    value_head_dim = v_.size(3)
+    sdpa_vector_supported_head_dim = (query_head_dim == value_head_dim) and (
+        query_head_dim == 64 or query_head_dim == 96 or query_head_dim == 128
+    )
+    query_seq_len = q_.size(2)
+    supports_sdpa_vector = (
+        (query_seq_len <= 8)
+        and (query_seq_len <= k_.size(2))
+        and ((mask_ is None) or (mask_.dtype == torch.bool))
+        and sdpa_vector_supported_head_dim
+    )
+    supports_fast_sdpa = (not is_causal) and supports_sdpa_vector
+
+    if not supports_fast_sdpa:
+        return sdpa_general_mps()
+    elif (max_seq_length >= 1024) or (k_size < q_size and max_seq_length >= 4096):
         return sdpa_vector_2pass_mps()
     else:
         return sdpa_vector_fast_mps()
@@ -6290,6 +6339,7 @@ def meta__flash_attention_forward(
     window_size_right: int | None = None,
     seqused_k: Tensor | None = None,
     alibi_slopes: Tensor | None = None,
+    block_table: Tensor | None = None,
 ):
     # NB: there are two underlying paths:
     # 1. normal dense path; expect 4D inputs of shape (batch_size, seqlen, num_heads, head_dim)
@@ -6347,6 +6397,47 @@ def meta__flash_attention_forward(
         offset,
         debug_mask,
     )
+
+
+@register_meta([aten._flash_attention_forward_no_dropout_inplace.default])
+def meta__flash_attention_forward_no_dropout_inplace(
+    out: Tensor,
+    query: Tensor,
+    key: Tensor,
+    value: Tensor,
+    cum_seq_q: Tensor | None,
+    cum_seq_k: Tensor | None,
+    max_q: int,
+    max_k: int,
+    dropout_p: float,
+    is_causal: bool,
+    return_debug_mask: bool,
+    scale: float | None = None,
+    window_size_left: int | None = None,
+    window_size_right: int | None = None,
+    seqused_k: Tensor | None = None,
+    alibi_slopes: Tensor | None = None,
+    block_table: Tensor | None = None,
+):
+    _, logsumexp, _, _, _ = meta__flash_attention_forward(
+        query,
+        key,
+        value,
+        cum_seq_q,
+        cum_seq_k,
+        max_q,
+        max_k,
+        dropout_p,
+        is_causal,
+        return_debug_mask,
+        scale,
+        window_size_left,
+        window_size_right,
+        seqused_k,
+        alibi_slopes,
+        block_table,
+    )
+    return logsumexp
 
 
 @register_meta([aten._flash_attention_forward.quantized])
@@ -6627,6 +6718,8 @@ def _check_scaled_mm_sizes(
                 _k = _k * 2
             else:
                 block_size_k = 32
+                if self.dtype == torch.float4_e2m1fn_x2:
+                    _k = _k * 2
 
             block_size_mn = 128
 

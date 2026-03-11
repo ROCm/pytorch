@@ -87,7 +87,8 @@ def check_codegen(
         code = run_and_get_triton_code(run, *example_inputs, **kwargs)
         self.assertTrue("def triton" in code, f"Failed to find triton kernel\n{code}")
 
-    assert called, "Ran graph without calling compile_fx"
+    if not called:
+        raise AssertionError("Ran graph without calling compile_fx")
 
     torch._dynamo.reset()
 
@@ -217,9 +218,6 @@ test_failures = {
     "test_logcumsumexp_zero_dim_dynamic_shapes": TestFailure(("cpu",)),
     "test_max_pool2d_with_indices_backward5_dynamic_shapes": TestFailure(
         ("cpu", "cuda")
-    ),
-    "test_max_pool2d_with_indices_backward6_dynamic_shapes": TestFailure(
-        ("cpu", "cuda", "xpu")
     ),
     "test_misaligned_address_issue1_dynamic_shapes": TestFailure(("cpu",)),
     "test_mm_views_dynamic_shapes": TestFailure(("cpu", "cuda", "xpu")),
