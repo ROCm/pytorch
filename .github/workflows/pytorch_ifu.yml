@@ -46,15 +46,21 @@ jobs:
       DOWNSTREAM_REMOTE: origin                              # IFU target remote name
       DOWNSTREAM_REPO: ${{ inputs.ifu_target_repo }}         # target repo for IFU (fork); actions/checkout sets this to origin
       DOWNSTREAM_BRANCH: ${{ inputs.ifu_target_branch }}     # target branch for IFU
-      GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}              # used by gh; provided by Action 
+      # GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}              # used by gh; provided by Action 
     steps:
+      - name: Get Github app token
+        uses: actions/create-github-app-token@v2
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_ID}}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
       - name: Checkout repository (${{ env.DOWNSTREAM_REPO }}) (full history)
         uses: actions/checkout@v4
         with:
           repository: ${{ env.DOWNSTREAM_REPO }}
           path: ${{ env.DOWNSTREAM_REPO }}
           ref: ${{ env.DOWNSTREAM_BRANCH }}
-          token: ${{ env.GH_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
           fetch-depth: 0 # need full history for merges/tags
           submodules: recursive
 
@@ -114,12 +120,16 @@ jobs:
           fi
 
       - name: Push branch & tag to fork
-        working-directory: ${{ env.DOWNSTREAM_REPO }}
-        run: |
-          git push ${DOWNSTREAM_REMOTE} "${{ steps.tag.outputs.TAG }}"
+        uses: ad-m/github-push-action@v1.0.0
+        with:
+          github_token: ${{ steps.app-token.outputs.token }}
+          branch: ${{ steps.tag.outputs.TAG }}
+          directory: ${{ env.DOWNSTREAM_REPO }}
 
       - name: Authenticate gh (non-interactive)
         working-directory: ${{ env.DOWNSTREAM_REPO }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           # The GitHub-hosted runner has gh preinstalled.
           gh auth status || echo "$GH_TOKEN" | gh auth login --with-token
