@@ -259,6 +259,8 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
     hipdnnHandle_t handle,
     const Tensor& grad_output,
     const Tensor& weight,
+    const Tensor& output,
+    const Tensor* bias,
     IntArrayRef input_size,
     IntArrayRef padding,
     IntArrayRef stride,
@@ -266,8 +268,8 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
 
   auto inputType = getHipdnnDataType(grad_output);
   auto graph = std::make_shared<hipdnn_frontend::graph::Graph>();
-  // No set_intermediate_data_type needed: single-op graph has no virtual tensors.
   graph->set_io_data_type(inputType)
+      .set_intermediate_data_type(hipdnn_frontend::DataType::FLOAT)
       .set_compute_data_type(hipdnn_frontend::DataType::FLOAT);
 
   auto dy_attr = createTensorAttributes(grad_output);
@@ -282,7 +284,23 @@ static HipdnnConvCachedGraph buildConvDgradGraph(
 
   auto dx_attr = graph->conv_dgrad(dy_attr, w_attr, conv_attrs);
   dx_attr->set_dim(std::vector<int64_t>(input_size.begin(), input_size.end()));
-  dx_attr->set_output(true).set_uid(UID_OUTPUT);
+
+  if (bias) {
+    dx_attr->set_stride(output.strides().vec());
+
+    auto bias_reshaped = reshape_bias(grad_output.dim(), *bias);
+    auto b_attr = createTensorAttributes(bias_reshaped);
+    b_attr->set_uid(UID_BIAS);
+
+    hipdnn_frontend::graph::PointwiseAttributes add_attrs;
+    add_attrs.set_mode(hipdnn_frontend::PointwiseMode::ADD);
+    add_attrs.set_compute_data_type(inputType);
+
+    auto y_attr = graph->pointwise(dx_attr, b_attr, add_attrs);
+    y_attr->set_output(true).set_uid(UID_OUTPUT);
+  } else {
+    dx_attr->set_output(true).set_uid(UID_OUTPUT);
+  }
 
   HIPDNN_FE_CHECK(graph->build(handle));
 
@@ -376,6 +394,7 @@ static void runHipdnnConvDgrad(
     const Tensor& grad_output,
     const Tensor& weight,
     const Tensor& grad_input,
+    const Tensor* bias,
     IntArrayRef input_size,
     IntArrayRef padding,
     IntArrayRef stride,
@@ -386,17 +405,18 @@ static void runHipdnnConvDgrad(
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
 
+  bool has_bias = bias != nullptr;
   HipdnnConvParams key;
   // For dgrad, use grad_output as the "input" for the cache key.
   // input_size disambiguates cases with different output_padding.
   setHipdnnConvParams(&key, grad_output, weight, padding, stride, dilation,
-                      groups, /*has_bias=*/false, memory_format, /*operation=*/1,
+                      groups, has_bias, memory_format, /*operation=*/1,
                       input_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
-    auto entry = buildConvDgradGraph(handle, grad_output, weight, input_size,
-                                     padding, stride, dilation);
+    auto entry = buildConvDgradGraph(handle, grad_output, weight, grad_input,
+                                     bias, input_size, padding, stride, dilation);
     cache->update(key, std::move(entry));
     cached = cache->find(key);
   }
@@ -405,6 +425,9 @@ static void runHipdnnConvDgrad(
   variantPack[UID_DGRAD_GRAD_OUTPUT] = grad_output.data_ptr();
   variantPack[UID_DGRAD_WEIGHT] = weight.data_ptr();
   variantPack[UID_DGRAD_GRAD_INPUT] = grad_input.data_ptr();
+  if (bias) {
+    variantPack[UID_BIAS] = bias->data_ptr();
+  }
 
   // Workspace inherits device from grad_output.options()
   auto workspace = at::empty({cached->workspace_size}, grad_output.options().dtype(at::kByte));
@@ -510,8 +533,10 @@ Tensor hipdnn_convolution_transpose(
       input_c.sizes(), weight_c.sizes(), padding, output_padding, stride, dilation, groups);
   auto output = at::empty(trans_output_size, input_c.options(), memory_format);
 
-  // Transposed conv forward is dgrad (no bias fusion — dgrad graph has no bias path)
-  runHipdnnConvDgrad(input_c, weight_c, output,
+  // No hipDNN backend plugin currently supports dgrad+pointwise fusion,
+  // so bias is applied separately.
+  // TODO: pass bias to graph builder when supported in hipDNN.
+  runHipdnnConvDgrad(input_c, weight_c, output, /*bias=*/nullptr,
                      trans_output_size, padding, stride, dilation,
                      groups, memory_format);
 
@@ -546,8 +571,9 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_backward(
 
   if (output_mask[0]) {
     grad_input = at::empty(input_c.sizes(), input_c.options(), memory_format);
-    runHipdnnConvDgrad(grad_output, weight_c, grad_input, input_c.sizes(),
-                       padding, stride, dilation, groups, memory_format);
+    runHipdnnConvDgrad(grad_output, weight_c, grad_input, /*bias=*/nullptr,
+                       input_c.sizes(), padding, stride, dilation,
+                       groups, memory_format);
   }
 
   if (output_mask[1]) {
