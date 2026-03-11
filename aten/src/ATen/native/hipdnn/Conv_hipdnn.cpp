@@ -84,6 +84,7 @@ struct HipdnnConvParams {
   uint8_t input_dim;
   at::MemoryFormat memory_format;
   int weight_size[2 + hipdnn_max_dim];
+  int output_size[2 + hipdnn_max_dim]; // dgrad/wgrad: disambiguates output_padding
   int padding[hipdnn_max_dim];
   int stride[hipdnn_max_dim];
   int dilation[hipdnn_max_dim];
@@ -102,7 +103,8 @@ static void setHipdnnConvParams(
     int64_t groups,
     bool has_bias,
     at::MemoryFormat memory_format,
-    int operation) {
+    int operation,
+    IntArrayRef output_size = {}) {
   memset(params, 0, sizeof(*params));
   params->device_id = input.device().index();
   params->dataType = getHipdnnDataType(input);
@@ -116,6 +118,9 @@ static void setHipdnnConvParams(
   }
   for (int i = 0; i < weight.dim(); i++) {
     params->weight_size[i] = static_cast<int>(weight.size(i));
+  }
+  for (size_t i = 0; i < output_size.size(); i++) {
+    params->output_size[i] = static_cast<int>(output_size[i]);
   }
   int spatial_dims = input.dim() - 2;
   for (int i = 0; i < spatial_dims; i++) {
@@ -382,9 +387,11 @@ static void runHipdnnConvDgrad(
   auto* cache = getHipdnnConvCache();
 
   HipdnnConvParams key;
-  // For dgrad, use grad_output as the "input" for the cache key
+  // For dgrad, use grad_output as the "input" for the cache key.
+  // input_size disambiguates cases with different output_padding.
   setHipdnnConvParams(&key, grad_output, weight, padding, stride, dilation,
-                      groups, /*has_bias=*/false, memory_format, /*operation=*/1);
+                      groups, /*has_bias=*/false, memory_format, /*operation=*/1,
+                      input_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -419,9 +426,9 @@ static void runHipdnnConvWgrad(
   auto* cache = getHipdnnConvCache();
 
   HipdnnConvParams key;
-  // For wgrad, use grad_output+input shape as key
   setHipdnnConvParams(&key, grad_output, input, padding, stride, dilation,
-                      groups, /*has_bias=*/false, memory_format, /*operation=*/2);
+                      groups, /*has_bias=*/false, memory_format, /*operation=*/2,
+                      weight_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
