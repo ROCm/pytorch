@@ -1568,7 +1568,7 @@ static void bindGetDeviceProperties(PyObject* module) {
 // Callback for python part. Used for additional initialization of python
 // classes
 static PyObject* THCPModule_initExtension(PyObject* self, PyObject* noargs) {
-#if C10_ASAN_ENABLED
+#if C10_ASAN_ENABLED && !defined(USE_ROCM)
   TORCH_WARN(
       "torch.cuda: your pytorch binary has address sanitizer (asan) built in, "
       "asan is currently not compatible with torch.cuda module, "
