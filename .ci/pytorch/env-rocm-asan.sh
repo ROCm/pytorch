@@ -8,7 +8,7 @@ export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=1:symbolize=1:d
 export CMAKE_PREFIX_PATH=/opt/conda
 
 # otherwise any program run at build time will fail
-export LD_LIBRARY_PATH=/opt/rocm/llvm/lib/clang/18/lib/linux
+export LD_LIBRARY_PATH=/opt/rocm/llvm/lib/clang/22/lib/linux
 export HSA_XNACK=1
 
 # TODO: Make the ASAN flags a centralized env var and unify with USE_ASAN option
@@ -26,6 +26,6 @@ export USE_MKLDNN=0
 # only add these env vars after build is completed
 if test "x$BUILD_ONLY_ENV_VARS" = x
 then
-    export LD_PRELOAD="/opt/rocm/llvm/lib/clang/18/lib/linux/libclang_rt.asan-x86_64.so"
-    export LD_LIBRARY_PATH="/opt/rocm/llvm/lib/clang/18/lib/linux:/opt/rocm/lib/asan"
+    export LD_PRELOAD="/opt/rocm/llvm/lib/clang/22/lib/linux/libclang_rt.asan-x86_64.so"
+    export LD_LIBRARY_PATH="/opt/rocm/llvm/lib/clang/22/lib/linux:/opt/rocm/lib/asan"
 fi
