@@ -574,16 +574,11 @@ Tensor hipdnn_convolution_transpose(
       input_c.sizes(), weight_c.sizes(), padding, output_padding, stride, dilation, groups);
   auto output = at::empty(trans_output_size, input_c.options(), memory_format);
 
-  // No hipDNN backend plugin currently supports dgrad+pointwise fusion,
-  // so bias is applied separately.
-  // TODO: pass bias to graph builder when supported in hipDNN.
-  runHipdnnConvDgrad(input_c, weight_c, output, /*bias=*/nullptr,
+  bool has_bias = bias_opt.has_value() && bias_opt->defined();
+  const Tensor* bias_ptr = has_bias ? &(*bias_opt) : nullptr;
+  runHipdnnConvDgrad(input_c, weight_c, output, bias_ptr,
                      trans_output_size, padding, stride, dilation,
                      groups, memory_format, benchmark, deterministic);
-
-  if (bias_opt.has_value() && bias_opt->defined()) {
-    output.add_(reshape_bias(input_c.dim(), *bias_opt));
-  }
 
   return output;
 }
