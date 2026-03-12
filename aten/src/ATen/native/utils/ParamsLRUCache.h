@@ -1,6 +1,7 @@
 #pragma once
 
 #include <ATen/native/utils/ParamsHash.h>
+#include <c10/util/Exception.h>
 
 #include <list>
 #include <unordered_map>
@@ -39,12 +40,18 @@ struct ParamsLRUCache {
     wrapped.pod = key;
     auto it = cache.find(wrapped);
     if (it == cache.end()) {
-      if (cache_limit && static_cast<long>(cache.size()) >= cache_limit) {
-        cache.erase(cache_order.back());
-        cache_order.pop_back();
+      if (cache_limit == 0) {
+        // Unlimited cache — insert into map only, no LRU tracking
+        cache.emplace(wrapped, std::make_pair(std::move(entry), cache_order.end()));
+      } else {
+        if (static_cast<long>(cache.size()) >= cache_limit) {
+          auto count = cache.erase(cache_order.back());
+          TORCH_INTERNAL_ASSERT(count == 1, "LRU cache eviction failed to erase key");
+          cache_order.pop_back();
+        }
+        cache_order.emplace_front(wrapped);
+        cache.emplace(wrapped, std::make_pair(std::move(entry), cache_order.begin()));
       }
-      cache_order.emplace_front(wrapped);
-      cache.emplace(wrapped, std::make_pair(std::move(entry), cache_order.begin()));
     } else {
       it->second.first = std::move(entry);
       if (cache_limit) {

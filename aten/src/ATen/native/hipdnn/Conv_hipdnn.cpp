@@ -90,6 +90,8 @@ struct HipdnnConvParams {
   int dilation[hipdnn_max_dim];
   int64_t groups;
   bool has_bias;
+  bool deterministic;
+  bool benchmark;
   int operation; // 0=fprop, 1=dgrad, 2=wgrad
 };
 
@@ -104,6 +106,8 @@ static void setHipdnnConvParams(
     bool has_bias,
     at::MemoryFormat memory_format,
     int operation,
+    bool deterministic = false,
+    bool benchmark = false,
     IntArrayRef output_size = {}) {
   memset(params, 0, sizeof(*params));
   params->device_id = input.device().index();
@@ -112,6 +116,8 @@ static void setHipdnnConvParams(
   params->memory_format = memory_format;
   params->groups = groups;
   params->has_bias = has_bias;
+  params->deterministic = deterministic;
+  params->benchmark = benchmark;
   params->operation = operation;
   for (int i = 0; i < input.dim(); i++) {
     params->input_size[i] = static_cast<int>(input.size(i));
@@ -141,6 +147,10 @@ struct HipdnnConvCachedGraph {
 // ---------------------------------------------------------------------------
 // Thread-local LRU cache (same pattern as cuDNN v8 Conv_v8.cpp)
 // ---------------------------------------------------------------------------
+// Returns the LRU cache limit for convolution graphs.
+// Special values (matching cuDNN v8):
+//   0       = unlimited (no eviction)
+//   negative = caching disabled
 static int getHipdnnConvCacheLimit() {
   static int limit = []{
     constexpr int DEFAULT_LIMIT = 10000;
@@ -359,7 +369,9 @@ static void runHipdnnConvFprop(
     IntArrayRef stride,
     IntArrayRef dilation,
     int64_t groups,
-    at::MemoryFormat memory_format) {
+    at::MemoryFormat memory_format,
+    bool benchmark,
+    bool deterministic) {
 
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
@@ -367,7 +379,8 @@ static void runHipdnnConvFprop(
   bool has_bias = bias != nullptr;
   HipdnnConvParams key;
   setHipdnnConvParams(&key, input, weight, padding, stride, dilation,
-                      groups, has_bias, memory_format, /*operation=*/0);
+                      groups, has_bias, memory_format, /*operation=*/0,
+                      deterministic, benchmark);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -400,7 +413,9 @@ static void runHipdnnConvDgrad(
     IntArrayRef stride,
     IntArrayRef dilation,
     int64_t groups,
-    at::MemoryFormat memory_format) {
+    at::MemoryFormat memory_format,
+    bool benchmark,
+    bool deterministic) {
 
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
@@ -411,7 +426,7 @@ static void runHipdnnConvDgrad(
   // input_size disambiguates cases with different output_padding.
   setHipdnnConvParams(&key, grad_output, weight, padding, stride, dilation,
                       groups, has_bias, memory_format, /*operation=*/1,
-                      input_size);
+                      deterministic, benchmark, input_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -443,7 +458,9 @@ static void runHipdnnConvWgrad(
     IntArrayRef stride,
     IntArrayRef dilation,
     int64_t groups,
-    at::MemoryFormat memory_format) {
+    at::MemoryFormat memory_format,
+    bool benchmark,
+    bool deterministic) {
 
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
@@ -451,7 +468,7 @@ static void runHipdnnConvWgrad(
   HipdnnConvParams key;
   setHipdnnConvParams(&key, grad_output, input, padding, stride, dilation,
                       groups, /*has_bias=*/false, memory_format, /*operation=*/2,
-                      weight_size);
+                      deterministic, benchmark, weight_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -502,7 +519,8 @@ Tensor hipdnn_convolution(
   bool has_bias = bias_opt.has_value() && bias_opt->defined();
   const Tensor* bias_ptr = has_bias ? &(*bias_opt) : nullptr;
   runHipdnnConvFprop(input_c, weight_c, output, bias_ptr,
-                     padding, stride, dilation, groups, memory_format);
+                     padding, stride, dilation, groups, memory_format,
+                     benchmark, deterministic);
 
   return output;
 }
@@ -538,7 +556,7 @@ Tensor hipdnn_convolution_transpose(
   // TODO: pass bias to graph builder when supported in hipDNN.
   runHipdnnConvDgrad(input_c, weight_c, output, /*bias=*/nullptr,
                      trans_output_size, padding, stride, dilation,
-                     groups, memory_format);
+                     groups, memory_format, benchmark, deterministic);
 
   if (bias_opt.has_value() && bias_opt->defined()) {
     output.add_(reshape_bias(input_c.dim(), *bias_opt));
@@ -573,13 +591,14 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_backward(
     grad_input = at::empty(input_c.sizes(), input_c.options(), memory_format);
     runHipdnnConvDgrad(grad_output, weight_c, grad_input, /*bias=*/nullptr,
                        input_c.sizes(), padding, stride, dilation,
-                       groups, memory_format);
+                       groups, memory_format, benchmark, deterministic);
   }
 
   if (output_mask[1]) {
     grad_weight = at::empty(weight_c.sizes(), weight_c.options(), memory_format);
     runHipdnnConvWgrad(grad_output, input_c, grad_weight, weight_c.sizes(),
-                       padding, stride, dilation, groups, memory_format);
+                       padding, stride, dilation, groups, memory_format,
+                       benchmark, deterministic);
   }
 
   if (output_mask[2]) {
@@ -619,14 +638,16 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_transpose_backward(
     // Transpose backward-input = fprop
     grad_input = at::empty(input_c.sizes(), input_c.options(), memory_format);
     runHipdnnConvFprop(grad_output, weight_c, grad_input, /*bias=*/nullptr,
-                       padding, stride, dilation, groups, memory_format);
+                       padding, stride, dilation, groups, memory_format,
+                       benchmark, deterministic);
   }
 
   if (output_mask[1]) {
     // Transpose backward-weight = wgrad
     grad_weight = at::empty(weight_c.sizes(), weight_c.options(), memory_format);
     runHipdnnConvWgrad(input_c, grad_output, grad_weight, weight_c.sizes(),
-                       padding, stride, dilation, groups, memory_format);
+                       padding, stride, dilation, groups, memory_format,
+                       benchmark, deterministic);
   }
 
   if (output_mask[2]) {
