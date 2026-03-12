@@ -29,5 +29,8 @@ if test "x$BUILD_ONLY_ENV_VARS" = x
 then
     # must preload libamdhip64, but should preload the ASAN version of the lib
     export LD_PRELOAD="/opt/rocm/llvm/lib/clang/22/lib/linux/libclang_rt.asan-x86_64.so /opt/rocm/lib/libamdhip64.so"
-    export LD_LIBRARY_PATH="/opt/rocm/llvm/lib/clang/22/lib/linux:/opt/rocm/lib/asan"
+    # Include torch lib dir so dlopen("libcaffe2_nvrtc.so") succeeds
+    # (RUNPATH on the caller doesn't propagate to dlopen lookups)
+    TORCH_LIB_DIR=$(python -c "import torch; print(torch.__path__[0] + '/lib')" 2>/dev/null)
+    export LD_LIBRARY_PATH="/opt/rocm/llvm/lib/clang/22/lib/linux:/opt/rocm/lib/asan${TORCH_LIB_DIR:+:$TORCH_LIB_DIR}"
 fi
