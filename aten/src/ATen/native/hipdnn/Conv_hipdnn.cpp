@@ -90,8 +90,6 @@ struct HipdnnConvParams {
   int dilation[hipdnn_max_dim];
   int64_t groups;
   bool has_bias;
-  bool deterministic;
-  bool benchmark;
   int operation; // 0=fprop, 1=dgrad, 2=wgrad
 };
 
@@ -106,8 +104,6 @@ static void setHipdnnConvParams(
     bool has_bias,
     at::MemoryFormat memory_format,
     int operation,
-    bool deterministic = false,
-    bool benchmark = false,
     IntArrayRef output_size = {}) {
   memset(params, 0, sizeof(*params));
   params->device_id = input.device().index();
@@ -116,8 +112,6 @@ static void setHipdnnConvParams(
   params->memory_format = memory_format;
   params->groups = groups;
   params->has_bias = has_bias;
-  params->deterministic = deterministic;
-  params->benchmark = benchmark;
   params->operation = operation;
   for (int i = 0; i < input.dim(); i++) {
     params->input_size[i] = static_cast<int>(input.size(i));
@@ -373,14 +367,23 @@ static void runHipdnnConvFprop(
     bool benchmark,
     bool deterministic) {
 
+  TORCH_CHECK(
+      !deterministic,
+      "hipdnn_convolution does not support deterministic mode yet. "
+      "hipDNN does not currently provide engine-level determinism guarantees.");
+  if (benchmark) {
+    TORCH_WARN_ONCE(
+        "hipdnn_convolution: benchmark mode is not supported yet and will be ignored. "
+        "hipDNN does not currently support algorithm search.");
+  }
+
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
 
   bool has_bias = bias != nullptr;
   HipdnnConvParams key;
   setHipdnnConvParams(&key, input, weight, padding, stride, dilation,
-                      groups, has_bias, memory_format, /*operation=*/0,
-                      deterministic, benchmark);
+                      groups, has_bias, memory_format, /*operation=*/0);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -417,6 +420,16 @@ static void runHipdnnConvDgrad(
     bool benchmark,
     bool deterministic) {
 
+  TORCH_CHECK(
+      !deterministic,
+      "hipdnn_convolution does not support deterministic mode yet. "
+      "hipDNN does not currently provide engine-level determinism guarantees.");
+  if (benchmark) {
+    TORCH_WARN_ONCE(
+        "hipdnn_convolution: benchmark mode is not supported yet and will be ignored. "
+        "hipDNN does not currently support algorithm search.");
+  }
+
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
 
@@ -426,7 +439,7 @@ static void runHipdnnConvDgrad(
   // input_size disambiguates cases with different output_padding.
   setHipdnnConvParams(&key, grad_output, weight, padding, stride, dilation,
                       groups, has_bias, memory_format, /*operation=*/1,
-                      deterministic, benchmark, input_size);
+                      input_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
@@ -462,13 +475,23 @@ static void runHipdnnConvWgrad(
     bool benchmark,
     bool deterministic) {
 
+  TORCH_CHECK(
+      !deterministic,
+      "hipdnn_convolution does not support deterministic mode yet. "
+      "hipDNN does not currently provide engine-level determinism guarantees.");
+  if (benchmark) {
+    TORCH_WARN_ONCE(
+        "hipdnn_convolution: benchmark mode is not supported yet and will be ignored. "
+        "hipDNN does not currently support algorithm search.");
+  }
+
   auto handle = getHipdnnHandle();
   auto* cache = getHipdnnConvCache();
 
   HipdnnConvParams key;
   setHipdnnConvParams(&key, grad_output, input, padding, stride, dilation,
                       groups, /*has_bias=*/false, memory_format, /*operation=*/2,
-                      deterministic, benchmark, weight_size);
+                      weight_size);
 
   auto* cached = cache->find(key);
   if (!cached) {
