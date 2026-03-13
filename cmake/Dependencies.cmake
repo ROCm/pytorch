@@ -113,6 +113,9 @@ if(USE_ASAN OR USE_LSAN OR USE_TSAN)
   if(USE_ASAN)
     if(TARGET Sanitizer::address)
       list(APPEND Caffe2_DEPENDENCY_LIBS Sanitizer::address)
+      if(USE_ROCM)
+        list(APPEND Caffe2_HIP_DEPENDENCY_LIBS Sanitizer::address)
+      endif()
       add_definitions(-DUSE_ASAN)
     else()
       message(WARNING "ASAN not found. Suppress this warning with -DUSE_ASAN=OFF.")
@@ -1062,6 +1065,13 @@ if(USE_ROCM)
 
     if(USE_LAYERNORM_FAST_RECIPROCAL)
       add_definitions(-DUSE_LAYERNORM_FAST_RECIPROCAL)
+    endif()
+
+    # hip_add_executable doesn't support $<COMPILE_LANGUAGE:HIP> generator
+    # expressions, so add _GLIBCXX_SANITIZE_VECTOR directly to HIP flags
+    # instead of through the Sanitizer::address interface target.
+    if(USE_ASAN AND TARGET Sanitizer::address)
+      list(APPEND HIP_CXX_FLAGS -D_GLIBCXX_SANITIZE_VECTOR -D_GLIBCXX_SANITIZE_STD_ALLOCATOR)
     endif()
 
     # needed for compat with newer versions of hip-clang that introduced C++20 mangling rules
