@@ -20,6 +20,11 @@ on:
         description: "Optional issue range start ref for cold-start full-chain test (tag or SHA)"
         required: false
         type: string
+      test_source_branch:
+        description: "Source branch to pass to create_ifu_issues.yml in test mode"
+        required: false
+        default: "main"
+        type: string
       run_full_chain:
         description: "Run full chain - actually call create_ifu_issues.yml (will create real issues!)"
         required: false
@@ -48,6 +53,7 @@ jobs:
       has_prev_tag: ${{ steps.prev_tag.outputs.has_prev_tag }}
       issue_prev_ref: ${{ steps.prev_ref.outputs.issue_prev_ref }}
       can_create_issues: ${{ steps.prev_ref.outputs.can_create_issues }}
+      source_branch: ${{ github.event_name == 'workflow_dispatch' && inputs.test_source_branch || steps.source_branch.outputs.source_branch }}
 
     steps:
       - name: Validate test inputs
@@ -141,6 +147,26 @@ jobs:
           echo "ROCM_BASE_SHA=$ROCM_BASE_SHA"             >> "$GITHUB_OUTPUT"
           echo "UPSTREAM_MAIN_SHA=$UPSTREAM_MAIN_SHA"     >> "$GITHUB_OUTPUT"
 
+      - name: Resolve source branch from PR metadata
+        id: source_branch
+        if: github.event_name != 'workflow_dispatch'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          FALLBACK_SOURCE_BRANCH: ${{ steps.shas.outputs.UPSTREAM_REF_USED }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          source_branch=$(printf '%s\n' "${PR_BODY:-}" | sed -nE 's/^[[:space:]]*ifu_source_branch:[[:space:]]*(.+)[[:space:]]*$/\1/p' | head -n 1)
+          if [[ -n "${source_branch}" ]]; then
+            echo "Resolved source branch from PR body metadata: ${source_branch}"
+          else
+            source_branch="${FALLBACK_SOURCE_BRANCH:-main}"
+            echo "PR metadata 'ifu_source_branch' not found; falling back to: ${source_branch}"
+          fi
+
+          echo "source_branch=${source_branch}" >> "$GITHUB_OUTPUT"
+
       - name: Extract tag base from PR title
         id: tagname
         # Skip in test mode
@@ -213,12 +239,14 @@ jobs:
           HAS_PREV_TAG: ${{ steps.prev_tag.outputs.has_prev_tag }}
           TEST_CURR_PRE_TAG: ${{ inputs.test_curr_pre_tag }}
           TEST_ISSUE_PREV_REF: ${{ inputs.test_issue_prev_ref }}
+          TEST_SOURCE_BRANCH: ${{ inputs.test_source_branch }}
           RUN_FULL_CHAIN: ${{ inputs.run_full_chain }}
         run: |
           echo "=========================================="
           echo "TEST MODE SUMMARY"
           echo "=========================================="
           echo "Branch: ${BRANCH}"
+          echo "Source branch (for issue workflow): ${TEST_SOURCE_BRANCH}"
           echo "Has previous post tag: ${HAS_PREV_TAG}"
           echo "Previous post tag: ${PREV_POST_TAG:-'(none)'}"
           echo ""
@@ -227,6 +255,7 @@ jobs:
             echo "Will call create_ifu_issues.yml with:"
             echo "   - prev_post_tag: ${PREV_POST_TAG}"
             echo "   - curr_pre_tag: ${TEST_CURR_PRE_TAG}"
+            echo "   - source_branch: ${TEST_SOURCE_BRANCH}"
             if [[ -n "${TEST_ISSUE_PREV_REF}" ]]; then
               echo "   - test_issue_prev_ref override: ${TEST_ISSUE_PREV_REF}"
             fi
@@ -321,5 +350,6 @@ jobs:
     with:
       prev_post_tag: ${{ needs.tag-ifu.outputs.issue_prev_ref }}
       curr_pre_tag: ${{ needs.tag-ifu.outputs.curr_pre_tag }}
+      source_branch: ${{ needs.tag-ifu.outputs.source_branch }}
     secrets:
       IFU_GITHUB_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
