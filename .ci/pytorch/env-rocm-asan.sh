@@ -33,4 +33,9 @@ then
     # (RUNPATH on the caller doesn't propagate to dlopen lookups)
     TORCH_LIB_DIR=$(python -c "import torch; print(torch.__path__[0] + '/lib')" 2>/dev/null)
     export LD_LIBRARY_PATH="/opt/rocm/llvm/lib/clang/22/lib/linux:/opt/rocm/lib/asan${TORCH_LIB_DIR:+:$TORCH_LIB_DIR}"
+    # disable caching allocator, otherwise OOB memory accesses can be masked
+    # however, the caching allocator is required for proper hipGraph capture
+    # setting the CUDAGRAPH env var can help skip some tests that use that feature
+    export PYTORCH_NO_CUDA_MEMORY_CACHING=1
+    export PYTORCH_TEST_SKIP_CUDAGRAPH=1
 fi
