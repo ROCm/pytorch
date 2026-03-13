@@ -2434,6 +2434,7 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
             ["silu", "mul"],
         ),
     )
+    @parametrize("loop_ordering_after_fusion", (True, False))
     def test_grouped_linear_epilogue(
         self,
         batch_size,
@@ -2442,6 +2443,7 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
         input_3d,
         bias,
         epilogue,
+        loop_ordering_after_fusion,
     ):
         class M(torch.nn.Module):
             def __init__(self, in_feature, out_feature, bias, epilogue):
@@ -2482,6 +2484,9 @@ class TestSelectAlgorithm(BaseTestSelectAlgorithm):
                 verify(dtype) as (atol, rtol),
                 torch.autocast(device_type="cpu", dtype=dtype),
                 torch.no_grad(),
+                inductor_config.patch(
+                    {"loop_ordering_after_fusion": loop_ordering_after_fusion}
+                ),
             ):
                 self.common(mod, (v,), atol=atol, rtol=rtol)
             self.assertEqual(counters["inductor"]["cpp_grouped_gemm_template"], 1)

@@ -8546,6 +8546,40 @@ class MultiOutput(ExternKernel):
             and len(inp.get_inputs_that_alias_output()) > 0
         ]
 
+    def get_read_writes(self) -> dependencies.ReadWrites:
+        # Reads: StarDep on parent (we don't know which elements of the
+        # packed output we index into — conservative is correct).
+        reads: OrderedSet[dependencies.Dep] = OrderedSet()
+        for inp in self.inputs:
+            if isinstance(inp, IRNode):
+                reads.add(dependencies.StarDep(inp.get_name()))
+
+        # Writes: build proper MemoryDep from our FixedLayout so the
+        # scheduler can match our write with downstream epilogue reads.
+        # Normalize using the same policy as SchedulerNode so that the
+        # index expressions are directly comparable during fusion checks.
+        name = self.get_name()
+        indexer = self.get_layout().make_indexer()
+
+        def dummy(index: Sequence[Any], rindex: Sequence[Any]) -> Any:
+            assert len(rindex) == 0
+            return ops.store(name, indexer(index), "fake")
+
+        device = self.get_device()
+        should_normalize = (
+            not config.loop_ordering_after_fusion
+            or device is None
+            or not is_gpu(device.type)
+        )
+        write_rw = dependencies.extract_read_writes(
+            dummy, self.get_size(), (), normalize=should_normalize
+        )
+        return dependencies.ReadWrites(
+            reads=reads,
+            writes=write_rw.writes,
+            index_exprs=OrderedSet(),
+        )
+
 
 # We just use a normal dataclass for MutableBox/TensorBox/StorageBox since
 # they're mainly lowering-time constructs that we expect to mutate and such.
