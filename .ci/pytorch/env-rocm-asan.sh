@@ -4,7 +4,7 @@ export PYTORCH_ROCM_ARCH="gfx90a:xnack+;gfx942:xnack+"
 
 # detect_leaks=0: Python is very leaky, so we need suppress it
 # symbolize=1: Gives us much better errors when things go wrong
-export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=1:symbolize=1:detect_odr_violation=0
+export ASAN_OPTIONS=detect_leaks=0:detect_stack_use_after_return=1:symbolize=1
 export CMAKE_PREFIX_PATH=/opt/conda
 
 # otherwise any program run at build time will fail
