@@ -35,6 +35,7 @@ permissions:
   contents: write        # create/push tags
   pull-requests: write   # edit PR body
   issues: write          # needed for create_ifu_issues.yml when called
+  actions: read
 
 jobs:
   tag-ifu:
@@ -303,8 +304,6 @@ jobs:
       - name: Create pre/post tags
         if: (github.event_name == 'pull_request') || (github.event_name == 'workflow_dispatch' && inputs.pr_num != 0)
         shell: bash
-        env:
-          GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           echo "Tagging:"
@@ -314,6 +313,9 @@ jobs:
           git tag "${{ steps.tagname.outputs.PRE_TAG }}"  "${{ steps.shas.outputs.ROCM_BASE_SHA }}"
           git tag "${{ steps.tagname.outputs.POST_TAG }}" "${{ steps.shas.outputs.MERGE_SHA }}"
 
+          ############ DEBUG ONLY #########################
+          git config --show-origin --get http.https://github.com/.extraheader || true
+          
           #Force pushing is safe. If we land a new PR, we'd wanna retag a commit if we have to.
           git push origin "refs/tags/${{ steps.tagname.outputs.PRE_TAG }}" -f
           git push origin "refs/tags/${{ steps.tagname.outputs.POST_TAG  }}" -f
