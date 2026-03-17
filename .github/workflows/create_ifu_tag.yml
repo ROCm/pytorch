@@ -101,6 +101,7 @@ jobs:
           # PR merge -> use base.ref
           ref: ${{ (github.event_name == 'workflow_dispatch' && inputs.pr_num != 0 && steps.get_pr.outputs.base_ref) || (github.event_name == 'workflow_dispatch' && github.ref) || github.event.pull_request.base.ref }}
           fetch-depth: 0
+          token: ${{ secrets.IFU_GITHUB_TOKEN }}
 
       # Fetch all tags so we can find the previous post tag
       - name: Fetch all tags
