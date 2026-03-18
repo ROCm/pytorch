@@ -38,7 +38,8 @@ typedef int (*nn_bw_compute_source_index_fn_t)(const float, int, int);
 //   The original implementation for ROCm assumed that gridDim.x fully covers width2
 //   and gridDim.y fully covers height2 (only the Z/nc dimension used a stride
 //   loop). The original code even had a TODO comment acknowledging this:
-//     "kernel implementation could stride on spatial dimension"
+//   "TODO: kernel implementation could stride on spatial dimension. We probably
+//   need to overhaul the kernel."
 //
 //   On HIP/ROCm, gridDim.{x,y,z} * blockDim.{x,y,z} must be < 2^32 per
 //   dimension. For large spatial outputs, this constraint can be violated
@@ -251,9 +252,8 @@ __global__ void upsample_nearest2d_backward_nhwc_out_frame(
 //       grid_x covers output_width, grid_y covers output_height.
 //       The original code had a TORCH_CHECK for maxGridSize but NOT for the
 //       HIP-specific product overflow.
-//       FIX: Clamp grid_x and grid_y on ROCm. The corrected kernel (see
-//       upsample_nearest2d_out_frame_fixed.cu) adds grid-stride loops on
-//       X and Y so the clamped grid still covers the full output.
+//       FIX: Clamp grid_x and grid_y on ROCm. The corrected kernel adds
+//       grid-stride loops on X and Y so the clamped grid still covers the full output.
 //       The original TORCH_CHECK on maxGridSize is replaced with a
 //       proper clamp on ROCm; on CUDA, the original check is preserved.
 template<nn_compute_source_index_fn_t nn_compute_source_index_fn>
@@ -422,6 +422,14 @@ static void upsample_nearest2d_out_cuda_template(
   }
 }
 
+// TODO: Same pattern as the forward: both the NHWC 1D-grid path and
+// the contiguous 1D-grid path need to USE_ROCM clamp grid size
+// (guarded by `#if USE_ROCM) to avoid hitting the HIP runtime limits.
+// The backward NHWC path is less likely to trigger the issue because
+// it already has `TORCH_CHECK(grad_input.numel() < INT_MAX)`, meaning
+// `grid * num_threads < INT_MAX < 2^32`. But the contiguous path uses
+// `size_t n = grad_input.numel() / nbatch` which could exceed
+// `UINT32_MAX / bdim.x`, so the clamp is still necessary for completeness.
 template<nn_bw_compute_source_index_fn_t nn_bw_compute_source_index_fn>
 static void upsample_nearest2d_backward_out_cuda_template(
     const Tensor& grad_input,
