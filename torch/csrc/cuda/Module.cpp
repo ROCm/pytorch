@@ -2249,6 +2249,7 @@ namespace shared {
 
 void initCudartBindings(PyObject* module);
 void initNvtxBindings(PyObject* module);
+void initRoctxBindings(PyObject* module);
 #if defined(USE_CUDNN) || defined(USE_ROCM)
 void initCudnnBindings(PyObject* module);
 #endif
@@ -2264,6 +2265,9 @@ void initModule(PyObject* module) {
   // so this condition might not always be true...
   shared::initCudartBindings(module);
   shared::initNvtxBindings(module);
+#if defined(USE_ROCM)
+  shared::initRoctxBindings(module);
+#endif
 #if defined(USE_CUDNN) || defined(USE_ROCM)
   shared::initCudnnBindings(module);
 #endif

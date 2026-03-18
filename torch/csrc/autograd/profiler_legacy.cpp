@@ -22,6 +22,10 @@
 
 #include <iostream>
 
+#ifdef USE_ROCM
+#include <roctx.h>
+#endif
+
 namespace torch::autograd::profiler {
 
 // We decompose the profiler logic into the following components:
@@ -195,6 +199,10 @@ void ProfilerLegacyThreadLocalState::mark(std::string name, bool include_cuda) {
   }
   if (config_.state == torch::profiler::impl::ProfilerState::NVTX) {
     torch::profiler::impl::cudaStubs()->mark(name.c_str());
+  } else if (config_.state == torch::profiler::impl::ProfilerState::ROCTX) {
+#ifdef USE_ROCM
+    roctxMarkA(name.c_str());
+#endif
   } else {
     LegacyEvent evt(
         EventKind::Mark,
@@ -229,6 +237,12 @@ void ProfilerLegacyThreadLocalState::pushRange(
     torch::profiler::impl::cudaStubs()->rangePush(
         torch::profiler::impl::getNvtxStr(fn.name(), fn.seqNr(), shapes)
             .c_str());
+  } else if (config_.state == torch::profiler::impl::ProfilerState::ROCTX) {
+#ifdef USE_ROCM
+    roctxRangePushA(
+        torch::profiler::impl::getNvtxStr(fn.name(), fn.seqNr(), shapes)
+            .c_str());
+#endif
   } else {
     LegacyEvent evt(
         EventKind::PushRange,
@@ -275,6 +289,10 @@ void ProfilerLegacyThreadLocalState::popRange(
   }
   if (config_.state == torch::profiler::impl::ProfilerState::NVTX) {
     torch::profiler::impl::cudaStubs()->rangePop();
+  } else if (config_.state == torch::profiler::impl::ProfilerState::ROCTX) {
+#ifdef USE_ROCM
+    roctxRangePop();
+#endif
   } else {
     // In some cases RecordFunction (and popRange) may be
     // called on a different thread than pushRange
@@ -415,6 +433,11 @@ void enableProfilerLegacy(
       new_config.state != torch::profiler::impl::ProfilerState::NVTX ||
           torch::profiler::impl::cudaStubs()->enabled(),
       "Can't use NVTX profiler - PyTorch was compiled without CUDA");
+#ifndef USE_ROCM
+  TORCH_CHECK(
+      new_config.state != torch::profiler::impl::ProfilerState::ROCTX,
+      "Can't use ROCTX profiler - PyTorch was not compiled with ROCm (USE_ROCM)");
+#endif
 
   TORCH_CHECK(new_config.state != torch::profiler::impl::ProfilerState::KINETO);
 
@@ -451,7 +474,8 @@ thread_event_lists disableProfilerLegacy(
 
   cleanupTLSState ? state_ptr->removeCallback() : state_ptr->leakHandle();
   if (!consolidate ||
-      state_ptr->config().state == torch::profiler::impl::ProfilerState::NVTX) {
+      state_ptr->config().state == torch::profiler::impl::ProfilerState::NVTX ||
+      state_ptr->config().state == torch::profiler::impl::ProfilerState::ROCTX) {
     return thread_event_lists();
   }
 

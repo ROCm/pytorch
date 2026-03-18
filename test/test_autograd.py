@@ -40,7 +40,7 @@ from torch.autograd import (
 )
 from torch.autograd.function import InplaceFunction, once_differentiable
 from torch.autograd.graph import GradientEdge
-from torch.autograd.profiler import emit_itt, emit_nvtx, profile, record_function
+from torch.autograd.profiler import emit_itt, emit_nvtx, emit_roctx, profile, record_function
 from torch.autograd.profiler_util import (
     _format_time,
     EventList,
@@ -12344,6 +12344,15 @@ class TestAutogradDeviceType(TestCase):
         a = torch.tensor([1, 2, 3], dtype=torch.float32, device=device)
         with torch.cuda.profiler.profile():
             with emit_nvtx():
+                a.add(1.0)
+
+    @onlyCUDA
+    @unittest.skipIf(not torch.version.hip, "emit_roctx requires ROCm build")
+    def test_profiler_emit_roctx(self, device):
+        # Mirror of test_profiler_emit_nvtx: catch if emit_roctx breaks on construction (ROCm only).
+        a = torch.tensor([1, 2, 3], dtype=torch.float32, device=device)
+        with torch.cuda.profiler.profile():
+            with emit_roctx():
                 a.add(1.0)
 
     @onlyCUDA

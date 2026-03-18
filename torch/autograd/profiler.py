@@ -47,6 +47,7 @@ __all__ = [
     "record_function",
     "emit_itt",
     "emit_nvtx",
+    "emit_roctx",
     "load_nvprof",
     "EnforceUnique",
     "parse_nvprof_trace",
@@ -1092,6 +1093,67 @@ class emit_nvtx:
         _enable_profiler(
             ProfilerConfig(
                 ProfilerState.NVTX,
+                self.record_shapes,
+                False,
+                False,
+                False,
+                False,
+                _ExperimentalConfig(),
+            ),
+            set(),
+        )
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if not self.enabled:
+            return
+        torch.cuda.synchronize()
+        _disable_profiler()
+        _run_on_profiler_stop()
+        return False
+
+
+class emit_roctx:
+    """Context manager that makes every autograd operation emit a ROCTX range.
+
+    This is the ROCm analogue of :class:`emit_nvtx`. Use it when profiling
+    with ROCm tools (e.g. rocprof, rocprofv3) so that every autograd op is
+    wrapped in a ROCTX range visible in the trace.
+
+    Only available when PyTorch is built with ROCm (USE_ROCM). Otherwise
+    enabling this context manager will raise an error.
+
+    Args:
+        enabled (bool, optional): Setting ``enabled=False`` makes this context manager a no-op.
+            Default: ``True``.
+        record_shapes (bool, optional): If ``record_shapes=True``, the roctx range wrapping
+            each autograd op will append information about the sizes of Tensor arguments.
+            Default: ``False``.
+
+    Example:
+        >>> # On a ROCm build:
+        >>> with torch.cuda.profiler.profile():
+        ...     model(x)  # Warmup
+        ...     with torch.autograd.profiler.emit_roctx():
+        ...         model(x)
+    """
+
+    def __init__(self, enabled=True, record_shapes=False):
+        self.enabled = enabled
+        self.entered = False
+        self.record_shapes = record_shapes
+
+    def __enter__(self):
+        if not self.enabled:
+            return
+        if self.entered:
+            raise RuntimeError("ROCTX annotation context manager is not reentrant")
+        self.entered = True
+        torch.cuda.synchronize()
+        _run_on_profiler_start()
+        _enable_profiler(
+            ProfilerConfig(
+                ProfilerState.ROCTX,
                 self.record_shapes,
                 False,
                 False,

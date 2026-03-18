@@ -111,6 +111,7 @@ libtorch_profiler_sources = [
     "torch/csrc/profiler/standalone/execution_trace_observer.cpp",
     "torch/csrc/profiler/standalone/itt_observer.cpp",
     "torch/csrc/profiler/standalone/nvtx_observer.cpp",
+    "torch/csrc/profiler/standalone/roctx_observer.cpp",
     "torch/csrc/profiler/standalone/privateuse1_observer.cpp",
     "torch/csrc/profiler/stubs/base.cpp",
     "torch/csrc/profiler/orchestration/vulkan.cpp",
@@ -870,6 +871,7 @@ libtorch_python_cuda_core_sources = [
     "torch/csrc/cuda/GreenContext.cpp",
     "torch/csrc/cuda/shared/cudart.cpp",
     "torch/csrc/cuda/shared/nvtx.cpp",
+    "torch/csrc/cuda/shared/roctx.cpp",
     "torch/csrc/cuda/utils.cpp",
     "torch/csrc/cuda/GdsFile.cpp",
 ]

@@ -1876,7 +1876,7 @@ def _compile_kernel(
         return getattr(result, mangled_name)
 
 
-from . import amp, jiterator, nvtx, profiler, sparse, tunable
+from . import amp, jiterator, nvtx, roctx, profiler, sparse, tunable
 
 
 _POOL_HANDLE = NewType("_POOL_HANDLE", tuple[int, int])
@@ -1995,6 +1995,7 @@ __all__ = [
     "clock_rate",
     "nccl",
     "nvtx",
+    "roctx",
     "profiler",
     "random",
     "reset_accumulated_host_memory_stats",

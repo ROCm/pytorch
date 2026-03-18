@@ -1607,6 +1607,20 @@ if __name__ == '__main__':
         range_handle = torch.cuda.nvtx.range_start("range_start")
         torch.cuda.nvtx.range_end(range_handle)
 
+    @unittest.skipIf(
+        not torch.cuda.is_available() or not torch.version.hip,
+        "ROCTX tests require CUDA (HIP/ROCm) build",
+    )
+    def test_roctx(self):
+        # Mirror of test_nvtx: ensure roctx symbols work (ROCm build only).
+        torch.cuda.roctx.range_push("foo")
+        torch.cuda.roctx.mark("bar")
+        torch.cuda.roctx.range_pop()
+        range_handle = torch.cuda.roctx.range_start("range_start")
+        torch.cuda.roctx.range_end(range_handle)
+        with torch.cuda.roctx.range("context_region"):
+            pass
+
     def test_bincount_ext(self):
         # ensure CUDA code coverage
         input_size = (100000,)

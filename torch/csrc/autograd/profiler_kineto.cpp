@@ -18,6 +18,7 @@
 #include <torch/csrc/profiler/standalone/itt_observer.h>
 #include <torch/csrc/profiler/standalone/nvtx_observer.h>
 #include <torch/csrc/profiler/standalone/privateuse1_observer.h>
+#include <torch/csrc/profiler/standalone/roctx_observer.h>
 #include <torch/csrc/profiler/util.h>
 
 #include <stdexcept>
@@ -85,14 +86,15 @@ inline bool isKinetoCompatibleState(ProfilerState state) {
 inline bool isValidDisableState(ProfilerState state) {
   return isKinetoCompatibleState(state) ||
       state == ProfilerState::KINETO_ONDEMAND || state == ProfilerState::NVTX ||
-      state == ProfilerState::ITT || state == ProfilerState::PRIVATEUSE1;
+      state == ProfilerState::ROCTX || state == ProfilerState::ITT ||
+      state == ProfilerState::PRIVATEUSE1;
 }
 
 // Helper function to check if ProfilerState uses an external tracer
-// (NVTX/ITT/PRIVATEUSE1 - these use their own tracing callbacks, not Kineto)
+// (NVTX/ROCTX/ITT/PRIVATEUSE1 - these use their own tracing callbacks, not Kineto)
 inline bool isExternalTracerState(ProfilerState state) {
-  return state == ProfilerState::NVTX || state == ProfilerState::ITT ||
-      state == ProfilerState::PRIVATEUSE1;
+  return state == ProfilerState::NVTX || state == ProfilerState::ROCTX ||
+      state == ProfilerState::ITT || state == ProfilerState::PRIVATEUSE1;
 }
 
 struct OpArgData {
@@ -642,6 +644,7 @@ void prepareProfiler(
     const torch::profiler::impl::ProfilerConfig& config,
     const std::set<torch::profiler::impl::ActivityType>& activities) {
   if (config.state == ProfilerState::NVTX ||
+      config.state == ProfilerState::ROCTX ||
       config.state == ProfilerState::ITT) {
     return;
   }
@@ -767,6 +770,9 @@ void enableProfilerWithEventPostProcess(
       config.state != ProfilerState::NVTX,
       "NVTX does not support post processing callback.");
   TORCH_CHECK(
+      config.state != ProfilerState::ROCTX,
+      "ROCTX does not support post processing callback.");
+  TORCH_CHECK(
       config.state != ProfilerState::ITT,
       "ITT does not support post processing callback.");
   TORCH_INTERNAL_ASSERT(
@@ -793,6 +799,9 @@ void enableProfiler(
     switch (config.state) {
       case ProfilerState::NVTX:
         torch::profiler::impl::pushNVTXCallbacks(config, scopes);
+        break;
+      case ProfilerState::ROCTX:
+        torch::profiler::impl::pushROCTXCallbacks(config, scopes);
         break;
       case ProfilerState::ITT:
         torch::profiler::impl::pushITTCallbacks(config, scopes);
@@ -875,10 +884,11 @@ std::unique_ptr<ProfilerResult> disableProfiler() {
     return std::make_unique<ProfilerResult>();
   }
 
-  // Shared among NVTX, PRIVATEUSE1, KINETO, KINETO_GPU_FALLBACK,
+  // Shared among NVTX, ROCTX, PRIVATEUSE1, KINETO, KINETO_GPU_FALLBACK,
   // KINETO_PRIVATEUSE1_FALLBACK
   std::unique_ptr<ProfilerResult> result;
   if (config.state == ProfilerState::NVTX ||
+      config.state == ProfilerState::ROCTX ||
       config.state == ProfilerState::PRIVATEUSE1) {
     result = std::make_unique<ProfilerResult>();
   }
