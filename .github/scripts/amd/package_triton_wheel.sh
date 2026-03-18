@@ -29,7 +29,10 @@ if [[ -z "${TRITON_ROCM_DIR}" ]]; then
 fi
 
 # Remove packaged libs and headers
-rm -rf $TRITON_ROCM_DIR/include/*
+rm -rf $TRITON_ROCM_DIR/include/hip
+rm -rf $TRITON_ROCM_DIR/include/hipblas-common
+rm -rf $TRITON_ROCM_DIR/include/hsa
+rm -rf $TRITON_ROCM_DIR/include/roctracer
 
 LIBNUMA_PATH="/usr/lib64/libnuma.so.1"
 LIBELF_PATH="/usr/lib64/libelf.so.1"

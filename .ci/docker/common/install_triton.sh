@@ -23,6 +23,7 @@ elif [ -n "${TRITON_CPU}" ]; then
 else
   TRITON_REPO="https://github.com/ROCm/triton"
   TRITON_TEXT_FILE="triton"
+  BRANCH="shared/gfx1250_b0"
 fi
 
 # The logic here is copied from .ci/pytorch/common_utils.sh
@@ -47,7 +48,7 @@ chown -R jenkins /var/lib/jenkins/triton
 chgrp -R jenkins /var/lib/jenkins/triton
 pushd /var/lib/jenkins/
 
-as_jenkins git clone --recursive ${TRITON_REPO} triton
+as_jenkins git clone --recursive ${TRITON_REPO} -b ${BRANCH} triton
 cd triton
 as_jenkins git checkout ${TRITON_PINNED_COMMIT}
 as_jenkins git submodule update --init --recursive

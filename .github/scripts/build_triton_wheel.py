@@ -103,12 +103,15 @@ def build_triton(
         if device == "rocm":
             triton_repo = "https://github.com/ROCm/triton"
             triton_pkg_name = "triton"
+            branch = "shared/gfx1250_b0"
+            check_call(["git", "clone", triton_repo, "-b", branch, "triton"], cwd=tmpdir)
         elif device == "xpu":
             triton_pkg_name = "triton-xpu"
             triton_repo = "https://github.com/intel/intel-xpu-backend-for-triton"
+            check_call(["git", "clone", triton_repo, "triton"], cwd=tmpdir)
         else:
             triton_pkg_name = "triton"
-        check_call(["git", "clone", triton_repo, "triton"], cwd=tmpdir)
+            check_call(["git", "clone", triton_repo, "triton"], cwd=tmpdir)
         if release:
             ver, rev, patch = version.split(".")
             check_call(
