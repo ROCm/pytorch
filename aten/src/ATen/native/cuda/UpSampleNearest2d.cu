@@ -120,17 +120,19 @@ __global__ void upsample_nearest2d_nhwc_out_frame(
     float width_scale,
     const size_t out_numel) {
 
-    const int64_t index = ((int64_t) blockIdx.x) * blockDim.x + threadIdx.x;
+  // Grid-stride loop to handle the case where the grid is clamped
+  // to satisfy HIP's gridDim.x * blockDim.x < 2^32 constraint.
+  for (int64_t index = static_cast<int64_t>(blockIdx.x) * static_cast<int64_t>(blockDim.x) +
+                        static_cast<int64_t>(threadIdx.x);
+       index < static_cast<int64_t>(out_numel);
+       index += static_cast<int64_t>(gridDim.x) * static_cast<int64_t>(blockDim.x)) {
 
-    if (index < out_numel) {
     const auto c = index % channels;
     const auto w2 = (index / channels) % width2;
     const auto h2 = (index / channels / width2) % height2;
     const auto n = index / channels / width2 / height2;
-
     const size_t h1 = height1 == height2 ? h2 : nn_compute_source_index_fn(height_scale, h2, height1);
     const size_t w1 = width1 == width2 ? w2 : nn_compute_source_index_fn(width_scale, w2, width1);
-
     odata[index] = idata[idx_cl(n, h1, w1, c, height1, width1, channels)];
   }
 }
