@@ -189,6 +189,23 @@
     nvtx.range
 ```
 
+## ROCm Tools Extension (ROCTX)
+
+ROCTX is the ROCm analogue of NVTX. Use it when profiling with ROCm tools
+(e.g. rocprof, rocprofv3) so that markers and ranges appear in the trace.
+Only available when PyTorch is built with ROCm (USE_ROCM).
+
+```{eval-rst}
+.. autosummary::
+    :toctree: generated
+    :nosignatures:
+
+    roctx.mark
+    roctx.range_push
+    roctx.range_pop
+    roctx.range
+```
+
 ## Jiterator (beta)
 
 ```{eval-rst}
@@ -306,6 +323,10 @@ See the docs for {class}`~torch.cuda.green_contexts.GreenContext` for an example
 
 ```{eval-rst}
 .. py:module:: torch.cuda.nvtx
+```
+
+```{eval-rst}
+.. py:module:: torch.cuda.roctx
 ```
 
 ```{eval-rst}
