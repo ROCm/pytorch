@@ -17,9 +17,11 @@ get_pip_version() {
 if [ -n "${XPU_VERSION}" ]; then
   TRITON_REPO="https://github.com/intel/intel-xpu-backend-for-triton"
   TRITON_TEXT_FILE="triton-xpu"
+  BRANCH="main"
 elif [ -n "${TRITON_CPU}" ]; then
   TRITON_REPO="https://github.com/triton-lang/triton-cpu"
   TRITON_TEXT_FILE="triton-cpu"
+  BRANCH="main"
 else
   TRITON_REPO="https://github.com/ROCm/triton"
   TRITON_TEXT_FILE="triton"
