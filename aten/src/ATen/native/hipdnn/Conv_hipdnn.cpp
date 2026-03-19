@@ -8,53 +8,15 @@
 #else
 #include <ATen/ops/empty.h>
 #include <ATen/ops/empty_like.h>
-#include <ATen/ops/hipdnn_convolution_native.h>
-#include <ATen/ops/hipdnn_convolution_transpose_native.h>
 #endif
 
 #include <ATen/cuda/CUDAConfig.h>
 
-#if !AT_ROCM_ENABLED()
+#if !AT_ROCM_ENABLED() || !defined(USE_HIPDNN)
 
-namespace at::native {
-
-Tensor hipdnn_convolution(
-    const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation,
-    int64_t groups, bool benchmark, bool deterministic) {
-  TORCH_CHECK(false, "hipdnn_convolution: ATen not compiled with ROCm support");
-}
-
-Tensor hipdnn_convolution_transpose(
-    const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    IntArrayRef padding, IntArrayRef output_padding,
-    IntArrayRef stride, IntArrayRef dilation,
-    int64_t groups, bool benchmark, bool deterministic) {
-  TORCH_CHECK(false, "hipdnn_convolution_transpose: ATen not compiled with ROCm support");
-}
-
-} // namespace at::native
-
-#elif !defined(USE_HIPDNN)
-
-namespace at::native {
-
-Tensor hipdnn_convolution(
-    const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    IntArrayRef padding, IntArrayRef stride, IntArrayRef dilation,
-    int64_t groups, bool benchmark, bool deterministic) {
-  TORCH_CHECK(false, "hipdnn_convolution: not compiled with hipDNN support");
-}
-
-Tensor hipdnn_convolution_transpose(
-    const Tensor& input, const Tensor& weight, const std::optional<Tensor>& bias_opt,
-    IntArrayRef padding, IntArrayRef output_padding,
-    IntArrayRef stride, IntArrayRef dilation,
-    int64_t groups, bool benchmark, bool deterministic) {
-  TORCH_CHECK(false, "hipdnn_convolution_transpose: not compiled with hipDNN support");
-}
-
-} // namespace at::native
+// No forward stubs needed: dispatch stubs (REGISTER_NO_CPU_DISPATCH) handle
+// the non-CUDA case, and backend selection (use_hipdnn()) prevents dispatch
+// to hipDNN when not compiled with hipDNN support.
 
 #else // AT_ROCM_ENABLED && USE_HIPDNN
 
@@ -684,6 +646,8 @@ std::tuple<Tensor, Tensor, Tensor> hipdnn_convolution_transpose_backward(
 // ---------------------------------------------------------------------------
 // Dispatch stub registration
 // ---------------------------------------------------------------------------
+REGISTER_CUDA_DISPATCH(hipdnn_convolution_stub, &hipdnn_convolution)
+REGISTER_CUDA_DISPATCH(hipdnn_convolution_transpose_stub, &hipdnn_convolution_transpose)
 REGISTER_CUDA_DISPATCH(hipdnn_convolution_backward_stub, &hipdnn_convolution_backward)
 REGISTER_CUDA_DISPATCH(hipdnn_convolution_transpose_backward_stub, &hipdnn_convolution_transpose_backward)
 

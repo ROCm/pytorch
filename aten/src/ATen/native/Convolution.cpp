@@ -70,8 +70,6 @@
 #include <ATen/ops/empty.h>
 #include <ATen/ops/empty_like.h>
 #include <ATen/ops/empty_native.h>
-#include <ATen/ops/hipdnn_convolution.h>
-#include <ATen/ops/hipdnn_convolution_transpose.h>
 #include <ATen/ops/miopen_convolution.h>
 #include <ATen/ops/miopen_convolution_transpose.h>
 #include <ATen/ops/miopen_depthwise_convolution.h>
@@ -636,6 +634,8 @@ DEFINE_DISPATCH(miopen_convolution_transpose_backward_stub);
 DEFINE_DISPATCH(miopen_depthwise_convolution_backward_stub);
 DEFINE_DISPATCH(hipdnn_convolution_backward_stub);
 DEFINE_DISPATCH(hipdnn_convolution_transpose_backward_stub);
+DEFINE_DISPATCH(hipdnn_convolution_stub);
+DEFINE_DISPATCH(hipdnn_convolution_transpose_stub);
 DEFINE_DISPATCH(mkldnn_convolution_backward_stub);
 DEFINE_DISPATCH(mkldnn_convolution_transpose_stub);
 DEFINE_DISPATCH(mkldnn_convolution_transpose_backward_stub);
@@ -651,6 +651,8 @@ REGISTER_NO_CPU_DISPATCH(miopen_convolution_transpose_backward_stub)
 REGISTER_NO_CPU_DISPATCH(miopen_depthwise_convolution_backward_stub)
 REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_backward_stub)
 REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_transpose_backward_stub)
+REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_stub)
+REGISTER_NO_CPU_DISPATCH(hipdnn_convolution_transpose_stub)
 
 template <typename T>
 static std::ostream& operator<<(std::ostream & out, const ConvParams<T>& params) {
@@ -1658,13 +1660,15 @@ at::Tensor _convolution(
     }
     case ConvBackend::Hipdnn:
       check_input_same_type_as_parameters(input, weight, bias);
-      output = at::hipdnn_convolution(
+      output = hipdnn_convolution_stub(
+          input.device().type(),
           input, weight, bias, params.padding, params.stride,
           params.dilation, params.groups, params.benchmark, params.deterministic);
       break;
     case ConvBackend::HipdnnTranspose:
       check_input_same_type_as_parameters(input, weight, bias);
-      output = at::hipdnn_convolution_transpose(
+      output = hipdnn_convolution_transpose_stub(
+          input.device().type(),
           input, weight, bias, params.padding, params.output_padding,
           params.stride, params.dilation, params.groups, params.benchmark, params.deterministic);
       break;

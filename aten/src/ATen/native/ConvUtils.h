@@ -46,10 +46,19 @@ using hipdnn_convolution_backward_fn = std::tuple<at::Tensor,at::Tensor,at::Tens
     const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
     at::IntArrayRef, int64_t, bool, bool, std::array<bool,3>);
 DECLARE_DISPATCH(hipdnn_convolution_backward_fn, hipdnn_convolution_backward_stub)
+using hipdnn_convolution_fn = at::Tensor(*)(
+    const at::Tensor&, const at::Tensor&, const std::optional<at::Tensor>&,
+    at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool);
+DECLARE_DISPATCH(hipdnn_convolution_fn, hipdnn_convolution_stub)
 using hipdnn_convolution_transpose_backward_fn = std::tuple<at::Tensor,at::Tensor,at::Tensor>(*)(
     const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
     at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool, std::array<bool,3>);
 DECLARE_DISPATCH(hipdnn_convolution_transpose_backward_fn, hipdnn_convolution_transpose_backward_stub)
+using hipdnn_convolution_transpose_fn = at::Tensor(*)(
+    const at::Tensor&, const at::Tensor&, const std::optional<at::Tensor>&,
+    at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool);
+DECLARE_DISPATCH(hipdnn_convolution_transpose_fn, hipdnn_convolution_transpose_stub)
+
 using mkldnn_convolution_backward_fn = std::tuple<at::Tensor,at::Tensor,at::Tensor>(*)(
     const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
     at::IntArrayRef, int64_t, std::array<bool,3>);
