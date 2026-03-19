@@ -3,7 +3,7 @@
 #include <torch/csrc/profiler/util.h>
 
 #ifdef USE_ROCM
-#include <roctx.h>
+#include <roctracer/roctx.h>
 #endif
 
 namespace torch::profiler::impl {

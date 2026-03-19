@@ -1438,6 +1438,10 @@ if(USE_ROCM)
     USE_ROCM
     __HIP_PLATFORM_AMD__
     )
+  # torch_cpu contains profiler (e.g. profiler_legacy.cpp) that calls roctx*; link libroctx
+  if(ROCM_ROCTX_LIB)
+    target_link_libraries(torch_cpu PRIVATE ${ROCM_ROCTX_LIB})
+  endif()
 
   if(NOT ROCM_SOURCE_DIR)
     set(ROCM_SOURCE_DIR "$ENV{ROCM_SOURCE_DIR}")

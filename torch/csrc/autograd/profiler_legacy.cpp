@@ -23,7 +23,7 @@
 #include <iostream>
 
 #ifdef USE_ROCM
-#include <roctx.h>
+#include <roctracer/roctx.h>
 #endif
 
 namespace torch::autograd::profiler {

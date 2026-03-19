@@ -206,8 +206,12 @@ if(HIP_FOUND)
   list(REMOVE_DUPLICATES ROCM_INCLUDE_DIRS)
 
   if(UNIX)
-    # roctx is part of roctracer
+    # roctx is part of roctracer (header needed for profiler_legacy.cpp and kineto)
     find_library(ROCM_ROCTX_LIB roctx64 HINTS ${ROCM_PATH}/lib)
+    set(ROCTRACER_INCLUDE_DIR "${ROCM_PATH}/include/roctracer")
+    if(EXISTS "${ROCTRACER_INCLUDE_DIR}/roctx.h")
+      list(APPEND ROCM_INCLUDE_DIRS ${ROCTRACER_INCLUDE_DIR})
+    endif()
 
     set(PROJECT_RANDOM_BINARY_DIR "${PROJECT_BINARY_DIR}")
 
