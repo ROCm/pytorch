@@ -135,9 +135,39 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       auto result_info = cuda::detail::getTensorInfo<scalar_t, int64_t>(result);
       auto self_info = cuda::detail::getTensorInfo<const scalar_t, int64_t>(self);
       BOOL_SWITCH(self.is_same(result), inplace, [&] {
-        triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread, inplace>
-          <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
-            result_info, self_info, k, N_padded, last_dim_padded);
+#if defined(USE_ROCM)
+        int64_t total_threads = (int64_t)dim_grid.x  * (int64_t)dim_block.x;
+        int64_t extra_bits = total_threads >> std::numeric_limits<uint32_t>::digits;
+        switch (extra_bits) {
+          case 0:
+            // total_threads fits within 32 bits on ROCm
+#endif
+            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread, inplace>
+              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
+                result_info, self_info, k, N_padded, last_dim_padded);
+#if defined(USE_ROCM)
+            break;
+          case 1:
+            // total_threads requires 33 bits on ROCm
+            // we can double the number of elements_per_thread to halve the number of threads
+            dim_grid.x = (dim_grid.x + 1) / 2;
+            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread * 2, inplace>
+              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
+                result_info, self_info, k, N_padded, last_dim_padded);
+            break;
+          case 2:
+            // total_threads requires 34 bits on ROCm
+            // we can quadruple the number of elements_per_thread to quarter the number of threads
+            dim_grid.x = (dim_grid.x + 3) / 4;
+            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread * 4, inplace>
+              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
+                result_info, self_info, k, N_padded, last_dim_padded);
+            break;
+          default:
+            // TODO: handle more than 34 bits if needed
+            TORCH_CHECK(false, "triu: Exceeded the maximum number of threads supported by ROCm.");
+        }
+#endif
       });
       C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
