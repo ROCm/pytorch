@@ -1207,6 +1207,27 @@ class TestMPS(TestCaseMPS):
         self.assertEqual(output_cpu, output_mps)
         self.assertEqual(output_cpu.size(), output_mps.size())
 
+    def test_bmm_conj(self):
+        # bmm must respect the conjugate bit on input tensors.
+        # See https://github.com/pytorch/pytorch/issues/177474
+        a = torch.randn(4, 3, 5, dtype=torch.complex64, device="mps")
+        b = torch.randn(4, 5, 2, dtype=torch.complex64, device="mps")
+        result_mps = torch.bmm(a, b.conj())
+        result_cpu = torch.bmm(a.cpu(), b.cpu().conj())
+        self.assertEqual(result_cpu, result_mps)
+        result_mps = torch.bmm(a.conj(), b)
+        result_cpu = torch.bmm(a.cpu().conj(), b.cpu())
+        self.assertEqual(result_cpu, result_mps)
+
+    def test_addmm_conj(self):
+        # Regression test: addmm must respect the conjugate bit on the bias tensor.
+        bias = torch.randn(3, 2, dtype=torch.complex64, device="mps")
+        a = torch.randn(3, 5, dtype=torch.complex64, device="mps")
+        b = torch.randn(5, 2, dtype=torch.complex64, device="mps")
+        result_mps = torch.addmm(bias.conj(), a, b)
+        result_cpu = torch.addmm(bias.cpu().conj(), a.cpu(), b.cpu())
+        self.assertEqual(result_cpu, result_mps)
+
     @xfailIf(MACOS_VERSION < 15.0)
     @parametrize("dtype", [torch.float16, torch.bfloat16])
     def test_large_bmm(self, dtype):
@@ -9629,10 +9650,10 @@ class TestLinalgMPS(TestCaseMPS):
 
 
 class TestSDPA(TestCaseMPS):
-    def _compare_tensors(self, y, ref):
+    def _compare_tensors(self, y, ref, tol=0.01):
         denom = torch.maximum(ref.abs(), torch.tensor([1e-6], device=ref.device, dtype=ref.dtype))
         err = ((y - ref).abs() / denom).mean().item()
-        self.assertLess(err, 0.01)
+        self.assertLess(err, tol)
 
     def _test_sdpa_no_mask(
         self,
@@ -9735,6 +9756,24 @@ class TestSDPA(TestCaseMPS):
         out_cpu = F.scaled_dot_product_attention(q, k, v, attn_mask=mask)
         out_mps = F.scaled_dot_product_attention(q.to('mps'), k.to('mps'), v.to('mps'), attn_mask=mask.to('mps'))
         self._compare_tensors(out_mps.cpu(), out_cpu)
+
+    @parametrize("dtype", [torch.bfloat16, torch.float16, torch.float])
+    def test_sdpa_2pass(self, dtype):
+        # Regression test for https://github.com/pytorch/pytorch/issues/174861
+        q = torch.randn(1, 32, 1, 128, dtype=dtype)
+        k = torch.randn(1, 2, 1024, 128, dtype=dtype)
+        v = torch.randn(1, 2, 1024, 128, dtype=dtype)
+        sdpa_kwargs = {"enable_gqa": True}
+
+        out_cpu = F.scaled_dot_product_attention(q, k, v, **sdpa_kwargs)
+        out_mps = F.scaled_dot_product_attention(
+            q.to("mps"), k.to("mps"), v.to("mps"), **sdpa_kwargs
+        )
+
+        tol = 0.1 if dtype == torch.bfloat16 else 0.01
+
+        self.assertEqual(out_mps, out_cpu, atol=1e-3, rtol=1e-6)
+        self._compare_tensors(out_mps.cpu(), out_cpu, tol=tol)
 
     @parametrize("dtype", [torch.float16, torch.float32])
     def test_sdpa_3d_input(self, dtype):
@@ -13294,6 +13333,22 @@ class TestMetalLibrary(TestCaseMPS):
         lib.check_bounds(y, 5, error_buf_idx=2)
         with self.assertRaisesRegex(RuntimeError, "Index .* exceeds limit"):
             torch.mps.synchronize()
+
+    def test_metal_compiler_bug_workaround(self):
+        # (uint / 65536) % non_power of 2, gives wrong result without safe_mod
+        lib = torch.mps.compile_shader('''
+            #include <c10/metal/utils.h>
+
+            kernel void func(device int* out, uint idx [[thread_position_in_grid]]) {
+                out[idx] = c10::metal::safe_mod((idx / 65536), 6);
+            }
+        ''')
+        out = torch.empty(128, device='mps', dtype=torch.int32)
+        lib.func(out)
+        # Every value should be 0 since xindex/65536 == 0 for xindex in [0,127]
+        for i in [0, 5, 6, 7, 63, 64]:
+            self.assertEqual(out[i], 0)
+
 
 
 # TODO: Actually instantiate that test for the "mps" device to better reflect what it is doing.

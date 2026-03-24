@@ -2153,6 +2153,13 @@ class FusedMixOrderReductions(FusedSchedulerNode):
         if not self.scheduler.can_fuse(node1, node2, allow_mix_order_reduction=False):
             return False
 
+        # Since node1 is from the current mix order reduction, if node1 is
+        # contiguous, the fused node should also be contiguous.
+        if MixOrderReduction.is_contiguous_node(
+            node1
+        ) and not MixOrderReduction.is_contiguous_node(node2):
+            return False
+
         def _get_ancestors(nodes: tuple[BaseSchedulerNode, ...]) -> OrderedSet[str]:
             out = OrderedSet()
             return out.union(*(n.ancestors for n in nodes))

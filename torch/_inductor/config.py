@@ -1793,6 +1793,11 @@ class triton:
     # this could be helpful to avoid recompilations in some cases
     mix_order_reduction_non_strict_mode = False
 
+    # Don't allow multi-stages by default to avoid out of shared memory
+    mix_order_reduction_allow_multi_stages = (
+        os.environ.get("TORCHINDUCTOR_MIX_ORDER_REDUCTION_ALLOW_MULTI_STAGES") == "1"
+    )
+
     enable_tlx_templates: bool = (
         os.environ.get("TORCHINDUCTOR_ENABLE_TLX_TEMPLATES", "0") == "1"
     )

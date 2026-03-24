@@ -3787,7 +3787,10 @@ def persistent_reduction(
             # With large rnumel, we have higher chance of out-of-shared memory
             # To avoid adding too much autotuning overhead, we just constrain NUM_STAGES
             # if rnumel is large
-            MAX_NUM_STAGES = 2 if rnumel_hint > 8192 else 3
+            if inductor_meta.get("mix_order_reduction_allow_multi_stages", True):
+                MAX_NUM_STAGES = 2 if rnumel_hint > 8192 else 3
+            else:
+                MAX_NUM_STAGES = 1
             c.kwargs["NUM_STAGES"] = min(max(num_iters // 4, 1), MAX_NUM_STAGES)
 
             if rnumel_hint <= 1024:
