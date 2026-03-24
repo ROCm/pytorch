@@ -1458,10 +1458,10 @@ class TestProfiler(TestCase):
             torch.cuda.synchronize()
             torch.add(t1, t2)
 
-        def trace_and_check(exp_config: Optional[_ExperimentalConfig]) -> None:
+        def trace_and_check(exp_config: _ExperimentalConfig | None) -> None:
             with _profile(
                 use_kineto=True,
-                use_cuda=True,
+                use_device="cuda",
                 experimental_config=exp_config,
             ) as prof:
                 workload()
@@ -1471,10 +1471,12 @@ class TestProfiler(TestCase):
                 prof.export_chrome_trace(fname)
                 with open(fname) as f:
                     j = json.load(f)
-                    cats = {e.get("cat", None) for e in j["traceEvents"]}
+                    cat_or_name = "cat" if torch.version.cuda else "name"
+                    cats = {e.get(cat_or_name, None) for e in j["traceEvents"]}
+            event_name = "cuda_sync" if torch.version.cuda else "hipDeviceSynchronize"
             self.assertTrue(
-                "cuda_sync" in cats,
-                f"Expected to find cuda_sync event found = {cats}",
+                event_name in cats,
+                f"Expected to find {event_name} event found = {cats}",
             )
 
         print("Testing enable_cuda_sync_events in _ExperimentalConfig")
@@ -2238,9 +2240,15 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             if "cat" in event and event["cat"] in cuda_external_id_events:
                 if disable_external_correlation:
                     self.assertTrue("External id" not in event["args"])
-                elif event["name"] not in ["cudaDeviceSynchronize", "hipDeviceSynchronize"]:
-                    self.assertTrue("External id" in event["args"])
-                    self.assertTrue(event["args"]["External id"] > 0)
+                else:
+                    excluded_events = (
+                        {"hipDeviceSynchronize"}
+                        if TEST_WITH_ROCM
+                        else {"cudaDeviceSynchronize"}
+                    )
+                    if event["name"] not in excluded_events:
+                        self.assertTrue("External id" in event["args"])
+                        self.assertTrue(event["args"]["External id"] > 0)
 
         def validate_json(prof, disable_external_correlation):
             with TemporaryFileName(mode="w+") as fname:
