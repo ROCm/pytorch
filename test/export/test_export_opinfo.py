@@ -37,7 +37,6 @@ export_failures = {
 
 # following are failing fake export on cuda device
 fake_export_failures = {
-    xfail("geqrf"),
     xfail("histogram"),
     xfail("masked.amax"),
     xfail("masked.amin"),
@@ -50,17 +49,9 @@ fake_export_failures = {
     xfail("masked.std"),
     xfail("masked.sum"),
     xfail("masked.var"),
-    xfail("nn.functional.grid_sample"),
-    xfail("to_sparse"),
     # cannot xfail as it is passing for cpu-only build
     skip("nn.functional.conv2d"),
     skip("nn.functional.scaled_dot_product_attention"),
-    # following are failing due to OptionalDeviceGuard
-    xfail("__getitem__"),
-    xfail("nn.functional.batch_norm"),
-    xfail("nn.functional.instance_norm"),
-    xfail("nn.functional.multi_margin_loss"),
-    xfail("nonzero"),
 }
 
 fake_decomposition_failures = {
@@ -78,8 +69,7 @@ def _test_export_helper(self, dtype, op):
 
     mode = FakeTensorMode(allow_non_fake_inputs=True)
     converter = mode.fake_tensor_converter
-    # intentionally avoid cuda:0 to flush out some bugs
-    target_device = "cuda:1"
+    target_device = "cuda:0"
 
     def to_fake_device(x):
         x = converter.from_real_tensor(mode, x)

@@ -2107,7 +2107,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
 
         self.assertTrue(any("aten" in e.name for e in p.events()))
 
-        self.assertTrue(any(device in e.name for e in p.events()))
+        self.assertTrue(any(device in e.name.lower() for e in p.events()))
 
         self.assertTrue(any("kernel" in e.name.lower() for e in p.events()))
 
@@ -2232,7 +2232,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             if "cat" in event and event["cat"] in cuda_external_id_events:
                 if disable_external_correlation:
                     self.assertTrue("External id" not in event["args"])
-                elif event["name"] != "cudaDeviceSynchronize":
+                elif event["name"] not in ["cudaDeviceSynchronize", "hipDeviceSynchronize"]:
                     self.assertTrue("External id" in event["args"])
                     self.assertTrue(event["args"]["External id"] > 0)
 
