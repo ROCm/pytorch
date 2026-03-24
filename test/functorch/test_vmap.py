@@ -71,6 +71,7 @@ from torch.testing._internal.common_utils import (
     run_tests,
     skipIfTorchDynamo,
     subtest,
+    TEST_WITH_ROCM,
     TEST_WITH_TORCHDYNAMO,
     TestCase,
     unMarkDynamoStrictTest,
@@ -5064,9 +5065,12 @@ class TestVmapOperatorsOpInfo(TestCase):
                 vmap(torch.topk, (0, None, None))(t, 1, 0), torch.return_types.topk
             )
         )
-        self.assertTrue(
-            isinstance(vmap(torch.linalg.eig, (0))(t), torch.return_types.linalg_eig)
-        )
+        if not (TEST_WITH_ROCM and not torch.cuda.has_magma):
+            self.assertTrue(
+                isinstance(
+                    vmap(torch.linalg.eig, (0))(t), torch.return_types.linalg_eig
+                )
+            )
 
     def test_namedtuple_returns(self, device):
         Point = namedtuple("Point", ["x", "y"])
