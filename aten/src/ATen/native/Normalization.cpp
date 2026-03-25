@@ -47,6 +47,8 @@
 #include <ATen/ops/mean.h>
 #include <ATen/ops/miopen_batch_norm.h>
 #include <ATen/ops/miopen_batch_norm_backward.h>
+#include <ATen/ops/hipdnn_batch_norm.h>
+#include <ATen/ops/hipdnn_batch_norm_backward.h>
 #include <ATen/ops/mul.h>
 #include <ATen/ops/native_batch_norm.h>
 #include <ATen/ops/native_batch_norm_backward.h>
@@ -520,6 +522,22 @@ BatchNormBackend _select_batch_norm_backend(
     return BatchNormBackend::Cudnn;
   }
 
+  // HipDNN — independent of MIOpen
+  if (at::globalContext().userEnabledHipdnn()
+      && detail::getCUDAHooks().compiledWithHipDNN()
+      && input.is_cuda()
+      && input.dim() >= 3
+      && input.dim() <= 5
+      && input.scalar_type() != at::kDouble
+      && weight.scalar_type() == at::kFloat
+      && weight.defined() && bias.defined()
+      && ((running_mean.defined() && running_var.defined())
+        || (!running_mean.defined() && !running_var.defined() && training))
+      && input.is_contiguous(input.suggest_memory_format())
+  ) {
+    return BatchNormBackend::Hipdnn;
+  }
+
   // TODO: Remove PYTORCH_MIOPEN_SUGGEST_NHWC_BATCHNORM once ROCm officially supports NHWC in MIOpen
   // See https://github.com/pytorch/pytorch/issues/64427.
   // non static variable is used to be able to change environment variable in runtime for testing
@@ -634,6 +652,19 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, int64_t> _batch_norm_impl_index(
              std::make_tuple(2));
   }
 
+  if (backend == BatchNormBackend::Hipdnn) {
+    return std::tuple_cat(
+             at::hipdnn_batch_norm(
+               input.contiguous(input.suggest_memory_format()),
+               weight.contiguous(),
+               bias.contiguous(),
+               running_mean,
+               running_var,
+               training, momentum, eps),
+             std::tuple<Tensor>(reserve),
+             std::make_tuple(3));
+  }
+
   return std::tuple_cat(
            at::native_batch_norm(
              input, weight, bias, running_mean, running_var, training, momentum, eps),
@@ -683,6 +714,8 @@ std::tuple<Tensor, Tensor, Tensor> _batch_norm_impl_index_backward(
     return at::cudnn_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon, reservedSpace);
   } else if (impl_index == 2) {
     return at::miopen_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
+  } else if (impl_index == 3) {
+    return at::hipdnn_batch_norm_backward(input, grad_output, weight, running_mean, running_var, save_mean, save_var_transform, epsilon);
   }
   TORCH_INTERNAL_ASSERT(false, "Unsupported impl_index in _batch_norm_impl_index_backward: ", impl_index);
 }
