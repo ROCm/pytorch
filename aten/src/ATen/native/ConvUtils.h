@@ -55,6 +55,20 @@ using miopen_convolution_transpose_backward_fn = std::tuple<at::Tensor,at::Tenso
     const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
     at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool, std::array<bool,3>);
 
+// hipDNN backward (3-output, carries benchmark/deterministic).
+using hipdnn_convolution_backward_fn = std::tuple<at::Tensor,at::Tensor,at::Tensor>(*)(
+    const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
+    at::IntArrayRef, int64_t, bool, bool, std::array<bool,3>);
+using hipdnn_convolution_fn = at::Tensor(*)(
+    const at::Tensor&, const at::Tensor&, const std::optional<at::Tensor>&,
+    at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool);
+using hipdnn_convolution_transpose_backward_fn = std::tuple<at::Tensor,at::Tensor,at::Tensor>(*)(
+    const at::Tensor&, const at::Tensor&, const at::Tensor&, at::IntArrayRef, at::IntArrayRef,
+    at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool, std::array<bool,3>);
+using hipdnn_convolution_transpose_fn = at::Tensor(*)(
+    const at::Tensor&, const at::Tensor&, const std::optional<at::Tensor>&,
+    at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, at::IntArrayRef, int64_t, bool, bool);
+
 // MKLDNN forward transpose (not a backward).
 using mkldnn_convolution_transpose_fn = Tensor(*)(const Tensor&, const Tensor&, const std::optional<Tensor>&,
     IntArrayRef, IntArrayRef, IntArrayRef, IntArrayRef, int64_t);
@@ -74,6 +88,12 @@ DECLARE_DISPATCH(conv_backward_fn, mps_convolution_backward_stub)
 DECLARE_DISPATCH(miopen_convolution_backward_fn, miopen_convolution_backward_stub)
 DECLARE_DISPATCH(miopen_convolution_transpose_backward_fn, miopen_convolution_transpose_backward_stub)
 DECLARE_DISPATCH(miopen_convolution_backward_fn, miopen_depthwise_convolution_backward_stub)
+
+// hipDNN.
+DECLARE_DISPATCH(hipdnn_convolution_fn, hipdnn_convolution_stub)
+DECLARE_DISPATCH(hipdnn_convolution_transpose_fn, hipdnn_convolution_transpose_stub)
+DECLARE_DISPATCH(hipdnn_convolution_backward_fn, hipdnn_convolution_backward_stub)
+DECLARE_DISPATCH(hipdnn_convolution_transpose_backward_fn, hipdnn_convolution_transpose_backward_stub)
 
 // MKLDNN.
 DECLARE_DISPATCH(conv_backward_fn, mkldnn_convolution_backward_stub)
@@ -133,6 +153,8 @@ enum class ConvBackend {
   Xnnpack2d,
   Mps,
   MpsTranspose,
+  Hipdnn,
+  HipdnnTranspose,
 };
 
 // Overload for selecting the convolution backend from the full set of convolution inputs.
@@ -386,6 +408,35 @@ inline at::MemoryFormat miopen_conv_suggest_memory_format(const at::Tensor& inpu
   // Non-static read so tests can toggle the env var at runtime.
   enabled &= c10::utils::check_env("PYTORCH_MIOPEN_SUGGEST_NHWC").value_or(false);
   return _conv_suggest_memory_format_impl(input, weight, enabled);
+}
+
+inline at::MemoryFormat hipdnn_conv_suggest_memory_format(const at::Tensor& input, const at::Tensor& weight) {
+  if (input.scalar_type() == at::kDouble ||
+      weight.scalar_type() == at::kDouble) {
+    return at::MemoryFormat::Contiguous;
+  }
+
+  auto input_memory_format = input.suggest_memory_format();
+  auto weight_memory_format = weight.suggest_memory_format();
+  auto weight_ndim = weight.ndimension();
+
+  bool can_use_channels_last_2d = (weight_ndim == 4) && (
+    (input_memory_format  == at::MemoryFormat::ChannelsLast) ||
+    (weight_memory_format == at::MemoryFormat::ChannelsLast)
+  );
+  if (can_use_channels_last_2d) {
+    return at::MemoryFormat::ChannelsLast;
+  }
+
+  bool can_use_channels_last_3d = (weight_ndim == 5) && (
+    (input_memory_format  == at::MemoryFormat::ChannelsLast3d) ||
+    (weight_memory_format == at::MemoryFormat::ChannelsLast3d)
+  );
+  if (can_use_channels_last_3d) {
+    return at::MemoryFormat::ChannelsLast3d;
+  }
+
+  return at::MemoryFormat::Contiguous;
 }
 
 // deprecated, but to remove would be BC-breaking
