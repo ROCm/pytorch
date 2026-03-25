@@ -121,6 +121,52 @@ def download_logs(wf, test_log_list, test_folder):
         write_out_file = test_folder + "/" + test_log[0]
         write_test_log_to_file(write_out_file, test_log[1], jobs, wf['head_sha'])
 
+def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefixes=[], allowed_substrings=None):
+    """Download GHA artifacts matching prefixes and optional substring filters.
+
+    GHA artifact names include run attempt info, e.g.:
+      test-reports-runattempt1-test-default-3-6-linux.rocm.gpu.gfx942.1_68425162477.zip
+    while S3 prefixes look like:
+      test-reports-test-default-3-6
+    We strip the runattemptN- portion before matching prefixes.
+    """
+    from pathlib import Path
+    artifact_paths = []
+    response = requests.get(
+        f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{workflow_run_id}/artifacts?per_page=100",
+        headers=authentication_headers,
+    )
+    artifacts = response.json().get("artifacts", [])
+    while "next" in response.links:
+        response = requests.get(response.links["next"]["url"], headers=authentication_headers)
+        artifacts.extend(response.json().get("artifacts", []))
+
+    for artifact in artifacts:
+        name = artifact["name"]
+        if not name.startswith("test-reports-"):
+            continue
+        # Filter by run attempt
+        if f"runattempt{workflow_run_attempt}" not in name:
+            continue
+        # Strip runattemptN- to match against S3-style prefixes
+        normalized = re.sub(r'runattempt\d+-', '', name)
+        if not any(normalized.startswith(pfx) for pfx in prefixes):
+            continue
+        # Filter by allowed_substrings (e.g., "rocm.gpu", "nvidia.gpu")
+        if allowed_substrings and not any(sub in name for sub in allowed_substrings):
+            continue
+        print(f"Downloading GHA artifact: {name}")
+        dl_response = requests.get(artifact["archive_download_url"], headers=authentication_headers)
+        if dl_response.status_code != 200:
+            print(f"  WARNING: Failed to download (HTTP {dl_response.status_code})")
+            continue
+        p = Path(name + ".zip")
+        with open(p, "wb") as f:
+            f.write(dl_response.content)
+        artifact_paths.append(p)
+
+    return artifact_paths
+
 def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
     # Get from S3 artifacts
     artifact_paths = []
@@ -132,10 +178,19 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
             workflow_run_attempts,
             allowed_substrings=allowed_substrings,
         )
-        # Get from GHA artifacts
-        #artifact_paths = download_gha_artifacts("test-report", workflow_run_id, workflow_run_attempts)
+
+    # Fall back to GHA artifacts if S3 returned nothing
     if len(artifact_paths) == 0:
-        error_msg = f"WARNING: workflow run id: {workflow_run_id} - no artifacts found for prefixes: {prefixes}"
+        print(f"No S3 artifacts found, trying GHA artifacts as fallback...")
+        artifact_paths = download_gha_artifacts_filtered(
+            workflow_run_id,
+            workflow_run_attempts,
+            prefixes=prefixes,
+            allowed_substrings=allowed_substrings,
+        )
+
+    if len(artifact_paths) == 0:
+        error_msg = f"WARNING: workflow run id: {workflow_run_id} - no artifacts found (S3 or GHA) for prefixes: {prefixes}"
         print(error_msg)
         error_msgs.append(error_msg)
         return
