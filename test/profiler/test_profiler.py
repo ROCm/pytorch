@@ -56,7 +56,6 @@ from torch.profiler._pattern_matcher import (
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_utils import (
     MI200_ARCH,
-    MI350_ARCH,
     instantiate_parametrized_tests,
     IS_ARM64,
     IS_JETSON,
@@ -107,7 +106,7 @@ except ModuleNotFoundError:
 @unittest.skipIf(not HAS_PSUTIL, "Requires psutil to run")
 @unittest.skipIf(IS_WINDOWS, "Test is flaky on Windows")
 @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
-@skipIfRocmArch(MI200_ARCH + MI350_ARCH) # https://github.com/pytorch/pytorch/issues/110995
+@skipIfRocmArch(MI200_ARCH) # https://github.com/pytorch/pytorch/issues/110995
 class TestProfilerCUDA(TestCase):
     def test_mem_leak(self):
         """Checks that there's no memory leak when using profiler with CUDA"""
