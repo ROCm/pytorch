@@ -240,6 +240,8 @@ jobs:
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.csv
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.log
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.txt
+            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/rocm_xml_dir/
+            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/cuda_xml_dir/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_rocm_dir/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_cuda_dir/
 
