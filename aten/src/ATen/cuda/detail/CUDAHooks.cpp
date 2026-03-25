@@ -276,6 +276,14 @@ bool CUDAHooks::compiledWithMIOpen() const {
   return AT_ROCM_ENABLED();
 }
 
+bool CUDAHooks::compiledWithHipDNN() const {
+#ifdef USE_HIPDNN
+  return true;
+#else
+  return false;
+#endif
+}
+
 bool CUDAHooks::supportsDilatedConvolutionWithCuDNN() const {
 #if AT_CUDNN_ENABLED()
   if (!hasCUDA()) {
