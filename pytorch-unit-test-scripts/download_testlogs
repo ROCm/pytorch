@@ -129,8 +129,13 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
     while S3 prefixes look like:
       test-reports-test-default-3-6
     We strip the runattemptN- portion before matching prefixes.
+
+    When a shard is re-run, only the latest attempt's artifact exists for that
+    shard, while other shards keep their original attempt. We collect all
+    matching artifacts and prefer the highest run attempt per shard key.
     """
     from pathlib import Path
+    from collections import defaultdict
     artifact_paths = []
     response = requests.get(
         f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{workflow_run_id}/artifacts?per_page=100",
@@ -141,22 +146,29 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
         response = requests.get(response.links["next"]["url"], headers=authentication_headers)
         artifacts.extend(response.json().get("artifacts", []))
 
+    # Group matching artifacts by shard key, keeping highest run attempt
+    # shard key = normalized name without runattemptN- and without runner/jobid suffix
+    best_per_shard = {}
     for artifact in artifacts:
         name = artifact["name"]
         if not name.startswith("test-reports-"):
             continue
-        # Filter by run attempt
-        if f"runattempt{workflow_run_attempt}" not in name:
-            continue
-        # Strip runattemptN- to match against S3-style prefixes
         normalized = re.sub(r'runattempt\d+-', '', name)
         if not any(normalized.startswith(pfx) for pfx in prefixes):
             continue
-        # Filter by allowed_substrings (e.g., "rocm.gpu", "nvidia.gpu")
         if allowed_substrings and not any(sub in name for sub in allowed_substrings):
             continue
+        # Extract run attempt number
+        attempt_match = re.search(r'runattempt(\d+)', name)
+        attempt_num = int(attempt_match.group(1)) if attempt_match else 0
+        # Use the shard portion as key (e.g., test-reports-test-default-3-6)
+        shard_key = re.sub(r'-[a-z]+\..*$', '', normalized)
+        if shard_key not in best_per_shard or attempt_num > best_per_shard[shard_key][0]:
+            best_per_shard[shard_key] = (attempt_num, name, artifact["archive_download_url"])
+
+    for shard_key, (attempt_num, name, url) in best_per_shard.items():
         print(f"Downloading GHA artifact: {name}")
-        dl_response = requests.get(artifact["archive_download_url"], headers=authentication_headers)
+        dl_response = requests.get(url, headers=authentication_headers)
         if dl_response.status_code != 200:
             print(f"  WARNING: Failed to download (HTTP {dl_response.status_code})")
             continue
