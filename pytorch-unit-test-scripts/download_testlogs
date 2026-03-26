@@ -153,6 +153,8 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
         name = artifact["name"]
         if not name.startswith("test-reports-"):
             continue
+        if "rerun_disabled" in name:
+            continue
         normalized = re.sub(r'runattempt\d+-', '', name)
         if not any(normalized.startswith(pfx) for pfx in prefixes):
             continue
@@ -214,6 +216,12 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
             workflow_run_attempts,
             allowed_substrings=allowed_substrings,
         )
+
+    # Filter out rerun_disabled_tests artifacts (same prefix, different job)
+    before = len(artifact_paths)
+    artifact_paths = [p for p in artifact_paths if "rerun_disabled" not in p.name]
+    if before != len(artifact_paths):
+        print(f"  Filtered out {before - len(artifact_paths)} rerun_disabled artifacts")
 
     # Fall back to GHA artifacts if S3 returned nothing
     if len(artifact_paths) == 0:
@@ -403,15 +411,7 @@ def main():
     }
     rocm_job_prefix = rocm_job_prefixes[arch]
     rocm_shards = rocm_shard_counts[arch]
-    rocm_gpu_types = {
-        "mi200": "gfx90a",
-        "mi300": "gfx942",
-        "mi355": "gfx950",
-        "navi31": "gfx1100",
-        "nightly": "gfx942",
-    }
-    gpu_type = rocm_gpu_types.get(arch)
-    rocm_artifact_substrings = [f"rocm.gpu.{gpu_type}"] if arch in ("mi355", "nightly") else None
+    rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
     # navi31 and nightly only have default tests (no distributed/inductor workflows)
     if arch in ("navi31", "nightly"):
         if not args.exclude_distributed:
