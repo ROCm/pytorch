@@ -60,9 +60,17 @@ def detect_columns(headers, set1_name, set2_name):
     return s1_status, s2_status, s1_time, s2_time
 
 
-def workflow_stats_keys(s1_name, s2_name):
+def workflow_stats_keys(s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+    if not has_set2:
+        return [
+            f'PASSED ({s1_name})',
+            f'SKIPPED ({s1_name})',
+            f'FAILED ({s1_name})',
+            f'MISSED ({s1_name})',
+            f'TOTAL {s1}',
+        ]
     return [
         f'SKIPPED (on {s1_name}, but not on {s2_name})',
         f'SKIPPED (on {s1_name})',
@@ -77,9 +85,19 @@ def workflow_stats_keys(s1_name, s2_name):
     ]
 
 
-def compute_workflow_stats(rows, s1_col, s2_col, s1_name, s2_name):
+def compute_workflow_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+
+    if not has_set2:
+        vals = {}
+        keys = workflow_stats_keys(s1_name, s2_name, has_set2=False)
+        vals[keys[0]] = sum(1 for r in rows if r[s1_col] == 'PASSED')
+        vals[keys[1]] = sum(1 for r in rows if r[s1_col] == 'SKIPPED')
+        vals[keys[2]] = sum(1 for r in rows if r[s1_col] == 'FAILED')
+        vals[keys[3]] = sum(1 for r in rows if r[s1_col] == 'MISSED')
+        vals[keys[4]] = sum(1 for r in rows if r[s1_col].strip())
+        return vals
 
     s1_skip_not_s2 = sum(
         1 for r in rows
@@ -117,9 +135,19 @@ def compute_workflow_stats(rows, s1_col, s2_col, s1_name, s2_name):
     return vals
 
 
-def overall_stats_keys(s1_name, s2_name):
+def overall_stats_keys(s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+    if not has_set2:
+        keys = []
+        for status in ['PASSED', 'SKIPPED', 'FAILED', 'XFAILED']:
+            keys.append(f'{status}({s1_name})')
+        keys += [
+            f'TOTAL {s1}',
+            'Number of tests changed from last week',
+            f'TOTAL {s1} RUNNING TIME',
+        ]
+        return keys
     keys = [
         'Overall DISAGREE%',
         'Overall AGREE%',
@@ -137,9 +165,31 @@ def overall_stats_keys(s1_name, s2_name):
     return keys
 
 
-def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_name, s2_name):
+def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+
+    def safe_float(v):
+        try:
+            return float(v)
+        except (ValueError, TypeError):
+            return 0.0
+
+    if not has_set2:
+        vals = {}
+        keys = overall_stats_keys(s1_name, s2_name, has_set2=False)
+        idx = 0
+        for status in ['PASSED', 'SKIPPED', 'FAILED', 'XFAILED']:
+            vals[keys[idx]] = sum(1 for r in rows if r[s1_col] == status)
+            idx += 1
+        vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip())
+        idx += 1
+        vals[keys[idx]] = sum(
+            1 for r in rows if r.get('existed_last_week', '') == 'no'
+        )
+        idx += 1
+        vals[keys[idx]] = f'{sum(safe_float(r[s1_time_col]) for r in rows):.2f}'
+        return vals
 
     total_disagree = 0
     total_s2 = 0
@@ -179,12 +229,6 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
     vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip())
     idx += 1
 
-    def safe_float(v):
-        try:
-            return float(v)
-        except (ValueError, TypeError):
-            return 0.0
-
     vals[keys[idx]] = f'{sum(safe_float(r[s1_time_col]) for r in rows):.2f}'
     idx += 1
     vals[keys[idx]] = f'{sum(safe_float(r[s2_time_col]) for r in rows):.2f}'
@@ -197,19 +241,22 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     for arch in archs:
         d = arch_data[arch]
         s1_col, s2_col, _, _ = d['cols']
+        has_set2 = d.get('has_set2', True)
         for r in d['rows']:
             s1 = r[s1_col].strip()
-            s2 = r[s2_col].strip()
+            s2 = r[s2_col].strip() if has_set2 else ''
             if s1 == 'FAILED' or s2 == 'FAILED':
-                failed.append({
+                entry = {
                     'arch': arch,
                     'test_file': r.get('test_file', ''),
                     'test_class': r.get('test_class', ''),
                     'test_name': r.get('test_name', ''),
                     'workflow': r.get('work_flow_name', ''),
                     f'status_{s1_name}': s1,
-                    f'status_{s2_name}': s2,
-                })
+                }
+                if has_set2:
+                    entry[f'status_{s2_name}'] = s2
+                failed.append(entry)
     return failed
 
 
@@ -222,42 +269,46 @@ def fmt_val(v):
 def build_rows(args, archs, arch_data):
     """Return a list of (label, val_per_arch...) tuples and section markers."""
     out = []
+    any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())
 
     if args.sha:
         out.append(('__header__', f'Commit SHA: {args.sha}'))
     if args.pr_id:
         out.append(('__header__', f'PR ID: {args.pr_id}'))
 
-    wf_keys = workflow_stats_keys(args.set1_name, args.set2_name)
+    wf_keys = workflow_stats_keys(args.set1_name, args.set2_name, has_set2=any_has_set2)
     for wf in WORKFLOWS:
         out.append(('__section__', WORKFLOW_DISPLAY[wf]))
         arch_stats = {}
         for arch in archs:
             d = arch_data[arch]
             s1_col, s2_col, _, _ = d['cols']
+            has_set2 = d.get('has_set2', True)
             wf_rows = [r for r in d['rows'] if r['work_flow_name'] == wf]
             arch_stats[arch] = compute_workflow_stats(
-                wf_rows, s1_col, s2_col, args.set1_name, args.set2_name
+                wf_rows, s1_col, s2_col, args.set1_name, args.set2_name,
+                has_set2=has_set2,
             )
         for key in wf_keys:
             out.append((key, [arch_stats[a][key] for a in archs]))
 
     out.append(('__section__', 'OVERALL'))
-    ov_keys = overall_stats_keys(args.set1_name, args.set2_name)
+    ov_keys = overall_stats_keys(args.set1_name, args.set2_name, has_set2=any_has_set2)
     arch_overall = {}
     for arch in archs:
         d = arch_data[arch]
         s1_col, s2_col, s1_time, s2_time = d['cols']
+        has_set2 = d.get('has_set2', True)
         arch_overall[arch] = compute_overall_stats(
             d['rows'], s1_col, s2_col, s1_time, s2_time,
-            args.set1_name, args.set2_name,
+            args.set1_name, args.set2_name, has_set2=has_set2,
         )
     for key in ov_keys:
         out.append((key, [arch_overall[a][key] for a in archs]))
     return out
 
 
-def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2'):
+def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True):
     csv_rows = []
     csv_rows.append([''] + list(archs))
     for label, vals in rows:
@@ -272,14 +323,18 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if failed_tests:
         csv_rows.append(['FAILED TESTS'])
-        csv_rows.append(['Arch', 'Workflow', 'Test File', 'Test Class',
-                         'Test Name', f'Status ({s1_name})', f'Status ({s2_name})'])
+        header = ['Arch', 'Workflow', 'Test File', 'Test Class',
+                  'Test Name', f'Status ({s1_name})']
+        if has_set2:
+            header.append(f'Status ({s2_name})')
+        csv_rows.append(header)
         for t in failed_tests:
-            csv_rows.append([
-                t['arch'], t['workflow'], t['test_file'],
-                t['test_class'], t['test_name'],
-                t[f'status_{s1_name}'], t[f'status_{s2_name}'],
-            ])
+            row = [t['arch'], t['workflow'], t['test_file'],
+                   t['test_class'], t['test_name'],
+                   t[f'status_{s1_name}']]
+            if has_set2:
+                row.append(t.get(f'status_{s2_name}', ''))
+            csv_rows.append(row)
         csv_rows.append([])
 
     with open(output_path, 'w', newline='') as f:
@@ -287,7 +342,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
     print(f'CSV written to {output_path}')
 
 
-def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2'):
+def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True):
     lines = []
     current_section = []
 
@@ -322,15 +377,19 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('### FAILED TESTS')
         lines.append('')
         cols = ['Arch', 'Workflow', 'Test File', 'Test Class', 'Test Name',
-                f'Status ({s1_name})', f'Status ({s2_name})']
+                f'Status ({s1_name})']
+        if has_set2:
+            cols.append(f'Status ({s2_name})')
         lines.append('| ' + ' | '.join(cols) + ' |')
         lines.append('| ' + ' | '.join(['---'] * len(cols)) + ' |')
         for t in failed_tests:
-            lines.append(
-                f"| {t['arch']} | {t['workflow']} | {t['test_file']} "
-                f"| {t['test_class']} | {t['test_name']} "
-                f"| {t[f'status_{s1_name}']} | {t[f'status_{s2_name}']} |"
-            )
+            line = (f"| {t['arch']} | {t['workflow']} | {t['test_file']} "
+                    f"| {t['test_class']} | {t['test_name']} "
+                    f"| {t[f'status_{s1_name}']}")
+            if has_set2:
+                line += f" | {t.get(f'status_{s2_name}', '')}"
+            line += ' |'
+            lines.append(line)
         lines.append('')
     else:
         lines.append('### FAILED TESTS')
@@ -358,17 +417,20 @@ def main():
         rows = load_csv(csv_path)
         headers = set(rows[0].keys()) if rows else set()
         cols = detect_columns(headers, args.set1_name, args.set2_name)
-        arch_data[arch] = {'rows': rows, 'cols': cols}
+        s2_col = cols[1]
+        has_set2 = any(r.get(s2_col, '').strip() for r in rows)
+        arch_data[arch] = {'rows': rows, 'cols': cols, 'has_set2': has_set2}
 
     data_rows = build_rows(args, archs, arch_data)
     failed = collect_failed_tests(arch_data, archs, args.set1_name, args.set2_name)
+    any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())
 
     output_base = args.output
     if output_base.endswith('.csv') or output_base.endswith('.md'):
         output_base = output_base.rsplit('.', 1)[0]
 
-    write_csv(data_rows, archs, f'{output_base}.csv', failed, args.set1_name, args.set2_name)
-    write_markdown(data_rows, archs, f'{output_base}.md', failed, args.set1_name, args.set2_name)
+    write_csv(data_rows, archs, f'{output_base}.csv', failed, args.set1_name, args.set2_name, has_set2=any_has_set2)
+    write_markdown(data_rows, archs, f'{output_base}.md', failed, args.set1_name, args.set2_name, has_set2=any_has_set2)
 
 
 if __name__ == '__main__':
