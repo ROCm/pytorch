@@ -198,8 +198,8 @@ jobs:
             CSV_NAME="${DATE}_all_tests_status_${ARCH}"
           fi
 
-          ARGS="--set1 $FOLDER/rocm_xml_dir"
-          ARGS="$ARGS --set2 $FOLDER/cuda_xml_dir"
+          ARGS="--set1 $FOLDER/rocm_xml"
+          ARGS="$ARGS --set2 $FOLDER/cuda_xml"
           ARGS="$ARGS --set1_name ${{ inputs.set1_name }}"
           ARGS="$ARGS --set2_name ${{ inputs.set2_name }}"
           ARGS="$ARGS --output_csv $FOLDER/${CSV_NAME}.csv"
@@ -240,8 +240,8 @@ jobs:
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.csv
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.log
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.txt
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/rocm_xml_dir/
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/cuda_xml_dir/
+            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/rocm_xml/
+            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/cuda_xml/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_rocm_dir/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_cuda_dir/
 
