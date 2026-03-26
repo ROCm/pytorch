@@ -326,6 +326,7 @@ def parse_args():
     parser.add_argument('--pr_id', type=int, help='The pull request ID')
     parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi355', 'navi31', 'nightly'], default='mi355', help='ROCm GPU architecture (mi200, mi300, mi355, navi31, or nightly, default: mi355)')
     parser.add_argument('--include_inductor_periodic', action='store_true', help='Also download inductor-periodic benchmark artifacts (into a separate directory, not included in parity CSV)')
+    parser.add_argument('--baseline_sha', type=str, help='Baseline commit SHA to compare against. Downloads the same ROCm workflows for this commit into baseline_xml/.')
     return parser.parse_args()
 
 # Rate-limit issues
@@ -674,6 +675,97 @@ def main():
                 allowed_substrings=["nvidia.gpu"],
             )
             os.chdir("..")
+
+    # Download baseline commit artifacts for commit-vs-commit comparison
+    if args.baseline_sha and not args.no_rocm:
+        baseline_sha = args.baseline_sha
+        print("==============================================")
+        print(f"Downloading BASELINE ROCm artifacts for sha: {baseline_sha}")
+        print("==============================================")
+
+        import glob
+        existing_folders = sorted(glob.glob("[0-9]*_[0-9a-f]*"), key=os.path.getmtime, reverse=True)
+        if existing_folders:
+            test_folder = existing_folders[0]
+        else:
+            raise Exception("No output folder found from primary downloads")
+
+        baseline_xml_dir = os.path.join(test_folder, "baseline_xml")
+        os.makedirs(baseline_xml_dir, exist_ok=True)
+
+        if not args.exclude_default:
+            try:
+                baseline_default_wf = download_workflow_run(
+                    created=args.created, max_pages=args.max_pages,
+                    workflow=ROCmWorkflowNames["default"], sha=baseline_sha,
+                    ignore_status=args.ignore_status, status=status,
+                    error_msg=f"Baseline default workflow not found for {baseline_sha}",
+                )
+                print(f"Baseline default workflow id: {baseline_default_wf['id']}")
+                default_shards = rocm_shards["default"]
+                baseline_default_prefixes = [
+                    f"test-reports-test-default-{i}-{default_shards}"
+                    for i in range(1, default_shards + 1)
+                ]
+                download_artifacts(
+                    baseline_default_wf,
+                    baseline_default_prefixes,
+                    test_folder=baseline_xml_dir,
+                    allowed_substrings=rocm_artifact_substrings,
+                )
+                os.chdir("..")
+            except Exception as e:
+                print(f"WARNING: Could not download baseline default artifacts: {e}")
+
+        if not args.exclude_distributed and "distributed" in ROCmWorkflowNames:
+            try:
+                baseline_dist_wf = download_workflow_run(
+                    created=args.created, max_pages=args.max_pages,
+                    workflow=ROCmWorkflowNames["distributed"], sha=baseline_sha,
+                    ignore_status=args.ignore_status, status=status,
+                    error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
+                )
+                print(f"Baseline distributed workflow id: {baseline_dist_wf['id']}")
+                dist_shards = rocm_shards["distributed"]
+                baseline_dist_prefixes = [
+                    f"test-reports-test-distributed-{i}-{dist_shards}"
+                    for i in range(1, dist_shards + 1)
+                ]
+                download_artifacts(
+                    baseline_dist_wf,
+                    baseline_dist_prefixes,
+                    test_folder=baseline_xml_dir,
+                    allowed_substrings=rocm_artifact_substrings,
+                )
+                os.chdir("..")
+            except Exception as e:
+                print(f"WARNING: Could not download baseline distributed artifacts: {e}")
+
+        if not args.exclude_inductor and "inductor" in ROCmWorkflowNames:
+            try:
+                baseline_inductor_wf = download_workflow_run(
+                    created=args.created, max_pages=args.max_pages,
+                    workflow=ROCmWorkflowNames["inductor"], sha=baseline_sha,
+                    ignore_status=args.ignore_status, status=status,
+                    error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
+                )
+                print(f"Baseline inductor workflow id: {baseline_inductor_wf['id']}")
+                inductor_shards = rocm_shards["inductor"]
+                baseline_inductor_prefixes = [
+                    f"test-reports-test-inductor-{i}-{inductor_shards}"
+                    for i in range(1, inductor_shards + 1)
+                ]
+                download_artifacts(
+                    baseline_inductor_wf,
+                    baseline_inductor_prefixes,
+                    test_folder=baseline_xml_dir,
+                    allowed_substrings=rocm_artifact_substrings,
+                )
+                os.chdir("..")
+            except Exception as e:
+                print(f"WARNING: Could not download baseline inductor artifacts: {e}")
+
+        print(f"Baseline artifacts saved to: {baseline_xml_dir}")
 
     # Download inductor-periodic benchmark artifacts (separate from parity CSV)
     if args.include_inductor_periodic:
