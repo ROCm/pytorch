@@ -444,6 +444,14 @@ def main():
     status = "success"
     print(sha)
 
+    # When comparing two commits, prefix log filenames with short SHAs
+    if args.baseline_sha:
+        current_prefix = sha[:8] + "_"
+        baseline_prefix = args.baseline_sha[:8] + "_"
+    else:
+        current_prefix = ""
+        baseline_prefix = "baseline_"
+
     if not args.exclude_distributed and not args.no_rocm:
         periodic_sha = sha
         print("==============================================")
@@ -485,7 +493,7 @@ def main():
         if not args.artifacts_only:
             dist_shards = rocm_shards["distributed"]
             test_log_list_rocm_distributed = [
-                [f"rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
+                [f"{current_prefix}rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
                 for i in range(1, dist_shards + 1)
             ]
             download_logs(periodic_wf, test_log_list_rocm_distributed, folder_list[0])
@@ -524,7 +532,7 @@ def main():
         if not args.artifacts_only:
             default_shards = rocm_shards["default"]
             test_log_list_rocm_default = [
-              [f"rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
+              [f"{current_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
               for i in range(1, default_shards + 1)
             ]
             download_logs(rocm_wf, test_log_list_rocm_default, folder_list[0])
@@ -562,7 +570,7 @@ def main():
         if not args.artifacts_only:
           inductor_shards = rocm_shards["inductor"]
           test_log_list_rocm_inductor = [
-            [f"rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
+            [f"{current_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
             for i in range(1, inductor_shards + 1)
           ]
           download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
@@ -718,7 +726,7 @@ def main():
 
                 if not args.artifacts_only:
                     baseline_default_logs = [
-                        [f"baseline_rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
+                        [f"{baseline_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
                         for i in range(1, default_shards + 1)
                     ]
                     download_logs(baseline_default_wf, baseline_default_logs, test_folder)
@@ -750,7 +758,7 @@ def main():
 
                 if not args.artifacts_only:
                     baseline_dist_logs = [
-                        [f"baseline_rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
+                        [f"{baseline_prefix}rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
                         for i in range(1, dist_shards + 1)
                     ]
                     download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
@@ -782,7 +790,7 @@ def main():
 
                 if not args.artifacts_only:
                     baseline_inductor_logs = [
-                        [f"baseline_rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
+                        [f"{baseline_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
                         for i in range(1, inductor_shards + 1)
                     ]
                     download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder)

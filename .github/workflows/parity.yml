@@ -9,6 +9,10 @@ on:
         description: 'Commit SHA to pull test results for. Example: 67f1ccf46a966e75f37facd497a03f7d1bd72982. Leave empty for latest green on main.'
         required: false
         type: string
+      baseline_sha:
+        description: 'Baseline commit SHA to compare against (same workflow/arch). Produces a commit-vs-commit report instead of ROCm-vs-CUDA.'
+        required: false
+        type: string
       pr_id:
         description: 'Pull request number (alternative to SHA, uses latest commit). Example: 176306'
         required: false
@@ -72,10 +76,6 @@ on:
         required: false
         default: false
         type: boolean
-      baseline_sha:
-        description: 'Baseline commit SHA to compare against (same workflow/arch). Produces a commit-vs-commit report instead of ROCm-vs-CUDA.'
-        required: false
-        type: string
       auto_classify:
         description: 'Auto-classify skip reasons for SKIPPED/MISSED tests in the output CSV'
         required: false
