@@ -403,7 +403,15 @@ def main():
     }
     rocm_job_prefix = rocm_job_prefixes[arch]
     rocm_shards = rocm_shard_counts[arch]
-    rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
+    rocm_gpu_types = {
+        "mi200": "gfx90a",
+        "mi300": "gfx942",
+        "mi355": "gfx950",
+        "navi31": "gfx1100",
+        "nightly": "gfx942",
+    }
+    gpu_type = rocm_gpu_types.get(arch)
+    rocm_artifact_substrings = [f"rocm.gpu.{gpu_type}"] if arch in ("mi355", "nightly") else None
     # navi31 and nightly only have default tests (no distributed/inductor workflows)
     if arch in ("navi31", "nightly"):
         if not args.exclude_distributed:
@@ -412,6 +420,10 @@ def main():
         if not args.exclude_inductor:
             print(f"NOTE: {arch} has no inductor workflow, auto-excluding inductor")
             args.exclude_inductor = True
+    if args.baseline_sha and not args.no_cuda:
+        print("NOTE: baseline_sha provided, auto-skipping CUDA (commit-vs-commit comparison)")
+        args.no_cuda = True
+
     print(f"Using ROCm architecture: {arch}")
     print(f"Using ROCm job prefixes: {rocm_job_prefix}")
     print(f"Using ROCm shard counts: {rocm_shards}")
