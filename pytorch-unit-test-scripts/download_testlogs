@@ -172,7 +172,7 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
         if dl_response.status_code != 200:
             print(f"  WARNING: Failed to download (HTTP {dl_response.status_code})")
             continue
-        p = Path(name + ".zip")
+        p = Path(name if name.endswith(".zip") else name + ".zip")
         with open(p, "wb") as f:
             f.write(dl_response.content)
         artifact_paths.append(p)
