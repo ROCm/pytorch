@@ -715,6 +715,14 @@ def main():
                 )
                 print(f"Baseline default workflow id: {baseline_default_wf['id']}")
                 default_shards = rocm_shards["default"]
+
+                if not args.artifacts_only:
+                    baseline_default_logs = [
+                        [f"baseline_rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
+                        for i in range(1, default_shards + 1)
+                    ]
+                    download_logs(baseline_default_wf, baseline_default_logs, test_folder)
+
                 baseline_default_prefixes = [
                     f"test-reports-test-default-{i}-{default_shards}"
                     for i in range(1, default_shards + 1)
@@ -739,6 +747,14 @@ def main():
                 )
                 print(f"Baseline distributed workflow id: {baseline_dist_wf['id']}")
                 dist_shards = rocm_shards["distributed"]
+
+                if not args.artifacts_only:
+                    baseline_dist_logs = [
+                        [f"baseline_rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
+                        for i in range(1, dist_shards + 1)
+                    ]
+                    download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
+
                 baseline_dist_prefixes = [
                     f"test-reports-test-distributed-{i}-{dist_shards}"
                     for i in range(1, dist_shards + 1)
@@ -763,6 +779,14 @@ def main():
                 )
                 print(f"Baseline inductor workflow id: {baseline_inductor_wf['id']}")
                 inductor_shards = rocm_shards["inductor"]
+
+                if not args.artifacts_only:
+                    baseline_inductor_logs = [
+                        [f"baseline_rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
+                        for i in range(1, inductor_shards + 1)
+                    ]
+                    download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder)
+
                 baseline_inductor_prefixes = [
                     f"test-reports-test-inductor-{i}-{inductor_shards}"
                     for i in range(1, inductor_shards + 1)
