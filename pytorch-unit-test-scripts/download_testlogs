@@ -302,11 +302,11 @@ def create_test_folder(wf):
     if not os.path.exists(test_folder):
         os.mkdir(test_folder)
 
-    cuda_xml_folder = test_folder + "/cuda_xml_dir"
+    cuda_xml_folder = test_folder + "/cuda_xml"
     if not os.path.exists(cuda_xml_folder):
         os.mkdir(cuda_xml_folder)
 
-    rocm_xml_folder = test_folder + "/rocm_xml_dir"
+    rocm_xml_folder = test_folder + "/rocm_xml"
     if not os.path.exists(rocm_xml_folder):
         os.mkdir(rocm_xml_folder)
     return [test_folder, cuda_xml_folder, rocm_xml_folder]
