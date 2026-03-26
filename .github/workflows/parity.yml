@@ -1,5 +1,5 @@
 name: Parity Report
-run-name: "${{ inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
+run-name: "${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha || 'latest', inputs.baseline_sha) || inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
 
 on:
   workflow_dispatch:
@@ -72,6 +72,10 @@ on:
         required: false
         default: false
         type: boolean
+      baseline_sha:
+        description: 'Baseline commit SHA to compare against (same workflow/arch). Produces a commit-vs-commit report instead of ROCm-vs-CUDA.'
+        required: false
+        type: string
       auto_classify:
         description: 'Auto-classify skip reasons for SKIPPED/MISSED tests in the output CSV'
         required: false
@@ -164,6 +168,9 @@ jobs:
           if [ "${{ inputs.include_inductor_periodic }}" = "true" ]; then
             ARGS="$ARGS --include_inductor_periodic"
           fi
+          if [ -n "${{ inputs.baseline_sha }}" ]; then
+            ARGS="$ARGS --baseline_sha ${{ inputs.baseline_sha }}"
+          fi
 
           echo "Running: python3 ./download_testlogs $ARGS"
           python3 ./download_testlogs $ARGS 2>&1 | tee download_${{ matrix.arch }}.log
@@ -199,11 +206,19 @@ jobs:
           fi
 
           ARGS="--set1 $FOLDER/rocm_xml"
-          if [ "${{ inputs.skip_cuda }}" != "true" ]; then
-            ARGS="$ARGS --set2 $FOLDER/cuda_xml"
+          if [ -n "${{ inputs.baseline_sha }}" ]; then
+            ARGS="$ARGS --set2 $FOLDER/baseline_xml"
+            CURRENT_SHORT=$(echo "${{ steps.folder.outputs.sha }}" | cut -c1-8)
+            BASELINE_SHORT=$(echo "${{ inputs.baseline_sha }}" | cut -c1-8)
+            ARGS="$ARGS --set1_name ${CURRENT_SHORT}"
+            ARGS="$ARGS --set2_name ${BASELINE_SHORT}"
+          else
+            if [ "${{ inputs.skip_cuda }}" != "true" ]; then
+              ARGS="$ARGS --set2 $FOLDER/cuda_xml"
+            fi
+            ARGS="$ARGS --set1_name ${{ inputs.set1_name }}"
+            ARGS="$ARGS --set2_name ${{ inputs.set2_name }}"
           fi
-          ARGS="$ARGS --set1_name ${{ inputs.set1_name }}"
-          ARGS="$ARGS --set2_name ${{ inputs.set2_name }}"
           ARGS="$ARGS --output_csv $FOLDER/${CSV_NAME}.csv"
           SHORT_ARCH=$(echo "$ARCH" | sed 's/^mi//')
           if [ -n "${{ inputs.csv_name }}" ]; then
@@ -244,6 +259,7 @@ jobs:
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.txt
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/rocm_xml/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/cuda_xml/
+            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/baseline_xml/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_rocm_dir/
             pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_cuda_dir/
 
@@ -272,8 +288,14 @@ jobs:
           ARCHS="${{ inputs.arch }}"
           SHA="${{ inputs.sha }}"
           PR_ID="${{ inputs.pr_id }}"
-          SET1="${{ inputs.set1_name }}"
-          SET2="${{ inputs.set2_name }}"
+          BASELINE_SHA="${{ inputs.baseline_sha }}"
+          if [ -n "$BASELINE_SHA" ]; then
+            SET1=$(echo "$SHA" | cut -c1-8)
+            SET2=$(echo "$BASELINE_SHA" | cut -c1-8)
+          else
+            SET1="${{ inputs.set1_name }}"
+            SET2="${{ inputs.set2_name }}"
+          fi
 
           ARCHS=$(echo "$ARCHS" | tr ',[:space:]' ' ')
           PREFIX=$(echo "${{ needs.setup-matrix.outputs.prefix }}" | xargs)
