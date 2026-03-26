@@ -179,6 +179,30 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
 
     return artifact_paths
 
+def _shorten_unzipped_dirs():
+    """Rename unzipped-* directories to short names for Windows MAX_PATH compatibility.
+
+    Converts names like:
+      unzipped-test-reports-runattempt1-test-default-1-6-linux.rocm.gpu.gfx942.1_68613413431.zip
+    to:
+      test-default-1-6
+
+    Preserves the 'test-<config>' prefix so that summarize_xml_testreports.py
+    can still detect workflow type via substring matching.
+    """
+    from pathlib import Path
+    for d in sorted(Path(".").glob("unzipped-*")):
+        if not d.is_dir():
+            continue
+        m = re.search(r'(test-\w+-\d+-\d+)', d.name)
+        if m:
+            short_name = m.group(1)
+            if not Path(short_name).exists():
+                d.rename(short_name)
+                print(f"  Renamed {d.name} -> {short_name}")
+            else:
+                print(f"  WARNING: {short_name} already exists, keeping {d.name}")
+
 def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
     # Get from S3 artifacts
     artifact_paths = []
@@ -209,6 +233,16 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
 
     for path in artifact_paths:
             unzip(path)
+
+    _shorten_unzipped_dirs()
+
+    # Delete raw zip files now that contents are extracted
+    for path in artifact_paths:
+        try:
+            path.unlink()
+            print(f"  Deleted {path}")
+        except Exception:
+            pass
 
 def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None):
     os.chdir(test_folder)
