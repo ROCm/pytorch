@@ -2588,9 +2588,12 @@ def pointwise(
                     # triton_poi_fused_index_put_new_zeros_45
                     # triton_poi_fused_index_put_new_zeros_49
                     # triton_poi_fused_index_put_new_zeros_54
-                    triton_config_with_settings(
-                        size_hints, 128, num_warps=1, num_stages=1
-                    ),  # wri0: 56 us: triton_poi_fused_cat_mul_sigmoid_view_51
+                    triton_config_with_settings(size_hints, 128, num_warps=1, num_stages=1), # wri0: 56 us: triton_poi_fused_cat_mul_sigmoid_view_51
+                    # Optimal configs from greedy set cover analysis (5% tolerance, filtered by profile, 4 configs)
+                    triton_config_with_settings(size_hints, 128, num_warps=2, num_stages=1),
+                    triton_config_with_settings(size_hints, 256, num_warps=1, num_stages=1),
+                    triton_config_with_settings(size_hints, 1024, num_warps=8, num_stages=1),
+                    triton_config_with_settings(size_hints, 8192, num_warps=2, num_stages=1),
                 ]
     if len(size_hints) == 2:
         # Only avoiding tuning on TileHint.SQUARE if not on ROCm builds

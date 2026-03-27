@@ -58,6 +58,7 @@ from torch.testing._internal.common_device_type import (
     onlyCUDA,
     OpDTypes,
     ops,
+    skipCUDAIfNoMagma,
     tol,
     toleranceOverride,
 )
@@ -5042,6 +5043,7 @@ class TestVmapOperatorsOpInfo(TestCase):
 
         test(self, op, tuple(inputs), in_dims=tuple(in_dims))
 
+    @skipCUDAIfNoMagma
     def test_torch_return_types_returns(self, device):
         t = torch.randn(3, 2, 2, device=device)
         self.assertTrue(

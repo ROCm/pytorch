@@ -1073,6 +1073,11 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             ROCmGemmConfig(256, 128, 32, self.default_num_stages, 8, group_m=16),
             ROCmGemmConfig(256, 128, 64, self.default_num_stages, 8, group_m=4),
             ROCmGemmConfig(256, 256, 64, self.default_num_stages, 8, group_m=4),
+            ROCmGemmConfig(16, 16, 256, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
+            ROCmGemmConfig(16, 16, 128, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
+            ROCmGemmConfig(32, 32, 16, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
+            ROCmGemmConfig(16, 16, 256, 2, 4, group_m=2, waves_per_eu=0, kpack=1),
+            ROCmGemmConfig(32, 32, 64, 2, 4, group_m=1, waves_per_eu=0, kpack=1),
         ]
 
         # Exhaustive search for mm configs
@@ -1218,8 +1223,9 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             if group_m is not None:
                 key += (group_m,)
 
-            if waves_per_eu != 0:
-                waves_per_eu = int(8 // conf.num_warps)
+            # Don't override waves_per_eu from the config
+            # if waves_per_eu == 0 or waves_per_eu is None:
+            #     waves_per_eu = int(8 // conf.num_warps)
 
             if key not in used and (
                 max_mm_configs is None or len(used) < max_mm_configs
