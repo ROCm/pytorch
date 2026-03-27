@@ -24,6 +24,14 @@
 #include <utility>
 #include <vector>
 
+#if 1
+#define CCADEBUG(x) x
+#else
+#define CCADEBUG(x)
+#endif
+TORCH_API int GetTraceID(bool force_print_trace=false, int skip = 0, int max_frames = 64);
+// TORCH_API std::string CcaGetEnv(const char* name, const char* default_value);
+
 namespace torch::autograd {
 
 struct Edge;
@@ -132,12 +140,16 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
     // Store the thread_id of the forward operator.
     // See NOTE [ Sequence Numbers ]
     thread_id_ = at::RecordFunction::currentThreadId();
+
+    cca_debug();
   }
 
   explicit Node(edge_list&& next_edges = edge_list())
       : Node(
             /*sequence_nr=*/at::sequence_number::get_and_increment(),
-            std::move(next_edges)) {}
+            std::move(next_edges)) {
+              cca_debug();
+            }
 
   /// Nodes are neither copyable nor moveable.
   Node(const Node& other) = delete;
@@ -161,6 +173,8 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
     // Keep track of backward pass for rocblas.
     at::ROCmBackwardPassGuard in_backward;
 #endif
+
+    cca_debug();
 
     auto step_callbacks =
         at::getStepCallbacksUnlessEmpty(at::RecordScope::BACKWARD_FUNCTION);
@@ -205,12 +219,14 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
     auto meta_shape = MetadataShape{std::in_place_type<SymIntSmallVec>, shape};
     input_metadata_.emplace_back(
         options, meta_shape, is_tensor_subclass, is_nested);
+    cca_debug();
     return input_nr;
   }
 
   uint32_t add_input_metadata(const at::Tensor& t) noexcept {
     uint32_t input_nr = input_metadata_.size();
     input_metadata_.emplace_back(t);
+    cca_debug();
     return input_nr;
   }
 
@@ -218,19 +234,23 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
   uint32_t add_input_metadata(undefined_input u) noexcept {
     uint32_t input_nr = input_metadata_.size();
     input_metadata_.emplace_back();
+    cca_debug();
     return input_nr;
   }
 
   uint32_t num_inputs() const noexcept {
+    cca_debug();
     return input_metadata_.size();
   }
 
   const InputMetadata& input_metadata(size_t index) const {
+    cca_debug();
     return input_metadata_[index];
   }
 
   // Danger: not thread safe, caller must protect with lock
   InputMetadata& mutable_input_metadata(size_t index) {
+    cca_debug();
     return input_metadata_[index];
   }
 
@@ -248,6 +268,11 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
     if (!opt_device_type.has_value()) {
       return std::nullopt;
     }
+
+    if (override_stream_) {
+      return override_stream_;
+    }
+
     for (const auto& metadata : input_metadata_) {
       if (metadata.device().type() == opt_device_type.value())
         return metadata.stream();
@@ -613,6 +638,20 @@ struct TORCH_API Node : std::enable_shared_from_this<Node> {
   virtual bool is_aot_backward() const {
     return false;
   }
+
+ private:
+  bool cca_tag_ = false;
+  std::optional<c10::Stream> override_stream_;
+  void cca_debug() const {
+    if (this->name() == "FlashAttnFuncBackward") {
+      // std::fprintf(stderr, "cca_log FlashAttnFuncBackward GetTraceID %d\n", GetTraceID(true));
+    }
+  }
+ public:
+  
+  void set_cca_tag(bool t) { cca_tag_ = t; }
+  bool cca_tag() const { return cca_tag_; }
+  void set_override_stream(const c10::Stream& s) { override_stream_ = s; }
 
  protected:
   /// Performs the `Node`'s actual operation.

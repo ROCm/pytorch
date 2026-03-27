@@ -1067,6 +1067,9 @@ void Engine::evaluate_function(
     const std::shared_ptr<ReadyQueue>& cpu_ready_queue) {
   // Locally set the current stream to func's associated stream
   auto opt_parent_stream = (*func).stream();
+
+  // std::fprintf(stderr, "cca_log Engine::evaluate_function name %s cca_tag %d\n", func->name().c_str(), func->cca_tag() ? 1 : 0);
+
   c10::OptionalStreamGuard parent_stream_guard{opt_parent_stream};
 
   // Ensure that the incoming gradients are ready

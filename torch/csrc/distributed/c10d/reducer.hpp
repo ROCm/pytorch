@@ -24,6 +24,10 @@
 #include <torch/csrc/distributed/autograd/context/context.h>
 #endif
 
+#ifdef USE_ROCM
+#include <hip/hip_runtime_api.h>
+#endif
+
 namespace c10d {
 
 constexpr int kDefaultFirstBucketBytes = int(1024 * 1024);
@@ -343,6 +347,9 @@ class TORCH_API Reducer {
   // and the buckets are reduced in a predetermined order consistent across
   // processes.
   struct Bucket {
+    bool has_stream1 = false;
+    bool has_stream2 = false;
+    bool mul_out_moved = false;
     // Gradients of the bucket flattened into a 1-dimensional tensor
     at::Tensor gradients;
 
@@ -398,6 +405,17 @@ class TORCH_API Reducer {
     // done on different CUDA streams. We record an event for every copy
     // so that we can synchronize with them prior to kicking off the reduction.
     // std::vector<at::cuda::CUDAEvent> events;
+    struct DeferMulOut {
+      DeferMulOut() {}
+      DeferMulOut(at::Tensor &grad, at::Tensor &bucket_view) : grad_(grad), bucket_view_(bucket_view) {}
+      at::Tensor grad_;
+      at::Tensor bucket_view_;
+    };
+    std::unordered_map<size_t, DeferMulOut> defer_mul_out;
+
+#ifdef USE_ROCM
+    std::unordered_map<size_t, hipEvent_t> mul_out_evt;
+#endif
   };
 
   std::vector<Bucket> buckets_;

@@ -733,6 +733,38 @@ def set_stream(stream: Stream):
     )
 
 
+def debug_set_bwd_rccl_stream(
+    module, bwd_stream: Stream, rccl_stream: Stream
+):
+
+    bwd_stream_id = bwd_stream.stream_id
+    bwd_device_index = bwd_stream.device_index
+    bwd_device_type = bwd_stream.device_type
+
+    rccl_stream_id = rccl_stream.stream_id
+    rccl_device_index = rccl_stream.device_index
+    rccl_device_type = rccl_stream.device_type
+
+    print("bwd_stream_id ",bwd_stream_id,
+        " bwd_device_index ",bwd_device_index,
+        " bwd_device_type ",bwd_device_type,
+        " rccl_stream_id ",rccl_stream_id,
+        " rccl_device_index ",rccl_device_index,
+        " rccl_device_type ",rccl_device_type)
+
+    torch._C._cuda_set_backward_rccl_stream(
+        module=module,
+        bwd_stream_id=bwd_stream_id,
+        bwd_device_index=bwd_device_index,
+        bwd_device_type=bwd_device_type,
+        rccl_stream_id=rccl_stream_id,
+        rccl_device_index=rccl_device_index,
+        rccl_device_type=rccl_device_type,
+    )
+
+def debug_reset_rccl_stream_cnt():
+    torch._C._cuda_reset_rccl_stream_cnt()
+
 def _parse_visible_devices() -> Union[list[int], list[str]]:
     r"""Parse CUDA_VISIBLE_DEVICES environment variable."""
     var = os.getenv("CUDA_VISIBLE_DEVICES")

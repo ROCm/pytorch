@@ -1109,6 +1109,8 @@ class TORCH_API ProcessGroupNCCL : public Backend {
       Fn fn,
       OpType opType,
       bool asyncOp,
+      bool has_stream1 = false,
+      bool has_stream2 = false,
       const char* profilingTitle = nullptr,
       bool nanCheck = true);
 
@@ -1121,6 +1123,8 @@ class TORCH_API ProcessGroupNCCL : public Backend {
       PostProcess post,
       OpType opType,
       bool asyncOp,
+      bool has_stream1 = false,
+      bool has_stream2 = false,
       const char* profilingTitle = nullptr,
       bool nanCheck = true);
 
@@ -1133,6 +1137,8 @@ class TORCH_API ProcessGroupNCCL : public Backend {
       PostProcess post,
       OpType opType,
       bool asyncOp,
+      bool has_stream1 = false,
+      bool has_stream2 = false,
       const char* profilingTitle = nullptr,
       bool nanCheck = true);
 
@@ -1366,6 +1372,7 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
   // The CUDA events used to sync NCCL streams
   std::unordered_map<std::string, at::cuda::CUDAEvent> ncclEvents_;
+  std::unordered_map<std::string, at::cuda::CUDAEvent> ncclEvents2_;
 
   // Device Indexes used for all collectives in this group
   std::set<c10::DeviceIndex> usedDeviceIdxs_;

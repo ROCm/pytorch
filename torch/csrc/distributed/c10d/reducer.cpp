@@ -22,6 +22,85 @@
 #include <torch/csrc/distributed/c10d/logger.hpp>
 #include <utility>
 
+#include <torch/csrc/autograd/functions/utils.h>
+
+ #ifdef USE_ROCM
+ #include <c10/hip/HIPStream.h>
+//  #include <ATen/hip/impl/HIPGuardImplMasqueradingAsCUDA.h>
+ #endif
+
+
+static std::string CcaGetEnv(const char* name, const char* default_value) {
+  auto rtn = std::getenv(name);
+  if (rtn) {
+    return rtn;
+  }
+  return default_value;
+}
+
+namespace {
+
+void debug_mul_out_or_dummy(
+    at::Tensor& out,
+    const at::Tensor& grad,
+    const at::Tensor& scale,
+    int replica_index,
+    int variable_index) {
+  int mode = std::stoi(CcaGetEnv("CCAENV_DUMMY_MUL_MODE", "0"));
+
+  switch (mode) {
+    default:
+    case 0:
+      at::mul_out(out, grad, scale);
+      break;
+    case 1: {
+      at::Tensor tiny = at::zeros({1}, grad.options());
+      tiny.add_(1);
+      break;
+    }
+    case 2:
+      out.copy_(grad);
+      break;
+    case 3:
+      out.zero_();
+      break;
+    case 4:
+      break;
+  }
+}
+
+} // anonymous namespace
+
+namespace torch::ddp_model2_stream {
+static bool is_stream_module(PyObject* obj) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_module == obj;
+}
+static bool is_stream_param(c10::TensorImpl* impl) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_param_impls.count(impl) != 0;
+}
+} // namespace torch::ddp_model2_stream
+
+#include "execinfo.h"
+#include <iostream>
+#include <sstream>
+#include <fstream>
+#include <regex>
+#include <unistd.h>
+#include <set>
+#include <thread>
+#include <mutex>
+
+#include <dlfcn.h>
+#include <cstdio>
+#include <cstring>
+#include <algorithm>
+#include <unordered_map>
+#include <string>
+
 namespace c10d {
 namespace {
 
@@ -126,6 +205,9 @@ Reducer::Reducer(
       use_python_reducer_(use_python_reducer) {
   C10_LOG_API_USAGE_ONCE("torch.distributed.ddp.reducer");
   TORCH_INTERNAL_ASSERT(!params_.empty(), "Expected at least one parameter.");
+
+  CCADEBUG(std::fprintf(stderr, "cca_log Reducer::Reducer bucket_bytes_cap %ld first_bucket_bytes_cap %ld GetTraceID %d\n",
+    bucket_bytes_cap_, first_bucket_bytes_cap_, GetTraceID(true)));
 
   if (ddp_debug_level_ != c10d::DebugLevel::Off) {
     LOG(INFO) << "Reducer initialized with bucket_bytes_cap: "
@@ -383,7 +465,119 @@ void Reducer::mark_variable_ready_dense(size_t variable_index) {
             RECORD_FUNCTION(
                 "torch::distributed::reducer::mul_out",
                 std::vector<c10::IValue>({bucket_view}))
-            at::mul_out(bucket_view, grad, wrapped);
+
+            auto& reg = torch::ddp_model2_stream::registry();
+            c10::OptionalStreamGuard cca_guard;
+            bucket.mul_out_moved = false;
+            if (torch::ddp_model2_stream::is_stream_param(variable.unsafeGetTensorImpl())) {
+
+              // auto a = at::Tensor(123);
+
+              // CCADEBUG(std::fprintf(stderr, "cca_log mul_out on cca_stream variable_index %ld bucket_index %ld %s GetTraceID %d\n",
+              //   variable_index, bucket_index.bucket_index, variable.name().c_str(),  GetTraceID()));
+
+              cca_guard.reset_stream(c10::Stream::unpack3(
+                reg.bwd_stream_id,
+                static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+                static_cast<c10::DeviceType>(reg.bwd_device_type)));
+            } else {
+
+#ifdef USE_ROCM
+#define cudaEventExternal 0x08
+#define cudaEventWaitDefault 0x00
+
+              // if (variable.device().index() == 0) {
+              // CCADEBUG(std::fprintf(stderr, "cca_log mul_out on cca_stream bucket_index %ld variable_index %ld intra_bucket_index %ld size %d GetTraceID %d\n", 
+              //     bucket_index.bucket_index, variable_index, bucket_index.intra_bucket_index,  (int)bucket.variables.size(), GetTraceID(true));)
+              // }
+
+              static std::mutex evt_mutex;
+              std::lock_guard<std::mutex> lock(evt_mutex);
+
+              bool do_centralize_mulout = CcaGetEnv("CCAENV_CENTRALIZE_MULOUT", "0") == "1";
+              bool do_mulout_parallel = CcaGetEnv("CCAENV_MULOUT_PARALLEL", "0") == "1";
+              int last_bucket_num_elem = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_NUM_ELEM", "0"));
+
+              if (last_bucket_num_elem > 0 && last_bucket_num_elem == bucket.variables.size()) {
+                do_centralize_mulout = false;
+                do_mulout_parallel = false;
+              }
+
+              if (reg.start_compute && do_centralize_mulout && bucket_index.intra_bucket_index < (bucket.variables.size() - 1)) {
+                bucket.defer_mul_out[bucket_index.intra_bucket_index] = Bucket::DeferMulOut(grad, bucket_view);
+                if (gradient_as_bucket_view_) {
+                  // Let grad point to bucket_view buffer.
+                  grad = bucket_view;
+                  // The grad is modified and need to be written back.
+                  return true;
+                }
+                return false;
+              }
+
+              if (do_mulout_parallel && reg.start_compute) {
+                auto bwd_stream = c10::Stream::unpack3(
+                reg.bwd_stream_id,
+                static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+                static_cast<c10::DeviceType>(c10::DeviceType::HIP));
+
+                if (CcaGetEnv("CCAENV_DISABLE_MULOUT_WAIT", "0") != "1") {
+
+                  unsigned int flag = hipEventDisableTiming;
+                  bool external = (flag & cudaEventExternal) != 0;
+                    // TORCH_CHECK(!external, "External events are disallowed in rocm");
+
+                    int orig_device = -1;
+                    hipGetDevice(&orig_device);
+                    hipSetDevice(variable.device().index());
+
+                if (bucket.mul_out_evt.count(bucket_index.intra_bucket_index) == 0) {
+                    flag &= ~cudaEventExternal;
+                    // c10::hip::HIPGuardMasqueradingAsCUDA guard(variable.device().index());
+                    
+                    hipEvent_t evt;
+                    hipEventCreateWithFlags(&evt, flag);
+                    bucket.mul_out_evt.insert(std::make_pair(bucket_index.intra_bucket_index, evt));
+                }
+              
+                auto &evt = bucket.mul_out_evt.at(bucket_index.intra_bucket_index);
+                auto default_stream = c10::hip::getDefaultHIPStream(variable.device().index());
+                hipEventRecord(evt, default_stream);
+                
+                // it is an error to use cudaEventWaitExternal when not doing stream capture
+                // unsigned int flags = (c10::hip::currentStreamCaptureStatusMayInitCtx() != c10::hip::CaptureStatus::None && external) ? cudaEventWaitExternal : cudaEventWaitDefault;
+
+                unsigned int flags = cudaEventWaitDefault;
+                hipStreamWaitEvent(c10::hip::HIPStream(bwd_stream), evt, flags);
+                hipSetDevice(orig_device);
+              }
+              cca_guard.reset_stream(bwd_stream);
+
+              if (variable.device().index() == 0) {
+              CCADEBUG(std::fprintf(stderr, "cca_log mul_out on cca_stream bucket_index %ld variable_index %ld intra_bucket_index %ld size %d GetTraceID %d\n", 
+                  bucket_index.bucket_index, variable_index, bucket_index.intra_bucket_index,  (int)bucket.variables.size(), GetTraceID(true));)
+              }
+
+              if (do_centralize_mulout) {
+                for (int i = 0; i < bucket.variables.size() - 1; ++i) {
+                  assert(bucket.defer_mul_out.count(i) > 0);
+
+                  if (bucket.defer_mul_out.count(i) > 0) {
+                    debug_mul_out_or_dummy(bucket.defer_mul_out[i].bucket_view_, bucket.defer_mul_out[i].grad_, wrapped, -1, variable_index);
+                  }
+                  
+                }
+                bucket.defer_mul_out.clear();
+                bucket.mul_out_moved = true;
+              }
+              
+              }
+#endif
+
+              // CCADEBUG(std::fprintf(stderr, "cca_log mul_out on default stream variable_index %ld bucket_index %ld %s GetTraceID %d\n",
+              //   variable_index, bucket_index.bucket_index, variable.name().c_str(), GetTraceID()));
+            }
+              debug_mul_out_or_dummy(bucket_view, grad, wrapped, -1, variable_index);
+            
           } else {
             // If DDP is running with create_graph=True, gradients require_grad
             // themselves in order to compute higher order derivatives. However,
@@ -973,6 +1167,16 @@ void Reducer::all_reduce_bucket(Bucket& bucket) {
       bucket.sizes_vec,
       variables_for_bucket,
       bucket.sparse_tensor_indices);
+
+  {
+  auto& reg = torch::ddp_model2_stream::registry();
+  std::lock_guard<std::mutex> g(reg.mu);
+  reg.bucket_tensor_has_stream.insert(std::make_pair(tensor.unsafeGetTensorImpl(), torch::ddp_model2_stream::HasStream12(bucket.has_stream1, bucket.has_stream2)));
+  // if (reg.bwd_device_index == 0) {
+  // CCADEBUG(std::fprintf(stderr, "cca_log Reducer::all_reduce_bucket tensor %p \n", (void*)tensor.unsafeGetTensorImpl()));
+  // }
+  }
+
   bucket.future_work = run_comm_hook(grad_bucket);
 }
 
@@ -1045,6 +1249,53 @@ void Reducer::mark_bucket_ready(size_t bucket_index) {
     }
     auto& bucket = buckets_[next_bucket_];
     if (!should_skip_all_reduce_bucket(bucket)) {
+
+      auto& reg = torch::ddp_model2_stream::registry();
+
+      int v_i = 0;
+      for (auto& v : bucket.variables) {
+        if (torch::ddp_model2_stream::is_stream_param(v.unsafeGetTensorImpl())) {
+          bucket.has_stream2 = true;
+          // CCADEBUG(std::fprintf(stderr, "cca_log allreduce has_stream2 %d \n", v_i));
+        } else {
+          bucket.has_stream1 = true;
+          // CCADEBUG(std::fprintf(stderr, "cca_log allreduce has_stream1 %d \n", v_i));
+        }
+        v_i += 1;
+      }
+      if (bucket.mul_out_moved) {
+        bucket.has_stream1 = false;
+        bucket.has_stream2 = true;
+      }
+
+      c10::OptionalStreamGuard cca_guard;
+      if (bucket.has_stream2) {
+
+        // TODO(chien-an): if ..., also need to wait default stream.
+        // CCADEBUG(std::fprintf(stderr, "cca_log all_reduce_bucket wait cca_stream bucket_index %ld GetTraceID %d\n",
+        //   bucket_index, GetTraceID()));
+
+        cca_guard.reset_stream(c10::Stream::unpack3(
+          reg.bwd_stream_id,
+          static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+          static_cast<c10::DeviceType>(reg.bwd_device_type)));
+      } else {
+        // CCADEBUG(std::fprintf(stderr, "cca_log all_reduce_bucket wait default stream bucket_index %ld GetTraceID %d\n",
+        //   bucket_index, GetTraceID()));
+      }
+
+    //   if (reg.bwd_device_index == 0) {
+    //   if (bucket.has_stream1 && bucket.has_stream2) {
+    //     CCADEBUG(std::fprintf(stderr, "cca_log Reducer::mark_bucket_ready wait defualt/bwd stream\n"));
+    //   } else if (bucket.has_stream1) {
+    //     CCADEBUG(std::fprintf(stderr, "cca_log Reducer::mark_bucket_ready wait defualt stream\n"));
+    //   } else if (bucket.has_stream2) {
+    //     CCADEBUG(std::fprintf(stderr, "cca_log Reducer::mark_bucket_ready wait bwd stream\n"));
+    //   } else {
+    //     CCADEBUG(std::fprintf(stderr, "cca_log Reducer::mark_bucket_ready wait none\n"));
+    //   }
+    // }
+      
       all_reduce_bucket(bucket);
       num_buckets_reduced_++;
     }
@@ -1837,6 +2088,17 @@ void Reducer::sync_bucket_indices(
   }
 }
 
+std::vector<std::string> splitStringStream(const std::string& str, char delimiter) {
+    std::vector<std::string> result;
+    std::stringstream ss(str);
+    std::string token;
+
+    while (std::getline(ss, token, delimiter)) {
+        result.push_back(token);
+    }
+    return result;
+}
+
 bool Reducer::rebuild_buckets() {
   // Ensure reduction for previous backwards pass is finished. If user's model
   // has unused parameters for example, this will raise an error recommending to
@@ -1864,10 +2126,32 @@ bool Reducer::rebuild_buckets() {
           " versus rebuilt params size of: ",
           rebuilt_param_indices_.size()));
   std::vector<size_t> bucket_size_limits;
+
+
+  if (CcaGetEnv("CCAENV_FIRST_BUCKET_SIZE", "0") == "0") {
+    CCADEBUG(std::fprintf(stderr, "cca_log rebuild_buckets first_bucket_bytes_cap %ld\n", first_bucket_bytes_cap_));
   bucket_size_limits.push_back(first_bucket_bytes_cap_);
+  } else {
+
+    auto fist_buckets = splitStringStream(CcaGetEnv("CCAENV_FIRST_BUCKET_SIZE", "0"), ',');
+
+    std::string buckets_str = "";
+    int bs_i = 0;
+    for (auto &bs : fist_buckets) {
+      size_t bs_bytes = std::stoi(bs) * 1024 * 1024;
+      CCADEBUG(std::fprintf(stderr, "cca_log rebuild_buckets %d bs_bytes %ld\n", bs_i, bs_bytes));
+      bucket_size_limits.push_back(bs_bytes);
+      ++bs_i;
+    }
+    
+  }
+  
   bucket_size_limits.push_back(bucket_bytes_cap_);
   auto ddp_set_last_bucket_as_small =
       (getCvarString({"DDP_SET_LAST_BUCKET_CAP"}, "N/A") == "1");
+
+  CCADEBUG(std::fprintf(stderr, "cca_log rebuild_buckets bucket_bytes_cap %ld ddp_set_last_bucket_as_small %d\n",
+           bucket_bytes_cap_, (int)ddp_set_last_bucket_as_small));
 
   if (ddp_set_last_bucket_as_small) {
     // Reverse so that first_bucket_bytes_cap_ (smaller bucket) becomes the last
@@ -2221,7 +2505,54 @@ compute_bucket_assignment_by_size(
   for (auto& it : buckets) {
     auto& bucket = it.second;
     if (!bucket.indices.empty()) {
+
+      CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size %d %d\n",
+          (int)bucket.indices.size(), (int)bucket.size_limit));
+
+      #if 0
+      int last_bucket_size = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_SIZE", "0")) * 1024 * 1024;
+      if (last_bucket_size) {
+        CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size last_bucket_size %d\n", last_bucket_size));
+
+        int last_i = bucket.indices.size() - 1;
+        int split_i = last_i;
+        int acc_size = 0;
+        for (; split_i >= 0; --split_i) {
+          const auto& tensor = tensors[bucket.indices[split_i]];
+          acc_size += tensor.numel() * tensor.element_size();
+          if (acc_size > last_bucket_size) {
+            CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size acc_size %d split_i %d last_i %d\n", acc_size, split_i, last_i));
+            break;
+          }
+        }
+
+        if (split_i > 0) {
+          std::vector<size_t> sub(bucket.indices.begin(), bucket.indices.begin() + split_i);
+        result.emplace_back(std::move(sub), bucket.size_limit);
+        }
+        if (split_i != last_i) {
+          std::vector<size_t> sub(bucket.indices.begin() + split_i, bucket.indices.end());
+        result.emplace_back(std::move(sub), bucket.size_limit);
+        }
+        #endif
+
+
+      int last_bucket_num_elem = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_NUM_ELEM", "0"));
+      int remain_num = bucket.indices.size();
+      if (last_bucket_num_elem && last_bucket_num_elem < remain_num) {
+        CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size last_bucket_num_elem %d\n", last_bucket_num_elem));
+        if (last_bucket_num_elem > 0) {
+          std::vector<size_t> sub(bucket.indices.begin(), bucket.indices.begin() + remain_num - last_bucket_num_elem);
+          result.emplace_back(std::move(sub), bucket.size_limit);
+        }
+        if (last_bucket_num_elem != remain_num) {
+          std::vector<size_t> sub(bucket.indices.begin() + remain_num - last_bucket_num_elem, bucket.indices.end());
+        result.emplace_back(std::move(sub), bucket.size_limit);
+        }
+      } else {
+        CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size default\n"));
       result.emplace_back(std::move(bucket.indices), bucket.size_limit);
+      }
     }
   }
 

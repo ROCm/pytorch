@@ -126,6 +126,8 @@ struct AllreduceOptions {
   std::chrono::milliseconds timeout = kUnsetTimeout;
   bool asyncOp = true;
   std::optional<at::Tensor> sparseIndices = std::nullopt;
+  bool has_stream1 = false;
+  bool has_stream2 = false;
 };
 
 struct AllreduceCoalescedOptions : AllreduceOptions {};

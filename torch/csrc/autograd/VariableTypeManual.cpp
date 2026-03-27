@@ -135,6 +135,7 @@ Tensor _fw_primal(c10::DispatchKeySet ks, const Tensor& self, int64_t level) {
   })();
 
   if (grad_fn) {
+    CCADEBUG(std::fprintf(stderr, "cca_log 137 grad_fn->name %s\n", grad_fn->name().c_str()));
     set_history(flatten_tensor_args(result), grad_fn);
   }
   if (isFwGradDefined(self)) {
@@ -180,6 +181,7 @@ Tensor _make_dual(
   })();
 
   if (grad_fn) {
+    CCADEBUG(std::fprintf(stderr, "cca_log 183 grad_fn->name %s\n", grad_fn->name().c_str()));
     set_history(flatten_tensor_args(result), grad_fn);
   }
 

@@ -26,7 +26,11 @@ namespace torch::autograd {
 // Calls to 'apply' are forwarded to the Python method implementation.
 // NOLINTNEXTLINE(cppcoreguidelines-special-member-functions)
 struct PyNode : public Node {
-  PyNode(THPObjectPtr obj) : obj(obj.release()) {}
+  PyNode(THPObjectPtr obj) : obj(obj.release()) {
+    if (this->name() == "FlashAttnFuncBackward") {
+      // CCADEBUG(std::fprintf(stderr, "cca_log PyNode FlashAttnFuncBackward GetTraceID %d\n", GetTraceID(true)));
+    }
+  }
 
   PyObject* to_py_args(
       const variable_list& inputs,

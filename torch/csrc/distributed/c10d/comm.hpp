@@ -77,6 +77,9 @@ class TORCH_API GradBucket {
     return sparse_grad_indices_;
   }
 
+  bool has_stream1 = false;
+  bool has_stream2 = false;
+
  private:
   size_t index_;
   size_t bucket_count_;

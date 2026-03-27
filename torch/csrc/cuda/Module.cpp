@@ -1928,6 +1928,190 @@ static void initCudaMethodBindings(PyObject* module) {
       });
 }
 
+#include <c10/core/Stream.h>
+#include <unordered_set>
+#include <mutex>
+
+#include <Python.h>
+#include <ATen/core/Tensor.h>
+#include <torch/csrc/autograd/python_variable.h> // THPVariable_Unpack
+#include <torch/csrc/autograd/functions/utils.h>
+
+namespace torch::ddp_model2_stream {
+static bool is_stream_module(PyObject* obj) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_module == obj;
+}
+static bool p(c10::TensorImpl* impl) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_param_impls.count(impl) != 0;
+}
+} // namespace torch::ddp_model2_stream
+
+// 假設你有 reg.model2_param_impls 是 unordered_set<c10::TensorImpl*>
+static bool collect_param_impls(PyObject* py_module,
+                                std::unordered_set<c10::TensorImpl*>& out_set) {
+  PyObject* params_obj = PyObject_CallMethod(py_module, "parameters", nullptr);
+  if (!params_obj) return false;
+
+  PyObject* it = PyObject_GetIter(params_obj);
+  Py_DECREF(params_obj);
+  if (!it) return false;
+
+  while (true) {
+    PyObject* item = PyIter_Next(it);
+    if (!item) {
+      if (PyErr_Occurred()) {
+        Py_DECREF(it);
+        return false;
+      }
+      break;
+    }
+
+    // item should be a Tensor/Parameter
+    at::Tensor t = THPVariable_Unpack(item);
+    out_set.insert(t.unsafeGetTensorImpl());
+
+    Py_DECREF(item);
+  }
+
+  Py_DECREF(it);
+  return true;
+}
+
+PyObject* THCPModule_ddpSetBackwardAllreduceStream_wrap(
+    PyObject* self,
+    PyObject* args,
+    PyObject* kwargs) {
+  HANDLE_TH_ERRORS
+
+  PyObject* py_module = nullptr;
+
+  int64_t bwd_stream_id = 0;
+  int64_t bwd_device_index = 0;
+  int64_t bwd_device_type = 0;
+
+  int64_t rccl_stream_id = 0;
+  int64_t rccl_device_index = 0;
+  int64_t rccl_device_type = 0;
+
+  // NOLINTNEXTLINE(modernize-avoid-c-arrays,cppcoreguidelines-avoid-c-arrays)
+  constexpr const char* kwlist[] = {
+      "module",
+      "bwd_stream_id", "bwd_device_index", "bwd_device_type",
+      "rccl_stream_id", "rccl_device_index", "rccl_device_type",
+      nullptr};
+
+  if (!PyArg_ParseTupleAndKeywords(
+          args,
+          kwargs,
+          "O|LLLLLL",
+          // NOLINTNEXTLINE(cppcoreguidelines-pro-type-const-cast)
+          const_cast<char**>(kwlist),
+          &py_module,
+          &bwd_stream_id, &bwd_device_index, &bwd_device_type,
+          &rccl_stream_id, &rccl_device_index, &rccl_device_type)) {
+    return nullptr;
+  }
+
+  // auto bwd_stream = at::hip::HIPStreamMasqueradingAsCUDA::unpack3(
+  //     bwd_stream_id,
+  //     static_cast<c10::DeviceIndex>(bwd_device_index),
+  //     static_cast<c10::DeviceType>(bwd_device_type));
+
+  // auto rccl_stream = at::hip::HIPStreamMasqueradingAsCUDA::unpack3(
+  //     rccl_stream_id,
+  //     static_cast<c10::DeviceIndex>(rccl_device_index),
+  //     static_cast<c10::DeviceType>(rccl_device_type));
+
+  // ---- registry write (pseudo) ----
+  // 1) store module PyObject* (INCREF)
+  // 2) store streams (convert to c10::Stream or store HIPStreamMasqueradingAsCUDA directly)
+  // 3) collect module.parameters() and store TensorImpl* set
+
+  auto& reg = torch::ddp_model2_stream::registry();
+  {
+    std::lock_guard<std::mutex> g(reg.mu);
+    reg.model2_param_impls.clear();
+    if (reg.model2_module) {
+      Py_DECREF(reg.model2_module);
+      reg.model2_module = nullptr;
+    }
+  }
+  std::unordered_set<c10::TensorImpl*> tmp;
+
+  if (!collect_param_impls(py_module, tmp)) {
+    return nullptr; // python exception already set
+  }
+
+  {
+    std::lock_guard<std::mutex> g(reg.mu);
+    reg.model2_param_impls = std::move(tmp);
+
+    Py_INCREF(py_module);
+    reg.model2_module = py_module;
+    
+
+    reg.bwd_stream_id = bwd_stream_id;
+    reg.bwd_device_index = bwd_device_index;
+    reg.bwd_device_type = bwd_device_type;
+
+    reg.rccl_stream_id = rccl_stream_id;
+    reg.rccl_device_index = rccl_device_index;
+    reg.rccl_device_type = rccl_device_type;
+
+    reg.enabled = true;
+  }
+
+  std::fprintf(stderr, "cca_log THCPModule_ddpSetBackwardAllreduceStream_wrap %ld %ld\n", bwd_stream_id, rccl_stream_id);
+
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+static PyObject* THCPModule_autogradIsStreamModule_wrap(
+    PyObject* self, PyObject* obj) {
+  if (torch::ddp_model2_stream::is_stream_module(obj)) Py_RETURN_TRUE;
+  Py_RETURN_FALSE;
+}
+
+PyObject* THCPModule_autogradPushStreamTag_wrap(PyObject* self, PyObject* args) {
+  HANDLE_TH_ERRORS
+  torch::autograd::stream_tag::push();
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+PyObject* THCPModule_autogradPopStreamTag_wrap(PyObject* self, PyObject* args) {
+  HANDLE_TH_ERRORS
+  torch::autograd::stream_tag::pop();
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
+static std::string CcaGetEnv(const char* name, const char* default_value) {
+  auto rtn = std::getenv(name);
+  if (rtn) {
+    return rtn;
+  }
+  return default_value;
+}
+
+PyObject* THCPModule_resetRcclStreamCnt_wrap(PyObject* self, PyObject* args) {
+  HANDLE_TH_ERRORS
+  auto& reg = torch::ddp_model2_stream::registry();
+  {
+    std::lock_guard<std::mutex> g(reg.mu);
+    reg.rccl_cnt = std::stoi(CcaGetEnv("CCAENV_ANOTHER_RCCL_CNT", "0"));
+  }
+  reg.start_compute = true;
+  CCADEBUG(std::fprintf(stderr, "cca_log set rccl_cnt %d\n", reg.rccl_cnt));
+  Py_RETURN_NONE;
+  END_HANDLE_TH_ERRORS
+}
+
 // NOLINTNEXTLINE(*-c-arrays*, *-global-variables)
 static struct PyMethodDef _THCPModule_methods[] = {
     {"_cuda_init", THCPModule_initExtension, METH_NOARGS, nullptr},
@@ -2158,6 +2342,26 @@ static struct PyMethodDef _THCPModule_methods[] = {
      nullptr},
     {"_cuda_tunableop_get_rotating_buffer_size",
      THCPModule_cuda_tunableop_get_rotating_buffer_size,
+     METH_NOARGS,
+     nullptr},
+     {"_cuda_set_backward_rccl_stream",
+     castPyCFunctionWithKeywords(THCPModule_ddpSetBackwardAllreduceStream_wrap),
+     METH_VARARGS | METH_KEYWORDS,
+     nullptr},
+     {"_autograd_is_stream_module",
+     THCPModule_autogradIsStreamModule_wrap,
+     METH_O,
+     nullptr},
+     {"_autograd_push_stream_tag",
+     THCPModule_autogradPushStreamTag_wrap,
+     METH_NOARGS,
+     nullptr},
+     {"_autograd_pop_stream_tag",
+     THCPModule_autogradPopStreamTag_wrap,
+     METH_NOARGS,
+     nullptr},
+     {"_cuda_reset_rccl_stream_cnt",
+     THCPModule_resetRcclStreamCnt_wrap,
      METH_NOARGS,
      nullptr},
     {nullptr}};

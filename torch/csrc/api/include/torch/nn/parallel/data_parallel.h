@@ -110,6 +110,7 @@ void replicate_grad_edges(
     auto grad_fn = std::make_shared<ReduceAdd>((*parameter).device());
     grad_fn->set_next_edges(autograd::collect_next_edges(*parameter));
 
+    // std::fprintf(stderr, "cca_log 113 grad_fn->name %s\n", grad_fn->name().c_str());
     for (const auto i : c10::irange(devices.size())) {
       autograd::set_history(replicas[i]->parameters_[parameter.key()], grad_fn);
     }
@@ -120,6 +121,7 @@ void replicate_grad_edges(
       auto grad_fn = std::make_shared<ReduceAdd>((*buffer).device());
       grad_fn->set_next_edges(autograd::collect_next_edges(*buffer));
 
+      // std::fprintf(stderr, "cca_log 123 grad_fn->name %s\n", grad_fn->name().c_str());
       for (const auto i : c10::irange(devices.size())) {
         autograd::set_history(replicas[i]->buffers_[buffer.key()], grad_fn);
       }

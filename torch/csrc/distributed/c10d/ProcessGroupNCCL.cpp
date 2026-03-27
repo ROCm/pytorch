@@ -34,6 +34,22 @@
 #include <torch/torch.h>
 #include <optional>
 
+#include <torch/csrc/autograd/functions/utils.h>
+#include <torch/csrc/autograd/function.h>
+
+namespace torch::ddp_model2_stream {
+static bool is_stream_module(PyObject* obj) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_module == obj;
+}
+static bool is_stream_param(c10::TensorImpl* impl) {
+  auto& r = registry();
+  std::lock_guard<std::mutex> g(r.mu);
+  return r.enabled && r.model2_param_impls.count(impl) != 0;
+}
+} // namespace torch::ddp_model2_stream
+
 namespace c10d {
 
 constexpr const char* const kNCCLAbortedCommStoreKey = "NCCLABORTEDCOMM";
@@ -3131,6 +3147,7 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
   // performance using cudaEvent, this should be set.
   // TODO(kwen2501): is ncclEvents_ used anywhere else?
   ncclEvents_.emplace(deviceKey, at::cuda::CUDAEvent(cudaEventDisableTiming));
+  ncclEvents2_.emplace(deviceKey, at::cuda::CUDAEvent(hipEventDisableTiming));
 
   // Move the NCCL resource to cache
   auto it = inInitializationCommMap_.find(deviceKey);
@@ -3552,6 +3569,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     PostProcess post,
     OpType opType,
     bool asyncOp,
+    bool dummy1,
+    bool dummy2,
     const char* profilingTitle,
     bool nanCheck) {
   // Environment setting by the user may add onto collective call's option
@@ -3602,9 +3621,75 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
   // otherwise, we use separate ncclStream and let it sync on currentStream
   auto ncclStream = asyncOp ? ncclStreams_.at(key)
                             : at::cuda::getCurrentCUDAStream(device.index());
+
+  auto& reg = torch::ddp_model2_stream::registry();
+  auto curr_stream = at::hip::getCurrentHIPStreamMasqueradingAsCUDA(device.index());
+
+  int cnt = 0;
+  {
+    std::lock_guard<std::mutex> g(reg.mu);
+    cnt = reg.rccl_cnt--;
+  }
+
+  if (reg.enabled && curr_stream.id() == reg.bwd_stream_id && cnt > 0) {
+    // if (device.index() == 0) {
+    //   CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use rccl_stream %d\n", cnt));
+    // }
+    ncclStream = at::hip::HIPStreamMasqueradingAsCUDA::unpack3(
+      reg.rccl_stream_id,
+      static_cast<c10::DeviceIndex>(reg.rccl_device_index),
+      static_cast<c10::DeviceType>(reg.rccl_device_type));
+
+  } else {
+    // if (device.index() == 0) {
+    // CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use defualt rccl_stream %d\n", cnt));
+    // }
+  }
+
   if (asyncOp) {
+    bool has_stream1 = false;
+    bool has_stream2 = false;
+    {
+      std::lock_guard<std::mutex> g(reg.mu);
+
+      if (reg.bucket_tensor_has_stream.count(inputs[0].unsafeGetTensorImpl()) > 0) {
+        has_stream1 = reg.bucket_tensor_has_stream[inputs[0].unsafeGetTensorImpl()].has_stream1;
+        has_stream2 = reg.bucket_tensor_has_stream[inputs[0].unsafeGetTensorImpl()].has_stream2;
+      } else {
+        has_stream1 = true;
+      }
+    }
+
     // First let NCCL streams wait for input tensors allocation streams
-    syncStream(device, ncclEvents_[key], ncclStream);
+    // syncStream(device, ncclEvents_[key], ncclStream);
+    if (device.index() == 0) {
+
+      // CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective tensor %p \n", (void*)inputs[0].unsafeGetTensorImpl()));
+
+      if (has_stream1 && has_stream2) {
+        CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective wait defualt/bwd stream\n"));
+      } else if (has_stream1) {
+        CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective wait defualt stream\n"));
+      } else if (has_stream2) {
+        CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective wait bwd stream\n"));
+      } else {
+        CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective wait none\n"));
+      }
+    }
+
+    if (has_stream1) {
+      ncclEvents_[key].record(at::hip::getDefaultHIPStreamMasqueradingAsCUDA(device.index()));
+      ncclEvents_[key].block(ncclStream);
+    }
+
+    if (has_stream2) {
+      ncclEvents2_[key].record(at::hip::HIPStreamMasqueradingAsCUDA::unpack3(
+        reg.bwd_stream_id,
+        static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+        static_cast<c10::DeviceType>(reg.bwd_device_type))
+      );
+      ncclEvents2_[key].block(ncclStream);
+    }
   }
 
   bool enqueue =
@@ -4224,6 +4309,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     PostProcess post,
     OpType opType,
     bool asyncOp,
+    bool has_stream1,
+    bool has_stream2,
     const char* profilingTitle,
     bool nanCheck) {
   auto inputs = std::vector<at::Tensor>{input};
@@ -4236,6 +4323,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
       post,
       opType,
       asyncOp,
+      has_stream1,
+      has_stream2,
       profilingTitle,
       nanCheck);
 }
@@ -4247,6 +4336,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     Fn fn,
     OpType opType,
     bool asyncOp,
+    bool has_stream1,
+    bool has_stream2,
     const char* profilingTitle,
     bool nanCheck) {
   auto inputs = std::vector<at::Tensor>{input};
@@ -4261,6 +4352,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
          c10::intrusive_ptr<ProcessGroupNCCL::WorkNCCL>& work) {},
       opType,
       asyncOp,
+      has_stream1,
+      has_stream2,
       profilingTitle,
       nanCheck);
 }
@@ -4382,6 +4475,8 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::allreduce_impl(
       },
       OpType::ALLREDUCE,
       opts.asyncOp,
+      opts.has_stream1,
+      opts.has_stream2,
       profilingTitle);
 }
 

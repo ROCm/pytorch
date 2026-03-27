@@ -801,6 +801,7 @@ void initTorchFunctions(PyObject* module) {
                 new torch::autograd::Error(
                     "Cannot backprop through mirrored meta, file a bug in PyTorch"),
                 torch::autograd::deleteNode);
+            CCADEBUG(std::fprintf(stderr, "cca_log 804 grad_fn->name %s\n", new_grad_fn->name().c_str()));
             torch::autograd::set_history(dst_, new_grad_fn);
           }
         }
