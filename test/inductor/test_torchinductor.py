@@ -6222,6 +6222,10 @@ class CommonTemplate:
             reference_in_float=False,
         )
 
+    @unittest.skipIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma,
+        "ROCm hipsolver backend does not currently support eig",
+    )
     @skipIfMPS
     def test_linalg_eig_stride_consistency(self):
         def fn(x):
