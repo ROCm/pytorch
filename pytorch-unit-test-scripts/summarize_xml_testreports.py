@@ -72,13 +72,17 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
             elif "test-inductor" in new_dir:
                 work_flow_name = WorkflowName.inductor.name
             for xml_report in Path(new_dir).glob("**/*.xml"):
-                new_cases = parse_xml_report(
-                    tag,
-                    xml_report,
-                    workflow_run_id,
-                    workflow_run_attempt,
-                    work_flow_name
-                )
+                try:
+                    new_cases = parse_xml_report(
+                        tag,
+                        xml_report,
+                        workflow_run_id,
+                        workflow_run_attempt,
+                        work_flow_name
+                    )
+                except Exception as e:
+                    print(f"WARNING: Skipping malformed XML {xml_report}: {e}")
+                    continue
                 for key, case in new_cases.items():
                     existing = test_cases.get(key)
                     if existing is None or _status_priority(case) > _status_priority(existing):
