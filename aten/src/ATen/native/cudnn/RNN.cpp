@@ -4,14 +4,11 @@
 #include <ATen/TensorUtils.h>
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAConfig.h>
-#include <ATen/cuda/CUDAEvent.h>
-#include <ATen/cuda/Exceptions.h>
 #include <ATen/native/RNN.h>
 #include <c10/util/Exception.h>
 #include <c10/util/accumulate.h>
 #include <c10/util/irange.h>
 #include <torch/library.h>
-#include <ATen/cuda/CUDAGraphsUtils.cuh>
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -113,6 +110,9 @@ Tensor _cudnn_init_dropout_state(
 
 #else // AT_CUDNN_ENABLED()
 
+#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/cuda/CUDAGraphsUtils.cuh>
+#include <ATen/cuda/Exceptions.h>
 #include <ATen/native/cudnn/RNNUtils.h>
 
 namespace at::native {

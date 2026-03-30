@@ -89,8 +89,6 @@ includes = [
     # Keep this synchronized with is_pytorch_file in hipify_python.py
     "aten/src/ATen/cuda/*",
     "aten/src/ATen/native/cuda/*",
-    "aten/src/ATen/native/cudnn/*",
-    "aten/src/ATen/native/quantized/cudnn/*",
     "aten/src/ATen/native/nested/cuda/*",
     "aten/src/ATen/native/sparse/cuda/*",
     "aten/src/ATen/native/quantized/cuda/*",

@@ -2,7 +2,6 @@
 #include <ATen/Config.h>
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAConfig.h>
-#include <ATen/cuda/CUDAGraphsUtils.cuh>
 #if AT_CUDNN_ENABLED()
 #include <ATen/cudnn/Descriptors.h>
 #endif
