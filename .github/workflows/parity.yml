@@ -72,6 +72,11 @@ on:
         required: false
         default: false
         type: boolean
+      include_xml:
+        description: 'Include raw XML test reports in artifact zip (WARNING: drastically increases artifact size ~10x)'
+        required: false
+        default: false
+        type: boolean
       auto_classify:
         description: 'Auto-classify skip reasons for SKIPPED/MISSED tests in the output CSV'
         required: false
@@ -240,20 +245,31 @@ jobs:
             echo "No parity CSV found in $FOLDER, skipping auto-classify"
           fi
 
+      - name: Collect upload paths
+        id: upload-paths
+        run: |
+          FOLDER="pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}"
+          PATHS="${FOLDER}/*.csv
+          ${FOLDER}/*.log
+          ${FOLDER}/*.txt
+          ${FOLDER}/inductor_periodic_rocm_dir/
+          ${FOLDER}/inductor_periodic_cuda_dir/"
+          if [ "${{ inputs.include_xml }}" = "true" ]; then
+            PATHS="${PATHS}
+          ${FOLDER}/rocm_xml/
+          ${FOLDER}/cuda_xml/
+          ${FOLDER}/baseline_xml/"
+          fi
+          echo "paths<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$PATHS" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.setup-matrix.outputs.prefix }}-results-${{ matrix.arch }}
           retention-days: 1
-          path: |
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.csv
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.log
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/*.txt
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/rocm_xml/
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/cuda_xml/
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/baseline_xml/
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_rocm_dir/
-            pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}/inductor_periodic_cuda_dir/
+          path: ${{ steps.upload-paths.outputs.paths }}
 
   summarize:
     needs: [setup-matrix, generate-parity]
