@@ -144,7 +144,6 @@ def overall_stats_keys(s1_name, s2_name, has_set2=True):
             keys.append(f'{status}({s1_name})')
         keys += [
             f'TOTAL {s1}',
-            'Number of tests changed from last week',
             f'TOTAL {s1} RUNNING TIME',
         ]
         return keys
@@ -157,7 +156,6 @@ def overall_stats_keys(s1_name, s2_name, has_set2=True):
         keys.append(f'{status}({s2_name})')
     keys += [
         f'TOTAL {s2}',
-        'Number of tests changed from last week',
         f'TOTAL {s1}',
         f'TOTAL {s1} RUNNING TIME',
         f'TOTAL {s2} RUNNING TIME',
@@ -183,10 +181,6 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
             vals[keys[idx]] = sum(1 for r in rows if r[s1_col] == status)
             idx += 1
         vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip())
-        idx += 1
-        vals[keys[idx]] = sum(
-            1 for r in rows if r.get('existed_last_week', '') == 'no'
-        )
         idx += 1
         vals[keys[idx]] = f'{sum(safe_float(r[s1_time_col]) for r in rows):.2f}'
         return vals
@@ -221,10 +215,6 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
         idx += 2
 
     vals[keys[idx]] = sum(1 for r in rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
-    idx += 1
-    vals[keys[idx]] = sum(
-        1 for r in rows if r.get('existed_last_week', '') == 'no'
-    )
     idx += 1
     vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip() and r[s1_col].strip() != 'MISSED')
     idx += 1
