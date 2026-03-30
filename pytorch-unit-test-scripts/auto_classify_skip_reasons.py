@@ -291,6 +291,10 @@ RULES = [
     {"reason": "Will not be supported on ROCm",
      "msg": r"head_dim != head_dim_v unsupported on ROCm"},
 
+    # Triton 3.7 bump
+    {"reason": "triton 3.7 bump",
+     "msg": r"skipIfRocm.*Fails with Triton 3\.7"},
+
     # MIOpen
     {"reason": "MIOpen Convolutions",
      "msg": r"Marked as skipped for MIOpen"},
