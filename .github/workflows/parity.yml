@@ -63,10 +63,6 @@ on:
         required: false
         default: 'cuda'
         type: string
-      filter:
-        description: 'Filter output CSV by status. Example: SKIPPED-NOT_SKIPPED-MISSED-NOT_MISSED. Leave empty for all tests.'
-        required: false
-        type: string
       csv_name:
         description: 'Custom prefix for output filenames and artifacts. Default: YYYYMMDD_all_tests_status'
         required: false
@@ -227,10 +223,6 @@ jobs:
             RT_NAME="${DATE}_running_time_${SHORT_ARCH}"
           fi
           ARGS="$ARGS --test_file_running_time_output_csv $FOLDER/${RT_NAME}.csv"
-
-          if [ -n "${{ inputs.filter }}" ]; then
-            ARGS="$ARGS --filter ${{ inputs.filter }}"
-          fi
 
           echo "Running: python3 -u summarize_xml_testreports.py $ARGS"
           python3 -u summarize_xml_testreports.py $ARGS 2>&1 | tee "$FOLDER/xml_processing_${DATE}.log"
