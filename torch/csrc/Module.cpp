@@ -118,11 +118,7 @@
 #include <ATen/cuda/CUDAConfig.h>
 #include <ATen/native/transformers/cuda/sdp_utils.h>
 #include <torch/csrc/inductor/static_launcher/cuda.h>
-#ifdef __HIP_PLATFORM_AMD__
-#include <ATen/native/cudnn/hip/BatchNorm.h>
-#else
 #include <ATen/native/cudnn/BatchNorm.h>
-#endif
 #endif
 
 #ifdef USE_XPU

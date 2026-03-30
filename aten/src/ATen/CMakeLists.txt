@@ -644,7 +644,7 @@ if(USE_ROCM)
     ${native_sparse_hip_cpp}
     ${native_quantized_hip_cpp}
     ${native_transformers_hip_cpp}
-    ${native_quantized_cudnn_hip_cpp}
+    ${native_quantized_cudnn_cpp}
     ${hip_cpp}
     ${native_hip_cpp}
     ${native_hip_linalg_cpp}
@@ -652,7 +652,7 @@ if(USE_ROCM)
     ${ATen_HIP_SRCS}
     ${native_miopen_cpp}
     ${native_hipdnn_cpp}
-    ${native_cudnn_hip_cpp}
+    ${native_cudnn_cpp}
     ${miopen_cpp}
     ${all_hip_cpp}
   )
