@@ -113,8 +113,8 @@ def compute_workflow_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=True
         1 for r in rows
         if r[s1_col] == 'PASSED' and r[s2_col] != 'PASSED'
     )
-    total_s2 = sum(1 for r in rows if r[s2_col].strip())
-    total_s1 = sum(1 for r in rows if r[s1_col].strip())
+    total_s2 = sum(1 for r in rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
+    total_s1 = sum(1 for r in rows if r[s1_col].strip() and r[s1_col].strip() != 'MISSED')
 
     skip_miss = s1_skip_not_s2 + s1_miss_not_s2_skip
     s2_minus = total_s2 - skip_miss
@@ -204,7 +204,7 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
             if r[s1_col] == 'MISSED' and r[s2_col] != 'SKIPPED'
         )
         total_disagree += s1_skip_not_s2 + s1_miss_not_s2_skip
-        total_s2 += sum(1 for r in wf_rows if r[s2_col].strip())
+        total_s2 += sum(1 for r in wf_rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
 
     disagree_pct = (total_disagree / total_s2 * 100) if total_s2 else 0
     agree_pct = 100 - disagree_pct
@@ -220,13 +220,13 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
         vals[keys[idx + 1]] = sum(1 for r in rows if r[s2_col] == status)
         idx += 2
 
-    vals[keys[idx]] = sum(1 for r in rows if r[s2_col].strip())
+    vals[keys[idx]] = sum(1 for r in rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
     idx += 1
     vals[keys[idx]] = sum(
         1 for r in rows if r.get('existed_last_week', '') == 'no'
     )
     idx += 1
-    vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip())
+    vals[keys[idx]] = sum(1 for r in rows if r[s1_col].strip() and r[s1_col].strip() != 'MISSED')
     idx += 1
 
     vals[keys[idx]] = f'{sum(safe_float(r[s1_time_col]) for r in rows):.2f}'
