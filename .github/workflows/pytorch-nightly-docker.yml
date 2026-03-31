@@ -1,0 +1,156 @@
+name: ROCm Nightly Build and Test
+
+on:
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+    inputs:
+      rocm_version:
+        description: ROCm version to build
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      rocm_version:
+        required: false
+        type: string
+
+env:
+  ROCM_VERSION: '7.2.1'
+  PYTHON_VERSION: '3.10'
+  PYTORCH_ROCM_ARCH: 'gfx906;gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201'
+  DOCKER_REGISTRY: rocm/pytorch-nightly
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      full-image: ${{ steps.meta.outputs.full-image }}
+    steps:
+      - name: Resolve ROCm version
+        if: ${{ inputs.rocm_version != '' }}
+        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
+
+      - name: Checkout pytorch
+        uses: actions/checkout@v4
+        with:
+          repository: pytorch/pytorch
+          ref: main
+
+      - name: Checkout nightly workflow files
+        uses: actions/checkout@v4
+        with:
+          path: rocm-nightly-workflow
+
+      - name: Generate image tag
+        id: meta
+        run: |
+          tag="$(date +%Y%m%d%H%M%S)-rocm${{ env.ROCM_VERSION }}"
+          echo "full-image=${{ env.DOCKER_REGISTRY }}:${tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build base image
+        working-directory: .ci/docker
+        run: |
+          export PYTORCH_ROCM_ARCH="${{ env.PYTORCH_ROCM_ARCH }}"
+          ./build.sh pytorch-linux-jammy-rocm${{ env.ROCM_VERSION }}-py${{ env.PYTHON_VERSION }} \
+            -t rocm/pytorch-autobuild:base-latest
+
+      - name: Build and push nightly image
+        uses: docker/build-push-action@v6
+        with:
+          context: rocm-nightly-workflow/.ci/docker
+          file: rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+          build-args: |
+            BASE_IMAGE=rocm/pytorch-autobuild:base-latest
+          push: true
+          tags: |
+            ${{ steps.meta.outputs.full-image }}
+            ${{ env.DOCKER_REGISTRY }}:latest
+
+  test:
+    needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        gpu-arch:
+          - label: PLACEHOLDER_RUNNER_LABEL_1
+            arch: gfx90a
+            critical: true
+          - label: PLACEHOLDER_RUNNER_LABEL_2
+            arch: gfx942
+            critical: false
+    runs-on: ${{ matrix.gpu-arch.label }}
+    timeout-minutes: 300
+    continue-on-error: ${{ !matrix.gpu-arch.critical }}
+    env:
+      NIGHTLY_IMAGE: ${{ needs.build.outputs.full-image }}
+    steps:
+      - name: Resolve ROCm version
+        if: ${{ inputs.rocm_version != '' }}
+        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
+
+      - name: Docker cleanup
+        run: |
+          docker container prune -f
+          docker image prune -f
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Pull nightly image
+        run: docker pull "$NIGHTLY_IMAGE"
+
+      - name: Run unit tests
+        run: |
+          docker run --rm \
+            --device=/dev/kfd \
+            --device=/dev/dri \
+            --group-add video \
+            --network host \
+            --cap-add=SYS_PTRACE \
+            --security-opt seccomp=unconfined \
+            "$NIGHTLY_IMAGE" \
+            bash -c "
+              git clone https://github.com/ROCm/pytorch-micro-benchmarking.git /tmp/pytorch-micro-benchmarking
+              cd /tmp/pytorch-micro-benchmarking
+              python3 micro_benchmarking_pytorch.py --network resnet50
+            "
+
+  notify:
+    needs: [build, test]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve ROCm version
+        if: ${{ inputs.rocm_version != '' }}
+        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
+
+      - name: Checkout notification scripts
+        uses: actions/checkout@v4
+
+      - name: Send failure email
+        env:
+          ROCM_SMTP_URL: ${{ secrets.ROCM_SMTP_URL }}
+          ROCM_SMTP_USERNAME: ${{ secrets.ROCM_SMTP_USERNAME }}
+          ROCM_SMTP_PASSWORD: ${{ secrets.ROCM_SMTP_PASSWORD }}
+          ROCM_EMAIL_FROM: ${{ secrets.ROCM_EMAIL_FROM }}
+          ROCM_EMAIL_TO: ${{ secrets.ROCM_EMAIL_TO }}
+          EMAIL_SUBJECT: ROCm Nightly Build Failed - ${{ github.ref_name }} - ROCm ${{ env.ROCM_VERSION }}
+          EMAIL_BODY: |
+            The ROCm nightly docker build failed.
+
+            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            Branch: ${{ github.ref_name }}
+            ROCm version: ${{ env.ROCM_VERSION }}
+        run: |
+          bash .github/scripts/send_notification_email.sh
