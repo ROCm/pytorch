@@ -1950,7 +1950,6 @@ static bool p(c10::TensorImpl* impl) {
 }
 } // namespace torch::ddp_model2_stream
 
-// 假設你有 reg.model2_param_impls 是 unordered_set<c10::TensorImpl*>
 static bool collect_param_impls(PyObject* py_module,
                                 std::unordered_set<c10::TensorImpl*>& out_set) {
   PyObject* params_obj = PyObject_CallMethod(py_module, "parameters", nullptr);
@@ -2104,7 +2103,7 @@ PyObject* THCPModule_resetRcclStreamCnt_wrap(PyObject* self, PyObject* args) {
   auto& reg = torch::ddp_model2_stream::registry();
   {
     std::lock_guard<std::mutex> g(reg.mu);
-    reg.rccl_cnt = std::stoi(CcaGetEnv("CCAENV_ANOTHER_RCCL_CNT", "0"));
+    reg.rccl_cnt = std::stoi(CcaGetEnv("DBGENV_2ND_RCCL_STREAM_CNT", "999999999"));
   }
   reg.start_compute = true;
   CCADEBUG(std::fprintf(stderr, "cca_log set rccl_cnt %d\n", reg.rccl_cnt));

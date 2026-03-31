@@ -277,8 +277,15 @@ static std::vector<int> parseCustomItem(const std::string& item) {
     return cus;
 }
 
-constexpr int32_t totalCUs = 256;
+int32_t getTotalCUs() {
+  hipDeviceProp_t prop;
+  C10_CUDA_CHECK(cudaGetDeviceProperties(&prop, c10::cuda::current_device()));
+  std::string arch_name = prop.gcnArchName;
+  return (arch_name.find("gfx942") != std::string::npos) ? 304 : 256;
+}
+
 std::vector<uint32_t> GetCuMask(int32_t &enable_cu_num, std::string mask_str, bool lower_bits_zero) {
+  const int32_t totalCUs = getTotalCUs();
   
   if (mask_str.substr(0, 7) == "custom=") {
       // Parse custom CU list: custom=0:7,32:8 or custom:1,2,5
@@ -303,7 +310,7 @@ std::vector<uint32_t> GetCuMask(int32_t &enable_cu_num, std::string mask_str, bo
   } 
 
 
-  if (CcaGetEnv("CCAENV_REVERSE_MASK", "0") == "1") {
+  if (CcaGetEnv("DBGENV_REVERSE_MASK", "0") == "1") {
     lower_bits_zero = !lower_bits_zero;
   }
 
@@ -356,6 +363,7 @@ static void initSingleDefaultStream(DeviceIndex device_index);
 static void create_masked_stream(cudaStream_t *stream, const char*cu_num_env, const char*env_default,int device_index, bool lower_bits_zero, int pri, int i = 0) {
   const char* create_msg = "";
   std::string env_str = CcaGetEnv(cu_num_env, env_default);
+  const int32_t totalCUs = getTotalCUs();
   if (env_str == "-1") {
     *stream = nullptr;
     create_msg = "use_nullptr";
@@ -363,14 +371,14 @@ static void create_masked_stream(cudaStream_t *stream, const char*cu_num_env, co
     C10_CUDA_CHECK(cudaStreamCreateWithPriority(stream, kDefaultFlags, pri));
     create_msg = "priority_stream";
   } else if (env_str == "999") {
-    TORCH_CHECK(std::string("CCAENV_DEFAULT_STREAM_CU") != cu_num_env)
+    TORCH_CHECK(std::string("DBGENV_DEFAULT_COMP_STREAM_CU") != cu_num_env)
     c10::call_once(default_stream_flags[device_index], initSingleDefaultStream, device_index);
     *stream = default_streams[device_index];
     create_msg = "same_as_default_stream";
   } else {
     create_msg = "masked_stream";
     int32_t enable_cu_num = 0;
-    std::vector<uint32_t> mask = GetCuMask(enable_cu_num, env_str, lower_bits_zero);    
+    std::vector<uint32_t> mask = GetCuMask(enable_cu_num, env_str, lower_bits_zero);
     TORCH_CHECK(enable_cu_num <= totalCUs);
     TORCH_CHECK(enable_cu_num > 0);
 
@@ -399,7 +407,7 @@ static void create_masked_stream(cudaStream_t *stream, const char*cu_num_env, co
     C10_CUDA_CHECK(hipExtStreamCreateWithCUMask(stream, mask.size(), &mask[0]));
   }
   if (device_index == 0) {
-    std::fprintf(stderr, "cca_log create_stream %s %p %s=%s i %d GetTraceID %d\n", create_msg, (void*)*stream, cu_num_env, std::getenv(cu_num_env), i, GetTraceID(true));
+    std::fprintf(stderr, "cca_log create_stream %s %p %s=%s i %d totalCUs %d GetTraceID %d\n", create_msg, (void*)*stream, cu_num_env, std::getenv(cu_num_env), i, totalCUs, GetTraceID(true));
   }
 }
 // Init a single HIP or HIP stream
@@ -409,16 +417,16 @@ static void initSingleStream(int p, DeviceIndex device_index, int i) {
   auto& stream = streams[p][device_index][i];
   auto pri = -p; // lower number is higher priority
 
-  dev_idx_to_print = std::stoi(CcaGetEnv("CCAENV_DEVIDX_PRINT", "-1"));
+  dev_idx_to_print = std::stoi(CcaGetEnv("DBGENV_DEVIDX_PRINT", "-1"));
 
-  const char *env_name = "CCAENV_RCCL_DEFAULT_STREAM_CU";
+  const char *env_name = "DBGENV_DEFAULT_RCCL_STREAM_CU";
   bool lower_bits_zero = true;
 
   if (i == 1) {
-    env_name = "CCAENV_OVERLAP_STREAM_CU";
+    env_name = "DBGENV_2ND_COMP_STREAM_CU";
     lower_bits_zero = false;
   } else if (i == 2) {
-    env_name = "CCAENV_RCCL_OVERLAP_STREAM_CU";
+    env_name = "DBGENV_2ND_RCCL_STREAM_CU";
     lower_bits_zero = true;
   }
 
@@ -437,9 +445,9 @@ static void initSingleDefaultStream(DeviceIndex device_index) {
   auto& stream = default_streams[device_index];
   auto pri = 0; // lower number is higher priority
 
-  dev_idx_to_print = std::stoi(CcaGetEnv("CCAENV_DEVIDX_PRINT", "-1"));
+  dev_idx_to_print = std::stoi(CcaGetEnv("DBGENV_DEVIDX_PRINT", "-1"));
 
-  create_masked_stream(&stream, "CCAENV_DEFAULT_STREAM_CU", "-1", device_index, false, 0);
+  create_masked_stream(&stream, "DBGENV_DEFAULT_COMP_STREAM_CU", "-1", device_index, false, -1);
 }
 
 // Creates the low and high priority stream pools for the specified device

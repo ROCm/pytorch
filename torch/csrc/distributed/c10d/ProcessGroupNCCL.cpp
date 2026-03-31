@@ -3632,18 +3632,18 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
   }
 
   if (reg.enabled && curr_stream.id() == reg.bwd_stream_id && cnt > 0) {
-    // if (device.index() == 0) {
-    //   CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use rccl_stream %d\n", cnt));
-    // }
+    if (device.index() == 0) {
+      CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use rccl_stream %d\n", cnt));
+    }
     ncclStream = at::hip::HIPStreamMasqueradingAsCUDA::unpack3(
       reg.rccl_stream_id,
       static_cast<c10::DeviceIndex>(reg.rccl_device_index),
       static_cast<c10::DeviceType>(reg.rccl_device_type));
 
   } else {
-    // if (device.index() == 0) {
-    // CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use defualt rccl_stream %d\n", cnt));
-    // }
+    if (device.index() == 0) {
+      CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective use defualt rccl_stream %d\n", cnt));
+    }
   }
 
   if (asyncOp) {
@@ -3663,9 +3663,6 @@ c10::intrusive_ptr<Work> ProcessGroupNCCL::collective(
     // First let NCCL streams wait for input tensors allocation streams
     // syncStream(device, ncclEvents_[key], ncclStream);
     if (device.index() == 0) {
-
-      // CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective tensor %p \n", (void*)inputs[0].unsafeGetTensorImpl()));
-
       if (has_stream1 && has_stream2) {
         CCADEBUG(std::fprintf(stderr, "cca_log ProcessGroupNCCL::collective wait defualt/bwd stream\n"));
       } else if (has_stream1) {

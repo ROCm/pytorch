@@ -48,13 +48,10 @@ static std::string CcaGetEnv(const char* name, const char* default_value) {
 
 static int dev_idx_to_print = -1;
 
-
-// ---- Global cache ----
 static std::unordered_map<std::string, int> g_stack2id;
 static int g_next_id = 1;
 static std::mutex g_stack_mu;
 
-// 將單一 frame 解析成一行文字（不直接 printf）
 static std::string frame_to_string(void* addr) {
   Dl_info info;
   if (!(dladdr(addr, &info) && info.dli_fname)) {
@@ -76,7 +73,6 @@ static std::string frame_to_string(void* addr) {
   char* dem = nullptr;
 #endif
 
-  // 建議也加 module offset，遇到 ?? 仍可用 addr2line 回推
   uintptr_t base = (uintptr_t)info.dli_fbase;
   uintptr_t mod_off = base ? ((uintptr_t)addr - base) : 0;
   uintptr_t sym_off = sym_addr ? ((uintptr_t)addr - (uintptr_t)sym_addr) : 0;
@@ -92,7 +88,6 @@ static std::string frame_to_string(void* addr) {
   return oss.str();
 }
 
-// 產生整個 stack 的字串 key（每個 frame 一行）
 static std::string make_stack_string(int skip = 0, int max_frames = 32) {
   void* frames[128];
   int n = backtrace(frames, std::min(max_frames, 128));
@@ -104,10 +99,9 @@ static std::string make_stack_string(int skip = 0, int max_frames = 32) {
   return oss.str();
 }
 
-// 印 stack：第一次印 full + ID，之後只印 ID
 int GetTraceID(bool force_print_trace, int skip, int max_frames) {
   CCADEBUG(if(0)) return 0;
-  if (CcaGetEnv("CCAENV_PRINT_CALLSTACK", "0") == "0" && !force_print_trace) {
+  if (CcaGetEnv("DBGENV_PRINT_CALLSTACK", "0") == "0" && !force_print_trace) {
     return 0;
   }
   std::string stack = make_stack_string(skip, max_frames);

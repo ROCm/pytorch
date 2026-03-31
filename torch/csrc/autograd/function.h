@@ -24,7 +24,7 @@
 #include <utility>
 #include <vector>
 
-#if 1
+#if 0
 #define CCADEBUG(x) x
 #else
 #define CCADEBUG(x)

@@ -46,7 +46,7 @@ void debug_mul_out_or_dummy(
     const at::Tensor& scale,
     int replica_index,
     int variable_index) {
-  int mode = std::stoi(CcaGetEnv("CCAENV_DUMMY_MUL_MODE", "0"));
+  int mode = std::stoi(CcaGetEnv("DBGENV_DUMMY_MUL_MODE", "0"));
 
   switch (mode) {
     default:
@@ -494,9 +494,9 @@ void Reducer::mark_variable_ready_dense(size_t variable_index) {
               static std::mutex evt_mutex;
               std::lock_guard<std::mutex> lock(evt_mutex);
 
-              bool do_centralize_mulout = CcaGetEnv("CCAENV_CENTRALIZE_MULOUT", "0") == "1";
-              bool do_mulout_parallel = CcaGetEnv("CCAENV_MULOUT_PARALLEL", "0") == "1";
-              int last_bucket_num_elem = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_NUM_ELEM", "0"));
+              bool do_centralize_mulout = CcaGetEnv("DBGENV_CENTRALIZE_MULOUT", "0") == "1";
+              bool do_mulout_parallel = CcaGetEnv("DBGENV_MULOUT_PARALLEL", "0") == "1";
+              int last_bucket_num_elem = std::stoi(CcaGetEnv("DBGENV_LAST_BUCKET_NUM_ELEM", "0"));
 
               if (last_bucket_num_elem > 0 && last_bucket_num_elem == bucket.variables.size()) {
                 do_centralize_mulout = false;
@@ -520,7 +520,7 @@ void Reducer::mark_variable_ready_dense(size_t variable_index) {
                 static_cast<c10::DeviceIndex>(reg.bwd_device_index),
                 static_cast<c10::DeviceType>(c10::DeviceType::HIP));
 
-                if (CcaGetEnv("CCAENV_DISABLE_MULOUT_WAIT", "0") != "1") {
+                if (CcaGetEnv("DBGENV_DISABLE_MULOUT_WAIT", "0") != "1") {
 
                   unsigned int flag = hipEventDisableTiming;
                   bool external = (flag & cudaEventExternal) != 0;
@@ -2128,12 +2128,12 @@ bool Reducer::rebuild_buckets() {
   std::vector<size_t> bucket_size_limits;
 
 
-  if (CcaGetEnv("CCAENV_FIRST_BUCKET_SIZE", "0") == "0") {
+  if (CcaGetEnv("DBGENV_FIRST_BUCKET_SIZE", "0") == "0") {
     CCADEBUG(std::fprintf(stderr, "cca_log rebuild_buckets first_bucket_bytes_cap %ld\n", first_bucket_bytes_cap_));
   bucket_size_limits.push_back(first_bucket_bytes_cap_);
   } else {
 
-    auto fist_buckets = splitStringStream(CcaGetEnv("CCAENV_FIRST_BUCKET_SIZE", "0"), ',');
+    auto fist_buckets = splitStringStream(CcaGetEnv("DBGENV_FIRST_BUCKET_SIZE", "0"), ',');
 
     std::string buckets_str = "";
     int bs_i = 0;
@@ -2490,6 +2490,10 @@ compute_bucket_assignment_by_size(
     const auto bucket_size_limit = *bucket_size_limit_iterator;
     bucket.size_limit = bucket_size_limit;
     if (bucket.size >= bucket_size_limit) {
+
+      if (tensors[0].device().index() == 0) {
+        CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size push bucket.size %ld\n", bucket.size));
+      }
       result.emplace_back(std::move(bucket.indices), bucket.size_limit);
       bucket = BucketAccumulator();
 
@@ -2506,11 +2510,13 @@ compute_bucket_assignment_by_size(
     auto& bucket = it.second;
     if (!bucket.indices.empty()) {
 
+      if (tensors[0].device().index() == 0) {
       CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size %d %d\n",
           (int)bucket.indices.size(), (int)bucket.size_limit));
+      }
 
       #if 0
-      int last_bucket_size = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_SIZE", "0")) * 1024 * 1024;
+      int last_bucket_size = std::stoi(CcaGetEnv("DBGENV_LAST_BUCKET_SIZE", "0")) * 1024 * 1024;
       if (last_bucket_size) {
         CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size last_bucket_size %d\n", last_bucket_size));
 
@@ -2537,10 +2543,12 @@ compute_bucket_assignment_by_size(
         #endif
 
 
-      int last_bucket_num_elem = std::stoi(CcaGetEnv("CCAENV_LAST_BUCKET_NUM_ELEM", "0"));
+      int last_bucket_num_elem = std::stoi(CcaGetEnv("DBGENV_LAST_BUCKET_NUM_ELEM", "0"));
       int remain_num = bucket.indices.size();
       if (last_bucket_num_elem && last_bucket_num_elem < remain_num) {
+        if (tensors[0].device().index() == 0) {
         CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size last_bucket_num_elem %d\n", last_bucket_num_elem));
+        }
         if (last_bucket_num_elem > 0) {
           std::vector<size_t> sub(bucket.indices.begin(), bucket.indices.begin() + remain_num - last_bucket_num_elem);
           result.emplace_back(std::move(sub), bucket.size_limit);
@@ -2550,7 +2558,9 @@ compute_bucket_assignment_by_size(
         result.emplace_back(std::move(sub), bucket.size_limit);
         }
       } else {
+        if (tensors[0].device().index() == 0) {
         CCADEBUG(std::fprintf(stderr, "cca_log compute_bucket_assignment_by_size default\n"));
+        }
       result.emplace_back(std::move(bucket.indices), bucket.size_limit);
       }
     }
