@@ -110,6 +110,7 @@
 #include <ATen/native/transformers/sdp_utils_cpp.h>
 #include <torch/csrc/profiler/combined_traceback.h>
 #include <torch/csrc/profiler/kineto_client_interface.h>
+#include <torch/csrc/profiler/standalone/rlog_client.h>
 #include <sstream>
 
 #ifdef USE_CUDA
@@ -3051,6 +3052,7 @@ Call this whenever a new thread is created in order to propagate values from
 #ifdef USE_KINETO
   torch::global_kineto_init();
 #endif
+  torch::global_rlog_init();
   auto nativert_module = py_module.def_submodule("_nativert");
   torch::nativert::initModelRunnerPybind(nativert_module);
   return module;
