@@ -1321,6 +1321,9 @@ target_include_directories(torch_cpu PRIVATE
 target_include_directories(torch_cpu PRIVATE
   ${TORCH_ROOT}/third_party/kineto/libkineto/include)
 
+target_include_directories(torch_cpu PRIVATE
+  ${TORCH_ROOT}/third_party/rlog/include)
+
 if(USE_KINETO)
   target_include_directories(torch_cpu PRIVATE
     ${TORCH_ROOT}/third_party/kineto/libkineto/src)
