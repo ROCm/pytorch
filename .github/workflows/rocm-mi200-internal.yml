@@ -6,6 +6,7 @@ on:
       - main
       - develop
       - release/*
+      - keebidar-test-mi210  # Test branch
   pull_request:
     branches:
       - main

@@ -5,6 +5,7 @@ on:
     branches:
       - main
       - develop
+      - keebidar-test-mi210  # Test branch
   pull_request:
   workflow_dispatch:
 
