@@ -18,9 +18,9 @@ RUN yum install -y sudo wget curl perl util-linux xz bzip2 git patch which perl 
 RUN git config --global --add safe.directory '*'
 ENV PATH=/opt/rh/gcc-toolset-${DEVTOOLSET_VERSION}/root/usr/bin:$PATH
 
-# cmake-3.18.4 from pip
+# cmake-3.28.4 from pip
 RUN yum install -y python3-pip && \
-    python3 -mpip install cmake==3.18.4 && \
+    python3 -mpip install cmake==3.28.4 && \
     ln -s /usr/local/bin/cmake /usr/bin/cmake3
 RUN rm -rf /usr/local/cuda-*
 
