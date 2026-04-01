@@ -44,10 +44,15 @@ __global__ void triu_tril_kernel(
     const int64_t k,
     const int64_t N_padded,
     const IndexType last_dim_padded) {
-  int64_t linear_idx = (((int64_t)blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
-  if (linear_idx >= N_padded) {
-    return;
-  }
+  // int64_t linear_idx = (((int64_t)blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
+  // if (linear_idx >= N_padded) {
+  //   return;
+  // }
+  for (int64_t linear_idx_0 = ((int64_t) blockIdx.x) * blockDim.x + threadIdx.x;
+       linear_idx_0 < N_padded; 
+       linear_idx_0 += blockDim.x*gridDim.x)
+  {
+    int64_t linear_idx{ linear_idx_0 };
 
   auto dims = self_info.dims;
 
@@ -59,7 +64,7 @@ __global__ void triu_tril_kernel(
   if constexpr (inplace) {
     bool mask_all_true = upper ? (col - row >= k) : (col + elements_per_thread - row <= k);
     if (mask_all_true)
-      return;
+      continue;
   }
 
   // Compute offset
@@ -107,6 +112,7 @@ __global__ void triu_tril_kernel(
       result_info.data[result_offset + i * result_info.strides[dims - 1]] = frag[i];
   }
 }
+}
 
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
@@ -117,11 +123,22 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
     constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
+    // constexpr int elements_per_thread = 1;
+
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
     int64_t N_padded = c10::multiply_integers(sizes.begin(), sizes.end() - 1) * last_dim_padded;
     dim3 dim_block = block_size;
-    dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
+    // dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
+    const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
+    dim3 dim_grid(num_mp * 4);
+
+    // printf("last_dim_padded: %d, N_Padded: %d, dim_grid: %d, num_mp: %d\n", last_dim_padded, N_padded, dim_grid.x, num_mp);
+    // printf("sizes: ");
+    // for (auto size : sizes) {
+      // printf("%lld ", size);
+    // }
+    // printf("\n");
     if (cuda::detail::canUse32BitIndexMath(result) && cuda::detail::canUse32BitIndexMath(self)) {
       auto result_info = cuda::detail::getTensorInfo<scalar_t, int32_t>(result);
       auto self_info = cuda::detail::getTensorInfo<const scalar_t, int32_t>(self);
@@ -135,39 +152,9 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       auto result_info = cuda::detail::getTensorInfo<scalar_t, int64_t>(result);
       auto self_info = cuda::detail::getTensorInfo<const scalar_t, int64_t>(self);
       BOOL_SWITCH(self.is_same(result), inplace, [&] {
-#if defined(USE_ROCM)
-        int64_t total_threads = (int64_t)dim_grid.x  * (int64_t)dim_block.x;
-        int64_t extra_bits = total_threads >> std::numeric_limits<uint32_t>::digits;
-        switch (extra_bits) {
-          case 0:
-            // total_threads fits within 32 bits on ROCm
-#endif
-            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread, inplace>
-              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
-                result_info, self_info, k, N_padded, last_dim_padded);
-#if defined(USE_ROCM)
-            break;
-          case 1:
-            // total_threads requires 33 bits on ROCm
-            // we can double the number of elements_per_thread to halve the number of threads
-            dim_grid.x = (dim_grid.x + 1) / 2;
-            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread * 2, inplace>
-              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
-                result_info, self_info, k, N_padded, last_dim_padded);
-            break;
-          case 2:
-            // total_threads requires 34 bits on ROCm
-            // we can quadruple the number of elements_per_thread to quarter the number of threads
-            dim_grid.x = (dim_grid.x + 3) / 4;
-            triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread * 4, inplace>
-              <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
-                result_info, self_info, k, N_padded, last_dim_padded);
-            break;
-          default:
-            // TODO: handle more than 34 bits if needed
-            TORCH_CHECK(false, "triu: Exceeded the maximum number of threads supported by ROCm.");
-        }
-#endif
+        triu_tril_kernel<scalar_t, int64_t, upper, elements_per_thread, inplace>
+          <<<dim_grid, dim_block, 0, at::cuda::getCurrentCUDAStream()>>>(
+            result_info, self_info, k, N_padded, last_dim_padded);
       });
       C10_CUDA_KERNEL_LAUNCH_CHECK();
     }
