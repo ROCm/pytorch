@@ -119,7 +119,8 @@ ninja==1.11.1.4
 
 numba==0.49.0 ; python_version < "3.9" and platform_machine != "s390x"
 numba==0.60.0 ; python_version == "3.9" and platform_machine != "s390x"
-numba==0.61.2 ; python_version > "3.9" and platform_machine != "s390x"
+numba==0.61.2 ; python_version > "3.9" and python_version < "3.14" and platform_machine != "s390x"
+numba==0.64.0 ; python_version >= "3.14" and platform_machine != "s390x"
 
 #Description: Just-In-Time Compiler for Numerical Functions
 #Pinned versions: 0.55.2, 0.60.0
@@ -338,8 +339,9 @@ sympy==1.13.3
 #test that import:
 
 onnx==1.19.1 ; python_version < "3.14"
-# Unpin once Python 3.14 is supported. See  onnxruntime issue 26309.
-onnx==1.18.0 ; python_version == "3.14"
+# onnx 1.20.1 uses abi3 stable ABI wheels (compatible with Python 3.12+).
+# onnx 1.18.0 fails to build on 3.14 due to CMake ABI tag mismatch (onnx#7226).
+onnx==1.20.1 ; python_version >= "3.14"
 #Description: Required by onnx tests, and mypy and test_public_bindings.py when checking torch.onnx._internal
 #Pinned versions:
 #test that import:
