@@ -1,0 +1,128 @@
+name: rocm-mi200-simple
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}-${{ github.sha }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  linux-jammy-rocm-py3_10-build:
+    name: Build (linux-jammy-rocm-py3.10)
+    runs-on: ubuntu-latest
+    timeout-minutes: 480
+
+    outputs:
+      build-environment: linux-jammy-rocm-py3.10
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Pull Docker Image
+        run: |
+          # Use public GHCR image (no ECR login needed)
+          docker pull ghcr.io/pytorch/ci-image:pytorch-linux-jammy-rocm-n-py3-69d4c1f80b5e7da224d4f9c2170ef100e75dfe03
+
+      - name: Build PyTorch
+        run: |
+          docker run --rm \
+            --ipc=host \
+            -v ${{ github.workspace }}:/var/lib/jenkins/workspace \
+            -w /var/lib/jenkins/workspace \
+            -e BUILD_ENVIRONMENT=linux-jammy-rocm-py3.10 \
+            -e USE_ROCM=1 \
+            -e PYTORCH_ROCM_ARCH='gfx90a' \
+            -e MAX_JOBS=$(nproc) \
+            ghcr.io/pytorch/ci-image:pytorch-linux-jammy-rocm-n-py3-69d4c1f80b5e7da224d4f9c2170ef100e75dfe03 \
+            bash -c "
+              set -ex
+
+              # Install dependencies
+              pip install --upgrade pip
+              pip install --group dev || pip install -r requirements.txt
+
+              # HIPify
+              python tools/amd_build/build_amd.py
+
+              # Build
+              pip install -e . -v --no-build-isolation
+
+              # Package
+              mkdir -p artifacts
+              zip -r artifacts/artifacts.zip torch/ build/
+            "
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-jammy-rocm-py3.10
+          path: artifacts/artifacts.zip
+          retention-days: 7
+
+  linux-jammy-rocm-py3_10-test:
+    name: Test (shard ${{ matrix.shard }}/6)
+    needs: linux-jammy-rocm-py3_10-build
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 300
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { shard: 1, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+          - { shard: 2, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+          - { shard: 3, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+          - { shard: 4, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+          - { shard: 5, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+          - { shard: 6, num_shards: 6, runner: [self-hosted, rocm, mi200] }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup ROCm
+        run: |
+          rocminfo
+          rocm-smi
+
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: linux-jammy-rocm-py3.10
+
+      - name: Unzip Artifacts
+        run: |
+          unzip -o artifacts.zip
+
+      - name: Test
+        env:
+          BUILD_ENVIRONMENT: linux-jammy-rocm-py3.10
+          SHARD_NUMBER: ${{ matrix.shard }}
+          NUM_TEST_SHARDS: ${{ matrix.num_shards }}
+          PYTORCH_TEST_CUDA_MEM_LEAK_CHECK: 0
+          PYTORCH_TEST_SKIP_NOARCH: 1
+        run: |
+          # Run tests directly on the host (runner has ROCm)
+          python test/run_test.py --verbose \
+            --shard ${SHARD_NUMBER} \
+            --num-shards ${NUM_TEST_SHARDS}
+
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-shard-${{ matrix.shard }}
+          path: test/**/*.xml
+          retention-days: 14
+          if-no-files-found: ignore

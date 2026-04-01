@@ -1,0 +1,238 @@
+name: rocm-mi200-internal
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - release/*
+  pull_request:
+    branches:
+      - main
+      - develop
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
+  cancel-in-progress: true
+
+permissions: read-all
+
+jobs:
+  build:
+    name: Build PyTorch ROCm MI200
+    runs-on: ubuntu-latest
+    timeout-minutes: 480
+    outputs:
+      docker-image: ${{ steps.set-docker-image.outputs.docker-image }}
+      build-environment: linux-jammy-rocm-py3.10
+
+    steps:
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Set Docker Image
+        id: set-docker-image
+        run: |
+          # Use publicly available ROCm Docker image or your internal registry
+          # Update this to point to your internal container registry
+          DOCKER_IMAGE="rocm/pytorch:rocm6.0_ubuntu22.04_py3.10_pytorch_2.1.0"
+          echo "docker-image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
+
+      - name: Setup Docker
+        run: |
+          docker info
+
+      - name: Pull Docker Image
+        run: |
+          docker pull ${{ steps.set-docker-image.outputs.docker-image }}
+
+      - name: Build PyTorch
+        run: |
+          # Build PyTorch inside container
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            ${{ steps.set-docker-image.outputs.docker-image }} \
+            bash -c "
+              set -e
+
+              # Install build dependencies
+              pip install --upgrade pip setuptools wheel
+              pip install --group dev || pip install -r requirements.txt
+
+              # Run ROCm build script
+              python tools/amd_build/build_amd.py
+
+              # Build PyTorch
+              export USE_ROCM=1
+              export PYTORCH_ROCM_ARCH='gfx90a;gfx942'
+              export MAX_JOBS=\$(nproc)
+
+              pip install -e . -v --no-build-isolation
+
+              # Create wheel
+              python setup.py bdist_wheel
+            "
+
+      - name: Save Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pytorch-rocm-build
+          path: |
+            dist/*.whl
+            torch/**/*.so
+          retention-days: 7
+          if-no-files-found: error
+
+  test:
+    name: Test PyTorch ROCm MI200
+    needs: build
+    runs-on: [self-hosted, rocm, mi200]
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6]
+
+    steps:
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup ROCm
+        run: |
+          # Verify ROCm installation
+          rocminfo
+          rocm-smi
+
+          # Check GPU availability
+          ngpu=$(rocminfo | grep -c -E 'Name:.*\sgfx')
+          echo "Found $ngpu ROCm GPU(s)"
+          if [[ $ngpu -lt 1 ]]; then
+            echo "Error: No ROCm GPUs detected"
+            exit 1
+          fi
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pytorch-rocm-build
+
+      - name: Install PyTorch Wheel
+        run: |
+          # Install the built wheel
+          pip install dist/*.whl
+
+          # Verify installation
+          python -c "import torch; print(f'PyTorch version: {torch.__version__}')"
+          python -c "import torch; print(f'CUDA available: {torch.cuda.is_available()}')"
+          python -c "import torch; print(f'ROCm version: {torch.version.hip}')" || true
+
+      - name: Install Test Dependencies
+        run: |
+          pip install pytest hypothesis expecttest psutil
+
+      - name: Run Tests (Shard ${{ matrix.shard }}/6)
+        env:
+          SHARD_NUMBER: ${{ matrix.shard }}
+          NUM_SHARDS: 6
+        run: |
+          # Run sharded tests
+          python test/run_test.py \
+            --verbose \
+            --shard $SHARD_NUMBER \
+            --num-shards $NUM_SHARDS \
+            --exclude-jit-executor \
+            --exclude-inductor-tests
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-shard-${{ matrix.shard }}
+          path: |
+            test/**/*.xml
+            test/**/*.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+  test-distributed:
+    name: Test Distributed (ROCm MI200)
+    needs: build
+    runs-on: [self-hosted, rocm, mi200, multi-gpu]
+    timeout-minutes: 300
+
+    steps:
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Check GPU Count
+        run: |
+          ngpu=$(rocminfo | grep -c -E 'Name:.*\sgfx')
+          echo "Found $ngpu ROCm GPU(s)"
+          if [[ $ngpu -lt 2 ]]; then
+            echo "Error: At least 2 GPUs required for distributed tests"
+            exit 1
+          fi
+
+      - name: Download Build Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: pytorch-rocm-build
+
+      - name: Install PyTorch Wheel
+        run: |
+          pip install dist/*.whl
+          pip install pytest hypothesis expecttest psutil
+
+      - name: Run Distributed Tests
+        run: |
+          python test/run_test.py \
+            --verbose \
+            --distributed
+
+      - name: Upload Test Reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-distributed
+          path: |
+            test/**/*.xml
+            test/**/*.log
+          retention-days: 14
+          if-no-files-found: ignore
+
+  summary:
+    name: Test Summary
+    needs: [build, test, test-distributed]
+    if: always()
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download All Test Reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-reports-*
+          path: test-reports
+
+      - name: Generate Summary
+        run: |
+          echo "## ROCm MI200 Test Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Build Status: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "Test Status: ${{ needs.test.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "Distributed Test Status: ${{ needs.test-distributed.result }}" >> $GITHUB_STEP_SUMMARY
+
+          # Count test files
+          if [ -d "test-reports" ]; then
+            test_files=$(find test-reports -name "*.xml" | wc -l)
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Total test report files: $test_files" >> $GITHUB_STEP_SUMMARY
+          fi
