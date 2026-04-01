@@ -50,68 +50,68 @@ __global__ void triu_tril_kernel(
   // }
   for (int64_t linear_idx_0 = ((int64_t) blockIdx.x) * blockDim.x + threadIdx.x;
        linear_idx_0 < N_padded; 
-       linear_idx_0 += blockDim.x*gridDim.x)
+       linear_idx_0 += blockDim.x*gridDim.x*elements_per_thread)
   {
     int64_t linear_idx{ linear_idx_0 };
 
-  auto dims = self_info.dims;
+    auto dims = self_info.dims;
 
-  // Compute column index amd row index
-  IndexType col = linear_idx % last_dim_padded;
-  linear_idx /= last_dim_padded;
-  IndexType row = linear_idx % self_info.sizes[dims - 2];
+    // Compute column index amd row index
+    IndexType col = linear_idx % last_dim_padded;
+    linear_idx /= last_dim_padded;
+    IndexType row = linear_idx % self_info.sizes[dims - 2];
 
-  if constexpr (inplace) {
-    bool mask_all_true = upper ? (col - row >= k) : (col + elements_per_thread - row <= k);
-    if (mask_all_true)
-      continue;
-  }
-
-  // Compute offset
-  IndexType self_offset = 0, result_offset = 0;
-  self_offset += self_info.strides[dims - 1] * col;
-  result_offset += result_info.strides[dims - 1] * col;
-  linear_idx /= self_info.sizes[dims - 2];
-  self_offset += self_info.strides[dims - 2] * row;
-  result_offset += result_info.strides[dims - 2] * row;
-
-  // Compute remaining offsets
-  IndexType running_index;
-  #pragma unroll
-  for (IndexType i = dims - 3; i >= 0; --i) {
-    running_index = linear_idx % self_info.sizes[i];
-    linear_idx /= self_info.sizes[i];
-    self_offset += running_index * self_info.strides[i];
-    result_offset += running_index * result_info.strides[i];
-  }
-
-  if constexpr (inplace) {
-    #pragma unroll
-    for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++) {
-      bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
-      if (!mask)
-        result_info.data[result_offset + i * result_info.strides[dims - 1]] = scalar_t(0);
+    if constexpr (inplace) {
+      bool mask_all_true = upper ? (col - row >= k) : (col + elements_per_thread - row <= k);
+      if (mask_all_true)
+        continue;
     }
-  } else {
-    scalar_t frag[elements_per_thread] = {};
-    bool has_mask = (upper && col + elements_per_thread - row >= k) || (!upper && col - row <= k);
-    if (has_mask) {
+
+    // Compute offset
+    IndexType self_offset = 0, result_offset = 0;
+    self_offset += self_info.strides[dims - 1] * col;
+    result_offset += result_info.strides[dims - 1] * col;
+    linear_idx /= self_info.sizes[dims - 2];
+    self_offset += self_info.strides[dims - 2] * row;
+    result_offset += result_info.strides[dims - 2] * row;
+
+    // Compute remaining offsets
+    IndexType running_index;
+    #pragma unroll
+    for (IndexType i = dims - 3; i >= 0; --i) {
+      running_index = linear_idx % self_info.sizes[i];
+      linear_idx /= self_info.sizes[i];
+      self_offset += running_index * self_info.strides[i];
+      result_offset += running_index * result_info.strides[i];
+    }
+
+    if constexpr (inplace) {
+      #pragma unroll
+      for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++) {
+        bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
+        if (!mask)
+          result_info.data[result_offset + i * result_info.strides[dims - 1]] = scalar_t(0);
+      }
+    } else {
+      scalar_t frag[elements_per_thread] = {};
+      bool has_mask = (upper && col + elements_per_thread - row >= k) || (!upper && col - row <= k);
+      if (has_mask) {
+        #pragma unroll
+        for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++)
+          frag[i] = self_info.data[self_offset + i * self_info.strides[dims - 1]];
+
+        #pragma unroll
+        for (int i = 0; i < elements_per_thread; i++) {
+          bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
+          frag[i] = mask ? frag[i] : scalar_t(0);
+        }
+      }
+
       #pragma unroll
       for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++)
-        frag[i] = self_info.data[self_offset + i * self_info.strides[dims - 1]];
-
-      #pragma unroll
-      for (int i = 0; i < elements_per_thread; i++) {
-        bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
-        frag[i] = mask ? frag[i] : scalar_t(0);
-      }
+        result_info.data[result_offset + i * result_info.strides[dims - 1]] = frag[i];
     }
-
-    #pragma unroll
-    for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++)
-      result_info.data[result_offset + i * result_info.strides[dims - 1]] = frag[i];
   }
-}
 }
 
 template <bool upper>
@@ -122,8 +122,8 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::BFloat16,
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
-    constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
-    // constexpr int elements_per_thread = 1;
+    // constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
+    constexpr int elements_per_thread = 2;
 
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
