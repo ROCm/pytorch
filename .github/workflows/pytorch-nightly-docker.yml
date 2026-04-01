@@ -149,32 +149,3 @@ jobs:
           docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
           docker push "$FINAL_IMAGE"
           docker push "$LATEST_IMAGE"
-
-  notify:
-    needs: [build, test-push]
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Resolve ROCm version
-        if: ${{ inputs.rocm_version != '' }}
-        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
-
-      - name: Checkout notification scripts
-        uses: actions/checkout@v6
-
-      - name: Send failure email
-        env:
-          ROCM_SMTP_URL: ${{ secrets.ROCM_SMTP_URL }}
-          ROCM_SMTP_USERNAME: ${{ secrets.ROCM_SMTP_USERNAME }}
-          ROCM_SMTP_PASSWORD: ${{ secrets.ROCM_SMTP_PASSWORD }}
-          ROCM_EMAIL_FROM: ${{ secrets.ROCM_EMAIL_FROM }}
-          ROCM_EMAIL_TO: ${{ secrets.ROCM_EMAIL_TO }}
-          EMAIL_SUBJECT: ROCm Nightly Workflow Failed - ${{ github.ref_name }} - ROCm ${{ env.ROCM_VERSION }}
-          EMAIL_BODY: |
-            The ROCm nightly docker workflow failed.
-
-            Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            Branch: ${{ github.ref_name }}
-            ROCm version: ${{ env.ROCM_VERSION }}
-        run: |
-          bash .github/scripts/send_notification_email.sh
