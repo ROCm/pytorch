@@ -63,11 +63,8 @@ jobs:
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
-          BUILDKIT_PROGRESS: tty
-          BUILDKIT_TTY_LOG_LINES: 12
         run: |
           docker build \
-            --progress=tty \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
