@@ -48,7 +48,7 @@ __global__ void triu_tril_kernel(
   // if (linear_idx >= N_padded) {
   //   return;
   // }
-  for (int64_t linear_idx_0 = ((int64_t) blockIdx.x) * blockDim.x + threadIdx.x;
+  for (int64_t linear_idx_0 = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
        linear_idx_0 < N_padded; 
        linear_idx_0 += blockDim.x*gridDim.x*elements_per_thread)
   {
@@ -91,6 +91,7 @@ __global__ void triu_tril_kernel(
         bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
         if (!mask)
           result_info.data[result_offset + i * result_info.strides[dims - 1]] = scalar_t(0);
+          // result_info.data[result_offset + i * result_info.strides[dims - 1]] ++;
       }
     } else {
       scalar_t frag[elements_per_thread] = {};
@@ -114,6 +115,12 @@ __global__ void triu_tril_kernel(
   }
 }
 
+static const int NUM_MP_MULTIPLIER = [] {
+  int ret = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("4"));
+  printf("NUM_MP_MULTIPLIER: %d\n", ret);
+  return ret;
+}();
+
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
   AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND4(
@@ -123,7 +130,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
     // constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
-    constexpr int elements_per_thread = 2;
+    constexpr int elements_per_thread = sizeof(scalar_t) < 4 ? 8 : 4;
 
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
@@ -131,7 +138,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     dim3 dim_block = block_size;
     // dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
-    dim3 dim_grid(num_mp * 4);
+    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
 
     // printf("last_dim_padded: %d, N_Padded: %d, dim_grid: %d, num_mp: %d\n", last_dim_padded, N_padded, dim_grid.x, num_mp);
     // printf("sizes: ");
