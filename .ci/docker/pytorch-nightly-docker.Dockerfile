@@ -2,10 +2,12 @@ ARG BASE_IMAGE=rocm/pytorch-autobuild:base-latest
 FROM ${BASE_IMAGE}
 WORKDIR /tmp
 USER root
+SHELL ["/bin/bash", "-euxo", "pipefail", "-c"]
 
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
+ENV VERBOSE=1
 
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
@@ -15,7 +17,7 @@ RUN git clone https://github.com/pytorch/pytorch --recursive \
     && git remote add rocm https://github.com/ROCm/pytorch.git \
     && git fetch rocm \
     && git cherry-pick 519160d466782f5a62365be051fcb3ef90fa0b00 \
-    && .ci/pytorch/build.sh \
+    && VERBOSE="${VERBOSE}" .ci/pytorch/build.sh \
     && rm -rf /tmp/pytorch/.git
 RUN git clone https://github.com/pytorch/vision \
     && cd vision \

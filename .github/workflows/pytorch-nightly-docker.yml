@@ -28,7 +28,7 @@ env:
 jobs:
   build:
     name: Build ROCm Nightly Image
-    runs-on: ubuntu-latest
+    runs-on: linux-pytorch-mi325-1
     outputs:
       full-image: ${{ steps.meta.outputs.full-image }}
     steps:
@@ -63,8 +63,10 @@ jobs:
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
+          BUILDKIT_PROGRESS: plain
         run: |
           docker build \
+            --progress=plain \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
