@@ -9501,19 +9501,20 @@ tensor([[[1.+1.j, 1.+1.j, 1.+1.j,  ..., 1.+1.j, 1.+1.j, 1.+1.j],
             if not torch.cuda.is_available():
                 continue
 
-            # Test with cuda graph
-            out = [torch.zeros_like(v) for v in views]
-            for expect, t in zip(expects, out):
-                if expect.numel() != 0:
-                    self.assertFalse(expect.eq(t).all().item())
+            if TEST_CUDA_GRAPH:
+                # Test with cuda graph
+                out = [torch.zeros_like(v) for v in views]
+                for expect, t in zip(expects, out):
+                    if expect.numel() != 0:
+                        self.assertFalse(expect.eq(t).all().item())
 
-            g = torch.cuda.CUDAGraph()
-            with torch.cuda.graph(g):
-                torch.split_with_sizes_copy(x, split_sizes, dim=dim, out=out)
+                g = torch.cuda.CUDAGraph()
+                with torch.cuda.graph(g):
+                    torch.split_with_sizes_copy(x, split_sizes, dim=dim, out=out)
 
-            g.replay()
-            for expect, t in zip(expects, out):
-                self.assertTrue(expect.eq(t).all().item())
+                g.replay()
+                for expect, t in zip(expects, out):
+                    self.assertTrue(expect.eq(t).all().item())
 
     def test_type(self):
         x = torch.randn(3, 3).double()
