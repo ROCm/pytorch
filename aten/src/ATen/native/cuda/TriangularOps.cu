@@ -57,6 +57,7 @@ __global__ void triu_tril_kernel(
   {
     int64_t linear_idx { linear_idx_base }; // linear_idx_base retains its value for the next iteration
 #endif // !defined(USE_ROCM)
+
     auto dims = self_info.dims;
 
     // Compute column index amd row index
@@ -67,7 +68,12 @@ __global__ void triu_tril_kernel(
     if constexpr (inplace) {
       bool mask_all_true = upper ? (col - row >= k) : (col + elements_per_thread - row <= k);
       if (mask_all_true)
+#if !defined(USE_ROCM)
+        break;
+#else
+        // need to continue for loop on ROCm
         continue;
+#endif
     }
 
     // Compute offset
@@ -94,7 +100,6 @@ __global__ void triu_tril_kernel(
         bool mask = upper ? (col + i - row >= k) : (col + i - row <= k);
         if (!mask)
           result_info.data[result_offset + i * result_info.strides[dims - 1]] = scalar_t(0);
-          // result_info.data[result_offset + i * result_info.strides[dims - 1]] ++;
       }
     } else {
       scalar_t frag[elements_per_thread] = {};
@@ -120,12 +125,6 @@ __global__ void triu_tril_kernel(
 #endif // !defined(USE_ROCM)
 }
 
-// static const int NUM_MP_MULTIPLIER = [] {
-//   int ret = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("4"));
-//   printf("NUM_MP_MULTIPLIER: %d\n", ret);
-//   return ret;
-// }();
-
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
   AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND4(
@@ -135,9 +134,6 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
     constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
-    // constexpr int elements_per_thread = sizeof(scalar_t) < 4 ? 8 : 4;
-    // constexpr int elements_per_thread = 16;
-
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
     int64_t N_padded = c10::multiply_integers(sizes.begin(), sizes.end() - 1) * last_dim_padded;
