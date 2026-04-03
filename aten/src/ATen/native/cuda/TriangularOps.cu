@@ -44,16 +44,19 @@ __global__ void triu_tril_kernel(
     const int64_t k,
     const int64_t N_padded,
     const IndexType last_dim_padded) {
-  // int64_t linear_idx = (((int64_t)blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
-  // if (linear_idx >= N_padded) {
-  //   return;
-  // }
-  for (int64_t linear_idx_0 = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
-       linear_idx_0 < N_padded; 
-       linear_idx_0 += blockDim.x*gridDim.x*elements_per_thread)
+#if !defined(USE_ROCM)
+  int64_t linear_idx = (((int64_t)blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
+  if (linear_idx >= N_padded) {
+    return;
+  }
+#else
+  // We need to use a strided loop on ROCm to avoid the limit of the number of threads 2^32
+  for (int64_t linear_idx_base = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
+       linear_idx_base < N_padded; 
+       linear_idx_base += blockDim.x * gridDim.x * elements_per_thread)
   {
-    int64_t linear_idx{ linear_idx_0 };
-
+    int64_t linear_idx { linear_idx_base }; // linear_idx_base retains its value for the next iteration
+#endif // !defined(USE_ROCM)
     auto dims = self_info.dims;
 
     // Compute column index amd row index
@@ -112,14 +115,16 @@ __global__ void triu_tril_kernel(
       for (int i = 0; i < elements_per_thread && col + i < self_info.sizes[dims - 1]; i++)
         result_info.data[result_offset + i * result_info.strides[dims - 1]] = frag[i];
     }
-  }
+#if defined(USE_ROCM)
+  } // end of the strided loop on ROCm
+#endif // !defined(USE_ROCM)
 }
 
-static const int NUM_MP_MULTIPLIER = [] {
-  int ret = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("4"));
-  printf("NUM_MP_MULTIPLIER: %d\n", ret);
-  return ret;
-}();
+// static const int NUM_MP_MULTIPLIER = [] {
+//   int ret = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("4"));
+//   printf("NUM_MP_MULTIPLIER: %d\n", ret);
+//   return ret;
+// }();
 
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
@@ -129,23 +134,26 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::BFloat16,
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
-    // constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
-    constexpr int elements_per_thread = sizeof(scalar_t) < 4 ? 8 : 4;
+    constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
+    // constexpr int elements_per_thread = sizeof(scalar_t) < 4 ? 8 : 4;
+    // constexpr int elements_per_thread = 16;
 
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
     int64_t N_padded = c10::multiply_integers(sizes.begin(), sizes.end() - 1) * last_dim_padded;
     dim3 dim_block = block_size;
-    // dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
-    const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
-    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
 
-    // printf("last_dim_padded: %d, N_Padded: %d, dim_grid: %d, num_mp: %d\n", last_dim_padded, N_padded, dim_grid.x, num_mp);
-    // printf("sizes: ");
-    // for (auto size : sizes) {
-      // printf("%lld ", size);
-    // }
-    // printf("\n");
+#if !defined(USE_ROCM)
+    dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
+#else
+    // We need to limit (grid_size * block_size) <= 2^32 on ROCm
+    // Strided loop is used in triu_tril_kernel to cover all the elements.
+    const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
+    // 32 is the optimal value for maximum performance on MI300X
+    constexpr int NUM_MP_MULTIPLIER = 32;
+    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
+#endif // !defined(USE_ROCM)
+
     if (cuda::detail::canUse32BitIndexMath(result) && cuda::detail::canUse32BitIndexMath(self)) {
       auto result_info = cuda::detail::getTensorInfo<scalar_t, int32_t>(result);
       auto self_info = cuda::detail::getTensorInfo<const scalar_t, int32_t>(self);
