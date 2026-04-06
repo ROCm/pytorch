@@ -319,6 +319,28 @@ def create_test_folder(wf):
         os.mkdir(rocm_xml_folder)
     return [test_folder, cuda_xml_folder, rocm_xml_folder]
 
+_first_folder = None
+
+def get_or_create_test_folder(wf):
+    """Reuse the first folder created so all artifacts land in one place.
+
+    Different upstream workflows for the same SHA can have different created_at
+    dates (e.g. spanning midnight), which would cause create_test_folder to
+    create separate directories.  This wrapper ensures every call returns the
+    same folder that was established by the very first invocation.
+    """
+    global _first_folder
+    if _first_folder is not None:
+        test_folder = _first_folder
+        cuda_xml = test_folder + "/cuda_xml"
+        rocm_xml = test_folder + "/rocm_xml"
+        os.makedirs(cuda_xml, exist_ok=True)
+        os.makedirs(rocm_xml, exist_ok=True)
+        return [test_folder, cuda_xml, rocm_xml]
+    result = create_test_folder(wf)
+    _first_folder = result[0]
+    return result
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Download pytorch unit test logs')
     parser.add_argument('--created', const=None, help='eg., \'<=YYYY-MM-DD\'. See https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates')
@@ -391,8 +413,8 @@ def main():
             "inductor": "rocm-py3.12-inductor-mi300"
         },
         "mi355": {
-            "default": "linux-jammy-rocm-py3.10",
-            "distributed": "linux-jammy-rocm-py3.10",
+            "default": "linux-jammy-rocm-py3.10-mi355",
+            "distributed": "linux-jammy-rocm-py3.10-mi355",
             "inductor": "rocm-py3.12-inductor-mi355"
         },
         "navi31": {
@@ -483,7 +505,7 @@ def main():
         else:
             dist_job_prefix = rocm_job_prefix['distributed']
 
-        folder_list = create_test_folder(periodic_wf)
+        folder_list = get_or_create_test_folder(periodic_wf)
 
         # Download logs
         # If the ROCm distributed logs aren't found you might want to check the HUD for the correct tags
@@ -524,7 +546,7 @@ def main():
         rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["default"], sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         print(f"Using workflow with id:{rocm_wf['id']} as rocm_wf")
 
-        folder_list = create_test_folder(rocm_wf)
+        folder_list = get_or_create_test_folder(rocm_wf)
 
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
@@ -564,7 +586,7 @@ def main():
         inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         print(f"Using workflow with id:{inductor_wf_rocm['id']} as inductor_wf_rocm")
 
-        folder_list = create_test_folder(inductor_wf_rocm)
+        folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
         # Download logs
         if not args.artifacts_only:
@@ -607,7 +629,7 @@ def main():
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
         print(f"Found {len(cuda_job_ids)} CUDA jobs matching prefix")
 
-        folder_list = create_test_folder(pull_wf)
+        folder_list = get_or_create_test_folder(pull_wf)
 
         # Download logs
         # If the cuda logs aren't found you might want to check the HUD for the correct tags
@@ -673,7 +695,7 @@ def main():
             inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             print(f"Using workflow with id:{inductor_wf_cuda['id']} as inductor_wf_cuda")
 
-            folder_list = create_test_folder(inductor_wf_cuda)
+            folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
             # Download logs
             if not args.artifacts_only:
@@ -831,16 +853,8 @@ def main():
         if inductor_periodic_wf:
             print(f"Using workflow with id:{inductor_periodic_wf['id']} as inductor_periodic_wf")
 
-            # Reuse the existing output folder (from earlier downloads) instead of
-            # create_test_folder, which could create a different folder if the
-            # inductor-periodic workflow ran at a different time.
-            import glob
-            existing_folders = sorted(glob.glob("[0-9]*_[0-9a-f]*"), key=os.path.getmtime, reverse=True)
-            if existing_folders:
-                test_folder = existing_folders[0]
-            else:
-                folder_list = create_test_folder(inductor_periodic_wf)
-                test_folder = folder_list[0]
+            folder_list = get_or_create_test_folder(inductor_periodic_wf)
+            test_folder = folder_list[0]
 
             rocm_periodic_dir = os.path.join(test_folder, "inductor_periodic_rocm_dir")
             cuda_periodic_dir = os.path.join(test_folder, "inductor_periodic_cuda_dir")
