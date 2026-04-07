@@ -145,8 +145,14 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     // We need to limit (grid_size * block_size) <= 2^32 on ROCm
     // Strided loop is used in triu_tril_kernel to cover all the elements.
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
-    // 32 is the optimal value for maximum performance on MI300X
-    constexpr int NUM_MP_MULTIPLIER = 32;
+    // calculate optimal grid size for maximum performance on MI300X
+    constexpr int NUM_MP_MULTIPLIER = []{
+      switch (sizeof(scalar_t)) {
+        case 1: return 8; // int8
+        case 2: return 16; // float16
+        default: return 32; // int32 or larger
+      }
+    }();
     dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
 #endif // !defined(USE_ROCM)
 
