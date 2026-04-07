@@ -125,11 +125,6 @@ __global__ void triu_tril_kernel(
 #endif // !defined(USE_ROCM)
 }
 
-static const int NUM_MP_MULTIPLIER_ENV = []{
-  int val = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("-1"));
-  printf(">>>>>>>>>>>>>>> NUM_MP_MULTIPLIER_ENV: %d\n", val);
-  return val;
-}();
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
   AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND4(
@@ -164,7 +159,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
     // calculate optimal grid size for maximum performance on MI300X
     constexpr int NUM_MP_MULTIPLIER = sizeof(scalar_t) <= 2 ? 16 : 32; 
-    dim3 dim_grid(num_mp *  (NUM_MP_MULTIPLIER_ENV < 0 ? NUM_MP_MULTIPLIER : NUM_MP_MULTIPLIER_ENV));
+    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
 #endif // !defined(USE_ROCM)
 
     if (cuda::detail::canUse32BitIndexMath(result) && cuda::detail::canUse32BitIndexMath(self)) {
