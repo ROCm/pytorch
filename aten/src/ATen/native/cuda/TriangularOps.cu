@@ -137,14 +137,9 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
 #else
     // calculate optimal number of elements per thread for maximum performance on MI300X
-    constexpr int elements_per_thread = []{
-      switch (sizeof(scalar_t)) {
-        case 1: return 4; // 8 bit
-        case 2: return 4; // 16 bit
-        case 4: return 2; // 32 bit
-        default: return 1; // 64 bit or larger
-      }
-    }();
+    constexpr int elements_per_thread = 
+      sizeof(scalar_t) <= 2 ? 4 :    // use 4 elements per thread for 16 bits or 8 bits
+      sizeof(scalar_t) == 4 ? 2 : 1; // use 2 elements per thread for 32 bits or 1 if larger
 #endif // !defined(USE_ROCM)
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
