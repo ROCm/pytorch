@@ -153,8 +153,8 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     // Strided loop is used in triu_tril_kernel to cover all the elements.
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
     // calculate optimal grid size for maximum performance on MI300X
-    constexpr int NUM_MP_MULTIPLIER = sizeof(scalar_t) <= 2 ? 16 : 32; 
-    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
+    constexpr int grid_multiplier = sizeof(scalar_t) <= 2 ? 16 : 32; 
+    dim3 dim_grid(num_mp * grid_multiplier);
 #endif // !defined(USE_ROCM)
 
     if (cuda::detail::canUse32BitIndexMath(result) && cuda::detail::canUse32BitIndexMath(self)) {
