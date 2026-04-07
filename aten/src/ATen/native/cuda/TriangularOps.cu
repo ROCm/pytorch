@@ -125,6 +125,11 @@ __global__ void triu_tril_kernel(
 #endif // !defined(USE_ROCM)
 }
 
+static const int NUM_MP_MULTIPLIER_ENV = []{
+  int val = std::stoi(c10::utils::get_env("NUM_MP_MULTIPLIER").value_or("-1"));
+  printf(">>>>>>>>>>>>>>> NUM_MP_MULTIPLIER_ENV: %d\n", val);
+  return val;
+}();
 template <bool upper>
 void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k, const char* name) {
   AT_DISPATCH_ALL_TYPES_AND_COMPLEX_AND4(
@@ -133,7 +138,19 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
       at::ScalarType::BFloat16,
       at::ScalarType::Bool,
       self.scalar_type(), "triu_tril_cuda_template", [&] {
+#if !defined(USE_ROCM)
     constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
+#else
+    // calculate optimal number of elements per thread for maximum performance on MI300X
+    constexpr int elements_per_thread = []{
+      switch (sizeof(scalar_t)) {
+        case 1: return 4; // 8 bit
+        case 2: return 4; // 16 bit
+        case 4: return 2; // 32 bit
+        default: return 1; // 64 bit or larger
+      }
+    }();
+#endif // !defined(USE_ROCM)
     auto sizes = self.sizes();
     int64_t last_dim_padded = round_up<int64_t>(sizes.back(), elements_per_thread);
     int64_t N_padded = c10::multiply_integers(sizes.begin(), sizes.end() - 1) * last_dim_padded;
@@ -146,14 +163,8 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     // Strided loop is used in triu_tril_kernel to cover all the elements.
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
     // calculate optimal grid size for maximum performance on MI300X
-    constexpr int NUM_MP_MULTIPLIER = []{
-      switch (sizeof(scalar_t)) {
-        case 1: return 8; // int8
-        case 2: return 16; // float16
-        default: return 32; // int32 or larger
-      }
-    }();
-    dim3 dim_grid(num_mp * NUM_MP_MULTIPLIER);
+    constexpr int NUM_MP_MULTIPLIER = sizeof(scalar_t) <= 2 ? 16 : 32; 
+    dim3 dim_grid(num_mp *  (NUM_MP_MULTIPLIER_ENV < 0 ? NUM_MP_MULTIPLIER : NUM_MP_MULTIPLIER_ENV));
 #endif // !defined(USE_ROCM)
 
     if (cuda::detail::canUse32BitIndexMath(result) && cuda::detail::canUse32BitIndexMath(self)) {
