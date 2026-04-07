@@ -319,18 +319,6 @@ static inline void launch_vectorized_kernel(
 #endif
   int bws = tws * num_threads();
   int64_t grid = (N + bws - 1) / bws;
-#if 0
-  // TODO: The change below needs to work with
-  // a grid-strided loop in `vectorized_elementwise_kernel`.
-  // Simiar to: https://github.com/pytorch/pytorch/pull/169474
-#ifdef USE_ROCM
-  // Clamp the grid to ensure total threads (grid * num_threads)
-  // does not exceed the uint32_t limit of the HSA AQL packet.
-  // Use 4294967295 (UINT32_MAX) as the ceiling.
-  int64_t max_safe_grid = 4294967295LL / num_threads();
-  grid = std::min(grid, max_safe_grid);
-#endif
-#endif
   switch (vec_size) {
 #ifdef USE_ROCM
     case 16:
