@@ -60,7 +60,7 @@ __global__ void triu_tril_kernel(
 
     auto dims = self_info.dims;
 
-    // Compute column index amd row index
+    // Compute column index and row index
     IndexType col = linear_idx % last_dim_padded;
     linear_idx /= last_dim_padded;
     IndexType row = linear_idx % self_info.sizes[dims - 2];
