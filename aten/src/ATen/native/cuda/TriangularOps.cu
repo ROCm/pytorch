@@ -50,7 +50,7 @@ __global__ void triu_tril_kernel(
     return;
   }
 #else
-  // ROCm limits the total number of threads at 2^32 - use a strided loop to stay within this limit.
+  // ROCm limits the total number of threads at 2^32 - use a strided loop to stay within this limit
   for (int64_t linear_idx_retained = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
        linear_idx_retained < N_padded; 
        linear_idx_retained += blockDim.x * gridDim.x * elements_per_thread)
@@ -71,7 +71,7 @@ __global__ void triu_tril_kernel(
 #if !defined(USE_ROCM)
         break;
 #else
-        // The strided loop must proceed on ROCm.
+        // The strided loop must proceed on ROCm
         continue;
 #endif
     }
@@ -136,7 +136,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
 #if !defined(USE_ROCM)
     constexpr int elements_per_thread = sizeof(scalar_t) < 8 ? 8 / sizeof(scalar_t) : 1;
 #else
-    // calculate optimal number of elements per thread for maximum performance on MI300X
+    // Tune the elements-per-thread ratio for optimal performance on MI300X
     constexpr int elements_per_thread = 
       sizeof(scalar_t) <= 2 ? 4 :    // use 4 elements per thread for 16 bits or 8 bits
       sizeof(scalar_t) == 4 ? 2 : 1; // use 2 elements per thread for 32 bits and 1 if larger
@@ -150,7 +150,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
 #else
     // We need to limit (grid_size * block_size) <= 2^32 on ROCm
-    // Strided loop is used in triu_tril_kernel to cover all the elements.
+    // Strided loop is used in triu_tril_kernel to cover all the elements
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
     // calculate optimal grid size for maximum performance on MI300X
     constexpr int grid_multiplier = sizeof(scalar_t) <= 2 ? 16 : 32; 
