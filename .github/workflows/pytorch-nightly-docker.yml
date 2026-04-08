@@ -64,7 +64,13 @@ jobs:
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
-          docker build \
+          build_flags=(--load)
+          if [[ -n "${CI:-}" ]]; then
+            build_flags+=(--progress=plain)
+          fi
+
+          docker buildx build \
+            "${build_flags[@]}" \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
