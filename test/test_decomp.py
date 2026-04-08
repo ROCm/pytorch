@@ -40,6 +40,7 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_SLOW,
     TestCase,
     unMarkDynamoStrictTest,
+    TEST_WITH_ROCM,
 )
 from torch.utils import _pytree as pytree
 from torch.utils._python_dispatch import TorchDispatchMode
@@ -599,6 +600,8 @@ class TestDecomp(TestCase):
     @suppress_warnings
     @ops(op_db)
     def test_comprehensive(self, device, dtype, op):
+        if (TEST_WITH_ROCM and op.name == "nn.functional.pad" and op.variant_test_name == "reflect" and "cuda" in device and dtype == torch.bfloat16):
+            self.skipTest("pad reflect bf16 is temporarily skipped on ROCm")
         self.do_cross_ref(device, dtype, op, run_all=True)
 
     def test_uniform(self, device):
