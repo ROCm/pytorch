@@ -50,12 +50,12 @@ __global__ void triu_tril_kernel(
     return;
   }
 #else
-  // We need to use a strided loop on ROCm to avoid the limit of the number of threads 2^32
-  for (int64_t linear_idx_base = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
-       linear_idx_base < N_padded; 
-       linear_idx_base += blockDim.x * gridDim.x * elements_per_thread)
+  // ROCm limits the total number of threads at 2^32 - use a strided loop to stay within this limit.
+  for (int64_t linear_idx_retained = (((int64_t) blockIdx.x) * blockDim.x + threadIdx.x) * elements_per_thread;
+       linear_idx_retained < N_padded; 
+       linear_idx_retained += blockDim.x * gridDim.x * elements_per_thread)
   {
-    int64_t linear_idx { linear_idx_base }; // linear_idx_base retains its value for the next iteration
+    int64_t linear_idx { linear_idx_retained }; // linear_idx_retained persists for the next iteration
 #endif // !defined(USE_ROCM)
 
     auto dims = self_info.dims;
@@ -71,7 +71,7 @@ __global__ void triu_tril_kernel(
 #if !defined(USE_ROCM)
         break;
 #else
-        // need to continue for loop on ROCm
+        // The strided loop must proceed on ROCm.
         continue;
 #endif
     }
