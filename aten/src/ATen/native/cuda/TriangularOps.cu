@@ -150,7 +150,7 @@ void triu_tril_cuda_template(const Tensor& result, const Tensor& self, int64_t k
     dim3 dim_grid((N_padded / elements_per_thread + dim_block.x - 1) / dim_block.x);
 #else
     // We need to limit (grid_size * block_size) <= 2^32 on ROCm
-    // Strided loop is used in triu_tril_kernel to cover all the elements
+    // Strided loop is used to cover all the elements
     const int num_mp = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
     // calculate optimal grid size for maximum performance on MI300X
     constexpr int grid_multiplier = sizeof(scalar_t) <= 2 ? 16 : 32; 
