@@ -23,12 +23,12 @@ on:
         default: 'mi355, mi300, mi200'
         type: string
       exclude_distributed:
-        description: 'Exclude distributed tests (auto-excluded for nightly and navi31)'
+        description: 'Exclude distributed tests (auto-excluded for navi31)'
         required: false
         default: false
         type: boolean
       exclude_inductor:
-        description: 'Exclude inductor tests (auto-excluded for nightly and navi31)'
+        description: 'Exclude inductor tests (auto-excluded for navi31)'
         required: false
         default: false
         type: boolean

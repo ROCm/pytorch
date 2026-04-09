@@ -375,6 +375,8 @@ def main():
     if arch == 'nightly':
         ROCmWorkflowNames = {
             "default": "rocm-nightly",
+            "distributed": "rocm-nightly",
+            "inductor": "rocm-nightly",
         }
     elif arch == 'mi355':
         ROCmWorkflowNames = {
@@ -401,6 +403,8 @@ def main():
     rocm_job_prefixes = {
         "nightly": {
             "default": "linux-noble-rocm-nightly-py3.12-gfx942",
+            "distributed": "linux-noble-rocm-nightly-py3.12-gfx942",
+            "inductor": "linux-noble-rocm-nightly-py3.12-gfx942",
         },
         "mi200": {
             "default": "linux-jammy-rocm-py3.10",
@@ -425,7 +429,7 @@ def main():
     }
     # Architecture-specific shard counts
     rocm_shard_counts = {
-        "nightly": {"default": 6},
+        "nightly": {"default": 6, "distributed": 3, "inductor": 2},
         "mi200": {"default": 6, "distributed": 3, "inductor": 2},
         "mi300": {"default": 6, "distributed": 3, "inductor": 2},
         "mi355": {"default": 6, "distributed": 3, "inductor": 2},
@@ -434,8 +438,8 @@ def main():
     rocm_job_prefix = rocm_job_prefixes[arch]
     rocm_shards = rocm_shard_counts[arch]
     rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
-    # navi31 and nightly only have default tests (no distributed/inductor workflows)
-    if arch in ("navi31", "nightly"):
+    # navi31 only has default tests (no distributed/inductor workflows)
+    if arch in ("navi31",):
         if not args.exclude_distributed:
             print(f"NOTE: {arch} has no distributed workflow, auto-excluding distributed")
             args.exclude_distributed = True
