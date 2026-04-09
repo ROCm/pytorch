@@ -113,9 +113,11 @@ RUN rm install_triton.sh common_utils.sh triton.txt triton_version.txt
 
 
 # Install ccache/sccache (do this last, so we get priority in PATH)
+ARG SKIP_SCCACHE_INSTALL
 COPY ./common/install_cache.sh install_cache.sh
 ENV PATH /opt/cache/bin:$PATH
-RUN bash ./install_cache.sh && rm install_cache.sh
+RUN if [ -z "${SKIP_SCCACHE_INSTALL}" ]; then bash ./install_cache.sh; fi
+RUN rm install_cache.sh
 
 # Install Open MPI for ROCm
 COPY ./common/install_openmpi.sh install_openmpi.sh

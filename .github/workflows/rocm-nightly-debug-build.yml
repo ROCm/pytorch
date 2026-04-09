@@ -50,6 +50,9 @@ jobs:
       - name: Run debug build
         run: |
           mkdir -p debug-artifacts
+          # The debug image runs as the `jenkins` user, so the bind mount must
+          # be writable even when the host runner uid/gid does not match.
+          chmod 0777 debug-artifacts
           docker run --rm \
             -e ARTIFACT_DIR=/debug-artifacts \
             -e BUILD_ENVIRONMENT="pytorch-linux-jammy-rocm${{ env.ROCM_VERSION }}-py${{ env.PYTHON_VERSION }}" \

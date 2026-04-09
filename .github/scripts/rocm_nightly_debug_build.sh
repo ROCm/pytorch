@@ -8,6 +8,11 @@ PATCH_SHA=519160d466782f5a62365be051fcb3ef90fa0b00
 LOG_HELPER="${LOG_HELPER:-/workspace/rocm-nightly-workflow/.github/scripts/run_with_log_heartbeat.sh}"
 
 mkdir -p "$ARTIFACT_DIR"
+if ! touch "$ARTIFACT_DIR/.write-test" 2>/dev/null; then
+  echo "Artifact directory '$ARTIFACT_DIR' is not writable by uid $(id -u)." >&2
+  exit 1
+fi
+rm -f "$ARTIFACT_DIR/.write-test"
 rm -rf "$WORKDIR"
 
 git clone https://github.com/pytorch/pytorch --recursive "$WORKDIR"
