@@ -415,7 +415,7 @@ def main():
         "mi355": {
             "default": "linux-jammy-rocm-py3.10-mi355",
             "distributed": "linux-jammy-rocm-py3.10-mi355",
-            "inductor": "rocm-py3.12-inductor-mi355"
+            "inductor": "linux-noble-rocm-py3.12-mi355"
         },
         "navi31": {
             "default": "linux-jammy-rocm-py3_10",
