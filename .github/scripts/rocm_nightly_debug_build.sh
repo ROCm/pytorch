@@ -6,6 +6,39 @@ ARTIFACT_DIR="${ARTIFACT_DIR:-/debug-artifacts}"
 WORKDIR=/tmp/pytorch
 PATCH_SHA=519160d466782f5a62365be051fcb3ef90fa0b00
 LOG_HELPER="${LOG_HELPER:-/workspace/rocm-nightly-workflow/.github/scripts/run_with_log_heartbeat.sh}"
+PYTORCH_SOURCE_SHA="${PYTORCH_SOURCE_SHA:-8a6524408a49ab2293f694b43131d0fc17e45a32}"
+TARGET_NINJA="${TARGET_NINJA:-auto}"
+
+detect_failed_target() {
+  local log_file=$1
+  local failed_line
+  local target
+  local -a outputs
+
+  failed_line=$(grep -E '^FAILED: ' "$log_file" | tail -n 1 || true)
+  if [[ -z "$failed_line" ]]; then
+    return 1
+  fi
+
+  failed_line=${failed_line#FAILED: }
+  read -r -a outputs <<< "$failed_line"
+  if [[ ${#outputs[@]} -eq 0 ]]; then
+    return 1
+  fi
+
+  for target in "${outputs[@]}"; do
+    if [[ $target == "$WORKDIR/build/"* ]]; then
+      printf '%s\n' "${target#"$WORKDIR/build/"}"
+      return 0
+    fi
+    if [[ $target != /* ]]; then
+      printf '%s\n' "$target"
+      return 0
+    fi
+  done
+
+  printf '%s\n' "${outputs[0]}"
+}
 
 mkdir -p "$ARTIFACT_DIR"
 if ! touch "$ARTIFACT_DIR/.write-test" 2>/dev/null; then
@@ -17,6 +50,9 @@ rm -rf "$WORKDIR"
 
 git clone https://github.com/pytorch/pytorch --recursive "$WORKDIR"
 cd "$WORKDIR"
+git checkout "$PYTORCH_SOURCE_SHA"
+git submodule sync --recursive
+git submodule update --init --recursive --jobs 0
 
 pip install -r requirements.txt
 git config --local user.name "AMD AMD"
@@ -36,48 +72,32 @@ if [[ -f build/.ninja_log ]]; then
   cp build/.ninja_log "$ARTIFACT_DIR"/
 fi
 
-echo "PyTorch build failed. Re-running gloo_hip wrappers with verbose output." | tee -a "$ARTIFACT_DIR/build.log"
-
-GLOO_DIR=build/third_party/gloo/gloo/CMakeFiles/gloo_hip.dir
-if [[ ! -d "$GLOO_DIR" ]]; then
-  echo "Expected gloo_hip build directory '$GLOO_DIR' was not found." | tee -a "$ARTIFACT_DIR/gloo-debug.log"
+if [[ ! -d build ]]; then
+  echo "Expected build directory 'build' was not found after the failed build." | tee -a "$ARTIFACT_DIR/build.log"
   exit 1
 fi
 
-ninja -C build -t clean gloo_hip || true
+rerun_target=$TARGET_NINJA
+if [[ $rerun_target == auto ]]; then
+  rerun_target=$(detect_failed_target "$ARTIFACT_DIR/build.log" || true)
+fi
 
-find "$GLOO_DIR" -name 'gloo_hip_generated_*.cmake' | sort > "$ARTIFACT_DIR/gloo_wrappers.txt"
-if [[ ! -s "$ARTIFACT_DIR/gloo_wrappers.txt" ]]; then
-  echo "No gloo_hip wrapper scripts were found." | tee -a "$ARTIFACT_DIR/gloo-debug.log"
+if [[ -z "$rerun_target" ]]; then
+  echo "Unable to determine the failed Ninja target from build.log. Set TARGET_NINJA to override auto detection." | tee -a "$ARTIFACT_DIR/build.log"
   exit 1
 fi
 
-status=0
-wrapper_index=0
-: > "$ARTIFACT_DIR/gloo_wrapper_logs.txt"
-while IFS= read -r wrapper; do
-  wrapper_index=$((wrapper_index + 1))
-  generated_file="${wrapper%.cmake}"
-  wrapper_log="$ARTIFACT_DIR/gloo-wrapper-$(printf '%03d' "$wrapper_index").log"
+target_log_name="${rerun_target//[^A-Za-z0-9_.-]/_}.log"
+echo "PyTorch build failed at source SHA ${PYTORCH_SOURCE_SHA}. Re-running detected target ${rerun_target} with serial verbose Ninja output." | tee -a "$ARTIFACT_DIR/build.log"
+
+ninja -C build -t clean "$rerun_target" || true
+
+if ! bash "$LOG_HELPER" "$ARTIFACT_DIR/$target_log_name" -- \
+  ninja -C build -j1 -v "$rerun_target"; then
   {
-    echo
-    echo "===== Re-running $wrapper ====="
-  } | tee -a "$ARTIFACT_DIR/gloo-debug.log"
-  printf '%s\t%s\n' "$wrapper" "$(basename "$wrapper_log")" >> "$ARTIFACT_DIR/gloo_wrapper_logs.txt"
+    echo "Focused rerun of ${rerun_target} failed. Last 200 lines from ${target_log_name}:"
+    tail -n 200 "$ARTIFACT_DIR/$target_log_name" || true
+  } | tee -a "$ARTIFACT_DIR/build.log"
+fi
 
-  if ! bash "$LOG_HELPER" "$wrapper_log" -- \
-    cmake \
-      -D verbose:BOOL=ON \
-      -D build_configuration:STRING=RELEASE \
-      -D generated_file:STRING="$generated_file" \
-      -P "$wrapper"; then
-    {
-      echo "Wrapper failed. Last 200 lines from $(basename "$wrapper_log"):"
-      tail -n 200 "$wrapper_log" || true
-    } | tee -a "$ARTIFACT_DIR/gloo-debug.log"
-    status=1
-    break
-  fi
-done < "$ARTIFACT_DIR/gloo_wrappers.txt"
-
-exit "$status"
+exit 1
