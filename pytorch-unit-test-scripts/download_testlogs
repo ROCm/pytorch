@@ -556,6 +556,7 @@ def main():
             print(f"Default not found in {ROCmWorkflowNames['default']}, falling back to {fallback_wf}")
             rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             default_fallback_used = True
+            rocm_job_prefix['default'] = fallback_prefix
         if rocm_wf is None:
             raise Exception(error_msg)
         print(f"Using workflow with id:{rocm_wf['id']} as rocm_wf{' (fallback)' if default_fallback_used else ''}")
