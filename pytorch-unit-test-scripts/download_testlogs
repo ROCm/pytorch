@@ -410,7 +410,7 @@ def main():
         "mi300": {
             "default": "linux-noble-rocm-py3.12-mi300",
             "distributed": "linux-noble-rocm-py3.12-mi300",
-            "inductor": "rocm-py3.12-inductor-mi300"
+            "inductor": "linux-noble-rocm-py3.12-mi300"
         },
         "mi355": {
             "default": "linux-jammy-rocm-py3.10-mi355",
@@ -418,9 +418,9 @@ def main():
             "inductor": "linux-noble-rocm-py3.12-mi355"
         },
         "navi31": {
-            "default": "linux-jammy-rocm-py3_10",
-            "distributed": "linux-jammy-rocm-py3_10",
-            "inductor": "rocm-py3.10-inductor-navi31"
+            "default": "linux-jammy-rocm-py3.10-navi31",
+            "distributed": "linux-jammy-rocm-py3.10-navi31",
+            "inductor": "linux-jammy-rocm-py3.10-navi31"
         }
     }
     # Architecture-specific shard counts
