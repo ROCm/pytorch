@@ -64,17 +64,29 @@ jobs:
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
+          mkdir -p build-logs
           build_flags=(--load)
           if [[ -n "${CI:-}" ]]; then
             build_flags+=(--progress=plain)
           fi
 
-          docker buildx build \
-            "${build_flags[@]}" \
-            --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
-            -t "$FULL_IMAGE" \
-            -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
-            rocm-nightly-workflow/.ci/docker
+          bash rocm-nightly-workflow/.github/scripts/run_with_log_heartbeat.sh \
+            build-logs/nightly-image-build.log -- \
+            docker buildx build \
+              "${build_flags[@]}" \
+              --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
+              -t "$FULL_IMAGE" \
+              -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
+              rocm-nightly-workflow/.ci/docker
+
+      - name: Upload nightly build logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: rocm-nightly-build-logs
+          path: build-logs
+          retention-days: 7
+          compression-level: 0
 
       - name: Save nightly image artifact
         env:
