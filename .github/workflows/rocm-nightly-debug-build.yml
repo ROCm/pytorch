@@ -1,0 +1,71 @@
+name: ROCm Nightly Build Debug
+
+on:
+  workflow_dispatch:
+    inputs:
+      rocm_version:
+        description: ROCm version to debug
+        required: false
+        type: string
+  push:
+    branches:
+      - rocm-nightly-gha
+    paths:
+      - .github/workflows/rocm-nightly-debug-build.yml
+      - .github/scripts/rocm_nightly_debug_build.sh
+
+env:
+  ROCM_VERSION: '7.2.1'
+  PYTHON_VERSION: '3.10'
+  PYTORCH_ROCM_ARCH: 'gfx906;gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201'
+
+jobs:
+  debug-build:
+    name: Debug ROCm Nightly Image Build
+    runs-on: linux-pytorch-mi325-1
+    timeout-minutes: 300
+    steps:
+      - name: Resolve ROCm version
+        if: ${{ inputs.rocm_version != '' }}
+        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
+
+      - name: Checkout pytorch
+        uses: actions/checkout@v6
+        with:
+          repository: pytorch/pytorch
+          ref: main
+
+      - name: Checkout nightly workflow files
+        uses: actions/checkout@v6
+        with:
+          path: rocm-nightly-workflow
+
+      - name: Build base image
+        working-directory: .ci/docker
+        run: |
+          export PYTORCH_ROCM_ARCH="${{ env.PYTORCH_ROCM_ARCH }}"
+          ./build.sh pytorch-linux-jammy-rocm${{ env.ROCM_VERSION }}-py${{ env.PYTHON_VERSION }} \
+            -t rocm/pytorch-autobuild:base-latest
+
+      - name: Run debug build
+        run: |
+          mkdir -p debug-artifacts
+          docker run --rm \
+            -e ARTIFACT_DIR=/debug-artifacts \
+            -e BUILD_ENVIRONMENT="pytorch-linux-jammy-rocm${{ env.ROCM_VERSION }}-py${{ env.PYTHON_VERSION }}" \
+            -e ANACONDA_PYTHON_VERSION="${{ env.PYTHON_VERSION }}" \
+            -e CI=1 \
+            -e PYTORCH_ROCM_ARCH="${{ env.PYTORCH_ROCM_ARCH }}" \
+            -v "$PWD/rocm-nightly-workflow:/workspace/rocm-nightly-workflow" \
+            -v "$PWD/debug-artifacts:/debug-artifacts" \
+            rocm/pytorch-autobuild:base-latest \
+            bash /workspace/rocm-nightly-workflow/.github/scripts/rocm_nightly_debug_build.sh
+
+      - name: Upload debug artifacts
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: rocm-nightly-debug-artifacts
+          path: debug-artifacts
+          retention-days: 7
+          compression-level: 0
