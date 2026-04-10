@@ -312,16 +312,17 @@ def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, i
         workflow_runs = None
         try:
             workflow_runs = response.json()['workflow_runs']
-            #print(workflow_runs)
         except:
             raise Exception(response.text)
+        if not workflow_runs:
+            continue
+        # Prefer completed runs over in-progress ones. When multiple
+        # runs exist for the same SHA, the most recent may still be
+        # running and have no artifacts yet.
+        completed = [wf for wf in workflow_runs if wf.get('status') == 'completed']
+        if completed:
+            return completed[0]
         return workflow_runs[0]
-        for wf in workflow_runs:
-            wf_name = wf["name"]
-            if not sha and (wf_name == workflow):
-                return wf
-            if sha and (wf_name == workflow) and (wf["head_sha"] == sha):
-                return wf
 
     # Should not reach here ideally
     raise Exception(error_msg)
