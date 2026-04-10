@@ -659,20 +659,67 @@ def main():
         print("==========================================")
         print(f"Finding CUDA tests in trunk workflow by sha: {sha}")
         print("==========================================")
-        error_msg="Error: Trunk workflow not found in scanned workflow runs. Try increasing max_pages."
-        trunk_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["default"], sha=sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        print(f"Using workflow with id:{trunk_wf['id']} as trunk_wf")
 
-        # Get job IDs for the target CUDA version to filter S3 artifacts.
-        # The jobs API may not return test jobs from reusable workflows,
-        # so fall back to the check-runs API which includes all jobs.
-        all_cuda_jobs = get_workflow_jobs(trunk_wf)
-        cuda_test_jobs = [j for j in all_cuda_jobs if cuda_job_prefix in j['name'] and '/ test' in j['name']]
-        if not cuda_test_jobs:
-            print("No CUDA test jobs found via jobs API, trying check-runs API...")
+        # There can be multiple trunk runs for the same SHA. Find the one
+        # that actually contains CUDA test jobs by checking each run's jobs
+        # list, falling back to check-runs API to resolve the correct run.
+        trunk_wf = None
+        all_cuda_jobs = []
+        cuda_test_jobs = []
+
+        trunk_runs = []
+        params = {'per_page': 10}
+        if not args.ignore_status:
+            params['status'] = status
+        params['head_sha'] = sha
+        resp = requests.get(
+            f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{CUDAWorkflowNames['default']}.yml/runs",
+            headers=authentication_headers, params=params,
+        )
+        trunk_runs = resp.json().get('workflow_runs', [])
+
+        for run in trunk_runs:
+            jobs = get_workflow_jobs(run)
+            test_jobs = [j for j in jobs if cuda_job_prefix in j['name'] and '/ test' in j['name']]
+            if test_jobs:
+                trunk_wf = run
+                all_cuda_jobs = jobs
+                cuda_test_jobs = test_jobs
+                print(f"Found CUDA test jobs in trunk run {run['id']}")
+                break
+
+        if not cuda_test_jobs and trunk_runs:
+            # CUDA test jobs may be in a different run than the one returned
+            # by the jobs API. Use check-runs API to find the actual run.
+            print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
             check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
             cuda_test_jobs = [cr for cr in check_runs if '/ test' in cr['name']]
-            all_cuda_jobs.extend(cuda_test_jobs)
+            if cuda_test_jobs:
+                # Extract the actual workflow run ID from the check-run details URL
+                import re as _re
+                run_match = _re.search(r'/runs/(\d+)/', cuda_test_jobs[0].get('details_url', ''))
+                if run_match:
+                    actual_run_id = int(run_match.group(1))
+                    # Find or fetch the correct workflow run
+                    for run in trunk_runs:
+                        if run['id'] == actual_run_id:
+                            trunk_wf = run
+                            break
+                    if trunk_wf is None:
+                        resp = requests.get(
+                            f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{actual_run_id}",
+                            headers=authentication_headers,
+                        )
+                        trunk_wf = resp.json()
+                    print(f"CUDA test jobs are in trunk run {trunk_wf['id']} (found via check-runs)")
+                all_cuda_jobs = list(cuda_test_jobs)
+
+        if trunk_wf is None:
+            trunk_wf = trunk_runs[0] if trunk_runs else None
+        if trunk_wf is None:
+            raise Exception("Error: No trunk workflow run found for CUDA tests")
+
+        print(f"Using trunk workflow run {trunk_wf['id']} for CUDA")
 
         cuda_job_ids = [str(j['id']) for j in cuda_test_jobs]
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
