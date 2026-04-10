@@ -245,6 +245,17 @@ jobs:
             echo "No parity CSV found in $FOLDER, skipping auto-classify"
           fi
 
+      - name: Detect log-based failures (timeouts, crashes)
+        if: ${{ inputs.include_logs }}
+        working-directory: pytorch-unit-test-scripts
+        run: |
+          FOLDER="${{ steps.folder.outputs.folder }}"
+          if ls "$FOLDER"/*.txt 1>/dev/null 2>&1; then
+            python3 detect_log_failures.py --logs-dir "$FOLDER" --output "$FOLDER/log_failures_${{ matrix.arch }}.csv" 2>&1
+          else
+            echo "No log files found in $FOLDER, skipping log failure detection"
+          fi
+
       - name: Collect upload paths
         id: upload-paths
         run: |
@@ -341,6 +352,20 @@ jobs:
           fi
           if [ -n "$PR_ID" ]; then
             ARGS+=(--pr_id "$PR_ID")
+          fi
+
+          # Collect log failure CSVs if they exist
+          LOG_FAIL_ARGS=()
+          for ARCH in $ARCHS; do
+            LF="../artifacts/${PREFIX}-results-${ARCH}"
+            LF_CSV=$(find "$LF"/ -maxdepth 2 -name "log_failures_*.csv" 2>/dev/null | head -1)
+            if [ -n "$LF_CSV" ]; then
+              LOG_FAIL_ARGS+=("$LF_CSV")
+              echo "Found log failures for $ARCH: $LF_CSV"
+            fi
+          done
+          if [ ${#LOG_FAIL_ARGS[@]} -gt 0 ]; then
+            ARGS+=(--log-failures "${LOG_FAIL_ARGS[@]}")
           fi
 
           OUTPUT="${PREFIX}_summary"

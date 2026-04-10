@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import os
 import sys
 
 
@@ -38,6 +39,10 @@ def parse_args():
     parser.add_argument(
         '--output', type=str, default='parity_summary',
         help='Output path prefix (produces .csv and .md)'
+    )
+    parser.add_argument(
+        '--log-failures', nargs='*', default=[],
+        help='CSV file(s) from detect_log_failures.py to include in summary'
     )
     return parser.parse_args()
 
@@ -250,6 +255,18 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     return failed
 
 
+def load_log_failures(filepaths):
+    """Load log failure CSVs from detect_log_failures.py."""
+    entries = []
+    for fp in filepaths:
+        if not os.path.isfile(fp):
+            continue
+        with open(fp, newline='') as f:
+            for row in csv.DictReader(f):
+                entries.append(row)
+    return entries
+
+
 def fmt_val(v):
     if isinstance(v, int):
         return f'{v:,}'
@@ -298,7 +315,7 @@ def build_rows(args, archs, arch_data):
     return out
 
 
-def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True):
+def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None):
     csv_rows = []
     csv_rows.append([''] + list(archs))
     for label, vals in rows:
@@ -327,12 +344,23 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
             csv_rows.append(row)
         csv_rows.append([])
 
+    if log_failures:
+        csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
+        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Category', 'Reason', 'Log File'])
+        for lf in log_failures:
+            csv_rows.append([
+                lf.get('platform', ''), lf.get('workflow', ''),
+                lf.get('test_file', ''), lf.get('category', ''),
+                lf.get('reason', ''), lf.get('log_file', ''),
+            ])
+        csv_rows.append([])
+
     with open(output_path, 'w', newline='') as f:
         csv.writer(f).writerows(csv_rows)
     print(f'CSV written to {output_path}')
 
 
-def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True):
+def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None):
     lines = []
     current_section = []
 
@@ -387,6 +415,23 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('No failed tests found.')
         lines.append('')
 
+    if log_failures:
+        lines.append('### LOG-BASED FAILURES (not in XML)')
+        lines.append('')
+        lines.append('These test failures were detected from CI log files but have no XML report')
+        lines.append('(typically due to timeouts, crashes, or process kills).')
+        lines.append('')
+        lines.append('| Platform | Workflow | Test File | Category | Reason |')
+        lines.append('| --- | --- | --- | --- | --- |')
+        for lf in log_failures:
+            reason = lf.get('reason', '')[:80]
+            lines.append(
+                f"| {lf.get('platform', '')} | {lf.get('workflow', '')} "
+                f"| {lf.get('test_file', '')} | {lf.get('category', '')} "
+                f"| {reason} |"
+            )
+        lines.append('')
+
     md = '\n'.join(lines)
     with open(output_path, 'w') as f:
         f.write(md)
@@ -414,13 +459,14 @@ def main():
     data_rows = build_rows(args, archs, arch_data)
     failed = collect_failed_tests(arch_data, archs, args.set1_name, args.set2_name)
     any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())
+    log_failures = load_log_failures(args.log_failures) if args.log_failures else []
 
     output_base = args.output
     if output_base.endswith('.csv') or output_base.endswith('.md'):
         output_base = output_base.rsplit('.', 1)[0]
 
-    write_csv(data_rows, archs, f'{output_base}.csv', failed, args.set1_name, args.set2_name, has_set2=any_has_set2)
-    write_markdown(data_rows, archs, f'{output_base}.md', failed, args.set1_name, args.set2_name, has_set2=any_has_set2)
+    write_csv(data_rows, archs, f'{output_base}.csv', failed, args.set1_name, args.set2_name, has_set2=any_has_set2, log_failures=log_failures)
+    write_markdown(data_rows, archs, f'{output_base}.md', failed, args.set1_name, args.set2_name, has_set2=any_has_set2, log_failures=log_failures)
 
 
 if __name__ == '__main__':
