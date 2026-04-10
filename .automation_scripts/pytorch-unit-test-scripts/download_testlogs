@@ -106,16 +106,40 @@ def get_workflow_jobs(wf):
             jobs += response.json()["jobs"]
     return jobs
 
+def get_check_runs_for_commit(sha, prefix):
+    """Get check runs for a commit filtered by name prefix.
+
+    The workflow jobs API does not return jobs from reusable workflows
+    (workflow_call). The check-runs API returns all jobs regardless of
+    workflow nesting, so we use it as a fallback.
+    """
+    check_runs = []
+    page = 1
+    while True:
+        response = requests.get(
+            f"https://api.github.com/repos/pytorch/pytorch/commits/{sha}/check-runs",
+            headers=authentication_headers,
+            params={'per_page': 100, 'page': page},
+        )
+        data = response.json()
+        runs = data.get('check_runs', [])
+        check_runs.extend([cr for cr in runs if prefix in cr.get('name', '')])
+        if len(runs) < 100:
+            break
+        page += 1
+    return check_runs
+
 def get_job_ids_by_prefix(wf, prefix):
     """Get job IDs (as strings) for jobs whose name contains the given prefix."""
     jobs = get_workflow_jobs(wf)
     return [str(j['id']) for j in jobs if prefix in j['name']]
 
-def download_logs(wf, test_log_list, test_folder):
+def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
         raise Exception("wf is None!")
     
-    jobs = get_workflow_jobs(wf)
+    if jobs is None:
+        jobs = get_workflow_jobs(wf)
 
     for test_log in test_log_list:
         write_out_file = test_folder + "/" + test_log[0]
@@ -632,27 +656,32 @@ def main():
 
     if not args.no_cuda:
         cuda_job_prefix = "linux-jammy-cuda13.0-py3.10-gcc11"
-        pull_sha = sha
         print("==========================================")
-        print(f"Finding CUDA tests in pull workflow by sha: {pull_sha}")
+        print(f"Finding CUDA tests in trunk workflow by sha: {sha}")
         print("==========================================")
-        # find tests in pull workflow with given sha and success status
-        #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
-        error_msg="Error: Pull workflow not found in scanned workflow runs. Try increasing max_pages."
-        pull_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["default"], sha=pull_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        print(f"Using workflow with id:{pull_wf['id']} as pull_wf")
+        error_msg="Error: Trunk workflow not found in scanned workflow runs. Try increasing max_pages."
+        trunk_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["default"], sha=sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+        print(f"Using workflow with id:{trunk_wf['id']} as trunk_wf")
 
-        # Get job IDs for the target CUDA version to filter S3 artifacts
-        cuda_job_ids = get_job_ids_by_prefix(pull_wf, cuda_job_prefix)
+        # Get job IDs for the target CUDA version to filter S3 artifacts.
+        # The jobs API may not return test jobs from reusable workflows,
+        # so fall back to the check-runs API which includes all jobs.
+        all_cuda_jobs = get_workflow_jobs(trunk_wf)
+        cuda_test_jobs = [j for j in all_cuda_jobs if cuda_job_prefix in j['name'] and '/ test' in j['name']]
+        if not cuda_test_jobs:
+            print("No CUDA test jobs found via jobs API, trying check-runs API...")
+            check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
+            cuda_test_jobs = [cr for cr in check_runs if '/ test' in cr['name']]
+            all_cuda_jobs.extend(cuda_test_jobs)
+
+        cuda_job_ids = [str(j['id']) for j in cuda_test_jobs]
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
-        print(f"Found {len(cuda_job_ids)} CUDA jobs matching prefix")
+        print(f"Found {len(cuda_test_jobs)} CUDA test jobs matching prefix")
 
-        folder_list = get_or_create_test_folder(pull_wf)
+        folder_list = get_or_create_test_folder(trunk_wf)
 
         # Download logs
-        # If the cuda logs aren't found you might want to check the HUD for the correct tags
-        # Link to HUD: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=cuda
         if not args.artifacts_only:
             test_log_list_cuda_default = [
               ["cuda1.txt", f"{cuda_job_prefix} / test (default, 1, 5"],
@@ -670,7 +699,7 @@ def main():
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
 
-            download_logs(pull_wf, test_log_list_cuda, folder_list[0])
+            download_logs(trunk_wf, test_log_list_cuda, folder_list[0], jobs=all_cuda_jobs)
 
         # Download artifacts
         test_artifacts_list_cuda_default = [
@@ -695,7 +724,7 @@ def main():
 
         if test_artifacts_list_cuda:
             download_artifacts(
-                pull_wf,
+                trunk_wf,
                 test_artifacts_list_cuda,
                 test_folder=folder_list[1],
                 allowed_substrings=cuda_artifact_substrings,
