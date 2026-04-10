@@ -32,6 +32,12 @@ RE_TIMEOUT = re.compile(r"Command took >(\d+)min, returning 124")
 RE_FAILED_CONSISTENTLY = re.compile(
     r"FAILED CONSISTENTLY: (?P<test_path>\S+)"
 )
+RE_STEPCURRENT = re.compile(
+    r"stepcurrent:.*Running only (?:test/)?(?P<test_path>\S+)"
+)
+RE_INDIVIDUAL_TEST = re.compile(
+    r"(?P<test_path>\S+\.py::(?P<cls>\w+)::(?P<method>\w+))"
+)
 
 CRASH_PATTERNS = [
     (re.compile(r"Segmentation fault", re.IGNORECASE), "SEGFAULT"),
@@ -80,6 +86,20 @@ def parse_log_file(filepath):
 
     with open(filepath, "r", errors="replace") as f:
         for line in f:
+            # Lightweight tracking of individual pytest test lines.
+            # These are very frequent (~37% of lines) so we extract the
+            # test name directly without timestamp stripping.
+            if ".py::" in line:
+                m_ind = RE_INDIVIDUAL_TEST.search(line)
+                if m_ind:
+                    active = current_test or last_failed_test
+                    if active and active in results:
+                        # Only update if the pytest path belongs to this shard's test file,
+                        # otherwise rerun output from earlier shards contaminates later ones.
+                        shard_file = results[active]["test_file"]
+                        if shard_file + ".py" in m_ind.group("test_path"):
+                            results[active]["last_test"] = f"{m_ind.group('cls')}::{m_ind.group('method')}"
+
             if " ... [" not in line and "was successful" not in line \
                and "failed!" not in line and "Got exit code" not in line \
                and "returning 124" not in line and "FAILED CONSISTENTLY" not in line \
@@ -90,7 +110,8 @@ def parse_log_file(filepath):
                and "Fatal Python error" not in line and "core dumped" not in line \
                and "Aborted (core dumped)" not in line \
                and "OutOfMemoryError" not in line \
-               and "bad_alloc" not in line:
+               and "bad_alloc" not in line \
+               and "stepcurrent" not in line:
                 continue
 
             stripped = RE_TIMESTAMP.sub("", line).rstrip()
@@ -108,6 +129,8 @@ def parse_log_file(filepath):
                         "reason": "",
                         "exit_codes": [],
                         "crashes": [],
+                        "crash_tests": [],
+                        "last_test": "",
                     }
                 continue
 
@@ -132,8 +155,32 @@ def parse_log_file(filepath):
                 current_test = key
                 continue
 
-            # For exit codes and timeouts, attach to current or last failed test
             active = current_test or last_failed_test
+
+            # Track stepcurrent rerun lines — identifies crash-causing test
+            m = RE_STEPCURRENT.search(stripped)
+            if m:
+                test_path = m.group("test_path")
+                parts = test_path.split("::")
+                if len(parts) >= 3:
+                    crash_id = f"{parts[1]}::{parts[2]}"
+                elif len(parts) == 2:
+                    crash_id = parts[1]
+                else:
+                    crash_id = None
+                if crash_id and active and active in results:
+                    shard_file = results[active]["test_file"]
+                    if shard_file in test_path:
+                        if crash_id not in results[active]["crash_tests"]:
+                            results[active]["crash_tests"].append(crash_id)
+                continue
+
+            # Track individual pytest test lines for last-running-test context
+            m_ind = RE_INDIVIDUAL_TEST.search(stripped)
+            if m_ind and active and active in results:
+                cls = m_ind.group("cls")
+                method = m_ind.group("method")
+                results[active]["last_test"] = f"{cls}::{method}"
 
             m = RE_EXIT_CODE.search(stripped)
             if m:
@@ -197,6 +244,22 @@ def scan_logs(logs_dir):
             if info["status"] == "RUNNING" and categories == ["INCOMPLETE"]:
                 continue
 
+            reason = info["reason"]
+            # Populate reason with identified crash/timeout test name
+            crash_tests = info.get("crash_tests", [])
+            last_test = info.get("last_test", "")
+            identified_test = ""
+            if crash_tests:
+                identified_test = crash_tests[0]
+            elif last_test:
+                identified_test = last_test
+
+            if identified_test and "::" in identified_test:
+                if not reason:
+                    reason = identified_test
+                elif "::" not in reason:
+                    reason = f"{identified_test} | {reason}"
+
             all_failures.append({
                 "log_file": fname,
                 "platform": platform,
@@ -205,7 +268,7 @@ def scan_logs(logs_dir):
                 "shard": f"{info['shard']}/{info['total']}",
                 "status": info["status"],
                 "category": "+".join(categories),
-                "reason": info["reason"],
+                "reason": reason,
                 "exit_codes": ",".join(str(c) for c in info["exit_codes"]),
             })
 

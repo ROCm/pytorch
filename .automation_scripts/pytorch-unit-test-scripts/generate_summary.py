@@ -316,12 +316,17 @@ def build_rows(args, archs, arch_data):
 
 
 def _parse_log_failure_names(lf):
-    """Extract test_class and test_name from a log failure's reason field."""
+    """Extract test_class and test_name from a log failure's reason field.
+
+    Handles formats like 'TestClass::test_method' and
+    'TestClass::test_method | extra reason text'.
+    """
     reason = lf.get('reason', '')
-    if '::' in reason:
-        parts = reason.split('::', 1)
-        return parts[0], parts[1]
-    return '', ''
+    if '::' not in reason:
+        return '', ''
+    test_part = reason.split(' | ', 1)[0] if ' | ' in reason else reason
+    parts = test_part.split('::', 1)
+    return parts[0], parts[1]
 
 
 def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None):
