@@ -315,6 +315,15 @@ def build_rows(args, archs, arch_data):
     return out
 
 
+def _parse_log_failure_names(lf):
+    """Extract test_class and test_name from a log failure's reason field."""
+    reason = lf.get('reason', '')
+    if '::' in reason:
+        parts = reason.split('::', 1)
+        return parts[0], parts[1]
+    return '', ''
+
+
 def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None):
     csv_rows = []
     csv_rows.append([''] + list(archs))
@@ -348,11 +357,12 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
         csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
         csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Category', 'Reason', 'Log File'])
         for lf in log_failures:
+            test_class, test_name = _parse_log_failure_names(lf)
             csv_rows.append([
                 lf.get('platform', ''), lf.get('workflow', ''),
-                lf.get('test_file', ''), lf.get('test_class', ''),
-                lf.get('test_name', ''), lf.get('category', ''),
-                lf.get('reason', ''), lf.get('log_file', ''),
+                lf.get('test_file', ''), test_class, test_name,
+                lf.get('category', ''), lf.get('reason', ''),
+                lf.get('log_file', ''),
             ])
         csv_rows.append([])
 
@@ -425,11 +435,12 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Category | Reason |')
         lines.append('| --- | --- | --- | --- | --- | --- | --- |')
         for lf in log_failures:
+            test_class, test_name = _parse_log_failure_names(lf)
             reason = lf.get('reason', '')[:80]
             lines.append(
                 f"| {lf.get('platform', '')} | {lf.get('workflow', '')} "
-                f"| {lf.get('test_file', '')} | {lf.get('test_class', '')} "
-                f"| {lf.get('test_name', '')} | {lf.get('category', '')} "
+                f"| {lf.get('test_file', '')} | {test_class} "
+                f"| {test_name} | {lf.get('category', '')} "
                 f"| {reason} |"
             )
         lines.append('')

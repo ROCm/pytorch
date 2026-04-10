@@ -203,8 +203,6 @@ def scan_logs(logs_dir):
                 "workflow": workflow,
                 "test_file": info["test_file"],
                 "shard": f"{info['shard']}/{info['total']}",
-                "test_class": "",
-                "test_name": "",
                 "status": info["status"],
                 "category": "+".join(categories),
                 "reason": info["reason"],
@@ -223,8 +221,6 @@ def scan_logs(logs_dir):
                 "workflow": workflow,
                 "test_file": file_part,
                 "shard": "",
-                "test_class": test_class,
-                "test_name": test_name,
                 "status": "FAILED_CONSISTENTLY",
                 "category": "CONSISTENT_FAILURE",
                 "reason": f"{test_class}::{test_name}" if test_class else "",
@@ -237,7 +233,6 @@ def scan_logs(logs_dir):
 def write_csv_report(failures, output_path):
     fieldnames = [
         "log_file", "platform", "workflow", "test_file", "shard",
-        "test_class", "test_name",
         "status", "category", "reason", "exit_codes",
     ]
     with open(output_path, "w", newline="") as f:
