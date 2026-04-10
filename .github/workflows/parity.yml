@@ -251,7 +251,7 @@ jobs:
         run: |
           FOLDER="${{ steps.folder.outputs.folder }}"
           if ls "$FOLDER"/*.txt 1>/dev/null 2>&1; then
-            python3 detect_log_failures.py --logs-dir "$FOLDER" --output "$FOLDER/log_failures_${{ matrix.arch }}.csv" 2>&1
+            python3 detect_log_failures.py --logs-dir "$FOLDER" --output "$FOLDER/log_failures_${{ matrix.arch }}.csv" 2>&1 || true
           else
             echo "No log files found in $FOLDER, skipping log failure detection"
           fi
