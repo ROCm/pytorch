@@ -241,12 +241,14 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
             s1 = r[s1_col].strip()
             s2 = r[s2_col].strip() if has_set2 else ''
             if s1 == 'FAILED' or s2 == 'FAILED':
+                shard = r.get(f'shard_{s1_name}', '') if s1 == 'FAILED' else r.get(f'shard_{s2_name}', '')
                 entry = {
                     'arch': arch,
                     'test_file': r.get('test_file', ''),
                     'test_class': r.get('test_class', ''),
                     'test_name': r.get('test_name', ''),
                     'workflow': r.get('work_flow_name', ''),
+                    'shard': shard,
                     f'status_{s1_name}': s1,
                 }
                 if has_set2:
@@ -345,13 +347,13 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
     if failed_tests:
         csv_rows.append(['FAILED TESTS'])
         header = ['Arch', 'Workflow', 'Test File', 'Test Class',
-                  'Test Name', f'Status ({s1_name})']
+                  'Test Name', 'Shard', f'Status ({s1_name})']
         if has_set2:
             header.append(f'Status ({s2_name})')
         csv_rows.append(header)
         for t in failed_tests:
             row = [t['arch'], t['workflow'], t['test_file'],
-                   t['test_class'], t['test_name'],
+                   t['test_class'], t['test_name'], t.get('shard', ''),
                    t[f'status_{s1_name}']]
             if has_set2:
                 row.append(t.get(f'status_{s2_name}', ''))
@@ -360,13 +362,13 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if log_failures:
         csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
-        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Category', 'Log File'])
+        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Shard', 'Category', 'Log File'])
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             csv_rows.append([
                 lf.get('platform', ''), lf.get('workflow', ''),
                 lf.get('test_file', ''), test_class, test_name,
-                lf.get('category', ''),
+                lf.get('shard', ''), lf.get('category', ''),
                 lf.get('log_file', ''),
             ])
         csv_rows.append([])
@@ -411,7 +413,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('### FAILED TESTS')
         lines.append('')
         cols = ['Arch', 'Workflow', 'Test File', 'Test Class', 'Test Name',
-                f'Status ({s1_name})']
+                'Shard', f'Status ({s1_name})']
         if has_set2:
             cols.append(f'Status ({s2_name})')
         lines.append('| ' + ' | '.join(cols) + ' |')
@@ -419,7 +421,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         for t in failed_tests:
             line = (f"| {t['arch']} | {t['workflow']} | {t['test_file']} "
                     f"| {t['test_class']} | {t['test_name']} "
-                    f"| {t[f'status_{s1_name}']}")
+                    f"| {t.get('shard', '')} | {t[f'status_{s1_name}']}")
             if has_set2:
                 line += f" | {t.get(f'status_{s2_name}', '')}"
             line += ' |'
@@ -437,14 +439,15 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('These test failures were detected from CI log files but have no XML report')
         lines.append('(typically due to timeouts, crashes, or process kills).')
         lines.append('')
-        lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Category |')
-        lines.append('| --- | --- | --- | --- | --- | --- |')
+        lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Shard | Category |')
+        lines.append('| --- | --- | --- | --- | --- | --- | --- |')
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             lines.append(
                 f"| {lf.get('platform', '')} | {lf.get('workflow', '')} "
                 f"| {lf.get('test_file', '')} | {test_class} "
-                f"| {test_name} | {lf.get('category', '')} |"
+                f"| {test_name} | {lf.get('shard', '')} "
+                f"| {lf.get('category', '')} |"
             )
         lines.append('')
 

@@ -3,6 +3,7 @@
 import argparse
 import csv
 import os
+import re
 import pandas as pd
 from enum import Enum
 from itertools import chain
@@ -58,6 +59,13 @@ def _status_priority(test_case):
     status = get_test_status(test_case)
     return {"PASSED": 4, "XFAILED": 3, "SKIPPED": 2, "FAILED": 1, "ERROR": 1, "MISSED": 0}.get(status, 0)
 
+def _extract_shard(dirname):
+    """Extract shard number from directory names like 'test-default-3-6'."""
+    m = re.match(r'test-\w+-(\d+)-(\d+)', dirname)
+    if m:
+        return f"{m.group(1)}/{m.group(2)}"
+    return ""
+
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
     work_flow_name = ""
     test_cases = {}
@@ -71,6 +79,7 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 work_flow_name = WorkflowName.distributed.name
             elif "test-inductor" in new_dir:
                 work_flow_name = WorkflowName.inductor.name
+            shard = _extract_shard(dir)
             for xml_report in Path(new_dir).glob("**/*.xml"):
                 try:
                     new_cases = parse_xml_report(
@@ -84,6 +93,7 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                     print(f"WARNING: Skipping malformed XML {xml_report}: {e}")
                     continue
                 for key, case in new_cases.items():
+                    case["shard"] = shard
                     existing = test_cases.get(key)
                     if existing is None or _status_priority(case) > _status_priority(existing):
                         test_cases[key] = case
@@ -460,6 +470,8 @@ def summarize_xml_files(args):
         elif item_values[f"status_{set2_name}"] != "MISSED" and item_values[f"status_{set2_name}"] != "":
             workflow_name = v1_values['work_flow_name']
         item_values["work_flow_name"] = workflow_name
+        item_values[f"shard_{set1_name}"] = v_values.get('shard', '') if v_values else ''
+        item_values[f"shard_{set2_name}"] = v1_values.get('shard', '') if v1_values else ''
         # get test related info
         item_values[f"message_{set1_name}"] = get_test_message(v[0])
         item_values[f"message_{set2_name}"] = get_test_message(v[1]) if set2_path else ""
@@ -548,6 +560,10 @@ def summarize_xml_files(args):
           return 19
         elif e == "existed_last_week":
           return 20
+        elif e == f"shard_{set1_name}":
+          return 21
+        elif e == f"shard_{set2_name}":
+          return 22
         elif e == "workflow_run_attempt" or e == "job_id":
           return 1000
         else:
