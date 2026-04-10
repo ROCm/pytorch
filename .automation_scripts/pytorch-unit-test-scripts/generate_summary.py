@@ -360,13 +360,13 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if log_failures:
         csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
-        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Category', 'Reason', 'Log File'])
+        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Category', 'Log File'])
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             csv_rows.append([
                 lf.get('platform', ''), lf.get('workflow', ''),
                 lf.get('test_file', ''), test_class, test_name,
-                lf.get('category', ''), lf.get('reason', ''),
+                lf.get('category', ''),
                 lf.get('log_file', ''),
             ])
         csv_rows.append([])
@@ -437,16 +437,14 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('These test failures were detected from CI log files but have no XML report')
         lines.append('(typically due to timeouts, crashes, or process kills).')
         lines.append('')
-        lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Category | Reason |')
-        lines.append('| --- | --- | --- | --- | --- | --- | --- |')
+        lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Category |')
+        lines.append('| --- | --- | --- | --- | --- | --- |')
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
-            reason = lf.get('reason', '')[:80]
             lines.append(
                 f"| {lf.get('platform', '')} | {lf.get('workflow', '')} "
                 f"| {lf.get('test_file', '')} | {test_class} "
-                f"| {test_name} | {lf.get('category', '')} "
-                f"| {reason} |"
+                f"| {test_name} | {lf.get('category', '')} |"
             )
         lines.append('')
 
