@@ -258,13 +258,21 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
 
 
 def load_log_failures(filepaths):
-    """Load log failure CSVs from detect_log_failures.py."""
+    """Load log failure CSVs from detect_log_failures.py.
+
+    Extracts the architecture from the filename (e.g. log_failures_mi355.csv -> mi355).
+    """
     entries = []
     for fp in filepaths:
         if not os.path.isfile(fp):
             continue
+        basename = os.path.basename(fp)
+        arch = ''
+        if basename.startswith('log_failures_') and basename.endswith('.csv'):
+            arch = basename[len('log_failures_'):-len('.csv')]
         with open(fp, newline='') as f:
             for row in csv.DictReader(f):
+                row['arch'] = arch
                 entries.append(row)
     return entries
 
@@ -362,11 +370,11 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if log_failures:
         csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
-        csv_rows.append(['Platform', 'Test Config', 'Test File', 'Test Class', 'Test Name', 'Shard', 'Category', 'Log File'])
+        csv_rows.append(['Arch', 'Platform', 'Test Config', 'Test File', 'Test Class', 'Test Name', 'Shard', 'Category', 'Log File'])
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             csv_rows.append([
-                lf.get('platform', ''), lf.get('test_config', ''),
+                lf.get('arch', ''), lf.get('platform', ''), lf.get('test_config', ''),
                 lf.get('test_file', ''), test_class, test_name,
                 lf.get('shard', ''), lf.get('category', ''),
                 lf.get('log_file', ''),
@@ -439,12 +447,12 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('These test failures were detected from CI log files but have no XML report')
         lines.append('(typically due to timeouts, crashes, or process kills).')
         lines.append('')
-        lines.append('| Platform | Test Config | Test File | Test Class | Test Name | Shard | Category |')
-        lines.append('| --- | --- | --- | --- | --- | --- | --- |')
+        lines.append('| Arch | Platform | Test Config | Test File | Test Class | Test Name | Shard | Category |')
+        lines.append('| --- | --- | --- | --- | --- | --- | --- | --- |')
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             lines.append(
-                f"| {lf.get('platform', '')} | {lf.get('test_config', '')} "
+                f"| {lf.get('arch', '')} | {lf.get('platform', '')} | {lf.get('test_config', '')} "
                 f"| {lf.get('test_file', '')} | {test_class} "
                 f"| {test_name} | {lf.get('shard', '')} "
                 f"| {lf.get('category', '')} |"
