@@ -476,6 +476,8 @@ def main():
         args.no_cuda = True
 
     print(f"Using ROCm architecture: {arch}")
+    print(f"Using ROCm workflows: {ROCmWorkflowNames}")
+    print(f"Using CUDA workflows: {CUDAWorkflowNames}") if not args.no_cuda
     print(f"Using ROCm job prefixes: {rocm_job_prefix}")
     print(f"Using ROCm shard counts: {rocm_shards}")
 
@@ -506,7 +508,7 @@ def main():
     if not args.exclude_distributed and not args.no_rocm:
         periodic_sha = sha
         print("==============================================")
-        print(f"Finding ROCm tests in periodic workflow by sha: {sha}")
+        print(f"Finding ROCm tests in {ROCmWorkflowNames["distributed"]} workflow by sha: {sha}")
         print("==============================================")
         # find distributed test in periodic workflow with success status
         error_msg="Error: Periodic workflow not found in scanned workflow runs."
@@ -567,7 +569,7 @@ def main():
     if not args.no_rocm and not args.exclude_default:
         rocm_sha = sha
         print("===========================================")
-        print(f"Finding ROCm tests in rocm workflow by sha: {rocm_sha}")
+        print(f"Finding ROCm tests in ROCmWorkflowNames["default"] workflow by sha: {rocm_sha}")
         print("===========================================")
         # find tests in rocm workflow with given sha and success status
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
@@ -624,7 +626,7 @@ def main():
         # find tests in inductor workflow with given sha and success status
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         print("===========================================")
-        print(f"Finding ROCm tests in inductor-rocm workflow by sha: {inductor_rocm_sha}")
+        print(f"Finding ROCm tests in ROCmWorkflowNames["inductor"] workflow by sha: {inductor_rocm_sha}")
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
         inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
