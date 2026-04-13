@@ -61,7 +61,7 @@ def parse_xml_report(
     report: Path,
     workflow_id: int,
     workflow_run_attempt: int,
-    test_config: str
+    work_flow_name: str
 ) -> Dict[Tuple[str], Dict[str, Any]]:
     """Convert a test report xml file into a JSON-serializable list of test cases."""
     print(f"Parsing {tag}s for test report: {report}")
@@ -87,7 +87,7 @@ def parse_xml_report(
             case["workflow_id"] = workflow_id
             case["workflow_run_attempt"] = workflow_run_attempt
             case["job_id"] = job_id
-            case["test_config"] = test_config
+            case["work_flow_name"] = work_flow_name
 
             # [invoking file]
             # The name of the file that the test is located in is not necessarily
@@ -105,9 +105,9 @@ def parse_xml_report(
                     case_name = case_name + "_" + BACKENDS_LIST[ind]
                     break
             case["invoking_file"] = case_name
-            test_cases[ ( case["invoking_file"], case["classname"], case["name"], case["test_config"] ) ] = case
+            test_cases[ ( case["invoking_file"], case["classname"], case["name"], case["work_flow_name"] ) ] = case
         elif tag == 'testsuite':
-            case["test_config"] = test_config
+            case["work_flow_name"] = work_flow_name
             case["invoking_xml"] = report.name
             case["running_time_xml"] = case["time"]
             case_name = report.parent.name
@@ -117,7 +117,7 @@ def parse_xml_report(
                     break
             case["invoking_file"] = case_name
 
-            test_cases[ ( case["invoking_file"], case["invoking_xml"], case["test_config"] ) ] = case
+            test_cases[ ( case["invoking_file"], case["invoking_xml"], case["work_flow_name"] ) ] = case
 
     return test_cases
 
