@@ -49,7 +49,7 @@ EXCLUDED_TESTS = [
 ]
 
 
-# Workflow names
+# Test config names
 TestConfigName = Enum('TestConfigName', ['default', 'distributed', 'inductor'])
 
 def _status_priority(test_case):
@@ -219,7 +219,7 @@ def summarize_xml_files(args):
     #parse the xml files
     test_cases_set1_running_time = parse_xml_reports_as_dict(-1, -1, 'testsuite', set1_path)
     # TODO: Does it matter what the workflow_run_attempt is set to below??
-    # test_cases is dict of dicts, with keys as tuple of test_file, test_class, test_name and test workflow
+    # test_cases is dict of dicts, with keys as tuple of test_file, test_class, test_name and test_config
     test_cases_set1 = parse_xml_reports_as_dict(-1, -1, 'testcase', set1_path)
     for (k,v) in list(test_cases_set1.items()):
         if v['test_config'] == TestConfigName.default.name:
@@ -299,28 +299,28 @@ def summarize_xml_files(args):
     test_file_level_CUDA: Dict[Tuple[str], float] = {}
     for (k,v) in list(test_cases_set1_running_time.items()):
           test_file_name = k[0]
-          test_workflow_name = k[2]
-          tar_tup_rocm = (test_file_name, test_workflow_name,)
+          test_config_name = k[2]
+          tar_tup_rocm = (test_file_name, test_config_name,)
           if test_file_level_ROCm.get(tar_tup_rocm) == None:
-              test_file_level_ROCm[ ( test_file_name, test_workflow_name ) ] = v["running_time_xml"]
+              test_file_level_ROCm[ ( test_file_name, test_config_name ) ] = v["running_time_xml"]
           else:
-              test_file_level_ROCm[ ( test_file_name, test_workflow_name ) ] += v["running_time_xml"]
+              test_file_level_ROCm[ ( test_file_name, test_config_name ) ] += v["running_time_xml"]
     for (k,v) in list(test_cases_set2_running_time.items()):
           test_file_name = k[0]
-          test_workflow_name = k[2]
-          tar_tup_cuda = (test_file_name, test_workflow_name)
+          test_config_name = k[2]
+          tar_tup_cuda = (test_file_name, test_config_name)
           if test_file_level_CUDA.get(tar_tup_cuda) == None:
-              test_file_level_CUDA[ ( test_file_name, test_workflow_name ) ] = v["running_time_xml"]
+              test_file_level_CUDA[ ( test_file_name, test_config_name ) ] = v["running_time_xml"]
           else:
-              test_file_level_CUDA[ ( test_file_name, test_workflow_name ) ] += v["running_time_xml"]
+              test_file_level_CUDA[ ( test_file_name, test_config_name ) ] += v["running_time_xml"]
 
     # test file level counts: ROCm tests run, passed, skipped, missed; CUDA tests run
     test_file_counts_ROCm: Dict[Tuple[str], Dict[str, int]] = {}
     test_file_counts_CUDA: Dict[Tuple[str], int] = {}
     for (k,v) in list(test_cases_set1.items()):
         test_file_name = k[0]
-        test_workflow_name = v['test_config']
-        tar_tup = (test_file_name, test_workflow_name)
+        test_config_name = v['test_config']
+        tar_tup = (test_file_name, test_config_name)
         if tar_tup not in test_file_counts_ROCm:
             test_file_counts_ROCm[tar_tup] = {'tests_run': 0, 'passed': 0, 'skipped': 0, 'missed': 0}
         test_file_counts_ROCm[tar_tup]['tests_run'] += 1
@@ -333,8 +333,8 @@ def summarize_xml_files(args):
             test_file_counts_ROCm[tar_tup]['missed'] += 1
     for (k,v) in list(test_cases_set2.items()) if set2_path else []:
         test_file_name = k[0]
-        test_workflow_name = v['test_config']
-        tar_tup = (test_file_name, test_workflow_name)
+        test_config_name = v['test_config']
+        tar_tup = (test_file_name, test_config_name)
         if tar_tup not in test_file_counts_CUDA:
             test_file_counts_CUDA[tar_tup] = 0
         test_file_counts_CUDA[tar_tup] += 1
@@ -460,16 +460,16 @@ def summarize_xml_files(args):
         item_values["test_name"] = k[2]
         item_values[f"status_{set1_name}"] = get_test_status(v[0])
         item_values[f"status_{set2_name}"] = get_test_status(v[1]) if set2_path else ""
-        # get workflow info
+        # get test config info
         v_values = v[0]
         v1_values = v[1] if set2_path else []
-        workflow_name = ""
+        config_name = ""
         item_values["test_config"] = ""
         if item_values[f"status_{set1_name}"] != "MISSED":
-            workflow_name = v_values['test_config']
+            config_name = v_values['test_config']
         elif item_values[f"status_{set2_name}"] != "MISSED" and item_values[f"status_{set2_name}"] != "":
-            workflow_name = v1_values['test_config']
-        item_values["test_config"] = workflow_name
+            config_name = v1_values['test_config']
+        item_values["test_config"] = config_name
         item_values[f"shard_{set1_name}"] = v_values.get('shard', '') if v_values else ''
         item_values[f"shard_{set2_name}"] = v1_values.get('shard', '') if v1_values else ''
         # get test related info
@@ -591,7 +591,7 @@ def summarize_xml_files(args):
     for key_rocm in test_file_level_ROCm.keys():
         item_values = {}
         item_values["test_file"] = key_rocm[0]
-        item_values["test_workflow"] = key_rocm[1]
+        item_values["test_config"] = key_rocm[1]
         item_values["rocm_running_time"] = test_file_level_ROCm[key_rocm]
         item_values["cuda_running_time"] = 0.0
         if key_rocm in test_file_level_CUDA.keys():
@@ -612,7 +612,7 @@ def summarize_xml_files(args):
         if not key_cuda in test_file_level_ROCm.keys():
             item_values = {}
             item_values["test_file"] = key_cuda[0]
-            item_values["test_workflow"] = key_cuda[1]
+            item_values["test_config"] = key_cuda[1]
             item_values["rocm_running_time"] = 0.0
             item_values["cuda_running_time"] = test_file_level_CUDA[key_cuda]
             item_values["abs_time_diff"] = item_values["rocm_running_time"] - item_values["cuda_running_time"]
@@ -632,7 +632,7 @@ def summarize_xml_files(args):
     def sorting_key_running_time(e):
         if e == "test_file":
           return 0
-        elif e == "test_workflow":
+        elif e == "test_config":
           return 1
         elif e == "rocm_running_time":
           return 2
