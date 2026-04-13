@@ -509,7 +509,7 @@ def main():
     if not args.exclude_distributed and not args.no_rocm:
         periodic_sha = sha
         print("==============================================")
-        print(f"Finding ROCm tests in {ROCmWorkflowNames["distributed"]} workflow by sha: {sha}")
+        print(f"Finding ROCm distributed tests in workflow '{ROCmWorkflowNames['distributed']}' by sha: {sha}")
         print("==============================================")
         # find distributed test in periodic workflow with success status
         error_msg="Error: Periodic workflow not found in scanned workflow runs."
@@ -530,7 +530,8 @@ def main():
             periodic_fallback_used = True
         if periodic_wf is None:
             raise Exception(error_msg)
-        print(f"Using workflow with id:{periodic_wf['id']} as periodic_wf")
+        dist_wf_name = ROCmWorkflowNames['distributed'] if not periodic_fallback_used else periodic_fallbacks[arch][0]
+        print(f"Using workflow '{dist_wf_name}' with id:{periodic_wf['id']} for ROCm distributed")
 
         if periodic_fallback_used and arch in periodic_fallbacks:
             dist_job_prefix = periodic_fallbacks[arch][1]
@@ -570,7 +571,7 @@ def main():
     if not args.no_rocm and not args.exclude_default:
         rocm_sha = sha
         print("===========================================")
-        print(f"Finding ROCm tests in ROCmWorkflowNames["default"] workflow by sha: {rocm_sha}")
+        print(f"Finding ROCm default tests in workflow '{ROCmWorkflowNames['default']}' by sha: {rocm_sha}")
         print("===========================================")
         # find tests in rocm workflow with given sha and success status
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
@@ -591,7 +592,8 @@ def main():
             rocm_job_prefix['default'] = fallback_prefix
         if rocm_wf is None:
             raise Exception(error_msg)
-        print(f"Using workflow with id:{rocm_wf['id']} as rocm_wf{' (fallback)' if default_fallback_used else ''}")
+        default_wf_name = ROCmWorkflowNames['default'] if not default_fallback_used else default_fallbacks[arch][0]
+        print(f"Using workflow '{default_wf_name}' with id:{rocm_wf['id']} for ROCm default{' (fallback)' if default_fallback_used else ''}")
 
         folder_list = get_or_create_test_folder(rocm_wf)
 
@@ -627,11 +629,11 @@ def main():
         # find tests in inductor workflow with given sha and success status
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         print("===========================================")
-        print(f"Finding ROCm tests in ROCmWorkflowNames["inductor"] workflow by sha: {inductor_rocm_sha}")
+        print(f"Finding ROCm inductor tests in workflow '{ROCmWorkflowNames['inductor']}' by sha: {inductor_rocm_sha}")
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
         inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        print(f"Using workflow with id:{inductor_wf_rocm['id']} as inductor_wf_rocm")
+        print(f"Using workflow '{ROCmWorkflowNames['inductor']}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
 
         folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
@@ -661,7 +663,7 @@ def main():
     if not args.no_cuda:
         cuda_job_prefix = "linux-jammy-cuda13.0-py3.10-gcc11"
         print("==========================================")
-        print(f"Finding CUDA tests in trunk workflow by sha: {sha}")
+        print(f"Finding CUDA tests in workflow '{CUDAWorkflowNames['default']}' by sha: {sha}")
         print("==========================================")
 
         # There can be multiple trunk runs for the same SHA. Find the one
@@ -723,7 +725,7 @@ def main():
         if trunk_wf is None:
             raise Exception("Error: No trunk workflow run found for CUDA tests")
 
-        print(f"Using trunk workflow run {trunk_wf['id']} for CUDA")
+        print(f"Using workflow '{CUDAWorkflowNames['default']}' with id:{trunk_wf['id']} for CUDA default")
 
         cuda_job_ids = [str(j['id']) for j in cuda_test_jobs]
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
@@ -786,13 +788,13 @@ def main():
         if not args.exclude_inductor:
             inductor_sha = sha
             print("==========================================")
-            print(f"Finding CUDA tests in inductor workflow by sha: {inductor_sha}")
+            print(f"Finding CUDA inductor tests in workflow '{CUDAWorkflowNames['inductor']}' by sha: {inductor_sha}")
             print("==========================================")
             # find tests in inductor workflow with given sha and success status
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
             error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
             inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-            print(f"Using workflow with id:{inductor_wf_cuda['id']} as inductor_wf_cuda")
+            print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
@@ -842,7 +844,7 @@ def main():
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline default workflow not found for {baseline_sha}",
                 )
-                print(f"Baseline default workflow id: {baseline_default_wf['id']}")
+                print(f"Baseline default workflow '{ROCmWorkflowNames['default']}' id: {baseline_default_wf['id']}")
                 default_shards = rocm_shards["default"]
 
                 if not args.artifacts_only:
@@ -874,7 +876,7 @@ def main():
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
                 )
-                print(f"Baseline distributed workflow id: {baseline_dist_wf['id']}")
+                print(f"Baseline distributed workflow '{ROCmWorkflowNames['distributed']}' id: {baseline_dist_wf['id']}")
                 dist_shards = rocm_shards["distributed"]
 
                 if not args.artifacts_only:
@@ -906,7 +908,7 @@ def main():
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
                 )
-                print(f"Baseline inductor workflow id: {baseline_inductor_wf['id']}")
+                print(f"Baseline inductor workflow '{ROCmWorkflowNames['inductor']}' id: {baseline_inductor_wf['id']}")
                 inductor_shards = rocm_shards["inductor"]
 
                 if not args.artifacts_only:
@@ -935,7 +937,7 @@ def main():
     # Download inductor-periodic benchmark artifacts (separate from parity CSV)
     if args.include_inductor_periodic:
         print("==============================================")
-        print(f"Finding inductor-periodic workflow by sha: {sha}")
+        print(f"Finding inductor-periodic tests in workflow 'inductor-periodic' by sha: {sha}")
         print("==============================================")
         error_msg = "Error: inductor-periodic workflow not found for this SHA. It may not have run on this commit."
         try:
@@ -950,7 +952,7 @@ def main():
             inductor_periodic_wf = None
 
         if inductor_periodic_wf:
-            print(f"Using workflow with id:{inductor_periodic_wf['id']} as inductor_periodic_wf")
+            print(f"Using workflow 'inductor-periodic' with id:{inductor_periodic_wf['id']} for inductor-periodic")
 
             folder_list = get_or_create_test_folder(inductor_periodic_wf)
             test_folder = folder_list[0]
