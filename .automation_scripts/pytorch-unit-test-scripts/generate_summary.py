@@ -193,7 +193,7 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
     total_disagree = 0
     total_s2 = 0
     for wf in TEST_CONFIGS:
-        wf_rows = [r for r in rows if r['work_flow_name'] == wf]
+        wf_rows = [r for r in rows if r['test_config'] == wf]
         s1_skip_not_s2 = sum(
             1 for r in wf_rows
             if r[s1_col] == 'SKIPPED' and r[s2_col] != 'SKIPPED'
@@ -247,7 +247,7 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
                     'test_file': r.get('test_file', ''),
                     'test_class': r.get('test_class', ''),
                     'test_name': r.get('test_name', ''),
-                    'test_config': r.get('work_flow_name', ''),
+                    'test_config': r.get('test_config', ''),
                     'shard': shard,
                     f'status_{s1_name}': s1,
                 }
@@ -293,7 +293,7 @@ def build_rows(args, archs, arch_data):
             d = arch_data[arch]
             s1_col, s2_col, _, _ = d['cols']
             has_set2 = d.get('has_set2', True)
-            wf_rows = [r for r in d['rows'] if r['work_flow_name'] == wf]
+            wf_rows = [r for r in d['rows'] if r['test_config'] == wf]
             arch_stats[arch] = compute_test_config_stats(
                 wf_rows, s1_col, s2_col, args.set1_name, args.set2_name,
                 has_set2=has_set2,

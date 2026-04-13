@@ -50,7 +50,7 @@ EXCLUDED_TESTS = [
 
 
 # Workflow names
-WorkflowName = Enum('WorkflowName', ['default', 'distributed', 'inductor'])
+TestConfigName = Enum('TestConfigName', ['default', 'distributed', 'inductor'])
 
 def _status_priority(test_case):
     """Return a numeric priority for deduplication of retried tests.
@@ -67,18 +67,18 @@ def _extract_shard(dirname):
     return ""
 
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
-    work_flow_name = ""
+    test_config = ""
     test_cases = {}
     items_list = os.listdir(path)
     for dir in items_list:
         new_dir = path + '/' + dir + '/'
         if os.path.isdir(new_dir):
             if "test-default" in new_dir:
-                work_flow_name = WorkflowName.default.name
+                test_config = TestConfigName.default.name
             elif "test-distributed" in new_dir:
-                work_flow_name = WorkflowName.distributed.name
+                test_config = TestConfigName.distributed.name
             elif "test-inductor" in new_dir:
-                work_flow_name = WorkflowName.inductor.name
+                test_config = TestConfigName.inductor.name
             shard = _extract_shard(dir)
             for xml_report in Path(new_dir).glob("**/*.xml"):
                 try:
@@ -87,7 +87,7 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                         xml_report,
                         workflow_run_id,
                         workflow_run_attempt,
-                        work_flow_name
+                        test_config
                     )
                 except Exception as e:
                     print(f"WARNING: Skipping malformed XML {xml_report}: {e}")
@@ -222,11 +222,11 @@ def summarize_xml_files(args):
     # test_cases is dict of dicts, with keys as tuple of test_file, test_class, test_name and test workflow
     test_cases_set1 = parse_xml_reports_as_dict(-1, -1, 'testcase', set1_path)
     for (k,v) in list(test_cases_set1.items()):
-        if v['work_flow_name'] == WorkflowName.default.name:
+        if v['test_config'] == TestConfigName.default.name:
             ROCM_DEFAULT += 1
-        elif v['work_flow_name'] == WorkflowName.distributed.name:
+        elif v['test_config'] == TestConfigName.distributed.name:
             ROCM_DISTRIBUTED += 1
-        elif v['work_flow_name'] == WorkflowName.inductor.name:
+        elif v['test_config'] == TestConfigName.inductor.name:
             ROCM_INDUCTOR += 1
 
     # start with creating empty dicts for set2 for each test tuple
@@ -255,11 +255,11 @@ def summarize_xml_files(args):
       test_cases_set2_running_time = parse_xml_reports_as_dict(-1, -1, 'testsuite', set2_path)
       test_cases_set2 = parse_xml_reports_as_dict(-1, -1, 'testcase', set2_path)
       for (k,v) in list(test_cases_set2.items()):
-          if v['work_flow_name'] == WorkflowName.default.name:
+          if v['test_config'] == TestConfigName.default.name:
               CUDA_DEFAULT += 1
-          elif v['work_flow_name'] == WorkflowName.distributed.name:
+          elif v['test_config'] == TestConfigName.distributed.name:
               CUDA_DISTRIBUTED += 1
-          elif v['work_flow_name'] == WorkflowName.inductor.name:
+          elif v['test_config'] == TestConfigName.inductor.name:
               CUDA_INDUCTOR += 1
 
       # for rocm/cuda comparison, sometimes parity sheet has inaccurate resutls due to different function string but with same test names,
@@ -319,7 +319,7 @@ def summarize_xml_files(args):
     test_file_counts_CUDA: Dict[Tuple[str], int] = {}
     for (k,v) in list(test_cases_set1.items()):
         test_file_name = k[0]
-        test_workflow_name = v['work_flow_name']
+        test_workflow_name = v['test_config']
         tar_tup = (test_file_name, test_workflow_name)
         if tar_tup not in test_file_counts_ROCm:
             test_file_counts_ROCm[tar_tup] = {'tests_run': 0, 'passed': 0, 'skipped': 0, 'missed': 0}
@@ -333,7 +333,7 @@ def summarize_xml_files(args):
             test_file_counts_ROCm[tar_tup]['missed'] += 1
     for (k,v) in list(test_cases_set2.items()) if set2_path else []:
         test_file_name = k[0]
-        test_workflow_name = v['work_flow_name']
+        test_workflow_name = v['test_config']
         tar_tup = (test_file_name, test_workflow_name)
         if tar_tup not in test_file_counts_CUDA:
             test_file_counts_CUDA[tar_tup] = 0
@@ -396,20 +396,20 @@ def summarize_xml_files(args):
         test_info = v[0]
         test_info_set2 = []
         if status_set_1 == "SKIPPED" and status_set_2 != "SKIPPED":
-            if test_info['work_flow_name'] == WorkflowName.default.name:
+            if test_info['test_config'] == TestConfigName.default.name:
                 SKIPPED_DEFAULT += 1
-            elif test_info['work_flow_name'] == WorkflowName.distributed.name:
+            elif test_info['test_config'] == TestConfigName.distributed.name:
                 SKIPPED_DISTRIBUTED += 1
-            elif test_info['work_flow_name'] == WorkflowName.inductor.name:
+            elif test_info['test_config'] == TestConfigName.inductor.name:
                 SKIPPED_INDUCTOR += 1
         elif set2_path:
             test_info_set2 = v[1]
             if status_set_1 == "MISSED" and status_set_2 != "MISSED":
-              if test_info_set2['work_flow_name'] == WorkflowName.default.name:
+              if test_info_set2['test_config'] == TestConfigName.default.name:
                 MISSED_DEFAULT += 1
-              elif test_info_set2['work_flow_name'] == WorkflowName.distributed.name:
+              elif test_info_set2['test_config'] == TestConfigName.distributed.name:
                 MISSED_DISTRIBUTED += 1
-              elif test_info_set2['work_flow_name'] == WorkflowName.inductor.name:
+              elif test_info_set2['test_config'] == TestConfigName.inductor.name:
                 MISSED_INDUCTOR += 1
 
 
@@ -418,17 +418,17 @@ def summarize_xml_files(args):
               for known_skip in known_skips:
                   if test_file_name == known_skip['test_file'] and k[1] == known_skip['test_class'] and k[2] == known_skip['test_name']:
                       v[2] = known_skip['skip_reason'] if known_skip.__contains__('skip_reason') and not pd.isna(known_skip['skip_reason']) else ' '
-                      if (test_info.__contains__('work_flow_name') and test_info['work_flow_name'] == WorkflowName.default.name) or (test_info_set2.__contains__('work_flow_name') and test_info_set2['work_flow_name'] == WorkflowName.default.name):
+                      if (test_info.__contains__('test_config') and test_info['test_config'] == TestConfigName.default.name) or (test_info_set2.__contains__('test_config') and test_info_set2['test_config'] == TestConfigName.default.name):
                           if not skip_reasons_stat_default.__contains__(v[2]):
                               skip_reasons_stat_default[v[2]] = 1
                           else:
                               skip_reasons_stat_default[v[2]] += 1
-                      elif (test_info.__contains__('work_flow_name') and test_info['work_flow_name'] == WorkflowName.distributed.name) or (test_info_set2.__contains__('work_flow_name') and test_info_set2['work_flow_name'] == WorkflowName.distributed.name):
+                      elif (test_info.__contains__('test_config') and test_info['test_config'] == TestConfigName.distributed.name) or (test_info_set2.__contains__('test_config') and test_info_set2['test_config'] == TestConfigName.distributed.name):
                           if not skip_reasons_stat_distributed.__contains__(v[2]):
                               skip_reasons_stat_distributed[v[2]] = 1
                           else:
                               skip_reasons_stat_distributed[v[2]] += 1
-                      elif (test_info.__contains__('work_flow_name') and test_info['work_flow_name'] == WorkflowName.inductor.name) or (test_info_set2.__contains__('work_flow_name') and test_info_set2['work_flow_name'] == WorkflowName.inductor.name):
+                      elif (test_info.__contains__('test_config') and test_info['test_config'] == TestConfigName.inductor.name) or (test_info_set2.__contains__('test_config') and test_info_set2['test_config'] == TestConfigName.inductor.name):
                           if not skip_reasons_stat_inductor.__contains__(v[2]):
                               skip_reasons_stat_inductor[v[2]] = 1
                           else:
@@ -438,11 +438,11 @@ def summarize_xml_files(args):
                       break
 
         if status_set_1 == "PASSED" and status_set_2 != "PASSED" and set2_path:
-            if test_info['work_flow_name'] == WorkflowName.default.name:
+            if test_info['test_config'] == TestConfigName.default.name:
                 ROCMONLY_DEFAULT += 1
-            elif test_info['work_flow_name'] == WorkflowName.distributed.name:
+            elif test_info['test_config'] == TestConfigName.distributed.name:
                 ROCMONLY_DISTRIBUTED += 1
-            elif test_info['work_flow_name'] == WorkflowName.inductor.name:
+            elif test_info['test_config'] == TestConfigName.inductor.name:
                 ROCMONLY_INDUCTOR += 1
 
     skip_reasons_stat_default.pop(' ', None)
@@ -464,12 +464,12 @@ def summarize_xml_files(args):
         v_values = v[0]
         v1_values = v[1] if set2_path else []
         workflow_name = ""
-        item_values["work_flow_name"] = ""
+        item_values["test_config"] = ""
         if item_values[f"status_{set1_name}"] != "MISSED":
-            workflow_name = v_values['work_flow_name']
+            workflow_name = v_values['test_config']
         elif item_values[f"status_{set2_name}"] != "MISSED" and item_values[f"status_{set2_name}"] != "":
-            workflow_name = v1_values['work_flow_name']
-        item_values["work_flow_name"] = workflow_name
+            workflow_name = v1_values['test_config']
+        item_values["test_config"] = workflow_name
         item_values[f"shard_{set1_name}"] = v_values.get('shard', '') if v_values else ''
         item_values[f"shard_{set2_name}"] = v1_values.get('shard', '') if v1_values else ''
         # get test related info
@@ -526,7 +526,7 @@ def summarize_xml_files(args):
           return 2
         elif e == "test_name":
           return 3
-        elif e == "work_flow_name":
+        elif e == "test_config":
           return 4
         elif e == "skip_reason":
           return 5

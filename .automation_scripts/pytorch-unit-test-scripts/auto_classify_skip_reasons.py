@@ -917,7 +917,7 @@ def main():
         test_file = row.get('test_file', '')
         test_class = row.get('test_class', '')
         test_name = row.get('test_name', '')
-        workflow = row.get('work_flow_name', '')
+        workflow = row.get('test_config', '')
 
         if existing_reason and not args.reclassify_all:
             already_had_count += 1
