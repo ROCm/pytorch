@@ -64,13 +64,13 @@ LOG_FILE_MAP = {
 
 
 def classify_log_file(filename):
-    """Return (platform, workflow, shard_num) from a log filename like rocm3.txt."""
+    """Return (platform, test_config, shard_num) from a log filename like rocm3.txt."""
     stem = Path(filename).stem
-    for prefix, (platform, workflow) in sorted(LOG_FILE_MAP.items(), key=lambda x: -len(x[0])):
+    for prefix, (platform, test_config) in sorted(LOG_FILE_MAP.items(), key=lambda x: -len(x[0])):
         if stem.startswith(prefix):
             remainder = stem[len(prefix):]
             if remainder.isdigit():
-                return platform, workflow, int(remainder)
+                return platform, test_config, int(remainder)
     return None, None, None
 
 
@@ -214,7 +214,7 @@ def scan_logs(logs_dir):
         if not fname.endswith(".txt"):
             continue
 
-        platform, workflow, shard_num = classify_log_file(fname)
+        platform, test_config, shard_num = classify_log_file(fname)
         if platform is None:
             continue
 
@@ -263,7 +263,7 @@ def scan_logs(logs_dir):
             all_failures.append({
                 "log_file": fname,
                 "platform": platform,
-                "workflow": workflow,
+                "test_config": test_config,
                 "test_file": info["test_file"],
                 "shard": f"{info['shard']}/{info['total']}",
                 "status": info["status"],
@@ -281,7 +281,7 @@ def scan_logs(logs_dir):
             all_failures.append({
                 "log_file": fname,
                 "platform": platform,
-                "workflow": workflow,
+                "test_config": test_config,
                 "test_file": file_part,
                 "shard": "",
                 "status": "FAILED_CONSISTENTLY",
@@ -295,7 +295,7 @@ def scan_logs(logs_dir):
 
 def write_csv_report(failures, output_path):
     fieldnames = [
-        "log_file", "platform", "workflow", "test_file", "shard",
+        "log_file", "platform", "test_config", "test_file", "shard",
         "status", "category", "reason", "exit_codes",
     ]
     with open(output_path, "w", newline="") as f:
@@ -323,7 +323,7 @@ def print_summary(failures):
     for cat, items in sorted(by_category.items()):
         print(f"  {cat}: {len(items)}")
         for item in items:
-            print(f"    - {item['test_file']} ({item['platform']}/{item['workflow']}) [{item['log_file']}]")
+            print(f"    - {item['test_file']} ({item['platform']}/{item['test_config']}) [{item['log_file']}]")
             if item["reason"]:
                 print(f"      Reason: {item['reason'][:120]}")
     print()
