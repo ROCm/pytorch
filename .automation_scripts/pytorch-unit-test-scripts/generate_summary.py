@@ -346,7 +346,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if failed_tests:
         csv_rows.append(['FAILED TESTS'])
-        header = ['Arch', 'Workflow', 'Test File', 'Test Class',
+        header = ['Arch', 'Test Config', 'Test File', 'Test Class',
                   'Test Name', 'Shard', f'Status ({s1_name})']
         if has_set2:
             header.append(f'Status ({s2_name})')
@@ -362,7 +362,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
 
     if log_failures:
         csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
-        csv_rows.append(['Platform', 'Workflow', 'Test File', 'Test Class', 'Test Name', 'Shard', 'Category', 'Log File'])
+        csv_rows.append(['Platform', 'Test Config', 'Test File', 'Test Class', 'Test Name', 'Shard', 'Category', 'Log File'])
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
             csv_rows.append([
@@ -412,7 +412,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
     if failed_tests:
         lines.append('### FAILED TESTS')
         lines.append('')
-        cols = ['Arch', 'Workflow', 'Test File', 'Test Class', 'Test Name',
+        cols = ['Arch', 'Test Config', 'Test File', 'Test Class', 'Test Name',
                 'Shard', f'Status ({s1_name})']
         if has_set2:
             cols.append(f'Status ({s2_name})')
@@ -439,7 +439,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('These test failures were detected from CI log files but have no XML report')
         lines.append('(typically due to timeouts, crashes, or process kills).')
         lines.append('')
-        lines.append('| Platform | Workflow | Test File | Test Class | Test Name | Shard | Category |')
+        lines.append('| Platform | Test Config | Test File | Test Class | Test Name | Shard | Category |')
         lines.append('| --- | --- | --- | --- | --- | --- | --- |')
         for lf in log_failures:
             test_class, test_name = _parse_log_failure_names(lf)
