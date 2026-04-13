@@ -322,7 +322,7 @@ jobs:
           ARCH_ARGS=()
           for ARCH in $ARCHS; do
             ARTIFACT_DIR="../../artifacts/${PREFIX}-results-${ARCH}"
-            CSV=$(find "$ARTIFACT_DIR"/ -maxdepth 2 -name "*.csv" ! -name "*_running_time*" ! -name "*_summary*" 2>/dev/null | head -1)
+            CSV=$(find "$ARTIFACT_DIR"/ -maxdepth 2 -name "*.csv" ! -name "*_running_time*" ! -name "*_summary*" ! -name "log_failures_*" 2>/dev/null | head -1)
             if [ -z "$CSV" ]; then
               echo "WARNING: No CSV found for $ARCH, skipping"
               continue
