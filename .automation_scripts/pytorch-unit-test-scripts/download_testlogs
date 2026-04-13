@@ -477,7 +477,8 @@ def main():
 
     print(f"Using ROCm architecture: {arch}")
     print(f"Using ROCm workflows: {ROCmWorkflowNames}")
-    print(f"Using CUDA workflows: {CUDAWorkflowNames}") if not args.no_cuda
+    if not args.no_cuda:
+        print(f"Using CUDA workflows: {CUDAWorkflowNames}")
     print(f"Using ROCm job prefixes: {rocm_job_prefix}")
     print(f"Using ROCm shard counts: {rocm_shards}")
 
