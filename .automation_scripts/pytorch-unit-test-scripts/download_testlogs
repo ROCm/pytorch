@@ -406,7 +406,7 @@ def main():
     elif arch == 'mi355':
         ROCmWorkflowNames = {
             "default": "trunk",
-            "distributed": "trunk",
+            "distributed": "periodic-rocm-mi355",
             "inductor": "inductor-rocm-mi355"
         }
     elif arch == 'mi200':
@@ -443,7 +443,7 @@ def main():
         },
         "mi355": {
             "default": "linux-jammy-rocm-py3.10-mi355",
-            "distributed": "linux-jammy-rocm-py3.10-mi355",
+            "distributed": "linux-noble-rocm-py3.12-mi355",
             "inductor": "linux-noble-rocm-py3.12-mi355"
         },
         "navi31": {
@@ -520,7 +520,7 @@ def main():
         except (IndexError, Exception):
             periodic_wf = None
         periodic_fallbacks = {
-            "mi355": ("periodic-rocm-mi355", "linux-noble-rocm-py3.12-mi355"),
+            "mi355": ("trunk", "linux-jammy-rocm-py3.10-mi355"),
             "mi200": ("periodic-rocm-mi200", "linux-jammy-rocm-py3.10"),
         }
         if periodic_wf is None and arch in periodic_fallbacks:
