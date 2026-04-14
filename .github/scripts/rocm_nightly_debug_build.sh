@@ -88,9 +88,37 @@ if [[ -z "$rerun_target" ]]; then
 fi
 
 target_log_name="${rerun_target//[^A-Za-z0-9_.-]/_}.log"
+
+# Capture the real error context from the original build.log. The main build
+# runs with high parallelism, so the `FAILED:` line is typically buried before
+# hundreds of lines of unrelated warnings from siblings that were compiling
+# concurrently. Dump the window around it so the error is actually visible.
+{
+  echo "=== Error context around FAILED: line in build.log ==="
+  awk '
+    { buf[NR]=$0 }
+    /^FAILED: / && !printing {
+      start = NR-80; if (start<1) start=1
+      for (i=start; i<NR; i++) if (i in buf) print buf[i]
+      printing=1; lines=0
+    }
+    printing { print; lines++; if (lines>=120) exit }
+  ' "$ARTIFACT_DIR/build.log" || true
+  echo "=== End error context ==="
+} | tee -a "$ARTIFACT_DIR/build.log"
+
 echo "PyTorch build failed at source SHA ${PYTORCH_SOURCE_SHA}. Re-running detected target ${rerun_target} with serial verbose Ninja output." | tee -a "$ARTIFACT_DIR/build.log"
 
-ninja -C build -t clean "$rerun_target" || true
+# Do NOT `ninja -t clean <target>` here: that is transitive and wipes every
+# dependency of the target (often ~all of libtorch), forcing a multi-hour
+# cold rebuild at -j1. The failing target's output does not exist because
+# the build failed, so ninja will naturally re-run only the failing command.
+
+# The .ci build epilogue stops sccache; restart it so the rerun can still
+# hit whatever objects were cached during the main build.
+if command -v sccache >/dev/null 2>&1; then
+  sccache --start-server || true
+fi
 
 if ! bash "$LOG_HELPER" "$ARTIFACT_DIR/$target_log_name" -- \
   ninja -C build -j1 -v "$rerun_target"; then
