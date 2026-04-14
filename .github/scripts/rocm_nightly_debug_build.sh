@@ -52,7 +52,7 @@ git clone https://github.com/pytorch/pytorch --recursive "$WORKDIR"
 cd "$WORKDIR"
 git checkout "$PYTORCH_SOURCE_SHA"
 git submodule sync --recursive
-git submodule update --init --recursive --jobs 0
+git submodule update --init --recursive
 
 pip install -r requirements.txt
 git config --local user.name "AMD AMD"
