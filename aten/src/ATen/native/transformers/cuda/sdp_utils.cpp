@@ -30,6 +30,9 @@
 #include <aotriton/flash.h>
 #define USE_ROCM_ATTENTION 1
 #endif
+#if defined(USE_HIPDNN)
+#include <ATen/native/cudnn/MHA.h>
+#endif
 #else
 #define USE_ROCM_ATTENTION 0
 #endif
@@ -76,6 +79,10 @@ bool priority_order_init_ = false;
 // TODO(eqy): more benchmarking to determine whether this should include sm86/89
 // Needs to be kept in-sync with test_fused_chocie in test_transformers.py
 bool check_prefer_cudnn_attention() {
+  static const bool force_prefer = c10::utils::check_env("TORCH_CUDNN_SDPA_PREFERRED") == true;
+  if (force_prefer) {
+    return true;
+  }
   static const bool prefer_cudnn = c10::utils::check_env("TORCH_CUDNN_SDPA_DEPRIORITIZED") != true;
   if (!prefer_cudnn) {
     return false;
@@ -111,6 +118,17 @@ std::array<SDPBackend, num_backends> priority_order(sdp_params const& params) {
                                                   static_cast<int64_t>(at::SDPBackend::math)};
         at::globalContext().setSDPPriorityOrder(cudnn_order);
     }
+#if USE_ROCM
+    else {
+      // On ROCm, default to hipDNN above math fallback.
+      const std::vector<int64_t> rocm_order = {static_cast<int64_t>(at::SDPBackend::flash_attention),
+                                               static_cast<int64_t>(at::SDPBackend::efficient_attention),
+                                               static_cast<int64_t>(at::SDPBackend::cudnn_attention),
+                                               static_cast<int64_t>(at::SDPBackend::math),
+                                               static_cast<int64_t>(at::SDPBackend::overrideable)};
+      at::globalContext().setSDPPriorityOrder(rocm_order);
+    }
+#endif
   }
   return at::globalContext().sDPPriorityOrder();
 }
@@ -738,7 +756,94 @@ bool check_cudnn_deterministic(const sdp_params& params, bool debug) {
 } // namespace
 
 bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
-#if defined(USE_ROCM) || !AT_CUDNN_ENABLED() || !defined(CUDNN_VERSION)
+#if defined(USE_ROCM)
+  // --- hipDNN path: PyTorch-level guards then delegate to graph-based check ---
+#if !defined(USE_HIPDNN)
+  if (debug) {
+    TORCH_WARN("Torch was not compiled with hipDNN.");
+  }
+  return false;
+#else
+  if (!check_runtime_disabled_cudnn(params, debug)) {
+    return false;
+  }
+  if (!at::globalContext().userEnabledHipdnn()) {
+    if (debug) {
+      TORCH_WARN("hipDNN is not enabled. Set torch.backends.hipdnn.enabled = True");
+    }
+    return false;
+  }
+  if (!at::detail::getCUDAHooks().compiledWithHipDNN()) {
+    if (debug) {
+      TORCH_WARN("Not compiled with hipDNN.");
+    }
+    return false;
+  }
+  if (has_for_nested_inputs(params)) {
+    if (debug) {
+      TORCH_WARN("hipDNN SDPA does not support nested tensors.");
+    }
+    return false;
+  }
+  if (!check_all_tensors_on_device(params, debug)) {
+    return false;
+  }
+  // Validate assumptions used in the translation to hipDNN.
+  constexpr auto hipdnn_dtypes =
+      c10::array_of<at::ScalarType>(at::kHalf, at::kBFloat16, at::kFloat, at::kDouble);
+  if (!check_tensor_dtype(params, hipdnn_dtypes, debug) ||
+      !check_tensor_shapes(params, debug)) {
+    return false;
+  }
+  // hipDNN doesn't currently have a way to query for deterministic support.
+  if (!check_cudnn_deterministic(params, debug)) {
+    return false;
+  }
+  // Constraint from 'attention.cu's _scaled_dot_product_cudnn_attention_cuda kernel
+  if (!check_attn_mask_shape(params, debug)) {
+    return false;
+  }
+  // Enforces enable_gqa=False: rejects mismatched h_q/h_k/h_v unless the user opted in.
+  // hipDNN infers GQA from head counts, so this must be checked here.
+  if (!check_batch_size_and_num_heads_dense<true /*supports_gqa*/, false /*requires_same_num_heads*/>(params, debug)) {
+    return false;
+  }
+
+  // We need concrete sizes to query availability, so bail out on symbolic shapes.
+  if (params.query.unsafeGetTensorImpl()->has_symbolic_sizes_strides() ||
+      params.key.unsafeGetTensorImpl()->has_symbolic_sizes_strides() ||
+      params.value.unsafeGetTensorImpl()->has_symbolic_sizes_strides()) {
+    if (debug) {
+      TORCH_WARN("hipDNN SDPA: static shapes are required");
+    }
+    return false;
+  }
+  // Query hipDNN for engine availability.
+  const auto scale = sdp::calculate_scale(params.query, std::nullopt).expect_float();
+  bool supported = at::native::check_cudnn_sdpa_support(
+      params.query.size(0),
+      params.query.size(1),
+      params.query.size(2),
+      params.key.size(2),
+      params.query.size(3),
+      params.value.size(3),
+      scale,
+      input_requires_grad(params),
+      params.is_causal,
+      params.dropout,
+      params.query,
+      params.key,
+      params.value,
+      params.attn_mask);
+  if (!supported && debug) {
+    TORCH_WARN("hipDNN SDPA: no engine available for the given input configuration. "
+               "Set HIPDNN_LOG_LEVEL=info for details.");
+  }
+  return supported;
+#endif // USE_HIPDNN
+
+#else // !USE_ROCM — cuDNN path
+#if !AT_CUDNN_ENABLED() || !defined(CUDNN_VERSION)
   if (debug) {
     TORCH_WARN("Torch was not compiled with cuDNN attention.");
   }
@@ -794,6 +899,7 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
     }
   }
   return true;
+#endif // !USE_ROCM
 }
 
 bool is_flash_attention_available() {

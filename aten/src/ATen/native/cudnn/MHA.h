@@ -97,4 +97,18 @@ void run_cudnn_SDP_bprop_nestedtensor(
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset);
 
+#if defined(USE_ROCM)
+// Checks if hipDNN can handle the given SDPA configuration by building forward
+// (and optionally backward) graphs and verifying engine support. On success,
+// caches the graphs so the subsequent execution path gets cache hits.
+bool check_cudnn_sdpa_support(
+    int64_t b, int64_t h, int64_t s_q, int64_t s_kv,
+    int64_t d_qk, int64_t d_v,
+    float scaling_factor,
+    bool return_softmaxstats, bool is_causal,
+    double dropout_probability,
+    const Tensor& q, const Tensor& k, const Tensor& v,
+    const std::optional<Tensor>& attn_bias);
+#endif
+
 } // namespace at::native
