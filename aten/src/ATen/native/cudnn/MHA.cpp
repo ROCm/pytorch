@@ -2,13 +2,14 @@
 #include <ATen/Config.h>
 #include <ATen/cuda/CUDAConfig.h>
 
-#if AT_CUDNN_ENABLED()
+#if defined(USE_HIPDNN) || AT_CUDNN_ENABLED()
 #include <cudnn_frontend.h>
 #endif
 
-#if defined(USE_ROCM) || !AT_CUDNN_ENABLED() ||         \
-    (defined(CUDNN_VERSION) && CUDNN_VERSION < 8900) || \
-    (defined(CUDNN_FRONTEND_VERSION) && CUDNN_FRONTEND_VERSION < 10100)
+#if (defined(USE_ROCM) && !defined(USE_HIPDNN)) || \
+    (!defined(USE_ROCM) && (!AT_CUDNN_ENABLED() || \
+     (defined(CUDNN_VERSION) && CUDNN_VERSION < 8900) || \
+     (defined(CUDNN_FRONTEND_VERSION) && CUDNN_FRONTEND_VERSION < 10100)))
 namespace at {
 namespace native {
 
@@ -122,10 +123,8 @@ void run_cudnn_SDP_bprop_nestedtensor(
 } // namespace native
 } // namespace at
 
-#else // AT_CUDNN_ENABLED && defined(CUDNN_VERSION) && CUDNN_VERSION >= 8900
-#include <ATen/cudnn/Descriptors.h>
-#include <ATen/cudnn/Types.h>
-#include <ATen/cudnn/Utils.h>
+#else
+#include <ATen/cudnn/Handle.h>
 #include <ATen/native/cudnn/MHA.h>
 #include <ATen/native/transformers/sdp_utils.h>
 
@@ -135,7 +134,6 @@ void run_cudnn_SDP_bprop_nestedtensor(
 #include <ATen/native/utils/ParamsHash.h>
 
 #include <c10/cuda/CUDACachingAllocator.h>
-#include <cudnn.h>
 
 #include <iostream>
 
@@ -195,17 +193,60 @@ int roundup_power2(int dim) {
   return dim;
 }
 
+// TODO: replace with a shared cuDNN/hipDNN dtype util once one exists.
+inline fe::DataType_t to_fe_data_type(c10::ScalarType t) {
+  switch (t) {
+    case kHalf:
+      return fe::DataType_t::HALF;
+    case kBFloat16:
+      return fe::DataType_t::BFLOAT16;
+    case kFloat:
+      return fe::DataType_t::FLOAT;
+    case kDouble:
+      return fe::DataType_t::DOUBLE;
+    case kBool:
+      return fe::DataType_t::BOOLEAN;
+    case kInt:
+      return fe::DataType_t::INT32;
+    case kLong:
+      return fe::DataType_t::INT64;
+    default:
+      TORCH_CHECK(false, "cuDNN/hipDNN SDPA: unexpected tensor dtype ", t);
+  }
+}
+
+// Asserts the runtime tensor's dim/stride/dtype match the graph's
+// Tensor_attributes for the given UID. Used as a defensive check in
+// run_cudnn_SDP_fprop / _bprop to catch cache-key bugs where a graph
+// would otherwise be executed against tensors with different metadata.
+static void check_tensor_matches_graph(
+    const fe::graph::Graph& graph,
+    int64_t uid,
+    const Tensor& t) {
+  fe::graph::Tensor_attributes attrs;
+  AT_CUDNN_FRONTEND_CHECK(graph.query_tensor_attributes_of_uid(uid, attrs));
+  TORCH_CHECK(t.sizes() == IntArrayRef(attrs.get_dim()));
+  TORCH_CHECK(t.strides() == IntArrayRef(attrs.get_stride()));
+  TORCH_CHECK(to_fe_data_type(t.scalar_type()) == attrs.get_data_type());
+}
+
 struct MHAParams {
   c10::DeviceIndex device_id;
   fe::DataType_t dataType;
-  std::array<int, MAX_MHA_DIM> q_dim;
-  std::array<int, MAX_MHA_DIM> k_dim;
-  std::array<int, MAX_MHA_DIM> v_dim;
-  std::array<int, MAX_MHA_DIM> q_stride;
-  std::array<int, MAX_MHA_DIM> k_stride;
-  std::array<int, MAX_MHA_DIM> v_stride;
-  std::array<int, MAX_MHA_DIM> bias_dim;
-  std::array<int, MAX_MHA_DIM> bias_stride;
+#ifdef USE_HIPDNN
+  // hipDNN bakes the scale into the graph, so it must be part of the cache
+  // key.
+  float scaling_factor;
+#endif
+  fe::DataType_t bias_dtype;  // NOTE: on cuDNN this is always the same as `dataType`
+  std::array<int64_t, MAX_MHA_DIM> q_dim;
+  std::array<int64_t, MAX_MHA_DIM> k_dim;
+  std::array<int64_t, MAX_MHA_DIM> v_dim;
+  std::array<int64_t, MAX_MHA_DIM> q_stride;
+  std::array<int64_t, MAX_MHA_DIM> k_stride;
+  std::array<int64_t, MAX_MHA_DIM> v_stride;
+  std::array<int64_t, MAX_MHA_DIM> bias_dim;
+  std::array<int64_t, MAX_MHA_DIM> bias_stride;
   int64_t b;
   int64_t h;
   int64_t s_q;
@@ -218,7 +259,7 @@ struct MHAParams {
   // might be redundant if we take 0 dim/stride
   // as signaling no-bias
   bool has_attn_bias;
-  bool use_ragged;
+  bool use_ragged;  // NOTE: on hipDNN this is always false
 };
 
 void setMHAParams(
@@ -236,6 +277,9 @@ void setMHAParams(
     double dropout_probability,
     bool is_causal,
     bool return_softmaxstats,
+#ifdef USE_HIPDNN
+    float scaling_factor,
+#endif
     bool is_nested) {
   memset(&params, 0, sizeof(MHAParams));
   params.device_id = at::cuda::current_device();
@@ -243,6 +287,9 @@ void setMHAParams(
   if (q.scalar_type() == kBFloat16) {
     params.dataType = fe::DataType_t::BFLOAT16;
   }
+#ifdef USE_HIPDNN
+  params.scaling_factor = scaling_factor;
+#endif
   params.b = b;
   params.h = h;
   params.d_qk = d_qk;
@@ -294,6 +341,7 @@ void setMHAParams(
   }
   // uninit is OK as the struct is memset 0'd
   if (params.has_attn_bias) {
+    params.bias_dtype = to_fe_data_type(attn_bias.value().scalar_type());
     std::copy(
         attn_bias.value().sizes().begin(),
         attn_bias.value().sizes().end(),
@@ -320,6 +368,9 @@ struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
       double dropout_probability,
       bool is_causal,
       bool return_softmaxstats,
+#ifdef USE_HIPDNN
+      float scaling_factor,
+#endif
       bool is_nested) {
     setMHAParams(
         this->pod,
@@ -336,6 +387,9 @@ struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
         dropout_probability,
         is_causal,
         return_softmaxstats,
+#ifdef USE_HIPDNN
+        scaling_factor,
+#endif
         is_nested);
   }
 };
@@ -459,15 +513,10 @@ std::unique_ptr<fe::graph::Graph> build_graph(
     const Tensor& k,
     const Tensor& v,
     const std::optional<Tensor>& attn_bias,
-    Tensor& softmaxstats,
-    Tensor& o,
-    Tensor& dropoutseed,
-    Tensor& dropoutoffset,
-    cudnnHandle_t& handle) {
-  auto dtype = fe::DataType_t::HALF;
-  if (q.scalar_type() == kBFloat16) {
-    dtype = fe::DataType_t::BFLOAT16;
-  }
+    cudnnHandle_t& handle,
+    bool finalize,
+    bool use_ragged) {
+  auto dtype = to_fe_data_type(q.scalar_type());
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   // We're baking in float accumulation and scale types
   // in theory the graph may support other types, but they
@@ -475,6 +524,21 @@ std::unique_ptr<fe::graph::Graph> build_graph(
   mha_graph->set_io_data_type(dtype)
       .set_intermediate_data_type(fe::DataType_t::FLOAT)
       .set_compute_data_type(fe::DataType_t::FLOAT);
+  auto scaled_dot_product_flash_attention_options =
+      fe::graph::SDPA_attributes()
+          .set_name("CUDNN_SDPA")
+#if defined(USE_HIPDNN) || CUDNN_FRONTEND_VERSION > 11200
+          .set_generate_stats(return_softmaxstats)
+#else
+          .set_is_inference(!return_softmaxstats)
+#endif
+          .set_causal_mask(is_causal);
+
+  // Scale is a constant attribute on hipDNN, and a tensor input on cuDNN.
+#ifdef USE_HIPDNN
+  scaled_dot_product_flash_attention_options
+          .set_attn_scale_value(scaling_factor);
+#else
   auto attn_scale =
       mha_graph->tensor(fe::graph::Tensor_attributes()
                             .set_uid(SCALE)
@@ -483,17 +547,10 @@ std::unique_ptr<fe::graph::Graph> build_graph(
                             .set_stride({1, 1, 1, 1})
                             .set_is_pass_by_value(true)
                             .set_data_type(fe::DataType_t::FLOAT));
-  auto scaled_dot_product_flash_attention_options =
-      fe::graph::SDPA_attributes()
-          .set_name("CUDNN_SDPA")
-#if CUDNN_FRONTEND_VERSION <= 11200
-          .set_is_inference(!return_softmaxstats)
-#else
-          .set_generate_stats(return_softmaxstats)
-#endif
-          .set_causal_mask(is_causal)
+  scaled_dot_product_flash_attention_options
           .set_attn_scale(attn_scale);
-  if (use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
+#endif
+  if (use_ragged) {
     auto SEQ_LEN_Q_ =
         mha_graph->tensor(fe::graph::Tensor_attributes()
                               .set_uid(SEQ_LEN_Q)
@@ -508,29 +565,29 @@ std::unique_ptr<fe::graph::Graph> build_graph(
                               .set_dim({b, 1, 1, 1})
                               .set_stride({1, 1, 1, 1})
                               .set_data_type(fe::DataType_t::INT32));
+#ifdef USE_HIPDNN
+    TORCH_CHECK(false, "ragged-in-dense SDPA is not supported on hipDNN");
+#else
     scaled_dot_product_flash_attention_options.set_seq_len_q(SEQ_LEN_Q_)
         .set_seq_len_kv(SEQ_LEN_KV_)
         .set_padding_mask(true);
+#endif
   }
   if (dropout_probability != 0.0f) {
+    // Hardcode INT64 for droutout seed/offset; attention.cpp / attention.cu always
+    // allocates INT64 tensors.
     auto seed = mha_graph->tensor(fe::graph::Tensor_attributes()
                                       .set_uid(SEED)
                                       .set_name("Seed")
                                       .set_dim({1, 1, 1, 1})
                                       .set_stride({1, 1, 1, 1})
-                                      .set_data_type(
-                                          dropoutseed.dtype() == kInt
-                                              ? fe::DataType_t::INT32
-                                              : fe::DataType_t::INT64));
+                                      .set_data_type(fe::DataType_t::INT64));
     auto offset = mha_graph->tensor(fe::graph::Tensor_attributes()
                                         .set_uid(OFFSET)
                                         .set_name("Offset")
                                         .set_dim({1, 1, 1, 1})
                                         .set_stride({1, 1, 1, 1})
-                                        .set_data_type(
-                                            dropoutoffset.dtype() == kInt
-                                                ? fe::DataType_t::INT32
-                                                : fe::DataType_t::INT64));
+                                        .set_data_type(fe::DataType_t::INT64));
     scaled_dot_product_flash_attention_options.set_dropout(
         dropout_probability, seed, offset);
   }
@@ -546,19 +603,31 @@ std::unique_ptr<fe::graph::Graph> build_graph(
                               .set_uid(BIAS)
                               .set_name("bias")
                               .set_dim(attn_bias.value().sizes().vec())
-                              .set_stride(attn_bias.value().strides().vec())));
+                              .set_stride(attn_bias.value().strides().vec())
+                              .set_data_type(to_fe_data_type(
+                                  attn_bias.value().scalar_type()))));
   }
 
   auto [O_, Stats] =
       mha_graph->sdpa(Q_, K_, V_, scaled_dot_product_flash_attention_options);
   O_->set_uid(O).set_output(true);
+  // Stats / O metadata is inferred from {b, h, s_q, d_v} + Q's layout.
+  // PyTorch's dispatch always allocates softmaxstats as
+  // at::empty({b, h, s_q, 1}) (contiguous {h*s_q, s_q, 1, 1} strides) and o
+  // via alloc_with_matching_layout(q, o, {b, h, s_q, d_v}) — so the inferred
+  // metadata equals what reading the actual tensors would produce.
+  // O sizes and strides are inferred (no `o` tensor at build time): O is
+  // {b, h, s_q, d_v} matching Q's layout (mirrors alloc_with_matching_layout).
+  std::vector<int64_t> o_sizes = {b, h, s_q, d_v};
+  auto o_strides = compute_matching_strides(q.sizes(), q.strides(), o_sizes);
   if (Stats) {
     Stats->set_uid(LSE)
         .set_output(true)
         .set_data_type(fe::DataType_t::FLOAT)
-        .set_stride(softmaxstats.strides().vec());
+        // Inferred: contiguous {b, h, s_q, 1} layout (matches at::empty).
+        .set_stride({h * s_q, s_q, 1, 1});
   }
-  if (use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
+  if (use_ragged) {
     auto RAG_Q_OFF_ =
         mha_graph->tensor(fe::graph::Tensor_attributes()
                               .set_uid(RAG_Q_OFF)
@@ -594,14 +663,18 @@ std::unique_ptr<fe::graph::Graph> build_graph(
                               .set_dim({b + 1, 1, 1, 1})
                               .set_stride({1, 1, 1, 1})
                               .set_data_type(fe::DataType_t::INT32));
+#ifndef USE_HIPDNN
     O_->set_ragged_offset(RAG_O_OFF_);
     Q_->set_ragged_offset(RAG_Q_OFF_);
     K_->set_ragged_offset(RAG_K_OFF_);
     V_->set_ragged_offset(RAG_V_OFF_);
+#else
+    TORCH_CHECK(false, "ragged-in-dense SDPA is not supported on hipDNN");
+#endif
     auto qsizevec = q.sizes().vec();
     auto ksizevec = k.sizes().vec();
     auto vsizevec = v.sizes().vec();
-    auto osizevec = o.sizes().vec();
+    auto osizevec = o_sizes;
     qsizevec[2] = roundup_power2(qsizevec[2]);
     ksizevec[2] = roundup_power2(ksizevec[2]);
     vsizevec[2] = roundup_power2(vsizevec[2]);
@@ -618,8 +691,10 @@ std::unique_ptr<fe::graph::Graph> build_graph(
     O_->set_dim(osizevec).set_stride(
         {INT_MAX, osizevec[3], osizevec[1] * osizevec[3], 1});
     if (Stats) {
+#ifndef USE_HIPDNN
       Stats->set_ragged_offset(RAG_STATS_OFF_);
-      auto statssizevec = softmaxstats.sizes().vec();
+#endif
+      std::vector<int64_t> statssizevec = {b, h, s_q, 1};
       statssizevec[2] = roundup_power2(statssizevec[2]);
       Stats->set_dim(statssizevec);
     }
@@ -630,19 +705,21 @@ std::unique_ptr<fe::graph::Graph> build_graph(
         .set_stride(fixSizeOneDimStrideSDPA(k.sizes(), k.strides().vec()));
     V_->set_dim(v.sizes().vec())
         .set_stride(fixSizeOneDimStrideSDPA(v.sizes(), v.strides().vec()));
-    O_->set_dim(o.sizes().vec())
-        .set_stride(fixSizeOneDimStrideSDPA(o.sizes(), o.strides().vec()));
+    O_->set_dim(o_sizes)
+        .set_stride(fixSizeOneDimStrideSDPA(o_sizes, o_strides));
     if (Stats) {
-      Stats->set_dim(softmaxstats.sizes().vec());
+      Stats->set_dim({b, h, s_q, 1});
     }
   }
 
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->build_operation_graph(handle));
-  AT_CUDNN_FRONTEND_CHECK(
-      mha_graph->create_execution_plans({fe::HeurMode_t::A}));
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+  if (finalize) {
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->build_operation_graph(handle));
+    AT_CUDNN_FRONTEND_CHECK(
+        mha_graph->create_execution_plans({fe::HeurMode_t::A}));
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+  }
 
   return mha_graph;
 }
@@ -671,6 +748,9 @@ std::unique_ptr<fe::graph::Graph> build_graph_nestedtensor(
     Tensor& dropoutseed,
     Tensor& dropoutoffset,
     cudnnHandle_t& handle) {
+#ifdef USE_HIPDNN
+  TORCH_CHECK(false, "nested-tensor SDPA is not supported on hipDNN");
+#else
   auto dtype = fe::DataType_t::HALF;
   if (q.scalar_type() == kBFloat16) {
     dtype = fe::DataType_t::BFLOAT16;
@@ -852,6 +932,7 @@ std::unique_ptr<fe::graph::Graph> build_graph_nestedtensor(
   AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
   return mha_graph;
+#endif
 }
 
 std::unique_ptr<fe::graph::Graph> build_graph_backward(
@@ -868,19 +949,10 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
     const Tensor& k,
     const Tensor& v,
     const std::optional<Tensor>& attn_bias,
-    const Tensor& o,
-    const Tensor& dO,
-    const Tensor& softmaxstats,
-    Tensor& dQ,
-    Tensor& dK,
-    Tensor& dV,
-    const Tensor& dropoutseed,
-    const Tensor& dropoutoffset,
-    cudnnHandle_t& handle) {
-  auto dtype = fe::DataType_t::HALF;
-  if (q.scalar_type() == kBFloat16) {
-    dtype = fe::DataType_t::BFLOAT16;
-  }
+    cudnnHandle_t& handle,
+    bool finalize,
+    bool use_ragged) {
+  auto dtype = to_fe_data_type(q.scalar_type());
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   // We're baking in float accumulation and scale types
   // in theory the graph may support other types, but they
@@ -888,6 +960,7 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
   mha_graph->set_io_data_type(dtype)
       .set_intermediate_data_type(fe::DataType_t::FLOAT)
       .set_compute_data_type(fe::DataType_t::FLOAT);
+#ifndef USE_HIPDNN
   auto attn_scale =
       mha_graph->tensor(fe::graph::Tensor_attributes()
                             .set_uid(SCALE)
@@ -896,11 +969,16 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
                             .set_stride({1, 1, 1, 1})
                             .set_is_pass_by_value(true)
                             .set_data_type(fe::DataType_t::FLOAT));
+#endif
   auto sdpa_backward_options = fe::graph::SDPA_backward_attributes()
                                    .set_name("CUDNN_SDPA_BACKWARD")
                                    .set_causal_mask(is_causal)
+#ifdef USE_HIPDNN
+                                   .set_attn_scale_value(scaling_factor);
+#else
                                    .set_attn_scale(attn_scale);
-  if (use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
+#endif
+  if (use_ragged) {
     auto SEQ_LEN_Q_ =
         mha_graph->tensor(fe::graph::Tensor_attributes()
                               .set_uid(SEQ_LEN_Q)
@@ -915,9 +993,13 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
                               .set_dim({b, 1, 1, 1})
                               .set_stride({1, 1, 1, 1})
                               .set_data_type(fe::DataType_t::INT32));
+#ifndef USE_HIPDNN
     sdpa_backward_options.set_seq_len_q(SEQ_LEN_Q_)
         .set_seq_len_kv(SEQ_LEN_KV_)
         .set_padding_mask(true);
+#else
+    TORCH_CHECK(false, "ragged-in-dense SDPA is not supported on hipDNN");
+#endif
   }
 
   auto Q_ = mha_graph->tensor(
@@ -932,7 +1014,9 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
                               .set_uid(BIAS)
                               .set_name("bias")
                               .set_dim(attn_bias.value().sizes().vec())
-                              .set_stride(attn_bias.value().strides().vec())));
+                              .set_stride(attn_bias.value().strides().vec())
+                              .set_data_type(to_fe_data_type(
+                                  attn_bias.value().scalar_type()))));
   }
   if (dropout_probability != 0.0f) {
     auto seed = mha_graph->tensor(fe::graph::Tensor_attributes()
@@ -940,27 +1024,24 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
                                       .set_name("Seed")
                                       .set_dim({1, 1, 1, 1})
                                       .set_stride({1, 1, 1, 1})
-                                      .set_data_type(
-                                          dropoutseed.dtype() == kInt
-                                              ? fe::DataType_t::INT32
-                                              : fe::DataType_t::INT64));
+                                      .set_data_type(fe::DataType_t::INT64));
     auto offset = mha_graph->tensor(fe::graph::Tensor_attributes()
                                         .set_uid(OFFSET)
                                         .set_name("Offset")
                                         .set_dim({1, 1, 1, 1})
                                         .set_stride({1, 1, 1, 1})
-                                        .set_data_type(
-                                            dropoutoffset.dtype() == kInt
-                                                ? fe::DataType_t::INT32
-                                                : fe::DataType_t::INT64));
+                                        .set_data_type(fe::DataType_t::INT64));
     sdpa_backward_options.set_dropout(dropout_probability, seed, offset);
   }
   auto O_ = mha_graph->tensor(
       fe::graph::Tensor_attributes().set_uid(O).set_name("O"));
+  // Infer the standard contiguous {b,h,s_q,1} Stats layout (matches
+  // at::empty allocation).
   auto Stats = mha_graph->tensor(fe::graph::Tensor_attributes()
                                      .set_uid(LSE)
                                      .set_name("Stats")
-                                     .set_stride(softmaxstats.strides().vec())
+                                     .set_dim({b, h, s_q, 1})
+                                     .set_stride({h * s_q, s_q, 1, 1})
                                      .set_data_type(fe::DataType_t::FLOAT));
   auto Do = mha_graph->tensor(
       fe::graph::Tensor_attributes().set_uid(DO).set_name("DO"));
@@ -969,7 +1050,12 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
   Dq->set_uid(DQ).set_output(true);
   Dk->set_uid(DK).set_output(true);
   Dv->set_uid(DV).set_output(true);
-  if (use_ragged_in_dense(q, k, v, o, attn_bias.has_value())) {
+  // O/dO sizes and strides are inferred (no `o`/`dO` tensor at build time):
+  // O/dO is {b, h, s_q, d_v} matching Q's layout. dQ/dK/dV share Q/K/V's
+  // layout (PyTorch's dispatch ensures matching strides).
+  std::vector<int64_t> o_sizes = {b, h, s_q, d_v};
+  auto o_strides = compute_matching_strides(q.sizes(), q.strides(), o_sizes);
+  if (use_ragged) {
     auto RAG_Q_OFF_ =
         mha_graph->tensor(fe::graph::Tensor_attributes()
                               .set_uid(RAG_Q_OFF)
@@ -1005,6 +1091,7 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
                               .set_dim({b + 1, 1, 1, 1})
                               .set_stride({1, 1, 1, 1})
                               .set_data_type(fe::DataType_t::INT32));
+#ifndef USE_HIPDNN
     O_->set_ragged_offset(RAG_O_OFF_);
     Q_->set_ragged_offset(RAG_Q_OFF_);
     K_->set_ragged_offset(RAG_K_OFF_);
@@ -1013,10 +1100,13 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
     Dk->set_ragged_offset(RAG_K_OFF_);
     Dv->set_ragged_offset(RAG_V_OFF_);
     Do->set_ragged_offset(RAG_O_OFF_);
+#else
+    TORCH_CHECK(false, "ragged-in-dense SDPA is not supported on hipDNN");
+#endif
     auto qsizevec = q.sizes().vec();
     auto ksizevec = k.sizes().vec();
     auto vsizevec = v.sizes().vec();
-    auto osizevec = o.sizes().vec();
+    auto osizevec = o_sizes;
     qsizevec[2] = roundup_power2(qsizevec[2]);
     ksizevec[2] = roundup_power2(ksizevec[2]);
     vsizevec[2] = roundup_power2(vsizevec[2]);
@@ -1041,28 +1131,32 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward(
     Do->set_dim(osizevec).set_stride(
         {INT_MAX, osizevec[3], osizevec[1] * osizevec[3], 1});
 
+#ifndef USE_HIPDNN
     Stats->set_ragged_offset(RAG_STATS_OFF_);
-    auto statssizevec = softmaxstats.sizes().vec();
+#endif
+    std::vector<int64_t> statssizevec = {b, h, s_q, 1};
     statssizevec[2] = roundup_power2(statssizevec[2]);
     Stats->set_dim(statssizevec);
   } else {
-    O_->set_dim(o.sizes().vec()).set_stride(o.strides().vec());
     Q_->set_dim(q.sizes().vec()).set_stride(q.strides().vec());
     K_->set_dim(k.sizes().vec()).set_stride(k.strides().vec());
     V_->set_dim(v.sizes().vec()).set_stride(v.strides().vec());
-    Dq->set_dim(dQ.sizes().vec()).set_stride(dQ.strides().vec());
-    Dk->set_dim(dK.sizes().vec()).set_stride(dK.strides().vec());
-    Dv->set_dim(dV.sizes().vec()).set_stride(dV.strides().vec());
-    Do->set_dim(dO.sizes().vec()).set_stride(dO.strides().vec());
-    Stats->set_dim(softmaxstats.sizes().vec());
+    O_->set_dim(o_sizes).set_stride(o_strides);
+    Dq->set_dim(q.sizes().vec()).set_stride(q.strides().vec());
+    Dk->set_dim(k.sizes().vec()).set_stride(k.strides().vec());
+    Dv->set_dim(v.sizes().vec()).set_stride(v.strides().vec());
+    Do->set_dim(o_sizes).set_stride(o_strides);
+    Stats->set_dim({b, h, s_q, 1});
   }
 
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->build_operation_graph(handle));
-  AT_CUDNN_FRONTEND_CHECK(
-      mha_graph->create_execution_plans({fe::HeurMode_t::A}));
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
-  AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+  if (finalize) {
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->validate());
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->build_operation_graph(handle));
+    AT_CUDNN_FRONTEND_CHECK(
+        mha_graph->create_execution_plans({fe::HeurMode_t::A}));
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
+    AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
+  }
   return mha_graph;
 }
 
@@ -1093,6 +1187,9 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward_nestedtensor(
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset,
     cudnnHandle_t& handle) {
+#ifdef USE_HIPDNN
+  TORCH_CHECK(false, "nested-tensor SDPA backward is not supported on hipDNN");
+#else
   auto dtype = fe::DataType_t::HALF;
   if (q.scalar_type() == kBFloat16) {
     dtype = fe::DataType_t::BFLOAT16;
@@ -1305,6 +1402,7 @@ std::unique_ptr<fe::graph::Graph> build_graph_backward_nestedtensor(
   AT_CUDNN_FRONTEND_CHECK(mha_graph->check_support(handle));
   AT_CUDNN_FRONTEND_CHECK(mha_graph->build_plans(handle));
   return mha_graph;
+#endif
 }
 
 void run_cudnn_SDP_fprop(
@@ -1367,14 +1465,16 @@ void run_cudnn_SDP_fprop(
     }
   }
 
-  const auto dprops = at::cuda::getCurrentDeviceProperties();
   auto _dropoutseed = dropoutseed;
   auto _dropoutoffset = dropoutoffset;
+#ifndef USE_HIPDNN
+  const auto dprops = at::cuda::getCurrentDeviceProperties();
   // cuDNN dropout bug requires these to be in int64
   if (dprops->major == 10 && dprops->minor == 0) {
     _dropoutseed = dropoutseed.to(kLong);
     _dropoutoffset = dropoutoffset.to(kLong);
   }
+#endif
 
   cudnnHandle_t handle = getCudnnHandle();
 
@@ -1395,9 +1495,12 @@ void run_cudnn_SDP_fprop(
       dropout_probability,
       is_causal,
       return_softmaxstats,
-      false);
-  auto [cache_it, not_found] = getMHAGraphCache_().try_emplace(key, nullptr);
-  if (not_found) {
+#ifdef USE_HIPDNN
+      scaling_factor,
+#endif
+      /*is_nested=*/false);
+  auto cache_it = getMHAGraphCache_().try_emplace(key, nullptr).first;
+  if (cache_it->second == nullptr) {
     cache_it->second = build_graph(
         b,
         h,
@@ -1413,18 +1516,35 @@ void run_cudnn_SDP_fprop(
         k,
         v,
         attn_bias,
-        softmaxstats,
-        o,
-        _dropoutseed,
-        _dropoutoffset,
-        handle);
+        handle,
+        /*finalize=*/true,
+        use_ragged);
   }
   const fe::graph::Graph& mha_graph = *cache_it->second;
+  // Validate that the runtime tensor metadata still matches the
+  // cached graph.
+  check_tensor_matches_graph(mha_graph, Q, q);
+  check_tensor_matches_graph(mha_graph, K, k);
+  check_tensor_matches_graph(mha_graph, V, v);
+  check_tensor_matches_graph(mha_graph, O, o);
+  if (return_softmaxstats) {
+    check_tensor_matches_graph(mha_graph, LSE, softmaxstats);
+  }
+  if (attn_bias.has_value()) {
+    check_tensor_matches_graph(mha_graph, BIAS, attn_bias.value());
+  }
+  if (dropout_probability != 0.0f) {
+    check_tensor_matches_graph(mha_graph, SEED, _dropoutseed);
+    check_tensor_matches_graph(mha_graph, OFFSET, _dropoutoffset);
+  }
   std::unordered_map<int64_t, void*> variant_pack = {
       {Q, q.mutable_data_ptr()},
       {K, k.mutable_data_ptr()},
       {V, v.mutable_data_ptr()},
+#ifndef USE_HIPDNN
+      // hipDNN bakes the scale into the graph; no SCALE tensor.
       {SCALE, &scaling_factor},
+#endif
       {O, o.mutable_data_ptr()}};
   if (return_softmaxstats) {
     variant_pack[LSE] = softmaxstats.mutable_data_ptr();
@@ -1447,7 +1567,12 @@ void run_cudnn_SDP_fprop(
       variant_pack[RAG_LSE_OFF] = rag_off_lse.mutable_data_ptr();
     }
   }
+#if defined(USE_HIPDNN) || CUDNN_FRONTEND_VERSION >= 10700
+  int64_t workspace_size = 0;
+  AT_CUDNN_FRONTEND_CHECK(mha_graph.get_workspace_size(workspace_size));
+#else
   auto workspace_size = mha_graph.get_workspace_size();
+#endif
   auto workspace_ptr =
       c10::cuda::CUDACachingAllocator::get()->allocate(workspace_size);
   TORCH_CHECK(
@@ -1477,6 +1602,9 @@ void run_cudnn_SDP_fprop_nestedtensor(
     Tensor& o,
     Tensor& dropoutseed,
     Tensor& dropoutoffset) {
+#ifdef USE_HIPDNN
+  TORCH_CHECK(false, "nested-tensor SDPA is not supported on hipDNN");
+#else
   cudnnHandle_t handle = getCudnnHandle();
   // do nothing if we got 0-element tensors
   if (!q.numel() || !k.numel() || !v.numel()) {
@@ -1574,6 +1702,7 @@ void run_cudnn_SDP_fprop_nestedtensor(
       c10::cuda::CUDACachingAllocator::get()->allocate(workspace_size);
   TORCH_CHECK(
       mha_graph.execute(handle, variant_pack, workspace_ptr.get()).is_good());
+#endif
 }
 
 void run_cudnn_SDP_bprop(
@@ -1606,14 +1735,16 @@ void run_cudnn_SDP_bprop(
   Tensor seqlen_q, seqlen_kv;
   Tensor rag_off_q, rag_off_k, rag_off_v, rag_off_o, rag_off_lse;
 
-  auto dprops = at::cuda::getCurrentDeviceProperties();
   auto _dropoutseed = dropoutseed;
   auto _dropoutoffset = dropoutoffset;
+#ifndef USE_HIPDNN
+  auto dprops = at::cuda::getCurrentDeviceProperties();
   // cuDNN dropout bug requires these to be in int64
   if (dprops->major == 10 && dprops->minor == 0) {
     _dropoutseed = dropoutseed.to(kLong);
     _dropoutoffset = dropoutoffset.to(kLong);
   }
+#endif
 
   Tensor dO_ = dO;
 // cuDNN < 9.5.1 assumes gradOutput has same strides as Output
@@ -1669,10 +1800,13 @@ void run_cudnn_SDP_bprop(
       dropout_probability,
       is_causal,
       true,
-      false);
-  auto [cache_it, not_found] =
-      getMHAGraphBackwardCache_().try_emplace(key, nullptr);
-  if (not_found) {
+#ifdef USE_HIPDNN
+      scaling_factor,
+#endif
+      /*is_nested=*/false);
+  auto cache_it =
+      getMHAGraphBackwardCache_().try_emplace(key, nullptr).first;
+  if (cache_it->second == nullptr) {
     cache_it->second = build_graph_backward(
         b,
         h,
@@ -1687,17 +1821,27 @@ void run_cudnn_SDP_bprop(
         k,
         v,
         attn_bias,
-        o,
-        dO_,
-        softmaxstats,
-        dQ,
-        dK,
-        dV,
-        _dropoutseed,
-        _dropoutoffset,
-        handle);
+        handle,
+        /*finalize=*/true,
+        use_ragged_in_dense(q, k, v, o, attn_bias.has_value()));
   }
   const fe::graph::Graph& mha_graph = *cache_it->second;
+  check_tensor_matches_graph(mha_graph, Q, q);
+  check_tensor_matches_graph(mha_graph, K, k);
+  check_tensor_matches_graph(mha_graph, V, v);
+  check_tensor_matches_graph(mha_graph, O, o);
+  check_tensor_matches_graph(mha_graph, DO, dO_);
+  check_tensor_matches_graph(mha_graph, LSE, softmaxstats);
+  check_tensor_matches_graph(mha_graph, DQ, dQ);
+  check_tensor_matches_graph(mha_graph, DK, dK);
+  check_tensor_matches_graph(mha_graph, DV, dV);
+  if (attn_bias.has_value()) {
+    check_tensor_matches_graph(mha_graph, BIAS, attn_bias.value());
+  }
+  if (dropout_probability != 0.0f) {
+    check_tensor_matches_graph(mha_graph, SEED, _dropoutseed);
+    check_tensor_matches_graph(mha_graph, OFFSET, _dropoutoffset);
+  }
 
   std::unordered_map<int64_t, void*> variant_pack = {
       // inputs
@@ -1711,7 +1855,10 @@ void run_cudnn_SDP_bprop(
       {DQ, dQ.mutable_data_ptr()},
       {DK, dK.mutable_data_ptr()},
       {DV, dV.mutable_data_ptr()},
-      {SCALE, &scaling_factor}};
+#ifndef USE_HIPDNN
+      {SCALE, &scaling_factor}
+#endif
+  };
   if (dropout_probability != 0.0f) {
     variant_pack[SEED] = _dropoutseed.mutable_data_ptr();
     variant_pack[OFFSET] = _dropoutoffset.mutable_data_ptr();
@@ -1729,7 +1876,12 @@ void run_cudnn_SDP_bprop(
     variant_pack[RAG_LSE_OFF] = rag_off_lse.mutable_data_ptr();
   }
 
+#if defined(USE_HIPDNN) || CUDNN_FRONTEND_VERSION >= 10700
+  int64_t workspace_size = 0;
+  AT_CUDNN_FRONTEND_CHECK(mha_graph.get_workspace_size(workspace_size));
+#else
   auto workspace_size = mha_graph.get_workspace_size();
+#endif
   auto workspace_ptr =
       c10::cuda::CUDACachingAllocator::get()->allocate(workspace_size);
   TORCH_CHECK(!workspace_size || workspace_ptr.get());
@@ -1763,6 +1915,9 @@ void run_cudnn_SDP_bprop_nestedtensor(
     Tensor& dV,
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset) {
+#ifdef USE_HIPDNN
+  TORCH_CHECK(false, "nested-tensor SDPA is not supported on hipDNN");
+#else
   // do nothing if we got 0-element tensors
   if (!q.numel() || !k.numel() || !v.numel() || !o.numel() || !dO.numel() ||
       !softmaxstats.numel()) {
@@ -1879,6 +2034,89 @@ void run_cudnn_SDP_bprop_nestedtensor(
   TORCH_CHECK(!workspace_size || workspace_ptr.get());
   TORCH_CHECK(
       mha_graph.execute(handle, variant_pack, workspace_ptr.get()).is_good());
+#endif
+}
+
+using MHASupportCache = std::unordered_map<
+    MHACacheKeyWrapper,
+    bool,
+    ParamsWrapperHash<MHACacheKeyWrapper>>;
+static MHASupportCache& getMHASupportCache_() {
+  thread_local MHASupportCache instance;
+  return instance;
+}
+
+
+bool check_cudnn_sdpa_support(sdp::sdp_params const& params, bool debug) {
+#ifndef USE_HIPDNN
+  return true;
+#else
+  const Tensor& q = params.query;
+  const Tensor& k = params.key;
+  const Tensor& v = params.value;
+  // Concrete sizes are required to query the backend.
+  if (q.unsafeGetTensorImpl()->has_symbolic_sizes_strides() ||
+      k.unsafeGetTensorImpl()->has_symbolic_sizes_strides() ||
+      v.unsafeGetTensorImpl()->has_symbolic_sizes_strides()) {
+    if (debug) {
+      TORCH_WARN("hipDNN SDPA: static shapes are required");
+    }
+    return false;
+  }
+  const int64_t b = q.size(0);
+  const int64_t h = q.size(1);
+  const int64_t s_q = q.size(2);
+  const int64_t s_kv = k.size(2);
+  const int64_t d_qk = q.size(3);
+  const int64_t d_v = v.size(3);
+  const float scaling_factor =
+      sdp::calculate_scale(q, params.scale).expect_float();
+  const bool return_softmaxstats = sdp::input_requires_grad(params);
+
+  // Mirror attention.cpp's bias rank handling so the cache key matches what
+  // run_cudnn_SDP_fprop sees at dispatch time.
+  std::optional<Tensor> bias = params.attn_mask;
+  if (bias.has_value()) {
+    const auto rank = bias.value().dim();
+    TORCH_CHECK(
+        rank == 2 || rank == 3 || rank == 4,
+        "hipDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ",
+        rank,
+        "D");
+    const int64_t h_bias = rank == 4 ? bias.value().size(1) : 1;
+    bias = bias.value().expand({b, h_bias, s_q, s_kv});
+  }
+
+  cudnnHandle_t handle = getCudnnHandle();
+
+  MHACacheKeyWrapper key(
+      b, h, s_q, s_kv, d_qk, d_v, q, k, v, bias, params.dropout,
+      params.is_causal, return_softmaxstats, scaling_factor,
+      /*is_nested=*/false);
+  auto [it, not_probed] = getMHASupportCache_().try_emplace(key, false);
+  if (not_probed) {
+    // NOTE: We assume use_ragged=false here as hipDNN doesn't support them currently.
+    auto fwd_graph = build_graph(
+        b, h, s_q, s_kv, d_qk, d_v, scaling_factor, return_softmaxstats,
+        params.is_causal, params.dropout, q, k, v, bias, handle,
+        /*finalize=*/false, /*use_ragged=*/false);
+    it->second = fwd_graph->is_supported_ext(handle).is_good();
+    // Backward support probe. Only needed when grad is required.
+    if (it->second && return_softmaxstats) {
+      auto bwd_graph = build_graph_backward(
+          b, h, s_q, s_kv, d_qk, d_v, scaling_factor, params.is_causal,
+          params.dropout, q, k, v, bias, handle,
+          /*finalize=*/false, /*use_ragged=*/false);
+      it->second = bwd_graph->is_supported_ext(handle).is_good();
+    }
+  }
+  if (!it->second && debug) {
+    TORCH_WARN(
+        "hipDNN SDPA: no engine available for the given input configuration. "
+        "Set HIPDNN_LOG_LEVEL=info for details.");
+  }
+  return it->second;
+#endif // USE_HIPDNN
 }
 
 } // namespace at::native

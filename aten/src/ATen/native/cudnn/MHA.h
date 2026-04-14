@@ -1,6 +1,8 @@
 #pragma once
 #include <ATen/core/Tensor.h>
 
+#include <ATen/native/transformers/sdp_utils_cpp.h>
+
 namespace at::native {
 
 void run_cudnn_SDP_fprop(
@@ -96,5 +98,10 @@ void run_cudnn_SDP_bprop_nestedtensor(
     Tensor& dV,
     const Tensor& dropoutseed,
     const Tensor& dropoutoffset);
+
+// Query backend to determine if graph configuration is supported.
+// Matches the constraint-function signature so it can drop into the
+// can_use_cudnn_attention check chain.
+bool check_cudnn_sdpa_support(sdp::sdp_params const& params, bool debug);
 
 } // namespace at::native

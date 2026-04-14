@@ -34,6 +34,8 @@
 #define USE_ROCM_ATTENTION 0
 #endif
 
+#include <ATen/native/cudnn/MHA.h>
+
 // Avoid potential compiler -Wall -Werror complains undefined macro
 #ifndef AOTRITON_VERSION_MINOR
 #define AOTRITON_VERSION_MINOR 0
@@ -76,6 +78,10 @@ bool priority_order_init_ = false;
 // TODO(eqy): more benchmarking to determine whether this should include sm86/89
 // Needs to be kept in-sync with test_fused_chocie in test_transformers.py
 bool check_prefer_cudnn_attention() {
+  static const bool force_prefer = c10::utils::check_env("TORCH_CUDNN_SDPA_PREFERRED") == true;
+  if (force_prefer) {
+    return true;
+  }
   static const bool prefer_cudnn = c10::utils::check_env("TORCH_CUDNN_SDPA_DEPRIORITIZED") != true;
   if (!prefer_cudnn) {
     return false;
@@ -111,6 +117,17 @@ std::array<SDPBackend, num_backends> priority_order(sdp_params const& params) {
                                                   static_cast<int64_t>(at::SDPBackend::math)};
         at::globalContext().setSDPPriorityOrder(cudnn_order);
     }
+#if USE_ROCM
+    else {
+      // On ROCm, default to hipDNN above math fallback.
+      const std::vector<int64_t> rocm_order = {static_cast<int64_t>(at::SDPBackend::flash_attention),
+                                               static_cast<int64_t>(at::SDPBackend::efficient_attention),
+                                               static_cast<int64_t>(at::SDPBackend::cudnn_attention),
+                                               static_cast<int64_t>(at::SDPBackend::math),
+                                               static_cast<int64_t>(at::SDPBackend::overrideable)};
+      at::globalContext().setSDPPriorityOrder(rocm_order);
+    }
+#endif
   }
   return at::globalContext().sDPPriorityOrder();
 }
@@ -735,15 +752,49 @@ bool check_cudnn_deterministic(const sdp_params& params, bool debug) {
   return true;
 }
 
+#if defined(USE_HIPDNN)
+bool check_hipdnn_enabled(sdp_params const& params, bool debug) {
+  if (!at::globalContext().userEnabledHipdnn()) {
+    if (debug) {
+      TORCH_WARN("hipDNN is not enabled. Set torch.backends.hipdnn.enabled = True");
+    }
+    return false;
+  }
+  return true;
+}
+
+bool check_no_nested_inputs_hipdnn(sdp_params const& params, bool debug) {
+  if (has_for_nested_inputs(params)) {
+    if (debug) {
+      TORCH_WARN("hipDNN SDPA does not support nested tensors.");
+    }
+    return false;
+  }
+  return true;
+}
+
+bool check_dtypes_hipdnn(sdp_params const& params, bool debug) {
+  constexpr auto hipdnn_dtypes = c10::array_of<at::ScalarType>(
+      at::kHalf, at::kBFloat16, at::kFloat, at::kDouble);
+  return check_tensor_dtype(params, hipdnn_dtypes, debug);
+}
+#endif // USE_HIPDNN
+
 } // namespace
 
 bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
-#if defined(USE_ROCM) || !AT_CUDNN_ENABLED() || !defined(CUDNN_VERSION)
+#if defined(USE_ROCM) && !defined(USE_HIPDNN)
+  if (debug) {
+    TORCH_WARN("Torch was not compiled with hipDNN.");
+  }
+  return false;
+#elif !defined(USE_ROCM) && (!AT_CUDNN_ENABLED() || !defined(CUDNN_VERSION))
   if (debug) {
     TORCH_WARN("Torch was not compiled with cuDNN attention.");
   }
   return false;
-#endif
+#else
+
 #if defined(CUDNN_VERSION) && CUDNN_VERSION < 90000
   if (debug) {
     TORCH_WARN(CUDNN_VERSION, " cuDNN version too old to use cuDNN Attention (< v9.0.0)");
@@ -759,31 +810,43 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
     return false;
   }
 #endif
-  // Define gate functions that determine if a flash kernel can be ran
-  // Replace with std::to_array when we migrate to c++20
+
+  // Common constraint chain for cuDNN and hipDNN. Replace c10::array_of with
+  // std::to_array when we migrate to c++20.
   constexpr auto general_constraints =
       c10::array_of<bool (*)(sdp_params const&, bool)>(
           check_runtime_disabled_cudnn,
+#ifdef USE_HIPDNN
+          check_hipdnn_enabled,
+          check_no_nested_inputs_hipdnn,
+          check_dtypes_hipdnn,
+#else
           check_for_nested_inputs,
+          check_cudnn_hardware_support,
+          check_cudnn_dropout,
+          check_dtypes_low_precision,
+#endif
           check_all_tensors_on_device,
           check_tensor_shapes,
           check_cudnn_deterministic,
-          check_dtypes_low_precision,
           check_attn_mask_shape,
-          check_cudnn_hardware_support,
-          check_cudnn_dropout
-          );
+          at::native::check_cudnn_sdpa_support
+      );
   for (auto& constraint : general_constraints) {
     if (!constraint(params, debug)) {
       return false;
     }
   }
+
+  // Dense-only constraints. hipDNN already rejects nested inputs above.
   constexpr auto dense_constraints =
       c10::array_of<bool (*)(sdp_params const&, bool)>(
+#ifndef USE_HIPDNN
       check_nonzero_sequence_lengths_dense,
       check_last_dim_stride_equals_1_dense<true /*ignore_singleton_dim=*/>,
-      check_batch_size_and_num_heads_dense<true /*enable_gqa*/, false /*requires_same_num_heads*/>,
-      check_cudnn_tensor_shapes
+      check_cudnn_tensor_shapes,
+#endif
+      check_batch_size_and_num_heads_dense<true /*enable_gqa*/, false /*requires_same_num_heads*/>
   );
 
   if (has_only_dense_inputs(params)) {
@@ -793,6 +856,8 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
       }
     }
   }
+#endif
+
   return true;
 }
 
