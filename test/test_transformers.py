@@ -3222,6 +3222,15 @@ class TestSDPACudaOnly(NNTestCase):
             )
         self.assertEqual(attn_output_math, attn_output_cudnn, atol=5e-3, rtol=3e-3)
 
+    @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cuDNN Attention is not supported on this system")
+    def test_cudnn_attention_runtime_disabled(self, device):
+        q = torch.empty(2, 8, 128, 64, dtype=torch.bfloat16, device=device)
+        params = torch.backends.cuda.SDPAParams(q, q, q, None, 0.0, False, False)
+        with sdpa_kernel([SDPBackend.CUDNN_ATTENTION]):
+            self.assertTrue(torch.backends.cuda.can_use_cudnn_attention(params))
+        with sdpa_kernel([SDPBackend.MATH]):
+            self.assertFalse(torch.backends.cuda.can_use_cudnn_attention(params))
+
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
     @parametrize("mask_dim", [1, 2, 3, 4])
     def test_mem_efficient_attention_mask_variants(self, device, mask_dim: list[int]):
