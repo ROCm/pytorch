@@ -14886,8 +14886,6 @@ if RUN_GPU:
                 self.assertTrue("ymask = yindex < ynumel" in code)
                 self.assertTrue("xmask = xindex < xnumel" in code)
 
-<<<<<<< HEAD
-=======
         @parametrize(
             "rnumel",
             [16, 32],
@@ -14924,7 +14922,6 @@ if RUN_GPU:
             self.assertEqual(fn(x), opt_fn(x))
 
         @config.patch("triton.native_matmul", False)
->>>>>>> 83f8b6e2147 ([release/2.10] Fix SIGSEGV on AMD RDNA due to reduction mask optimization #176269 (#3055))
         def test_kernel_names_descriptive(self):
             @torch.compile(backend="inductor")
             def fn1(x):
