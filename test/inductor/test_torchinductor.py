@@ -14921,7 +14921,6 @@ if RUN_GPU:
 
             self.assertEqual(fn(x), opt_fn(x))
 
-        @config.patch("triton.native_matmul", False)
         def test_kernel_names_descriptive(self):
             @torch.compile(backend="inductor")
             def fn1(x):
