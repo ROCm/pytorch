@@ -9,45 +9,23 @@ if(NOT __AOTRITON_INCLUDED)
   # Replaces .ci/docker/aotriton_version.txt
   # Note packages information may have versions skipped (due to no ABI breaks)
   # But they must be listed from lower version to higher version
-  set(__AOTRITON_VER "0.11.2b")
+  set(__AOTRITON_VER "0.11.52b")
   set(__AOTRITON_MANYLINUX_LIST
-      "manylinux_2_28"  # rocm6.2
-      "manylinux_2_28"  # rocm6.3
-      "manylinux_2_28"  # rocm6.4
-      "manylinux_2_28"  # rocm7.0
-      "manylinux_2_28"  # rocm7.1
-      "manylinux_2_28"  # rocm7.2
+      "manylinux_2_28"  # hip7.2
       )
   set(__AOTRITON_ROCM_LIST
-      "rocm6.2"
-      "rocm6.3"
-      "rocm6.4"
-      "rocm7.0"
-      "rocm7.1"
       "rocm7.2"
       )
-  set(__AOTRITON_CI_COMMIT "dd1b68b604b5258ee7a9f7b66ad95e7a82c18065")
+  set(__AOTRITON_CI_COMMIT "a02bd0b6801c6e9c7ac3a9eff13b872a0ce72afc")
+  # Note; as of Apr 16 all theRock build still claims hipversion == 7.2
   set(__AOTRITON_SHA256_LIST
-      "d784314849ba1911181dfc80cd845064ff6f0cdad10e2f4c53eb84a8b89245b9"  # rocm6.2
-      "f4b14dc111c334e967b28a1cf9ed4c63264c634dbdccbb5849aa9490022992f7"  # rocm6.3
-      "6b51d8479c85b902334e4f5518f404a8f5d563fd8d4732cb8b621ed4b45c2876"  # rocm6.4
-      "5501a0a3b300890001b6625f2a3539a7bad60f386f0a061ebe7d4ed5ca0fafb9"  # rocm7.0
-      "fee36beb3ea484ce18155bbafe026c577fd6705e4469e59405b260bd74b8cc10"  # rocm7.1
-      "cd8abf27bbb63cec45c94135e9b28745966074263a6b0555e5878ae1cb6a2349"  # rocm7.2
+      "e900068a4a883a6ff9c4f542af90bff9621ae1ffa148174a2b05bf77f795bb2d"  # hip7.2
       )
   set(__AOTRITON_IMAGE_LIST
-      "amd-gfx90a"
-      "amd-gfx942"
-      "amd-gfx950"
-      "amd-gfx11xx"
-      "amd-gfx120x"
+      "amd-gfx1250"
      )
   set(__AOTRITON_IMAGE_SHA256_LIST
-     "fe9f04b66bf52ac27cd025e1d89cfd04974dd3fb3ae076192f783641a4d80fdf" # amd-gfx90a
-     "0a7bcee19d3bb6d548732248c3234f7b92736c2ab7a7aae65294b87a7fd64c06" # amd-gfx942
-     "c1ba3bfe84217fd67df3dd1f8b67c80a7f7b33d0ad4d74b41d6567036e032ace" # amd-gfx950
-     "839299637fccb13fbe3e7823d57d1b2dcd0e0bed78abbcb7005ea5f4fd82b928" # amd-gfx11xx
-     "0a4ff324bffdac0c2fde87a8a7f70563d3c84a80ad4e8f31345f2b40a1384e95" # amd-gfx120x
+     "a1342e6b1d884ad5e8954317b822d256d4a46f4074c9d3540c30c079dc544228" # amd-gfx1250
      )
   set(__AOTRITON_BASE_URL "https://github.com/ROCm/aotriton/releases/download/")  # @lint-ignore
   set(__AOTRITON_Z "gz")
