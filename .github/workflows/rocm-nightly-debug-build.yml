@@ -35,7 +35,7 @@ jobs:
   debug-build:
     name: Debug ROCm Nightly Image Build
     runs-on: linux-pytorch-mi325-1
-    timeout-minutes: 300
+    timeout-minutes: 720
     steps:
       - name: Resolve ROCm version
         if: ${{ inputs.rocm_version != '' }}

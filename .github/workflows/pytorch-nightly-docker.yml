@@ -29,6 +29,7 @@ jobs:
   build:
     name: Build ROCm Nightly Image
     runs-on: linux-pytorch-mi325-1
+    timeout-minutes: 720
     outputs:
       full-image: ${{ steps.meta.outputs.full-image }}
     steps:
@@ -110,7 +111,7 @@ jobs:
             runner: linux-pytorch-mi250-1
             push_image: false
     runs-on: ${{ matrix.target.runner }}
-    timeout-minutes: 300
+    timeout-minutes: 720
     env:
       NIGHTLY_IMAGE: ${{ needs.build.outputs.full-image }}
     steps:
