@@ -62,6 +62,10 @@ from torch.testing._internal.common_xpu import PLATFORM_SUPPORTS_FLASH_ATTENTION
 if TEST_FAIRSEQ:
     import fairseq.models.transformer as fairseq_transformer
 
+# hipDNN is currently disabled by default. Force enable in tests for now.
+if torch.backends.hipdnn.is_available():
+    torch.backends.hipdnn.set_flags(True)
+
 SdpaShape = namedtuple('Sdpa_Shape', ['batch', 'num_heads', 'seq_len', 'head_dim'])
 Tolerances = namedtuple('Tolerances', ['atol', 'rtol'])
 
@@ -1694,7 +1698,10 @@ class TestSDPAFailureModes(NNTestCase):
             size = SdpaShape(2, 2, 8, 8)
             q, k, v = make_tensor(size), make_tensor(size), make_tensor(size)
             q.as_strided_(size, [2, 2, 2, 2])
-            with self.assertWarnsRegex(UserWarning, "All fused kernels require the last dimension of the input to have stride 1."):
+            expected_warning = "All fused kernels require the last dimension of the input to have stride 1."
+            if kernel == SDPBackend.CUDNN_ATTENTION and TEST_WITH_ROCM:
+                expected_warning = "hipDNN SDPA: no engine available for the given input configuration."
+            with self.assertWarnsRegex(UserWarning, expected_warning):
                 self.assertRaises(RuntimeError, lambda: torch.nn.functional.scaled_dot_product_attention(
                     q, k, v, None, 0.0, False))
 
@@ -1768,8 +1775,13 @@ class TestSDPAFailureModes(NNTestCase):
             size = SdpaShape(2, 2, 3, 16)
             make_tensor = partial(torch.rand, device=device, dtype=torch.float64)
             q, k, v = make_tensor(size), make_tensor(size), make_tensor(size)
-            self.assertRaises(RuntimeError, lambda: torch.nn.functional.scaled_dot_product_attention(
-                q, k, v, None, 0.0, False))
+            run_fn = lambda: torch.nn.functional.scaled_dot_product_attention(q, k, v, None, 0.0, False)
+            if kernel == SDPBackend.CUDNN_ATTENTION and TEST_WITH_ROCM:
+                # hipDNN accepts f64 inputs
+                run_fn()
+            else:
+                self.assertRaises(RuntimeError, run_fn)
+
 
     @onlyCUDA
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Does not support flash attention")
@@ -3043,7 +3055,10 @@ class TestSDPACudaOnly(NNTestCase):
         out_ref = F.scaled_dot_product_attention(
             q_bc.contiguous(), k_bc.contiguous(), v_bc.contiguous(), is_causal=True
         )
-        torch.testing.assert_close(out, out_ref, atol=3e-3, rtol=3e-3)
+        atol, rtol = 3e-3, 3e-3
+        if TEST_WITH_ROCM and dtype == torch.bfloat16:
+            atol, rtol = 2e-2, 2e-2
+        torch.testing.assert_close(out, out_ref, atol=atol, rtol=rtol)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
     @unittest.skipIf(
@@ -3112,6 +3127,7 @@ class TestSDPACudaOnly(NNTestCase):
             out = torch.nn.functional.scaled_dot_product_attention(q, q, q, dropout_p=0.5)
             out.backward(grad)
 
+    @skipIfRocm # This tests cudnn-specific rounding behaviour, skip on ROCM
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
     def test_cudnn_attention_low_dropout(self):
         q = torch.randn(2, 8, 128, 128, dtype=torch.half, device='cuda')
@@ -3578,10 +3594,14 @@ class TestSDPACudaOnly(NNTestCase):
         if "cuda" in str(device):
             device_capability = torch.cuda.get_device_capability()
         prefer_cudnn = "TORCH_CUDNN_SDPA_PREFERRED" not in os.environ or bool(os.environ["TORCH_CUDNN_SDPA_PREFERRED"])
-        # cuDNN prioritization requires cuDNN > 9.15.0 (91500) per sdp_utils.cpp:83
-        cudnn_version = torch.backends.cudnn.version() if torch.backends.cudnn.is_available() else 0
-        is_hopper_or_newer = device_capability and (device_capability[0] == 9 or device_capability[0] == 10)
-        prefer_cudnn = prefer_cudnn and is_hopper_or_newer and cudnn_version > 91500
+        if TEST_WITH_ROCM:
+            # hipDNN is not prioritized
+            prefer_cudnn = False
+        else:
+            # cuDNN prioritization requires cuDNN > 9.15.0 (91500) per sdp_utils.cpp:83
+            cudnn_version = torch.backends.cudnn.version() if torch.backends.cudnn.is_available() else 0
+            is_hopper_or_newer = device_capability and (device_capability[0] == 9 or device_capability[0] == 10)
+            prefer_cudnn = prefer_cudnn and is_hopper_or_newer and cudnn_version > 91500
 
         # cuDNN is enabled by default on SM 9.0/10.0 with cuDNN > 9.15.0 (per #169849)
         # For older cuDNN versions or other architectures, Flash Attention is preferred
@@ -3659,8 +3679,11 @@ class TestSDPACudaOnly(NNTestCase):
             times.append(t1 - t0)
         self.assertTrue(times[0] < times[1], "expected cuDNN SDPA to be faster than Math backend.")
         self.assertTrue(times[1] > times[2], "expected Eff Attn backend to faster than Math backend.")
-        self.assertTrue(times[3] < times[2], "expected Flash Attn backend to faster than Math backend.")
-        self.assertTrue(times[0] < times[2], "expected cuDNN Attn backend to faster than Eff Attn backend.")
+        if not TEST_WITH_ROCM:
+            # Skip some checks on ROCM. hipDNN is currently slower than Eff Attn,
+            # and Flash/Eff are roughly equal.
+            self.assertTrue(times[3] < times[2], "expected Flash Attn backend to faster than Eff Attn backend.")
+            self.assertTrue(times[0] < times[2], "expected cuDNN Attn backend to faster than Eff Attn backend.")
         reset_order = torch._C._get_sdp_priority_order()
         self.assertEqual(default_order, reset_order, "expected SDPA context manager to reset priority order.")
 
