@@ -15,9 +15,9 @@ on:
       rocm_version:
         required: false
         type: string
-  # push:
-  #   branches:
-  #     - rocm-nightly-gha
+  push:
+    branches:
+      - rocm-nightly-gha
 
 env:
   ROCM_VERSION: '7.2.2'
