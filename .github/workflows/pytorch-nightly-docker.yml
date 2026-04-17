@@ -74,33 +74,30 @@ jobs:
           ./build.sh pytorch-linux-jammy-rocm-n-py3 \
             -t rocm/pytorch-autobuild:base-latest
 
-      - name: Set up buildx builder with raised log limits
-        # The default docker driver truncates each step's output at 2 MiB,
-        # which hides the real compile error behind warning spam. Use a
-        # docker-container builder with unlimited log size/speed so the full
-        # build.sh output reaches the GHA log.
-        run: |
-          docker buildx rm ci-builder 2>/dev/null || true
-          docker buildx create --use --name ci-builder \
-            --driver docker-container \
-            --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=-1 \
-            --driver-opt env.BUILDKIT_STEP_LOG_MAX_SPEED=-1
-
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
+        # GHA truncates each step's live log at 2 MiB, which hides the real
+        # compile error behind warning spam. Tee the full build output to a
+        # file that gets uploaded as an artifact so the untruncated log is
+        # always available for post-mortem.
         run: |
-          build_flags=(--load)
-          if [[ -n "${CI:-}" ]]; then
-            build_flags+=(--progress=plain)
-          fi
-
+          set -o pipefail
           docker buildx build \
-            "${build_flags[@]}" \
+            --load \
+            --progress=plain \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
-            rocm-nightly-workflow/.ci/docker
+            rocm-nightly-workflow/.ci/docker 2>&1 | tee build.log
+
+      - name: Upload full build log
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: nightly-build-log
+          path: build.log
+          retention-days: 7
 
       - name: Save nightly image artifact
         env:
