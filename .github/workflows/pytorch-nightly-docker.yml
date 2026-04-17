@@ -74,6 +74,18 @@ jobs:
           ./build.sh pytorch-linux-jammy-rocm-n-py3 \
             -t rocm/pytorch-autobuild:base-latest
 
+      - name: Set up buildx builder with raised log limits
+        # The default docker driver truncates each step's output at 2 MiB,
+        # which hides the real compile error behind warning spam. Use a
+        # docker-container builder with unlimited log size/speed so the full
+        # build.sh output reaches the GHA log.
+        run: |
+          docker buildx rm ci-builder 2>/dev/null || true
+          docker buildx create --use --name ci-builder \
+            --driver docker-container \
+            --driver-opt env.BUILDKIT_STEP_LOG_MAX_SIZE=-1 \
+            --driver-opt env.BUILDKIT_STEP_LOG_MAX_SPEED=-1
+
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
