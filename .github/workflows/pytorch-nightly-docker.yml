@@ -53,6 +53,13 @@ jobs:
           sed -i '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/ s/ROCM_VERSION=7\.2/ROCM_VERSION=${{ env.ROCM_VERSION }}/' .ci/docker/build.sh
           sed -n '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/p' .ci/docker/build.sh
 
+      - name: Pin sccache version
+        # sccache v0.13.0 crashes with "Failed to parse included file path" on
+        # some HIP compiles. Pin to a known-good version.
+        run: |
+          sed -i 's|git clone https://github.com/mozilla/sccache -b v0.13.0|git clone https://github.com/mozilla/sccache -b v0.10.0|' .ci/docker/common/install_cache.sh
+          grep -n 'git clone https://github.com/mozilla/sccache' .ci/docker/common/install_cache.sh
+
       - name: Generate image tag
         id: meta
         run: |
