@@ -105,6 +105,7 @@ torch/lib/*.lib
 torch/lib/*.pdb
 torch/lib/*.so*
 torch/lib/protobuf*.pc
+torch/lib/aotriton.images/
 torch/lib/build
 torch/lib/caffe2/
 torch/lib/cmake

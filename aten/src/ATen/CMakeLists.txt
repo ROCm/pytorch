@@ -687,6 +687,7 @@ if(USE_ROCM)
     ${native_miopen_cpp}
     ${native_hipdnn_cpp}
     ${native_cudnn_cpp}
+    ${native_cudnn_hip_cpp}
     ${miopen_cpp}
     ${all_hip_cpp}
   )

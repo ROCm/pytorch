@@ -2803,7 +2803,8 @@ Call this whenever a new thread is created in order to propagate values from
                        std::optional<at::Tensor> attn_mask,
                        double dropout,
                        bool is_causal,
-                       bool enable_gqa) {
+                       bool enable_gqa,
+                       std::optional<double> scale) {
         return sdp::sdp_params{
             query,
             key,
@@ -2811,15 +2812,25 @@ Call this whenever a new thread is created in order to propagate values from
             std::move(attn_mask),
             dropout,
             is_causal,
-            enable_gqa};
-      }))
+            enable_gqa,
+            scale};
+      }),
+          py::arg("query"),
+          py::arg("key"),
+          py::arg("value"),
+          py::arg("attn_mask"),
+          py::arg("dropout"),
+          py::arg("is_causal"),
+          py::arg("enable_gqa"),
+          py::arg("scale") = std::nullopt)
       .def_readonly("query", &sdp::sdp_params::query)
       .def_readonly("key", &sdp::sdp_params::key)
       .def_readonly("value", &sdp::sdp_params::value)
       .def_readonly("attn_mask", &sdp::sdp_params::attn_mask)
       .def_readonly("dropout", &sdp::sdp_params::dropout)
       .def_readonly("is_causal", &sdp::sdp_params::is_causal)
-      .def_readonly("enable_gqa", &sdp::sdp_params::enable_gqa);
+      .def_readonly("enable_gqa", &sdp::sdp_params::enable_gqa)
+      .def_readonly("scale", &sdp::sdp_params::scale);
 
   py::enum_<sdp::SDPBackend>(
       py_module,

@@ -101,7 +101,9 @@ def evaluate_platform_supports_efficient_attention():
     return False
 
 def evaluate_platform_supports_cudnn_attention():
-    return (not TEST_WITH_ROCM) and SM80OrLater and (TEST_CUDNN_VERSION >= 90000)
+    if TEST_WITH_ROCM:
+        return TEST_HIPDNN
+    return SM80OrLater and (TEST_CUDNN_VERSION >= 90000)
 
 def evaluate_platform_supports_green_context():
     if IS_WINDOWS:
