@@ -101,6 +101,7 @@ jobs:
           rm -rf build-artifacts
 
           docker run --name nightly-build \
+            -e PYTORCH_SOURCE_SHA=8a6524408a49ab2293f694b43131d0fc17e45a32 \
             --entrypoint bash \
             rocm/pytorch-autobuild:base-latest \
             -c '
@@ -111,8 +112,10 @@ jobs:
               mkdir -p /tmp/logs
               cd /tmp
 
-              git clone https://github.com/pytorch/pytorch --recursive
+              git clone https://github.com/pytorch/pytorch
               cd pytorch
+              git checkout "$PYTORCH_SOURCE_SHA"
+              git submodule update --init --recursive
               pip install -r requirements.txt
               git config --local user.name "AMD AMD"
               git config --local user.email "amd@amd.com"
