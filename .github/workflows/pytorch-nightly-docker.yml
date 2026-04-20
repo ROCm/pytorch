@@ -54,11 +54,22 @@ jobs:
           sed -n '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/p' .ci/docker/build.sh
 
       - name: Pin sccache version
-        # sccache v0.13.0 crashes with "Failed to parse included file path" on
-        # some HIP compiles. Pin to a known-good version.
+        # install_cache.sh downloads an AMD-prebuilt sccache from
+        # repo.radeon.com for the ROCm path. That binary (reports as v0.10.0)
+        # crashes with "Failed to parse included file path" on some HIP
+        # compiles, same as mozilla v0.13.0. Replace the AMD download with
+        # an upstream mozilla release tarball so we can try intermediate
+        # versions.
+        env:
+          SCCACHE_VERSION: v0.14.0
         run: |
-          sed -i 's|git clone https://github.com/mozilla/sccache -b v0.13.0|git clone https://github.com/mozilla/sccache -b v0.10.0|' .ci/docker/common/install_cache.sh
-          grep -n 'git clone https://github.com/mozilla/sccache' .ci/docker/common/install_cache.sh
+          set -euo pipefail
+          TARBALL="sccache-${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz"
+          EXTRACTED="sccache-${SCCACHE_VERSION}-x86_64-unknown-linux-musl"
+          NEW_CMD="curl --retry 3 -L https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/${TARBALL} -o /tmp/${TARBALL} \&\& tar -xzf /tmp/${TARBALL} -C /tmp \&\& mv /tmp/${EXTRACTED}/sccache /opt/cache/bin/sccache \&\& rm -rf /tmp/${TARBALL} /tmp/${EXTRACTED}"
+          sed -i "s|curl --retry 3 http://repo.radeon.com/misc/.sccache_amd/sccache -o /opt/cache/bin/sccache|${NEW_CMD}|" .ci/docker/common/install_cache.sh
+          sed -i "s|git clone https://github.com/mozilla/sccache -b v0\\.13\\.0|git clone https://github.com/mozilla/sccache -b ${SCCACHE_VERSION}|" .ci/docker/common/install_cache.sh
+          grep -nE 'sccache|radeon.com' .ci/docker/common/install_cache.sh | head -10
 
       - name: Generate image tag
         id: meta
@@ -81,15 +92,15 @@ jobs:
         # Dockerfile RUN) and `docker commit` the container to produce the
         # nightly image. BuildKit truncates long RUN output server-side even
         # with `--progress=plain`, so compile errors get hidden behind
-        # warning spam. Bind-mounting a host dir and tee'ing inside the
-        # container captures the full untruncated build log for post-mortem.
+        # warning spam. Writing logs inside the container and `docker cp`ing
+        # them out after the run captures the full untruncated output for
+        # post-mortem without relying on bind-mount permissions.
         run: |
-          set -euo pipefail
+          set -uo pipefail
           docker rm -f nightly-build 2>/dev/null || true
-          mkdir -p build-artifacts
+          rm -rf build-artifacts
 
           docker run --name nightly-build \
-            -v "$PWD/build-artifacts:/workspace" \
             --entrypoint bash \
             rocm/pytorch-autobuild:base-latest \
             -c '
@@ -97,6 +108,7 @@ jobs:
               export CI=1
               export PYTORCH_TEST_WITH_ROCM=1
               export PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda
+              mkdir -p /tmp/logs
               cd /tmp
 
               git clone https://github.com/pytorch/pytorch --recursive
@@ -107,21 +119,30 @@ jobs:
               git remote add rocm https://github.com/ROCm/pytorch.git
               git fetch rocm
               git cherry-pick 519160d466782f5a62365be051fcb3ef90fa0b00
-              .ci/pytorch/build.sh 2>&1 | tee /workspace/build.log
+              .ci/pytorch/build.sh 2>&1 | tee /tmp/logs/build.log
               rm -rf /tmp/pytorch/.git
 
               cd /tmp
               git clone https://github.com/pytorch/vision
               cd vision
-              FORCE_CUDA=1 python setup.py install 2>&1 | tee /workspace/vision-build.log
+              FORCE_CUDA=1 python setup.py install 2>&1 | tee /tmp/logs/vision-build.log
               rm -rf /tmp/vision/.git
 
               cd /tmp
               git clone https://github.com/pytorch/audio
               cd audio
-              python setup.py install 2>&1 | tee /workspace/audio-build.log
+              python setup.py install 2>&1 | tee /tmp/logs/audio-build.log
               rm -rf /tmp/audio/.git
             '
+          run_exit=$?
+
+          # Extract logs even on failure so the artifact upload can ship them.
+          docker cp nightly-build:/tmp/logs build-artifacts 2>/dev/null || true
+
+          if [ "$run_exit" -ne 0 ]; then
+            docker rm nightly-build 2>/dev/null || true
+            exit "$run_exit"
+          fi
 
           docker commit \
             --change 'ENV CI=1' \
