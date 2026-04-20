@@ -77,26 +77,66 @@ jobs:
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
-        # GHA truncates each step's live log at 2 MiB, which hides the real
-        # compile error behind warning spam. Tee the full build output to a
-        # file that gets uploaded as an artifact so the untruncated log is
-        # always available for post-mortem.
+        # Run the pytorch/vision/audio builds via `docker run` (not a
+        # Dockerfile RUN) and `docker commit` the container to produce the
+        # nightly image. BuildKit truncates long RUN output server-side even
+        # with `--progress=plain`, so compile errors get hidden behind
+        # warning spam. Bind-mounting a host dir and tee'ing inside the
+        # container captures the full untruncated build log for post-mortem.
         run: |
-          set -o pipefail
-          docker buildx build \
-            --load \
-            --progress=plain \
-            --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
-            -t "$FULL_IMAGE" \
-            -f rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile \
-            rocm-nightly-workflow/.ci/docker 2>&1 | tee build.log
+          set -euo pipefail
+          docker rm -f nightly-build 2>/dev/null || true
+          mkdir -p build-artifacts
 
-      - name: Upload full build log
+          docker run --name nightly-build \
+            -v "$PWD/build-artifacts:/workspace" \
+            --entrypoint bash \
+            rocm/pytorch-autobuild:base-latest \
+            -c '
+              set -euo pipefail
+              export CI=1
+              export PYTORCH_TEST_WITH_ROCM=1
+              export PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda
+              cd /tmp
+
+              git clone https://github.com/pytorch/pytorch --recursive
+              cd pytorch
+              pip install -r requirements.txt
+              git config --local user.name "AMD AMD"
+              git config --local user.email "amd@amd.com"
+              git remote add rocm https://github.com/ROCm/pytorch.git
+              git fetch rocm
+              git cherry-pick 519160d466782f5a62365be051fcb3ef90fa0b00
+              .ci/pytorch/build.sh 2>&1 | tee /workspace/build.log
+              rm -rf /tmp/pytorch/.git
+
+              cd /tmp
+              git clone https://github.com/pytorch/vision
+              cd vision
+              FORCE_CUDA=1 python setup.py install 2>&1 | tee /workspace/vision-build.log
+              rm -rf /tmp/vision/.git
+
+              cd /tmp
+              git clone https://github.com/pytorch/audio
+              cd audio
+              python setup.py install 2>&1 | tee /workspace/audio-build.log
+              rm -rf /tmp/audio/.git
+            '
+
+          docker commit \
+            --change 'ENV CI=1' \
+            --change 'ENV PYTORCH_TEST_WITH_ROCM=1' \
+            --change 'ENV PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda' \
+            --change 'WORKDIR /tmp' \
+            nightly-build "$FULL_IMAGE"
+          docker rm nightly-build
+
+      - name: Upload full build logs
         if: always()
         uses: actions/upload-artifact@v4.4.0
         with:
-          name: nightly-build-log
-          path: build.log
+          name: nightly-build-logs
+          path: build-artifacts/
           retention-days: 7
 
       - name: Save nightly image artifact
