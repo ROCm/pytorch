@@ -108,6 +108,7 @@ jobs:
               export CI=1
               export PYTORCH_TEST_WITH_ROCM=1
               export PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda
+              export USE_NVSHMEM=0
               mkdir -p /tmp/logs
               cd /tmp
 
