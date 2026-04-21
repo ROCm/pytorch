@@ -101,7 +101,6 @@ jobs:
           rm -rf build-artifacts
 
           docker run --name nightly-build \
-            -e PYTORCH_SOURCE_SHA=8a6524408a49ab2293f694b43131d0fc17e45a32 \
             --entrypoint bash \
             rocm/pytorch-autobuild:base-latest \
             -c '
@@ -114,7 +113,7 @@ jobs:
 
               git clone https://github.com/pytorch/pytorch
               cd pytorch
-              git checkout "$PYTORCH_SOURCE_SHA"
+              sed -i "/string(JOIN \" \" HIP_HIPCC_FLAGS_STR/d; /set(HIP_HIPCC_FLAGS \${HIP_HIPCC_FLAGS_STR})/d" cmake/Dependencies.cmake
               git submodule update --init --recursive
               pip install -r requirements.txt
               git config --local user.name "AMD AMD"
@@ -148,6 +147,8 @@ jobs:
           fi
 
           docker commit \
+            --change 'ENTRYPOINT []' \
+            --change 'CMD ["bash"]' \
             --change 'ENV CI=1' \
             --change 'ENV PYTORCH_TEST_WITH_ROCM=1' \
             --change 'ENV PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda' \
