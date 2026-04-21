@@ -114,6 +114,7 @@ jobs:
               git clone https://github.com/pytorch/pytorch
               cd pytorch
               sed -i "/string(JOIN \" \" HIP_HIPCC_FLAGS_STR/d; /set(HIP_HIPCC_FLAGS \${HIP_HIPCC_FLAGS_STR})/d" cmake/Dependencies.cmake
+              sed -i "s|set(CMAKE_HIP_FLAGS \${HIP_HIPCC_FLAGS})|string(REPLACE \";\" \" \" CMAKE_HIP_FLAGS \"\${HIP_HIPCC_FLAGS}\")|" cmake/Dependencies.cmake
               git submodule update --init --recursive
               pip install -r requirements.txt
               git config --local user.name "AMD AMD"
