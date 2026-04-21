@@ -10335,6 +10335,7 @@ tensor([[[1.+1.j, 1.+1.j, 1.+1.j,  ..., 1.+1.j, 1.+1.j, 1.+1.j],
         global _my_storage
 
         my_lib = Library("my_lib", "DEF")  # noqa: TOR901
+        self.addCleanup(my_lib._destroy)
         my_lib.define('my_func() -> None')
 
         a = torch.tensor([1.])
