@@ -54,12 +54,6 @@ jobs:
           sed -n '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/p' .ci/docker/build.sh
 
       - name: Pin sccache version
-        # install_cache.sh downloads an AMD-prebuilt sccache from
-        # repo.radeon.com for the ROCm path. That binary (reports as v0.10.0)
-        # crashes with "Failed to parse included file path" on some HIP
-        # compiles, same as mozilla v0.13.0. Replace the AMD download with
-        # an upstream mozilla release tarball so we can try intermediate
-        # versions.
         env:
           SCCACHE_VERSION: v0.14.0
         run: |
@@ -88,13 +82,6 @@ jobs:
       - name: Build ROCm Nightly Image
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
-        # Run the pytorch/vision/audio builds via `docker run` (not a
-        # Dockerfile RUN) and `docker commit` the container to produce the
-        # nightly image. BuildKit truncates long RUN output server-side even
-        # with `--progress=plain`, so compile errors get hidden behind
-        # warning spam. Writing logs inside the container and `docker cp`ing
-        # them out after the run captures the full untruncated output for
-        # post-mortem without relying on bind-mount permissions.
         run: |
           set -uo pipefail
           docker rm -f nightly-build 2>/dev/null || true
@@ -232,19 +219,19 @@ jobs:
               python3 micro_benchmarking_pytorch.py --network resnet50
             "
 
-      - name: Log in to Docker Hub
-        if: ${{ matrix.target.push_image }}
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+      # - name: Log in to Docker Hub
+      #   if: ${{ matrix.target.push_image }}
+      #   uses: docker/login-action@v3
+      #   with:
+      #     username: ${{ secrets.DOCKER_USERNAME }}
+      #     password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Push validated image
-        if: ${{ matrix.target.push_image }}
-        env:
-          FINAL_IMAGE: ${{ needs.build.outputs.full-image }}
-          LATEST_IMAGE: ${{ env.DOCKER_REGISTRY }}:latest
-        run: |
-          docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
-          docker push "$FINAL_IMAGE"
-          docker push "$LATEST_IMAGE"
+      # - name: Push validated image
+      #   if: ${{ matrix.target.push_image }}
+      #   env:
+      #     FINAL_IMAGE: ${{ needs.build.outputs.full-image }}
+      #     LATEST_IMAGE: ${{ env.DOCKER_REGISTRY }}:latest
+      #   run: |
+      #     docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
+      #     docker push "$FINAL_IMAGE"
+      #     docker push "$LATEST_IMAGE"
