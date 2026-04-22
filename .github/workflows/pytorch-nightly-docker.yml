@@ -143,19 +143,19 @@ jobs:
               python3 micro_benchmarking_pytorch.py --network resnet50
             "
 
-      # - name: Log in to Docker Hub
-      #   if: ${{ matrix.target.push_image }}
-      #   uses: docker/login-action@v3
-      #   with:
-      #     username: ${{ secrets.DOCKER_USERNAME }}
-      #     password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Log in to Docker Hub
+        if: ${{ matrix.target.push_image }}
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # - name: Push validated image
-      #   if: ${{ matrix.target.push_image }}
-      #   env:
-      #     FINAL_IMAGE: ${{ needs.build.outputs.full-image }}
-      #     LATEST_IMAGE: ${{ env.DOCKER_REGISTRY }}:latest
-      #   run: |
-      #     docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
-      #     docker push "$FINAL_IMAGE"
-      #     docker push "$LATEST_IMAGE"
+      - name: Push validated image
+        if: ${{ matrix.target.push_image }}
+        env:
+          FINAL_IMAGE: ${{ needs.build.outputs.full-image }}
+          LATEST_IMAGE: ${{ env.DOCKER_REGISTRY }}:latest
+        run: |
+          docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
+          docker push "$FINAL_IMAGE"
+          docker push "$LATEST_IMAGE"
