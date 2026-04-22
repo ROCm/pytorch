@@ -6,6 +6,7 @@ USER root
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
+ENV USE_NVSHMEM=0
 
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
