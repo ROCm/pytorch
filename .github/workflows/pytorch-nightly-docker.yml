@@ -53,18 +53,6 @@ jobs:
           sed -i '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/ s/ROCM_VERSION=7\.2/ROCM_VERSION=${{ env.ROCM_VERSION }}/' .ci/docker/build.sh
           sed -n '/pytorch-linux-jammy-rocm-n-py3 | pytorch-linux-jammy-rocm-n-py3-benchmarks | pytorch-linux-noble-rocm-n-py3)/,/;;/p' .ci/docker/build.sh
 
-      - name: Pin sccache version
-        env:
-          SCCACHE_VERSION: v0.14.0
-        run: |
-          set -euo pipefail
-          TARBALL="sccache-${SCCACHE_VERSION}-x86_64-unknown-linux-musl.tar.gz"
-          EXTRACTED="sccache-${SCCACHE_VERSION}-x86_64-unknown-linux-musl"
-          NEW_CMD="curl --retry 3 -L https://github.com/mozilla/sccache/releases/download/${SCCACHE_VERSION}/${TARBALL} -o /tmp/${TARBALL} \&\& tar -xzf /tmp/${TARBALL} -C /tmp \&\& mv /tmp/${EXTRACTED}/sccache /opt/cache/bin/sccache \&\& rm -rf /tmp/${TARBALL} /tmp/${EXTRACTED}"
-          sed -i "s|curl --retry 3 http://repo.radeon.com/misc/.sccache_amd/sccache -o /opt/cache/bin/sccache|${NEW_CMD}|" .ci/docker/common/install_cache.sh
-          sed -i "s|git clone https://github.com/mozilla/sccache -b v0\\.13\\.0|git clone https://github.com/mozilla/sccache -b ${SCCACHE_VERSION}|" .ci/docker/common/install_cache.sh
-          grep -nE 'sccache|radeon.com' .ci/docker/common/install_cache.sh | head -10
-
       - name: Generate image tag
         id: meta
         run: |
