@@ -72,10 +72,9 @@ jobs:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
           docker build \
-            -f pytorch-nightly-docker.Dockerfile \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
-            rocm-nightly-workflow/.ci/docker
+            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
 
       - name: Save nightly image artifact
         env:
