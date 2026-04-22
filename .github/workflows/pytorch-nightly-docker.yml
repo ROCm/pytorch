@@ -142,6 +142,16 @@ jobs:
               python3 micro_benchmarking_pytorch.py --network resnet50
             "
 
+      - name: Scan image for vulnerabilities
+        if: ${{ matrix.target.push_image }}
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.NIGHTLY_IMAGE }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: '1'
+
       - name: Log in to Docker Hub
         if: ${{ matrix.target.push_image }}
         uses: docker/login-action@v4
