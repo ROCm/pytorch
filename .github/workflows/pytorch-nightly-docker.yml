@@ -72,7 +72,7 @@ jobs:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
           docker build \
-            -f .ci/docker/pytorch-nightly-docker.Dockerfile \
+            -f pytorch-nightly-docker.Dockerfile \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             .ci/docker
