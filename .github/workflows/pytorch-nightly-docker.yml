@@ -75,7 +75,7 @@ jobs:
             -f pytorch-nightly-docker.Dockerfile \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
-            .ci/docker
+            rocm-nightly-workflow/.ci/docker
 
       - name: Save nightly image artifact
         env:
