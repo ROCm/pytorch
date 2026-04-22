@@ -83,14 +83,11 @@ jobs:
               export CI=1
               export PYTORCH_TEST_WITH_ROCM=1
               export PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda
-              export USE_NVSHMEM=0
               mkdir -p /tmp/logs
               cd /tmp
 
               git clone https://github.com/pytorch/pytorch
               cd pytorch
-              sed -i "/string(JOIN \" \" HIP_HIPCC_FLAGS_STR/d; /set(HIP_HIPCC_FLAGS \${HIP_HIPCC_FLAGS_STR})/d" cmake/Dependencies.cmake
-              sed -i "s|set(CMAKE_HIP_FLAGS \${HIP_HIPCC_FLAGS})|string(REPLACE \";\" \" \" CMAKE_HIP_FLAGS \"\${HIP_HIPCC_FLAGS}\")|" cmake/Dependencies.cmake
               git submodule update --init --recursive
               pip install -r requirements.txt
               git config --local user.name "AMD AMD"
