@@ -27,11 +27,19 @@ env:
 
 jobs:
   build:
-    name: Build ROCm Nightly Image
-    runs-on: linux-pytorch-mi325-1
+    name: ${{ matrix.target.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - name: Build Benchmark Scan Push ROCm Nightly Image on MI325
+            runner: linux-pytorch-mi325-1
+            push_image: true
+          - name: Build Benchmark ROCm Nightly Image on MI250
+            runner: linux-pytorch-mi250-1
+            push_image: false
+    runs-on: ${{ matrix.target.runner }}
     timeout-minutes: 720
-    outputs:
-      full-image: ${{ steps.meta.outputs.full-image }}
     steps:
       - name: Resolve ROCm version
         if: ${{ inputs.rocm_version != '' }}
@@ -64,8 +72,12 @@ jobs:
         run: |
           export SKIP_SCCACHE_INSTALL=1
           export PYTORCH_ROCM_ARCH="${{ env.PYTORCH_ROCM_ARCH }}"
-          ./build.sh pytorch-linux-jammy-rocm-n-py3 \
-            -t rocm/pytorch-autobuild:base-latest
+          for attempt in 1 2 3; do
+            ./build.sh pytorch-linux-jammy-rocm-n-py3 \
+              -t rocm/pytorch-autobuild:base-latest && break
+            echo "Base image build attempt $attempt failed"
+            [ "$attempt" -eq 3 ] && exit 1
+          done
 
       - name: Build ROCm Nightly Image
         env:
@@ -76,57 +88,9 @@ jobs:
             -t "$FULL_IMAGE" \
             - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
 
-      - name: Save nightly image artifact
+      - name: Run benchmarks
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
-        run: |
-          docker save -o nightly-image.tar "$FULL_IMAGE"
-
-      - name: Upload nightly image artifact
-        uses: actions/upload-artifact@v7
-        with:
-          name: rocm-nightly-image
-          path: nightly-image.tar
-          retention-days: 1
-          compression-level: 0
-
-  test-push:
-    name: ${{ matrix.target.name }}
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - name: Test and Push ROCm Nightly Image on MI325
-            runner: linux-pytorch-mi325-1
-            push_image: true
-          - name: Test ROCm Nightly Image on MI250
-            runner: linux-pytorch-mi250-1
-            push_image: false
-    runs-on: ${{ matrix.target.runner }}
-    timeout-minutes: 720
-    env:
-      NIGHTLY_IMAGE: ${{ needs.build.outputs.full-image }}
-    steps:
-      - name: Resolve ROCm version
-        if: ${{ inputs.rocm_version != '' }}
-        run: echo "ROCM_VERSION=${{ inputs.rocm_version }}" >> "$GITHUB_ENV"
-
-      - name: Docker cleanup
-        run: |
-          docker container prune -f
-          docker image prune -f
-
-      - name: Download nightly image artifact
-        uses: actions/download-artifact@v8
-        with:
-          name: rocm-nightly-image
-          path: nightly-image-artifact
-
-      - name: Load nightly image
-        run: docker load -i nightly-image-artifact/nightly-image.tar
-
-      - name: Run unit tests
         run: |
           docker run --rm \
             --device=/dev/kfd \
@@ -135,7 +99,7 @@ jobs:
             --network host \
             --cap-add=SYS_PTRACE \
             --security-opt seccomp=unconfined \
-            "$NIGHTLY_IMAGE" \
+            "$FULL_IMAGE" \
             bash -c "
               git clone https://github.com/ROCm/pytorch-micro-benchmarking.git /tmp/pytorch-micro-benchmarking
               cd /tmp/pytorch-micro-benchmarking
@@ -146,7 +110,7 @@ jobs:
         if: ${{ matrix.target.push_image }}
         uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: ${{ env.NIGHTLY_IMAGE }}
+          image-ref: ${{ steps.meta.outputs.full-image }}
           format: table
           severity: CRITICAL
           ignore-unfixed: true
@@ -162,7 +126,7 @@ jobs:
       - name: Push validated image
         if: ${{ matrix.target.push_image }}
         env:
-          FINAL_IMAGE: ${{ needs.build.outputs.full-image }}
+          FINAL_IMAGE: ${{ steps.meta.outputs.full-image }}
           LATEST_IMAGE: ${{ env.DOCKER_REGISTRY }}:latest
         run: |
           docker tag "$FINAL_IMAGE" "$LATEST_IMAGE"
