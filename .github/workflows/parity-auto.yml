@@ -1,16 +1,24 @@
 name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
-# Polls pytorch/pytorch main for commits where any of the upstream CI
-# workflows we care about have completed, and dispatches parity.yml
-# with only the subset of archs whose required workflow is ready.
+# Polls pytorch/pytorch main for commits where the ROCm test check-runs
+# we care about have all completed, and dispatches parity.yml with the
+# subset of archs whose test shards are done (and therefore have S3
+# artifacts we can download).
 #
-# This is intentionally per-arch, not per-commit-as-a-whole: most
-# commits only have `trunk` completed (so only mi355 is runnable),
-# while periodic workflows like `rocm-mi300` or `trunk-rocm-sandbox`
-# land on a SHA much less often. We dispatch once per (SHA, arch-set)
-# tuple so mi355 gets a parity run per commit and mi300/mi200 get
-# one whenever their periodic workflow happens to finish on a SHA.
+# Readiness is determined at the *check-run* level, not the workflow
+# level: ROCm test shards post check-runs independently, and a single
+# failing shard flips the parent workflow_run to conclusion=failure
+# while other shards are still running. Relying on workflow_runs would
+# trigger parity too early and yield empty reports. Instead, for each
+# arch we require every check-run whose name matches that arch's regex
+# (e.g. "rocm.*mi355.*/ test \(") to have status=completed — any
+# conclusion is fine, as long as the runner finished and uploaded.
+#
+# This is intentionally per-arch, not per-commit-as-a-whole: mi355 (run
+# as part of trunk) is ready on almost every commit, while periodic
+# workflows like rocm-mi300 land on a SHA much less often. We dispatch
+# once per (SHA, arch-set) tuple.
 
 on:
   schedule:
@@ -32,10 +40,10 @@ on:
         required: false
         default: 'mi355, mi300, mi200'
         type: string
-      arch_workflow_map:
-        description: 'JSON: arch → required upstream workflow name (default tier).'
+      arch_jobname_regex_map:
+        description: 'JSON: arch → PCRE regex that matches the check-run names of that arch''s ROCm test shards on pytorch/pytorch. An arch is considered "ready" only when every check-run whose name matches has status=completed (so we wait for all test shards, not just workflow completion).'
         required: false
-        default: '{"mi355":"trunk","mi300":"rocm-mi300","mi200":"trunk-rocm-sandbox","navi31":"rocm-navi31","nightly":"rocm-nightly"}'
+        default: '{"mi355":"rocm.*mi355.*/ test \\(","mi300":"rocm.*mi300.*/ test \\(","mi200":"rocm.*(mi200|mi210).*/ test \\(","navi31":"rocm.*navi31.*/ test \\(","nightly":"rocm-nightly.*/ test \\("}'
         type: string
       target_ref:
         description: 'Ref of this repo to dispatch parity.yml against. Leave blank to use this workflow run''s ref.'
@@ -68,7 +76,7 @@ jobs:
           MAX_COMMITS: ${{ inputs.max_commits || '20' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
           ARCHS_IN: ${{ inputs.archs || 'mi355, mi300, mi200' }}
-          ARCH_WORKFLOW_MAP: ${{ inputs.arch_workflow_map || '{"mi355":"trunk","mi300":"rocm-mi300","mi200":"trunk-rocm-sandbox","navi31":"rocm-navi31","nightly":"rocm-nightly"}' }}
+          ARCH_JOBNAME_REGEX_MAP: ${{ inputs.arch_jobname_regex_map || '{"mi355":"rocm.*mi355.*/ test \\(","mi300":"rocm.*mi300.*/ test \\(","mi200":"rocm.*(mi200|mi210).*/ test \\(","navi31":"rocm.*navi31.*/ test \\(","nightly":"rocm-nightly.*/ test \\("}' }}
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
@@ -92,7 +100,7 @@ jobs:
           echo "Max commits:    $MAX_COMMITS"
           echo "Max age:        ${MAX_AGE_HOURS}h"
           echo "Dry run:        $DRY_RUN"
-          echo "Arch→workflow:  $ARCH_WORKFLOW_MAP"
+          echo "Arch→regex:     $ARCH_JOBNAME_REGEX_MAP"
           echo
 
           # --- 1. Recent upstream commits --------------------------------------
@@ -139,34 +147,55 @@ jobs:
               break
             fi
 
-            # Which upstream workflows have a completed run on this SHA?
-            COMPLETED_WFS=$(gh api --paginate \
-              "repos/$UPSTREAM/actions/runs?head_sha=$SHA&per_page=100" \
-              --jq '.workflow_runs[] | select(.status == "completed") | .name' \
-              2>/dev/null | sort -u || true)
+            # Pull all ROCm test check-runs for this SHA. We use check-runs
+            # (not workflow_runs) because ROCm test shards post check-runs
+            # independently and the overall workflow_run conclusion is
+            # "failure" the moment any shard fails, even if other shards
+            # are still executing. What we actually want is: "have all the
+            # test shards for this arch finished running on upstream?"
+            # Then we can download S3 artifacts without racing against CI.
+            CHECK_RUNS=$(gh api --paginate \
+              "repos/$UPSTREAM/commits/$SHA/check-runs?per_page=100" \
+              --jq '.check_runs[] | select(.name | test("rocm";"i")) | {name,status,conclusion}' \
+              2>/dev/null | jq -s '.' || echo '[]')
 
-            if [ -z "$COMPLETED_WFS" ]; then
-              echo "[$SHORT] $DATE  no completed upstream workflow runs yet — skip"
+            if [ "$(echo "$CHECK_RUNS" | jq 'length')" -eq 0 ]; then
+              echo "[$SHORT] $DATE  no ROCm check-runs yet on upstream — skip"
               continue
             fi
 
-            # Ready archs = archs whose required upstream workflow is completed.
+            # Ready archs = archs for which ALL test check-runs matching
+            # the arch's regex are status=completed, AND at least one such
+            # check-run exists. "status=completed" covers any conclusion
+            # (success/failure/skipped/cancelled) — if the runner ran and
+            # finished, we expect artifacts in S3 whether it passed or not.
             READY=""
+            NOT_READY_NOTES=""
             for ARCH in $ARCHS; do
-              REQ_WF=$(echo "$ARCH_WORKFLOW_MAP" | jq -r --arg a "$ARCH" '.[$a] // ""')
-              if [ -z "$REQ_WF" ]; then
-                echo "[$SHORT] arch '$ARCH' has no arch→workflow entry — skip this arch"
+              REGEX=$(echo "$ARCH_JOBNAME_REGEX_MAP" | jq -r --arg a "$ARCH" '.[$a] // ""')
+              if [ -z "$REGEX" ]; then
+                NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:no-regex"
                 continue
               fi
-              if printf '%s\n' "$COMPLETED_WFS" | grep -qx "$REQ_WF"; then
+              COUNTS=$(echo "$CHECK_RUNS" | jq --arg rx "$REGEX" '
+                map(select(.name | test($rx)))
+                | {total: length,
+                   pending: (map(select(.status != "completed")) | length)}')
+              TOTAL=$(echo "$COUNTS" | jq -r '.total')
+              PENDING=$(echo "$COUNTS" | jq -r '.pending')
+              if [ "$TOTAL" -eq 0 ]; then
+                NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:no-shards"
+              elif [ "$PENDING" -ne 0 ]; then
+                NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:${PENDING}/${TOTAL}-pending"
+              else
                 READY="$READY $ARCH"
               fi
             done
             READY=$(echo "$READY" | xargs)
+            NOT_READY_NOTES=$(echo "$NOT_READY_NOTES" | xargs)
 
             if [ -z "$READY" ]; then
-              COMPLETED_SUMMARY=$(printf '%s\n' "$COMPLETED_WFS" | paste -sd, -)
-              echo "[$SHORT] no ready archs (completed upstream workflows: $COMPLETED_SUMMARY)"
+              echo "[$SHORT] $DATE  no ready archs (${NOT_READY_NOTES:-none})"
               continue
             fi
 
@@ -187,7 +216,7 @@ jobs:
 
             ARCH_DISPATCH=$(echo "$TODO" | sed 's/ /, /g')
             CSV_NAME="autoparity-$(date -u +%Y%m%d)-$SHA"
-            echo "[$SHORT] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $DATE)"
+            echo "[$SHORT] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $DATE; still-pending: ${NOT_READY_NOTES:-none})"
             echo "[$SHORT] already dispatched for this SHA: '$(echo "$ALREADY" | xargs | tr ' ' ',')'"
             echo "[$SHORT] dispatching for: '$(echo "$TODO" | tr ' ' ',')'"
 
