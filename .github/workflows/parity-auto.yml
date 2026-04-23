@@ -72,10 +72,13 @@ jobs:
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
-          # Explicit error handling throughout; `set -e` is too aggressive for
-          # the many pipelines here (grep -q returning 1, date -d edge cases,
-          # paginated API calls, etc.) and has caused the loop to silently
-          # abort after the first "no ready archs" commit.
+          # GitHub Actions launches this with `bash -e {0}`, so -e is already on
+          # from the shebang. It's too aggressive for the many pipelines here
+          # (grep -q returning 1, date -d edge cases, paginated API calls,
+          # etc.) and has caused the loop to silently abort after the first
+          # "no ready archs" commit. Explicitly turn -e OFF and keep -u +
+          # pipefail so undefined-variable bugs still surface.
+          set +e
           set -uo pipefail
 
           NOW_EPOCH=$(date -u +%s)
