@@ -1,24 +1,28 @@
 name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
-# Polls pytorch/pytorch main for commits where the ROCm test check-runs
-# we care about have all completed, and dispatches parity.yml with the
-# subset of archs whose test shards are done (and therefore have S3
-# artifacts we can download).
+# Polls pytorch/pytorch main for commits where ALL ROCm CI has
+# finished, and dispatches parity.yml once for that SHA covering every
+# arch whose test shards actually ran on it.
 #
-# Readiness is determined at the *check-run* level, not the workflow
+# Readiness is evaluated at the *check-run* level, not the workflow
 # level: ROCm test shards post check-runs independently, and a single
 # failing shard flips the parent workflow_run to conclusion=failure
-# while other shards are still running. Relying on workflow_runs would
-# trigger parity too early and yield empty reports. Instead, for each
-# arch we require every check-run whose name matches that arch's regex
-# (e.g. "rocm.*mi355.*/ test \(") to have status=completed — any
-# conclusion is fine, as long as the runner finished and uploaded.
+# while siblings are still executing. Relying on workflow_runs would
+# fire too early and produce empty reports.
 #
-# This is intentionally per-arch, not per-commit-as-a-whole: mi355 (run
-# as part of trunk) is ready on almost every commit, while periodic
-# workflows like rocm-mi300 land on a SHA much less often. We dispatch
-# once per (SHA, arch-set) tuple.
+# Two gates:
+#   1. Every ROCm check-run on the SHA must be status=completed
+#      (across arches and workflows — we don't want to dispatch mi355
+#      while mi300's shards are still running on the same commit).
+#   2. For each arch in scope, we check whether its test shards
+#      actually ran on this SHA; mi300/mi200 etc. only show up when
+#      their periodic workflow happens to land on that SHA.
+#
+# We dispatch once per SHA with the ready subset of arches, so mi355
+# (run as part of trunk) gets a parity report per commit, and mi300/
+# mi200 join the same dispatch whenever their periodic workflow
+# happens to finish on that SHA.
 
 on:
   schedule:
@@ -149,11 +153,9 @@ jobs:
 
             # Pull all ROCm test check-runs for this SHA. We use check-runs
             # (not workflow_runs) because ROCm test shards post check-runs
-            # independently and the overall workflow_run conclusion is
-            # "failure" the moment any shard fails, even if other shards
-            # are still executing. What we actually want is: "have all the
-            # test shards for this arch finished running on upstream?"
-            # Then we can download S3 artifacts without racing against CI.
+            # independently and workflow_run conclusion flips to 'failure'
+            # the moment any shard fails, even while other shards are
+            # still running. We need per-shard state.
             CHECK_RUNS=$(gh api --paginate \
               "repos/$UPSTREAM/commits/$SHA/check-runs?per_page=100" \
               --jq '.check_runs[] | select(.name | test("rocm";"i")) | {name,status,conclusion}' \
@@ -164,11 +166,29 @@ jobs:
               continue
             fi
 
-            # Ready archs = archs for which ALL test check-runs matching
-            # the arch's regex are status=completed, AND at least one such
-            # check-run exists. "status=completed" covers any conclusion
-            # (success/failure/skipped/cancelled) — if the runner ran and
-            # finished, we expect artifacts in S3 whether it passed or not.
+            # Gate 1: require EVERY ROCm check-run for this SHA to be
+            # status=completed (across all arches and workflows). We
+            # don't want to dispatch mi355 while mi300's shards are
+            # still running on the same commit — once we dispatch for a
+            # SHA the parity report is authored, and dispatching a
+            # second time later for a different arch gives users two
+            # partial reports instead of one full one.
+            TOTAL_CR=$(echo "$CHECK_RUNS" | jq 'length')
+            PENDING_CR=$(echo "$CHECK_RUNS" | jq 'map(select(.status != "completed")) | length')
+            if [ "$PENDING_CR" -ne 0 ]; then
+              PENDING_SAMPLE=$(echo "$CHECK_RUNS" | jq -r '
+                map(select(.status != "completed"))
+                | .[0:3]
+                | map(.name)
+                | join(", ")')
+              echo "[$SHORT] $DATE  ${PENDING_CR}/${TOTAL_CR} ROCm check-runs still pending — skip (e.g. $PENDING_SAMPLE)"
+              continue
+            fi
+
+            # Gate 2: for each arch in scope, identify whether that
+            # arch's test shards actually ran on this SHA (some archs
+            # run only on periodic workflows that don't fire every
+            # commit, so mi300/mi200 may legitimately have no shards).
             READY=""
             NOT_READY_NOTES=""
             for ARCH in $ARCHS; do
@@ -177,16 +197,10 @@ jobs:
                 NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:no-regex"
                 continue
               fi
-              COUNTS=$(echo "$CHECK_RUNS" | jq --arg rx "$REGEX" '
-                map(select(.name | test($rx)))
-                | {total: length,
-                   pending: (map(select(.status != "completed")) | length)}')
-              TOTAL=$(echo "$COUNTS" | jq -r '.total')
-              PENDING=$(echo "$COUNTS" | jq -r '.pending')
+              TOTAL=$(echo "$CHECK_RUNS" | jq --arg rx "$REGEX" \
+                'map(select(.name | test($rx))) | length')
               if [ "$TOTAL" -eq 0 ]; then
                 NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:no-shards"
-              elif [ "$PENDING" -ne 0 ]; then
-                NOT_READY_NOTES="$NOT_READY_NOTES $ARCH:${PENDING}/${TOTAL}-pending"
               else
                 READY="$READY $ARCH"
               fi
@@ -195,7 +209,7 @@ jobs:
             NOT_READY_NOTES=$(echo "$NOT_READY_NOTES" | xargs)
 
             if [ -z "$READY" ]; then
-              echo "[$SHORT] $DATE  no ready archs (${NOT_READY_NOTES:-none})"
+              echo "[$SHORT] $DATE  all ROCm check-runs complete but no in-scope arches ran (${NOT_READY_NOTES:-none})"
               continue
             fi
 
