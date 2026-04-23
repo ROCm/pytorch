@@ -1795,7 +1795,8 @@ class triton:
 
     # Don't allow multi-stages by default to avoid out of shared memory
     mix_order_reduction_allow_multi_stages = (
-        os.environ.get("TORCHINDUCTOR_MIX_ORDER_REDUCTION_ALLOW_MULTI_STAGES") == "1"
+        os.environ.get("TORCHINDUCTOR_MIX_ORDER_REDUCTION_ALLOW_MULTI_STAGES", "1")
+        == "1"
     )
 
     enable_tlx_templates: bool = (
@@ -1831,6 +1832,8 @@ class triton:
     proton_per_cta_occupancy: bool = (
         os.environ.get("TORCHINDUCTOR_TRITON_PROTON_PER_CTA_OCCUPANCY", "1") == "1"
     )
+
+    dynamic_disable_pipelining = True
 
 
 class aot_inductor:
