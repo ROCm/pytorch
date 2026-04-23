@@ -72,7 +72,11 @@ jobs:
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
         run: |
-          set -euo pipefail
+          # Explicit error handling throughout; `set -e` is too aggressive for
+          # the many pipelines here (grep -q returning 1, date -d edge cases,
+          # paginated API calls, etc.) and has caused the loop to silently
+          # abort after the first "no ready archs" commit.
+          set -uo pipefail
 
           NOW_EPOCH=$(date -u +%s)
           MAX_AGE_EPOCH=$((NOW_EPOCH - MAX_AGE_HOURS * 3600))
@@ -125,9 +129,9 @@ jobs:
           while IFS=' ' read -r SHA DATE; do
             [ -z "$SHA" ] && continue
             SHORT=$(echo "$SHA" | cut -c1-8)
-            COMMIT_EPOCH=$(date -u -d "$DATE" +%s)
+            COMMIT_EPOCH=$(date -u -d "$DATE" +%s 2>/dev/null || echo 0)
 
-            if [ "$COMMIT_EPOCH" -lt "$MAX_AGE_EPOCH" ]; then
+            if [ "$COMMIT_EPOCH" -ne 0 ] && [ "$COMMIT_EPOCH" -lt "$MAX_AGE_EPOCH" ]; then
               echo "[$SHORT] $DATE  too old (>${MAX_AGE_HOURS}h) — stopping scan"
               break
             fi
