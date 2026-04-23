@@ -6,12 +6,9 @@ USER root
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
-ENV USE_NVSHMEM=0
 
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
-    # Bypass sccache on torch_rocshmem: its -fgpu-rdc + mixed xnack± offload-arch flags break sccache's argv parser.
-    && sed -i 's|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP)|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP CXX_COMPILER_LAUNCHER "" HIP_COMPILER_LAUNCHER "")|' caffe2/CMakeLists.txt \
     && pip install -r requirements.txt \
     && git config --local user.name "AMD AMD" \
     && git config --local user.email "amd@amd.com" \

@@ -20,7 +20,7 @@ on:
       - rocm-nightly-gha
 
 env:
-  ROCM_VERSION: '7.2.2'
+  ROCM_VERSION: '7.2.0'
   PYTHON_VERSION: '3.10'
   PYTORCH_ROCM_ARCH: 'gfx906;gfx908;gfx90a;gfx942;gfx950;gfx1030;gfx1100;gfx1101;gfx1102;gfx1150;gfx1151;gfx1200;gfx1201'
   DOCKER_REGISTRY: rocm/pytorch-nightly
