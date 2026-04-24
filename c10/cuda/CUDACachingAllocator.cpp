@@ -473,7 +473,6 @@ struct ExpandableSegment {
 #endif
         }
       }
-#endif
       int flag = 0;
 #ifndef USE_ROCM
       C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuDeviceGetAttribute_(
