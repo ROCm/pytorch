@@ -9,6 +9,8 @@ ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
 
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
+    # Bypass sccache on torch_rocshmem
+    && sed -i 's|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP)|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP CXX_COMPILER_LAUNCHER "" HIP_COMPILER_LAUNCHER "")|' caffe2/CMakeLists.txt \
     && pip install -r requirements.txt \
     && (.ci/pytorch/build.sh > /tmp/build.log 2>&1 || (tail -300 /tmp/build.log; exit 1)) \
     && rm -rf /tmp/pytorch/.git
