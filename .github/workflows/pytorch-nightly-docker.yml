@@ -132,6 +132,8 @@ jobs:
           severity: CRITICAL
           ignore-unfixed: true
           exit-code: '1'
+          scanners: vuln
+          timeout: 30m
 
       - name: Log in to Docker Hub
         if: ${{ matrix.target.push_image }}
