@@ -28,6 +28,7 @@ on:
           - gfx950-dcgpu
           - gfx94X-dcgpu
           - gfx90X-dcgpu
+          - gfx908
           - gfx120X-all
           - gfx110X-all
           - gfx110X-dgpu
