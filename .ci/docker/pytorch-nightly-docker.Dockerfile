@@ -1,12 +1,16 @@
 ARG BASE_IMAGE=rocm/pytorch-autobuild:base-latest
-FROM ${BASE_IMAGE}
+
+FROM ${BASE_IMAGE} AS base
 WORKDIR /tmp
 USER root
 
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
+# TODO TEMPORARY: disables torch_rocshmem build to dodge an sccache argv-parser bug
+ENV USE_NVSHMEM=0
 
+FROM base AS pytorch
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
     # Bypass sccache on torch_rocshmem
@@ -14,10 +18,14 @@ RUN git clone https://github.com/pytorch/pytorch --recursive \
     && pip install -r requirements.txt \
     && (.ci/pytorch/build.sh > /tmp/build.log 2>&1 || (tail -300 /tmp/build.log; exit 1)) \
     && rm -rf /tmp/pytorch/.git
+
+FROM pytorch AS vision
 RUN git clone https://github.com/pytorch/vision \
     && cd vision \
     && FORCE_CUDA=1 python setup.py install \
     && rm -rf /tmp/vision/.git
+
+FROM vision AS audio
 RUN git clone https://github.com/pytorch/audio \
     && cd audio \
     && python setup.py install \

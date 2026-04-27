@@ -79,11 +79,28 @@ jobs:
             [ "$attempt" -eq 3 ] && exit 1
           done
 
-      - name: Build ROCm Nightly Image
+      - name: Build PyTorch
+        run: |
+          docker build \
+            --target pytorch \
+            --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
+            -t rocm/pytorch-nightly:pytorch-stage \
+            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+
+      - name: Build TorchVision
+        run: |
+          docker build \
+            --target vision \
+            --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
+            -t rocm/pytorch-nightly:vision-stage \
+            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+
+      - name: Build TorchAudio
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
           docker build \
+            --target audio \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
             - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
