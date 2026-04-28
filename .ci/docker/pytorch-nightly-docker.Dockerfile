@@ -7,14 +7,13 @@ USER root
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
-# TODO TEMPORARY: disables torch_rocshmem build to dodge an sccache argv-parser bug
-ENV USE_NVSHMEM=0
+# Disable sccache preprocessor cache mode — its linemarker parser bails with
+# "Failed to parse included file path" on hipcc preprocessed output. Trial.
+ENV SCCACHE_DIRECT=false
 
 FROM base AS pytorch
 RUN git clone https://github.com/pytorch/pytorch --recursive \
     && cd pytorch \
-    # Bypass sccache on torch_rocshmem
-    && sed -i 's|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP)|set_target_properties(torch_rocshmem PROPERTIES LINKER_LANGUAGE HIP CXX_COMPILER_LAUNCHER "" HIP_COMPILER_LAUNCHER "")|' caffe2/CMakeLists.txt \
     && pip install -r requirements.txt \
     && (.ci/pytorch/build.sh > /tmp/build.log 2>&1 || (tail -300 /tmp/build.log; exit 1)) \
     && rm -rf /tmp/pytorch/.git
