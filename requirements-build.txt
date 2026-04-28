@@ -1,14 +1,15 @@
 # Build System requirements
-setuptools==78.1.1
-cmake==3.31.6
+# setuptools and cmake pinned to match rocm/pytorch release/2.10:
+# https://github.com/ROCm/pytorch/blob/0b21eac93ff682d862b257770fff5f9fc069b30a/requirements-build.txt
+setuptools==79.0.1
+cmake==4.0.0
 ninja==1.11.1.4
-numpy==1.23.2 ; python_version == "3.10"
-numpy==1.26.2 ; python_version == "3.11" or python_version == "3.12"
-numpy==2.1.2 ; python_version >= "3.13" and python_version < "3.14"
-numpy==2.3.4 ; python_version >= "3.14"
-packaging==24.0
+numpy==2.0.2 ; python_version == "3.9"
+numpy==2.1.2 ; python_version > "3.9" and python_version < "3.14"
+numpy==2.4.3 ; python_version >= "3.14"
+packaging==25.0
 pyyaml==6.0.3
 requests==2.32.5
 six==1.17.0  # dependency chain: NNPACK -> PeachPy -> six
-typing-extensions==4.15.0
+typing_extensions==4.15.0
 pip==26.0.1  # not technically needed, but this makes setup.py invocation work
