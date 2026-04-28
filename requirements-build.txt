@@ -1,5 +1,5 @@
 # Build System requirements
-# setuptools and cmake pinned to match rocm/pytorch release/2.10:
+# Build requirements pinned to match rocm/pytorch release/2.11:
 # https://github.com/ROCm/pytorch/blob/0b21eac93ff682d862b257770fff5f9fc069b30a/requirements-build.txt
 setuptools==79.0.1
 cmake==4.0.0
