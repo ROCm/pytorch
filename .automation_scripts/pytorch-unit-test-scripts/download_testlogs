@@ -210,8 +210,10 @@ def _shorten_unzipped_dirs():
 
     Converts names like:
       unzipped-test-reports-runattempt1-test-default-1-6-linux.rocm.gpu.gfx942.1_68613413431.zip
+      unzipped-test-reports-runattempt1-test-osdc-default-1-5-mt-l-x86aavx2-29-113-l4_73385044118.zip
     to:
       test-default-1-6
+      test-default-1-5
 
     Preserves the 'test-<config>' prefix so that summarize_xml_testreports.py
     can still detect workflow type via substring matching.
@@ -220,9 +222,9 @@ def _shorten_unzipped_dirs():
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
-        m = re.search(r'(test-\w+-\d+-\d+)', d.name)
+        m = re.search(r'test-(?:osdc-)?(default|distributed|inductor)-(\d+)-(\d+)', d.name)
         if m:
-            short_name = m.group(1)
+            short_name = f"test-{m.group(1)}-{m.group(2)}-{m.group(3)}"
             if not Path(short_name).exists():
                 d.rename(short_name)
                 print(f"  Renamed {d.name} -> {short_name}")
@@ -662,6 +664,7 @@ def main():
 
     if not args.no_cuda:
         cuda_job_prefix = "linux-jammy-cuda13.0-py3.10-gcc11"
+        cuda_test_job_kind = "test-osdc"
         print("==========================================")
         print(f"Finding CUDA tests in workflow '{CUDAWorkflowNames['default']}' by sha: {sha}")
         print("==========================================")
@@ -686,7 +689,10 @@ def main():
 
         for run in trunk_runs:
             jobs = get_workflow_jobs(run)
-            test_jobs = [j for j in jobs if cuda_job_prefix in j['name'] and '/ test' in j['name']]
+            test_jobs = [
+                j for j in jobs
+                if cuda_job_prefix in j['name'] and f'/ {cuda_test_job_kind} (' in j['name']
+            ]
             if test_jobs:
                 trunk_wf = run
                 all_cuda_jobs = jobs
@@ -699,7 +705,7 @@ def main():
             # by the jobs API. Use check-runs API to find the actual run.
             print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
             check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
-            cuda_test_jobs = [cr for cr in check_runs if '/ test' in cr['name']]
+            cuda_test_jobs = [cr for cr in check_runs if f'/ {cuda_test_job_kind} (' in cr['name']]
             if cuda_test_jobs:
                 # Extract the actual workflow run ID from the check-run details URL
                 import re as _re
@@ -737,18 +743,18 @@ def main():
         # Download logs
         if not args.artifacts_only:
             test_log_list_cuda_default = [
-              ["cuda1.txt", f"{cuda_job_prefix} / test (default, 1, 5"],
-              ["cuda2.txt", f"{cuda_job_prefix} / test (default, 2, 5"],
-              ["cuda3.txt", f"{cuda_job_prefix} / test (default, 3, 5"],
-              ["cuda4.txt", f"{cuda_job_prefix} / test (default, 4, 5"],
-              ["cuda5.txt", f"{cuda_job_prefix} / test (default, 5, 5"],
+              ["cuda1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 1, 5"],
+              ["cuda2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 2, 5"],
+              ["cuda3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 3, 5"],
+              ["cuda4.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 4, 5"],
+              ["cuda5.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 5, 5"],
             ]
             test_log_list_cuda = test_log_list_cuda_default
             if not args.exclude_distributed:
                 test_log_list_cuda_distributed = [
-                  ["cuda_dist1.txt", f"{cuda_job_prefix} / test (distributed, 1, 3"],
-                  ["cuda_dist2.txt", f"{cuda_job_prefix} / test (distributed, 2, 3"],
-                  ["cuda_dist3.txt", f"{cuda_job_prefix} / test (distributed, 3, 3"],
+                  ["cuda_dist1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 1, 3"],
+                  ["cuda_dist2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 2, 3"],
+                  ["cuda_dist3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 3, 3"],
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
 
@@ -756,11 +762,11 @@ def main():
 
         # Download artifacts
         test_artifacts_list_cuda_default = [
-          "test-reports-test-default-1-5",
-          "test-reports-test-default-2-5",
-          "test-reports-test-default-3-5",
-          "test-reports-test-default-4-5",
-          "test-reports-test-default-5-5",
+          "test-reports-test-osdc-default-1-5",
+          "test-reports-test-osdc-default-2-5",
+          "test-reports-test-osdc-default-3-5",
+          "test-reports-test-osdc-default-4-5",
+          "test-reports-test-osdc-default-5-5",
         ]
 
         test_artifacts_list_cuda = []
@@ -769,9 +775,9 @@ def main():
 
         if not args.exclude_distributed:
             test_artifacts_list_cuda_distributed = [
-              "test-reports-test-distributed-1-3",
-              "test-reports-test-distributed-2-3",
-              "test-reports-test-distributed-3-3",
+              "test-reports-test-osdc-distributed-1-3",
+              "test-reports-test-osdc-distributed-2-3",
+              "test-reports-test-osdc-distributed-3-3",
             ]
             test_artifacts_list_cuda += test_artifacts_list_cuda_distributed
 

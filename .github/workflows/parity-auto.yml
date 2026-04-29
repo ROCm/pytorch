@@ -14,8 +14,8 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 # Two gates:
 #   1. Every ROCm arch test check-run and every CUDA test check-run
 #      consumed by download_testlogs on the SHA must be status=completed.
-#      We don't want to dispatch mi355 while mi300, CUDA trunk, or CUDA
-#      inductor shards are still running on the same commit.
+#      We don't want to dispatch mi355 while mi300, CUDA trunk OSDC, or
+#      CUDA inductor shards are still running on the same commit.
 #   2. For each arch in scope, we check whether its test shards
 #      actually ran on this SHA; mi300/mi200 etc. only show up when
 #      their periodic workflow happens to land on that SHA.
@@ -173,7 +173,7 @@ jobs:
                 <(echo "$ARCH_CHECK_RUNS"))
             done
 
-            CUDA_JOBNAME_REGEX='(linux-jammy-cuda13[.]0-py3[.]10-gcc11.*/ test [(](default|distributed),|unit-test / inductor-test / test [(]inductor,)'
+            CUDA_JOBNAME_REGEX='(linux-jammy-cuda13[.]0-py3[.]10-gcc11.*/ test-osdc [(](default|distributed),|unit-test / inductor-test / test [(]inductor,)'
             CUDA_CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq --arg rx "$CUDA_JOBNAME_REGEX" \
               '[.[] | select(.name | test($rx))]')
 
