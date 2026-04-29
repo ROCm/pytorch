@@ -26,6 +26,7 @@
 # - AMDGPU_FAMILY    : AMD GPU family (e.g., gfx94X-dcgpu, gfx90X-dcgpu, gfx950-dcgpu)
 # - PYTHON_VERSION   : Python version for PyTorch (default: 3.12)
 # - INDEX_URL        : (Required) Base URL for PyTorch wheels index
+# - PYTORCH_ROCM_ARCH: GPU arch target for source builds / local rebuilds
 # - TORCH_VERSION      : Optional specific PyTorch version. If not set, installs latest.
 # - TORCHAUDIO_VERSION : Optional specific torchaudio version. If not set, installs latest.
 # - TORCHVISION_VERSION: Optional specific torchvision version. If not set, installs latest.
@@ -58,6 +59,7 @@ ARG RELEASE_TYPE=nightly
 # PyTorch configuration arguments
 ARG PYTHON_VERSION=3.12
 ARG INDEX_URL
+ARG PYTORCH_ROCM_ARCH
 ARG TORCH_VERSION
 ARG TORCH_VERSION_PREFIX
 ARG TORCHAUDIO_VERSION
@@ -74,6 +76,12 @@ COPY . /workspace/pytorch
 # Install system dependencies
 RUN chmod +x /tmp/install_rocm_deps.sh && \
     /tmp/install_rocm_deps.sh
+
+# Install ccache for PyTorch source rebuilds in the image.
+RUN if ! command -v ccache >/dev/null 2>&1; then \
+        apt-get update; \
+        apt-get install -y ccache; \
+    fi
 
 # Install the requested Python version if not already available.
 # Ubuntu 24.04 ships with 3.12; other versions come from deadsnakes PPA.
@@ -120,7 +128,6 @@ ENV ROCM_HOME="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/_rocm_sdk_dev
     ROCM_SOURCE_DIR="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/_rocm_sdk_devel" \
     ROCM_BIN="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/_rocm_sdk_devel/bin" \
     ROCM_CMAKE="/opt/venv/lib/python${PYTHON_VERSION}/site-packages/_rocm_sdk_devel/lib/cmake" \
-    PYTORCH_ROCM_ARCH="${AMDGPU_FAMILY}" \
     VIRTUAL_ENV=/opt/venv \
     USE_MSLK=0
 
@@ -133,8 +140,13 @@ ENV CMAKE_PREFIX_PATH="${ROCM_CMAKE}" \
     PKG_CONFIG_PATH="${ROCM_HOME}/lib/rocm_sysdeps/lib/pkgconfig" \
     LD_LIBRARY_PATH="${ROCM_HOME}/lib/host-math/lib:${ROCM_HOME}/lib/rocm_sysdeps/lib" \
     LIBRARY_PATH="${ROCM_HOME}/lib/host-math/lib:${ROCM_HOME}/lib/rocm_sysdeps/lib" \
-    CC="${ROCM_HOME}/lib/llvm/bin/clang" \
-    CXX="${ROCM_HOME}/lib/llvm/bin/clang++" \
+    CC=/usr/bin/gcc \
+    CXX=/usr/bin/g++ \
+    CMAKE_C_COMPILER_LAUNCHER=ccache \
+    CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+    CMAKE_CUDA_COMPILER_LAUNCHER=ccache \
+    CMAKE_HIP_COMPILER_LAUNCHER=ccache \
+    PYTORCH_ROCM_ARCH="${PYTORCH_ROCM_ARCH}" \
     PATH="${ROCM_BIN}:${PATH}"
 
 # Verify PyTorch imports and environment
@@ -145,6 +157,7 @@ print('ROCm/HIP', torch.version.hip)
 print(f'ROCM_HOME={os.environ.get("ROCM_HOME", "NOT SET")}')
 print(f'CC={os.environ.get("CC", "NOT SET")}')
 print(f'CXX={os.environ.get("CXX", "NOT SET")}')
+print(f'PYTORCH_ROCM_ARCH={os.environ.get("PYTORCH_ROCM_ARCH", "NOT SET")}')
 for mod in ['torchaudio', 'torchvision', 'triton']:
     try:
         m = __import__(mod)

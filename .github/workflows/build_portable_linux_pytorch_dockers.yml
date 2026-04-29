@@ -93,7 +93,8 @@ jobs:
           repository: ${{ matrix.pytorch_repo }}
           ref: ${{ matrix.pytorch_branch }}
           path: pytorch-src
-          fetch-depth: 1
+          fetch-depth: 0
+          submodules: recursive
 
       - name: Derive torch version prefix from branch
         id: prefix
@@ -164,6 +165,14 @@ jobs:
           echo "pytorch_repo=${{ matrix.pytorch_repo }}" >> $GITHUB_OUTPUT
           echo "pytorch_branch=${{ matrix.pytorch_branch }}" >> $GITHUB_OUTPUT
 
+          GFX="${{ env.DEFAULT_AMDGPU_FAMILY }}"
+          case "${GFX}" in
+            gfx94X-dcgpu) PYTORCH_ROCM_ARCH="gfx942" ;;
+            *-*) PYTORCH_ROCM_ARCH="${GFX%%-*}" ;;
+            *) PYTORCH_ROCM_ARCH="${GFX}" ;;
+          esac
+          echo "pytorch_rocm_arch=${PYTORCH_ROCM_ARCH}" >> $GITHUB_OUTPUT
+
           COMMIT="$(cd pytorch-src && git rev-parse --short=8 HEAD)"
           echo "pytorch_commit=${COMMIT}" >> $GITHUB_OUTPUT
 
@@ -213,6 +222,7 @@ jobs:
             --build-arg "PYTHON_VERSION=${{ steps.cfg.outputs.python_version }}" \
             --build-arg "INDEX_URL=${{ steps.cfg.outputs.index_url }}" \
             --build-arg "TORCH_VERSION_PREFIX=${{ steps.prefix.outputs.value }}" \
+            --build-arg "PYTORCH_ROCM_ARCH=${{ steps.cfg.outputs.pytorch_rocm_arch }}" \
             pytorch-src
 
           echo "Docker image built successfully: ${IMAGE}"
@@ -264,7 +274,8 @@ jobs:
           repository: ${{ inputs.pytorch_repo || 'pytorch/pytorch' }}
           ref: ${{ inputs.pytorch_branch || 'nightly' }}
           path: pytorch-src
-          fetch-depth: 1
+          fetch-depth: 0
+          submodules: recursive
 
       - name: Derive torch version prefix from branch
         id: prefix
@@ -340,6 +351,14 @@ jobs:
           echo "pytorch_repo=${{ inputs.pytorch_repo || 'pytorch/pytorch' }}" >> $GITHUB_OUTPUT
           echo "pytorch_branch=${{ inputs.pytorch_branch || 'nightly' }}" >> $GITHUB_OUTPUT
 
+          GFX="${{ inputs.amdgpu_family || env.DEFAULT_AMDGPU_FAMILY }}"
+          case "${GFX}" in
+            gfx94X-dcgpu) PYTORCH_ROCM_ARCH="gfx942" ;;
+            *-*) PYTORCH_ROCM_ARCH="${GFX%%-*}" ;;
+            *) PYTORCH_ROCM_ARCH="${GFX}" ;;
+          esac
+          echo "pytorch_rocm_arch=${PYTORCH_ROCM_ARCH}" >> $GITHUB_OUTPUT
+
           COMMIT="$(cd pytorch-src && git rev-parse --short=8 HEAD)"
           echo "pytorch_commit=${COMMIT}" >> $GITHUB_OUTPUT
 
@@ -389,6 +408,7 @@ jobs:
             --build-arg "PYTHON_VERSION=${{ steps.cfg.outputs.python_version }}" \
             --build-arg "INDEX_URL=${{ steps.cfg.outputs.index_url }}" \
             --build-arg "TORCH_VERSION_PREFIX=${{ steps.cfg.outputs.torch_prefix }}" \
+            --build-arg "PYTORCH_ROCM_ARCH=${{ steps.cfg.outputs.pytorch_rocm_arch }}" \
             pytorch-src
 
           echo "Docker image built successfully: ${IMAGE}"
