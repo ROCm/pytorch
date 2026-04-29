@@ -1,9 +1,9 @@
 name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
-# Polls pytorch/pytorch main for commits where ALL ROCm CI has
-# finished, and dispatches parity.yml once for that SHA covering every
-# arch whose test shards actually ran on it.
+# Polls pytorch/pytorch main for commits where all CI consumed by
+# parity.yml has finished, and dispatches parity.yml once for that SHA
+# covering every arch whose test shards actually ran on it.
 #
 # Readiness is evaluated at the *check-run* level, not the workflow
 # level: ROCm test shards post check-runs independently, and a single
@@ -12,9 +12,10 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 # fire too early and produce empty reports.
 #
 # Two gates:
-#   1. Every ROCm check-run on the SHA must be status=completed
-#      (across arches and workflows — we don't want to dispatch mi355
-#      while mi300's shards are still running on the same commit).
+#   1. Every ROCm check-run and every CUDA test check-run consumed by
+#      download_testlogs on the SHA must be status=completed. We don't
+#      want to dispatch mi355 while mi300, CUDA trunk, or CUDA inductor
+#      shards are still running on the same commit.
 #   2. For each arch in scope, we check whether its test shards
 #      actually ran on this SHA; mi300/mi200 etc. only show up when
 #      their periodic workflow happens to land on that SHA.
@@ -151,37 +152,49 @@ jobs:
               break
             fi
 
-            # Pull all ROCm test check-runs for this SHA. We use check-runs
-            # (not workflow_runs) because ROCm test shards post check-runs
-            # independently and workflow_run conclusion flips to 'failure'
-            # the moment any shard fails, even while other shards are
-            # still running. We need per-shard state.
-            CHECK_RUNS=$(gh api --paginate \
+            # Pull relevant upstream check-runs for this SHA. We use
+            # check-runs (not workflow_runs) because test shards post
+            # check-runs independently and workflow_run conclusion flips
+            # to 'failure' the moment any shard fails, even while siblings
+            # are still running. We need per-shard state.
+            ALL_CHECK_RUNS=$(gh api --paginate \
               "repos/$UPSTREAM/commits/$SHA/check-runs?per_page=100" \
-              --jq '.check_runs[] | select(.name | test("rocm";"i")) | {name,status,conclusion}' \
+              --jq '.check_runs[] | {name,status,conclusion}' \
               2>/dev/null | jq -s '.' || echo '[]')
+
+            CUDA_JOBNAME_REGEX='(linux-jammy-cuda13[.]0-py3[.]10-gcc11.*/ test [(](default|distributed),|unit-test / inductor-test / test [(]inductor,)'
+            CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq '[.[] | select(.name | test("rocm";"i"))]')
+            CUDA_CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq --arg rx "$CUDA_JOBNAME_REGEX" \
+              '[.[] | select(.name | test($rx))]')
 
             if [ "$(echo "$CHECK_RUNS" | jq 'length')" -eq 0 ]; then
               echo "[$SHORT] $DATE  no ROCm check-runs yet on upstream — skip"
               continue
             fi
 
-            # Gate 1: require EVERY ROCm check-run for this SHA to be
-            # status=completed (across all arches and workflows). We
-            # don't want to dispatch mi355 while mi300's shards are
-            # still running on the same commit — once we dispatch for a
-            # SHA the parity report is authored, and dispatching a
-            # second time later for a different arch gives users two
-            # partial reports instead of one full one.
-            TOTAL_CR=$(echo "$CHECK_RUNS" | jq 'length')
-            PENDING_CR=$(echo "$CHECK_RUNS" | jq 'map(select(.status != "completed")) | length')
+            if [ "$(echo "$CUDA_CHECK_RUNS" | jq 'length')" -eq 0 ]; then
+              echo "[$SHORT] $DATE  no CUDA parity check-runs yet on upstream — skip"
+              continue
+            fi
+
+            # Gate 1: require EVERY relevant upstream check-run for this
+            # SHA to be status=completed (ROCm across arches/workflows,
+            # plus CUDA default/distributed/inductor tests). Once we
+            # dispatch for a SHA the parity report is authored, so
+            # dispatching before CUDA or another arch finishes produces
+            # partial reports.
+            GATE_CHECK_RUNS=$(jq -s 'add' \
+              <(echo "$CHECK_RUNS") \
+              <(echo "$CUDA_CHECK_RUNS"))
+            TOTAL_CR=$(echo "$GATE_CHECK_RUNS" | jq 'length')
+            PENDING_CR=$(echo "$GATE_CHECK_RUNS" | jq 'map(select(.status != "completed")) | length')
             if [ "$PENDING_CR" -ne 0 ]; then
-              PENDING_SAMPLE=$(echo "$CHECK_RUNS" | jq -r '
+              PENDING_SAMPLE=$(echo "$GATE_CHECK_RUNS" | jq -r '
                 map(select(.status != "completed"))
                 | .[0:3]
                 | map(.name)
                 | join(", ")')
-              echo "[$SHORT] $DATE  ${PENDING_CR}/${TOTAL_CR} ROCm check-runs still pending — skip (e.g. $PENDING_SAMPLE)"
+              echo "[$SHORT] $DATE  ${PENDING_CR}/${TOTAL_CR} parity check-runs still pending — skip (e.g. $PENDING_SAMPLE)"
               continue
             fi
 
