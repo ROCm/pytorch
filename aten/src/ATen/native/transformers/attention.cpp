@@ -751,9 +751,15 @@ Tensor scaled_dot_product_attention(
   }
   const auto query_device_type = query_.device().type();
   const auto backend = static_cast<SDPBackend>(choice_int);
-  auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
   switch (backend) {
     case SDPBackend::cudnn_attention: {
+      // Skip the bool attention mask conversion on ROCm, as hipDNN handles
+      // bool masks itself.
+#if defined(USE_ROCM)
+      auto attn_mask = attn_mask_;
+#else
+      auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
+#endif
       bool compute_logsumexp = should_compute_logsumexp(query_, key, value);
       auto out_lse_softmax = at::_scaled_dot_product_cudnn_attention(
           query_, key, value, attn_mask, compute_logsumexp, dropout_p, is_causal, false /*return_debug_mask*/, scale);
@@ -774,10 +780,12 @@ Tensor scaled_dot_product_attention(
         return post_process_flash_output(std::get<0>(out_lse_softmax), og_size);
       }
       // For the CPU case we do not need to pad the last dim
+      auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
       return std::get<0>(at::_scaled_dot_product_flash_attention_for_cpu(
           query_, key, value, dropout_p, is_causal, attn_mask, scale));
     }
     case SDPBackend::efficient_attention: {
+      auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
       bool compute_logsumexp = should_compute_logsumexp(query_, key, value);
       if (attn_mask.has_value()) {
         attn_mask.value() = preprocess_mask(attn_mask.value(), query_, key, value);;
@@ -787,11 +795,13 @@ Tensor scaled_dot_product_attention(
       return std::get<0>(out_and_lse);
     }
     case SDPBackend::overrideable: {
+      auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
       auto out_lse_softmax = at::_scaled_dot_product_fused_attention_overrideable(
           query_, key, value, attn_mask, dropout_p, is_causal, false /*return_debug_mask*/, scale);
       return std::get<0>(out_lse_softmax);
     }
     case SDPBackend::math: {
+      auto attn_mask = convert_boolean_attn_mask(attn_mask_, query_.dtype());
       const bool any_inputs_require_grad = query_.requires_grad() || key.requires_grad() || value.requires_grad();
       if (query_device_type == c10::kMPS && !(at::GradMode::is_enabled() && any_inputs_require_grad)) {
         return std::get<0>(at::_scaled_dot_product_attention_math_for_mps(
