@@ -32,7 +32,7 @@
 # - TORCHVISION_VERSION: Optional specific torchvision version. If not set, installs latest.
 # - TRITON_VERSION     : Optional specific triton version. If not set, uses torch's dependency.
 #
-# Note: The PyTorch source is included at /workspace/pytorch (from the repo root).
+# Note: The PyTorch source is included at /tmp/pytorch (from the repo root).
 #
 # Build example (run from repo root):
 #
@@ -71,7 +71,7 @@ COPY .github/scripts/install_rocm_deps.sh /tmp/
 COPY .github/scripts/install_pytorch_wheels.py /tmp/
 
 # Copy PyTorch source from the repo root
-COPY . /workspace/pytorch
+COPY . /tmp/pytorch
 
 # Install system dependencies
 RUN chmod +x /tmp/install_rocm_deps.sh && \
@@ -169,4 +169,4 @@ PYEOF
 # Clean up installation scripts
 RUN rm -f /tmp/install_rocm_deps.sh /tmp/install_pytorch_wheels.py
 
-WORKDIR /workspace/pytorch
+WORKDIR /tmp/pytorch
