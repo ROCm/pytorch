@@ -27,7 +27,7 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 
 on:
   schedule:
-    - cron: '*/30 * * * *'
+    - cron: '*/10 * * * *'
   workflow_dispatch:
     inputs:
       max_commits:
