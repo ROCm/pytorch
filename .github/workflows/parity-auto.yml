@@ -12,10 +12,10 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 # fire too early and produce empty reports.
 #
 # Two gates:
-#   1. Every ROCm check-run and every CUDA test check-run consumed by
-#      download_testlogs on the SHA must be status=completed. We don't
-#      want to dispatch mi355 while mi300, CUDA trunk, or CUDA inductor
-#      shards are still running on the same commit.
+#   1. Every ROCm arch test check-run and every CUDA test check-run
+#      consumed by download_testlogs on the SHA must be status=completed.
+#      We don't want to dispatch mi355 while mi300, CUDA trunk, or CUDA
+#      inductor shards are still running on the same commit.
 #   2. For each arch in scope, we check whether its test shards
 #      actually ran on this SHA; mi300/mi200 etc. only show up when
 #      their periodic workflow happens to land on that SHA.
@@ -162,13 +162,23 @@ jobs:
               --jq '.check_runs[] | {name,status,conclusion}' \
               2>/dev/null | jq -s '.' || echo '[]')
 
+            CHECK_RUNS='[]'
+            for ARCH in $ARCHS; do
+              REGEX=$(echo "$ARCH_JOBNAME_REGEX_MAP" | jq -r --arg a "$ARCH" '.[$a] // ""')
+              [ -z "$REGEX" ] && continue
+              ARCH_CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq --arg rx "$REGEX" \
+                '[.[] | select(.name | test($rx))]')
+              CHECK_RUNS=$(jq -s 'add | unique_by(.name)' \
+                <(echo "$CHECK_RUNS") \
+                <(echo "$ARCH_CHECK_RUNS"))
+            done
+
             CUDA_JOBNAME_REGEX='(linux-jammy-cuda13[.]0-py3[.]10-gcc11.*/ test [(](default|distributed),|unit-test / inductor-test / test [(]inductor,)'
-            CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq '[.[] | select(.name | test("rocm";"i"))]')
             CUDA_CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq --arg rx "$CUDA_JOBNAME_REGEX" \
               '[.[] | select(.name | test($rx))]')
 
             if [ "$(echo "$CHECK_RUNS" | jq 'length')" -eq 0 ]; then
-              echo "[$SHORT] $DATE  no ROCm check-runs yet on upstream — skip"
+              echo "[$SHORT] $DATE  no in-scope ROCm parity check-runs yet on upstream — skip"
               continue
             fi
 
@@ -177,12 +187,12 @@ jobs:
               continue
             fi
 
-            # Gate 1: require EVERY relevant upstream check-run for this
-            # SHA to be status=completed (ROCm across arches/workflows,
-            # plus CUDA default/distributed/inductor tests). Once we
-            # dispatch for a SHA the parity report is authored, so
-            # dispatching before CUDA or another arch finishes produces
-            # partial reports.
+            # Gate 1: require EVERY upstream check-run consumed by the
+            # parity report for this SHA to be status=completed (ROCm
+            # arch test shards, plus CUDA default/distributed/inductor
+            # tests). Once we dispatch for a SHA the parity report is
+            # authored, so dispatching before CUDA or another arch
+            # finishes produces partial reports.
             GATE_CHECK_RUNS=$(jq -s 'add' \
               <(echo "$CHECK_RUNS") \
               <(echo "$CUDA_CHECK_RUNS"))
