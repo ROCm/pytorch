@@ -3161,6 +3161,43 @@ class TestSDPACudaOnly(NNTestCase):
             self.assertFalse(dk.isnan().any())
             self.assertFalse(dv.isnan().any())
 
+    @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
+    def test_cudnn_attention_bool_mask(self):
+        # Simple bool attn_mask test.
+        q = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+        k = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+        v = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+
+        attn_mask = torch.tril(torch.ones(8, 8, dtype=torch.bool, device='cuda'))
+
+        with sdpa_kernel(SDPBackend.MATH):
+            out_math = torch.nn.functional.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask)
+        with sdpa_kernel(SDPBackend.CUDNN_ATTENTION):
+            out_cudnn = torch.nn.functional.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask)
+
+        self.assertEqual(out_math, out_cudnn, atol=5e-3, rtol=3e-3)
+
+    @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
+    def test_cudnn_attention_mismatched_mask_dtype(self):
+        # Float attn_mask with a dtype different from Q (bf16 Q, fp32 mask).
+        q = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+        k = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+        v = torch.randn(2, 4, 8, 16, dtype=torch.bfloat16, device='cuda')
+
+        bool_mask = torch.tril(torch.ones(8, 8, dtype=torch.bool, device='cuda'))
+        attn_mask = torch.where(bool_mask, 0.0, float('-inf')).to(torch.float32)
+
+        with sdpa_kernel(SDPBackend.MATH):
+            out_math = torch.nn.functional.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask)
+        with sdpa_kernel(SDPBackend.CUDNN_ATTENTION):
+            out_cudnn = torch.nn.functional.scaled_dot_product_attention(
+                q, k, v, attn_mask=attn_mask)
+
+        self.assertEqual(out_math, out_cudnn, atol=5e-3, rtol=3e-3)
+
     @skipIfRocm
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cudnn Attention is not supported on this system")
     def test_cudnn_attention_mask_broken_177842(self):

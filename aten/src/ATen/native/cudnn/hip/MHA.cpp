@@ -145,6 +145,8 @@ static fe::DataType_t to_fe_data_type(c10::ScalarType t) {
       return fe::DataType_t::FLOAT;
     case kDouble:
       return fe::DataType_t::DOUBLE;
+    case kBool:
+      return fe::DataType_t::BOOLEAN;
     default:
       TORCH_CHECK(false, "hipDNN SDPA: unexpected tensor dtype ", t);
   }
@@ -167,6 +169,7 @@ static void check_tensor_matches_graph(
 struct MHAParams {
   c10::DeviceIndex device_id;
   fe::DataType_t dataType;
+  fe::DataType_t bias_dtype;
   float scaling_factor;
   std::array<int64_t, MAX_MHA_DIM> q_dim;
   std::array<int64_t, MAX_MHA_DIM> k_dim;
@@ -226,6 +229,7 @@ static void setMHAParams(
   std::copy(v.strides().begin(), v.strides().end(), params.v_stride.begin());
   // uninit is OK as the struct is memset 0'd
   if (params.has_attn_bias) {
+    params.bias_dtype = to_fe_data_type(attn_bias.value().scalar_type());
     std::copy(
         attn_bias.value().sizes().begin(),
         attn_bias.value().sizes().end(),
@@ -416,7 +420,7 @@ static std::unique_ptr<fe::graph::Graph> build_graph_structure(
             .set_name("bias")
             .set_dim(std::vector(params.bias_dim.begin(), params.bias_dim.end()))
             .set_stride(std::vector(params.bias_stride.begin(), params.bias_stride.end()))
-            .set_data_type(params.dataType)));
+            .set_data_type(params.bias_dtype)));
   }
 
   auto [O_, Stats] =
@@ -499,7 +503,7 @@ static std::unique_ptr<fe::graph::Graph> build_graph_backward_structure(
             .set_name("bias")
             .set_dim(std::vector(params.bias_dim.begin(), params.bias_dim.end()))
             .set_stride(std::vector(params.bias_stride.begin(), params.bias_stride.end()))
-            .set_data_type(params.dataType)));
+            .set_data_type(params.bias_dtype)));
   }
 
   // Metadata for seed/offset/O/stats are hardcoded here, based on the
