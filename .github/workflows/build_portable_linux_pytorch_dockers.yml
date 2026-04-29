@@ -96,6 +96,13 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Checkout TheRock AMDGPU metadata
+        uses: actions/checkout@v4
+        with:
+          repository: ROCm/TheRock
+          path: therock-src
+          fetch-depth: 1
+
       - name: Derive torch version prefix from branch
         id: prefix
         run: |
@@ -166,11 +173,7 @@ jobs:
           echo "pytorch_branch=${{ matrix.pytorch_branch }}" >> $GITHUB_OUTPUT
 
           GFX="${{ env.DEFAULT_AMDGPU_FAMILY }}"
-          case "${GFX}" in
-            gfx94X-dcgpu) PYTORCH_ROCM_ARCH="gfx942" ;;
-            *-*) PYTORCH_ROCM_ARCH="${GFX%%-*}" ;;
-            *) PYTORCH_ROCM_ARCH="${GFX}" ;;
-          esac
+          PYTORCH_ROCM_ARCH="$(python3 therock-src/build_tools/github_actions/expand_amdgpu_families.py --amdgpu-families "${GFX}")"
           echo "pytorch_rocm_arch=${PYTORCH_ROCM_ARCH}" >> $GITHUB_OUTPUT
 
           COMMIT="$(cd pytorch-src && git rev-parse --short=8 HEAD)"
@@ -277,6 +280,13 @@ jobs:
           fetch-depth: 0
           submodules: recursive
 
+      - name: Checkout TheRock AMDGPU metadata
+        uses: actions/checkout@v4
+        with:
+          repository: ROCm/TheRock
+          path: therock-src
+          fetch-depth: 1
+
       - name: Derive torch version prefix from branch
         id: prefix
         run: |
@@ -352,11 +362,7 @@ jobs:
           echo "pytorch_branch=${{ inputs.pytorch_branch || 'nightly' }}" >> $GITHUB_OUTPUT
 
           GFX="${{ inputs.amdgpu_family || env.DEFAULT_AMDGPU_FAMILY }}"
-          case "${GFX}" in
-            gfx94X-dcgpu) PYTORCH_ROCM_ARCH="gfx942" ;;
-            *-*) PYTORCH_ROCM_ARCH="${GFX%%-*}" ;;
-            *) PYTORCH_ROCM_ARCH="${GFX}" ;;
-          esac
+          PYTORCH_ROCM_ARCH="$(python3 therock-src/build_tools/github_actions/expand_amdgpu_families.py --amdgpu-families "${GFX}")"
           echo "pytorch_rocm_arch=${PYTORCH_ROCM_ARCH}" >> $GITHUB_OUTPUT
 
           COMMIT="$(cd pytorch-src && git rev-parse --short=8 HEAD)"
