@@ -268,8 +268,15 @@ if(USE_FLASH_ATTENTION)
         CK_ENABLE_FP64
         CK_ENABLE_FP8
         CK_ENABLE_INT8
-        CK_USE_FNUZ_FP8
-        CK_USE_GFX94
+        #CK_USE_FNUZ_FP8
+        #CK_USE_GFX94
+        CK_USE_GFX1250
+        CK_USE_NATIVE_MX_SUPPORT
+        CK_GFX1250_SUPPORT
+        CK_GFX12_SUPPORT
+        CK_USE_OCP_FP8
+        CK_USE_WMMA
+        CK_USE_WMMA_FP8
         CK_USE_XDL
         __HIP_PLATFORM_AMD__=1
         __HIP_PLATFORM_HCC__=1
