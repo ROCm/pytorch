@@ -3,13 +3,32 @@
  ******************************************************************************/
 
 #include <ATen/native/transformers/hip/flash_attn/flash_common_hip.hpp>
-#include <mha_bwd.h>
 #include <fmha_bwd.hpp>
 #include <mask.hpp>
 
 namespace pytorch_flash {
 
-aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
+fmha_bwd_traits get_ck_fmha_bwd_traits(const mask_info &mask,
+                                       std::string dtype,
+                                       int head_size,
+                                       bool has_dropout,
+                                       bool enable_bias,
+                                       bool deterministic,
+                                       bool bias_requires_grad)
+{
+    return fmha_bwd_traits{head_size,
+                           head_size,
+                           dtype,
+                           false,  // is_group_mode (batch mode)
+                           mask.type,
+                           enable_bias ? bias_enum::elementwise_bias : bias_enum::no_bias,
+                           bias_requires_grad,
+                           has_dropout,
+                           false,  // is_store_randval
+                           deterministic};
+}
+
+fmha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
                                          std::string dtype,
                                          bool has_dropout,
                                          bool enable_bias,
@@ -124,27 +143,7 @@ aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
 
     float p_undrop = 1.0 - p_dropout;
 
-    return aiter::mha_bwd_args{
-        // aiter args
-        static_cast<int>(mask.type),
-        true,   // use_asm_v3
-        true,   // v3_atomic_fp32
-        1,      // v3_bf16_cvt
-        false,  // v3_api_check
-
-        // From ck fmha_bwd_traits
-        hdim,   // hdim_q
-        hdim,   // hdim_v
-        dtype,  // data_type
-        false,  // is_group_mode
-        static_cast<int>(mask.type),  // ck_mask_type
-        enable_bias ? static_cast<int>(bias_enum::elementwise_bias) : static_cast<int>(bias_enum::no_bias),
-        bias_requires_grad,  // has_dbias
-        has_dropout,
-        false,  // is_store_randval
-        deterministic,  // is_deterministic
-
-        // From ck fmha_bwd_args
+    return fmha_bwd_args{
         q.data_ptr(),
         k.data_ptr(),
         v.data_ptr(),
@@ -167,16 +166,18 @@ aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
         nullptr,  // cu_seqlen_k_ptr
         seqlen_q,
         seqlen_k,
-        b,  // batch
+        b,
         seqlen_q,  // max_seqlen_q
         seqlen_k,  // max_seqlen_k
-        h,  // nhead_q
-        h_k,  // nhead_k
-        softmax_scale,  // scale
+        hdim,      // hdim_q
+        hdim,      // hdim_v
+        h,         // nhead_q
+        h_k,       // nhead_k
+        softmax_scale,
         stride_q,
         stride_k,
         stride_v,
-        stride_attn_bias,  // stride_bias
+        stride_attn_bias,
         stride_o,
         0,  // stride_randval
         stride_do,
@@ -212,9 +213,10 @@ aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
         batch_stride_dv,
         batch_stride_dbias,
         split_stride_dq_acc,
-        mask.left,  // window_size_left
-        mask.right,  // window_size_right
-        p_dropout,  // p_drop
+        mask.left,
+        mask.right,
+        static_cast<ck_tile::index_t>(mask.type),
+        p_dropout,
         p_undrop,
         drop_seed_offset
     };
@@ -376,14 +378,23 @@ mha_bwd_ck(const at::Tensor &dout,                   // batch_size x seqlen_q x 
     }
 
     uint64_t drop_seed = 1, drop_offset = 0;
-    drop_seed = *philox_seed.data_ptr<int64_t>();
-    drop_offset = *philox_offset.data_ptr<int64_t>();
+    drop_seed = *philox_seed.data_ptr<uint64_t>();
+    drop_offset = *philox_offset.data_ptr<uint64_t>();
     auto drop_seed_offset = std::make_pair(&drop_seed, &drop_offset);
 
 
     if (seqlen_q > 0) {
         ck_tile::stream_config stream_config{stream};
         dq.zero_(); // ck use atomic operation on dq
+
+        auto traits =
+            get_ck_fmha_bwd_traits(mask,
+                                   q_dtype_str,
+                                   head_size_8x,
+                                   is_dropout,
+                                   attn_bias_.has_value(),
+                                   deterministic,
+                                   bias_requires_grad);
 
         auto args =
             get_ck_fmha_bwd_args(
@@ -416,7 +427,7 @@ mha_bwd_ck(const at::Tensor &dout,                   // batch_size x seqlen_q x 
                 p_dropout,
                 drop_seed_offset);
 
-        float t = aiter::mha_bwd(args, stream_config);
+        float t = fmha_bwd(traits, args, stream_config);
 
         TORCH_CHECK(t >= 0, "invalid argument for fmha_bwd");
     } else {
