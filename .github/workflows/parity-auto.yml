@@ -20,7 +20,7 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 #      actually ran on this SHA; mi300/mi200 etc. only show up when
 #      their periodic workflow happens to land on that SHA.
 #
-# We dispatch once per SHA with the ready subset of arches, so mi355
+# We dispatch at most once per SHA with the ready subset of arches, so mi355
 # (run as part of trunk) gets a parity report per commit, and mi300/
 # mi200 join the same dispatch whenever their periodic workflow
 # happens to finish on that SHA.
@@ -33,12 +33,17 @@ on:
       max_commits:
         description: 'How many of the most recent upstream commits to scan.'
         required: false
-        default: '20'
+        default: '15'
+        type: string
+      max_dispatches:
+        description: 'Maximum number of ready upstream commits to dispatch in one scan.'
+        required: false
+        default: '10'
         type: string
       max_age_hours:
         description: 'Skip commits older than this (avoid back-filling ancient SHAs).'
         required: false
-        default: '72'
+        default: '10'
         type: string
       archs:
         description: 'Architectures to consider (comma/space separated).'
@@ -78,8 +83,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           UPSTREAM: pytorch/pytorch
           BRANCH: main
-          MAX_COMMITS: ${{ inputs.max_commits || '20' }}
-          MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
+          MAX_COMMITS: ${{ inputs.max_commits || '15' }}
+          MAX_DISPATCHES: ${{ inputs.max_dispatches || '10' }}
+          MAX_AGE_HOURS: ${{ inputs.max_age_hours || '10' }}
           ARCHS_IN: ${{ inputs.archs || 'mi355, mi300, mi200' }}
           ARCH_JOBNAME_REGEX_MAP: ${{ inputs.arch_jobname_regex_map || '{"mi355":"rocm.*mi355.*/ test \\(","mi300":"rocm.*mi300.*/ test \\(","mi200":"rocm.*(mi200|mi210).*/ test \\(","navi31":"rocm.*navi31.*/ test \\(","nightly":"rocm-nightly.*/ test \\("}' }}
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
@@ -103,6 +109,7 @@ jobs:
           echo "Target ref:     $TARGET_REF"
           echo "Scope archs:    $ARCHS"
           echo "Max commits:    $MAX_COMMITS"
+          echo "Max dispatches: $MAX_DISPATCHES"
           echo "Max age:        ${MAX_AGE_HOURS}h"
           echo "Dry run:        $DRY_RUN"
           echo "Arch→regex:     $ARCH_JOBNAME_REGEX_MAP"
@@ -117,31 +124,27 @@ jobs:
             exit 0
           fi
 
-          # --- 2. Already-dispatched (SHA,arch) pairs in our repo --------------
+          # --- 2. Already-dispatched SHAs in our repo --------------------------
           # Pull last 200 parity runs. Run titles look like:
           #   "<csv_name or SHA> · mi355, mi300, mi200"
-          # So for each run that mentions a SHA, the arch list is everything
-          # after ' · '.
+          # Once any parity run exists for a SHA, we do not dispatch another
+          # report for that SHA. This keeps the dashboard to one report per
+          # upstream commit.
           EXISTING=$(gh run list \
             --repo "$GITHUB_REPOSITORY" \
             --workflow parity.yml \
             --limit 200 \
             --json displayTitle 2>/dev/null || echo '[]')
 
-          archs_already_for_sha() {
+          sha_already_dispatched() {
             local sha="$1"
-            echo "$EXISTING" | jq -r --arg sha "$sha" \
-              'map(select(.displayTitle | contains($sha))) | .[].displayTitle' \
-              | sed 's/.* · //' \
-              | tr ',' '\n' \
-              | tr -d ' ' \
-              | grep -v '^$' \
-              | sort -u
+            echo "$EXISTING" | jq -e --arg sha "$sha" \
+              'any(.[]; .displayTitle | contains($sha))' >/dev/null
           }
 
-          # --- 3. Walk commits, dispatch first SHA with unprocessed ready archs
-          DISPATCHED_SHA=""
-          DISPATCHED_ARCHS=""
+          # --- 3. Walk commits, dispatch each ready unprocessed SHA ------------
+          DISPATCHED_COUNT=0
+          DISPATCHED_SUMMARY=""
           while IFS=' ' read -r SHA DATE; do
             [ -z "$SHA" ] && continue
             SHORT=$(echo "$SHA" | cut -c1-8)
@@ -150,6 +153,11 @@ jobs:
             if [ "$COMMIT_EPOCH" -ne 0 ] && [ "$COMMIT_EPOCH" -lt "$MAX_AGE_EPOCH" ]; then
               echo "[$SHORT] $DATE  too old (>${MAX_AGE_HOURS}h) — stopping scan"
               break
+            fi
+
+            if sha_already_dispatched "$SHA"; then
+              echo "[$SHORT] parity report already exists for this SHA — skip"
+              continue
             fi
 
             # Pull relevant upstream check-runs for this SHA. We use
@@ -236,26 +244,10 @@ jobs:
               continue
             fi
 
-            # Subtract archs already dispatched for this SHA.
-            ALREADY=$(archs_already_for_sha "$SHA" | tr '\n' ' ')
-            TODO=""
-            for A in $READY; do
-              if ! printf '%s\n' $ALREADY | grep -qx "$A"; then
-                TODO="$TODO $A"
-              fi
-            done
-            TODO=$(echo "$TODO" | xargs)
-
-            if [ -z "$TODO" ]; then
-              echo "[$SHORT] all ready archs already dispatched (ready=$(echo "$READY" | tr ' ' ','))"
-              continue
-            fi
-
-            ARCH_DISPATCH=$(echo "$TODO" | sed 's/ /, /g')
+            ARCH_DISPATCH=$(echo "$READY" | sed 's/ /, /g')
             CSV_NAME="autoparity-$(date -u +%Y%m%d)-$SHA"
             echo "[$SHORT] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $DATE; still-pending: ${NOT_READY_NOTES:-none})"
-            echo "[$SHORT] already dispatched for this SHA: '$(echo "$ALREADY" | xargs | tr ' ' ',')'"
-            echo "[$SHORT] dispatching for: '$(echo "$TODO" | tr ' ' ',')'"
+            echo "[$SHORT] dispatching for: '$(echo "$READY" | tr ' ' ',')'"
 
             if [ "$DRY_RUN" = "true" ]; then
               echo "[$SHORT] DRY_RUN=true — not dispatching"
@@ -268,9 +260,12 @@ jobs:
                 -f csv_name="$CSV_NAME"
             fi
 
-            DISPATCHED_SHA="$SHA"
-            DISPATCHED_ARCHS="$ARCH_DISPATCH"
-            break
+            DISPATCHED_COUNT=$((DISPATCHED_COUNT + 1))
+            DISPATCHED_SUMMARY="${DISPATCHED_SUMMARY}${SHORT}:${ARCH_DISPATCH}"$'\n'
+            if [ "$DISPATCHED_COUNT" -ge "$MAX_DISPATCHES" ]; then
+              echo "Reached max dispatches for this scan ($MAX_DISPATCHES); stopping"
+              break
+            fi
           done <<< "$COMMITS"
 
           # --- 4. Summary -------------------------------------------------------
@@ -279,16 +274,22 @@ jobs:
             echo ""
             echo "- Upstream:     \`$UPSTREAM@$BRANCH\`"
             echo "- Scope archs:  \`$ARCHS\`"
+            echo "- Max commits:  $MAX_COMMITS"
+            echo "- Max dispatches: $MAX_DISPATCHES"
             echo "- Max age:      ${MAX_AGE_HOURS}h"
             echo "- Target ref:   \`$TARGET_REF\`"
-            if [ -n "$DISPATCHED_SHA" ]; then
-              SHORT=$(echo "$DISPATCHED_SHA" | cut -c1-8)
+            if [ "$DISPATCHED_COUNT" -gt 0 ]; then
               if [ "$DRY_RUN" = "true" ]; then
-                echo "- Result:       would dispatch parity for \`$SHORT\` arches \`$DISPATCHED_ARCHS\` (dry-run)"
+                echo "- Result:       would dispatch $DISPATCHED_COUNT parity run(s) (dry-run)"
               else
-                echo "- Result:       dispatched parity.yml for \`$SHORT\` arches \`$DISPATCHED_ARCHS\`"
+                echo "- Result:       dispatched $DISPATCHED_COUNT parity run(s)"
               fi
+              echo ""
+              echo "$DISPATCHED_SUMMARY" | while IFS= read -r LINE; do
+                [ -z "$LINE" ] && continue
+                echo "- $LINE"
+              done
             else
-              echo "- Result:       no ready unprocessed (SHA, arch) pairs found"
+              echo "- Result:       no ready unprocessed SHAs found"
             fi
           } >> "$GITHUB_STEP_SUMMARY"
