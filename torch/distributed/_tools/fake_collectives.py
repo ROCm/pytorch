@@ -64,7 +64,7 @@ _META_FUNCTIONS = {
 }
 
 if not torch._running_with_deploy():
-    lib_impl = torch.library.Library("c10d", "IMPL")  # noqa: TOR901
+    lib_impl = torch.library.Library("c10d", "IMPL")
     for op, meta_func in _META_FUNCTIONS.items():
         lib_impl.impl(op, meta_func, "Meta")
 

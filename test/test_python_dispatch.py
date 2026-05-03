@@ -297,7 +297,7 @@ class TestPythonRegistration(TestCase):
 
     def test_finalizer(self):
         impls_refcnt = sys.getrefcount(torch.library._impls)
-        lib = Library(self.test_ns, "FRAGMENT")  # noqa: TOR901
+        lib = Library(self.test_ns, "FRAGMENT")  # noqa: SCOPED_LIBRARY
         lib.define("foo123(Tensor x) -> Tensor")
 
         # 1 for `lib`, 1 for sys.getrefcount
@@ -559,7 +559,7 @@ class TestPythonRegistration(TestCase):
     @unittest.skipIf(IS_WINDOWS, "Skipped under Windows")
     def test_alias_analysis(self):
         def test_helper(alias_analysis=""):
-            my_lib1 = Library(self.test_ns, "DEF")  # noqa: TOR901
+            my_lib1 = Library(self.test_ns, "DEF")  # noqa: SCOPED_LIBRARY
 
             called = [0]
 
@@ -582,11 +582,11 @@ class TestPythonRegistration(TestCase):
 
     def test_error_for_unsupported_ns_or_kind(self) -> None:
         with self.assertRaisesRegex(ValueError, "Unsupported kind"):
-            my_lib1 = Library("myns", "BLA")  # noqa: TOR901
+            my_lib1 = Library("myns", "BLA")  # noqa: SCOPED_LIBRARY
 
         for kind in ("DEF", "FRAGMENT"):
             with self.assertRaisesRegex(ValueError, "reserved namespace"):
-                my_lib1 = Library("prim", kind)  # noqa: TOR901
+                my_lib1 = Library("prim", kind)  # noqa: SCOPED_LIBRARY
 
     def test_returning_symint(self) -> None:
         shape_env = ShapeEnv()

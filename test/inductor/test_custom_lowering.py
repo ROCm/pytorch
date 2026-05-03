@@ -22,7 +22,7 @@ class TestCustomLowering(InductorTestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.test_inductor_ops = torch.library.Library(  # noqa: TOR901
+        cls.test_inductor_ops = torch.library.Library(  # noqa: SCOPED_LIBRARY
             "test_inductor_ops", "DEF"
         )
         cls.device_list = ["Meta", "CUDA", "XPU"]
@@ -30,7 +30,7 @@ class TestCustomLowering(InductorTestCase):
             setattr(
                 cls,
                 "impl_" + device.lower(),
-                torch.library.Library(  # noqa: TOR901
+                torch.library.Library(  # noqa: SCOPED_LIBRARY
                     "test_inductor_ops", "IMPL", device
                 ),
             )

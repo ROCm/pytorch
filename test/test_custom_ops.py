@@ -96,7 +96,7 @@ class CustomOpTestCaseBase(TestCase):
         return getattr(torch.ops, self.test_ns)
 
     def lib(self):
-        result = torch.library.Library(self.test_ns, "FRAGMENT")  # noqa: TOR901
+        result = torch.library.Library(self.test_ns, "FRAGMENT")  # noqa: SCOPED_LIBRARY
         self.libraries.append(result)
         return result
 
@@ -544,10 +544,10 @@ import torch
 torch._running_with_deploy = lambda: True
 
 # creating the library is a no-op, so you can DEF multiple times
-m1 = torch.library.Library("mylib4392", "DEF")  # noqa: TOR901
-m2 = torch.library.Library("mylib4392", "DEF")  # noqa: TOR901
+m1 = torch.library.Library("mylib4392", "DEF")  # noqa: SCOPED_LIBRARY
+m2 = torch.library.Library("mylib4392", "DEF")  # noqa: SCOPED_LIBRARY
 
-m = torch.library.Library("aten", "FRAGMENT")  # noqa: TOR901
+m = torch.library.Library("aten", "FRAGMENT")  # noqa: SCOPED_LIBRARY
 
 # define is a no-op
 m.define("foobarbaz9996(Tensor x) -> Tensor")
