@@ -193,7 +193,7 @@ def _register_custom_op(lib):
     return decorator
 
 
-quant_lib = torch.library.Library("pt2e_quant", "FRAGMENT")  # noqa: TOR901
+quant_lib = torch.library.Library("pt2e_quant", "FRAGMENT")
 
 register_custom_op = _register_custom_op(quant_lib)
 
