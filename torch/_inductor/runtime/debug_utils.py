@@ -125,7 +125,7 @@ def check_memory_step(
 
 @functools.lru_cache(None)
 def register_check_mem_op() -> None:
-    lib = torch.library.Library("_inductor_debug", "FRAGMENT")  # noqa: TOR901
+    lib = torch.library.Library("_inductor_debug", "FRAGMENT")
     lib.define(
         "check_memory_step(str[] allocated, str[] freed, bool is_final_step) -> ()"
     )
