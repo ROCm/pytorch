@@ -144,7 +144,6 @@ external = [
     "P201",
     "P204",
     "T484",
-    "TOR901",
 ]
 ignore = [
     # these ignores are from flake8-bugbear; please fix!
