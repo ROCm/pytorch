@@ -700,11 +700,13 @@ class CachingAutotuner(KernelInterface):
         self.fn.used_global_vals = None
         self.fn.repr = _ConstRepr(self.fn.repr(self.fn))
         self.launchers = []
+        self._cached_launcher = None
         self.benchmark_failure_reasons = {}
         self.fn._hash_lock = None
         return old_values
 
     def restore_after_unpickle(self, old_values: tuple[Any, ...] | None) -> None:
+        self._cached_launcher = None
         if old_values:
             (
                 self.fn.fn,
