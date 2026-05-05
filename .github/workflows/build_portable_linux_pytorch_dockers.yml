@@ -241,6 +241,17 @@ jobs:
           echo "ROCm packages:"
           echo "${ROCM_PACKAGES}"
 
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.tag }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          scanners: vuln
+          timeout: 30m
+
       - name: Push Docker image
         run: |
           docker push ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.tag }}
@@ -429,6 +440,17 @@ jobs:
           echo "EOF" >> $GITHUB_OUTPUT
           echo "ROCm packages:"
           echo "${ROCM_PACKAGES}"
+
+      - name: Scan image for vulnerabilities
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.docker-tag.outputs.tag }}
+          format: table
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          scanners: vuln
+          timeout: 30m
 
       - name: Push Docker image
         run: |
