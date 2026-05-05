@@ -7,7 +7,7 @@ USER root
 ENV CI=1
 ENV PYTORCH_TEST_WITH_ROCM=1
 ENV PYTORCH_TESTING_DEVICE_ONLY_FOR="cuda"
-# Disable sccache preprocessor cache mode. Its linemarker parser fails with "Failed to parse included file path" on hipcc preprocessed output
+# FIXME: Disable sccache preprocessor cache mode. Its linemarker parser fails with "Failed to parse included file path" on hipcc preprocessed output
 ENV SCCACHE_DIRECT=false
 
 FROM base AS pytorch
