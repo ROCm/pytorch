@@ -29,6 +29,15 @@ RE_FAILED = re.compile(
 )
 RE_EXIT_CODE = re.compile(r"Got exit code (?P<code>\d+)")
 RE_TIMEOUT = re.compile(r"Command took >(\d+)min, returning 124")
+RE_JOB_TIMEOUT = re.compile(
+    r"(?:"
+    r"The job running on runner .* has exceeded the maximum execution time|"
+    r"The action has timed out|"
+    r"operation was canceled|"
+    r"timed out after \d+"
+    r")",
+    re.IGNORECASE,
+)
 RE_FAILED_CONSISTENTLY = re.compile(
     r"FAILED CONSISTENTLY: (?P<test_path>\S+)"
 )
@@ -96,6 +105,9 @@ def parse_log_file(filepath):
     consistent_failures = []
     flaky_tests = []
     last_passed_individual = None
+    last_individual_test = None
+    pending_keyboard_interrupt = None
+    inline_failures = []
 
     with open(filepath, "r", errors="replace") as f:
         for line in f:
@@ -105,6 +117,11 @@ def parse_log_file(filepath):
             if ".py::" in line:
                 m_ind = RE_INDIVIDUAL_TEST.search(line)
                 if m_ind:
+                    last_individual_test = {
+                        "file": m_ind.group("test_path").split("::", 1)[0],
+                        "cls": m_ind.group("cls"),
+                        "method": m_ind.group("method"),
+                    }
                     active = current_test or last_failed_test
                     if active and active in results:
                         # Only update if the pytest path belongs to this shard's test file,
@@ -116,6 +133,9 @@ def parse_log_file(filepath):
             if " ... [" not in line and "was successful" not in line \
                and "failed!" not in line and "Got exit code" not in line \
                and "returning 124" not in line and "FAILED CONSISTENTLY" not in line \
+               and "timed out" not in line and "Timed out" not in line \
+               and "operation was canceled" not in line \
+               and "exceeded the maximum execution time" not in line \
                and "Retrying" not in line \
                and "Segmentation fault" not in line and "SIGIOT" not in line \
                and "SIGSEGV" not in line and "SIGABRT" not in line \
@@ -124,6 +144,7 @@ def parse_log_file(filepath):
                and "Aborted (core dumped)" not in line \
                and "OutOfMemoryError" not in line \
                and "bad_alloc" not in line \
+               and "KeyboardInterrupt" not in line \
                and "stepcurrent" not in line \
                and "PASSED" not in line \
                and "new process" not in line:
@@ -202,9 +223,43 @@ def parse_log_file(filepath):
                 code = int(m.group("code"))
                 if active and active in results:
                     results[active]["exit_codes"].append(code)
+                elif pending_keyboard_interrupt and code in (2, 124):
+                    inline_failures.append({
+                        "file": pending_keyboard_interrupt["file"],
+                        "cls": pending_keyboard_interrupt["cls"],
+                        "method": pending_keyboard_interrupt["method"],
+                        "category": "TIMEOUT",
+                        "status": "FAILED",
+                        "reason": (
+                            f"{pending_keyboard_interrupt['cls']}::"
+                            f"{pending_keyboard_interrupt['method']}"
+                        ),
+                        "exit_codes": str(code),
+                    })
+                    pending_keyboard_interrupt = None
 
             m = RE_TIMEOUT.search(stripped)
             if m and active and active in results:
+                if "TIMEOUT" not in results[active]["crashes"]:
+                    results[active]["crashes"].append("TIMEOUT")
+            elif m and last_individual_test:
+                inline_failures.append({
+                    "file": last_individual_test["file"],
+                    "cls": last_individual_test["cls"],
+                    "method": last_individual_test["method"],
+                    "category": "TIMEOUT",
+                    "status": "FAILED",
+                    "reason": (
+                        f"{last_individual_test['cls']}::"
+                        f"{last_individual_test['method']}"
+                    ),
+                    "exit_codes": "124",
+                })
+
+            if "KeyboardInterrupt" in stripped and last_individual_test:
+                pending_keyboard_interrupt = last_individual_test
+
+            if RE_JOB_TIMEOUT.search(stripped) and active and active in results:
                 if "TIMEOUT" not in results[active]["crashes"]:
                     results[active]["crashes"].append("TIMEOUT")
 
@@ -251,7 +306,7 @@ def parse_log_file(filepath):
                         if label not in results[active]["crashes"]:
                             results[active]["crashes"].append(label)
 
-    return results, consistent_failures, flaky_tests
+    return results, consistent_failures, flaky_tests, inline_failures
 
 
 def scan_logs(logs_dir):
@@ -293,7 +348,7 @@ def scan_logs(logs_dir):
         job_shard_str = f"{shard_num}/{job_total}" if job_total else str(shard_num)
 
         filepath = os.path.join(logs_dir, fname)
-        results, consistent_failures, flaky_tests = parse_log_file(filepath)
+        results, consistent_failures, flaky_tests, inline_failures = parse_log_file(filepath)
 
         for ft in flaky_tests:
             file_part = ft["file"].replace("test/", "").replace(".py", "")
@@ -306,6 +361,21 @@ def scan_logs(logs_dir):
                 "test_name": ft["method"],
                 "job_shard": job_shard_str,
                 "test_shard": ft["test_shard"],
+            })
+
+        for failure in inline_failures:
+            file_part = failure["file"].replace("test/", "").replace(".py", "")
+            all_failures.append({
+                "log_file": fname,
+                "platform": platform,
+                "test_config": test_config,
+                "test_file": file_part,
+                "job_shard": job_shard_str,
+                "test_shard": "",
+                "status": failure["status"],
+                "category": failure["category"],
+                "reason": failure["reason"],
+                "exit_codes": failure["exit_codes"],
             })
 
         # Record every (test_file, test_shard) observed in this log file,

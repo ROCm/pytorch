@@ -38,7 +38,7 @@ on:
         default: false
         type: boolean
       include_logs:
-        description: 'Download and include CI log files (.txt) in artifact zip'
+        description: 'Include raw CI log files (.txt) in artifact zip; logs are still scanned for failures'
         required: false
         default: true
         type: boolean
@@ -157,9 +157,6 @@ jobs:
             ARGS="$ARGS --exclude_default"
           fi
           ARGS="$ARGS --ignore_status"
-          if [ "${{ inputs.include_logs }}" != "true" ]; then
-            ARGS="$ARGS --artifacts_only"
-          fi
           if [ "${{ inputs.skip_rocm }}" = "true" ]; then
             ARGS="$ARGS --no_rocm"
           fi
@@ -246,7 +243,6 @@ jobs:
           fi
 
       - name: Detect log-based failures (timeouts, crashes)
-        if: ${{ inputs.include_logs }}
         working-directory: .automation_scripts/pytorch-unit-test-scripts
         run: |
           FOLDER="${{ steps.folder.outputs.folder }}"
@@ -262,9 +258,12 @@ jobs:
           FOLDER=".automation_scripts/pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}"
           PATHS="${FOLDER}/*.csv
           ${FOLDER}/*.log
-          ${FOLDER}/*.txt
           ${FOLDER}/inductor_periodic_rocm_dir/
           ${FOLDER}/inductor_periodic_cuda_dir/"
+          if [ "${{ inputs.include_logs }}" = "true" ]; then
+            PATHS="${PATHS}
+          ${FOLDER}/*.txt"
+          fi
           if [ "${{ inputs.include_xml }}" = "true" ]; then
             PATHS="${PATHS}
           ${FOLDER}/rocm_xml/
