@@ -3285,6 +3285,24 @@ class TestSDPACudaOnly(NNTestCase):
         with sdpa_kernel([SDPBackend.MATH]):
             self.assertFalse(torch.backends.cuda.can_use_cudnn_attention(params))
 
+    @unittest.skipIf(not PLATFORM_SUPPORTS_FUSED_ATTENTION, "Fused SDPA was not built for this system")
+    @parametrize("kernel", PLATFORM_SPECIFIC_SDPA)
+    def test_fused_attention_custom_scale(self, device, kernel: SDPBackend):
+        dtype = torch.bfloat16
+        make_tensor = partial(torch.rand, device=device, dtype=dtype)
+        size = SdpaShape(2, 4, 128, 64)
+        query, key, value = make_tensor(size), make_tensor(size), make_tensor(size)
+        # Custom scale that differs from the default 1/sqrt(head_dim).
+        scale = 0.05
+
+        with sdpa_kernel(backends=[SDPBackend.MATH]):
+            math_ref = F.scaled_dot_product_attention(query, key, value, scale=scale)
+
+        with sdpa_kernel(backends=[kernel]):
+            actual = F.scaled_dot_product_attention(query, key, value, scale=scale)
+
+        self.assertEqual(actual, math_ref, atol=2e-2, rtol=2e-2)
+
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
     @parametrize("mask_dim", [1, 2, 3, 4])
     def test_mem_efficient_attention_mask_variants(self, device, mask_dim: list[int]):
