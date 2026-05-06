@@ -32,10 +32,10 @@ jobs:
       fail-fast: false
       matrix:
         target:
-          - name: Build Benchmark Scan Push ROCm Nightly Image on MI325
+          - name: Build-Benchmark-Scan-Push ROCm Nightly Image on MI325
             runner: linux-pytorch-mi325-1
             push_image: true
-          - name: Build Benchmark ROCm Nightly Image on MI250
+          - name: Build-Benchmark ROCm Nightly Image on MI250
             runner: linux-pytorch-mi250-1
             push_image: false
     runs-on: ${{ matrix.target.runner }}
@@ -64,13 +64,12 @@ jobs:
       - name: Generate image tag
         id: meta
         run: |
-          tag="$(date +%Y%m%d%H%M%S)-rocm${{ env.ROCM_VERSION }}"
+          tag="$(date +%Y%m%d)-rocm${{ env.ROCM_VERSION }}"
           echo "full-image=${{ env.DOCKER_REGISTRY }}:${tag}" >> "$GITHUB_OUTPUT"
 
       - name: Build base image
         working-directory: .ci/docker
         run: |
-          export SKIP_SCCACHE_INSTALL=1
           export PYTORCH_ROCM_ARCH="${{ env.PYTORCH_ROCM_ARCH }}"
           for attempt in 1 2 3; do
             ./build.sh pytorch-linux-jammy-rocm-n-py3 \
@@ -80,22 +79,25 @@ jobs:
           done
 
       - name: Build PyTorch
+        working-directory: rocm-nightly-workflow/.ci/docker
         run: |
           docker build \
             --target pytorch \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t rocm/pytorch-nightly:pytorch-stage \
-            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+            -f pytorch-nightly-docker.Dockerfile .
 
       - name: Build TorchVision
+        working-directory: rocm-nightly-workflow/.ci/docker
         run: |
           docker build \
             --target vision \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t rocm/pytorch-nightly:vision-stage \
-            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+            -f pytorch-nightly-docker.Dockerfile .
 
       - name: Build TorchAudio
+        working-directory: rocm-nightly-workflow/.ci/docker
         env:
           FULL_IMAGE: ${{ steps.meta.outputs.full-image }}
         run: |
@@ -103,7 +105,7 @@ jobs:
             --target audio \
             --build-arg BASE_IMAGE=rocm/pytorch-autobuild:base-latest \
             -t "$FULL_IMAGE" \
-            - < rocm-nightly-workflow/.ci/docker/pytorch-nightly-docker.Dockerfile
+            -f pytorch-nightly-docker.Dockerfile .
 
       - name: Run benchmarks
         env:
@@ -140,7 +142,7 @@ jobs:
         uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          password: ${{ secrets.DOCKER_PAT }}
 
       - name: Push validated image
         if: ${{ matrix.target.push_image }}
