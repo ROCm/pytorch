@@ -64,9 +64,13 @@ if [ -n "$ANACONDA_PYTHON_VERSION" ]; then
 
   # Install correct Python version
   # Also ensure sysroot is using a modern GLIBC to match system compilers
+  # NB: pip is no longer pulled in transitively by conda-forge's python
+  # package, so request it explicitly. Without it, `python3 -m pip` in the
+  # env fails and `conda run -n env pip` silently falls back to base.
   as_jenkins conda create -n py_$ANACONDA_PYTHON_VERSION -y\
              python="$ANACONDA_PYTHON_VERSION" \
-             ${SYSROOT_DEP}
+             ${SYSROOT_DEP} \
+             pip
 
   # libstdcxx from conda default channels are too old, we need GLIBCXX_3.4.30
   # which is provided in libstdcxx 12 and up.
