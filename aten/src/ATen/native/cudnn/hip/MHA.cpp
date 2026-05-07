@@ -335,7 +335,6 @@ enum UIDS {
   V,
   O,
   BIAS,
-  SCALE,
   SEED,
   OFFSET,
   LSE,
@@ -352,20 +351,12 @@ static std::unique_ptr<fe::graph::Graph> build_graph_structure(
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   mha_graph->set_intermediate_data_type(fe::DataType_t::FLOAT)
       .set_compute_data_type(fe::DataType_t::FLOAT);
-  auto attn_scale =
-      mha_graph->tensor(fe::graph::Tensor_attributes()
-                            .set_uid(SCALE)
-                            .set_name("Attn_scale")
-                            .set_dim({1, 1, 1, 1})
-                            .set_stride({1, 1, 1, 1})
-                            .set_value(params.scaling_factor)
-                            .set_data_type(fe::DataType_t::FLOAT));
   auto scaled_dot_product_flash_attention_options =
       fe::graph::SDPA_attributes()
           .set_name("HIPDNN_SDPA")
           .set_generate_stats(params.return_softmaxstats)
           .set_causal_mask(params.is_causal)
-          .set_attn_scale(attn_scale);
+          .set_attn_scale_value(params.scaling_factor);
   if (params.dropout_probability != 0.0f) {
     // Seed/offset dtype is hardcoded INT64 here, to match the allocation done
     // in 'attention.cu'.
@@ -454,18 +445,10 @@ static std::unique_ptr<fe::graph::Graph> build_graph_backward_structure(
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   mha_graph->set_intermediate_data_type(fe::DataType_t::FLOAT)
       .set_compute_data_type(fe::DataType_t::FLOAT);
-  auto attn_scale =
-      mha_graph->tensor(fe::graph::Tensor_attributes()
-                            .set_uid(SCALE)
-                            .set_name("Attn_scale")
-                            .set_dim({1, 1, 1, 1})
-                            .set_stride({1, 1, 1, 1})
-                            .set_value(params.scaling_factor)
-                            .set_data_type(fe::DataType_t::FLOAT));
   auto sdpa_backward_options = fe::graph::SDPA_backward_attributes()
                                    .set_name("HIPDNN_SDPA_BACKWARD")
                                    .set_causal_mask(params.is_causal)
-                                   .set_attn_scale(attn_scale);
+                                   .set_attn_scale_value(params.scaling_factor);
 
   auto Q_ = mha_graph->tensor(
       fe::graph::Tensor_attributes()
