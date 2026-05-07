@@ -764,18 +764,14 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
   }
   return false;
 #else
+  // Honor torch.backends.cuda.enable_cudnn_sdp(False): users disable the cuDNN
+  // backend through the cuDNN flag, so opt-out applies to hipDNN as well.
   if (!check_runtime_disabled_cudnn(params, debug)) {
     return false;
   }
   if (!at::globalContext().userEnabledHipdnn()) {
     if (debug) {
       TORCH_WARN("hipDNN is not enabled. Set torch.backends.hipdnn.enabled = True");
-    }
-    return false;
-  }
-  if (!at::detail::getCUDAHooks().compiledWithHipDNN()) {
-    if (debug) {
-      TORCH_WARN("Not compiled with hipDNN.");
     }
     return false;
   }
