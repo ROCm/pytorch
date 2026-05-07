@@ -815,22 +815,7 @@ bool can_use_cudnn_attention(const sdp_params& params, bool debug) {
     return false;
   }
   // Query hipDNN for engine availability.
-  const auto scale = sdp::calculate_scale(params.query, std::nullopt).expect_float();
-  bool supported = at::native::check_cudnn_sdpa_support(
-      params.query.size(0),
-      params.query.size(1),
-      params.query.size(2),
-      params.key.size(2),
-      params.query.size(3),
-      params.value.size(3),
-      scale,
-      input_requires_grad(params),
-      params.is_causal,
-      params.dropout,
-      params.query,
-      params.key,
-      params.value,
-      params.attn_mask);
+  const bool supported = at::native::check_cudnn_sdpa_support(params);
   if (!supported && debug) {
     TORCH_WARN("hipDNN SDPA: no engine available for the given input configuration. "
                "Set HIPDNN_LOG_LEVEL=info for details.");

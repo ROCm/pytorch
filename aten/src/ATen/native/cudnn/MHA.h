@@ -1,6 +1,10 @@
 #pragma once
 #include <ATen/core/Tensor.h>
 
+#if defined(USE_ROCM)
+#include <ATen/native/transformers/sdp_utils_cpp.h>
+#endif
+
 namespace at::native {
 
 void run_cudnn_SDP_fprop(
@@ -99,14 +103,7 @@ void run_cudnn_SDP_bprop_nestedtensor(
 
 #if defined(USE_ROCM)
 // Query backend to determine if graph configuration is supported.
-bool check_cudnn_sdpa_support(
-    int64_t b, int64_t h, int64_t s_q, int64_t s_kv,
-    int64_t d_qk, int64_t d_v,
-    float scaling_factor,
-    bool return_softmaxstats, bool is_causal,
-    double dropout_probability,
-    const Tensor& q, const Tensor& k, const Tensor& v,
-    const std::optional<Tensor>& attn_bias);
+bool check_cudnn_sdpa_support(sdp::sdp_params const& params);
 #endif
 
 } // namespace at::native

@@ -559,35 +559,35 @@ static std::unique_ptr<fe::graph::Graph> build_graph_backward(
 // TODO: cache the support result (and ideally the built graph) so we don't
 // rebuild it on every dispatch. Currently runs end-to-end graph build +
 // query for every can_use_cudnn_attention() call.
-bool check_cudnn_sdpa_support(
-    int64_t b,
-    int64_t h,
-    int64_t s_q,
-    int64_t s_kv,
-    int64_t d_qk,
-    int64_t d_v,
-    float scaling_factor,
-    bool return_softmaxstats,
-    bool is_causal,
-    double dropout_probability,
-    const Tensor& q,
-    const Tensor& k,
-    const Tensor& v,
-    const std::optional<Tensor>& attn_bias) {
+bool check_cudnn_sdpa_support(sdp::sdp_params const& params) {
+  const Tensor& q = params.query;
+  const Tensor& k = params.key;
+  const Tensor& v = params.value;
+  const int64_t b = q.size(0);
+  const int64_t h = q.size(1);
+  const int64_t s_q = q.size(2);
+  const int64_t s_kv = k.size(2);
+  const int64_t d_qk = q.size(3);
+  const int64_t d_v = v.size(3);
+  const float scaling_factor =
+      sdp::calculate_scale(q, params.scale).expect_float();
+  const bool return_softmaxstats = sdp::input_requires_grad(params);
+
   std::optional<Tensor> expanded_bias;
-  if (attn_bias.has_value()) {
+  if (params.attn_mask.has_value()) {
     // At this point we have the caller's original attention mask tensor, before
     // rank normalization (from 'attention.cu:_cudnn_attention_forward'), so we
     // need to mirror that logic here to determine what the actual metadata will
     // be at execution time.
-    const auto rank = attn_bias.value().dim();
+    const auto& bias = params.attn_mask.value();
+    const auto rank = bias.dim();
     TORCH_CHECK(
         rank == 2 || rank == 3 || rank == 4,
         "hipDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ",
         rank,
         "D");
-    const int64_t h_bias = rank == 4 ? attn_bias.value().size(1) : 1;
-    expanded_bias = attn_bias.value().expand({b, h_bias, s_q, s_kv});
+    const int64_t h_bias = rank == 4 ? bias.size(1) : 1;
+    expanded_bias = bias.expand({b, h_bias, s_q, s_kv});
   }
   MHAParams fwd_params;
   setMHAParams(
@@ -603,8 +603,8 @@ bool check_cudnn_sdpa_support(
       k,
       v,
       expanded_bias,
-      dropout_probability,
-      is_causal,
+      params.dropout,
+      params.is_causal,
       return_softmaxstats);
 
   hipdnnHandle_t handle = getHipdnnHandle();
