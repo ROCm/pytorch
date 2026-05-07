@@ -68,13 +68,8 @@ template <class _Tp> struct remove_cv
 {typedef typename remove_volatile<typename remove_const<_Tp>::type>::type type;};
 template <class _Tp> using remove_cv_t = typename remove_cv<_Tp>::type;
 
-template <class _Tp> struct __libcpp_is_floating_point              : public false_type {};
-template <>          struct __libcpp_is_floating_point<float>       : public true_type {};
-template <>          struct __libcpp_is_floating_point<double>      : public true_type {};
-template <>          struct __libcpp_is_floating_point<long double> : public true_type {};
-
 template <class _Tp>
-inline constexpr bool is_arithmetic_v = is_arithmetic<_Tp>::value;
+inline constexpr bool is_arithmetic_v = __hip_internal::is_arithmetic<_Tp>::value;
 
 template <class _Tp>
 struct __numeric_type
@@ -92,7 +87,7 @@ struct __numeric_type
    static long double __test(long double);
 
    typedef decltype(__test(declval<_Tp>())) type;
-   static const bool value = !is_same<type, void>::value;
+   static const bool value = !__hip_internal::is_same<type, void>::value;
 };
 
 template <>
