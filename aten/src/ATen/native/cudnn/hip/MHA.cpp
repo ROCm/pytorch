@@ -135,6 +135,7 @@ namespace fe = hipdnn_frontend;
 
 constexpr uint8_t MAX_MHA_DIM = 4;
 
+// TODO: replace with shared hipDNN dtype util once one exists.
 static fe::DataType_t to_fe_data_type(c10::ScalarType t) {
   switch (t) {
     case kHalf:
@@ -237,6 +238,7 @@ static void setMHAParams(
   }
 }
 
+// TODO: lift to a shared hipDNN graph cache utility.
 struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
   MHACacheKeyWrapper(
       int64_t b,
@@ -284,9 +286,7 @@ struct MHAGraphCache {
   int count = 0;
   int hits = 0;
 
-  // no mutexes here as caches are now thread local for v8, can also return a
-  // pointer to the Execution Plan if we know it will not be invalidated by
-  // another thread
+  // No mutexes — the cache is thread-local (see getMHAGraphCache_).
   iterator find(const KeyType& key) {
     static bool flag =
         c10::utils::check_env("TORCH_CUDNN_SDPA_CACHE_DEBUG") == true;
@@ -556,6 +556,9 @@ static std::unique_ptr<fe::graph::Graph> build_graph_backward(
   return mha_graph;
 }
 
+// TODO: cache the support result (and ideally the built graph) so we don't
+// rebuild it on every dispatch. Currently runs end-to-end graph build +
+// query for every can_use_cudnn_attention() call.
 bool check_cudnn_sdpa_support(
     int64_t b,
     int64_t h,
@@ -713,6 +716,8 @@ void run_cudnn_SDP_fprop(
     variant_pack[SEED] = dropoutseed.mutable_data_ptr();
     variant_pack[OFFSET] = dropoutoffset.mutable_data_ptr();
   }
+  // TODO: lift workspace allocation + execute to a shared util that takes a
+  // graph and variant_pack.
   int64_t workspace_size = 0;
   HIPDNN_FE_CHECK(mha_graph.get_workspace_size(workspace_size));
   auto workspace_ptr =
