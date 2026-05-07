@@ -262,7 +262,7 @@ int64_t _fused_sdp_choice_xpu(
     std::optional<double> scale,
     bool enable_gqa) {
   sdp::sdp_params kernel_params{
-      query_, key, value, attn_mask_, dropout_p, is_causal, enable_gqa};
+      query_, key, value, attn_mask_, dropout_p, is_causal, enable_gqa, scale};
   auto backend = select_sdp_backend_xpu(kernel_params);
 
   if (backend == sdp::SDPBackend::error) {
