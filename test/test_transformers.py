@@ -53,6 +53,7 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FUSED_ATTENTION,
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
     PLATFORM_SUPPORTS_CK_SDPA,
+    TEST_HIPDNN,
     tf32_on_and_off,
     tf32_enabled,
 )
@@ -62,7 +63,7 @@ from torch.testing._internal.common_xpu import PLATFORM_SUPPORTS_FLASH_ATTENTION
 if TEST_FAIRSEQ:
     import fairseq.models.transformer as fairseq_transformer
 
-# hipDNN is currently disabled by default. Force enable in tests for now.
+# TODO: drop once an env-var toggle replaces the Python-level enable.
 if torch.backends.hipdnn.is_available():
     torch.backends.hipdnn.set_flags(True)
 
@@ -1699,7 +1700,7 @@ class TestSDPAFailureModes(NNTestCase):
             q, k, v = make_tensor(size), make_tensor(size), make_tensor(size)
             q.as_strided_(size, [2, 2, 2, 2])
             expected_warning = "All fused kernels require the last dimension of the input to have stride 1."
-            if kernel == SDPBackend.CUDNN_ATTENTION and TEST_WITH_ROCM:
+            if kernel == SDPBackend.CUDNN_ATTENTION and TEST_HIPDNN:
                 expected_warning = "hipDNN SDPA: no engine available for the given input configuration."
             with self.assertWarnsRegex(UserWarning, expected_warning):
                 self.assertRaises(RuntimeError, lambda: torch.nn.functional.scaled_dot_product_attention(
