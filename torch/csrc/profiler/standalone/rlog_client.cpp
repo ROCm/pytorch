@@ -4,13 +4,11 @@
 #include <aten/src/ATen/record_function.h>
 
 #include <torch/csrc/profiler/util.h>
-#include <nlohmann/json.hpp>
-
 #include <algorithm>
 #include <atomic>
 #include <cctype>
-#include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 #include <utility>
 
@@ -22,37 +20,44 @@ using at::ObserverContext;
 
 namespace {
 
-  std::unique_ptr<RecordFunctionCallback> cb;
-  std::atomic<CallbackHandle> handle {0};
+void appendInt(std::string &s, int64_t v) {
+  char buf[21];
+  char* end = buf + sizeof(buf);
+  char* p = end;
+  uint64_t u = v < 0 ? -static_cast<uint64_t>(v) : static_cast<uint64_t>(v);
+  do { *--p = '0' + static_cast<char>(u % 10); u /= 10; } while (u);
+  if (v < 0) *--p = '-';
+  s.append(p, static_cast<size_t>(end - p));
+}
 
-  // Rlog interface
+std::atomic<CallbackHandle> handle {0};
 
-  std::atomic<bool> isLogging {false};
-  void rlog_callback_function() {
-    isLogging = rlog::isActive();
-    if (handle != 0) {
-      if (isLogging)
-        at::reenableCallback(handle);	
-      else
-        at::disableCallback(handle);
-    }
+std::atomic<bool> isLogging {false};
+void rlog_callback_function() {
+  isLogging = enabled && rlog::isActive();
+  if (handle != 0) {
+    if (isLogging)
+      at::reenableCallback(handle);
+    else
+      at::disableCallback(handle);
   }
+}
 
-  class Client {
-  public:
-    Client() {
-      rlog::init();
-      rlog::registerActiveCallback(&rlog_callback_function);
-      rlog::setDefaultDomain("torch");
-      rlog::setDefaultCategory("");
-    }
-  };
-  //----------------
+class Client {
+public:
+  Client() {
+    rlog::init();
+    rlog::registerActiveCallback(&rlog_callback_function);
+    rlog::setDefaultDomain("torch");
+    rlog::setDefaultCategory("");
+  }
+};
 
 const char* categories[(uint8_t)at::RecordScope::NUM_SCOPES] = { "" };
 
-std::atomic<bool> record_shapes {false};
-std::atomic<bool> record_input_op_ids {false};
+bool enabled = true;
+bool record_shapes = false;
+bool record_input_op_ids = false;
 std::once_flag init_flag;
 std::mutex producer_map_mutex;
 // Keyed by TensorImpl* cast to void*. No invalidation on tensor destruction; reused addresses
@@ -63,37 +68,59 @@ std::unordered_map<void*, std::pair<at::RecordFunctionHandle, int>> producer_ten
 std::unique_ptr<ObserverContext> enter_callback(const RecordFunction &func)
 {
   if (isLogging) {
-    nlohmann::json object;
-    //object["name"] = func.name();
-    //object["scope"] = categories[(uint8_t)func.scope()];
-    object["seq"] = func.seqNr();
-    object["op_id"] = func.handle();
-    if (record_shapes)
-      object["sizes"] = torch::profiler::impl::inputSizes(func, true);
+    std::string json;
+    json.reserve(128);
+    json += "{\"seq\":";
+    appendInt(json, func.seqNr());
+    json += ",\"op_id\":";
+    appendInt(json, func.handle());
+    if (record_shapes) {
+      json += ",\"sizes\":[";
+      auto sizes = torch::profiler::impl::inputSizes(func, true);
+      for (size_t i = 0; i < sizes.size(); ++i) {
+        if (i) json += ',';
+        json += '[';
+        for (size_t j = 0; j < sizes[i].size(); ++j) {
+          if (j) json += ',';
+          appendInt(json, sizes[i][j]);
+        }
+        json += ']';
+      }
+      json += ']';
+    }
     if (record_input_op_ids) {
-      nlohmann::json op_ids = nlohmann::json::array();
+      json += ",\"input_op_ids\":[";
       std::lock_guard<std::mutex> lock(producer_map_mutex);
+      bool first = true;
       for (const c10::IValue& input : func.inputs()) {
+        if (!first) json += ',';
+        first = false;
         if (input.isTensor()) {
           const at::Tensor& tensor = input.toTensor();
           if (tensor.defined()) {
             auto it = producer_tensor_map.find((void*)tensor.unsafeGetTensorImpl());
-            if (it != producer_tensor_map.end())
-              op_ids.push_back({it->second.first, it->second.second});
-            else
-              op_ids.push_back(nullptr);
+            if (it != producer_tensor_map.end()) {
+              json += '[';
+              appendInt(json, it->second.first);
+              json += ',';
+              appendInt(json, it->second.second);
+              json += ']';
+            } else {
+              json += "null";
+            }
           } else {
-            op_ids.push_back(nullptr);
+            json += "null";
           }
         } else {
-          op_ids.push_back(nullptr);
+          json += "null";
         }
       }
-      object["input_op_ids"] = op_ids;
+      json += ']';
     }
-    rlog::rangePush(categories[(uint8_t)func.scope()], func.name(), object.dump().c_str());
+    json += '}';
+    rlog::rangePush(categories[(uint8_t)func.scope()], func.name(), json.c_str());
   }
-  return NULL;
+  return nullptr;
 }
 
 void exit_callback(const RecordFunction &func, ObserverContext *context)
@@ -143,17 +170,16 @@ void global_rlog_init() {
       try { return std::stoi(val) != 0; } catch (...) { return false; }
     };
 
+    enabled = propBool("enabled", "true");
     record_shapes = propBool("record_shapes", "true");
     record_input_op_ids = propBool("record_input_op_ids", "false");
-    cb = std::make_unique<RecordFunctionCallback>(enter_callback, exit_callback);
-    cb->needsInputs(record_shapes || record_input_op_ids);
-    cb->needsOutputs(record_input_op_ids);
-    cb->needsIds(true);
+    RecordFunctionCallback cb(enter_callback, exit_callback);
+    cb.needsInputs(record_shapes || record_input_op_ids);
+    cb.needsOutputs(record_input_op_ids);
+    cb.needsIds(true);
 
-    // Register Callback and disable
-    handle = at::addGlobalCallback(*cb);
-    if (isLogging == false)
-        at::disableCallback(handle);
+    handle = at::addGlobalCallback(cb);
+    rlog_callback_function();
   });
 }
 
