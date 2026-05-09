@@ -31,6 +31,7 @@ void appendInt(std::string &s, int64_t v) {
 }
 
 std::atomic<CallbackHandle> handle {0};
+bool enabled = true;
 
 std::atomic<bool> isLogging {false};
 void rlog_callback_function() {
@@ -55,7 +56,6 @@ public:
 
 const char* categories[(uint8_t)at::RecordScope::NUM_SCOPES] = { "" };
 
-bool enabled = true;
 bool record_shapes = false;
 bool record_input_op_ids = false;
 std::once_flag init_flag;
