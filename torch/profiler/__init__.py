@@ -27,6 +27,7 @@ from .profiler import (
     supported_activities,
     tensorboard_trace_handler,
 )
+from .rpd_profiler import rpd_profile
 
 
 __all__ = [
@@ -40,6 +41,7 @@ __all__ = [
     "DeviceType",
     "record_function",
     "ExecutionTraceObserver",
+    "rpd_profile",
 ]
 
 from . import itt

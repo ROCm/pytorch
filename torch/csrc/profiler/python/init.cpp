@@ -9,6 +9,7 @@
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/profiler/collection.h>
 #include <torch/csrc/profiler/python/combined_traceback.h>
+#include <torch/csrc/profiler/rpd_shim.h>
 #include <torch/csrc/profiler/standalone/execution_trace_observer.h>
 #include <torch/csrc/utils/pybind.h>
 
@@ -714,6 +715,12 @@ void initPythonBindings(PyObject* module) {
         }
         return frames_out;
       });
+  m.def("_rpd_available", &torch::profiler::impl::rpd::available);
+  m.def("_rpd_prepare_trace", &torch::profiler::impl::rpd::prepareTrace);
+  m.def("_rpd_start_trace", &torch::profiler::impl::rpd::startTrace);
+  m.def("_rpd_stop_trace", &torch::profiler::impl::rpd::stopTrace);
+  m.def("_rpd_trace_file_path", &torch::profiler::impl::rpd::traceFilePath);
+
   installCapturedTracebackPython();
 
   // NOLINTNEXTLINE(*-c-arrays*)
