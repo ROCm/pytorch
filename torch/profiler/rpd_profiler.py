@@ -1,0 +1,455 @@
+# mypy: allow-untyped-defs
+import json
+import multiprocessing
+import os
+import sqlite3
+import time
+from collections.abc import Callable
+from functools import partial
+from typing import Any, Optional
+from warnings import warn
+
+
+def _monotonic_ns() -> int:
+    """Return CLOCK_MONOTONIC in nanoseconds, matching rpdTracer's timestamps."""
+    return time.clock_gettime_ns(time.CLOCK_MONOTONIC)
+
+from torch._C._autograd import DeviceType
+from torch._C._profiler import (
+    _rpd_available,
+    _rpd_prepare_trace,
+    _rpd_start_trace,
+    _rpd_stop_trace,
+    _rpd_trace_file_path,
+)
+from torch.autograd.profiler_util import (
+    EventList,
+    FunctionEvent,
+)
+
+from .profiler import (
+    _default_schedule_fn,
+    ProfilerAction,
+)
+
+
+__all__ = ["rpd_profile"]
+
+
+def _ensure_rpd_schema() -> None:
+    """Ensure the trace.rpd file exists with proper schema.
+
+    Called once per process. Safe to call from multiple processes
+    concurrently — uses BEGIN EXCLUSIVE to serialize schema creation.
+    The file is never deleted; it persists for the lifetime of the process.
+    """
+    filename = os.environ.get("RPDT_FILENAME", "./trace.rpd")
+    os.environ["RPDT_FILENAME"] = filename
+
+    conn = sqlite3.connect(filename)
+    try:
+        has_schema = conn.execute(
+            "SELECT count(*) FROM sqlite_master "
+            "WHERE type='table' AND name='rocpd_string'"
+        ).fetchone()[0] > 0
+
+        if not has_schema:
+            conn.execute("BEGIN EXCLUSIVE")
+            has_schema = conn.execute(
+                "SELECT count(*) FROM sqlite_master "
+                "WHERE type='table' AND name='rocpd_string'"
+            ).fetchone()[0] > 0
+            if not has_schema:
+                from rocpd.schema import RocpdSchema
+                RocpdSchema().writeSchema(conn)
+            conn.commit()
+    finally:
+        conn.close()
+
+
+_CATEGORY_TO_SCOPE = {
+    "function": 0,
+    "backward_function": 1,
+    "torchscript_function": 2,
+    "kernel_function_dtype": 3,
+    "custom_class": 4,
+    "build_feature": 5,
+    "lite_interpreter": 6,
+    "user_scope": 7,
+    "static_runtime_op": 8,
+    "static_runtime_model": 9,
+}
+
+
+def _parse_args_json(args_str):
+    """Parse the JSON args string written by rlog_client."""
+    try:
+        d = json.loads(args_str)
+    except (json.JSONDecodeError, TypeError):
+        return -1, None, None
+    seq = d.get("seq", -1)
+    op_id = d.get("op_id", None)
+    sizes = d.get("sizes", None)
+    return seq, op_id, sizes
+
+
+def _read_cpu_events(db_path, pid, start_ns, end_ns, use_device):
+    """Read torch-domain API events from trace.rpd and return FunctionEvents."""
+    events = []
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    except sqlite3.OperationalError:
+        return EventList(events, use_device=use_device)
+
+    try:
+        cursor = conn.execute(
+            """
+            SELECT a.id, a.tid, a.start, a.end,
+                   s.string AS apiName, c.string AS category, u.string AS args
+            FROM rocpd_api a
+            JOIN rocpd_string s ON s.id = a.apiName_id
+            JOIN rocpd_string c ON c.id = a.category_id
+            JOIN rocpd_ustring u ON u.id = a.args_id
+            WHERE a.pid = ? AND a.start >= ? AND a.end <= ?
+              AND a.domain_id IN (SELECT id FROM rocpd_string WHERE string = 'torch')
+            ORDER BY a.start
+            """,
+            (pid, start_ns, end_ns),
+        )
+
+        for row in cursor:
+            row_id, tid, start, end, api_name, category, args = row
+            seq, op_id, sizes = _parse_args_json(args)
+            scope = _CATEGORY_TO_SCOPE.get(category, 0)
+
+            fe = FunctionEvent(
+                id=row_id,
+                name=api_name,
+                thread=tid,
+                start_us=start / 1000.0,
+                end_us=end / 1000.0,
+                sequence_nr=seq,
+                input_shapes=sizes,
+                stack=[],
+                scope=scope,
+                use_device=use_device,
+                device_type=DeviceType.CPU,
+                device_index=0,
+            )
+            events.append(fe)
+    finally:
+        conn.close()
+
+    return events
+
+
+def _attach_gpu_events(events, db_path, pid, start_ns, end_ns):
+    """Read GPU ops from trace.rpd and attach as kernels on CPU FunctionEvents.
+
+    Also creates separate FunctionEvent objects with device_type=CUDA for each
+    GPU kernel, so that device time totals are computed correctly by _build_table.
+    """
+    if not events:
+        return
+
+    try:
+        conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    except sqlite3.OperationalError:
+        return
+
+    try:
+        cursor = conn.execute(
+            """
+            SELECT o.id, o.gpuId, o.queueId, o.start, o.end,
+                   d.string AS description,
+                   a.tid AS hip_tid, a.start AS hip_start, a.end AS hip_end
+            FROM rocpd_op o
+            JOIN rocpd_api_ops ao ON ao.op_id = o.id
+            JOIN rocpd_api a ON a.id = ao.api_id
+            JOIN rocpd_string d ON d.id = o.description_id
+            WHERE a.pid = ? AND o.start >= ? AND o.end <= ?
+            ORDER BY a.start
+            """,
+            (pid, start_ns, end_ns),
+        )
+
+        from collections import defaultdict
+
+        by_thread: dict[int, list[FunctionEvent]] = defaultdict(list)
+        for fe in events:
+            by_thread[fe.thread].append(fe)
+
+        for gpu_row in cursor:
+            op_id, gpu_id, queue_id, gpu_start, gpu_end, description, hip_tid, hip_start, hip_end = (
+                gpu_row
+            )
+            gpu_dur_us = (gpu_end - gpu_start) / 1000.0
+
+            # Attach kernel to the innermost enclosing CPU ATen op
+            thread_events = by_thread.get(hip_tid, [])
+            best = None
+            best_dur = float("inf")
+            for fe in thread_events:
+                fe_start_ns = fe.time_range.start * 1000.0
+                fe_end_ns = fe.time_range.end * 1000.0
+                if fe_start_ns <= hip_start and fe_end_ns >= hip_end:
+                    dur = fe_end_ns - fe_start_ns
+                    if dur < best_dur:
+                        best = fe
+                        best_dur = dur
+            if best is not None:
+                best.append_kernel(description, gpu_id, gpu_dur_us)
+                best.is_legacy = True
+
+            # Create a device-typed event for correct device time accounting
+            gpu_fe = FunctionEvent(
+                id=op_id,
+                name=description,
+                thread=hip_tid,
+                start_us=gpu_start / 1000.0,
+                end_us=gpu_end / 1000.0,
+                stack=[],
+                device_type=DeviceType.CUDA,
+                device_index=gpu_id,
+                device_resource_id=queue_id,
+            )
+            events.append(gpu_fe)
+    finally:
+        conn.close()
+
+
+class _RpdProfile:
+    """Low-level profiler using rpdTracer for event collection.
+
+    Analogous to _KinetoProfile but uses librpd_tracer.so instead of Kineto.
+    CPU events are collected via rlog RecordFunction callbacks.
+    GPU events are collected via roctracer/rocprofiler DataSources.
+    All events are written to a trace.rpd sqlite database.
+    """
+
+    def __init__(
+        self,
+        *,
+        activities=None,
+        record_shapes: bool = False,
+        profile_memory: bool = False,
+        with_stack: bool = False,
+        with_flops: bool = False,
+        with_modules: bool = False,
+    ) -> None:
+        self.record_shapes = record_shapes
+        self.profile_memory = profile_memory
+        self.with_stack = with_stack
+        self.with_flops = with_flops
+        self.with_modules = with_modules
+        self.use_device: Optional[str] = "cuda"
+
+        self._start_ns: int = 0
+        self._end_ns: int = 0
+        self._pid: int = os.getpid()
+        self._function_events: Optional[EventList] = None
+        self._file_initialized: bool = False
+
+    def start(self) -> None:
+        self.prepare_trace()
+        self.start_trace()
+
+    def stop(self) -> None:
+        self.stop_trace()
+
+    def prepare_trace(self) -> None:
+        if not self._file_initialized:
+            _ensure_rpd_schema()
+            self._file_initialized = True
+        _rpd_prepare_trace()
+
+    def start_trace(self) -> None:
+        self._function_events = None
+        self._start_ns = _monotonic_ns()
+        _rpd_start_trace()
+
+    def stop_trace(self) -> None:
+        self._end_ns = _monotonic_ns()
+        _rpd_stop_trace()
+
+    def events(self) -> EventList:
+        if self._function_events is not None:
+            return self._function_events
+
+        if not _rpd_available():
+            self._function_events = EventList([], use_device=self.use_device)
+            return self._function_events
+
+        db_path = _rpd_trace_file_path()
+        cpu_events = _read_cpu_events(
+            db_path, self._pid, self._start_ns, self._end_ns, self.use_device
+        )
+        _attach_gpu_events(cpu_events, db_path, self._pid, self._start_ns, self._end_ns)
+
+        self._function_events = EventList(
+            cpu_events,
+            use_device=self.use_device,
+            profile_memory=self.profile_memory,
+            with_flops=self.with_flops,
+        )
+        self._function_events._build_tree()
+        return self._function_events
+
+    def key_averages(
+        self,
+        group_by_input_shape: bool = False,
+        group_by_stack_n: int = 0,
+    ):
+        return self.events().key_averages(group_by_input_shape, group_by_stack_n)
+
+    def export_chrome_trace(self, path: str):
+        # DEFERRED: convert trace.rpd to Chrome JSON format
+        raise NotImplementedError(
+            "export_chrome_trace is not yet supported for rpd_profile. "
+            "Use the trace.rpd file directly."
+        )
+
+    def export_stacks(self, path: str, metric: str = "self_cpu_time_total"):
+        # DEFERRED: requires rlog_client to write stack frames
+        raise NotImplementedError(
+            "export_stacks is not yet supported for rpd_profile."
+        )
+
+    def trace_file_path(self) -> str:
+        return _rpd_trace_file_path()
+
+
+class rpd_profile(_RpdProfile):
+    """Profiler context manager using rpdTracer.
+
+    Usage::
+
+        with torch.profiler.rpd_profile() as p:
+            model(input)
+        print(p.key_averages().table(sort_by="self_cpu_time_total"))
+
+    With scheduling::
+
+        with torch.profiler.rpd_profile(
+            schedule=torch.profiler.schedule(wait=1, warmup=1, active=2),
+            on_trace_ready=lambda p: print(p.key_averages().table()),
+        ) as p:
+            for step in range(N):
+                train_step()
+                p.step()
+    """
+
+    def __init__(
+        self,
+        *,
+        activities=None,
+        schedule: Callable[[int], ProfilerAction] | None = None,
+        on_trace_ready: Callable[..., Any] | None = None,
+        record_shapes: bool = False,
+        profile_memory: bool = False,
+        with_stack: bool = False,
+        with_flops: bool = False,
+        with_modules: bool = False,
+    ) -> None:
+        super().__init__(
+            activities=activities,
+            record_shapes=record_shapes,
+            profile_memory=profile_memory,
+            with_stack=with_stack,
+            with_flops=with_flops,
+            with_modules=with_modules,
+        )
+
+        if schedule:
+            self.schedule = schedule
+        else:
+            self.schedule = _default_schedule_fn
+        self.on_trace_ready = on_trace_ready
+        self.step_num = 0
+        self.current_action = self.schedule(self.step_num)
+
+        self.action_map: dict[
+            tuple[ProfilerAction, ProfilerAction | None], list[Any]
+        ] = {
+            (ProfilerAction.NONE, ProfilerAction.NONE): [],
+            (ProfilerAction.NONE, ProfilerAction.WARMUP): [self.prepare_trace],
+            (ProfilerAction.NONE, ProfilerAction.RECORD): [
+                self.prepare_trace,
+                self.start_trace,
+            ],
+            (ProfilerAction.NONE, ProfilerAction.RECORD_AND_SAVE): [
+                self.prepare_trace,
+                self.start_trace,
+            ],
+            (ProfilerAction.WARMUP, ProfilerAction.NONE): [
+                partial(warn, "Incorrect schedule: WARMUP followed by NONE"),
+                self.start_trace,
+                self.stop_trace,
+            ],
+            (ProfilerAction.WARMUP, ProfilerAction.WARMUP): [],
+            (ProfilerAction.WARMUP, ProfilerAction.RECORD): [self.start_trace],
+            (ProfilerAction.WARMUP, ProfilerAction.RECORD_AND_SAVE): [
+                self.start_trace
+            ],
+            (ProfilerAction.RECORD, ProfilerAction.NONE): [
+                partial(warn, "Incorrect schedule: RECORD followed by NONE"),
+                self.stop_trace,
+            ],
+            (ProfilerAction.RECORD, ProfilerAction.WARMUP): [
+                partial(warn, "Incorrect schedule: RECORD followed by WARMUP"),
+                self.stop_trace,
+            ],
+            (ProfilerAction.RECORD, ProfilerAction.RECORD): [],
+            (ProfilerAction.RECORD, ProfilerAction.RECORD_AND_SAVE): [],
+            (ProfilerAction.RECORD_AND_SAVE, ProfilerAction.NONE): [
+                self.stop_trace,
+                self._trace_ready,
+            ],
+            (ProfilerAction.RECORD_AND_SAVE, ProfilerAction.WARMUP): [
+                self.stop_trace,
+                self._trace_ready,
+                self.prepare_trace,
+            ],
+            (ProfilerAction.RECORD_AND_SAVE, ProfilerAction.RECORD): [
+                self.stop_trace,
+                self._trace_ready,
+                self.prepare_trace,
+                self.start_trace,
+            ],
+            (ProfilerAction.RECORD_AND_SAVE, ProfilerAction.RECORD_AND_SAVE): [
+                self.stop_trace,
+                self._trace_ready,
+                self.prepare_trace,
+                self.start_trace,
+            ],
+            # used for exit action
+            (ProfilerAction.WARMUP, None): [self.start_trace, self.stop_trace],
+            (ProfilerAction.RECORD, None): [self.stop_trace, self._trace_ready],
+            (ProfilerAction.RECORD_AND_SAVE, None): [
+                self.stop_trace,
+                self._trace_ready,
+            ],
+        }
+
+    def __enter__(self):
+        self._transit_action(ProfilerAction.NONE, self.current_action)
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._transit_action(self.current_action, None)
+
+    def step(self) -> None:
+        prev_action = self.current_action
+        self.step_num += 1
+        self.current_action = self.schedule(self.step_num)
+        self._transit_action(prev_action, self.current_action)
+
+    def _trace_ready(self) -> None:
+        if self.on_trace_ready:
+            self.on_trace_ready(self)
+
+    def _transit_action(self, prev_action, current_action) -> None:
+        action_list = self.action_map.get((prev_action, current_action))
+        if action_list:
+            for action in action_list:
+                action()
