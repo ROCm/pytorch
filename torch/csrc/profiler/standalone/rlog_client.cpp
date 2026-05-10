@@ -56,8 +56,10 @@ public:
 
 const char* categories[(uint8_t)at::RecordScope::NUM_SCOPES] = { "" };
 
-bool record_shapes = false;
-bool record_input_op_ids = false;
+std::atomic<bool> record_shapes{false};
+std::atomic<bool> record_stacks{false};
+std::atomic<bool> record_input_op_ids{false};
+torch::RlogStackCallback stack_callback{nullptr};
 std::once_flag init_flag;
 std::mutex producer_map_mutex;
 // Keyed by TensorImpl* cast to void*. No invalidation on tensor destruction; reused addresses
@@ -117,6 +119,9 @@ std::unique_ptr<ObserverContext> enter_callback(const RecordFunction &func)
       }
       json += ']';
     }
+    if (record_stacks && stack_callback) {
+      stack_callback(json);
+    }
     json += '}';
     rlog::rangePush(categories[(uint8_t)func.scope()], func.name(), json.c_str());
   }
@@ -147,6 +152,18 @@ void exit_callback(const RecordFunction &func, ObserverContext *context)
 
 namespace torch {
 
+void rlog_set_record_shapes(bool enable) {
+  record_shapes = enable;
+}
+
+void rlog_set_record_stacks(bool enable) {
+  record_stacks = enable;
+}
+
+void rlog_set_stack_callback(RlogStackCallback cb) {
+  stack_callback = cb;
+}
+
 void global_rlog_init() {
   std::call_once(init_flag, []() {
     static Client client;
@@ -172,6 +189,7 @@ void global_rlog_init() {
 
     enabled = propBool("enabled", "true");
     record_shapes = propBool("record_shapes", "true");
+    record_stacks = propBool("record_stacks", "false");
     record_input_op_ids = propBool("record_input_op_ids", "false");
     RecordFunctionCallback cb(enter_callback, exit_callback);
     cb.needsInputs(record_shapes || record_input_op_ids);

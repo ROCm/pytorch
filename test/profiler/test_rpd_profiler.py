@@ -123,6 +123,63 @@ class TestRpdProfilerWithTracer(TestCase):
         self.assertIsNotNone(collected[0])
         self.assertGreater(len(collected[0]), 0)
 
+    def test_record_shapes(self):
+        with rpd_profile(record_shapes=True) as p:
+            x = torch.randn(4, 8)
+            _ = x @ torch.randn(8, 16)
+
+        events = p.events()
+        mm_events = [e for e in events if "mm" in e.name]
+        self.assertGreater(len(mm_events), 0)
+        has_shapes = any(e.input_shapes for e in mm_events)
+        self.assertTrue(has_shapes, "Expected input_shapes on mm events")
+
+    def test_no_shapes_by_default(self):
+        with rpd_profile(record_shapes=False) as p:
+            x = torch.randn(4, 8)
+            _ = x @ torch.randn(8, 16)
+
+        events = p.events()
+        mm_events = [e for e in events if "mm" in e.name]
+        self.assertGreater(len(mm_events), 0)
+        has_shapes = any(e.input_shapes for e in mm_events)
+        self.assertFalse(has_shapes, "Expected no input_shapes when record_shapes=False")
+
+    def test_with_stack(self):
+        with rpd_profile(with_stack=True) as p:
+            x = torch.randn(4, 8)
+            _ = x + x
+
+        events = p.events()
+        has_stack = any(e.stack for e in events)
+        self.assertTrue(has_stack, "Expected stack frames when with_stack=True")
+
+    def test_no_stack_by_default(self):
+        with rpd_profile(with_stack=False) as p:
+            x = torch.randn(4, 8)
+            _ = x + x
+
+        events = p.events()
+        has_stack = any(e.stack for e in events)
+        self.assertFalse(has_stack, "Expected no stack frames when with_stack=False")
+
+    def test_export_stacks(self):
+        import tempfile
+
+        with rpd_profile(with_stack=True) as p:
+            x = torch.randn(4, 8)
+            _ = x + x
+
+        with tempfile.NamedTemporaryFile(mode="r", suffix=".txt", delete=False) as f:
+            path = f.name
+        try:
+            p.export_stacks(path, "self_cpu_time_total")
+            with open(path) as f:
+                content = f.read()
+            self.assertGreater(len(content), 0, "Expected non-empty stacks file")
+        finally:
+            os.remove(path)
+
 
 if __name__ == "__main__":
     run_tests()

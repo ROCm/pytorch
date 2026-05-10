@@ -16,6 +16,8 @@ def _monotonic_ns() -> int:
 
 from torch._C._autograd import DeviceType
 from torch._C._profiler import (
+    _rlog_set_record_shapes,
+    _rlog_set_record_stacks,
     _rpd_available,
     _rpd_prepare_trace,
     _rpd_start_trace,
@@ -33,7 +35,15 @@ from .profiler import (
 )
 
 
-__all__ = ["rpd_profile"]
+__all__ = ["rpd_profile", "keep_trace"]
+
+_trace_kept = False
+
+
+def keep_trace() -> None:
+    """Prevent the trace file from being deleted on process exit."""
+    global _trace_kept
+    _trace_kept = True
 
 
 def _ensure_rpd_schema() -> None:
@@ -81,16 +91,57 @@ _CATEGORY_TO_SCOPE = {
 }
 
 
+def _compute_flops(op_name, input_shapes):
+    """Estimate FLOPs from op name and input shapes.
+
+    Supports mm, addmm, bmm, baddbmm, mul, add.
+    """
+    if not input_shapes:
+        return None
+
+    if op_name in ("aten::mm", "aten::addmm"):
+        # mm(mat1, mat2): sizes=[[M,K],[K,N]]
+        # addmm(bias, mat1, mat2): sizes=[[N],[M,K],[K,N]]
+        mat1 = input_shapes[-2] if len(input_shapes) >= 2 else None
+        mat2 = input_shapes[-1] if len(input_shapes) >= 1 else None
+        if not mat1 or not mat2 or len(mat1) != 2 or len(mat2) != 2:
+            return None
+        M, K = mat1
+        _, N = mat2
+        return 2 * M * K * N
+
+    if op_name in ("aten::bmm", "aten::baddbmm"):
+        mat1 = input_shapes[-2] if len(input_shapes) >= 2 else None
+        mat2 = input_shapes[-1] if len(input_shapes) >= 1 else None
+        if not mat1 or not mat2 or len(mat1) != 3 or len(mat2) != 3:
+            return None
+        B, M, K = mat1
+        _, _, N = mat2
+        return 2 * B * M * K * N
+
+    if op_name in ("aten::mul", "aten::mul.Tensor", "aten::add", "aten::add.Tensor"):
+        mat = input_shapes[0] if input_shapes else None
+        if not mat:
+            return None
+        flops = 1
+        for dim in mat:
+            flops *= dim
+        return flops
+
+    return None
+
+
 def _parse_args_json(args_str):
     """Parse the JSON args string written by rlog_client."""
     try:
         d = json.loads(args_str)
     except (json.JSONDecodeError, TypeError):
-        return -1, None, None
+        return -1, None, None, []
     seq = d.get("seq", -1)
     op_id = d.get("op_id", None)
     sizes = d.get("sizes", None)
-    return seq, op_id, sizes
+    stack = d.get("stack", [])
+    return seq, op_id, sizes, stack
 
 
 def _read_cpu_events(db_path, pid, start_ns, end_ns, use_device):
@@ -119,22 +170,24 @@ def _read_cpu_events(db_path, pid, start_ns, end_ns, use_device):
 
         for row in cursor:
             row_id, tid, start, end, api_name, category, args = row
-            seq, op_id, sizes = _parse_args_json(args)
+            seq, op_id, sizes, stack = _parse_args_json(args)
             scope = _CATEGORY_TO_SCOPE.get(category, 0)
 
             fe = FunctionEvent(
                 id=row_id,
                 name=api_name,
+                trace_name=api_name,
                 thread=tid,
                 start_us=start / 1000.0,
                 end_us=end / 1000.0,
                 sequence_nr=seq,
                 input_shapes=sizes,
-                stack=[],
+                stack=stack if stack else [],
                 scope=scope,
                 use_device=use_device,
                 device_type=DeviceType.CPU,
                 device_index=0,
+                flops=_compute_flops(api_name, sizes),
             )
             events.append(fe)
     finally:
@@ -205,10 +258,12 @@ def _attach_gpu_events(events, db_path, pid, start_ns, end_ns):
             gpu_fe = FunctionEvent(
                 id=op_id,
                 name=description,
+                trace_name=description,
                 thread=hip_tid,
                 start_us=gpu_start / 1000.0,
                 end_us=gpu_end / 1000.0,
                 stack=[],
+                use_device="cuda",
                 device_type=DeviceType.CUDA,
                 device_index=gpu_id,
                 device_resource_id=queue_id,
@@ -265,12 +320,17 @@ class _RpdProfile:
 
     def start_trace(self) -> None:
         self._function_events = None
+        _rlog_set_record_shapes(self.record_shapes or self.with_flops)
+        _rlog_set_record_stacks(self.with_stack)
         self._start_ns = _monotonic_ns()
         _rpd_start_trace()
+        self._write_trace_metadata()
 
     def stop_trace(self) -> None:
         self._end_ns = _monotonic_ns()
         _rpd_stop_trace()
+        _rlog_set_record_shapes(False)
+        _rlog_set_record_stacks(False)
 
     def events(self) -> EventList:
         if self._function_events is not None:
@@ -303,17 +363,72 @@ class _RpdProfile:
         return self.events().key_averages(group_by_input_shape, group_by_stack_n)
 
     def export_chrome_trace(self, path: str):
-        # DEFERRED: convert trace.rpd to Chrome JSON format
-        raise NotImplementedError(
-            "export_chrome_trace is not yet supported for rpd_profile. "
-            "Use the trace.rpd file directly."
-        )
+        """Export collected trace in Chrome JSON format."""
+        return self.events().export_chrome_trace(path)
+
+    def export_rpd_chrome_trace(self, path: str):
+        """Export trace in Chrome JSON format using rpd's native formatter.
+
+        Produces richer output than export_chrome_trace, including GPU op
+        tracks, API-to-op flow arrows, and queue depth counters.
+        """
+        from rocpd.trace import write_trace
+
+        write_trace(self.trace_file_path(), path)
 
     def export_stacks(self, path: str, metric: str = "self_cpu_time_total"):
-        # DEFERRED: requires rlog_client to write stack frames
-        raise NotImplementedError(
-            "export_stacks is not yet supported for rpd_profile."
-        )
+        """Export stack traces to a file for flamegraph visualization.
+
+        Requires with_stack=True when creating the profiler.
+        """
+        return self.events().export_stacks(path, metric)
+
+    def add_metadata(self, key: str, value: str) -> None:
+        """Add a key-value metadata entry to the trace file."""
+        db_path = _rpd_trace_file_path()
+        try:
+            conn = sqlite3.connect(db_path)
+            conn.execute(
+                "INSERT INTO rocpd_metadata(tag, value) VALUES (?, ?)",
+                (f"torch.{key}", value),
+            )
+            conn.commit()
+            conn.close()
+        except sqlite3.OperationalError:
+            pass
+
+    def add_metadata_json(self, key: str, value: str) -> None:
+        """Add a key-value metadata entry with a JSON value to the trace file."""
+        self.add_metadata(key, value)
+
+    def _write_trace_metadata(self) -> None:
+        if self.profile_memory:
+            self.add_metadata("profile_memory", "1")
+        if self.with_stack:
+            self.add_metadata("with_stack", "1")
+        if self.record_shapes:
+            self.add_metadata("record_shapes", "1")
+        if self.with_modules:
+            self.add_metadata("with_modules", "1")
+        if self.with_flops:
+            self.add_metadata("with_flops", "1")
+
+        dist_info = self._get_distributed_info()
+        if dist_info:
+            self.add_metadata("distributedInfo", json.dumps(dist_info))
+
+    def _get_distributed_info(self):
+        import torch.distributed as dist
+
+        if not dist.is_available() or not dist.is_initialized():
+            return None
+
+        return {
+            "pid": self._pid,
+            "backend": dist.get_backend(),
+            "rank": dist.get_rank(),
+            "world_size": dist.get_world_size(),
+        }
 
     def trace_file_path(self) -> str:
         return _rpd_trace_file_path()

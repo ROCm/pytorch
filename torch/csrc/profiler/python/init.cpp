@@ -11,6 +11,7 @@
 #include <torch/csrc/profiler/python/combined_traceback.h>
 #include <torch/csrc/profiler/rpd_shim.h>
 #include <torch/csrc/profiler/standalone/execution_trace_observer.h>
+#include <torch/csrc/profiler/standalone/rlog_client.h>
 #include <torch/csrc/utils/pybind.h>
 
 struct THPCapturedTraceback {
@@ -720,6 +721,51 @@ void initPythonBindings(PyObject* module) {
   m.def("_rpd_start_trace", &torch::profiler::impl::rpd::startTrace);
   m.def("_rpd_stop_trace", &torch::profiler::impl::rpd::stopTrace);
   m.def("_rpd_trace_file_path", &torch::profiler::impl::rpd::traceFilePath);
+  m.def("_rlog_set_record_shapes", &torch::rlog_set_record_shapes);
+  m.def("_rlog_set_record_stacks", &torch::rlog_set_record_stacks);
+
+  // Register Python stack capture callback for rlog.
+  // Must acquire GIL since this is called from RecordFunction callbacks
+  // which may fire without it.
+  torch::rlog_set_stack_callback([](std::string& json) {
+    PyGILState_STATE gstate = PyGILState_Ensure();
+    json += ",\"stack\":[";
+    PyFrameObject* frame = PyEval_GetFrame();
+    Py_XINCREF(frame);
+    bool first = true;
+    while (frame) {
+      PyCodeObject* code = PyFrame_GetCode(frame);
+      if (code) {
+        if (!first) json += ',';
+        first = false;
+        json += '"';
+        const char* filename = PyUnicode_AsUTF8(code->co_filename);
+        if (filename) {
+          for (const char* p = filename; *p; ++p) {
+            if (*p == '"' || *p == '\\') json += '\\';
+            json += *p;
+          }
+        }
+        json += ':';
+        json += std::to_string(PyFrame_GetLineNumber(frame));
+        json += " in ";
+        const char* funcname = PyUnicode_AsUTF8(code->co_qualname);
+        if (funcname) {
+          for (const char* p = funcname; *p; ++p) {
+            if (*p == '"' || *p == '\\') json += '\\';
+            json += *p;
+          }
+        }
+        json += '"';
+        Py_DECREF(code);
+      }
+      auto next = PyFrame_GetBack(frame);
+      Py_DECREF(frame);
+      frame = next;
+    }
+    json += ']';
+    PyGILState_Release(gstate);
+  });
 
   installCapturedTracebackPython();
 
