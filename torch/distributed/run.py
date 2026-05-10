@@ -706,6 +706,21 @@ def get_args_parser() -> ArgumentParser:
     )
 
     #
+    # Profiling
+    #
+
+    parser.add_argument(
+        "--profile-url",
+        "--profile_url",
+        action=env,
+        type=str,
+        default=None,
+        help="RPD profiler output URL. If no :// prefix, file:// is assumed. "
+        "For file:// URLs the trace file is deleted and RPDT_FILENAME is set. "
+        "Default filename: torch_trace_<pid>.rpd.",
+    )
+
+    #
     # Positional arguments.
     #
 
@@ -970,6 +985,22 @@ def run_script_path(training_script: str, *training_script_args: str):
     runpy.run_path(sys.argv[0], run_name="__main__")
 
 
+def _setup_profile_url(profile_url: str) -> None:
+    if "://" not in profile_url:
+        profile_url = f"file://{profile_url}"
+
+    os.environ["PROFILE_URL"] = profile_url
+
+    if profile_url.startswith("file://"):
+        path = profile_url[len("file://"):]
+        if not path:
+            path = f"torch_trace_{os.getpid()}.rpd"
+        if os.path.exists(path):
+            os.remove(path)
+        os.environ["RPDT_FILENAME"] = path
+        logger.info("RPD profiler trace file: %s", path)
+
+
 def run(args):
     torch.multiprocessing._set_thread_name("pt_elastic")
 
@@ -1002,6 +1033,9 @@ def run(args):
     # master_port is only used for the static rendezvous backend, not c10d
     if args.master_port is None:
         args.master_port = 29500
+
+    if args.profile_url:
+        _setup_profile_url(args.profile_url)
 
     config, cmd, cmd_args = config_from_args(args)
     elastic_launch(
