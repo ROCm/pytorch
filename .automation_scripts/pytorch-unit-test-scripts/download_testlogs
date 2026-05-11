@@ -287,7 +287,7 @@ def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None
     )
     os.chdir("..")
 # for older runs, add 'created':'<=YYYY-MM-DD'. see https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates
-def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, ignore_status=False, status='success', error_msg='Error downloading workflow runs'):
+def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, branch=None, ignore_status=False, status='success', error_msg='Error downloading workflow runs'):
     if not workflow:
         raise Exception("Workflow must be specified")
     for page in range(max_pages):
@@ -299,8 +299,10 @@ def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, i
             params['created'] = created
         if sha:
             params['head_sha'] = sha
+            if branch:
+                params['branch'] = branch
         else:
-            params['branch'] = "main"
+            params['branch'] = branch or "main"
         print(".")
 
         # Uncomment below for additional debug info
@@ -316,6 +318,10 @@ def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, i
             raise Exception(response.text)
         if not workflow_runs:
             continue
+        if branch:
+            workflow_runs = [wf for wf in workflow_runs if wf.get('head_branch') == branch]
+            if not workflow_runs:
+                continue
         # Prefer completed runs over in-progress ones. When multiple
         # runs exist for the same SHA, the most recent may still be
         # running and have no artifacts yet.
@@ -496,6 +502,7 @@ def main():
         sha = args.sha1
         pr_id = None
     status = "success"
+    sha_branch = "main" if args.sha1 else None
     print(sha)
 
     # When comparing two commits, prefix log filenames with short SHAs
@@ -516,7 +523,7 @@ def main():
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         periodic_fallback_used = False
         try:
-            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         except (IndexError, Exception):
             periodic_wf = None
         periodic_fallbacks = {
@@ -526,7 +533,7 @@ def main():
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
             print(f"Distributed not found in {ROCmWorkflowNames['distributed']}, falling back to {fallback_wf}")
-            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=periodic_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             periodic_fallback_used = True
         if periodic_wf is None:
             raise Exception(error_msg)
@@ -578,7 +585,7 @@ def main():
         error_msg="Error: rocm workflow not found in scanned workflow runs. Try increasing max_pages."
         default_fallback_used = False
         try:
-            rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["default"], sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["default"], sha=rocm_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         except (IndexError, Exception):
             rocm_wf = None
         default_fallbacks = {
@@ -587,7 +594,7 @@ def main():
         if rocm_wf is None and arch in default_fallbacks:
             fallback_wf, fallback_prefix = default_fallbacks[arch]
             print(f"Default not found in {ROCmWorkflowNames['default']}, falling back to {fallback_wf}")
-            rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=rocm_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             default_fallback_used = True
             rocm_job_prefix['default'] = fallback_prefix
         if rocm_wf is None:
@@ -632,7 +639,7 @@ def main():
         print(f"Finding ROCm inductor tests in workflow '{ROCmWorkflowNames['inductor']}' by sha: {inductor_rocm_sha}")
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
-        inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+        inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         print(f"Using workflow '{ROCmWorkflowNames['inductor']}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
 
         folder_list = get_or_create_test_folder(inductor_wf_rocm)
@@ -678,11 +685,15 @@ def main():
         if not args.ignore_status:
             params['status'] = status
         params['head_sha'] = sha
+        if sha_branch:
+            params['branch'] = sha_branch
         resp = requests.get(
             f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{CUDAWorkflowNames['default']}.yml/runs",
             headers=authentication_headers, params=params,
         )
         trunk_runs = resp.json().get('workflow_runs', [])
+        if sha_branch:
+            trunk_runs = [run for run in trunk_runs if run.get('head_branch') == sha_branch]
 
         for run in trunk_runs:
             jobs = get_workflow_jobs(run)
@@ -717,8 +728,13 @@ def main():
                             headers=authentication_headers,
                         )
                         trunk_wf = resp.json()
-                    print(f"CUDA test jobs are in trunk run {trunk_wf['id']} (found via check-runs)")
-                all_cuda_jobs = list(cuda_test_jobs)
+                    if sha_branch and trunk_wf.get('head_branch') != sha_branch:
+                        print(f"Skipping CUDA check-run from non-{sha_branch} branch run {trunk_wf.get('id')}")
+                        trunk_wf = None
+                        cuda_test_jobs = []
+                    else:
+                        print(f"CUDA test jobs are in trunk run {trunk_wf['id']} (found via check-runs)")
+                        all_cuda_jobs = list(cuda_test_jobs)
 
         if trunk_wf is None:
             trunk_wf = trunk_runs[0] if trunk_runs else None
@@ -793,7 +809,7 @@ def main():
             # find tests in inductor workflow with given sha and success status
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
             error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
-            inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
@@ -840,7 +856,7 @@ def main():
             try:
                 baseline_default_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["default"], sha=baseline_sha,
+                    workflow=ROCmWorkflowNames["default"], sha=baseline_sha, branch="main",
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline default workflow not found for {baseline_sha}",
                 )
@@ -872,7 +888,7 @@ def main():
             try:
                 baseline_dist_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["distributed"], sha=baseline_sha,
+                    workflow=ROCmWorkflowNames["distributed"], sha=baseline_sha, branch="main",
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
                 )
@@ -904,7 +920,7 @@ def main():
             try:
                 baseline_inductor_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["inductor"], sha=baseline_sha,
+                    workflow=ROCmWorkflowNames["inductor"], sha=baseline_sha, branch="main",
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
                 )
@@ -943,7 +959,7 @@ def main():
         try:
             inductor_periodic_wf = download_workflow_run(
                 created=args.created, max_pages=args.max_pages,
-                workflow="inductor-periodic", sha=sha,
+                workflow="inductor-periodic", sha=sha, branch=sha_branch,
                 ignore_status=args.ignore_status, status=status,
                 error_msg=error_msg,
             )
