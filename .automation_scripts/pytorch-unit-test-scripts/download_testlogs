@@ -134,6 +134,34 @@ def get_job_ids_by_prefix(wf, prefix):
     jobs = get_workflow_jobs(wf)
     return [str(j['id']) for j in jobs if prefix in j['name']]
 
+def get_test_shard_count(jobs, job_prefix, test_config, fallback):
+    """Derive the test shard total from selected workflow job names.
+
+    PyTorch CI changes shard counts over time. HUD/artifact names use the
+    actual job total (for example, test-default-1-10), so stale hardcoded
+    counts make artifact downloads miss reports that do exist.
+    """
+    totals = {}
+    pattern = re.compile(
+        rf"/ test(?:-osdc)?[^(]*\(\s*{re.escape(test_config)}\s*,\s*(\d+)\s*,\s*(\d+)"
+    )
+    for job in jobs or []:
+        name = job.get('name', '')
+        if job_prefix and job_prefix not in name:
+            continue
+        m = pattern.search(name)
+        if not m:
+            continue
+        total = int(m.group(2))
+        totals[total] = totals.get(total, 0) + 1
+    if not totals:
+        print(f"WARNING: Could not derive {test_config} shard count from jobs; using fallback {fallback}")
+        return fallback
+    shard_count = sorted(totals.items(), key=lambda item: (-item[1], -item[0]))[0][0]
+    if shard_count != fallback:
+        print(f"Derived {test_config} shard count from jobs: {shard_count} (fallback was {fallback})")
+    return shard_count
+
 def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
         raise Exception("wf is None!")
@@ -544,6 +572,10 @@ def main():
             dist_job_prefix = periodic_fallbacks[arch][1]
         else:
             dist_job_prefix = rocm_job_prefix['distributed']
+        periodic_jobs = get_workflow_jobs(periodic_wf)
+        dist_shards = get_test_shard_count(
+            periodic_jobs, dist_job_prefix, "distributed", rocm_shards["distributed"]
+        )
 
         folder_list = get_or_create_test_folder(periodic_wf)
 
@@ -553,15 +585,13 @@ def main():
         # Make sure "Hide unstable jobs" is unselected, in case ROCm jobs are marked as unstable
 
         if not args.artifacts_only:
-            dist_shards = rocm_shards["distributed"]
             test_log_list_rocm_distributed = [
                 [f"{current_prefix}rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
                 for i in range(1, dist_shards + 1)
             ]
-            download_logs(periodic_wf, test_log_list_rocm_distributed, folder_list[0])
+            download_logs(periodic_wf, test_log_list_rocm_distributed, folder_list[0], jobs=periodic_jobs)
 
         # Download artifacts
-        dist_shards = rocm_shards["distributed"]
         test_artifacts_list_rocm_distributed = [
             f"test-reports-test-distributed-{i}-{dist_shards}"
             for i in range(1, dist_shards + 1)
@@ -602,21 +632,24 @@ def main():
         default_wf_name = ROCmWorkflowNames['default'] if not default_fallback_used else default_fallbacks[arch][0]
         print(f"Using workflow '{default_wf_name}' with id:{rocm_wf['id']} for ROCm default{' (fallback)' if default_fallback_used else ''}")
 
+        rocm_jobs = get_workflow_jobs(rocm_wf)
+        default_shards = get_test_shard_count(
+            rocm_jobs, rocm_job_prefix['default'], "default", rocm_shards["default"]
+        )
+
         folder_list = get_or_create_test_folder(rocm_wf)
 
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
         if not args.artifacts_only:
-            default_shards = rocm_shards["default"]
             test_log_list_rocm_default = [
               [f"{current_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
               for i in range(1, default_shards + 1)
             ]
-            download_logs(rocm_wf, test_log_list_rocm_default, folder_list[0])
+            download_logs(rocm_wf, test_log_list_rocm_default, folder_list[0], jobs=rocm_jobs)
 
         # Download artifacts
-        default_shards = rocm_shards["default"]
         test_artifacts_list_rocm_default = [
           f"test-reports-test-default-{i}-{default_shards}"
           for i in range(1, default_shards + 1)
@@ -642,19 +675,22 @@ def main():
         inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         print(f"Using workflow '{ROCmWorkflowNames['inductor']}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
 
+        inductor_rocm_jobs = get_workflow_jobs(inductor_wf_rocm)
+        inductor_shards = get_test_shard_count(
+            inductor_rocm_jobs, rocm_job_prefix['inductor'], "inductor", rocm_shards["inductor"]
+        )
+
         folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
         # Download logs
         if not args.artifacts_only:
-          inductor_shards = rocm_shards["inductor"]
           test_log_list_rocm_inductor = [
             [f"{current_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
             for i in range(1, inductor_shards + 1)
           ]
-          download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
+          download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0], jobs=inductor_rocm_jobs)
 
         #Download artifacts
-        inductor_shards = rocm_shards["inductor"]
         test_artifacts_list_rocm_inductor = [
           f"test-reports-test-inductor-{i}-{inductor_shards}"
           for i in range(1, inductor_shards + 1)
@@ -747,24 +783,22 @@ def main():
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
         print(f"Found {len(cuda_test_jobs)} CUDA test jobs matching prefix")
+        cuda_default_shards = get_test_shard_count(all_cuda_jobs, cuda_job_prefix, "default", 5)
+        cuda_distributed_shards = get_test_shard_count(all_cuda_jobs, cuda_job_prefix, "distributed", 3)
 
         folder_list = get_or_create_test_folder(trunk_wf)
 
         # Download logs
         if not args.artifacts_only:
             test_log_list_cuda_default = [
-              ["cuda1.txt", f"{cuda_job_prefix} / test (default, 1, 5"],
-              ["cuda2.txt", f"{cuda_job_prefix} / test (default, 2, 5"],
-              ["cuda3.txt", f"{cuda_job_prefix} / test (default, 3, 5"],
-              ["cuda4.txt", f"{cuda_job_prefix} / test (default, 4, 5"],
-              ["cuda5.txt", f"{cuda_job_prefix} / test (default, 5, 5"],
+              [f"cuda{i}.txt", f"{cuda_job_prefix} / test (default, {i}, {cuda_default_shards}"]
+              for i in range(1, cuda_default_shards + 1)
             ]
             test_log_list_cuda = test_log_list_cuda_default
             if not args.exclude_distributed:
                 test_log_list_cuda_distributed = [
-                  ["cuda_dist1.txt", f"{cuda_job_prefix} / test (distributed, 1, 3"],
-                  ["cuda_dist2.txt", f"{cuda_job_prefix} / test (distributed, 2, 3"],
-                  ["cuda_dist3.txt", f"{cuda_job_prefix} / test (distributed, 3, 3"],
+                  [f"cuda_dist{i}.txt", f"{cuda_job_prefix} / test (distributed, {i}, {cuda_distributed_shards}"]
+                  for i in range(1, cuda_distributed_shards + 1)
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
 
@@ -772,11 +806,8 @@ def main():
 
         # Download artifacts
         test_artifacts_list_cuda_default = [
-          "test-reports-test-default-1-5",
-          "test-reports-test-default-2-5",
-          "test-reports-test-default-3-5",
-          "test-reports-test-default-4-5",
-          "test-reports-test-default-5-5",
+          f"test-reports-test-default-{i}-{cuda_default_shards}"
+          for i in range(1, cuda_default_shards + 1)
         ]
 
         test_artifacts_list_cuda = []
@@ -785,9 +816,8 @@ def main():
 
         if not args.exclude_distributed:
             test_artifacts_list_cuda_distributed = [
-              "test-reports-test-distributed-1-3",
-              "test-reports-test-distributed-2-3",
-              "test-reports-test-distributed-3-3",
+              f"test-reports-test-distributed-{i}-{cuda_distributed_shards}"
+              for i in range(1, cuda_distributed_shards + 1)
             ]
             test_artifacts_list_cuda += test_artifacts_list_cuda_distributed
 
@@ -812,19 +842,22 @@ def main():
             inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, branch=sha_branch, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
+            inductor_cuda_jobs = get_workflow_jobs(inductor_wf_cuda)
+            cuda_inductor_shards = get_test_shard_count(inductor_cuda_jobs, "", "inductor", 2)
+
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", "unit-test / inductor-test / test (inductor, 1, 2"],
-                ["cuda_inductor2.txt", "unit-test / inductor-test / test (inductor, 2, 2"],
+                [f"cuda_inductor{i}.txt", f"test (inductor, {i}, {cuda_inductor_shards}"]
+                for i in range(1, cuda_inductor_shards + 1)
               ]
-              download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0])
+              download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
 
             test_artifacts_list_cuda_inductor = [
-              "test-reports-test-inductor-1-2",
-              "test-reports-test-inductor-2-2"
+              f"test-reports-test-inductor-{i}-{cuda_inductor_shards}"
+              for i in range(1, cuda_inductor_shards + 1)
             ]
             # Inductor workflow is separate, use nvidia.gpu filter (no duplicate CUDA versions)
             download_artifacts(
@@ -861,14 +894,17 @@ def main():
                     error_msg=f"Baseline default workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline default workflow '{ROCmWorkflowNames['default']}' id: {baseline_default_wf['id']}")
-                default_shards = rocm_shards["default"]
+                baseline_default_jobs = get_workflow_jobs(baseline_default_wf)
+                default_shards = get_test_shard_count(
+                    baseline_default_jobs, rocm_job_prefix['default'], "default", rocm_shards["default"]
+                )
 
                 if not args.artifacts_only:
                     baseline_default_logs = [
                         [f"{baseline_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
                         for i in range(1, default_shards + 1)
                     ]
-                    download_logs(baseline_default_wf, baseline_default_logs, test_folder)
+                    download_logs(baseline_default_wf, baseline_default_logs, test_folder, jobs=baseline_default_jobs)
 
                 baseline_default_prefixes = [
                     f"test-reports-test-default-{i}-{default_shards}"
@@ -893,14 +929,17 @@ def main():
                     error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline distributed workflow '{ROCmWorkflowNames['distributed']}' id: {baseline_dist_wf['id']}")
-                dist_shards = rocm_shards["distributed"]
+                baseline_dist_jobs = get_workflow_jobs(baseline_dist_wf)
+                dist_shards = get_test_shard_count(
+                    baseline_dist_jobs, rocm_job_prefix['distributed'], "distributed", rocm_shards["distributed"]
+                )
 
                 if not args.artifacts_only:
                     baseline_dist_logs = [
                         [f"{baseline_prefix}rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
                         for i in range(1, dist_shards + 1)
                     ]
-                    download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
+                    download_logs(baseline_dist_wf, baseline_dist_logs, test_folder, jobs=baseline_dist_jobs)
 
                 baseline_dist_prefixes = [
                     f"test-reports-test-distributed-{i}-{dist_shards}"
@@ -925,14 +964,17 @@ def main():
                     error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline inductor workflow '{ROCmWorkflowNames['inductor']}' id: {baseline_inductor_wf['id']}")
-                inductor_shards = rocm_shards["inductor"]
+                baseline_inductor_jobs = get_workflow_jobs(baseline_inductor_wf)
+                inductor_shards = get_test_shard_count(
+                    baseline_inductor_jobs, rocm_job_prefix['inductor'], "inductor", rocm_shards["inductor"]
+                )
 
                 if not args.artifacts_only:
                     baseline_inductor_logs = [
                         [f"{baseline_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
                         for i in range(1, inductor_shards + 1)
                     ]
-                    download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder)
+                    download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder, jobs=baseline_inductor_jobs)
 
                 baseline_inductor_prefixes = [
                     f"test-reports-test-inductor-{i}-{inductor_shards}"
