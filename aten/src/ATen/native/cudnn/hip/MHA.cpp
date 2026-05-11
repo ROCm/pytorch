@@ -274,9 +274,32 @@ struct MHACacheKeyWrapper : ParamsWrapper<MHAParams> {
   }
 };
 
+// Lazily-populated state for a single graph configuration.
+class MHAGraphCacheEntry {
+  std::optional<bool> is_supported_;
+  bool is_built_ = false;
+public:
+  std::unique_ptr<fe::graph::Graph> graph;
+
+  bool is_supported(hipdnnHandle_t handle) {
+    if (!is_supported_.has_value()) {
+      is_supported_ = graph->is_supported_ext(handle).is_good();
+    }
+    return *is_supported_;
+  }
+
+  const fe::graph::Graph& get_built_graph(hipdnnHandle_t handle) {
+    if (!is_built_) {
+      HIPDNN_FE_CHECK(graph->build(handle));
+      is_built_ = true;
+    }
+    return *graph;
+  }
+};
+
 struct MHAGraphCache {
   using KeyType = MHACacheKeyWrapper;
-  using ValueType = std::unique_ptr<fe::graph::Graph>;
+  using ValueType = MHAGraphCacheEntry;
   using MapType =
       std::unordered_map<KeyType, ValueType, ParamsWrapperHash<KeyType>>;
   using iterator = typename MapType::iterator;
@@ -316,16 +339,6 @@ struct MHAGraphCache {
   }
 };
 
-// Use thread local caches to avoid potential thread safety issues.
-static MHAGraphCache& getMHAGraphCache_() {
-  thread_local MHAGraphCache instance;
-  return instance;
-}
-
-static MHAGraphCache& getMHAGraphBackwardCache_() {
-  thread_local MHAGraphCache instance;
-  return instance;
-}
 
 namespace {
 
@@ -346,7 +359,7 @@ enum UIDS {
 
 } // namespace
 
-static std::unique_ptr<fe::graph::Graph> build_graph_structure(
+static std::unique_ptr<fe::graph::Graph> build_graph(
     const MHAParams& params) {
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   mha_graph->set_intermediate_data_type(fe::DataType_t::FLOAT)
@@ -428,19 +441,7 @@ static std::unique_ptr<fe::graph::Graph> build_graph_structure(
   return mha_graph;
 }
 
-static std::unique_ptr<fe::graph::Graph> build_graph(
-    const MHAParams& params,
-    hipdnnHandle_t& handle) {
-  auto mha_graph = build_graph_structure(params);
-  HIPDNN_FE_CHECK(mha_graph->validate());
-  HIPDNN_FE_CHECK(mha_graph->build_operation_graph(handle));
-  HIPDNN_FE_CHECK(mha_graph->create_execution_plans({fe::HeurMode_t::FALLBACK}));
-  HIPDNN_FE_CHECK(mha_graph->check_support());
-  HIPDNN_FE_CHECK(mha_graph->build_plans());
-  return mha_graph;
-}
-
-static std::unique_ptr<fe::graph::Graph> build_graph_backward_structure(
+static std::unique_ptr<fe::graph::Graph> build_graph_backward(
     const MHAParams& params) {
   auto mha_graph = std::make_unique<fe::graph::Graph>();
   mha_graph->set_intermediate_data_type(fe::DataType_t::FLOAT)
@@ -544,21 +545,26 @@ static std::unique_ptr<fe::graph::Graph> build_graph_backward_structure(
   return mha_graph;
 }
 
-static std::unique_ptr<fe::graph::Graph> build_graph_backward(
-    const MHAParams& params,
-    hipdnnHandle_t& handle) {
-  auto mha_graph = build_graph_backward_structure(params);
-  HIPDNN_FE_CHECK(mha_graph->validate());
-  HIPDNN_FE_CHECK(mha_graph->build_operation_graph(handle));
-  HIPDNN_FE_CHECK(mha_graph->create_execution_plans({fe::HeurMode_t::FALLBACK}));
-  HIPDNN_FE_CHECK(mha_graph->check_support());
-  HIPDNN_FE_CHECK(mha_graph->build_plans());
-  return mha_graph;
+// Use thread local caches to avoid potential thread safety issues.
+static MHAGraphCacheEntry& getMHAGraphEntry_(const MHACacheKeyWrapper& key) {
+  thread_local MHAGraphCache instance;
+  MHAGraphCacheEntry& entry = instance.try_emplace(key).first->second;
+  if (!entry.graph) {
+    entry.graph = build_graph(key.pod);
+  }
+  return entry;
 }
 
-// TODO: cache the support result (and ideally the built graph) so we don't
-// rebuild it on every dispatch. Currently runs end-to-end graph build +
-// query for every can_use_cudnn_attention() call.
+static MHAGraphCacheEntry& getMHAGraphBackwardEntry_(
+    const MHACacheKeyWrapper& key) {
+  thread_local MHAGraphCache instance;
+  MHAGraphCacheEntry& entry = instance.try_emplace(key).first->second;
+  if (!entry.graph) {
+    entry.graph = build_graph_backward(key.pod);
+  }
+  return entry;
+}
+
 bool check_cudnn_sdpa_support(sdp::sdp_params const& params) {
   const Tensor& q = params.query;
   const Tensor& k = params.key;
@@ -589,9 +595,7 @@ bool check_cudnn_sdpa_support(sdp::sdp_params const& params) {
     const int64_t h_bias = rank == 4 ? bias.size(1) : 1;
     expanded_bias = bias.expand({b, h_bias, s_q, s_kv});
   }
-  MHAParams fwd_params;
-  setMHAParams(
-      fwd_params,
+  MHACacheKeyWrapper key(
       b,
       h,
       s_q,
@@ -608,18 +612,16 @@ bool check_cudnn_sdpa_support(sdp::sdp_params const& params) {
       return_softmaxstats);
 
   hipdnnHandle_t handle = getHipdnnHandle();
-  std::unique_ptr<fe::graph::Graph> fwd_graph =
-      build_graph_structure(fwd_params);
-  if (!fwd_graph->is_supported_ext(handle).is_good())
+  if (!getMHAGraphEntry_(key).is_supported(handle)) {
     return false;
+  }
 
   // Check that backwards is also supported here if it might be needed, since
   // we'll be expected to handle it too if we accept the forward pass.
   if (return_softmaxstats) {
-    std::unique_ptr<fe::graph::Graph> bwd_graph =
-        build_graph_backward_structure(fwd_params);
-    if (!bwd_graph->is_supported_ext(handle).is_good())
+    if (!getMHAGraphBackwardEntry_(key).is_supported(handle)) {
       return false;
+    }
   }
 
   return true;
@@ -677,11 +679,8 @@ void run_cudnn_SDP_fprop(
       dropout_probability,
       is_causal,
       return_softmaxstats);
-  auto [cache_it, _] = getMHAGraphCache_().try_emplace(key, nullptr);
-  if (cache_it->second == nullptr) {
-    cache_it->second = build_graph(key.pod, handle);
-  }
-  const fe::graph::Graph& mha_graph = *cache_it->second;
+  const fe::graph::Graph& mha_graph =
+      getMHAGraphEntry_(key).get_built_graph(handle);
   // Graph construction makes some assumptions based on constraints checked
   // earlier. Validate they hold by comparing metadata against tensors now that
   // they're available.
@@ -796,11 +795,8 @@ void run_cudnn_SDP_bprop(
       dropout_probability,
       is_causal,
       /*return_softmaxstats=*/true);
-  auto [cache_it, _] = getMHAGraphBackwardCache_().try_emplace(key, nullptr);
-  if (cache_it->second == nullptr) {
-    cache_it->second = build_graph_backward(key.pod, handle);
-  }
-  const fe::graph::Graph& mha_graph = *cache_it->second;
+  const fe::graph::Graph& mha_graph =
+      getMHAGraphBackwardEntry_(key).get_built_graph(handle);
   // Graph construction makes some assumptions based on constraints checked
   // earlier. Validate they hold by comparing metadata against tensors now that
   // they're available.
