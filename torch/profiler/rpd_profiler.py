@@ -390,95 +390,26 @@ class _RpdProfile:
         return self.events().key_averages(group_by_input_shape, group_by_stack_n)
 
     def export_chrome_trace(self, path: str):
-        """Export collected trace in Chrome JSON format.
+        """Export trace in Kineto-compatible Chrome JSON format."""
+        from rocpd.tracing import generate_kineto_json
 
-        CPU events appear under their process pid. GPU events appear on
-        separate tracks named by GPU id. Flow arrows connect HIP API
-        calls to their GPU kernels.
-        """
-        events = self.events()
+        conn = sqlite3.connect(self.trace_file_path())
         with open(path, "w") as f:
-            f.write("[")
-            first = True
-            for evt in events:
-                if evt.trace_name is None:
-                    continue
-                if not first:
-                    f.write(",\n")
-                first = False
-
-                if evt.device_type == DeviceType.CUDA:
-                    pid = str(evt.device_index)
-                    tid = str(evt.device_resource_id)
-                else:
-                    pid = str(self._pid)
-                    tid = str(evt.thread)
-
-                dur = evt.time_range.elapsed_us()
-                f.write(
-                    f'{{"name": "{evt.trace_name}", '
-                    f'"ph": "X", '
-                    f'"ts": {evt.time_range.start}, '
-                    f'"dur": {dur}, '
-                    f'"tid": {tid}, '
-                    f'"pid": {pid}, '
-                    f'"args": {{}}}}'
-                )
-
-            self._write_flow_events(f, first)
-            f.write("]")
-
-    def _write_flow_events(self, f, first: bool) -> None:
-        """Write flow arrows connecting HIP API calls to GPU kernels."""
-        if not _rpd_available():
-            return
-        db_path = _rpd_trace_file_path()
-        try:
-            conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
-        except sqlite3.OperationalError:
-            return
-
-        try:
-            cursor = conn.execute(
-                """
-                SELECT ao.id, a.pid, a.tid, o.gpuId, o.queueId,
-                       a.end / 1000.0, o.start / 1000.0
-                FROM rocpd_api_ops ao
-                JOIN rocpd_api a ON a.id = ao.api_id
-                JOIN rocpd_op o ON o.id = ao.op_id
-                WHERE a.pid = ? AND a.start >= ? AND a.start <= ?
-                """,
-                (self._pid, self._start_ns, self._end_ns),
-            )
-            for row in cursor:
-                flow_id, pid, tid, gpu_id, queue_id, api_end_us, op_start_us = row
-                from_ts = min(api_end_us, op_start_us)
-                if not first:
-                    f.write(",\n")
-                first = False
-                f.write(
-                    f'{{"pid": {pid}, "tid": {tid}, '
-                    f'"cat": "api_op", "name": "api_op", '
-                    f'"ts": {from_ts}, "id": {flow_id}, "ph": "s"}}'
-                )
-                f.write(
-                    f',\n{{"pid": {gpu_id}, "tid": {queue_id}, '
-                    f'"cat": "api_op", "name": "api_op", '
-                    f'"ts": {op_start_us}, "id": {flow_id}, '
-                    f'"ph": "f", "bp": "e"}}'
-                )
-        finally:
-            conn.close()
+            generate_kineto_json(conn, f)
+        conn.close()
 
     def export_rpd_chrome_trace(self, path: str):
         """Export trace in Chrome JSON format using rpd's native formatter.
 
         Produces richer output than export_chrome_trace, including GPU op
-        tracks, API-to-op flow arrows, and queue depth counters.
+        tracks, API-to-op flow arrows, queue depth counters, and SMI data.
         """
-        from rocpd.trace import write_trace
+        from rocpd.tracing import generate_rpd_json
 
-        write_trace(self.trace_file_path(), path)
+        conn = sqlite3.connect(self.trace_file_path())
+        with open(path, "w") as f:
+            generate_rpd_json(conn, f)
+        conn.close()
 
     def export_stacks(self, path: str, metric: str = "self_cpu_time_total"):
         """Export stack traces to a file for flamegraph visualization.
