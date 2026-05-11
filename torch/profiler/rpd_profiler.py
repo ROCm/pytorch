@@ -38,12 +38,31 @@ from .profiler import (
 __all__ = ["rpd_profile", "keep_trace"]
 
 _trace_kept = False
+_atexit_registered = False
 
 
 def keep_trace() -> None:
     """Prevent the trace file from being deleted on process exit."""
     global _trace_kept
     _trace_kept = True
+
+
+def _register_cleanup() -> None:
+    global _atexit_registered
+    if _atexit_registered:
+        return
+    _atexit_registered = True
+
+    import atexit
+
+    def _cleanup():
+        if _trace_kept:
+            return
+        path = os.environ.get("RPDT_FILENAME", "")
+        if path and os.path.exists(path):
+            os.remove(path)
+
+    atexit.register(_cleanup)
 
 
 def _ensure_rpd_schema() -> None:
@@ -178,6 +197,7 @@ def _read_cpu_events(db_path, pid, start_ns, end_ns, use_device):
                 name=api_name,
                 trace_name=api_name,
                 thread=tid,
+                fwd_thread=tid,
                 start_us=start / 1000.0,
                 end_us=end / 1000.0,
                 sequence_nr=seq,
@@ -220,7 +240,7 @@ def _attach_gpu_events(events, db_path, pid, start_ns, end_ns):
             JOIN rocpd_api_ops ao ON ao.op_id = o.id
             JOIN rocpd_api a ON a.id = ao.api_id
             JOIN rocpd_string d ON d.id = o.description_id
-            WHERE a.pid = ? AND o.start >= ? AND o.end <= ?
+            WHERE a.pid = ? AND a.start >= ? AND a.start <= ?
             ORDER BY a.start
             """,
             (pid, start_ns, end_ns),
@@ -320,6 +340,7 @@ class _RpdProfile:
 
     def start_trace(self) -> None:
         self._function_events = None
+        _register_cleanup()
         _rlog_set_record_shapes(self.record_shapes or self.with_flops)
         _rlog_set_record_stacks(self.with_stack)
         self._start_ns = _monotonic_ns()
@@ -327,6 +348,12 @@ class _RpdProfile:
         self._write_trace_metadata()
 
     def stop_trace(self) -> None:
+        # Workaround for roctracer backend: GPU events are only delivered
+        # after a device sync. Without this, GPU ops will be missing from
+        # the trace. May be removable with a different backend.
+        if self.use_device == "cuda":
+            import torch.cuda
+            torch.cuda.synchronize()
         self._end_ns = _monotonic_ns()
         _rpd_stop_trace()
         _rlog_set_record_shapes(False)
@@ -363,8 +390,85 @@ class _RpdProfile:
         return self.events().key_averages(group_by_input_shape, group_by_stack_n)
 
     def export_chrome_trace(self, path: str):
-        """Export collected trace in Chrome JSON format."""
-        return self.events().export_chrome_trace(path)
+        """Export collected trace in Chrome JSON format.
+
+        CPU events appear under their process pid. GPU events appear on
+        separate tracks named by GPU id. Flow arrows connect HIP API
+        calls to their GPU kernels.
+        """
+        events = self.events()
+        with open(path, "w") as f:
+            f.write("[")
+            first = True
+            for evt in events:
+                if evt.trace_name is None:
+                    continue
+                if not first:
+                    f.write(",\n")
+                first = False
+
+                if evt.device_type == DeviceType.CUDA:
+                    pid = str(evt.device_index)
+                    tid = str(evt.device_resource_id)
+                else:
+                    pid = str(self._pid)
+                    tid = str(evt.thread)
+
+                dur = evt.time_range.elapsed_us()
+                f.write(
+                    f'{{"name": "{evt.trace_name}", '
+                    f'"ph": "X", '
+                    f'"ts": {evt.time_range.start}, '
+                    f'"dur": {dur}, '
+                    f'"tid": {tid}, '
+                    f'"pid": {pid}, '
+                    f'"args": {{}}}}'
+                )
+
+            self._write_flow_events(f, first)
+            f.write("]")
+
+    def _write_flow_events(self, f, first: bool) -> None:
+        """Write flow arrows connecting HIP API calls to GPU kernels."""
+        if not _rpd_available():
+            return
+        db_path = _rpd_trace_file_path()
+        try:
+            conn = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        except sqlite3.OperationalError:
+            return
+
+        try:
+            cursor = conn.execute(
+                """
+                SELECT ao.id, a.pid, a.tid, o.gpuId, o.queueId,
+                       a.end / 1000.0, o.start / 1000.0
+                FROM rocpd_api_ops ao
+                JOIN rocpd_api a ON a.id = ao.api_id
+                JOIN rocpd_op o ON o.id = ao.op_id
+                WHERE a.pid = ? AND a.start >= ? AND a.start <= ?
+                """,
+                (self._pid, self._start_ns, self._end_ns),
+            )
+            for row in cursor:
+                flow_id, pid, tid, gpu_id, queue_id, api_end_us, op_start_us = row
+                from_ts = min(api_end_us, op_start_us)
+                if not first:
+                    f.write(",\n")
+                first = False
+                f.write(
+                    f'{{"pid": {pid}, "tid": {tid}, '
+                    f'"cat": "api_op", "name": "api_op", '
+                    f'"ts": {from_ts}, "id": {flow_id}, "ph": "s"}}'
+                )
+                f.write(
+                    f',\n{{"pid": {gpu_id}, "tid": {queue_id}, '
+                    f'"cat": "api_op", "name": "api_op", '
+                    f'"ts": {op_start_us}, "id": {flow_id}, '
+                    f'"ph": "f", "bp": "e"}}'
+                )
+        finally:
+            conn.close()
 
     def export_rpd_chrome_trace(self, path: str):
         """Export trace in Chrome JSON format using rpd's native formatter.

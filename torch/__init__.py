@@ -2170,24 +2170,12 @@ del _manager_path
 
 # Set up RPD trace file for profiling. If RPDT_FILENAME is already set
 # (e.g. by torchrun or a parent process), skip — the child inherits it.
-# The creating process cleans up on exit unless keep_trace() is called.
 if not os.environ.get("RPDT_FILENAME"):
     _rpdt_default = f"torch_trace_{os.getpid()}.rpd"
     if os.path.exists(_rpdt_default):
         os.remove(_rpdt_default)
     os.environ["RPDT_FILENAME"] = _rpdt_default
-
-    import atexit as _atexit
-
-    def _cleanup_rpd_trace(_path=_rpdt_default):
-        import torch.profiler.rpd_profiler as _rpd
-        if _rpd._trace_kept:
-            return
-        if os.path.exists(_path):
-            os.remove(_path)
-
-    _atexit.register(_cleanup_rpd_trace)
-    del _atexit, _rpdt_default
+    del _rpdt_default
 
 # Appease the type checker: it can't deal with direct setting of globals().
 # Note that we will see "too many" functions when reexporting this way; there
