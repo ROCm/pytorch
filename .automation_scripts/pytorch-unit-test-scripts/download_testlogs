@@ -459,7 +459,7 @@ def main():
         "nightly": {"default": 6, "distributed": 3, "inductor": 2},
         "mi200": {"default": 6, "distributed": 3, "inductor": 2},
         "mi300": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi355": {"default": 6, "distributed": 3, "inductor": 2},
+        "mi355": {"default": 10, "distributed": 4, "inductor": 2},
         "navi31": {"default": 2, "distributed": 3, "inductor": 2},
     }
     rocm_job_prefix = rocm_job_prefixes[arch]
