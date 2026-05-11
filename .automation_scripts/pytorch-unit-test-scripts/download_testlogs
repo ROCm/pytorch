@@ -459,7 +459,7 @@ def main():
         "nightly": {"default": 6, "distributed": 3, "inductor": 2},
         "mi200": {"default": 6, "distributed": 3, "inductor": 2},
         "mi300": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi355": {"default": 10, "distributed": 4, "inductor": 2},
+        "mi355": {"default": 10, "distributed": 4, "inductor": 2}, #trunk
         "navi31": {"default": 2, "distributed": 3, "inductor": 2},
     }
     rocm_job_prefix = rocm_job_prefixes[arch]
@@ -482,7 +482,7 @@ def main():
     if not args.no_cuda:
         print(f"Using CUDA workflows: {CUDAWorkflowNames}")
     print(f"Using ROCm job prefixes: {rocm_job_prefix}")
-    print(f"Using ROCm shard counts: {rocm_shards}")
+    print(f"Using initial ROCm shard counts (may be updated based on actual workflow used): {rocm_shards}")
 
     token = os.getenv('GITHUB_TOKEN', '...')
     global authentication_headers
@@ -546,9 +546,12 @@ def main():
         # If the ROCm distributed logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
         # Make sure "Hide unstable jobs" is unselected, in case ROCm jobs are marked as unstable
-
-        if not args.artifacts_only:
+    
+        if arch == "mi355":
+            dist_shards = 3 if not periodic_fallback_used else rocm_shards["distributed"]
+        else:
             dist_shards = rocm_shards["distributed"]
+        if not args.artifacts_only:
             test_log_list_rocm_distributed = [
                 [f"{current_prefix}rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
                 for i in range(1, dist_shards + 1)
@@ -556,7 +559,6 @@ def main():
             download_logs(periodic_wf, test_log_list_rocm_distributed, folder_list[0])
 
         # Download artifacts
-        dist_shards = rocm_shards["distributed"]
         test_artifacts_list_rocm_distributed = [
             f"test-reports-test-distributed-{i}-{dist_shards}"
             for i in range(1, dist_shards + 1)
@@ -602,8 +604,11 @@ def main():
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
-        if not args.artifacts_only:
+        if arch == "mi355":
+            default_shards = 6 if default_fallback_used else rocm_shards["default"]
+        else:
             default_shards = rocm_shards["default"]
+        if not args.artifacts_only:
             test_log_list_rocm_default = [
               [f"{current_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
               for i in range(1, default_shards + 1)
@@ -611,7 +616,6 @@ def main():
             download_logs(rocm_wf, test_log_list_rocm_default, folder_list[0])
 
         # Download artifacts
-        default_shards = rocm_shards["default"]
         test_artifacts_list_rocm_default = [
           f"test-reports-test-default-{i}-{default_shards}"
           for i in range(1, default_shards + 1)
