@@ -811,14 +811,14 @@ def main():
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", "unit-test / inductor-test / test (inductor, 1, 2"],
-                ["cuda_inductor2.txt", "unit-test / inductor-test / test (inductor, 2, 2"],
+                ["cuda_inductor1.txt", "unit-test / inductor-test / test-osdc (inductor, 1, 2"],
+                ["cuda_inductor2.txt", "unit-test / inductor-test / test-osdc (inductor, 2, 2"],
               ]
               download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0])
 
             test_artifacts_list_cuda_inductor = [
-              "test-reports-test-inductor-1-2",
-              "test-reports-test-inductor-2-2"
+              "test-reports-test-osdc-inductor-1-2",
+              "test-reports-test-osdc-inductor-2-2"
             ]
             # Inductor workflow is separate, use nvidia.gpu filter (no duplicate CUDA versions)
             download_artifacts(
