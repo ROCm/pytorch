@@ -802,26 +802,38 @@ def main():
             inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
+            inductor_cuda_jobs = get_workflow_jobs(inductor_wf_cuda)
+            cuda_inductor_test_jobs = [
+                j for j in inductor_cuda_jobs
+                if "unit-test / inductor-test / test-osdc (inductor," in j['name']
+            ]
+            cuda_inductor_job_ids = [str(j['id']) for j in cuda_inductor_test_jobs]
+            cuda_inductor_artifact_substrings = (
+                [f"_{jid}" for jid in cuda_inductor_job_ids]
+                if cuda_inductor_job_ids
+                else None
+            )
+            print(f"Found {len(cuda_inductor_test_jobs)} CUDA inductor OSDC test jobs")
+
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", "unit-test / inductor-test / test (inductor, 1, 2"],
-                ["cuda_inductor2.txt", "unit-test / inductor-test / test (inductor, 2, 2"],
+                ["cuda_inductor1.txt", "unit-test / inductor-test / test-osdc (inductor, 1, 2"],
+                ["cuda_inductor2.txt", "unit-test / inductor-test / test-osdc (inductor, 2, 2"],
               ]
-              download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0])
+              download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
 
             test_artifacts_list_cuda_inductor = [
-              "test-reports-test-inductor-1-2",
-              "test-reports-test-inductor-2-2"
+              "test-reports-test-osdc-inductor-1-2",
+              "test-reports-test-osdc-inductor-2-2"
             ]
-            # Inductor workflow is separate, use nvidia.gpu filter (no duplicate CUDA versions)
             download_artifacts(
                 inductor_wf_cuda,
                 test_artifacts_list_cuda_inductor,
                 test_folder=folder_list[1],
-                allowed_substrings=["nvidia.gpu"],
+                allowed_substrings=cuda_inductor_artifact_substrings,
             )
             os.chdir("..")
 
