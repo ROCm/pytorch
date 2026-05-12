@@ -206,6 +206,32 @@ if(USE_FLASH_ATTENTION)
     message(STATUS "USE_CK_FLASH_ATTENTION is being deprecated. Please use USE_ROCM_CK_SDPA instead")
     caffe2_update_option(USE_ROCM_CK_SDPA ON)
   endif()
+  # Now building CK by default
+  if(USE_ROCM)
+    if(DEFINED ENV{USE_ROCM_CK_SDPA})
+        if(ENV{USE_ROCM_CK_SDPA} EQUAL 1)
+          caffe2_update_option(USE_ROCM_CK_SDPA ON)
+        endif()
+    else()
+      caffe2_update_option(USE_ROCM_CK_SDPA ON)
+    endif()
+    # CK SDPA only supports gfx942/gfx950. Auto-disable when none of those archs
+    # are in PYTORCH_ROCM_ARCH; otherwise the ck_sdpa target ends up with an
+    # empty HIP_ARCHITECTURES and CMake errors out.
+    if(USE_ROCM_CK_SDPA)
+      set(_have_ck_sdpa_arch FALSE)
+      foreach(ARCH gfx942 gfx950)
+        if("${ARCH}" IN_LIST PYTORCH_ROCM_ARCH)
+          set(_have_ck_sdpa_arch TRUE)
+          break()
+        endif()
+      endforeach()
+      if(NOT _have_ck_sdpa_arch)
+        message(STATUS "USE_ROCM_CK_SDPA disabled: PYTORCH_ROCM_ARCH (${PYTORCH_ROCM_ARCH}) has no MI3xx arch (gfx942/gfx950)")
+        caffe2_update_option(USE_ROCM_CK_SDPA OFF)
+      endif()
+    endif()
+  endif()
   if(USE_ROCM_CK_SDPA)
     if(DEFINED ENV{PYTORCH_ROCM_ARCH})
       list(LENGTH PYTORCH_ROCM_ARCH NUM_ARCHS)
@@ -407,6 +433,21 @@ IF(USE_MSLK)
     # Add MSLK include directories for gemm_torch.h
     list(APPEND ATen_CUDA_INCLUDE ${MSLK_INCLUDE})
   elseif(USE_ROCM)
+    # MSLK only supports gfx942/gfx950. Auto-disable when none of those archs
+    # are in PYTORCH_ROCM_ARCH; otherwise the mslk target ends up with an empty
+    # HIP_ARCHITECTURES and CMake errors out.
+    set(_mslk_hip_arches "")
+    foreach(ARCH gfx942 gfx950)
+      if(${ARCH} IN_LIST PYTORCH_ROCM_ARCH)
+        list(APPEND _mslk_hip_arches ${ARCH})
+      endif()
+    endforeach()
+  endif()
+  if(USE_MSLK AND USE_ROCM AND _mslk_hip_arches STREQUAL "")
+    message(STATUS "USE_MSLK disabled: PYTORCH_ROCM_ARCH (${PYTORCH_ROCM_ARCH}) has no MI3xx arch (gfx942/gfx950)")
+    caffe2_update_option(USE_MSLK OFF)
+  endif()
+  if(USE_MSLK AND USE_ROCM)
     # Path to vendored CK
     set(MSLK_CK_DIR "${MSLK_THIRD_PARTY}/composable_kernel")
     rocm_generate_ck_conf(
@@ -430,22 +471,11 @@ IF(USE_MSLK)
         list(PREPEND MSLK_EXTRA_HIPCC_FLAGS -mllvm -amdgpu-coerce-illegal-types=1)
       endif()
 
-    # Only compile for gfx942 and gfx950.
-    set(HIP_CLANG_FLAGS_ORIGINAL ${HIP_CLANG_FLAGS})
-    string(REGEX REPLACE "--offload-arch=[^ ]*" "" FILTERED_HIP_CLANG_FLAGS "${HIP_CLANG_FLAGS}")
-    foreach(ARCH gfx942 gfx950)
-      if(${ARCH} IN_LIST PYTORCH_ROCM_ARCH)
-        list(APPEND FILTERED_HIP_CLANG_FLAGS --offload-arch=${ARCH})
-      endif()
-    endforeach()
-    set(HIP_CLANG_FLAGS ${FILTERED_HIP_CLANG_FLAGS})
-
-    hip_add_library(
-      mslk STATIC
-      ${mslk_native_rocm_hip}
-      HIPCC_OPTIONS ${HIP_HCC_FLAGS} ${MSLK_EXTRA_HIPCC_FLAGS})
-    set(HIP_CLANG_FLAGS ${HIP_CLANG_FLAGS_ORIGINAL})
-    set_target_properties(mslk PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    add_library(mslk STATIC ${mslk_native_rocm_hip})
+    set_target_properties(mslk PROPERTIES
+      POSITION_INDEPENDENT_CODE ON
+      HIP_ARCHITECTURES "${_mslk_hip_arches}")
+    target_compile_options(mslk PRIVATE $<$<COMPILE_LANGUAGE:HIP>:${MSLK_EXTRA_HIP_FLAGS}> ${HIP_CXX_FLAGS})
     target_compile_definitions(mslk PRIVATE MSLK_NO_EXTENDED_SHAPES)
 
     target_include_directories(mslk PRIVATE
@@ -462,7 +492,9 @@ IF(USE_MSLK)
   endif()
 
   # Ensure torch_cpu is built before mslk to avoid race conditions
-  add_dependencies(mslk torch_cpu)
+  if(TARGET mslk)
+    add_dependencies(mslk torch_cpu)
+  endif()
 endif()
 
 # XNNPACK
