@@ -378,7 +378,7 @@ pip==26.0.1
 pyyaml==6.0.3
 pyzstd==0.16.2
 setuptools==79.0.1
-packaging==24.0
+packaging==25.0
 six==1.17.0
 
 scons==4.5.2 ; platform_machine == "aarch64"
