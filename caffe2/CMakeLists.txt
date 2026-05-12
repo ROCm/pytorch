@@ -1874,6 +1874,12 @@ if(USE_ROCM)
   # Since PyTorch files contain HIP headers, this is also needed to capture the includes.
   # ROCM_INCLUDE_DIRS is defined in LoadHIP.cmake and added as SYSTEM includes in cmake/Dependencies.cmake
   target_include_directories(torch_hip PRIVATE ${Caffe2_HIP_INCLUDE})
+  # Shim headers (cuda_runtime_api.h → hip_runtime_api.h, cudnn_frontend.h →
+  # hipdnn_frontend, ATen/cudnn/Handle.h → ATen/hipdnn/Handle.h, etc.) so
+  # non-hipified files compile against cuda-named APIs on HIP builds without
+  # source-level rewriting. Use BEFORE so these shadow the real ATen headers.
+  target_include_directories(torch_hip BEFORE PRIVATE
+      ${PROJECT_SOURCE_DIR}/aten/src/ATen/hip_compat/include)
   target_include_directories(torch_hip INTERFACE $<INSTALL_INTERFACE:include>)
 endif()
 

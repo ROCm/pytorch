@@ -3,7 +3,6 @@
 This file contains some of the auxiliary functions used by both Conv.cpp & Linear.cpp (introduced in a later PR)
 */
 
-#ifdef USE_CUDA
 #include <ATen/cuda/CUDAConfig.h>  // for the definition of AT_CUDNN_ENABLED
 
 #if AT_CUDNN_ENABLED()
@@ -312,4 +311,3 @@ inline void filterEngineConfigs(
 } // cudnn_utils
 
 #endif  // AT_CUDNN_ENABLED
-#endif  // USE_CUDA

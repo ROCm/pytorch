@@ -59,11 +59,7 @@
 #endif
 #endif
 
-#ifdef __HIP_PLATFORM_AMD__
-#include <ATen/native/cudnn/hip/MHA.h>
-#else
 #include <ATen/native/cudnn/MHA.h>
-#endif
 
 namespace at::native {
 

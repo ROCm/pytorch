@@ -1,8 +1,42 @@
 #pragma once
 #include <ATen/ATen.h>
+#include <ATen/ExpandUtils.h>
 #include <ATen/core/Tensor.h>
 
 namespace at::native {
+
+// Compute dense strides that preserve the dimension ordering of ref_strides
+// for the given shape. When ref_sizes == shape, uses infer_dense_strides to
+// match empty_like's behavior (compacting non-dense gaps).
+inline std::vector<int64_t> compute_matching_strides(
+    IntArrayRef ref_sizes,
+    IntArrayRef ref_strides,
+    IntArrayRef shape) {
+  if (ref_sizes.equals(shape)) {
+    return infer_dense_strides(ref_sizes, ref_strides);
+  }
+
+  // get the "fill order," which is just an argsort on the strides
+  std::vector<int> fill_order(shape.size());
+  std::iota(fill_order.begin(), fill_order.end(), 0);
+  // note: why INT64_MAX instead of 1.
+  // When Q's strides include 0, e.g. (0, 0, 128, 1), mapping stride 0 to 1 leads to
+  // fill_order of [0, 1, 3, 2], i.e. the output strides are [1, 8, 1024, 16].
+  // To match output strides with Q, use INT64_MAx so that broadcast dims come last in fill_order.
+  std::stable_sort(
+      fill_order.begin(), fill_order.end(), [&ref_strides](int idx1, int idx2) {
+        int64_t s1 = ref_strides[idx1] ? ref_strides[idx1] : INT64_MAX;
+        int64_t s2 = ref_strides[idx2] ? ref_strides[idx2] : INT64_MAX;
+        return s1 < s2;
+      });
+  std::vector<int64_t> ordered_strides(shape.size());
+  int64_t current_stride = 1;
+  for (const int dim_idx : fill_order) {
+    ordered_strides[dim_idx] = current_stride;
+    current_stride *= shape[dim_idx];
+  }
+  return ordered_strides;
+}
 
 void alloc_with_matching_layout(
     const Tensor& q,
@@ -12,32 +46,8 @@ void alloc_with_matching_layout(
       shape.size() == q.sizes().size(),
       "SDPA alloc_with_matching_layout got requested shape ndim != q ndim");
 
-  if (std::equal(q.sizes().begin(), q.sizes().end(), shape.begin())) {
-    output = at::empty_like(q);
-    return;
-  }
-
-  // get the "fill order," which is just an argsort on the strides
-  std::vector<int> fill_order(shape.size());
-  std::iota(fill_order.begin(), fill_order.end(), 0);
-  const auto q_strides = q.strides();
-  // note: why INT64_MAX instead of 1.
-  // When Q's strides include 0, e.g. (0, 0, 128, 1), mapping stride 0 to 1 leads to
-  // fill_order of [0, 1, 3, 2], i.e. the output strides are [1, 8, 1024, 16].
-  // To match output strides with Q, use INT64_MAx so that broadcast dims come last in fill_order.
-  std::stable_sort(
-      fill_order.begin(), fill_order.end(), [&q_strides](int idx1, int idx2) {
-        int64_t s1 = q_strides[idx1] ? q_strides[idx1] : INT64_MAX;
-        int64_t s2 = q_strides[idx2] ? q_strides[idx2] : INT64_MAX;
-        return s1 < s2;
-      });
-  std::vector<int64_t> ordered_strides(shape.size());
-  int64_t current_stride = 1;
-  for (const int dim_idx : fill_order) {
-    ordered_strides[dim_idx] = current_stride;
-    current_stride *= shape[dim_idx];
-  }
-  output = at::empty_strided(at::IntArrayRef(shape), at::IntArrayRef(ordered_strides), q.options());
+  auto strides = compute_matching_strides(q.sizes(), q.strides(), shape);
+  output = at::empty_strided(shape, strides, q.options());
 }
 
 void permute_to_matching_layout(const Tensor& output, Tensor& grad_output) {

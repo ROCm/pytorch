@@ -1,4 +1,3 @@
-#ifdef USE_CUDA
 #include <ATen/cuda/CUDAConfig.h>  // for the definition of AT_CUDNN_ENABLED
 
 #if AT_CUDNN_ENABLED()
@@ -15,4 +14,3 @@ std::tuple<at::Tensor, std::optional<at::Tensor>> PackedLinearWeightCudnn::unpac
 }
 
 #endif  // AT_CUDNN_ENABLED
-#endif  // USE_CUDA

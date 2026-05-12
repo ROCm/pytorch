@@ -3,11 +3,7 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/cuda/CUDAConfig.h>
 
-#ifdef __HIP_PLATFORM_AMD__
-#include <ATen/native/cudnn/hip/BatchNorm.h>
-#else
 #include <ATen/native/cudnn/BatchNorm.h>
-#endif
 
 #if !AT_CUDNN_ENABLED()
 
