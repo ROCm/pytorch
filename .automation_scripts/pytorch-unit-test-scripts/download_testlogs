@@ -551,6 +551,8 @@ def main():
             dist_shards = 3 if not periodic_fallback_used else rocm_shards["distributed"]
         else:
             dist_shards = rocm_shards["distributed"]
+        print(f"Using final ROCm shard count {dist_shards} for distributed")
+
         if not args.artifacts_only:
             test_log_list_rocm_distributed = [
                 [f"{current_prefix}rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
@@ -608,6 +610,8 @@ def main():
             default_shards = 6 if default_fallback_used else rocm_shards["default"]
         else:
             default_shards = rocm_shards["default"]
+        print(f"Using final ROCm shard count {default_shards} for default")
+
         if not args.artifacts_only:
             test_log_list_rocm_default = [
               [f"{current_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
@@ -643,9 +647,11 @@ def main():
 
         folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
+        inductor_shards = rocm_shards["inductor"]
+        print(f"Using final ROCm shard count {inductor_shards} for inductor")
+    
         # Download logs
         if not args.artifacts_only:
-          inductor_shards = rocm_shards["inductor"]
           test_log_list_rocm_inductor = [
             [f"{current_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
             for i in range(1, inductor_shards + 1)
@@ -653,7 +659,6 @@ def main():
           download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
 
         #Download artifacts
-        inductor_shards = rocm_shards["inductor"]
         test_artifacts_list_rocm_inductor = [
           f"test-reports-test-inductor-{i}-{inductor_shards}"
           for i in range(1, inductor_shards + 1)
