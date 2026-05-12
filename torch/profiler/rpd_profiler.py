@@ -65,36 +65,6 @@ def _register_cleanup() -> None:
     atexit.register(_cleanup)
 
 
-def _ensure_rpd_schema() -> None:
-    """Ensure the trace.rpd file exists with proper schema.
-
-    Called once per process. Safe to call from multiple processes
-    concurrently — uses BEGIN EXCLUSIVE to serialize schema creation.
-    The file is never deleted; it persists for the lifetime of the process.
-    """
-    filename = os.environ.get("RPDT_FILENAME", "./trace.rpd")
-    os.environ["RPDT_FILENAME"] = filename
-
-    conn = sqlite3.connect(filename)
-    try:
-        has_schema = conn.execute(
-            "SELECT count(*) FROM sqlite_master "
-            "WHERE type='table' AND name='rocpd_string'"
-        ).fetchone()[0] > 0
-
-        if not has_schema:
-            conn.execute("BEGIN EXCLUSIVE")
-            has_schema = conn.execute(
-                "SELECT count(*) FROM sqlite_master "
-                "WHERE type='table' AND name='rocpd_string'"
-            ).fetchone()[0] > 0
-            if not has_schema:
-                from rocpd.schema import RocpdSchema
-                RocpdSchema().writeSchema(conn)
-            conn.commit()
-    finally:
-        conn.close()
-
 
 _CATEGORY_TO_SCOPE = {
     "function": 0,
@@ -323,7 +293,6 @@ class _RpdProfile:
         self._end_ns: int = 0
         self._pid: int = os.getpid()
         self._function_events: Optional[EventList] = None
-        self._file_initialized: bool = False
 
     def start(self) -> None:
         self.prepare_trace()
@@ -333,9 +302,6 @@ class _RpdProfile:
         self.stop_trace()
 
     def prepare_trace(self) -> None:
-        if not self._file_initialized:
-            _ensure_rpd_schema()
-            self._file_initialized = True
         _rpd_prepare_trace()
 
     def start_trace(self) -> None:
