@@ -89,12 +89,12 @@ inline uint64_t getArmApproximateTime() {
 // TODO: We should use
 // `https://github.com/google/benchmark/blob/main/src/cycleclock.h`
 inline auto getApproximateTime() {
-#if defined(C10_RDTSC)
+#if defined(C10_RDTSC) && !defined(C10_USE_ROCM)
   return static_cast<uint64_t>(__rdtsc());
 #elif defined(C10_ARMTSC)
   return getArmApproximateTime();
 #else
-  return getTime();
+  return getTime(true);
 #endif
 }
 
