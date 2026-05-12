@@ -377,7 +377,7 @@ pwlf==2.2.1
 pip==26.0.1
 pyyaml==6.0.3
 pyzstd==0.16.2
-setuptools==78.1.1
+setuptools==79.0.1
 packaging==24.0
 six==1.17.0
 
