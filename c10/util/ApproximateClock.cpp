@@ -11,15 +11,19 @@ ApproximateClockToUnixTimeConverter::UnixAndApproximateTimePair
 ApproximateClockToUnixTimeConverter::measurePair() {
   // Take a measurement on either side to avoid an ordering bias.
   auto fast_0 = getApproximateTime();
+#if defined(C10_USE_ROCM)
+  auto t_ns = getTime(true);
+#else
   auto wall = std::chrono::system_clock::now();
+  auto t_ns = std::chrono::duration_cast<std::chrono::nanoseconds>(
+      wall.time_since_epoch()).count();
+#endif
   auto fast_1 = getApproximateTime();
 
   TORCH_INTERNAL_ASSERT(fast_1 >= fast_0, "getCount is non-monotonic.");
-  auto t = std::chrono::duration_cast<std::chrono::nanoseconds>(
-      wall.time_since_epoch());
 
   // `x + (y - x) / 2` is a more numerically stable average than `(x + y) / 2`.
-  return {t.count(), fast_0 + (fast_1 - fast_0) / 2};
+  return {t_ns, fast_0 + (fast_1 - fast_0) / 2};
 }
 
 ApproximateClockToUnixTimeConverter::time_pairs

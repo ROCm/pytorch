@@ -51,7 +51,7 @@ namespace autograd::profiler {
 namespace {
 inline int64_t getTimeNs() {
 #ifdef USE_KINETO
-  return libkineto::timeSinceEpoch(std::chrono::system_clock::now());
+  return c10::getApproximateTime();
 #else
   return c10::getTime();
 #endif // USE_KINETO
