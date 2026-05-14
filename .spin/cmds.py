@@ -194,7 +194,6 @@ SLOW_LINTERS = {
     "PYREFLY",
     "TEST_DEVICE_BIAS",
     "TEST_HAS_MAIN",
-    "SCOPED_LIBRARY",
 }
 
 

@@ -120,7 +120,7 @@ register_opaque_type(SizeStore, typ="value")
 
 class TestOpaqueObject(TestCase):
     def setUp(self):
-        self.lib = torch.library.Library("_TestOpaqueObject", "FRAGMENT")  # noqa: SCOPED_LIBRARY
+        self.lib = torch.library.Library("_TestOpaqueObject", "FRAGMENT")  # noqa: TOR901
 
         torch.library.define(
             "_TestOpaqueObject::queue_push",
