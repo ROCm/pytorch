@@ -37,6 +37,10 @@ CUDAWorkflowNames = {"default": "trunk",
                     # "distributed": "pull",
                     "inductor": "inductor"}
 
+# CUDA job-name prefixes in GitHub Actions (must match HUD job names).
+CUDA_UNIT_TEST_JOB_PREFIX = "linux-jammy-cuda13.0-py3.10-gcc11"
+CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX = "unit-test / inductor-test"
+
 authentication_headers = None
 
 def get_commit_hashes(pr_id, token):
@@ -134,28 +138,21 @@ def get_job_ids_by_prefix(wf, prefix):
     jobs = get_workflow_jobs(wf)
     return [str(j['id']) for j in jobs if prefix in j['name']]
 
-def matches_job_prefix(job_name, prefix):
-    """Match the exact CUDA job family without also matching -debug/-sm86 jobs."""
-    return job_name.startswith(f"{prefix} / ")
+def get_test_jobs(jobs, prefix):
+    """Return the test kind label and jobs for either main or PR CI layouts.
 
-def get_cuda_test_jobs(jobs, cuda_job_prefix):
-    """Return the CUDA test kind and jobs for either main or PR CI layouts."""
+    *prefix* is the parent segment of each job name before `` / {test_kind} (…``.
+    Jobs match ``name.startswith(f"{prefix} / ")`` and contain ``f"/ {test_kind} ("``
+    for ``test_kind`` in ``("test-osdc", "test")``.
+
+    Examples: ``linux-jammy-cuda13.0-py3.10-gcc11`` (runner-style prefix), or
+    ``unit-test / inductor-test`` (nested workflow path).
+    """
     for test_kind in ("test-osdc", "test"):
         test_jobs = [
             j for j in jobs
-            if matches_job_prefix(j['name'], cuda_job_prefix)
-            and f"/ {test_kind} (" in j['name']
-        ]
-        if test_jobs:
-            return test_kind, test_jobs
-    return "test-osdc", []
-
-def get_cuda_inductor_test_jobs(jobs):
-    """Return the CUDA inductor test kind and jobs for either main or PR CI layouts."""
-    for test_kind in ("test-osdc", "test"):
-        test_jobs = [
-            j for j in jobs
-            if f"unit-test / inductor-test / {test_kind} (inductor," in j['name']
+            if j["name"].startswith(f"{prefix} / ")
+            and f"/ {test_kind} (" in j["name"]
         ]
         if test_jobs:
             return test_kind, test_jobs
@@ -699,7 +696,6 @@ def main():
         os.chdir("..")
 
     if not args.no_cuda:
-        cuda_job_prefix = "linux-jammy-cuda13.0-py3.10-gcc11"
         print("==========================================")
         print(f"Finding CUDA tests in workflow '{CUDAWorkflowNames['default']}' by sha: {sha}")
         print("==========================================")
@@ -724,7 +720,7 @@ def main():
 
         for run in trunk_runs:
             jobs = get_workflow_jobs(run)
-            test_kind, test_jobs = get_cuda_test_jobs(jobs, cuda_job_prefix)
+            test_kind, test_jobs = get_test_jobs(jobs, CUDA_UNIT_TEST_JOB_PREFIX)
             if test_jobs:
                 trunk_wf = run
                 all_cuda_jobs = jobs
@@ -737,8 +733,8 @@ def main():
             # CUDA test jobs may be in a different run than the one returned
             # by the jobs API. Use check-runs API to find the actual run.
             print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
-            check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
-            cuda_test_job_kind, cuda_test_jobs = get_cuda_test_jobs(check_runs, cuda_job_prefix)
+            check_runs = get_check_runs_for_commit(sha, CUDA_UNIT_TEST_JOB_PREFIX)
+            cuda_test_job_kind, cuda_test_jobs = get_test_jobs(check_runs, CUDA_UNIT_TEST_JOB_PREFIX)
             if cuda_test_jobs:
                 # Extract the actual workflow run ID from the check-run details URL
                 import re as _re
@@ -768,7 +764,7 @@ def main():
 
         cuda_job_ids = [str(j['id']) for j in cuda_test_jobs]
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
-        print(f"Using CUDA job prefix: {cuda_job_prefix}")
+        print(f"Using CUDA job prefix: {CUDA_UNIT_TEST_JOB_PREFIX}")
         print(f"Using CUDA test job kind: {cuda_test_job_kind}")
         print(f"Found {len(cuda_test_jobs)} CUDA test jobs matching prefix")
 
@@ -777,18 +773,18 @@ def main():
         # Download logs
         if not args.artifacts_only:
             test_log_list_cuda_default = [
-              ["cuda1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 1, 5"],
-              ["cuda2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 2, 5"],
-              ["cuda3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 3, 5"],
-              ["cuda4.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 4, 5"],
-              ["cuda5.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 5, 5"],
+              ["cuda1.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 1, 5"],
+              ["cuda2.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 2, 5"],
+              ["cuda3.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 3, 5"],
+              ["cuda4.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 4, 5"],
+              ["cuda5.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 5, 5"],
             ]
             test_log_list_cuda = test_log_list_cuda_default
             if not args.exclude_distributed:
                 test_log_list_cuda_distributed = [
-                  ["cuda_dist1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 1, 3"],
-                  ["cuda_dist2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 2, 3"],
-                  ["cuda_dist3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 3, 3"],
+                  ["cuda_dist1.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 1, 3"],
+                  ["cuda_dist2.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 2, 3"],
+                  ["cuda_dist3.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 3, 3"],
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
 
@@ -837,7 +833,9 @@ def main():
             print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
             inductor_cuda_jobs = get_workflow_jobs(inductor_wf_cuda)
-            cuda_inductor_test_job_kind, cuda_inductor_test_jobs = get_cuda_inductor_test_jobs(inductor_cuda_jobs)
+            cuda_inductor_test_job_kind, cuda_inductor_test_jobs = get_test_jobs(
+                inductor_cuda_jobs, CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX,
+            )
             cuda_inductor_job_ids = [str(j['id']) for j in cuda_inductor_test_jobs]
             cuda_inductor_artifact_substrings = (
                 [f"_{jid}" for jid in cuda_inductor_job_ids]
@@ -852,8 +850,8 @@ def main():
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 1, 2"],
-                ["cuda_inductor2.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 2, 2"],
+                ["cuda_inductor1.txt", f"{CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX} / {cuda_inductor_test_job_kind} (inductor, 1, 2"],
+                ["cuda_inductor2.txt", f"{CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX} / {cuda_inductor_test_job_kind} (inductor, 2, 2"],
               ]
               download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
 
