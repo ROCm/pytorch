@@ -129,6 +129,12 @@ def get_check_runs_for_commit(sha, prefix):
         page += 1
     return check_runs
 
+def job_name_matches_prefix(name, prefix):
+    """Match a concrete CI job family without also matching -debug/-sm86 variants."""
+    if not prefix:
+        return True
+    return name.startswith(f"{prefix} / ")
+
 def get_job_ids_by_prefix(wf, prefix):
     """Get job IDs (as strings) for jobs whose name contains the given prefix."""
     jobs = get_workflow_jobs(wf)
@@ -147,7 +153,7 @@ def get_test_shard_count(jobs, job_prefix, test_config, fallback):
     )
     for job in jobs or []:
         name = job.get('name', '')
-        if job_prefix and job_prefix not in name:
+        if not job_name_matches_prefix(name, job_prefix):
             continue
         m = pattern.search(name)
         if not m:
@@ -161,6 +167,29 @@ def get_test_shard_count(jobs, job_prefix, test_config, fallback):
     if shard_count != fallback:
         print(f"Derived {test_config} shard count from jobs: {shard_count} (fallback was {fallback})")
     return shard_count
+
+def get_test_job_label(jobs, job_prefix, test_config, fallback="test"):
+    """Return the PyTorch job label used in names/artifacts, e.g. test or test-osdc."""
+    labels = {}
+    pattern = re.compile(
+        rf"/ (test(?:-osdc)?)[^(]*\(\s*{re.escape(test_config)}\s*,"
+    )
+    for job in jobs or []:
+        name = job.get('name', '')
+        if not job_name_matches_prefix(name, job_prefix):
+            continue
+        m = pattern.search(name)
+        if not m:
+            continue
+        label = m.group(1)
+        labels[label] = labels.get(label, 0) + 1
+    if not labels:
+        print(f"WARNING: Could not derive {test_config} job label from jobs; using fallback {fallback}")
+        return fallback
+    label = sorted(labels.items(), key=lambda item: (-item[1], item[0]))[0][0]
+    if label != fallback:
+        print(f"Derived {test_config} job label from jobs: {label} (fallback was {fallback})")
+    return label
 
 def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
@@ -248,7 +277,7 @@ def _shorten_unzipped_dirs():
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
-        m = re.search(r'(test-\w+-\d+-\d+)', d.name)
+        m = re.search(r'(test(?:-osdc)?-\w+-\d+-\d+)', d.name)
         if m:
             short_name = m.group(1)
             if not Path(short_name).exists():
@@ -733,7 +762,11 @@ def main():
 
         for run in trunk_runs:
             jobs = get_workflow_jobs(run)
-            test_jobs = [j for j in jobs if cuda_job_prefix in j['name'] and '/ test' in j['name']]
+            test_jobs = [
+                j for j in jobs
+                if job_name_matches_prefix(j['name'], cuda_job_prefix)
+                and '/ test' in j['name']
+            ]
             if test_jobs:
                 trunk_wf = run
                 all_cuda_jobs = jobs
@@ -746,7 +779,11 @@ def main():
             # by the jobs API. Use check-runs API to find the actual run.
             print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
             check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
-            cuda_test_jobs = [cr for cr in check_runs if '/ test' in cr['name']]
+            cuda_test_jobs = [
+                cr for cr in check_runs
+                if job_name_matches_prefix(cr['name'], cuda_job_prefix)
+                and '/ test' in cr['name']
+            ]
             if cuda_test_jobs:
                 # Extract the actual workflow run ID from the check-run details URL
                 import re as _re
@@ -785,19 +822,21 @@ def main():
         print(f"Found {len(cuda_test_jobs)} CUDA test jobs matching prefix")
         cuda_default_shards = get_test_shard_count(all_cuda_jobs, cuda_job_prefix, "default", 5)
         cuda_distributed_shards = get_test_shard_count(all_cuda_jobs, cuda_job_prefix, "distributed", 3)
+        cuda_default_job_label = get_test_job_label(all_cuda_jobs, cuda_job_prefix, "default")
+        cuda_distributed_job_label = get_test_job_label(all_cuda_jobs, cuda_job_prefix, "distributed")
 
         folder_list = get_or_create_test_folder(trunk_wf)
 
         # Download logs
         if not args.artifacts_only:
             test_log_list_cuda_default = [
-              [f"cuda{i}.txt", f"{cuda_job_prefix} / test (default, {i}, {cuda_default_shards}"]
+              [f"cuda{i}.txt", f"{cuda_job_prefix} / {cuda_default_job_label} (default, {i}, {cuda_default_shards}"]
               for i in range(1, cuda_default_shards + 1)
             ]
             test_log_list_cuda = test_log_list_cuda_default
             if not args.exclude_distributed:
                 test_log_list_cuda_distributed = [
-                  [f"cuda_dist{i}.txt", f"{cuda_job_prefix} / test (distributed, {i}, {cuda_distributed_shards}"]
+                  [f"cuda_dist{i}.txt", f"{cuda_job_prefix} / {cuda_distributed_job_label} (distributed, {i}, {cuda_distributed_shards}"]
                   for i in range(1, cuda_distributed_shards + 1)
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
@@ -806,7 +845,7 @@ def main():
 
         # Download artifacts
         test_artifacts_list_cuda_default = [
-          f"test-reports-test-default-{i}-{cuda_default_shards}"
+          f"test-reports-{cuda_default_job_label}-default-{i}-{cuda_default_shards}"
           for i in range(1, cuda_default_shards + 1)
         ]
 
@@ -816,7 +855,7 @@ def main():
 
         if not args.exclude_distributed:
             test_artifacts_list_cuda_distributed = [
-              f"test-reports-test-distributed-{i}-{cuda_distributed_shards}"
+              f"test-reports-{cuda_distributed_job_label}-distributed-{i}-{cuda_distributed_shards}"
               for i in range(1, cuda_distributed_shards + 1)
             ]
             test_artifacts_list_cuda += test_artifacts_list_cuda_distributed

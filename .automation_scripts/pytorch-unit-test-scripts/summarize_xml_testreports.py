@@ -61,7 +61,7 @@ def _status_priority(test_case):
 
 def _extract_shard(dirname):
     """Extract shard number from directory names like 'test-default-3-6'."""
-    m = re.match(r'test-\w+-(\d+)-(\d+)', dirname)
+    m = re.match(r'test(?:-osdc)?-\w+-(\d+)-(\d+)', dirname)
     if m:
         return f"{m.group(1)}/{m.group(2)}"
     return ""
@@ -73,11 +73,11 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
     for dir in items_list:
         new_dir = path + '/' + dir + '/'
         if os.path.isdir(new_dir):
-            if "test-default" in new_dir:
+            if "test-default" in new_dir or "test-osdc-default" in new_dir:
                 test_config = TestConfigName.default.name
-            elif "test-distributed" in new_dir:
+            elif "test-distributed" in new_dir or "test-osdc-distributed" in new_dir:
                 test_config = TestConfigName.distributed.name
-            elif "test-inductor" in new_dir:
+            elif "test-inductor" in new_dir or "test-osdc-inductor" in new_dir:
                 test_config = TestConfigName.inductor.name
             shard = _extract_shard(dir)
             for xml_report in Path(new_dir).glob("**/*.xml"):
