@@ -135,7 +135,7 @@ jobs:
       - name: Download artifacts
         working-directory: .automation_scripts/pytorch-unit-test-scripts
         env:
-          GITHUB_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PARITY_GITHUB_TOKEN }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
