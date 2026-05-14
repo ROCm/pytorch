@@ -7,7 +7,7 @@ from torch.testing._internal.common_utils import run_tests, TestCase
 
 class TestOutVariant(TestCase):
     def setUp(self):
-        self.lib = torch.library.Library("_TestOutVariant", "FRAGMENT")  # noqa: SCOPED_LIBRARY
+        self.lib = torch.library.Library("_TestOutVariant", "FRAGMENT")  # noqa: TOR901
 
     def tearDown(self):
         self.lib._destroy()

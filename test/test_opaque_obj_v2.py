@@ -437,7 +437,7 @@ class TensorWithCounter(torch.Tensor):
 
 class TestOpaqueObject(TestCase):
     def setUp(self):
-        self.lib = torch.library.Library("_TestOpaqueObject", "FRAGMENT")  # noqa: SCOPED_LIBRARY
+        self.lib = torch.library.Library("_TestOpaqueObject", "FRAGMENT")  # noqa: TOR901
         self._opaque_types_before_test = set(_OPAQUE_TYPES_BY_NAME.keys())
 
         torch.library.define(
