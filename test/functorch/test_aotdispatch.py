@@ -7548,7 +7548,7 @@ metadata incorrectly.
 
 class GradsNoForceContiguousContextManager(ContextDecorator):
     def __enter__(self):
-        # noqa: SCOPED_LIBRARY
+        # flake8: noqa: TOR901
         self.lib = torch.library.Library("_test_aotdispatch_lib", "FRAGMENT")
         self.d = {
             torch.channels_last: 0,
