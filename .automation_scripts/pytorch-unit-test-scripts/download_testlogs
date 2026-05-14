@@ -559,7 +559,9 @@ def main():
         sha = args.sha1
         pr_id = None
     status = "success"
-    sha_branch = "main" if args.sha1 else None
+    # SHA inputs may refer to either main commits or PR/ciflow commits.
+    # Constraining them to main makes PR/ciflow parity targets invisible.
+    sha_branch = None
     print(sha)
 
     # When comparing two commits, prefix log filenames with short SHAs
