@@ -35,7 +35,7 @@ class TestCompilerBisector(TestCase):
         return getattr(getattr(torch.ops, self.test_ns), name).default
 
     def get_lib(self):
-        lib = Library(self.test_ns, "FRAGMENT")  # noqa: SCOPED_LIBRARY
+        lib = Library(self.test_ns, "FRAGMENT")  # noqa: TOR901
         self.lib = lib
         return lib
 
