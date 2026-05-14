@@ -43,7 +43,7 @@ def allocate_memory(
     return torch.empty((size,), dtype=dtype, device=device)
 
 
-lib = torch.library.Library("fsdp", "FRAGMENT")
+lib = torch.library.Library("fsdp", "FRAGMENT")  # noqa: TOR901
 
 lib.define(
     """
