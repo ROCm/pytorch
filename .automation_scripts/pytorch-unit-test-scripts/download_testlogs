@@ -550,7 +550,7 @@ def main():
             periodic_wf = None
         periodic_fallbacks = {
             "mi355": ("trunk", "linux-jammy-rocm-py3.10-mi355"),
-            "mi200": ("periodic-rocm-mi200", "linux-jammy-rocm-py3.10-mi200"),
+            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
         }
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
@@ -616,6 +616,7 @@ def main():
             rocm_wf = None
         default_fallbacks = {
             "mi355": ("rocm-mi355", "linux-noble-rocm-py3.12-mi355"),
+            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
         }
         if rocm_wf is None and arch in default_fallbacks:
             fallback_wf, fallback_prefix = default_fallbacks[arch]
@@ -669,18 +670,37 @@ def main():
         print(f"Finding ROCm inductor tests in workflow '{ROCmWorkflowNames['inductor']}' by sha: {inductor_rocm_sha}")
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
-        inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        print(f"Using workflow '{ROCmWorkflowNames['inductor']}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
+        inductor_fallback_used = False
+        try:
+            inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+        except (IndexError, Exception):
+            inductor_wf_rocm = None
+        inductor_fallbacks = {
+            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
+        }
+        if inductor_wf_rocm is None and arch in inductor_fallbacks:
+            fallback_wf, fallback_prefix = inductor_fallbacks[arch]
+            print(f"Inductor not found in {ROCmWorkflowNames['inductor']}, falling back to {fallback_wf}")
+            inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            inductor_fallback_used = True
+        if inductor_wf_rocm is None:
+            raise Exception(error_msg)
+        inductor_wf_name = ROCmWorkflowNames['inductor'] if not inductor_fallback_used else inductor_fallbacks[arch][0]
+        print(f"Using workflow '{inductor_wf_name}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
 
         folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
         inductor_shards = rocm_shards["inductor"]
         print(f"Using final ROCm shard count {inductor_shards} for inductor")
+        if inductor_fallback_used and arch in inductor_fallbacks:
+            inductor_job_prefix = inductor_fallbacks[arch][1]
+        else:
+            inductor_job_prefix = rocm_job_prefix['inductor']
     
         # Download logs
         if not args.artifacts_only:
           test_log_list_rocm_inductor = [
-            [f"{current_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
+            [f"{current_prefix}rocm_inductor{i}.txt", f"{inductor_job_prefix} / test (inductor, {i}, {inductor_shards}"]
             for i in range(1, inductor_shards + 1)
           ]
           download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
