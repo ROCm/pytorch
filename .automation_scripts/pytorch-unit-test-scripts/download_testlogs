@@ -41,6 +41,22 @@ CUDAWorkflowNames = {"default": "trunk",
 CUDA_UNIT_TEST_JOB_PREFIX = "linux-jammy-cuda13.0-py3.10-gcc11"
 CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX = "unit-test / inductor-test"
 
+# CUDA unit tests: category -> (shard_count, log stem before shard index).
+CUDA_SHARD_COUNTS = {
+    "default": (5, "cuda"),
+    "distributed": (3, "cuda_dist"),
+    "inductor": (2, "cuda_inductor"),
+}
+
+# ROCm unit-test shard counts by --arch (may differ from actual workflow after fallbacks).
+ROCM_SHARD_COUNTS = {
+    "nightly": {"default": 6, "distributed": 3, "inductor": 2},
+    "mi200": {"default": 6, "distributed": 3, "inductor": 2},
+    "mi300": {"default": 6, "distributed": 3, "inductor": 2},
+    "mi355": {"default": 10, "distributed": 4, "inductor": 2},  # trunk
+    "navi31": {"default": 2, "distributed": 3, "inductor": 2},
+}
+
 authentication_headers = None
 
 def get_commit_hashes(pr_id, token):
@@ -478,16 +494,8 @@ def main():
             "inductor": "linux-jammy-rocm-py3.10-navi31"
         }
     }
-    # Architecture-specific shard counts
-    rocm_shard_counts = {
-        "nightly": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi200": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi300": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi355": {"default": 10, "distributed": 4, "inductor": 2}, #trunk
-        "navi31": {"default": 2, "distributed": 3, "inductor": 2},
-    }
     rocm_job_prefix = rocm_job_prefixes[arch]
-    rocm_shards = rocm_shard_counts[arch]
+    rocm_shards = ROCM_SHARD_COUNTS[arch]
     rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
     # navi31 only has default tests (no distributed/inductor workflows)
     if arch in ("navi31",):
@@ -772,44 +780,35 @@ def main():
 
         # Download logs
         if not args.artifacts_only:
-            test_log_list_cuda_default = [
-              ["cuda1.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 1, 5"],
-              ["cuda2.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 2, 5"],
-              ["cuda3.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 3, 5"],
-              ["cuda4.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 4, 5"],
-              ["cuda5.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (default, 5, 5"],
-            ]
-            test_log_list_cuda = test_log_list_cuda_default
-            if not args.exclude_distributed:
-                test_log_list_cuda_distributed = [
-                  ["cuda_dist1.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 1, 3"],
-                  ["cuda_dist2.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 2, 3"],
-                  ["cuda_dist3.txt", f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} (distributed, 3, 3"],
+            test_log_list_cuda = []
+            for category, (num_shards, log_stem) in CUDA_SHARD_COUNTS.items():
+                if category == "inductor":
+                    continue
+                if category == "distributed" and args.exclude_distributed:
+                    continue
+                test_log_list_cuda += [
+                    [
+                        f"{log_stem}{i}.txt",
+                        f"{CUDA_UNIT_TEST_JOB_PREFIX} / {cuda_test_job_kind} ({category}, {i}, {num_shards}",
+                    ]
+                    for i in range(1, num_shards + 1)
                 ]
-                test_log_list_cuda += test_log_list_cuda_distributed
-
             download_logs(trunk_wf, test_log_list_cuda, folder_list[0], jobs=all_cuda_jobs)
 
         # Download artifacts
-        test_artifacts_list_cuda_default = [
-          f"test-reports-{cuda_test_job_kind}-default-1-5",
-          f"test-reports-{cuda_test_job_kind}-default-2-5",
-          f"test-reports-{cuda_test_job_kind}-default-3-5",
-          f"test-reports-{cuda_test_job_kind}-default-4-5",
-          f"test-reports-{cuda_test_job_kind}-default-5-5",
-        ]
-
         test_artifacts_list_cuda = []
         if not args.exclude_default:
-            test_artifacts_list_cuda += test_artifacts_list_cuda_default
-
-        if not args.exclude_distributed:
-            test_artifacts_list_cuda_distributed = [
-              f"test-reports-{cuda_test_job_kind}-distributed-1-3",
-              f"test-reports-{cuda_test_job_kind}-distributed-2-3",
-              f"test-reports-{cuda_test_job_kind}-distributed-3-3",
+            n_default, _ = CUDA_SHARD_COUNTS["default"]
+            test_artifacts_list_cuda += [
+                f"test-reports-{cuda_test_job_kind}-default-{i}-{n_default}"
+                for i in range(1, n_default + 1)
             ]
-            test_artifacts_list_cuda += test_artifacts_list_cuda_distributed
+        if not args.exclude_distributed:
+            n_dist, _ = CUDA_SHARD_COUNTS["distributed"]
+            test_artifacts_list_cuda += [
+                f"test-reports-{cuda_test_job_kind}-distributed-{i}-{n_dist}"
+                for i in range(1, n_dist + 1)
+            ]
 
         if test_artifacts_list_cuda:
             download_artifacts(
@@ -847,17 +846,21 @@ def main():
 
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
+            n_ind, log_stem_ind = CUDA_SHARD_COUNTS["inductor"]
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", f"{CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX} / {cuda_inductor_test_job_kind} (inductor, 1, 2"],
-                ["cuda_inductor2.txt", f"{CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX} / {cuda_inductor_test_job_kind} (inductor, 2, 2"],
+                [
+                    f"{log_stem_ind}{i}.txt",
+                    f"{CUDA_INDUCTOR_UNIT_TEST_JOB_PREFIX} / {cuda_inductor_test_job_kind} (inductor, {i}, {n_ind}",
+                ]
+                for i in range(1, n_ind + 1)
               ]
               download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
 
             test_artifacts_list_cuda_inductor = [
-              f"test-reports-{cuda_inductor_test_job_kind}-inductor-1-2",
-              f"test-reports-{cuda_inductor_test_job_kind}-inductor-2-2"
+              f"test-reports-{cuda_inductor_test_job_kind}-inductor-{i}-{n_ind}"
+              for i in range(1, n_ind + 1)
             ]
             download_artifacts(
                 inductor_wf_cuda,
