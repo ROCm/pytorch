@@ -36,7 +36,11 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.12
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.11
+>>>>>>> upstream/release/2.11
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}
@@ -74,7 +78,10 @@ jobs:
       build-environment: ${{ needs.inductor-build.outputs.build-environment }}
       docker-image: ${{ needs.inductor-build.outputs.docker-image }}
       test-matrix: ${{ needs.inductor-build.outputs.test-matrix }}
+<<<<<<< HEAD
       enable-torch-trace: "1"
+=======
+>>>>>>> upstream/release/2.11
     secrets: inherit
 
   inductor-cpu-build:

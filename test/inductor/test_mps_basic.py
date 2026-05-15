@@ -207,6 +207,7 @@ class MPSBasicTests(TestCase):
 
         self.common(fn, (q, k, v), atol=1e-4, rtol=1e-4, check_lowp=False)
 
+<<<<<<< HEAD
     def test_nested_masked_cat(self):
         # Regression test for YOLOv3 compilation failure on MPS.
         # See https://github.com/pytorch/pytorch/actions/runs/23477894502
@@ -245,6 +246,8 @@ class MPSBasicTests(TestCase):
             ),
         )
 
+=======
+>>>>>>> upstream/release/2.11
 
 class MPSBasicTestsAOTI(TestCase):
     def check_model(self, m, inp, dynamic_shapes=None):

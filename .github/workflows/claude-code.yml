@@ -14,9 +14,37 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+<<<<<<< HEAD
     secrets: inherit
     with:
       additional_claude_args: '--allowedTools Skill'
       append_system_prompt: |
         When asked to review a PR, always use the /pr-review skill first.
         It contains PyTorch-specific review guidelines, output format, and critical checks.
+=======
+    steps:
+      # Fork PR support enabled by using izaitsevfb/claude-code-action@forked-pr-fix
+
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::308535385114:role/gha_workflow_claude_code
+          aws-region: us-east-1
+
+      - name: Run Claude Code
+        uses: izaitsevfb/claude-code-action@forked-pr-fix
+        with:
+          # We filter by github.actor at workflow level, there is no point of filtering here as well
+          allowed_bots: "*"
+          claude_args: "--model global.anthropic.claude-opus-4-5-20251101-v1:0"
+          settings: '{"alwaysThinkingEnabled": true}'
+          use_bedrock: "true"
+
+      - name: Upload usage metrics
+        if: always()
+        uses: pytorch/test-infra/.github/actions/upload-claude-usage@release/2.11
+>>>>>>> upstream/release/2.11

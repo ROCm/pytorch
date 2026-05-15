@@ -1965,6 +1965,13 @@ class triton:
     # Don't allow multi-stages by default to avoid out of shared memory
     mix_order_reduction_allow_multi_stages = (
         os.environ.get("TORCHINDUCTOR_MIX_ORDER_REDUCTION_ALLOW_MULTI_STAGES") == "1"
+<<<<<<< HEAD
+=======
+    )
+
+    enable_tlx_templates: bool = (
+        os.environ.get("TORCHINDUCTOR_ENABLE_TLX_TEMPLATES", "0") == "1"
+>>>>>>> upstream/release/2.11
     )
 
     # Map for storing the amount of kernel runs with dumped input tensors

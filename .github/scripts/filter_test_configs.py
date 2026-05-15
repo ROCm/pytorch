@@ -57,10 +57,17 @@ SUPPORTED_PERIODICAL_MODES: dict[
     "rerun_disabled_tests": lambda job_name, config=None: True,
 }
 
+<<<<<<< HEAD
 # The link to the published list of disabled jobs
 DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=wTGHVmBBfqYt9mKCiXeWHzek1ZaYHJeH"
 # and unstable jobs
 UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=6zhdrg_i6w2bx_KfIfy8SKn5WdSO0ZAf"
+=======
+# The link to the published list of disabled jobs.
+DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=EdtXb8H1wC3KKKfSV9z7QtgG3FngDv3B"
+# and unstable jobs
+UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=iafjJg17T2MK7wQiJ0qx32zIPMqqwZqv"
+>>>>>>> upstream/release/2.11
 
 # Some constants used to handle disabled and unstable jobs
 JOB_NAME_SEP = "/"

@@ -1877,6 +1877,60 @@ except RuntimeError as e:
             curr_mem = torch.cuda.memory_allocated(device)
             self.assertEqual(curr_mem, init_mem)
 
+<<<<<<< HEAD
+=======
+    @skipIfTorchVersionLessThan(2, 11)
+    @skipIfTorchDynamo("no data pointer defined for FakeTensor, FunctionalTensor")
+    def test_my_from_blob_with_lambda_deleter(self, device):
+        """Test for from_blob with capturing-lambda deleter (2.11 feature)."""
+        import libtorch_agn_2_11 as libtorch_agnostic
+
+        from_blob_fn = libtorch_agnostic.ops.my_from_blob_with_lambda_deleter
+        get_count = libtorch_agnostic.ops.get_lambda_deleter_call_count
+        reset_count = libtorch_agnostic.ops.reset_lambda_deleter_call_count
+
+        is_cuda = torch.device(device).type == "cuda"
+        if is_cuda:
+            init_mem = torch.cuda.memory_allocated(device)
+
+        def inner():
+            reset_count()
+            self.assertEqual(get_count(), 0)
+
+            # We need an original tensor to create the tensor with from_blob.
+            original = torch.rand(2, 3, device=device, dtype=torch.float32)
+            blob_tensor = from_blob_fn(
+                original.data_ptr(),
+                original.size(),
+                original.stride(),
+                device,
+                torch.float32,
+            )
+
+            self.assertEqual(blob_tensor, original)
+            self.assertEqual(blob_tensor.data_ptr(), original.data_ptr())
+
+            self.assertEqual(get_count(), 0)
+
+            del blob_tensor
+            gc.collect()
+
+            # Ensure the deleter was called. The original tensor still exists
+            # and can be used.
+            self.assertEqual(get_count(), 1)
+            original += 1
+            # original goes out of scope here and its cuda memory should be
+            # freed.
+
+        inner()
+
+        if is_cuda:
+            # original tensor is out of scope, all the memory should be freed
+            torch.cuda.synchronize(device)
+            curr_mem = torch.cuda.memory_allocated(device)
+            self.assertEqual(curr_mem, init_mem)
+
+>>>>>>> upstream/release/2.11
     @onlyCUDA
     @skipIfTorchVersionLessThan(2, 11)
     def test_my_from_blob_with_cuda_lambda_deleter_no_leak(self, device):
@@ -1901,6 +1955,7 @@ except RuntimeError as e:
             curr_mem = torch.cuda.memory_allocated(device)
             self.assertEqual(curr_mem, init_mem)
 
+<<<<<<< HEAD
     @skipIfTorchVersionLessThan(2, 12)
     @onlyCPU
     def test_tagged_op(self, device):
@@ -1911,6 +1966,8 @@ except RuntimeError as e:
         self.assertIn(torch.Tag.pt2_compliant_tag, op.tags)
         self.assertIn(torch.Tag.core, op.tags)
 
+=======
+>>>>>>> upstream/release/2.11
     @onlyCPU
     def test_my_layout(self, device):
         """Test layout() method for various tensor layouts."""

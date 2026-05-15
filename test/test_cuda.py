@@ -178,6 +178,50 @@ def get_wait_for_cpu_kernel():
     return _wait_for_cpu_kernel
 
 
+_wait_for_cpu_kernel = None
+
+
+def skip_background_threads_on_windows(f):
+    @functools.wraps(f)
+    def wrapped(self, **kwargs):
+        if IS_WINDOWS and SM89OrLater and kwargs.get("use_background_threads"):
+            raise unittest.SkipTest("using background threads fails on Windows")
+        return f(self, **kwargs)
+
+    return wrapped
+
+
+def get_wait_for_cpu_kernel():
+    """Returns a compiled CUDA spin-wait kernel that blocks the GPU stream until
+    the host sets a pinned int32 flag to non-zero. Requires SM70+.
+
+    Usage::
+
+        kernel = get_wait_for_cpu_kernel()
+        flag = torch.zeros(1, dtype=torch.int32, device="cpu").pin_memory()
+        with torch.cuda.stream(s):
+            kernel(grid=(1, 1, 1), block=(1, 1, 1), args=[flag])
+        # stream s is now blocked until:
+        flag[0] = 1
+    """
+    global _wait_for_cpu_kernel
+    if _wait_for_cpu_kernel is None:
+        from torch.cuda import _compile_kernel
+
+        _wait_for_cpu_kernel = _compile_kernel(
+            r"""
+            __global__ void wait_for_cpu(int *pinned_cpu_flag) {
+                int flag = 0;
+                do {
+                    asm volatile("ld.relaxed.sys.global.s32 %0, [%1];" : "=r"(flag) : "l"(pinned_cpu_flag) : "memory");
+                } while (flag == 0);
+            }
+            """,
+            "wait_for_cpu",
+        )
+    return _wait_for_cpu_kernel
+
+
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
 @torch.testing._internal.common_utils.markDynamoStrictTest
 class TestCuda(TestCase):
@@ -518,6 +562,9 @@ print(t.is_pinned())
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_set_per_process_memory_fraction(self):
+        if torch.version.hip and ('gfx1101' in torch.cuda.get_device_properties(0).gcnArchName):
+           torch.cuda.empty_cache()
+           torch.cuda.reset_peak_memory_stats()
         orig = torch.cuda.get_per_process_memory_fraction(0)
         torch.cuda.reset_peak_memory_stats(0)
         try:
@@ -6776,6 +6823,10 @@ class TestMemPool(TestCase):
             "graph_capture_record_stream_reuse:False"
         )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/release/2.11
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )

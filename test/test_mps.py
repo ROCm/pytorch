@@ -9953,6 +9953,7 @@ class TestSDPA(TestCaseMPS):
         out_mps = F.scaled_dot_product_attention(q.to('mps'), k.to('mps'), v.to('mps'), attn_mask=mask.to('mps'))
         self._compare_tensors(out_mps.cpu(), out_cpu)
 
+<<<<<<< HEAD
     @parametrize("dtype", [torch.float32, torch.bfloat16])
     def test_sdpa_math_mps_bool_mask_1pass(self, dtype):
         torch.manual_seed(0)
@@ -9969,6 +9970,8 @@ class TestSDPA(TestCaseMPS):
         )
         self._compare_tensors(out_mps.cpu(), out_cpu)
 
+=======
+>>>>>>> upstream/release/2.11
     @parametrize("dtype", [torch.bfloat16, torch.float16, torch.float])
     def test_sdpa_2pass(self, dtype):
         # Regression test for https://github.com/pytorch/pytorch/issues/174861

@@ -1738,9 +1738,14 @@ class TritonTemplateKernel(TritonKernel):
         if isinstance(layout, ir.FlexibleLayout) and not isinstance(
             node, ir.ReinterpretView
         ):
+<<<<<<< HEAD
             if not use_aten_gemm_kernels() or self.always_freeze_layout:
                 # No ExternKernel fallback available, or always_freeze_layout is set
                 # (e.g., for FlexAttention templates), freeze immediately
+=======
+            if not use_aten_gemm_kernels():
+                # No ExternKernel fallback available, freeze immediately
+>>>>>>> upstream/release/2.11
                 node.data.freeze_layout()
             else:
                 # Compute what strides WOULD be if frozen, without actually freezing

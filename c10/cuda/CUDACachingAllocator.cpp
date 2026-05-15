@@ -689,6 +689,7 @@ struct ExpandableSegment {
         C10_CUDA_CHECK(hipMemImportFromShareableHandle(
             &handle, myfd_handle, hipMemHandleTypePosixFileDescriptor));
 #else
+<<<<<<< HEAD
         C10_CUDA_DRIVER_CHECK_MSG(
             DriverAPI::get()->cuMemImportFromShareableHandle_(
                 &handle,
@@ -698,6 +699,13 @@ struct ExpandableSegment {
             " fabric_info: {",
             get_nvml_fabric_info(device),
             "}");
+=======
+        C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemImportFromShareableHandle_(
+            &handle,
+            // NOLINTNEXTLINE(performance-no-int-to-ptr)
+            (void*)(uintptr_t)myfd,
+            CU_MEM_HANDLE_TYPE_POSIX_FILE_DESCRIPTOR));
+>>>>>>> upstream/release/2.11
 #endif
         LOG(INFO) << "use posix fd to import expandable segments.";
         close(static_cast<int>(myfd));
@@ -786,12 +794,18 @@ struct ExpandableSegment {
 #endif
     desc[0].location.type = CU_MEM_LOCATION_TYPE_DEVICE;
     // NOLINTNEXTLINE(bugprone-signed-char-misuse)
+<<<<<<< HEAD
     desc[0].location.id = static_cast<int>(device);
     desc[0].flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
+=======
+    desc.location.id = static_cast<int>(device);
+    desc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
+>>>>>>> upstream/release/2.11
 #ifdef USE_ROCM
     C10_CUDA_CHECK(hipMemSetAccess(
         ptr() + begin * segment_size_,
         (end - begin) * segment_size_,
+<<<<<<< HEAD
         &desc[0],
         num_desc));
 #else
@@ -800,6 +814,13 @@ struct ExpandableSegment {
         (end - begin) * segment_size_,
         &desc[0],
         num_desc));
+=======
+        &desc,
+        1));
+#else
+    C10_CUDA_DRIVER_CHECK(DriverAPI::get()->cuMemSetAccess_(
+        ptr_ + begin * segment_size_, (end - begin) * segment_size_, &desc, 1));
+>>>>>>> upstream/release/2.11
 #endif
   }
 

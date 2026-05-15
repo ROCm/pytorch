@@ -20,7 +20,12 @@ vllm_basic_models_test:
     - pytest -v -s models/test_registry.py
     - pytest -v -s models/test_utils.py
     - pytest -v -s models/test_vision.py
+<<<<<<< HEAD
     - HF_DATASETS_OFFLINE=0 TRANSFORMERS_OFFLINE=0 pytest -v -s models/test_initialization.py
+=======
+    - pytest -v -s models/test_initialization.py -k 'not voxtral'
+    - HF_DATASETS_OFFLINE=0 TRANSFORMERS_OFFLINE=0 pytest -v -s models/test_initialization.py -k voxtral
+>>>>>>> upstream/release/2.11
 
 vllm_entrypoints_test:
   title: Entrypoints Test
