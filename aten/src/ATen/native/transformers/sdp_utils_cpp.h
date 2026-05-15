@@ -42,6 +42,7 @@ struct sdp_params {
   double dropout;
   bool is_causal;
   bool enable_gqa;
+  std::optional<double> scale;
 };
 
 SDPBackend select_sdp_backend_cpp(sdp_params const& kernel_params);

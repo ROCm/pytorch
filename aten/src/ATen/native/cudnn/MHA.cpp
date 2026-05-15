@@ -6,7 +6,10 @@
 #include <cudnn_frontend.h>
 #endif
 
-#if defined(USE_ROCM) || !AT_CUDNN_ENABLED() ||         \
+#if defined(USE_ROCM)
+// On ROCm, hipDNN provides its own MHA implementation in
+// native/cudnn/hip/MHA.cpp.
+#elif !AT_CUDNN_ENABLED() ||                            \
     (defined(CUDNN_VERSION) && CUDNN_VERSION < 8900) || \
     (defined(CUDNN_FRONTEND_VERSION) && CUDNN_FRONTEND_VERSION < 10100)
 namespace at {
