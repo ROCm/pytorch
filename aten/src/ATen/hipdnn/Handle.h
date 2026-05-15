@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ATen/hipdnn/hipdnn-wrapper.h>
 #include <c10/macros/Export.h>
 #include <hipdnn_frontend.hpp>
 
