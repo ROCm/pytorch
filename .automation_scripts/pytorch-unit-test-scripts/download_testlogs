@@ -440,9 +440,9 @@ def main():
         }
     elif arch == 'mi200':
         ROCmWorkflowNames = {
-            "default": "trunk-rocm-sandbox",
-            "distributed": "trunk-rocm-sandbox",
-            "inductor": "trunk-rocm-sandbox"
+            "default": "rocm-mi200",
+            "distributed": "periodic-rocm-mi200",
+            "inductor": "inductor-rocm-mi200"
         }
     else:
         # MI300 and navi31 use dedicated ROCm workflows
@@ -461,9 +461,9 @@ def main():
             "inductor": "linux-noble-rocm-nightly-py3.12-gfx942",
         },
         "mi200": {
-            "default": "linux-jammy-rocm-py3.10",
-            "distributed": "linux-jammy-rocm-py3.10",
-            "inductor": "linux-jammy-rocm-py3.10"
+            "default": "linux-jammy-rocm-py3.10-mi200",
+            "distributed": "linux-jammy-rocm-py3.10-mi200",
+            "inductor": "linux-jammy-rocm-py3.10-mi200"
         },
         "mi300": {
             "default": "linux-noble-rocm-py3.12-mi300",
@@ -550,7 +550,7 @@ def main():
             periodic_wf = None
         periodic_fallbacks = {
             "mi355": ("trunk", "linux-jammy-rocm-py3.10-mi355"),
-            "mi200": ("periodic-rocm-mi200", "linux-jammy-rocm-py3.10"),
+            "mi200": ("periodic-rocm-mi200", "linux-jammy-rocm-py3.10-mi200"),
         }
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
