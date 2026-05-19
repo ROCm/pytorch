@@ -406,6 +406,37 @@ class FSDPState(_State):
             self._root_post_backward_final_callback
         )
 
+    def _reset_iter_state(self) -> None:
+        # Iteration-wide recovery after a mid-forward or mid-backward
+        # exception. Waits on in-flight collectives, reshards every param
+        # group, and clears per-iteration trackers so the next forward can
+        # start from a clean state. Any in-flight gradients (reduce-scatter
+        # results, HSDP partial reduce outputs, grad-accum state) are
+        # discarded: the failed iteration is treated as lost.
+        if self._is_root is False:
+            raise RuntimeError(
+                "reset_iter_state must be called on the root FSDP module"
+            )
+        current_stream = self._device_handle.current_stream()
+        if ag_state := self._comm_ctx.all_gather_state:
+            if ag_state.event is not None:
+                current_stream.wait_event(ag_state.event)
+            self._comm_ctx.all_gather_state = None
+        for rs_state in self._comm_ctx.reduce_scatter_states:
+            if rs_state.event is not None:
+                current_stream.wait_event(rs_state.event)
+        self._comm_ctx.reduce_scatter_states.clear()
+        for event in self._comm_ctx._last_post_reduce_events.values():
+            current_stream.wait_event(event)
+        self._comm_ctx._last_post_reduce_events.clear()
+        self._comm_ctx.post_forward_order.clear()
+        for state in self._state_ctx.all_states:
+            state._modules_to_run_forward.clear()
+            state._training_state = TrainingState.IDLE
+            for fsdp_param_group in state._fsdp_param_groups:
+                fsdp_param_group._reset_iter_state()
+        self._state_ctx.iter_forward_root = None
+        self._state_ctx.post_backward_final_callback_queued = False
 
 def _get_module_fsdp_state(module: nn.Module) -> FSDPState | None:
     state = _get_module_state(module)
