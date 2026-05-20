@@ -10,6 +10,7 @@
 #include <ATen/OpMathType.h>
 #include <c10/macros/Macros.h>
 #include <c10/cuda/CUDACachingAllocator.h>
+#include <c10/cuda/CUDADeviceAssertion.h>
 #include <array>
 #include <functional>
 #include <iosfwd>
@@ -220,7 +221,9 @@ std::ostream& operator<<(std::ostream& out, const ReduceConfig& config);
 
 template<int nt, int output_vec_size, typename R>
 C10_LAUNCH_BOUNDS_2(nt, 4)
-__global__ void reduce_kernel(R reduction) {
+__global__ void reduce_kernel(R reduction, TORCH_DSA_KERNEL_ARGS) {
+  reduction.assertions_data = assertions_data;
+  reduction.assertion_caller_id = assertion_caller_id;
   reduction.template run<output_vec_size>();
 }
 
@@ -367,6 +370,12 @@ struct ReduceOp {
   bool final_output;
   int noutputs;
 
+  // DSA context propagated from the launching kernel; using the exact names
+  // expected by CUDA_KERNEL_ASSERT2 so they resolve via implicit member access
+  // when the macro is used inside any ReduceOp member function.
+  c10::cuda::DeviceAssertionsData* assertions_data = nullptr;
+  uint32_t assertion_caller_id = 0;
+
   ReduceOp(
       ops_t ops,
       ReduceConfig config,
@@ -479,7 +488,8 @@ struct ReduceOp {
   template <int output_vec_size>
   C10_DEVICE std::array<arg_t, output_vec_size> thread_reduce(const scalar_t* data) const {
     if (config.vectorize_input) {
-      CUDA_KERNEL_ASSERT(output_vec_size == 1);
+      CUDA_KERNEL_ASSERT2_RET(
+          output_vec_size == 1, (std::array<arg_t, output_vec_size>{}));
       // reduce at the header of input_slice where memory is not aligned,
       // so that thread_reduce will have an aligned memory to work on.
       return {input_vectorized_thread_reduce_impl(data)};
@@ -722,7 +732,7 @@ struct ReduceOp {
     out_scalar_t* out, arg_t value,
     typename std::enable_if_t<can_acc>* = nullptr
   ) const {
-    CUDA_KERNEL_ASSERT(!final_output);
+    CUDA_KERNEL_ASSERT2_RET(!final_output, out_scalar_t{});
     return (out_scalar_t)value;
   }
 
@@ -735,7 +745,7 @@ struct ReduceOp {
     std::array<arg_t, output_vec_size>,
     typename std::enable_if_t<!can_acc>* = nullptr
   ) const {
-    CUDA_KERNEL_ASSERT(false);
+    CUDA_KERNEL_ASSERT2_RET(false, (std::array<arg_t, output_vec_size>{}));
     return {arg_t{}};
   }
 
@@ -747,13 +757,13 @@ struct ReduceOp {
     out_scalar_t* out, arg_t value,
     typename std::enable_if_t<!can_acc>* = nullptr
   ) const {
-    CUDA_KERNEL_ASSERT(false);
+    CUDA_KERNEL_ASSERT2_RET(false, out_scalar_t{});
     return *out;
   }
 
   template<class T>
   C10_DEVICE void set_results(const T x, const index_t base_offset) const {
-    CUDA_KERNEL_ASSERT(noutputs == 1);
+    CUDA_KERNEL_ASSERT2(noutputs == 1);
     auto res = (out_scalar_t*)((char*)dst[0] + base_offset);
     *res = x;
   }
@@ -775,7 +785,7 @@ struct ReduceOp {
 
   template <int output_vec_size>
   C10_DEVICE void set_results_to_output(std::array<arg_t, output_vec_size> value, std::array<index_t, output_vec_size> base_offset) const {
-    CUDA_KERNEL_ASSERT(final_output);
+    CUDA_KERNEL_ASSERT2(final_output);
     #pragma unroll
     for (int i = 0; i < output_vec_size; i++) {
       set_results(ops.project(value[i]), base_offset[i]);
@@ -919,16 +929,19 @@ static void launch_reduce_kernel(const ReduceConfig& config, const R& reduction)
 
   switch(config.output_vec_size) {
   case 4:
-    reduce_kernel<max_threads / 4, 4, R><<<grid, block, shared_memory, stream>>>(reduction);
-    C10_CUDA_KERNEL_LAUNCH_CHECK();
+    TORCH_DSA_KERNEL_LAUNCH_T(
+        (reduce_kernel<max_threads / 4, 4, R>),
+        grid, block, shared_memory, stream, reduction);
     break;
   case 2:
-    reduce_kernel<max_threads / 2, 2, R><<<grid, block, shared_memory, stream>>>(reduction);
-    C10_CUDA_KERNEL_LAUNCH_CHECK();
+    TORCH_DSA_KERNEL_LAUNCH_T(
+        (reduce_kernel<max_threads / 2, 2, R>),
+        grid, block, shared_memory, stream, reduction);
     break;
   default:
-    reduce_kernel<max_threads / 1, 1, R><<<grid, block, shared_memory, stream>>>(reduction);
-    C10_CUDA_KERNEL_LAUNCH_CHECK();
+    TORCH_DSA_KERNEL_LAUNCH_T(
+        (reduce_kernel<max_threads / 1, 1, R>),
+        grid, block, shared_memory, stream, reduction);
   }
 }
 
