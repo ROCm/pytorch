@@ -3450,6 +3450,11 @@ class TestPrologueFusion(TestCase):
             )
         )
 
+    @classmethod
+    def tearDownClass(cls):
+        cls._stack.close()
+        super().tearDownClass()
+
     def check_code(self, code_str, num_kernels, num_allocs, num_deallocs):
         FileCheck().check(get_func_call()).check_count(
             get_kernel_launch(),
@@ -3942,6 +3947,11 @@ class TestEpilogueFusionStaticAnalysis(TestCase):
                 }
             )
         )
+
+    @classmethod
+    def tearDownClass(cls):
+        cls._stack.close()
+        super().tearDownClass()
 
     @contextlib.contextmanager
     def get_common_patches(self, async_compile: bool, persistent_tma: bool):
