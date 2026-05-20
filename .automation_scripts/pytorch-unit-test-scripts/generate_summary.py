@@ -12,6 +12,29 @@ TEST_CONFIG_DISPLAY = {
     'distributed': 'TEST DISTRIBUTED',
     'inductor': 'TEST INDUCTOR',
 }
+MAX_DIAGNOSTIC_FIELD_CHARS = 20_000
+DIAGNOSTIC_FIELDS = {
+    'comments',
+    'message_cuda',
+    'message_rocm',
+    'message_set1',
+    'message_set2',
+    'reason',
+    'skip_reason',
+}
+
+
+def _configure_csv_field_limit():
+    limit = sys.maxsize
+    while True:
+        try:
+            csv.field_size_limit(limit)
+            return
+        except OverflowError:
+            limit //= 10
+
+
+_configure_csv_field_limit()
 
 
 def parse_args():
@@ -49,7 +72,19 @@ def parse_args():
 
 def load_csv(filepath):
     with open(filepath, newline='') as f:
-        return list(csv.DictReader(f))
+        return [_truncate_diagnostic_fields(row) for row in csv.DictReader(f)]
+
+
+def _truncate_diagnostic_fields(row):
+    for field in DIAGNOSTIC_FIELDS:
+        value = row.get(field, '')
+        if len(value) > MAX_DIAGNOSTIC_FIELD_CHARS:
+            omitted = len(value) - MAX_DIAGNOSTIC_FIELD_CHARS
+            row[field] = (
+                value[:MAX_DIAGNOSTIC_FIELD_CHARS]
+                + f'\n...[truncated {omitted:,} chars by generate_summary.py]'
+            )
+    return row
 
 
 def detect_columns(headers, set1_name, set2_name):
