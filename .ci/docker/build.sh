@@ -112,7 +112,10 @@ case "$tag" in
     GCC_VERSION=11
     KATEX=yes
     TRITON=yes
+<<<<<<< HEAD
     INSTALL_MINGW=yes
+=======
+>>>>>>> upstream/release/2.11
     ;;
   pytorch-linux-jammy-cuda13.0-cudnn9-py3-gcc11-inductor-benchmarks)
     CUDA_VERSION=13.0.2
@@ -159,8 +162,15 @@ case "$tag" in
     else
       ANACONDA_PYTHON_VERSION=3.12
     fi
+<<<<<<< HEAD
     GCC_VERSION=13
     ROCM_VERSION=7.2
+=======
+    GCC_VERSION=11
+    VISION=yes
+    ROCM_VERSION=7.2
+    NINJA_VERSION=1.9.0
+>>>>>>> upstream/release/2.11
     TRITON=yes
     KATEX=yes
     PYTORCH_ROCM_ARCH="gfx90a;gfx942;gfx950;gfx1100"

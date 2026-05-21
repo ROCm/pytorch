@@ -19233,6 +19233,17 @@ op_db: list[OpInfo] = [
                    'TestSchemaCheckModeOpInfo',
                    'test_schema_correctness',
                    dtypes=(torch.complex64, torch.complex128)),
+<<<<<<< HEAD
+=======
+               DecorateInfo(unittest.skip("Skipped!"), 'TestCommon', 'test_out',
+                            device_type='mps', dtypes=[torch.float32]),
+               DecorateInfo(unittest.skip("Skipped!"), 'TestCommon', 'test_variant_consistency_eager',
+                            device_type='mps', dtypes=[torch.float32]),
+               DecorateInfo(unittest.skip("Skipped!"), 'TestJit', 'test_variant_consistency_jit',
+                            device_type='mps', dtypes=[torch.float32]),
+               # The operator 'aten::take' is not currently implemented for the MPS device
+               DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_out_warning', device_type='mps'),
+>>>>>>> upstream/release/2.11
            )),
     OpInfo('svd_lowrank',
            op=lambda *args, **kwargs: wrapper_set_seed(

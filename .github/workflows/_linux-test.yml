@@ -136,7 +136,11 @@ jobs:
       contents: read
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.11
+>>>>>>> upstream/release/2.11
         if: ${{ !contains(matrix.runner, 'b200') && inputs.build-environment != 'linux-s390x-binary-manywheel' }}
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
@@ -144,6 +148,21 @@ jobs:
             All testing is done inside the container, to start an interactive session run:
               docker exec -it $(docker container ps --format '{{.ID}}') bash
 
+<<<<<<< HEAD
+=======
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.11
+        with:
+          no-sudo: true
+
+      - name: Setup Python
+        if: contains(matrix.runner, 'b200')
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
+        with:
+          python-version: '3.12'
+          cache: pip
+
+>>>>>>> upstream/release/2.11
       - name: Setup Linux
         id: setup-linux
         uses: pytorch/pytorch/.github/actions/setup-linux@release/2.12
@@ -173,7 +192,11 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.11
+>>>>>>> upstream/release/2.11
         if: inputs.build-environment != 'linux-s390x-binary-manywheel'
         with:
           docker-image-name: ${{ inputs.docker-image }}
@@ -189,7 +212,11 @@ jobs:
           echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.11
+>>>>>>> upstream/release/2.11
         if: inputs.build-environment != 'linux-s390x-binary-manywheel'
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
@@ -201,7 +228,11 @@ jobs:
 
       - name: Install nvidia driver, nvidia-docker runtime, set GPU_FLAG
         id: install-nvidia-driver
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           driver-version: '580.82.07'
         if: ${{ !contains(matrix.runner, 'b200') }}
@@ -539,7 +570,11 @@ jobs:
           aws-region: us-east-1
 
       - name: Upload the benchmark results
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.11
+>>>>>>> upstream/release/2.11
         if: inputs.build-environment != 'linux-s390x-binary-manywheel' && steps.check-tpu.outputs.has_tpu != 'true'
         with:
           benchmark-results-dir: test/test-reports
@@ -597,7 +632,11 @@ jobs:
           workflow_attempt: ${{github.run_attempt}}
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.11
+>>>>>>> upstream/release/2.11
         if: always() && steps.check_container_runner.outputs.IN_CONTAINER_RUNNER == 'false'
 
       - name: Cleanup docker

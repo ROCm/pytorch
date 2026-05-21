@@ -518,6 +518,9 @@ print(t.is_pinned())
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_set_per_process_memory_fraction(self):
+        if torch.version.hip and ('gfx1101' in torch.cuda.get_device_properties(0).gcnArchName):
+           torch.cuda.empty_cache()
+           torch.cuda.reset_peak_memory_stats()
         orig = torch.cuda.get_per_process_memory_fraction(0)
         torch.cuda.reset_peak_memory_stats(0)
         try:
@@ -6776,6 +6779,10 @@ class TestMemPool(TestCase):
             "graph_capture_record_stream_reuse:False"
         )
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> upstream/release/2.11
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
