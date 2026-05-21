@@ -46,7 +46,6 @@ jobs:
       DOWNSTREAM_REMOTE: origin                              # IFU target remote name
       DOWNSTREAM_REPO: ${{ inputs.ifu_target_repo }}         # target repo for IFU (fork); actions/checkout sets this to origin
       DOWNSTREAM_BRANCH: ${{ inputs.ifu_target_branch }}     # target branch for IFU
-      # GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}              # used by gh; provided by Action 
     steps:
       - name: Get Github app token
         uses: actions/create-github-app-token@v2
@@ -137,6 +136,8 @@ jobs:
 
       - name: Create Pull Request with gh
         working-directory: ${{ env.DOWNSTREAM_REPO }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
         run: |
           BASE="${DOWNSTREAM_BRANCH}"
           HEAD="${{ steps.tag.outputs.TAG }}"
