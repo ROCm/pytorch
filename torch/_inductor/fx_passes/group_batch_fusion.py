@@ -493,9 +493,9 @@ class BatchLinearLHSFusion(BatchFusion):
     """
 
     def match(self, node: torch.fx.Node) -> tuple[str, bool, Any] | None:
-        if CallFunctionVarArgs(torch.nn.functional.linear).match(
-            node
-        ) and is_linear_node_can_be_fused(node):
+        if CallFunctionVarArgs(
+            [torch.nn.functional.linear, torch._C._nn.linear]
+        ).match(node) and is_linear_node_can_be_fused(node):
             input = get_arg_value(node, 0, "input")
             bias = get_arg_value(node, 2, "bias")
             group_key = ("batch_linear_lhs", bias is None, input)
