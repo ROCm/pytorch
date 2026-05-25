@@ -290,6 +290,14 @@ class LocalElasticAgent(SimpleElasticAgent):
     #  `torch.distributed.elastic.metrics.prof`.
     @prof
     def _start_workers(self, worker_group: WorkerGroup) -> dict[int, Any]:
+        if os.environ.get("PROFILE_URL") and not hasattr(self, "_profiler_started"):
+            from torch.distributed.run import _start_profiler_delegate
+
+            _start_profiler_delegate(
+                worker_group.group_rank, worker_group.master_addr
+            )
+            self._profiler_started = True
+
         spec = worker_group.spec
         store = worker_group.store
         assert store is not None

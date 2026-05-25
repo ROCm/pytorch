@@ -986,7 +986,43 @@ def _setup_profile_url(profile_url: str) -> None:
         if os.path.exists(path):
             os.remove(path)
         os.environ["RPDT_FILENAME"] = path
+        os.environ["LD_PRELOAD"] = "librpd_tracer.so"
         logger.info("RPD profiler trace file: %s", path)
+
+
+def _start_profiler_delegate(group_rank: int, master_addr: str) -> None:
+    """Load rpd_tracer as the delegate in the agent process.
+
+    Called post-rendezvous so topology env vars are available.
+    The agent holds the DbResource lock and runs clock sync / log aggregation
+    services for the lifetime of the agent process, outliving all workers.
+    """
+    import ctypes
+
+    os.environ["GROUP_RANK"] = str(group_rank)
+    os.environ["MASTER_ADDR"] = master_addr
+
+    saved_autostart = os.environ.get("RPDT_AUTOSTART")
+    saved_delayinit = os.environ.get("RPDT_DELAYINIT")
+
+    os.environ["RPDT_AUTOSTART"] = "0"
+    os.environ["RPDT_DELAYINIT"] = "0"
+    os.environ["RPDT_QUIET"] = "1"
+
+    try:
+        ctypes.CDLL("librpd_tracer.so")
+        logger.info("RPD profiler delegate started in agent (rank %d)", group_rank)
+    except OSError:
+        logger.warning("librpd_tracer.so not found, profiling disabled")
+
+    if saved_autostart is not None:
+        os.environ["RPDT_AUTOSTART"] = saved_autostart
+    else:
+        os.environ.pop("RPDT_AUTOSTART", None)
+    if saved_delayinit is not None:
+        os.environ["RPDT_DELAYINIT"] = saved_delayinit
+    else:
+        os.environ.pop("RPDT_DELAYINIT", None)
 
 
 def run(args):
