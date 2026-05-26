@@ -75,6 +75,10 @@ def _rocm_lib_options(dst_file_ext: str) -> list[str]:
 
 
 def _rocm_compiler_options() -> list[str]:
+    # `config.rocm.arch`is populated from either:
+    # - The `PYTORCH_ROCM_ARCH` environment variable, or
+    # - Runtime device detection.
+    # The string "native" tells `hipcc` to compile for the current GPU.
     arch_list = config.rocm.arch or ["native"]
     gpu_arch_flags = [f"--offload-arch={arch}" for arch in arch_list]
     opts = [
