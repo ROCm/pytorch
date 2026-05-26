@@ -143,8 +143,7 @@ jobs:
 
           if [ -n "${{ inputs.sha }}" ]; then
             ARGS="$ARGS --sha1 ${{ inputs.sha }}"
-          fi
-          if [ -n "${{ inputs.pr_id }}" ]; then
+          elif [ -n "${{ inputs.pr_id }}" ]; then
             ARGS="$ARGS --pr_id ${{ inputs.pr_id }}"
           fi
           if [ "${{ inputs.exclude_distributed }}" = "true" ]; then
