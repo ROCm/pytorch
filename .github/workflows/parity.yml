@@ -349,7 +349,7 @@ jobs:
             {
               echo "### HUD"
               echo ""
-              echo "[Open this run in HUD]($HUD_URL)"
+              echo "[HUD LINK]($HUD_URL)"
               echo ""
             } >> "$GITHUB_STEP_SUMMARY"
           fi
