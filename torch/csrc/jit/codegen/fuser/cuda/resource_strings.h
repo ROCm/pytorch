@@ -274,6 +274,11 @@ constexpr auto bfloat16_support_literal =
 #define __align__(x) __attribute__((aligned(x)))
 #endif
 )" BF16_UINT32_DEF R"(
+#if defined(_HIP_INCLUDE_HIP_AMD_DETAIL_HIP_BF16_H_)
+typedef __hip_bfloat16 __nv_bfloat16;
+typedef struct __align__(2) { unsigned short x; } __nv_bfloat16_raw;
+#else
+
 typedef struct __align__(2) {
   unsigned short x;
 }
@@ -333,6 +338,7 @@ __device__ float __bfloat162float(const __nv_bfloat16 a) {
   return u.fp32;
 }
 #endif /* defined(__cplusplus) */
+#endif /* !defined(_HIP_INCLUDE_HIP_AMD_DETAIL_HIP_BF16_H_) */
 )";
 #else
 constexpr auto bfloat16_support_literal =
