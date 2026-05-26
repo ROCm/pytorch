@@ -22,6 +22,7 @@ from ..kernel.mm import (
     get_scaling_options,
     get_tile_size,
     mm_template,
+    persistent_mm_template,
     persistent_tma_mm_template,
     scaled_mm_device_tma_epilogue_scaling_template,
     scaled_mm_device_tma_main_loop_scaling_template,
@@ -32,6 +33,7 @@ from ..utils import (
     get_backend_num_stages,
     get_num_sms,
     get_tma_workspace_arg,
+    is_gfx1250_arch,
     TMA_DESCRIPTOR_SIZE,
     using_b200,
 )
@@ -47,6 +49,42 @@ if TYPE_CHECKING:
 
 else:
     from torch._inductor.runtime.triton_compat import Config as TritonConfig
+
+
+def _is_gfx1250_device() -> bool:
+    """Detect whether the current device is AMD gfx1250.
+
+    gfx1250 has 320 KB LDS per CU, 512 B/clk/CU LDS bandwidth (R/W combined),
+    and TDM for async descriptor-based global->LDS copies. When num_stages > 1,
+    Triton's AMD backend automatically converts tl.load into TDM instructions.
+
+    TDM hardware constraints:
+      - 1 TDM unit per SIMD pair (2 SIMDs share 1 TDM unit)
+      - Max 4 outstanding TDM address translations per wave
+      - Max 6 outstanding TDM address translations per SIMD
+      - Requests target 128B or 256B aligned contiguous regions
+        in both global memory and LDS
+    """
+    if not torch.version.hip:
+        return False
+    if not inductor_config.enable_tdm_configs:
+        return False
+    try:
+        props = torch.cuda.get_device_properties(torch.cuda.current_device())
+        arch = getattr(props, "gcnArchName", "")
+        return is_gfx1250_arch(arch)
+    except Exception:
+        return False
+
+
+def _filter_tdm_block_k_configs(
+    configs: list[BaseConfig],
+    dtype_size: int,
+) -> list[BaseConfig]:
+    if dtype_size <= 0:
+        return configs
+    block_k_multiple = max(inductor_config.tdm.alignment_bytes // dtype_size, 1)
+    return [c for c in configs if c.block_k % block_k_multiple == 0]
 
 
 # Gemm Configs
@@ -1381,6 +1419,7 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
         super().__init__()
 
         self.default_num_stages = get_backend_num_stages()
+        self.uses_tdm_configs = False
 
         self.mm_configs: list[BaseConfig] = [
             ROCmGemmConfig(
@@ -1440,6 +1479,42 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             ROCmGemmConfig(256, 128, 64, self.default_num_stages, 8, group_m=8, matrix_instr_nonkdim=0),
             ROCmGemmConfig(128, 128, 64, self.default_num_stages, 8, group_m=4, matrix_instr_nonkdim=0),
             ROCmGemmConfig(256, 256, 64, self.default_num_stages, 8, group_m=4),
+        ]
+
+        # TDM-optimized persistent MM configs for gfx1250.
+        #
+        # Hardware constraints on gfx1250:
+        #   - 320 KB LDS per CU, 512 B/clk/CU bandwidth
+        #   - Max 4 outstanding TDM translations per wave (bounds num_stages)
+        #   - Max 6 outstanding TDM translations per SIMD
+        #   - TDM requests target 128B/256B aligned contiguous regions
+        #   - 1 TDM unit per SIMD pair -> recommended 1 wave/SIMD pair issuing
+        #     TDM instructions (num_warps=4 gives 1 wave/SIMD on a 4-SIMD CU)
+        #
+        # BLOCK_K alignment requirements (128B / dtype_bytes):
+        #   FP16/BF16 (2B): BLOCK_K multiple of 64
+        #   FP8/INT8 (1B): BLOCK_K multiple of 128
+        #   FP32 (4B):     BLOCK_K multiple of 32
+        #
+        # LDS usage estimate: (BM*BK + BK*BN)*dtype_size*num_stages
+        # Must stay under 320 KB.
+        self.tdm_persistent_mm_configs: list[BaseConfig] = [
+            # Small tiles: TDM most beneficial here (LDS-BW-limited to 1 wave/SIMD).
+            # These are where TDM eliminates cluster load issue overhead.
+            # `waves_per_eu=0` means Triton compiler should figure out the best value.
+            ROCmGemmConfig(128,  64,  64, 4, 4, group_m=8,  waves_per_eu=0),
+            ROCmGemmConfig( 64, 128,  64, 4, 4, group_m=8,  waves_per_eu=0),
+            ROCmGemmConfig(128,  64, 128, 4, 4, group_m=8),
+            ROCmGemmConfig( 64, 128, 128, 4, 4, group_m=8),
+            # Medium tiles: benefit from TDM prologue overhead reduction.
+            ROCmGemmConfig(128, 128,  64, 4, 4, group_m=8),
+            ROCmGemmConfig(128, 128,  64, 4, 8, group_m=16),
+            ROCmGemmConfig(128, 128, 128, 4, 4, group_m=8),
+            ROCmGemmConfig(128, 128, 128, 3, 8, group_m=16),
+            # Larger tiles: exploit the 320 KB LDS with deep pipelines.
+            ROCmGemmConfig(256, 128,  64, 4, 8, group_m=16),
+            ROCmGemmConfig(128, 256,  64, 4, 8, group_m=16),
+            ROCmGemmConfig(256, 128, 128, 3, 8, group_m=16),
         ]
 
         # Exhaustive search for mm configs
@@ -1563,12 +1638,57 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
         ]
         return pruned_configs
 
+    def preprocess_mm_configs(
+        self,
+        m: int,
+        n: int,
+        k: int,
+        configs: list[BaseConfig],
+        has_int8_tensor: bool = False,
+        scale: float = 1.0,
+        exclude: Callable[
+            [sympy.Integer, sympy.Integer, sympy.Integer], bool
+        ] = lambda m, n, k: False,
+        dtype_size: int = 0,
+        op_name: str = "mm",
+        **kwargs,
+    ) -> Generator[TritonConfig, None, None]:
+        if self.uses_tdm_configs:
+            configs = _filter_tdm_block_k_configs(configs, dtype_size)
+        return super().preprocess_mm_configs(
+            m,
+            n,
+            k,
+            configs,
+            has_int8_tensor,
+            scale,
+            exclude,
+            dtype_size,
+            op_name,
+            **kwargs,
+        )
+
     def _filter_configs(self, configs: list[BaseConfig]) -> list[BaseConfig]:
         """
         ROCm specific filtering
+
+        Normally we force num_stages to `default_num_stages` because AMD's
+        Triton backend historically didn't benefit from multi-stage pipelining.
+        However, on gfx1250 with TDM enabled, num_stages > 1 is exactly
+        what triggers TDM async copies in the StreamPipeliner pass, so we
+        must preserve the requested num_stages for TDM configs.
         """
+        tdm_enabled = _is_gfx1250_device()
         for c in configs:
-            c.num_stages = self.default_num_stages
+            # On gfx1250, preserve num_stages as provided (but cap at 4 to
+            # respect TDM's per-wave outstanding limit). Otherwise, fall
+            # back to the legacy behavior of forcing default_num_stages.
+            if tdm_enabled:
+                c.num_stages = (
+                    min(c.num_stages, 4) if c.num_stages > 1 else c.num_stages
+                )
+            else:
+                c.num_stages = self.default_num_stages
         return super()._filter_configs(configs)
 
     def _finalize_mm_configs(
@@ -2912,6 +3032,56 @@ class XPUMMPlusMMTemplateConfigHeuristic(
         # TODO(coconutruben): remove this once we have validated exhaustive support
         # for scaled_mm
         self.exhaustive_configs = self.mm_plus_mm_configs
+
+
+# ROCm persistent MM template heuristic (non-TMA, standard pointer loads)
+
+
+@register_template_heuristic(
+    persistent_mm_template.uid,
+    "cuda",
+    register=torch.version.hip is not None,
+)
+class PersistentMMTemplateConfigHeuristic(
+    MMTemplateConfigMixin,
+    ROCmConfigHeuristic,  # type: ignore[misc]
+):
+    """Persistent MM template heuristic (no TMA, standard pointer loads)"""
+
+    def __init__(self) -> None:
+        super().__init__()
+        if _is_gfx1250_device():
+            # On gfx1250, use TDM-optimized configs that exploit:
+            # - 320 KB LDS (larger tiles possible)
+            # - TDM async global->LDS copies (num_stages > 1)
+            # - Wave specialization across SIMD pairs
+            self.mm_configs = self.tdm_persistent_mm_configs
+            self.uses_tdm_configs = True
+        else:
+            self.mm_configs = self.persistent_mm_configs
+
+    def _get_template_configs_impl(
+        self,
+        kernel_inputs: KernelInputs,
+        op_name: str,
+        **kwargs,
+    ) -> Generator[dict[str, Any], None, None]:
+        for template_kwargs in super()._get_template_configs_impl(
+            kernel_inputs, op_name, **kwargs
+        ):
+            yield {**template_kwargs, "NUM_SMS": get_num_sms()}
+
+
+@register_template_heuristic(
+    persistent_mm_template.uid,
+    "cuda",
+    register=torch.version.hip is not None,
+    op_name="addmm",
+)
+class ROCmAddMMPersistentTemplateConfigHeuristic(
+    AddMMConfigMixin, PersistentMMTemplateConfigHeuristic
+):
+    """Addmm specific mixin for persistent MM on ROCm"""
 
 
 # MTIA template-specific classes
