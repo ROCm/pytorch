@@ -187,6 +187,7 @@ jobs:
           echo "folder=$FOLDER" >> "$GITHUB_OUTPUT"
           SHA=$(echo "$FOLDER" | grep -oP '[0-9a-f]{40}')
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+          printf '%s\n' "$SHA" > "$FOLDER/hud_sha.txt"
           DATE=$(TZ='America/Los_Angeles' date '+%Y%m%d')
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
           mv download_${{ matrix.arch }}.log "$FOLDER/" 2>/dev/null || true
@@ -260,6 +261,7 @@ jobs:
         run: |
           FOLDER=".automation_scripts/pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}"
           PATHS="${FOLDER}/*.csv
+          ${FOLDER}/hud_sha.txt
           ${FOLDER}/*.log
           ${FOLDER}/*.txt
           ${FOLDER}/inductor_periodic_rocm_dir/
@@ -332,6 +334,12 @@ jobs:
           done
 
           HUD_SHA="$SHA"
+          if [ -z "$HUD_SHA" ]; then
+            HUD_SHA_FILE=$(find ../../artifacts/ -name hud_sha.txt -print -quit)
+            if [ -n "$HUD_SHA_FILE" ]; then
+              HUD_SHA=$(cat "$HUD_SHA_FILE" | head -1)
+            fi
+          fi
           if [ -z "$HUD_SHA" ]; then
             HUD_SHA=$(find ../../artifacts/ -name '*.csv' | grep -oE '[0-9a-f]{40}' | head -1 || true)
           fi
