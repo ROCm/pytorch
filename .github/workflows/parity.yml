@@ -333,14 +333,14 @@ jobs:
 
           HUD_SHA="$SHA"
           if [ -z "$HUD_SHA" ]; then
-            HUD_SHA=$(basename "$(find ../../artifacts/ -name '*.csv' | head -1)" | grep -oP '[0-9a-f]{40}' || true)
+            HUD_SHA=$(find ../../artifacts/ -name '*.csv' | grep -oE '[0-9a-f]{40}' | head -1 || true)
           fi
           HUD_URL=""
           if [ -n "$PR_ID" ]; then
             if [ -n "$HUD_SHA" ]; then
               HUD_URL="https://hud.pytorch.org/pytorch/pytorch/pull/${PR_ID}?sha=${HUD_SHA}"
             else
-              HUD_URL="https://hud.pytorch.org/pytorch/pytorch/pull/${PR_ID}"
+              echo "::warning::Unable to determine exact SHA for PR HUD link"
             fi
           elif [ -n "$HUD_SHA" ]; then
             HUD_URL="https://hud.pytorch.org/pytorch/pytorch/commit/${HUD_SHA}"
