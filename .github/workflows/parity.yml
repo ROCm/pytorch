@@ -332,6 +332,29 @@ jobs:
             ARCH_ARGS+=("$ARCH")
           done
 
+          HUD_SHA="$SHA"
+          if [ -z "$HUD_SHA" ]; then
+            HUD_SHA=$(basename "$(find ../../artifacts/ -name '*.csv' | head -1)" | grep -oP '[0-9a-f]{40}' || true)
+          fi
+          HUD_URL=""
+          if [ -n "$PR_ID" ]; then
+            if [ -n "$HUD_SHA" ]; then
+              HUD_URL="https://hud.pytorch.org/pytorch/pytorch/pull/${PR_ID}?sha=${HUD_SHA}"
+            else
+              HUD_URL="https://hud.pytorch.org/pytorch/pytorch/pull/${PR_ID}"
+            fi
+          elif [ -n "$HUD_SHA" ]; then
+            HUD_URL="https://hud.pytorch.org/pytorch/pytorch/commit/${HUD_SHA}"
+          fi
+          if [ -n "$HUD_URL" ]; then
+            {
+              echo "### HUD"
+              echo ""
+              echo "[Open this run in HUD]($HUD_URL)"
+              echo ""
+            } >> "$GITHUB_STEP_SUMMARY"
+          fi
+
           if [ ${#CSV_ARGS[@]} -eq 0 ]; then
             echo "::warning::No CSVs found for any architecture — some or all generate-parity jobs may have failed"
             echo "## ⚠ No CSVs produced" >> "$GITHUB_STEP_SUMMARY"
@@ -345,9 +368,8 @@ jobs:
           if [ -n "$SHA" ]; then
             ARGS+=(--sha "$SHA")
           else
-            DETECTED_SHA=$(basename "$(find ../../artifacts/ -name '*.csv' | head -1)" | grep -oP '[0-9a-f]{40}' || true)
-            if [ -n "$DETECTED_SHA" ]; then
-              ARGS+=(--sha "$DETECTED_SHA")
+            if [ -n "$HUD_SHA" ]; then
+              ARGS+=(--sha "$HUD_SHA")
             fi
           fi
           if [ -n "$PR_ID" ]; then
