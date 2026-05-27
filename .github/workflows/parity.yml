@@ -376,6 +376,14 @@ jobs:
 
           cat "${OUTPUT}.md" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Upload parity summary markdown
+        uses: actions/upload-artifact@v4
+        with:
+          name: parity-summary-md
+          path: .automation_scripts/pytorch-unit-test-scripts/*_summary.md
+          if-no-files-found: ignore
+          retention-days: 120
+
       - name: Add artifact links to summary
         env:
           GH_TOKEN: ${{ github.token }}
