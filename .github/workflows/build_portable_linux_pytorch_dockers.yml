@@ -41,6 +41,10 @@ on:
         description: Base URL for PyTorch wheels index
         type: string
         default: "https://rocm.nightlies.amd.com/v2-staging"
+      rocm_package_index_url:
+        description: Optional base URL for ROCm Python packages when different from index_url
+        type: string
+        default: ""
 
 permissions:
   contents: read
@@ -159,6 +163,7 @@ jobs:
           echo "python_version=${{ env.DEFAULT_PYTHON_VERSION }}" >> $GITHUB_OUTPUT
           echo "rocm_version=${{ steps.discover.outputs.rocm_version }}" >> $GITHUB_OUTPUT
           echo "index_url=${{ env.DEFAULT_INDEX_URL }}" >> $GITHUB_OUTPUT
+          echo "rocm_package_index_url=" >> $GITHUB_OUTPUT
           echo "base_image=${{ env.DEFAULT_BASE_IMAGE }}" >> $GITHUB_OUTPUT
           echo "torch_prefix=${{ steps.prefix.outputs.value }}" >> $GITHUB_OUTPUT
           echo "pytorch_repo=${{ matrix.pytorch_repo }}" >> $GITHUB_OUTPUT
@@ -212,6 +217,7 @@ jobs:
             --build-arg "AMDGPU_FAMILY=${{ steps.cfg.outputs.amdgpu_family }}" \
             --build-arg "PYTHON_VERSION=${{ steps.cfg.outputs.python_version }}" \
             --build-arg "INDEX_URL=${{ steps.cfg.outputs.index_url }}" \
+            --build-arg "ROCM_PACKAGE_INDEX_URL=${{ steps.cfg.outputs.rocm_package_index_url }}" \
             --build-arg "TORCH_VERSION_PREFIX=${{ steps.prefix.outputs.value }}" \
             pytorch-src
 
@@ -248,6 +254,7 @@ jobs:
           echo "| AMDGPU Family | ${{ steps.cfg.outputs.amdgpu_family }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Python | ${{ steps.cfg.outputs.python_version }} |" >> $GITHUB_STEP_SUMMARY
           echo "| ROCm (discovered) | ${{ steps.cfg.outputs.rocm_version }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ROCm Package Index URL | ${{ steps.cfg.outputs.rocm_package_index_url || steps.cfg.outputs.index_url }} |" >> $GITHUB_STEP_SUMMARY
 
   # ── Single image build (manual dispatch) ──────────────────────────────────
   build-docker:
@@ -335,6 +342,7 @@ jobs:
           echo "rocm_version=${ROCM}" >> $GITHUB_OUTPUT
 
           echo "index_url=${{ inputs.index_url || env.DEFAULT_INDEX_URL }}" >> $GITHUB_OUTPUT
+          echo "rocm_package_index_url=${{ inputs.rocm_package_index_url }}" >> $GITHUB_OUTPUT
           echo "base_image=${{ env.DEFAULT_BASE_IMAGE }}" >> $GITHUB_OUTPUT
           echo "torch_prefix=${{ steps.prefix.outputs.value }}" >> $GITHUB_OUTPUT
           echo "pytorch_repo=${{ inputs.pytorch_repo || 'pytorch/pytorch' }}" >> $GITHUB_OUTPUT
@@ -388,6 +396,7 @@ jobs:
             --build-arg "AMDGPU_FAMILY=${{ steps.cfg.outputs.amdgpu_family }}" \
             --build-arg "PYTHON_VERSION=${{ steps.cfg.outputs.python_version }}" \
             --build-arg "INDEX_URL=${{ steps.cfg.outputs.index_url }}" \
+            --build-arg "ROCM_PACKAGE_INDEX_URL=${{ steps.cfg.outputs.rocm_package_index_url }}" \
             --build-arg "TORCH_VERSION_PREFIX=${{ steps.cfg.outputs.torch_prefix }}" \
             pytorch-src
 
@@ -425,3 +434,4 @@ jobs:
           echo "| ROCm | ${{ steps.cfg.outputs.rocm_version }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Torch Version Prefix | ${{ steps.cfg.outputs.torch_prefix || 'latest' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Index URL | ${{ steps.cfg.outputs.index_url }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| ROCm Package Index URL | ${{ steps.cfg.outputs.rocm_package_index_url || steps.cfg.outputs.index_url }} |" >> $GITHUB_STEP_SUMMARY

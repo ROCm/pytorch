@@ -108,10 +108,16 @@ def get_latest_package_version_for_rocm(
 
 
 def run_pip_install(
-    index_url: str, packages: list[str], break_system_packages: bool = True
+    index_url: str,
+    packages: list[str],
+    break_system_packages: bool = True,
+    extra_index_url: str | None = None,
 ) -> None:
     """Run pip install with the given packages."""
     cmd = [sys.executable, "-m", "pip", "install", "--index-url", index_url]
+
+    if extra_index_url:
+        cmd.extend(["--extra-index-url", extra_index_url])
 
     if break_system_packages:
         cmd.append("--break-system-packages")
@@ -195,6 +201,10 @@ def main() -> int:
         "--amdgpu-family", required=True, help="AMD GPU family (e.g., gfx1250)"
     )
     parser.add_argument(
+        "--rocm-package-index-url",
+        help="Optional base URL for ROCm Python packages when different from --index-url",
+    )
+    parser.add_argument(
         "--rocm-version",
         help="Optional. ROCm version (e.g. 7.12.0a20260126). When set without --torch-version: discovers and installs latest torch/torchaudio/torchvision/triton built for this ROCm. ",
     )
@@ -227,8 +237,15 @@ def main() -> int:
 
     args = parser.parse_args()
 
-    # Build the full index URL
+    # Build the full index URLs. TheRock full-suite can use separate indexes
+    # for the torch wheel and ROCm packages, so mirror that shape here.
     index_url = f"{args.index_url.rstrip('/')}/{args.amdgpu_family}/"
+    rocm_index_url = (
+        f"{args.rocm_package_index_url.rstrip('/')}/{args.amdgpu_family}/"
+        if args.rocm_package_index_url
+        else index_url
+    )
+    extra_index_url = rocm_index_url if rocm_index_url != index_url else None
 
     rocm = args.rocm_version
     rocm_only = bool(rocm and not args.torch_version)
@@ -236,15 +253,17 @@ def main() -> int:
     break_sys = not args.no_break_system_packages
 
     if rocm_only:
-        # Two-pass install:
-        #   Pass 1: torch (pinned) + rocm[devel] (pinned)
-        #   Pass 2: torchaudio, torchvision, triton (unpinned — pip resolves compatibility)
+        # Three-pass install:
+        #   Pass 1: rocm[devel] (pinned) from the ROCm package index
+        #   Pass 2: torch (pinned) from the torch wheel index
+        #   Pass 3: torchaudio, torchvision, triton (unpinned; pip resolves compatibility)
         torch_version = get_latest_package_version_for_rocm(
             index_url, "torch", rocm, required=True, version_prefix=torch_prefix,
         )
 
         print_banner("PyTorch Wheels Installation")
         print(f"Index URL:      {index_url}")
+        print(f"ROCm Index URL: {rocm_index_url}")
         print(f"AMDGPU Family:  {args.amdgpu_family}")
         print(f"Python:         {sys.version_info.major}.{sys.version_info.minor}")
         print(f"torch:          {torch_version}")
@@ -254,22 +273,22 @@ def main() -> int:
         print(f"triton:         (torch dependency)")
         print("=" * 50)
 
-        # Pass 1: install torch + rocm[devel] with exact versions.
-        # torch's declared dependency on triton pulls in the correct build.
-        primary = [
-            build_package_spec("torch", torch_version),
-            build_package_spec("rocm[devel]", rocm),
-        ]
-        print_banner("Pass 1: torch + rocm[devel]")
-        print(f"Installing: {', '.join(primary)}")
-        run_pip_install(index_url, primary, break_sys)
+        print_banner("Pass 1: rocm[devel]")
+        rocm_package = build_package_spec("rocm[devel]", rocm)
+        print(f"Installing: {rocm_package}")
+        run_pip_install(rocm_index_url, [rocm_package], break_sys)
 
-        # Pass 2: install torchaudio/torchvision without pinning — pip picks
-        # versions compatible with the torch that's already installed
+        torch_package = build_package_spec("torch", torch_version)
+        print_banner("Pass 2: torch")
+        print(f"Installing: {torch_package}")
+        run_pip_install(index_url, [torch_package], break_sys, extra_index_url)
+
+        # Install torchaudio/torchvision without pinning; pip picks versions
+        # compatible with the torch that's already installed.
         companions = ["torchaudio", "torchvision"]
-        print_banner("Pass 2: torchaudio, torchvision (unpinned)")
+        print_banner("Pass 3: torchaudio, torchvision (unpinned)")
         print(f"Installing: {', '.join(companions)}")
-        run_pip_install(index_url, companions, break_sys)
+        run_pip_install(index_url, companions, break_sys, extra_index_url)
     else:
         # Explicit versions mode — install everything in one shot
         arg_attrs = ["torch_version", "torchaudio_version", "torchvision_version", "triton_version"]
@@ -278,6 +297,7 @@ def main() -> int:
 
         print_banner("PyTorch Wheels Installation")
         print(f"Index URL:      {index_url}")
+        print(f"ROCm Index URL: {rocm_index_url}")
         print(f"AMDGPU Family:  {args.amdgpu_family}")
         print(f"Python:         {sys.version_info.major}.{sys.version_info.minor}")
         for name, version in versions.items():
@@ -290,8 +310,16 @@ def main() -> int:
             if always_install or version:
                 packages.append(build_package_spec(name, version))
 
+        rocm_package = build_package_spec("rocm[devel]", rocm) if rocm else None
+        if rocm_package:
+            print_banner("Pass 1: rocm[devel]")
+            print(f"Installing: {rocm_package}")
+            run_pip_install(rocm_index_url, [rocm_package], break_sys)
+            packages = [p for p in packages if not p.startswith("rocm[devel]")]
+
+        print_banner("Pass 2: PyTorch packages")
         print(f"Installing: {', '.join(packages)}")
-        run_pip_install(index_url, packages, break_sys)
+        run_pip_install(index_url, packages, break_sys, extra_index_url)
 
     # Verify
     if not args.skip_verify and not verify_installation():

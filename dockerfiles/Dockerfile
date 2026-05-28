@@ -26,6 +26,7 @@
 # - AMDGPU_FAMILY    : AMD GPU family (e.g., gfx94X-dcgpu, gfx90X-dcgpu, gfx950-dcgpu)
 # - PYTHON_VERSION   : Python version for PyTorch (default: 3.12)
 # - INDEX_URL        : (Required) Base URL for PyTorch wheels index
+# - ROCM_PACKAGE_INDEX_URL: Optional base URL for ROCm Python packages when different from INDEX_URL
 # - TORCH_VERSION      : Optional specific PyTorch version. If not set, installs latest.
 # - TORCHAUDIO_VERSION : Optional specific torchaudio version. If not set, installs latest.
 # - TORCHVISION_VERSION: Optional specific torchvision version. If not set, installs latest.
@@ -41,6 +42,7 @@
 #     --build-arg AMDGPU_FAMILY=gfx94X-dcgpu \
 #     --build-arg PYTHON_VERSION=3.12 \
 #     --build-arg INDEX_URL=https://rocm.nightlies.amd.com/v2-staging \
+#     --build-arg ROCM_PACKAGE_INDEX_URL=https://rocm.prereleases.amd.com/whl-staging \
 #     -f dockerfiles/Dockerfile \
 #     -t pytorch-rocm:ubuntu24.04-gfx94X-dcgpu-7.13.0a20260413 \
 #     .
@@ -58,6 +60,7 @@ ARG RELEASE_TYPE=nightly
 # PyTorch configuration arguments
 ARG PYTHON_VERSION=3.12
 ARG INDEX_URL
+ARG ROCM_PACKAGE_INDEX_URL
 ARG TORCH_VERSION
 ARG TORCH_VERSION_PREFIX
 ARG TORCHAUDIO_VERSION
@@ -101,6 +104,7 @@ RUN /opt/venv/bin/python /tmp/install_pytorch_wheels.py \
         --no-break-system-packages \
         --skip-verify \
         --index-url "${INDEX_URL}" \
+        ${ROCM_PACKAGE_INDEX_URL:+--rocm-package-index-url "${ROCM_PACKAGE_INDEX_URL}"} \
         --amdgpu-family "${AMDGPU_FAMILY}" \
         ${ROCM_VERSION:+--rocm-version "${ROCM_VERSION}"} \
         ${TORCH_VERSION:+--torch-version "${TORCH_VERSION}"} \
