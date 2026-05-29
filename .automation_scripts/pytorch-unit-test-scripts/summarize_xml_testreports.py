@@ -70,19 +70,12 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
     test_config = ""
     test_cases = {}
 
-    # The '_wf_run_id' file is written by download_testlogs.download_xml_files
-    # and identifies the upstream pytorch/pytorch CI workflow run these XML
-    # reports came from. Combined with the '_<jobid>' suffix on each
-    # test-<cfg>-N-N directory, it lets us build a direct link to the
-    # failing job page so reviewers can jump straight to the stacktrace.
+    # Written by download_testlogs alongside the test-<cfg>-N-N dirs.
     wf_run_id = ""
     wf_id_file = os.path.join(path, "_wf_run_id")
     if os.path.isfile(wf_id_file):
-        try:
-            with open(wf_id_file) as f:
-                wf_run_id = f.read().strip()
-        except OSError:
-            pass
+        with open(wf_id_file) as f:
+            wf_run_id = f.read().strip()
 
     items_list = os.listdir(path)
     for dir in items_list:
@@ -95,11 +88,11 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
             elif "test-inductor" in new_dir:
                 test_config = TestConfigName.inductor.name
             shard = _extract_shard(dir)
-            m_jid = re.search(r'_(\d{6,})$', dir)
-            job_id = m_jid.group(1) if m_jid else ""
-            job_url = ""
-            if wf_run_id and job_id:
-                job_url = f"https://github.com/pytorch/pytorch/actions/runs/{wf_run_id}/job/{job_id}"
+            jid = re.search(r'_(\d+)$', dir)
+            job_url = (
+                f"https://github.com/pytorch/pytorch/actions/runs/{wf_run_id}/job/{jid.group(1)}"
+                if wf_run_id and jid else ""
+            )
             for xml_report in Path(new_dir).glob("**/*.xml"):
                 try:
                     new_cases = parse_xml_report(
@@ -114,8 +107,7 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                     continue
                 for key, case in new_cases.items():
                     case["shard"] = shard
-                    if job_url:
-                        case["job_url"] = job_url
+                    case["job_url"] = job_url
                     existing = test_cases.get(key)
                     if existing is None or _status_priority(case) > _status_priority(existing):
                         test_cases[key] = case

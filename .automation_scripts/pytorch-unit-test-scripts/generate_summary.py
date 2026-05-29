@@ -695,17 +695,11 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
                _norm_test_file(t.get('test_file', '')))
         return _format_test_shards(shard_lookup.get(key, ''))
 
-    def _job_url_cell(url):
-        """Render the job-url column as a markdown link labeled with the job_id.
-
-        Empty when no URL is present, so the column gracefully degrades for
-        rows produced before the upstream pipeline starts emitting job_url.
-        """
+    def _job_id_link(url):
         if not url:
             return ''
         m = re.search(r'/job/(\d+)', url)
-        label = m.group(1) if m else 'job'
-        return f'[{label}]({url})'
+        return f'[{m.group(1)}]({url})' if m else f'[job]({url})'
 
     cols = ['Arch', 'Test Config', 'Test File', 'Test Class', 'Test Name',
             f'Job-Level Shard ({s1_name})',
@@ -738,9 +732,9 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
             if has_set2:
                 line += f" | {t.get(f'status_{s2_name}', '')}"
             line += f" | {t.get('also_failing_in', '')}"
-            line += f" | {_job_url_cell(t.get(f'job_url_{s1_name}', ''))}"
+            line += f" | {_job_id_link(t.get(f'job_url_{s1_name}', ''))}"
             if has_set2:
-                line += f" | {_job_url_cell(t.get(f'job_url_{s2_name}', ''))}"
+                line += f" | {_job_id_link(t.get(f'job_url_{s2_name}', ''))}"
             line += ' |'
             lines.append(line)
         lines.append('')
@@ -783,7 +777,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
                     f"| {lf.get('test_shard', lf.get('shard', ''))} "
                     f"| {lf.get('category', '')} "
                     f"| {lf.get('also_failing_in', '')} "
-                    f"| {_job_url_cell(lf.get('job_url', ''))} |"
+                    f"| {_job_id_link(lf.get('job_url', ''))} |"
                 )
             lines.append('')
 

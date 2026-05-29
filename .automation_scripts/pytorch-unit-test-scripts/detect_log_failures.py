@@ -292,17 +292,12 @@ def scan_logs(logs_dir):
         job_total = shard_totals.get((platform, test_config), 0)
         job_shard_str = f"{shard_num}/{job_total}" if job_total else str(shard_num)
 
-        # Companion .job_url file written by download_testlogs.write_test_log_to_file.
-        # Absent for log archives produced before that change landed; in that
-        # case job_url stays empty and the column renders as a blank cell.
+        # Written by download_testlogs next to each log file.
         job_url_file = os.path.join(logs_dir, fname + ".job_url")
         job_url = ""
         if os.path.isfile(job_url_file):
-            try:
-                with open(job_url_file) as jf:
-                    job_url = jf.read().strip()
-            except OSError:
-                pass
+            with open(job_url_file) as f:
+                job_url = f.read().strip()
 
         filepath = os.path.join(logs_dir, fname)
         results, consistent_failures, flaky_tests = parse_log_file(filepath)
