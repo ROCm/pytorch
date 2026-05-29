@@ -70,7 +70,11 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
     test_config = ""
     test_cases = {}
 
-    # Written by download_testlogs alongside the test-<cfg>-N-N dirs.
+    # download_testlogs writes the upstream pytorch CI workflow run id
+    # into "_wf_run_id" alongside the shard dirs. We combine it with each
+    # shard dir's trailing "_<job_id>" to form the URL
+    # https://github.com/pytorch/pytorch/actions/runs/<wf>/job/<job_id>
+    # surfaced as the "Job ID" column in the FAILED TESTS table.
     wf_run_id = ""
     wf_id_file = os.path.join(path, "_wf_run_id")
     if os.path.isfile(wf_id_file):

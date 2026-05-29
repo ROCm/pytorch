@@ -90,6 +90,9 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
 
+    # Save the upstream pytorch CI job's page URL next to the log so
+    # detect_log_failures.py can later surface it as a link in the
+    # LOG-BASED FAILURES table of the parity summary.
     job_url = js[0].get('html_url', '')
     if job_url:
         with open(filename + ".job_url", "w", encoding="utf-8") as f:
@@ -259,9 +262,13 @@ def _shorten_unzipped_dirs():
         m = re.search(r'test-(?:osdc-)?(default|distributed|inductor)-(\d+)-(\d+)', d.name)
         if m:
             short_name = f"test-{m.group(1)}-{m.group(2)}-{m.group(3)}"
-            jid = re.search(r'_(\d{6,})\.zip$', d.name)
-            if jid:
-                short_name += f"_{jid.group(1)}"
+            # The original artifact name ends with "_<jobid>.zip" where
+            # <jobid> is the upstream pytorch CI job id (e.g.
+            # ..._68613413431.zip). Carry it onto short_name so
+            # summarize_xml_testreports.py can link to that job.
+            job_id_match = re.search(r'_(\d{6,})\.zip$', d.name)
+            if job_id_match:
+                short_name += f"_{job_id_match.group(1)}"
             if not Path(short_name).exists():
                 d.rename(short_name)
                 print(f"  Renamed {d.name} -> {short_name}")

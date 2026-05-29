@@ -292,7 +292,10 @@ def scan_logs(logs_dir):
         job_total = shard_totals.get((platform, test_config), 0)
         job_shard_str = f"{shard_num}/{job_total}" if job_total else str(shard_num)
 
-        # Written by download_testlogs next to each log file.
+        # If download_testlogs left a "<log>.job_url" file next to this log,
+        # it contains the URL of the upstream pytorch CI job that produced
+        # the log. We surface it in the LOG-BASED FAILURES table as a link
+        # to that job's page. Empty for older runs that predate this.
         job_url_file = os.path.join(logs_dir, fname + ".job_url")
         job_url = ""
         if os.path.isfile(job_url_file):
