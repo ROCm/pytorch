@@ -698,8 +698,12 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
     def _job_id_link(url):
         if not url:
             return ''
+        # Use the job id (digits after "/job/" in the URL) as the visible
+        # link label so the cell reads e.g. [76905282313](...).
         m = re.search(r'/job/(\d+)', url)
-        return f'[{m.group(1)}]({url})' if m else f'[job]({url})'
+        if not m:
+            return ''
+        return f'[{m.group(1)}]({url})'
 
     cols = ['Arch', 'Test Config', 'Test File', 'Test Class', 'Test Name',
             f'Job-Level Shard ({s1_name})',
