@@ -292,6 +292,18 @@ def scan_logs(logs_dir):
         job_total = shard_totals.get((platform, test_config), 0)
         job_shard_str = f"{shard_num}/{job_total}" if job_total else str(shard_num)
 
+        # Companion .job_url file written by download_testlogs.write_test_log_to_file.
+        # Absent for log archives produced before that change landed; in that
+        # case job_url stays empty and the column renders as a blank cell.
+        job_url_file = os.path.join(logs_dir, fname + ".job_url")
+        job_url = ""
+        if os.path.isfile(job_url_file):
+            try:
+                with open(job_url_file) as jf:
+                    job_url = jf.read().strip()
+            except OSError:
+                pass
+
         filepath = os.path.join(logs_dir, fname)
         results, consistent_failures, flaky_tests = parse_log_file(filepath)
 
@@ -306,6 +318,7 @@ def scan_logs(logs_dir):
                 "test_name": ft["method"],
                 "job_shard": job_shard_str,
                 "test_shard": ft["test_shard"],
+                "job_url": job_url,
             })
 
         # Record every (test_file, test_shard) observed in this log file,
@@ -365,6 +378,7 @@ def scan_logs(logs_dir):
                 "category": "+".join(categories),
                 "reason": reason,
                 "exit_codes": ",".join(str(c) for c in info["exit_codes"]),
+                "job_url": job_url,
             })
 
         for test_path, shard_str in consistent_failures:
@@ -384,6 +398,7 @@ def scan_logs(logs_dir):
                 "category": "CONSISTENT_FAILURE",
                 "reason": f"{test_class}::{test_name}" if test_class else "",
                 "exit_codes": "",
+                "job_url": job_url,
             })
 
     def _sort_shards(vals):
@@ -420,6 +435,7 @@ def write_csv_report(failures, output_path):
         "log_file", "platform", "test_config", "test_file",
         "job_shard", "test_shard",
         "status", "category", "reason", "exit_codes",
+        "job_url",
     ]
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
@@ -441,6 +457,7 @@ def write_flaky_report(flaky, output_path):
     fieldnames = [
         "log_file", "platform", "test_config", "test_file",
         "test_class", "test_name", "job_shard", "test_shard",
+        "job_url",
     ]
     with open(output_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=fieldnames)

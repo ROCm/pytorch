@@ -90,6 +90,18 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
 
+    # Write the pytorch/pytorch CI job URL to a companion .job_url file next
+    # to this log so detect_log_failures.py can surface it in the LOG-BASED
+    # FAILURES table of the parity summary, giving reviewers a click-through
+    # to the failing job's logs for the stacktrace.
+    job_url = js[0].get('html_url') or ''
+    if job_url:
+        try:
+            with open(filename + ".job_url", "w", encoding="utf-8") as f:
+                f.write(job_url)
+        except OSError as e:
+            print(f"  WARNING: failed to write {filename}.job_url: {e}")
+
 def get_workflow_jobs(wf):
     """Get all jobs for a workflow run."""
     if wf is None:
@@ -239,24 +251,32 @@ def _shorten_unzipped_dirs():
       unzipped-test-reports-runattempt1-test-default-1-6-linux.rocm.gpu.gfx942.1_68613413431.zip
       unzipped-test-reports-runattempt1-test-osdc-default-1-5-mt-l-x86aavx2-29-113-l4_73385044118.zip
     to:
-      test-default-1-6
-      test-default-1-5
+      test-default-1-6_68613413431
+      test-default-1-5_73385044118
 
-    Preserves the 'test-<config>' prefix so that summarize_xml_testreports.py
-    can still detect workflow type via substring matching.
+    Preserves the 'test-<config>' prefix so summarize_xml_testreports.py can
+    still detect workflow type via substring matching. The trailing
+    '_<jobid>' encodes the upstream pytorch/pytorch CI job id, which
+    summarize_xml_testreports.py combines with the workflow run id to build
+    a direct link to the failing job. Existing consumers tolerate the
+    suffix: `re.match(r'test-\\w+-(\\d+)-(\\d+)', dirname)` is unanchored at
+    the end, and `"test-default" in dirname` is a substring check.
     """
     from pathlib import Path
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
         m = re.search(r'test-(?:osdc-)?(default|distributed|inductor)-(\d+)-(\d+)', d.name)
-        if m:
-            short_name = f"test-{m.group(1)}-{m.group(2)}-{m.group(3)}"
-            if not Path(short_name).exists():
-                d.rename(short_name)
-                print(f"  Renamed {d.name} -> {short_name}")
-            else:
-                print(f"  WARNING: {short_name} already exists, keeping {d.name}")
+        if not m:
+            continue
+        job_id_match = re.search(r'_(\d{6,})\.zip$', d.name)
+        job_id_suffix = f"_{job_id_match.group(1)}" if job_id_match else ""
+        short_name = f"test-{m.group(1)}-{m.group(2)}-{m.group(3)}{job_id_suffix}"
+        if not Path(short_name).exists():
+            d.rename(short_name)
+            print(f"  Renamed {d.name} -> {short_name}")
+        else:
+            print(f"  WARNING: {short_name} already exists, keeping {d.name}")
 
 def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
     # Get from S3 artifacts
@@ -296,6 +316,14 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
             unzip(path)
 
     _shorten_unzipped_dirs()
+
+    # Workflow run id used by summarize_xml_testreports.py to build per-job
+    # URLs (combined with the '_<jobid>' suffix on each test-<cfg>-N-N dir).
+    try:
+        with open("_wf_run_id", "w") as f:
+            f.write(str(workflow_run_id))
+    except OSError as e:
+        print(f"  WARNING: failed to write _wf_run_id: {e}")
 
     # Delete raw zip files now that contents are extracted
     for path in artifact_paths:

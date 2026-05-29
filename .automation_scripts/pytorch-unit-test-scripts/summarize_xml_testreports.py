@@ -69,6 +69,21 @@ def _extract_shard(dirname):
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
     test_config = ""
     test_cases = {}
+
+    # The '_wf_run_id' file is written by download_testlogs.download_xml_files
+    # and identifies the upstream pytorch/pytorch CI workflow run these XML
+    # reports came from. Combined with the '_<jobid>' suffix on each
+    # test-<cfg>-N-N directory, it lets us build a direct link to the
+    # failing job page so reviewers can jump straight to the stacktrace.
+    wf_run_id = ""
+    wf_id_file = os.path.join(path, "_wf_run_id")
+    if os.path.isfile(wf_id_file):
+        try:
+            with open(wf_id_file) as f:
+                wf_run_id = f.read().strip()
+        except OSError:
+            pass
+
     items_list = os.listdir(path)
     for dir in items_list:
         new_dir = path + '/' + dir + '/'
@@ -80,6 +95,11 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
             elif "test-inductor" in new_dir:
                 test_config = TestConfigName.inductor.name
             shard = _extract_shard(dir)
+            m_jid = re.search(r'_(\d{6,})$', dir)
+            job_id = m_jid.group(1) if m_jid else ""
+            job_url = ""
+            if wf_run_id and job_id:
+                job_url = f"https://github.com/pytorch/pytorch/actions/runs/{wf_run_id}/job/{job_id}"
             for xml_report in Path(new_dir).glob("**/*.xml"):
                 try:
                     new_cases = parse_xml_report(
@@ -94,6 +114,8 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                     continue
                 for key, case in new_cases.items():
                     case["shard"] = shard
+                    if job_url:
+                        case["job_url"] = job_url
                     existing = test_cases.get(key)
                     if existing is None or _status_priority(case) > _status_priority(existing):
                         test_cases[key] = case
@@ -472,6 +494,8 @@ def summarize_xml_files(args):
         item_values["test_config"] = config_name
         item_values[f"shard_{set1_name}"] = v_values.get('shard', '') if v_values else ''
         item_values[f"shard_{set2_name}"] = v1_values.get('shard', '') if v1_values else ''
+        item_values[f"job_url_{set1_name}"] = v_values.get('job_url', '') if v_values else ''
+        item_values[f"job_url_{set2_name}"] = v1_values.get('job_url', '') if v1_values else ''
         # get test related info
         item_values[f"message_{set1_name}"] = get_test_message(v[0])
         item_values[f"message_{set2_name}"] = get_test_message(v[1]) if set2_path else ""
@@ -564,6 +588,10 @@ def summarize_xml_files(args):
           return 21
         elif e == f"shard_{set2_name}":
           return 22
+        elif e == f"job_url_{set1_name}":
+          return 23
+        elif e == f"job_url_{set2_name}":
+          return 24
         elif e == "workflow_run_attempt" or e == "job_id":
           return 1000
         else:
