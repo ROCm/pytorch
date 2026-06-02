@@ -26,7 +26,11 @@ else
 fi
 
 # The logic here is copied from .ci/pytorch/common_utils.sh
-TRITON_PINNED_COMMIT=$(get_pinned_commit ${TRITON_TEXT_FILE})
+if [ "${TRITON_TEXT_FILE}" = "triton" ]; then
+  TRITON_REF="release/internal/3.6.x"
+else
+  TRITON_REF=$(get_pinned_commit ${TRITON_TEXT_FILE})
+fi
 
 if [ -n "${UBUNTU_VERSION}" ];then
     apt update
@@ -49,7 +53,7 @@ pushd /var/lib/jenkins/
 
 as_jenkins git clone --recursive ${TRITON_REPO} triton
 cd triton
-as_jenkins git checkout ${TRITON_PINNED_COMMIT}
+as_jenkins git checkout ${TRITON_REF}
 as_jenkins git submodule update --init --recursive
 
 # Old versions of python have setup.py in ./python; newer versions have it in ./
