@@ -108,15 +108,22 @@ def build_triton(
         else:
             triton_pkg_name = "triton"
         check_call(["git", "clone", triton_repo, "triton"], cwd=tmpdir)
-        if release:
+        if device == "xpu" and release:
             ver, rev, patch = version.split(".")
+            # XPU uses the patch version in the release branch name
+            check_call(
+                ["git", "checkout", f"release/{ver}.{rev}.{patch}"],
+                cwd=triton_basedir,
+            )
+        elif device == "xpu":
+            check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
+            check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
+        else:
+            ver, rev, _patch = version.split(".")
             check_call(
                 ["git", "checkout", f"release/internal/{ver}.{rev}.x"],
                 cwd=triton_basedir,
             )
-        else:
-            check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
-            check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
