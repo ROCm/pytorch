@@ -130,17 +130,18 @@ jobs:
           ARCH_WORKFLOW_REGEX_MAP=${ARCH_WORKFLOW_REGEX_OVERRIDE:-$(echo "$CONFIG_JSON" | jq -c '.rocm | map_values(.workflow_regex)')}
           CUDA_JOBNAME_REGEX=$(echo "$CONFIG_JSON" | jq -r '.cuda.checkrun_regex')
 
-          echo "Upstream:       $UPSTREAM@$BRANCH"
-          echo "Target ref:     $TARGET_REF"
-          echo "Scope archs:    $ARCHS"
-          echo "Max trunk runs: $MAX_COMMITS"
-          echo "Max dispatches: $MAX_DISPATCHES"
-          echo "Max age:        ${MAX_AGE_HOURS}h"
-          echo "Dry run:        $DRY_RUN"
-          echo "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP"
-          echo "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP"
-          echo "CUDA jobs:       $CUDA_JOBNAME_REGEX"
-          echo
+          printf '%s\n' \
+            "Upstream:        $UPSTREAM@$BRANCH" \
+            "Target ref:      $TARGET_REF" \
+            "Scope archs:     $ARCHS" \
+            "Max trunk runs:  $MAX_COMMITS" \
+            "Max dispatches:  $MAX_DISPATCHES" \
+            "Max age:         ${MAX_AGE_HOURS}h" \
+            "Dry run:         $DRY_RUN" \
+            "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
+            "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP" \
+            "CUDA jobs:       $CUDA_JOBNAME_REGEX" \
+            ""
 
           # --- 1. Recent completed upstream trunk pushes -----------------------
           # Use trunk.yml as the candidate source instead of raw main commits.
@@ -353,27 +354,25 @@ jobs:
           done <<< "$COMMITS"
 
           # --- 4. Summary -------------------------------------------------------
+          if [ "$DISPATCHED_COUNT" -gt 0 ]; then
+            RESULT_LINE=$([ "$DRY_RUN" = "true" ] \
+              && echo "would dispatch $DISPATCHED_COUNT parity run(s) (dry-run)" \
+              || echo "dispatched $DISPATCHED_COUNT parity run(s)")
+            DISPATCHED_LIST=$(echo "$DISPATCHED_SUMMARY" | sed '/^$/d; s/^/- /')
+          else
+            RESULT_LINE="no ready unprocessed SHAs found"
+            DISPATCHED_LIST=""
+          fi
           {
-            echo "### Parity auto-trigger"
-            echo ""
-            echo "- Upstream:     \`$UPSTREAM@$BRANCH\`"
-            echo "- Scope archs:  \`$ARCHS\`"
-            echo "- Max commits:  $MAX_COMMITS"
-            echo "- Max dispatches: $MAX_DISPATCHES"
-            echo "- Max age:      ${MAX_AGE_HOURS}h"
-            echo "- Target ref:   \`$TARGET_REF\`"
-            if [ "$DISPATCHED_COUNT" -gt 0 ]; then
-              if [ "$DRY_RUN" = "true" ]; then
-                echo "- Result:       would dispatch $DISPATCHED_COUNT parity run(s) (dry-run)"
-              else
-                echo "- Result:       dispatched $DISPATCHED_COUNT parity run(s)"
-              fi
-              echo ""
-              echo "$DISPATCHED_SUMMARY" | while IFS= read -r LINE; do
-                [ -z "$LINE" ] && continue
-                echo "- $LINE"
-              done
-            else
-              echo "- Result:       no ready unprocessed SHAs found"
-            fi
+            printf '%s\n' \
+              "### Parity auto-trigger" \
+              "" \
+              "- Upstream:       \`$UPSTREAM@$BRANCH\`" \
+              "- Scope archs:    \`$ARCHS\`" \
+              "- Max commits:    $MAX_COMMITS" \
+              "- Max dispatches: $MAX_DISPATCHES" \
+              "- Max age:        ${MAX_AGE_HOURS}h" \
+              "- Target ref:     \`$TARGET_REF\`" \
+              "- Result:         $RESULT_LINE"
+            [ -n "$DISPATCHED_LIST" ] && printf '\n%s\n' "$DISPATCHED_LIST"
           } >> "$GITHUB_STEP_SUMMARY"
