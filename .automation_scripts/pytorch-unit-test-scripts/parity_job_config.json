@@ -1,0 +1,65 @@
+{
+  "_comment": "Single source of truth for pytorch/pytorch job-name matching used by the parity tooling. Consumed by download_testlogs (Python, S3 artifact + log matching) and parity-auto.yml (bash/jq, upstream check-run gating). Per ROCm arch: 'workflows' (upstream workflow file each test type lives in), 'job_prefixes' (check-run/job name prefix per test type), 'shard_counts' (per test type), 'artifact_substrings' (filter passed to the artifact downloader, null = no filter), 'fallbacks' (per test type: workflow + job_prefix to try when the primary workflow run is missing), 'checkrun_regex' (PCRE matching this arch's ROCm test check-run names for parity-auto gating), 'workflow_regex' (PCRE matching upstream workflow file paths that mean this arch ran). CUDA mirrors the same idea for the trunk CUDA test jobs.",
+  "cuda": {
+    "workflows": { "default": "trunk", "inductor": "inductor" },
+    "job_prefix": "linux-jammy-cuda13.0-py3.10-gcc11",
+    "inductor_job_prefix": "unit-test / inductor-test",
+    "test_kinds": ["test-osdc", "test"],
+    "shard_counts": { "default": 5, "distributed": 3, "inductor": 2 },
+    "checkrun_regex": "(linux-jammy-cuda13[.]0-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
+  },
+  "rocm": {
+    "mi355": {
+      "workflows": { "default": "trunk", "distributed": "periodic-rocm-mi355", "inductor": "inductor-rocm-mi355" },
+      "job_prefixes": { "default": "linux-jammy-rocm-py3.10-mi355", "distributed": "linux-noble-rocm-py3.12-mi355", "inductor": "linux-noble-rocm-py3.12-mi355" },
+      "shard_counts": { "default": 10, "distributed": 4, "inductor": 2 },
+      "artifact_substrings": ["rocm.gpu"],
+      "fallbacks": {
+        "default": { "workflow": "rocm-mi355", "job_prefix": "linux-noble-rocm-py3.12-mi355" },
+        "distributed": { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi355" }
+      },
+      "checkrun_regex": "rocm.*mi355.*/ test [(](default|distributed|inductor),",
+      "workflow_regex": "(^|/)(trunk|rocm-mi355|periodic-rocm-mi355|inductor-rocm-mi355)[.]yml$"
+    },
+    "mi300": {
+      "workflows": { "default": "rocm-mi300", "distributed": "periodic-rocm-mi300", "inductor": "inductor-rocm-mi300" },
+      "job_prefixes": { "default": "linux-noble-rocm-py3.12-mi300", "distributed": "linux-noble-rocm-py3.12-mi300", "inductor": "linux-noble-rocm-py3.12-mi300" },
+      "shard_counts": { "default": 6, "distributed": 3, "inductor": 2 },
+      "artifact_substrings": null,
+      "fallbacks": {},
+      "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),",
+      "workflow_regex": "(^|/)(rocm-mi300|periodic-rocm-mi300|inductor-rocm-mi300)[.]yml$"
+    },
+    "mi200": {
+      "workflows": { "default": "rocm-mi200", "distributed": "periodic-rocm-mi200", "inductor": "inductor-rocm-mi200" },
+      "job_prefixes": { "default": "linux-jammy-rocm-py3.10-mi200", "distributed": "linux-jammy-rocm-py3.10-mi200", "inductor": "linux-jammy-rocm-py3.10-mi200" },
+      "shard_counts": { "default": 6, "distributed": 3, "inductor": 2 },
+      "artifact_substrings": null,
+      "fallbacks": {
+        "default": { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" },
+        "distributed": { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" },
+        "inductor": { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" }
+      },
+      "checkrun_regex": "(rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),|linux-jammy-rocm-py3[.]10 / test [(](default|distributed|inductor),)",
+      "workflow_regex": "(^|/)(trunk-rocm-sandbox|rocm-mi200|periodic-rocm-mi200|inductor-rocm-mi200)[.]yml$"
+    },
+    "navi31": {
+      "workflows": { "default": "rocm-navi31", "distributed": "periodic-rocm-navi31", "inductor": "inductor-rocm-navi31" },
+      "job_prefixes": { "default": "linux-jammy-rocm-py3.10-navi31", "distributed": "linux-jammy-rocm-py3.10-navi31", "inductor": "linux-jammy-rocm-py3.10-navi31" },
+      "shard_counts": { "default": 2, "distributed": 3, "inductor": 2 },
+      "artifact_substrings": null,
+      "fallbacks": {},
+      "checkrun_regex": "rocm.*navi31.*/ test [(]default,",
+      "workflow_regex": "(^|/)(rocm-navi31|periodic-rocm-navi31|inductor-rocm-navi31)[.]yml$"
+    },
+    "nightly": {
+      "workflows": { "default": "rocm-nightly", "distributed": "rocm-nightly", "inductor": "rocm-nightly" },
+      "job_prefixes": { "default": "linux-noble-rocm-nightly-py3.12-gfx942", "distributed": "linux-noble-rocm-nightly-py3.12-gfx942", "inductor": "linux-noble-rocm-nightly-py3.12-gfx942" },
+      "shard_counts": { "default": 6, "distributed": 3, "inductor": 2 },
+      "artifact_substrings": ["rocm.gpu"],
+      "fallbacks": {},
+      "checkrun_regex": "rocm-nightly.*/ test [(](default|distributed|inductor),",
+      "workflow_regex": "(^|/)rocm-nightly[.]yml$"
+    }
+  }
+}

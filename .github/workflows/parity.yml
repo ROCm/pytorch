@@ -1,4 +1,15 @@
 name: Parity Report
+
+# Generates the ROCm-vs-CUDA (or commit-vs-commit) test parity report for one
+# or more architectures. Three jobs run in sequence:
+#   1. setup-matrix    - turn the "arch" input into a job matrix + filename prefix
+#   2. generate-parity - per arch: download_testlogs -> per-arch CSV artifact
+#   3. summarize       - merge the per-arch CSVs into one report + step summary
+#
+# The run-name below is just a human-friendly title shown in the Actions list.
+# It reads as: [autoparity- if auto-triggered] <label> · <archs>, where <label>
+# is the first of: "<sha> vs <baseline>", csv_name, "PR <id>", <sha>, "latest".
+# "autoparity-" only marks auto-trigger dispatches; it never affects filenames.
 run-name: "${{ inputs.auto_triggered && 'autoparity-' || '' }}${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha || 'latest', inputs.baseline_sha) || inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
 
 on:
@@ -104,6 +115,9 @@ jobs:
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
           echo "Architectures: $JSON"
 
+          # Prefix for artifact names so the per-arch jobs and the summarize job
+          # agree on where to find each other's outputs. Prefer the most
+          # specific identifier the dispatcher gave us.
           if [ -n "${{ inputs.csv_name }}" ]; then
             PREFIX="${{ inputs.csv_name }}"
           elif [ -n "${{ inputs.sha }}" ]; then
@@ -144,6 +158,10 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
+          # Translate the workflow inputs into download_testlogs CLI flags. Job
+          # names, shard counts and workflow matching all live in
+          # parity_job_config.json, which download_testlogs reads itself - this
+          # step only forwards the per-run options.
           ARGS="--arch ${{ matrix.arch }}"
 
           if [ -n "${{ inputs.sha }}" ]; then

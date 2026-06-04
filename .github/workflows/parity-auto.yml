@@ -48,14 +48,14 @@ on:
         default: 'mi355'
         type: string
       arch_jobname_regex_map:
-        description: 'JSON: arch -> PCRE regex that matches the check-run names of that arch''s ROCm test shards on pytorch/pytorch. An arch is considered "ready" only when every check-run whose name matches has status=completed (so we wait for all test shards, not just workflow completion).'
+        description: 'Optional override. JSON map of arch -> PCRE regex matching that arch''s ROCm test check-run names. Leave blank to use parity_job_config.json (rocm.<arch>.checkrun_regex), the same config download_testlogs reads.'
         required: false
-        default: '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),"}'
+        default: ''
         type: string
       arch_workflow_regex_map:
-        description: 'JSON: arch -> PCRE regex that matches workflow file paths for upstream ROCm workflows that mean this arch ran on the SHA. Missing workflows mean the arch is not expected for that commit. Defaults to trunk.yml only.'
+        description: 'Optional override. JSON map of arch -> PCRE regex matching upstream workflow file paths that mean this arch ran on the SHA. Leave blank to use parity_job_config.json (rocm.<arch>.workflow_regex).'
         required: false
-        default: '{"mi355":"(^|/)trunk[.]yml$"}'
+        default: ''
         type: string
       target_ref:
         description: 'Ref of this repo to dispatch parity.yml against. Leave blank to use this workflow run''s ref.'
@@ -89,8 +89,10 @@ jobs:
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
           ARCHS_IN: ${{ inputs.archs || 'mi355' }}
-          ARCH_JOBNAME_REGEX_MAP: ${{ inputs.arch_jobname_regex_map || '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),"}' }}
-          ARCH_WORKFLOW_REGEX_MAP: ${{ inputs.arch_workflow_regex_map || '{"mi355":"(^|/)trunk[.]yml$"}' }}
+          # Optional manual overrides; blank means "derive from parity_job_config.json".
+          ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
+          ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}
+          CONFIG_PATH: .automation_scripts/pytorch-unit-test-scripts/parity_job_config.json
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ github.event_name == 'pull_request' && 'true' || inputs.dry_run || 'false' }}
         run: |
@@ -108,6 +110,26 @@ jobs:
           TARGET_REF="${TARGET_REF_IN:-$GITHUB_REF_NAME}"
           ARCHS=$(echo "$ARCHS_IN" | tr ',' ' ' | xargs)
 
+          # --- 0. Load job-name matching config -------------------------------
+          # parity_job_config.json is the single source of truth that
+          # download_testlogs also reads. From it we build two per-arch PCRE
+          # maps - which upstream workflow files mean an arch ran
+          # (workflow_regex), and which test check-run names to wait on
+          # (checkrun_regex) - plus the CUDA check-run regex. We read the file
+          # over the API (this job intentionally never checks out the fork) at
+          # GITHUB_SHA, so the config always matches the workflow code running,
+          # and honour the optional override inputs. Note: trunk-only scoping
+          # comes from the candidate source (completed trunk.yml pushes, step 1)
+          # and the default archs=mi355, not from these regexes.
+          CONFIG_JSON=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
+          if [ -z "$CONFIG_JSON" ] || ! echo "$CONFIG_JSON" | jq -e . >/dev/null 2>&1; then
+            echo "::error::Could not read $CONFIG_PATH at $GITHUB_SHA"
+            exit 1
+          fi
+          ARCH_JOBNAME_REGEX_MAP=${ARCH_JOBNAME_REGEX_OVERRIDE:-$(echo "$CONFIG_JSON" | jq -c '.rocm | map_values(.checkrun_regex)')}
+          ARCH_WORKFLOW_REGEX_MAP=${ARCH_WORKFLOW_REGEX_OVERRIDE:-$(echo "$CONFIG_JSON" | jq -c '.rocm | map_values(.workflow_regex)')}
+          CUDA_JOBNAME_REGEX=$(echo "$CONFIG_JSON" | jq -r '.cuda.checkrun_regex')
+
           echo "Upstream:       $UPSTREAM@$BRANCH"
           echo "Target ref:     $TARGET_REF"
           echo "Scope archs:    $ARCHS"
@@ -117,6 +139,7 @@ jobs:
           echo "Dry run:        $DRY_RUN"
           echo "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP"
           echo "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP"
+          echo "CUDA jobs:       $CUDA_JOBNAME_REGEX"
           echo
 
           # --- 1. Recent completed upstream trunk pushes -----------------------
@@ -238,7 +261,7 @@ jobs:
                 <(echo "$ARCH_CHECK_RUNS"))
             done
 
-            CUDA_JOBNAME_REGEX='(linux-jammy-cuda13[.]0-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)'
+            # CUDA_JOBNAME_REGEX was loaded from the config in step 0.
             CUDA_CHECK_RUNS=$(echo "$ALL_CHECK_RUNS" | jq --arg rx "$CUDA_JOBNAME_REGEX" \
               '[.[] | select((.name | test($rx)) and (.name | test("mem_leak_check|rerun_disabled_tests") | not))]')
 
