@@ -2,26 +2,22 @@ name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
 # Polls completed pytorch/pytorch trunk.yml pushes on main and dispatches
-# parity.yml once for each SHA where all CI consumed by the report has finished,
-# covering every arch whose test shards actually ran on it.
+# parity.yml once for each SHA where the trunk CI consumed by the report has
+# finished. This auto-trigger is scoped to trunk only: the ROCm side is the
+# mi355 (gfx950) test shards that run as part of trunk.yml, compared against
+# the CUDA test shards in the same trunk run. Other ROCm arches (mi300, mi200,
+# navi31, nightly) come from separate periodic workflows and are intentionally
+# not covered here; run parity.yml manually for those.
 #
-# Arch participation is detected at the workflow_run level: if rocm-mi300
-# never ran on a SHA, we don't wait for it or include it. Readiness is then
-# evaluated at the *check-run* level because ROCm test shards post check-runs
-# independently, and a single failing shard flips the parent workflow_run to
-# conclusion=failure while siblings are still executing.
+# Readiness is evaluated at the *check-run* level because ROCm test shards post
+# check-runs independently, and a single failing shard flips the parent
+# workflow_run to conclusion=failure while siblings are still executing.
 #
 # Two gates:
-#   1. Detect which ROCm arch workflows actually ran on this SHA.
-#   2. Require every test check-run for those ROCm arch workflows, plus every
-#      CUDA test check-run consumed by download_testlogs, to be status=completed.
-#      We don't want to dispatch mi355 while a mi300 workflow that ran on the
-#      same SHA is still creating or running test shards.
-#
-# We dispatch at most once per SHA with the ready subset of arches, so mi355
-# (run as part of trunk) gets a parity report per commit, and mi300/
-# mi200 join the same dispatch whenever their periodic workflow
-# happens to finish on that SHA.
+#   1. Detect that trunk.yml ran on this SHA (the mi355 ROCm jobs ride along).
+#   2. Require every mi355 ROCm test check-run, plus every CUDA test check-run
+#      consumed by download_testlogs, to be status=completed before dispatching,
+#      so we never author a partial report for a SHA.
 
 on:
   schedule:
@@ -47,19 +43,19 @@ on:
         default: '72'
         type: string
       archs:
-        description: 'Architectures to consider (comma/space separated).'
+        description: 'Architectures to consider (comma/space separated). Defaults to mi355 only - the ROCm arch that rides along in trunk.yml.'
         required: false
-        default: 'mi355, mi300, mi200'
+        default: 'mi355'
         type: string
       arch_jobname_regex_map:
         description: 'JSON: arch -> PCRE regex that matches the check-run names of that arch''s ROCm test shards on pytorch/pytorch. An arch is considered "ready" only when every check-run whose name matches has status=completed (so we wait for all test shards, not just workflow completion).'
         required: false
-        default: '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),","mi300":"rocm.*mi300.*/ test [(](default|distributed|inductor),","mi200":"(rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),|linux-jammy-rocm-py3[.]10 / test [(](default|distributed|inductor),)","navi31":"rocm.*navi31.*/ test [(]default,","nightly":"rocm-nightly.*/ test [(](default|distributed|inductor),"}'
+        default: '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),"}'
         type: string
       arch_workflow_regex_map:
-        description: 'JSON: arch -> PCRE regex that matches workflow file paths for upstream ROCm workflows that mean this arch ran on the SHA. Missing workflows mean the arch is not expected for that commit.'
+        description: 'JSON: arch -> PCRE regex that matches workflow file paths for upstream ROCm workflows that mean this arch ran on the SHA. Missing workflows mean the arch is not expected for that commit. Defaults to trunk.yml only.'
         required: false
-        default: '{"mi355":"(^|/)(trunk|rocm-mi355|periodic-rocm-mi355|inductor-rocm-mi355)[.]yml$","mi300":"(^|/)(rocm-mi300|periodic-rocm-mi300|inductor-rocm-mi300)[.]yml$","mi200":"(^|/)(trunk-rocm-sandbox|rocm-mi200|periodic-rocm-mi200|inductor-rocm-mi200)[.]yml$","navi31":"(^|/)(rocm-navi31|periodic-rocm-navi31|inductor-rocm-navi31)[.]yml$","nightly":"(^|/)rocm-nightly[.]yml$"}'
+        default: '{"mi355":"(^|/)trunk[.]yml$"}'
         type: string
       target_ref:
         description: 'Ref of this repo to dispatch parity.yml against. Leave blank to use this workflow run''s ref.'
@@ -92,9 +88,9 @@ jobs:
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          ARCHS_IN: ${{ inputs.archs || 'mi355, mi300, mi200' }}
-          ARCH_JOBNAME_REGEX_MAP: ${{ inputs.arch_jobname_regex_map || '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),","mi300":"rocm.*mi300.*/ test [(](default|distributed|inductor),","mi200":"(rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),|linux-jammy-rocm-py3[.]10 / test [(](default|distributed|inductor),)","navi31":"rocm.*navi31.*/ test [(]default,","nightly":"rocm-nightly.*/ test [(](default|distributed|inductor),"}' }}
-          ARCH_WORKFLOW_REGEX_MAP: ${{ inputs.arch_workflow_regex_map || '{"mi355":"(^|/)(trunk|rocm-mi355|periodic-rocm-mi355|inductor-rocm-mi355)[.]yml$","mi300":"(^|/)(rocm-mi300|periodic-rocm-mi300|inductor-rocm-mi300)[.]yml$","mi200":"(^|/)(trunk-rocm-sandbox|rocm-mi200|periodic-rocm-mi200|inductor-rocm-mi200)[.]yml$","navi31":"(^|/)(rocm-navi31|periodic-rocm-navi31|inductor-rocm-navi31)[.]yml$","nightly":"(^|/)rocm-nightly[.]yml$"}' }}
+          ARCHS_IN: ${{ inputs.archs || 'mi355' }}
+          ARCH_JOBNAME_REGEX_MAP: ${{ inputs.arch_jobname_regex_map || '{"mi355":"rocm.*mi355.*/ test [(](default|distributed|inductor),"}' }}
+          ARCH_WORKFLOW_REGEX_MAP: ${{ inputs.arch_workflow_regex_map || '{"mi355":"(^|/)trunk[.]yml$"}' }}
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ github.event_name == 'pull_request' && 'true' || inputs.dry_run || 'false' }}
         run: |
