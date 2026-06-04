@@ -1,5 +1,5 @@
 name: Parity Report
-run-name: "${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha || 'latest', inputs.baseline_sha) || inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
+run-name: "${{ inputs.auto_triggered && 'autoparity-' || '' }}${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha || 'latest', inputs.baseline_sha) || inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
 
 on:
   workflow_dispatch:
@@ -22,6 +22,11 @@ on:
         required: false
         default: 'mi355, mi300, mi200'
         type: string
+      auto_triggered:
+        description: 'Internal: set by parity-auto.yml for runs dispatched by the auto-trigger. Only prefixes the run name with "autoparity-"; does not affect output/CSV filenames.'
+        required: false
+        default: false
+        type: boolean
       exclude_distributed:
         description: 'Exclude distributed tests (auto-excluded for navi31)'
         required: false

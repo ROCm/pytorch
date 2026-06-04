@@ -156,10 +156,11 @@ jobs:
 
           # --- 2. Already-dispatched SHAs in our repo --------------------------
           # Deduplicate auto-parity-created parity runs without changing
-          # parity.yml's own output naming. New auto-dispatched runs are created
-          # by github-actions[bot]; keep the old autoparity-* title match so
-          # runs created before this workflow stopped passing csv_name still
-          # suppress duplicate dispatches.
+          # parity.yml's own output naming. Auto-dispatched runs are created by
+          # github-actions[bot] and, via the auto_triggered input, carry an
+          # "autoparity-" run-name prefix (which does not affect CSV filenames).
+          # Match either signal so duplicates - including older runs from before
+          # the actor check existed - are suppressed.
           EXISTING=$(gh api --paginate \
             "repos/$GITHUB_REPOSITORY/actions/workflows/parity.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u -d "@$MAX_AGE_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')&per_page=100" \
             --jq '.workflow_runs[] | {display_title, actor: .actor.login}' |
@@ -320,7 +321,8 @@ jobs:
                 --repo "$GITHUB_REPOSITORY" \
                 --ref  "$TARGET_REF" \
                 -f sha="$SHA" \
-                -f arch="$ARCH_DISPATCH"
+                -f arch="$ARCH_DISPATCH" \
+                -f auto_triggered=true
             fi
 
             DISPATCHED_COUNT=$((DISPATCHED_COUNT + 1))
