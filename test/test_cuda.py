@@ -254,12 +254,21 @@ class TestCuda(TestCase):
                 "active_requests.peak": 0,
             }
 
+        # Deltas from baseline captured after cleanup (not absolute totals), so
+        # ordering against other tests cannot leave host stats in a broken state.
+        baseline = {}
+
         def check_stats(expected):
             stats = torch.cuda.host_memory_stats()
             for k, v in expected.items():
-                if v != stats[k]:
-                    print(f"key: {k}, expected: {v}, stats: {stats[k]}")
-                self.assertEqual(v, stats[k])
+                want = baseline[k] + v
+                actual = stats[k]
+                if actual != want:
+                    print(
+                        f"key: {k}, baseline: {baseline[k]}, delta: {v}, "
+                        f"want: {want}, got: {actual}"
+                    )
+                self.assertEqual(actual, want)
 
         # Setup the test cleanly
         alloc1 = 10
@@ -268,11 +277,12 @@ class TestCuda(TestCase):
         alloc2_aligned = 32
         expected = empty_stats()
 
-        # Reset any lingering state
         gc.collect()
         torch._C._host_emptyCache()
+        torch.cuda.reset_peak_host_memory_stats()
+        torch.cuda.reset_accumulated_host_memory_stats()
+        baseline.update(torch.cuda.host_memory_stats())
 
-        # Check that stats are empty
         check_stats(expected)
 
         # Make first allocation and check stats
