@@ -162,6 +162,11 @@ jobs:
           # names, shard counts and workflow matching all live in
           # parity_job_config.json, which download_testlogs reads itself - this
           # step only forwards the per-run options.
+          #
+          # pipefail so a download_testlogs failure fails this step instead of
+          # being hidden by tee's 0 exit code (which would publish a partial,
+          # half-empty report as a green run).
+          set -o pipefail
           ARGS="--arch ${{ matrix.arch }}"
 
           if [ -n "${{ inputs.sha }}" ]; then
