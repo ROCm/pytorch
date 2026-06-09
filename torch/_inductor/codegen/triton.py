@@ -53,6 +53,7 @@ from ..runtime.benchmarking import benchmarker
 from ..runtime.hints import (
     AutotuneHint,
     DeviceProperties,
+    get_warp_size,
     ReductionHint,
     TRITON_MAX_BLOCK,
     TRITON_MAX_RSPLIT,
@@ -6173,7 +6174,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             # faults on AMD hardware.  Keep the dynamic mask so that all
             # hardware stays correct.
             device = V.graph.get_current_device_or_throw()
-            warp_size = DeviceProperties.create(device).warp_size or 32
+            warp_size = get_warp_size(device)
             if isinstance(max_block, int) and max_block < warp_size:
                 return False
         elif tree.prefix == "x" and self.no_x_dim:

@@ -30,6 +30,7 @@ from ..kernel.mm import (
 )
 from ..kernel.mm_plus_mm import mm_plus_mm_template
 from ..kernel_inputs import KernelInputs, MMKernelInputs
+from ..runtime.hints import DeviceProperties
 from ..utils import (
     get_backend_num_stages,
     get_default_kpack,
