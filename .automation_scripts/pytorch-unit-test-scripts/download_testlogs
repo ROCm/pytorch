@@ -70,7 +70,66 @@ def get_latest_commit_sha(pr_id, token):
         print("No commits found for the given pull request.")
         sys.exit(1)
 
-def write_test_log_to_file(filename, test_key, jobs, sha):
+def _workflow_run_for_status(
+    workflow, sha, status, created=None, max_pages=10, ignore_status=False
+):
+    """Return the first completed workflow run for sha+status, or None."""
+    if not workflow:
+        return None
+    for page in range(max_pages):
+        params = {'per_page': 30, 'page': page}
+        if not ignore_status and status:
+            params['status'] = status
+        if created:
+            params['created'] = created
+        if sha:
+            params['head_sha'] = sha
+        else:
+            params['branch'] = "main"
+        response = requests.get(
+            "https://api.github.com/repos/pytorch/pytorch/actions/workflows/{}.yml/runs".format(workflow),
+            headers=authentication_headers,
+            params=params,
+        )
+        try:
+            workflow_runs = response.json()['workflow_runs']
+        except Exception:
+            return None
+        if not workflow_runs:
+            continue
+        completed = [wf for wf in workflow_runs if wf.get('status') == 'completed']
+        if completed:
+            return completed[0]
+        return workflow_runs[0]
+    return None
+
+
+def lookup_failed_job_url(
+    workflow, sha, job_key, created=None, max_pages=10, ignore_status=False
+):
+    """Return html_url for the same job name in a failed workflow run, if any."""
+    fail_wf = _workflow_run_for_status(
+        workflow, sha, 'failure', created, max_pages, ignore_status
+    )
+    if fail_wf is None:
+        return ""
+    jobs = get_workflow_jobs(fail_wf)
+    matches = [j for j in jobs if job_key in j['name']]
+    if not matches:
+        return ""
+    return matches[0].get('html_url', '')
+
+
+def write_test_log_to_file(
+    filename,
+    test_key,
+    jobs,
+    sha,
+    workflow=None,
+    created=None,
+    max_pages=10,
+    ignore_status=False,
+):
     js = [j for j in jobs if test_key in j['name']]
     if len(js) > 0:
         if len(js) > 1:
@@ -97,6 +156,14 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
     if job_url:
         with open(filename + ".job_url", "w", encoding="utf-8") as f:
             f.write(job_url)
+
+    if workflow:
+        fail_job_url = lookup_failed_job_url(
+            workflow, sha, test_key, created, max_pages, ignore_status
+        )
+        if fail_job_url and fail_job_url != job_url:
+            with open(filename + ".fail_job_url", "w", encoding="utf-8") as f:
+                f.write(fail_job_url)
 
 def get_workflow_jobs(wf):
     """Get all jobs for a workflow run."""
@@ -169,7 +236,16 @@ def get_cuda_inductor_test_jobs(jobs):
             return test_kind, test_jobs
     return "test-osdc", []
 
-def download_logs(wf, test_log_list, test_folder, jobs=None):
+def download_logs(
+    wf,
+    test_log_list,
+    test_folder,
+    jobs=None,
+    workflow=None,
+    created=None,
+    max_pages=10,
+    ignore_status=False,
+):
     if wf is None: 
         raise Exception("wf is None!")
     
@@ -178,7 +254,16 @@ def download_logs(wf, test_log_list, test_folder, jobs=None):
 
     for test_log in test_log_list:
         write_out_file = test_folder + "/" + test_log[0]
-        write_test_log_to_file(write_out_file, test_log[1], jobs, wf['head_sha'])
+        write_test_log_to_file(
+            write_out_file,
+            test_log[1],
+            jobs,
+            wf['head_sha'],
+            workflow=workflow,
+            created=created,
+            max_pages=max_pages,
+            ignore_status=ignore_status,
+        )
 
 def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefixes=[], allowed_substrings=None):
     """Download GHA artifacts matching prefixes and optional substring filters.
@@ -605,7 +690,12 @@ def main():
                 [f"{current_prefix}rocm_dist{i}.txt", f"{dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
                 for i in range(1, dist_shards + 1)
             ]
-            download_logs(periodic_wf, test_log_list_rocm_distributed, folder_list[0])
+            download_logs(
+                periodic_wf, test_log_list_rocm_distributed, folder_list[0],
+                workflow=dist_wf_name,
+                created=args.created, max_pages=args.max_pages,
+                ignore_status=args.ignore_status,
+            )
 
         # Download artifacts
         test_artifacts_list_rocm_distributed = [
@@ -665,7 +755,12 @@ def main():
               [f"{current_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
               for i in range(1, default_shards + 1)
             ]
-            download_logs(rocm_wf, test_log_list_rocm_default, folder_list[0])
+            download_logs(
+                rocm_wf, test_log_list_rocm_default, folder_list[0],
+                workflow=default_wf_name,
+                created=args.created, max_pages=args.max_pages,
+                ignore_status=args.ignore_status,
+            )
 
         # Download artifacts
         test_artifacts_list_rocm_default = [
@@ -723,7 +818,12 @@ def main():
             [f"{current_prefix}rocm_inductor{i}.txt", f"{inductor_job_prefix} / test (inductor, {i}, {inductor_shards}"]
             for i in range(1, inductor_shards + 1)
           ]
-          download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
+          download_logs(
+              inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0],
+              workflow=inductor_wf_name,
+              created=args.created, max_pages=args.max_pages,
+              ignore_status=args.ignore_status,
+          )
 
         #Download artifacts
         test_artifacts_list_rocm_inductor = [
@@ -832,7 +932,12 @@ def main():
                 ]
                 test_log_list_cuda += test_log_list_cuda_distributed
 
-            download_logs(trunk_wf, test_log_list_cuda, folder_list[0], jobs=all_cuda_jobs)
+            download_logs(
+                trunk_wf, test_log_list_cuda, folder_list[0], jobs=all_cuda_jobs,
+                workflow=CUDAWorkflowNames['default'],
+                created=args.created, max_pages=args.max_pages,
+                ignore_status=args.ignore_status,
+            )
 
         # Download artifacts
         test_artifacts_list_cuda_default = [
@@ -895,7 +1000,13 @@ def main():
                 ["cuda_inductor1.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 1, 2"],
                 ["cuda_inductor2.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 2, 2"],
               ]
-              download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
+              download_logs(
+                  inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0],
+                  jobs=inductor_cuda_jobs,
+                  workflow=CUDAWorkflowNames['inductor'],
+                  created=args.created, max_pages=args.max_pages,
+                  ignore_status=args.ignore_status,
+              )
 
             test_artifacts_list_cuda_inductor = [
               f"test-reports-{cuda_inductor_test_job_kind}-inductor-1-2",
@@ -942,7 +1053,12 @@ def main():
                         [f"{baseline_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
                         for i in range(1, default_shards + 1)
                     ]
-                    download_logs(baseline_default_wf, baseline_default_logs, test_folder)
+                    download_logs(
+                        baseline_default_wf, baseline_default_logs, test_folder,
+                        workflow=ROCmWorkflowNames["default"],
+                        created=args.created, max_pages=args.max_pages,
+                        ignore_status=args.ignore_status,
+                    )
 
                 baseline_default_prefixes = [
                     f"test-reports-test-default-{i}-{default_shards}"
@@ -974,7 +1090,12 @@ def main():
                         [f"{baseline_prefix}rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
                         for i in range(1, dist_shards + 1)
                     ]
-                    download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
+                    download_logs(
+                        baseline_dist_wf, baseline_dist_logs, test_folder,
+                        workflow=ROCmWorkflowNames["distributed"],
+                        created=args.created, max_pages=args.max_pages,
+                        ignore_status=args.ignore_status,
+                    )
 
                 baseline_dist_prefixes = [
                     f"test-reports-test-distributed-{i}-{dist_shards}"
@@ -1006,7 +1127,12 @@ def main():
                         [f"{baseline_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
                         for i in range(1, inductor_shards + 1)
                     ]
-                    download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder)
+                    download_logs(
+                        baseline_inductor_wf, baseline_inductor_logs, test_folder,
+                        workflow=ROCmWorkflowNames["inductor"],
+                        created=args.created, max_pages=args.max_pages,
+                        ignore_status=args.ignore_status,
+                    )
 
                 baseline_inductor_prefixes = [
                     f"test-reports-test-inductor-{i}-{inductor_shards}"

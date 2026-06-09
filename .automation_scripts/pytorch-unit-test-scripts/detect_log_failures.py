@@ -302,6 +302,15 @@ def scan_logs(logs_dir):
             with open(job_url_file) as f:
                 job_url = f.read().strip()
 
+        # For flaky tests, prefer the red failing workflow job when
+        # download_testlogs found one; do not fall back to the green
+        # success-run job (in-job retry only).
+        fail_job_url_file = os.path.join(logs_dir, fname + ".fail_job_url")
+        fail_job_url = ""
+        if os.path.isfile(fail_job_url_file):
+            with open(fail_job_url_file) as f:
+                fail_job_url = f.read().strip()
+
         filepath = os.path.join(logs_dir, fname)
         results, consistent_failures, flaky_tests = parse_log_file(filepath)
 
@@ -316,7 +325,7 @@ def scan_logs(logs_dir):
                 "test_name": ft["method"],
                 "job_shard": job_shard_str,
                 "test_shard": ft["test_shard"],
-                "job_url": job_url,
+                "job_url": fail_job_url,
             })
 
         # Record every (test_file, test_shard) observed in this log file,

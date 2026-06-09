@@ -112,9 +112,21 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 for key, case in new_cases.items():
                     case["shard"] = shard
                     case["job_url"] = job_url
+                    if get_test_status(case) in ("FAILED", "ERROR"):
+                        case["fail_job_url"] = job_url
                     existing = test_cases.get(key)
-                    if existing is None or _status_priority(case) > _status_priority(existing):
+                    if existing is None:
                         test_cases[key] = case
+                    elif _status_priority(case) > _status_priority(existing):
+                        if existing.get("fail_job_url"):
+                            case["fail_job_url"] = (
+                                case.get("fail_job_url") or existing["fail_job_url"]
+                            )
+                        test_cases[key] = case
+                    elif case.get("fail_job_url"):
+                        existing["fail_job_url"] = (
+                            existing.get("fail_job_url") or case["fail_job_url"]
+                        )
     return test_cases
 
 def get_test_status(test_case):
@@ -490,8 +502,22 @@ def summarize_xml_files(args):
         item_values["test_config"] = config_name
         item_values[f"shard_{set1_name}"] = v_values.get('shard', '') if v_values else ''
         item_values[f"shard_{set2_name}"] = v1_values.get('shard', '') if v1_values else ''
-        item_values[f"job_url_{set1_name}"] = v_values.get('job_url', '') if v_values else ''
-        item_values[f"job_url_{set2_name}"] = v1_values.get('job_url', '') if v1_values else ''
+        if v_values and item_values[f"status_{set1_name}"] == "FAILED":
+            item_values[f"job_url_{set1_name}"] = (
+                v_values.get('fail_job_url') or v_values.get('job_url', '')
+            )
+        else:
+            item_values[f"job_url_{set1_name}"] = (
+                v_values.get('job_url', '') if v_values else ''
+            )
+        if v1_values and item_values.get(f"status_{set2_name}") == "FAILED":
+            item_values[f"job_url_{set2_name}"] = (
+                v1_values.get('fail_job_url') or v1_values.get('job_url', '')
+            )
+        else:
+            item_values[f"job_url_{set2_name}"] = (
+                v1_values.get('job_url', '') if v1_values else ''
+            )
         # get test related info
         item_values[f"message_{set1_name}"] = get_test_message(v[0])
         item_values[f"message_{set2_name}"] = get_test_message(v[1]) if set2_path else ""
