@@ -32,11 +32,7 @@ from torch.nn import Buffer, Parameter
 from torch.nn.parallel._functions import Broadcast
 from torch.testing._internal.common_dtype import integral_types, get_all_math_dtypes, floating_types
 from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, run_tests, TestCase, \
-<<<<<<< HEAD
-    skipIfNoLapack, skipIfRocm, \
-=======
-    skipIfNoLapack, skipIfRocmVersionLessThan, MI300_ARCH, skipIfRocmArch, \
->>>>>>> d0c8b1f364e ([release/2.11][ROCm] Remove test_upsamplingNearest2d_launch_rocm test as ROCm reduces max grid size (#3284))
+    skipIfNoLapack, skipIfRocm, skipIfRocmVersionLessThan, MI300_ARCH, skipIfRocmArch, \
     TEST_NUMPY, TEST_SCIPY, TEST_WITH_CROSSREF, TEST_WITH_ROCM, \
     download_file, get_function_arglist, load_tests, skipIfMPS, \
     IS_PPC, \
