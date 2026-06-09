@@ -116,11 +116,9 @@ def parse_log_file(filepath):
 
     with open(filepath, "r", errors="replace") as f:
         for line in f:
-            # Track the log's overall wall-clock span from the per-line ISO
-            # timestamps. This must run before the line filter below, since
-            # skipped lines still advance the clock. first/last give the job's
-            # run time (used as the run time for log-based failures, which have
-            # no XML per-test timing).
+            # First/last ISO timestamps give the job's wall-clock (the run time
+            # for log-based failures, which have no XML). Must run before the
+            # line filter below, since skipped lines still advance the clock.
             m_ts = RE_TS_CAPTURE.match(line)
             if m_ts:
                 ts = _parse_ts(m_ts.group(1))
