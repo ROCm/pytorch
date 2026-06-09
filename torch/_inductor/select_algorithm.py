@@ -1580,7 +1580,13 @@ class TritonTemplateKernel(TritonKernel):
         layout = node.data.layout
         node_name = node.get_name()
 
-        if isinstance(layout, ir.FlexibleLayout):
+        # For ReinterpretView, the view's strides are already determined by its layout.
+        # We skip constraint tracking because node.get_name() returns the underlying
+        # buffer name, not the view's identity, so constraints would be incorrectly
+        # associated with the underlying buffer rather than the view.
+        if isinstance(layout, ir.FlexibleLayout) and not isinstance(
+            node, ir.ReinterpretView
+        ):
             if not use_aten_gemm_kernels():
                 # No ExternKernel fallback available, freeze immediately
                 node.data.freeze_layout()

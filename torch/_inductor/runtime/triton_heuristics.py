@@ -2897,6 +2897,12 @@ def pointwise(
                                 num_stages=2,
                                 waves_per_eu=1,  # 20% improvement
                             ),
+                            triton_config_with_settings(
+                                size_hints,
+                                512,
+                                num_warps=4,
+                                num_stages=4,  # 30% improvement
+                            ),
                         ]
                     )
                 if inductor_meta.get("atomic_add_found"):
@@ -3257,6 +3263,7 @@ def _reduction_configs(
             [
                 make_config(1024, 8, num_warps=4, num_stages=1, waves_per_eu=2),
                 make_config(512, 8, num_warps=4, num_stages=1, waves_per_eu=1),
+                make_config(32, 128, num_warps=1, num_stages=1),  # 30% improvement
             ]
         )
 

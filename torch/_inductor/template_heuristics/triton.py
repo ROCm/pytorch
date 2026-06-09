@@ -1436,6 +1436,9 @@ class ROCmConfigHeuristic(BaseConfigHeuristic):
             ),
             ROCmGemmConfig(256, 128, 32, self.default_num_stages, 8, group_m=16),
             ROCmGemmConfig(256, 128, 64, self.default_num_stages, 8, group_m=4),
+            ROCmGemmConfig(256, 128, 64, self.default_num_stages, 8, group_m=16, matrix_instr_nonkdim=0),
+            ROCmGemmConfig(256, 128, 64, self.default_num_stages, 8, group_m=8, matrix_instr_nonkdim=0),
+            ROCmGemmConfig(128, 128, 64, self.default_num_stages, 8, group_m=4, matrix_instr_nonkdim=0),
             ROCmGemmConfig(256, 256, 64, self.default_num_stages, 8, group_m=4),
         ]
 

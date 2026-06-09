@@ -855,7 +855,7 @@ class QuantizationFp8Pattern:
 
     @classmethod
     def tearDown(cls):
-        del cls.quantization
+        cls.quantization._destroy()
 
     @staticmethod
     def forward(self, arg0_1, arg1_1):
