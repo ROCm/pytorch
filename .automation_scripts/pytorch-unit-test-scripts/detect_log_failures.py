@@ -15,6 +15,7 @@ import os
 import re
 import sys
 from collections import defaultdict
+from datetime import datetime
 from pathlib import Path
 
 
@@ -79,6 +80,20 @@ def classify_log_file(filename):
 
 
 RE_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s*")
+RE_TS_CAPTURE = re.compile(r"^(\d{4}-\d{2}-\d{2}T[\d:.]+)Z")
+
+
+def _parse_ts(s):
+    """Parse a CI log ISO-8601 timestamp (without the trailing Z) to datetime.
+
+    Returns None if it doesn't match the expected shapes (with or without
+    fractional seconds), so callers can skip un-timestamped lines."""
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S"):
+        try:
+            return datetime.strptime(s, fmt)
+        except ValueError:
+            continue
+    return None
 
 
 def parse_log_file(filepath):
@@ -96,9 +111,24 @@ def parse_log_file(filepath):
     consistent_failures = []
     flaky_tests = []
     last_passed_individual = None
+    first_ts = None
+    last_ts = None
 
     with open(filepath, "r", errors="replace") as f:
         for line in f:
+            # Track the log's overall wall-clock span from the per-line ISO
+            # timestamps. This must run before the line filter below, since
+            # skipped lines still advance the clock. first/last give the job's
+            # run time (used as the run time for log-based failures, which have
+            # no XML per-test timing).
+            m_ts = RE_TS_CAPTURE.match(line)
+            if m_ts:
+                ts = _parse_ts(m_ts.group(1))
+                if ts is not None:
+                    if first_ts is None:
+                        first_ts = ts
+                    last_ts = ts
+
             # Lightweight tracking of individual pytest test lines.
             # These are very frequent (~37% of lines) so we extract the
             # test name directly without timestamp stripping.
@@ -251,7 +281,11 @@ def parse_log_file(filepath):
                         if label not in results[active]["crashes"]:
                             results[active]["crashes"].append(label)
 
-    return results, consistent_failures, flaky_tests
+    job_run_time = ""
+    if first_ts is not None and last_ts is not None:
+        job_run_time = round(max(0.0, (last_ts - first_ts).total_seconds()), 2)
+
+    return results, consistent_failures, flaky_tests, job_run_time
 
 
 def scan_logs(logs_dir):
@@ -303,7 +337,7 @@ def scan_logs(logs_dir):
                 job_url = f.read().strip()
 
         filepath = os.path.join(logs_dir, fname)
-        results, consistent_failures, flaky_tests = parse_log_file(filepath)
+        results, consistent_failures, flaky_tests, job_run_time = parse_log_file(filepath)
 
         for ft in flaky_tests:
             file_part = ft["file"].replace("test/", "").replace(".py", "")
@@ -316,6 +350,7 @@ def scan_logs(logs_dir):
                 "test_name": ft["method"],
                 "job_shard": job_shard_str,
                 "test_shard": ft["test_shard"],
+                "run_time": job_run_time,
                 "job_url": job_url,
             })
 
@@ -376,6 +411,7 @@ def scan_logs(logs_dir):
                 "category": "+".join(categories),
                 "reason": reason,
                 "exit_codes": ",".join(str(c) for c in info["exit_codes"]),
+                "run_time": job_run_time,
                 "job_url": job_url,
             })
 
@@ -396,6 +432,7 @@ def scan_logs(logs_dir):
                 "category": "CONSISTENT_FAILURE",
                 "reason": f"{test_class}::{test_name}" if test_class else "",
                 "exit_codes": "",
+                "run_time": job_run_time,
                 "job_url": job_url,
             })
 
@@ -433,6 +470,7 @@ def write_csv_report(failures, output_path):
         "log_file", "platform", "test_config", "test_file",
         "job_shard", "test_shard",
         "status", "category", "reason", "exit_codes",
+        "run_time",
         "job_url",
     ]
     with open(output_path, "w", newline="") as f:
@@ -455,6 +493,7 @@ def write_flaky_report(flaky, output_path):
     fieldnames = [
         "log_file", "platform", "test_config", "test_file",
         "test_class", "test_name", "job_shard", "test_shard",
+        "run_time",
         "job_url",
     ]
     with open(output_path, "w", newline="") as f:

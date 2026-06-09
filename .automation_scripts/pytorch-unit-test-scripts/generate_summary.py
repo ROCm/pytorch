@@ -277,7 +277,7 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     failed = []
     for arch in archs:
         d = arch_data[arch]
-        s1_col, s2_col, _, _ = d['cols']
+        s1_col, s2_col, s1_time, _ = d['cols']
         has_set2 = d.get('has_set2', True)
         for r in d['rows']:
             s1 = r[s1_col].strip()
@@ -289,6 +289,7 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
                     'test_class': r.get('test_class', ''),
                     'test_name': r.get('test_name', ''),
                     'test_config': r.get('test_config', ''),
+                    'run_time': r.get(s1_time, ''),
                     f'shard_{s1_name}': r.get(f'shard_{s1_name}', ''),
                     f'job_url_{s1_name}': r.get(f'job_url_{s1_name}', ''),
                     f'status_{s1_name}': s1,
@@ -421,6 +422,7 @@ def load_flaky_tests_as_log_failures(filepaths):
                     'category': 'FLAKY',
                     'reason': f'{test_class}::{test_name}' if test_class else test_name,
                     'exit_codes': '',
+                    'run_time': row.get('run_time', ''),
                     'job_url': row.get('job_url', ''),
                 })
     return entries
@@ -492,6 +494,16 @@ def fmt_val(v):
     if isinstance(v, int):
         return f'{v:,}'
     return str(v)
+
+
+def fmt_run_time(v):
+    """Format a per-test run time (seconds, from the XML 'time' attribute).
+
+    Returns '' for blank/non-numeric values so log-based rows stay empty."""
+    try:
+        return f'{float(v):.2f}'
+    except (ValueError, TypeError):
+        return ''
 
 
 def build_rows(args, archs, arch_data):
@@ -587,7 +599,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
     if s1_failed:
         csv_rows.append(['FAILED TESTS'])
         header = ['Arch', 'Test Config', 'Test File', 'Test Class',
-                  'Test Name',
+                  'Test Name', 'Run Time (s)',
                   f'Job-Level Shard ({s1_name})',
                   f'Test-Level Shard ({s1_name})']
         if has_set2:
@@ -601,6 +613,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
         for t in s1_failed:
             row = [t['arch'], t['test_config'], t['test_file'],
                    t['test_class'], t['test_name'],
+                   fmt_run_time(t.get('run_time', '')),
                    t.get(f'shard_{s1_name}', ''),
                    _xml_test_shard(t, s1_name)]
             if has_set2:
@@ -634,13 +647,14 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
         if rocm_log_failures:
             csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
             csv_rows.append(['Arch', 'Platform', 'Test Config', 'Test File', 'Test Class',
-                             'Test Name', 'Job-Level Shard', 'Test-Level Shard',
+                             'Test Name', 'Run Time (s)', 'Job-Level Shard', 'Test-Level Shard',
                              'Category', 'Also Failing In', 'Log File'])
             for lf in rocm_log_failures:
                 test_class, test_name = _parse_log_failure_names(lf)
                 csv_rows.append([
                     lf.get('arch', ''), lf.get('platform', ''), lf.get('test_config', ''),
                     lf.get('test_file', ''), test_class, test_name,
+                    fmt_run_time(lf.get('run_time', '')),
                     lf.get('job_shard', ''),
                     lf.get('test_shard', lf.get('shard', '')),
                     lf.get('category', ''),
@@ -706,6 +720,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         return f'[{m.group(1)}]({url})'
 
     cols = ['Arch', 'Test Config', 'Test File', 'Test Class', 'Test Name',
+            'Run Time (s)',
             f'Job-Level Shard ({s1_name})',
             f'Test-Level Shard ({s1_name})']
     if has_set2:
@@ -727,6 +742,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         for t in s1_failed:
             line = (f"| {t['arch']} | {t['test_config']} | {t['test_file']} "
                     f"| {t['test_class']} | {t['test_name']} "
+                    f"| {fmt_run_time(t.get('run_time', ''))} "
                     f"| {t.get(f'shard_{s1_name}', '')} "
                     f"| {_xml_test_shard(t, s1_name)}")
             if has_set2:
@@ -769,14 +785,15 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
             lines.append('These test failures were detected from CI log files but have no XML report')
             lines.append('(typically due to timeouts, crashes, or process kills).')
             lines.append('')
-            lines.append('| Arch | Platform | Test Config | Test File | Test Class | Test Name | Job-Level Shard | Test-Level Shard | Category | Also Failing In | Job ID |')
-            lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |')
+            lines.append('| Arch | Platform | Test Config | Test File | Test Class | Test Name | Run Time (s) | Job-Level Shard | Test-Level Shard | Category | Also Failing In | Job ID |')
+            lines.append('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |')
             for lf in rocm_log_failures:
                 test_class, test_name = _parse_log_failure_names(lf)
                 lines.append(
                     f"| {lf.get('arch', '')} | {lf.get('platform', '')} | {lf.get('test_config', '')} "
                     f"| {lf.get('test_file', '')} | {test_class} "
                     f"| {test_name} "
+                    f"| {fmt_run_time(lf.get('run_time', ''))} "
                     f"| {lf.get('job_shard', '')} "
                     f"| {lf.get('test_shard', lf.get('shard', ''))} "
                     f"| {lf.get('category', '')} "
