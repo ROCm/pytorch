@@ -12,7 +12,7 @@
     "mi355": {
       "workflows": { "default": "trunk", "distributed": "periodic-rocm-mi355", "inductor": "inductor-rocm-mi355" },
       "job_prefixes": { "default": "linux-jammy-rocm-py3.10-mi355", "distributed": "linux-noble-rocm-py3.12-mi355", "inductor": "linux-noble-rocm-py3.12-mi355" },
-      "shard_counts": { "default": 10, "distributed": 4, "inductor": 2 },
+      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "artifact_substrings": ["rocm.gpu"],
       "fallbacks": {
         "default": { "workflow": "rocm-mi355", "job_prefix": "linux-noble-rocm-py3.12-mi355" },
