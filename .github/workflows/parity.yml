@@ -159,9 +159,9 @@ jobs:
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
           # Translate the workflow inputs into download_testlogs CLI flags. Job
-          # names, shard counts and workflow matching all live in
-          # parity_job_config.json, which download_testlogs reads itself - this
-          # step only forwards the per-run options.
+          # names, shard counts and workflow matching live in
+          # parity_job_config.json (download_testlogs consumes it as of #3278);
+          # this step only forwards the per-run options.
           #
           # pipefail so a download_testlogs failure fails this step instead of
           # being hidden by tee's 0 exit code (which would publish a partial,

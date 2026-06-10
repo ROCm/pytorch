@@ -16,6 +16,8 @@ on:
   pull_request:
     paths:
       - '.github/workflows/parity-auto.yml'
+      - '.github/workflows/parity.yml'
+      - '.automation_scripts/pytorch-unit-test-scripts/parity_job_config.json'
   workflow_dispatch:
     inputs:
       max_commits:
@@ -99,10 +101,10 @@ jobs:
           ARCHS=$(echo "$ARCHS_IN" | tr ',' ' ' | xargs)
 
           # --- 0. Load job-name matching config -------------------------------
-          # Read parity_job_config.json (same file download_testlogs uses) over
-          # the API at GITHUB_SHA - this job never checks out the fork. It gives
-          # the per-arch workflow_regex / checkrun_regex maps and the CUDA
-          # check-run regex; override inputs win when set.
+          # Read parity_job_config.json (download_testlogs consumes the same
+          # file as of #3278) over the API at GITHUB_SHA - this job never checks
+          # out the fork. It gives the per-arch workflow_regex / checkrun_regex
+          # maps and the CUDA check-run regex; override inputs win when set.
           CONFIG_JSON=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
           if [ -z "$CONFIG_JSON" ] || ! echo "$CONFIG_JSON" | jq -e . >/dev/null 2>&1; then
             echo "::error::Could not read $CONFIG_PATH at $GITHUB_SHA"
@@ -134,7 +136,13 @@ jobs:
           while [ "$(echo "$COMMITS_JSON" | jq 'length')" -lt "$MAX_COMMITS" ]; do
             PAGE_RUNS=$(gh api \
               "repos/$UPSTREAM/actions/workflows/trunk.yml/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$PAGE" \
-              --jq '.workflow_runs | map({head_sha, created_at})')
+              --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+            # On a gh api failure (rate limit / transient 5xx) PAGE_RUNS is empty
+            # or non-JSON; stop paginating and use whatever we collected so far.
+            if ! echo "$PAGE_RUNS" | jq -e . >/dev/null 2>&1; then
+              echo "::warning::trunk.yml runs page $PAGE returned no/invalid JSON - stopping pagination"
+              break
+            fi
             if [ "$(echo "$PAGE_RUNS" | jq 'length')" -eq 0 ]; then
               break
             fi
