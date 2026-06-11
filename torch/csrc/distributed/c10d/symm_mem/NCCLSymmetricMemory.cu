@@ -141,7 +141,8 @@ class NCCLPeerAllocInfo : public c10::intrusive_ptr_target {
       cudaMemcpyDeviceToHost));
 #endif
 
-#if NCCL_VERSION_CODE >= NCCL_VERSION(2, 29, 0)
+#if defined(NCCL_HAS_SYMMEM_DEVICE_SUPPORT) && \
+    NCCL_VERSION_CODE >= NCCL_VERSION(2, 29, 0)
   // Starting from NCCL 2.29, we can use `ncclGetLsaMultimemDevicePointer`
   void* mc_addr = nullptr;
   if (ncclGetLsaMultimemDevicePointer(buffer_win_, 0, &mc_addr) == ncclSuccess) {
