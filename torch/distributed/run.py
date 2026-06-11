@@ -996,25 +996,39 @@ def _start_profiler_delegate(group_rank: int, master_addr: str) -> None:
     Called post-rendezvous so topology env vars are available.
     The agent holds the DbResource lock and runs clock sync / log aggregation
     services for the lifetime of the agent process, outliving all workers.
+
+    Mirrors rpdrun.c + runTracer.sh: sets delegate-only env vars before dlopen,
+    then restores/unsets them so workers inherit only what they need.
     """
     import ctypes
 
-    os.environ["GROUP_RANK"] = str(group_rank)
-    os.environ["MASTER_ADDR"] = master_addr
+    # Translate torchrun topology into RPDT_* activation signals (persist for workers)
+    os.environ["RPDT_CLOCKSYNC_RANK"] = str(group_rank)
+    os.environ["RPDT_CLOCKSYNC_MASTER"] = master_addr
+    os.environ["RPDT_NODE_ID"] = str(group_rank)
+    os.environ["RPDT_LOGAGG_HOST"] = master_addr
+    os.environ.setdefault("RPDT_LOGAGG_PORT", "29223")
 
     saved_autostart = os.environ.get("RPDT_AUTOSTART")
     saved_delayinit = os.environ.get("RPDT_DELAYINIT")
 
+    # Delegate mode: create singleton, start services, don't trace.
+    # RPDT_AGENT prevents NetWriterBackend — the agent always writes locally.
     os.environ["RPDT_AUTOSTART"] = "0"
     os.environ["RPDT_DELAYINIT"] = "0"
     os.environ["RPDT_QUIET"] = "1"
+    os.environ["RPDT_AGENT"] = "1"
+    os.environ["RPDT_DATASOURCES_EXCLUDE"] = (
+        "ClrDataSource,RoctracerDataSource,RocprofDataSource,CuptiDataSource"
+    )
 
     try:
-        ctypes.CDLL("librpd_tracer.so")
+        ctypes.CDLL("librpd_tracer.so", mode=ctypes.RTLD_GLOBAL)
         logger.info("RPD profiler delegate started in agent (rank %d)", group_rank)
     except OSError:
         logger.warning("librpd_tracer.so not found, profiling disabled")
 
+    # Restore user settings for worker processes
     if saved_autostart is not None:
         os.environ["RPDT_AUTOSTART"] = saved_autostart
     else:
@@ -1023,6 +1037,9 @@ def _start_profiler_delegate(group_rank: int, master_addr: str) -> None:
         os.environ["RPDT_DELAYINIT"] = saved_delayinit
     else:
         os.environ.pop("RPDT_DELAYINIT", None)
+    os.environ.pop("RPDT_QUIET", None)
+    os.environ.pop("RPDT_AGENT", None)
+    os.environ.pop("RPDT_DATASOURCES_EXCLUDE", None)
 
 
 def run(args):
