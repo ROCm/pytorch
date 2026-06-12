@@ -4,6 +4,7 @@
 try:
     import os
     import json
+    import time
     import argparse
     import requests
     import re
@@ -90,20 +91,46 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
     with open(filename, "w", encoding="utf-8") as f:
         f.write(response.text)
 
+def _fetch_jobs_page(jobs_url, params, max_retries=5):
+    """GET one page of the jobs API, retrying transient failures.
+
+    When many parity runs fire at once they hammer the jobs API and GitHub
+    responds with 403 (secondary rate limit) or 5xx. Those bodies have no
+    'jobs' key, which previously surfaced as a bare KeyError. Retry with
+    exponential backoff (honouring Retry-After when present) and only give
+    up with a clear error after exhausting retries.
+    """
+    for attempt in range(max_retries):
+        response = requests.get(jobs_url, headers=authentication_headers, params=params)
+        if response.status_code == 200:
+            response_json = response.json()
+            if "jobs" in response_json:
+                return response_json
+        if attempt == max_retries - 1:
+            break
+        retry_after = response.headers.get("Retry-After")
+        delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+        print(f"  WARNING: jobs API returned HTTP {response.status_code} for {jobs_url} "
+              f"(attempt {attempt + 1}/{max_retries}); retrying in {delay}s")
+        time.sleep(delay)
+    raise Exception(
+        f"jobs API did not return a 'jobs' payload after {max_retries} attempts "
+        f"(last HTTP {response.status_code}) for {jobs_url}"
+    )
+
 def get_workflow_jobs(wf):
     """Get all jobs for a workflow run."""
     if wf is None:
         raise Exception("wf is None!")
     page_size = 100 #max allowed by Github API
-    response = requests.get( wf['jobs_url'], headers=authentication_headers, params={'per_page':page_size} )
-    response_json = response.json()
+    response_json = _fetch_jobs_page(wf['jobs_url'], {'per_page': page_size})
     jobs = response_json["jobs"]
 
     if response_json['total_count'] > page_size:
         import math
         for i in range(2, math.ceil(response_json['total_count']/page_size) + 1):
-            response = requests.get( wf['jobs_url'], headers=authentication_headers, params={'per_page':page_size, 'page':i} )
-            jobs += response.json()["jobs"]
+            page_json = _fetch_jobs_page(wf['jobs_url'], {'per_page': page_size, 'page': i})
+            jobs += page_json["jobs"]
     return jobs
 
 def get_check_runs_for_commit(sha, prefix):
