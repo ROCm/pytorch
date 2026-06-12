@@ -369,7 +369,9 @@ jobs:
                 "- Max age:        ${MAX_AGE_HOURS}h" \
                 "- Target ref:     \`$TARGET_REF\`" \
                 "- Result:         $result_line"
-              [ -n "$dispatched_list" ] && printf '\n%s\n' "$dispatched_list"
+              # if (not &&) so a 0-dispatch scan leaves a 0 exit status, not the
+              # 1 from the empty-string test - which would fail the whole step.
+              if [ -n "$dispatched_list" ]; then printf '\n%s\n' "$dispatched_list"; fi
             } >> "$GITHUB_STEP_SUMMARY"
           }
 
