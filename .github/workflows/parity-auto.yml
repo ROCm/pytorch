@@ -2,7 +2,7 @@ name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
 # Every 10 min, dispatch parity.yml once per completed upstream trunk.yml push
-# whose parity inputs have all finished. Scope is trunk only: the mi355 ROCm
+# whose parity inputs have all finished. Scope is trunk only: the mi350 ROCm
 # shards that ride along in trunk.yml vs that run's CUDA shards. Other arches
 # have their own periodic workflows - run parity.yml manually for those.
 #
@@ -36,9 +36,9 @@ on:
         default: '72'
         type: string
       archs:
-        description: 'Architectures to consider (comma/space separated). Defaults to mi355 only - the ROCm arch that rides along in trunk.yml.'
+        description: 'Architectures to consider (comma/space separated). Defaults to mi350 only - the ROCm arch that rides along in trunk.yml.'
         required: false
-        default: 'mi355'
+        default: 'mi350'
         type: string
       arch_jobname_regex_map:
         description: 'Optional override: JSON map of arch -> PCRE regex for that arch''s ROCm test check-run names. Blank = use parity_job_config.json (rocm.<arch>.checkrun_regex).'
@@ -81,7 +81,7 @@ jobs:
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          ARCHS_IN: ${{ inputs.archs || 'mi355' }}
+          ARCHS_IN: ${{ inputs.archs || 'mi350' }}
           # Optional manual overrides; blank means "derive from parity_job_config.json".
           ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
           ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}

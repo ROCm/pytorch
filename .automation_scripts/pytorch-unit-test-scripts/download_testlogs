@@ -408,7 +408,7 @@ def parse_args():
     parser.add_argument('--no_rocm', action='store_true')
     parser.add_argument('--no_cuda', action='store_true')
     parser.add_argument('--pr_id', type=int, help='The pull request ID')
-    parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi355', 'navi31', 'nightly'], default='mi355', help='ROCm GPU architecture (mi200, mi300, mi355, navi31, or nightly, default: mi355)')
+    parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi350', 'navi31', 'nightly'], default='mi350', help='ROCm GPU architecture (mi200, mi300, mi350, navi31, or nightly, default: mi350)')
     parser.add_argument('--include_inductor_periodic', action='store_true', help='Also download inductor-periodic benchmark artifacts (into a separate directory, not included in parity CSV)')
     parser.add_argument('--baseline_sha', type=str, help='Baseline commit SHA to compare against. Downloads the same ROCm workflows for this commit into baseline_xml/.')
     return parser.parse_args()
@@ -425,18 +425,18 @@ def main():
 
     # Set ROCm workflow names based on architecture
     global ROCmWorkflowNames
-    arch = args.arch  # 'mi200', 'mi300', 'mi355', 'navi31', or 'nightly'
+    arch = args.arch  # 'mi200', 'mi300', 'mi350', 'navi31', or 'nightly'
     if arch == 'nightly':
         ROCmWorkflowNames = {
             "default": "rocm-nightly",
             "distributed": "rocm-nightly",
             "inductor": "rocm-nightly",
         }
-    elif arch == 'mi355':
+    elif arch == 'mi350':
         ROCmWorkflowNames = {
             "default": "trunk",
-            "distributed": "periodic-rocm-mi355",
-            "inductor": "inductor-rocm-mi355"
+            "distributed": "periodic-rocm-mi350",
+            "inductor": "inductor-rocm-mi350"
         }
     elif arch == 'mi200':
         ROCmWorkflowNames = {
@@ -470,10 +470,10 @@ def main():
             "distributed": "linux-noble-rocm-py3.12-mi300",
             "inductor": "linux-noble-rocm-py3.12-mi300"
         },
-        "mi355": {
-            "default": "linux-jammy-rocm-py3.10-mi355",
-            "distributed": "linux-noble-rocm-py3.12-mi355",
-            "inductor": "linux-noble-rocm-py3.12-mi355"
+        "mi350": {
+            "default": "linux-jammy-rocm-py3.10-mi350",
+            "distributed": "linux-noble-rocm-py3.12-mi350",
+            "inductor": "linux-noble-rocm-py3.12-mi350"
         },
         "navi31": {
             "default": "linux-jammy-rocm-py3.10-navi31",
@@ -486,12 +486,12 @@ def main():
         "nightly": {"default": 6, "distributed": 3, "inductor": 2},
         "mi200": {"default": 6, "distributed": 3, "inductor": 2},
         "mi300": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi355": {"default": 10, "distributed": 4, "inductor": 2}, #trunk
+        "mi350": {"default": 10, "distributed": 4, "inductor": 2}, #trunk
         "navi31": {"default": 2, "distributed": 3, "inductor": 2},
     }
     rocm_job_prefix = rocm_job_prefixes[arch]
     rocm_shards = rocm_shard_counts[arch]
-    rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
+    rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi350", "nightly") else None
     # navi31 only has default tests (no distributed/inductor workflows)
     if arch in ("navi31",):
         if not args.exclude_distributed:
@@ -549,7 +549,7 @@ def main():
         except (IndexError, Exception):
             periodic_wf = None
         periodic_fallbacks = {
-            "mi355": ("trunk", "linux-jammy-rocm-py3.10-mi355"),
+            "mi350": ("trunk", "linux-jammy-rocm-py3.10-mi350"),
             "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
         }
         if periodic_wf is None and arch in periodic_fallbacks:
@@ -574,7 +574,7 @@ def main():
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
         # Make sure "Hide unstable jobs" is unselected, in case ROCm jobs are marked as unstable
     
-        if arch == "mi355":
+        if arch == "mi350":
             dist_shards = 3 if not periodic_fallback_used else rocm_shards["distributed"]
         else:
             dist_shards = rocm_shards["distributed"]
@@ -615,7 +615,7 @@ def main():
         except (IndexError, Exception):
             rocm_wf = None
         default_fallbacks = {
-            "mi355": ("rocm-mi355", "linux-noble-rocm-py3.12-mi355"),
+            "mi350": ("rocm-mi350", "linux-noble-rocm-py3.12-mi350"),
             "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
         }
         if rocm_wf is None and arch in default_fallbacks:
@@ -634,7 +634,7 @@ def main():
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
-        if arch == "mi355":
+        if arch == "mi350":
             default_shards = 6 if default_fallback_used else rocm_shards["default"]
         else:
             default_shards = rocm_shards["default"]
