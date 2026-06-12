@@ -89,20 +89,20 @@ jobs:
           TARGET_REF_IN: ${{ inputs.target_ref || '' }}
           DRY_RUN: ${{ github.event_name == 'pull_request' && 'true' || inputs.dry_run || 'false' }}
         run: |
-          # Actions runs this as `bash -e {0}`, but -e is too aggressive for the
-          # grep -q / date / paginated-API pipelines here (it silently aborted
-          # the scan loop). Turn -e off; keep -u + pipefail to still catch bugs.
+          # GitHub runs this step as `bash -e`, which exits on the first non-zero
+          # status. Our grep -q / date / paginated-API calls return non-zero in
+          # normal cases and were silently killing the scan loop, so disable -e.
+          # Keep -u (catch unset vars) and pipefail (catch errors mid-pipe).
           set +e
           set -uo pipefail
 
           # Check-runs from rerun/flaky tooling are not parity test shards.
           NON_TEST_CHECKRUNS='mem_leak_check|rerun_disabled_tests'
 
-          # Read parity_job_config.json over the API at GITHUB_SHA (this job
-          # never checks out the fork; download_testlogs consumes the same file
-          # as of #3278) and populate the regex maps used for matching. Override
-          # inputs win when set. Sets ARCH_JOBNAME_REGEX_MAP / ARCH_WORKFLOW_REGEX_MAP
-          # / CUDA_JOBNAME_REGEX.
+          # Read parity_job_config.json over the API at GITHUB_SHA (this job never
+          # checks out the fork) and build the regex maps used for matching.
+          # Manual override inputs win when set. Sets ARCH_JOBNAME_REGEX_MAP,
+          # ARCH_WORKFLOW_REGEX_MAP, and CUDA_JOBNAME_REGEX.
           load_matching_config() {
             local config_json
             config_json=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
