@@ -3,7 +3,7 @@
 #include <torch/csrc/distributed/c10d/symm_mem/intra_node_comm.hpp>
 
 #if defined(USE_ROCM)
-#include <rocm_smi/rocm_smi.h>
+#include <dlfcn.h>
 #endif
 
 namespace c10d::intra_node_comm {
@@ -35,6 +35,63 @@ static NvlMesh getNvlMesh(const std::vector<int>& rankToDeviceIdx) {
   }
   return nvlMesh;
 #else
+  // All AMDSMI symbols are resolved at runtime via dlsym so that
+  // libtorch_hip.so carries no undefined rsmi_*/amdsmi_* symbols and
+  // no link-time NEEDED dependency on libamd_smi.so.
+  using amdsmi_handle = void*;
+  using amdsmi_init_fn = int (*)(uint64_t);
+  using amdsmi_shut_down_fn = int (*)();
+  using amdsmi_get_socket_handles_fn = int (*)(uint32_t*, amdsmi_handle*);
+  using amdsmi_get_processor_handles_fn =
+      int (*)(amdsmi_handle, uint32_t*, amdsmi_handle*);
+  using amdsmi_is_P2P_accessible_fn =
+      int (*)(amdsmi_handle, amdsmi_handle, bool*);
+
+  constexpr uint64_t AMDSMI_INIT_AMD_GPUS = (1 << 1);
+
+  auto load = [](const char* name) -> void* {
+    void* sym = dlsym(RTLD_DEFAULT, name);
+    if (!sym) {
+      LOG(ERROR) << "IntraNodeComm: dlsym(" << name << ") failed: "
+                 << dlerror();
+    }
+    return sym;
+  };
+
+  auto fn_init = reinterpret_cast<amdsmi_init_fn>(load("amdsmi_init"));
+  auto fn_shut = reinterpret_cast<amdsmi_shut_down_fn>(
+      load("amdsmi_shut_down"));
+  auto fn_sockets = reinterpret_cast<amdsmi_get_socket_handles_fn>(
+      load("amdsmi_get_socket_handles"));
+  auto fn_procs = reinterpret_cast<amdsmi_get_processor_handles_fn>(
+      load("amdsmi_get_processor_handles"));
+  auto fn_p2p = reinterpret_cast<amdsmi_is_P2P_accessible_fn>(
+      load("amdsmi_is_P2P_accessible"));
+
+  if (!fn_init || !fn_shut || !fn_sockets || !fn_procs || !fn_p2p) {
+    return {};
+  }
+
+  if (fn_init(AMDSMI_INIT_AMD_GPUS) != 0) {
+    LOG(ERROR) << "IntraNodeComm: amdsmi_init failed";
+    return {};
+  }
+
+  // Collect GPU processor handles.
+  uint32_t socket_count = 0;
+  fn_sockets(&socket_count, nullptr);
+  std::vector<amdsmi_handle> sockets(socket_count);
+  fn_sockets(&socket_count, sockets.data());
+
+  std::vector<amdsmi_handle> gpuHandles;
+  for (uint32_t s = 0; s < socket_count; ++s) {
+    uint32_t dev_count = 0;
+    fn_procs(sockets[s], &dev_count, nullptr);
+    std::vector<amdsmi_handle> devs(dev_count);
+    fn_procs(sockets[s], &dev_count, devs.data());
+    gpuHandles.insert(gpuHandles.end(), devs.begin(), devs.end());
+  }
+
   NvlMesh nvlMesh = {};
   const auto worldSize = rankToDeviceIdx.size();
   // For each device, loop over devices connected to it
@@ -42,13 +99,17 @@ static NvlMesh getNvlMesh(const std::vector<int>& rankToDeviceIdx) {
     for (size_t link = 0; link < kMaxDevices; ++link) {
       if (idx == link)
         continue;
+      if (idx >= gpuHandles.size() || link >= gpuHandles.size())
+        continue;
 
       bool conn = false;
-      auto ret = rsmi_is_P2P_accessible(idx, link, &conn);
-      if (ret != RSMI_STATUS_SUCCESS) {
+      auto ret = fn_p2p(gpuHandles[idx], gpuHandles[link], &conn);
+      if (ret != 0) {
         LOG(ERROR)
-            << "IntraNodeComm: getNvlMesh: rsmi_is_P2P_accessible returned error ret="
+            << "IntraNodeComm: getNvlMesh: amdsmi_is_P2P_accessible"
+               " returned error ret="
             << ret;
+        fn_shut();
         return {};
       }
 
@@ -57,6 +118,7 @@ static NvlMesh getNvlMesh(const std::vector<int>& rankToDeviceIdx) {
       }
     }
   }
+  fn_shut();
   return nvlMesh;
 #endif
 }
@@ -170,14 +232,6 @@ bool IntraNodeComm::rendezvous() {
   DevInfo devInfo{};
   gethostname(devInfo.hostname, sizeof(devInfo.hostname));
   devInfo.deviceIdx = deviceIdx_;
-
-#if defined(USE_ROCM)
-  auto ret = rsmi_init(0);
-  if (ret != RSMI_STATUS_SUCCESS) {
-    LOG(ERROR) << "IntraNodeComm:: rendezvous failed in rsmi_init, ret=" << ret;
-    return false;
-  }
-#endif
 
   auto peerDevInfos =
       storeAllGather(store_, "handshake-0", rank_, worldSize_, devInfo);
