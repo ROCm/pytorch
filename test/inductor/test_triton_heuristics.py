@@ -771,7 +771,15 @@ class TestWarpSizeUnification(TestCase):
         none_props = DeviceProperties(
             type="cuda", index=0, multi_processor_count=80, cc=80, warp_size=None
         )
-        self.assertEqual(none_props.warp_size_or_default, 32)
+        with self.assertRaisesRegex(
+            RuntimeError, "cuda device properties must report warp_size"
+        ):
+            none_props.warp_size_or_default
+
+        cpu_props = DeviceProperties(
+            type="cpu", index=0, multi_processor_count=80, cc=80, warp_size=None
+        )
+        self.assertEqual(cpu_props.warp_size_or_default, 32)
 
         w32 = DeviceProperties(
             type="cuda", index=0, multi_processor_count=80, cc=80, warp_size=32
