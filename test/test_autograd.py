@@ -76,6 +76,7 @@ from torch.testing._internal.common_utils import (
     skipCUDANonDefaultStreamIf,
     skipIfMPS,
     skipIfNoLapack,
+    skipIfRocm,
     skipIfSlowGradcheckEnv,
     skipIfTorchDynamo,
     skipIfWindows,
@@ -12252,6 +12253,7 @@ class TestAutogradDeviceType(TestCase):
         self.assertIsNone(t3.grad)
 
     @onlyCUDA
+    @skipIfRocm
     def test_reentrant_parent_error_on_cpu(self, device):
         def _get_cuda_memory_usage():
             # we don't need CUDA synchronize because the statistics are not tracked at
