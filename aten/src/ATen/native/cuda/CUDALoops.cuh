@@ -228,7 +228,8 @@ C10_LAUNCH_BOUNDS_1(num_threads())
 __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
   using traits = function_traits<func_t>;
   constexpr auto io_size = calc_io_size<func_t>();
-#if defined(USE_ROCM) && defined(__gfx942__)
+  // Extend the TWS (16) to GFX1250.
+#if defined(USE_ROCM) && (defined(__gfx942__) || defined(__gfx1250__))
   // Similar check in launch_vectorized_kernel() as well. Both should be in sync.
   constexpr int tws = 16;
 #else
