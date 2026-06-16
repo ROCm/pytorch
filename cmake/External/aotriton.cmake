@@ -30,10 +30,10 @@ if(NOT __AOTRITON_INCLUDED)
     set(__AOTRITON_CI_COMMIT "098300d1b2509d0e3599eacae542510e3f00a3cb")
   endif()
   set(__AOTRITON_SHA256_LIST
-      "e57ad080bd87fdaf7fe5bbff49ab80222be3bc8eb56a197d5781bfae8c116c33"  # rocm6.4
-      "f6aba1fe59312004ccd13dfda4d0a9e35457527fec18348d2e75a294a1051ef5"  # rocm7.0
-      "a1d731745929b61598d088eeaad31d8a82a27032aa51e3a7c831e45a99e095c2"  # rocm7.1
-      "5b97e8d041b160c84085961f3d3bd7b9890642b146bacb04c991aa9ad6a8dca8"  # rocm7.2
+      "b9bd9f9d4aec5e398edb26d1ff662ba2cc36b358c02eebacbcd7361a73ebb55e"  # rocm6.4
+      "a3f3284e864f95d4b3b3e20c78deb6ec4c0d4f176749ff166325bb3e74b2dbeb"  # rocm7.0
+      "ee4c11db1a07bfa7f6f946be1e2fb02d4709c675c478cf48bd80bec771b0962e"  # rocm7.1
+      "b00baf5271e44d5db4c9c58be930c604494432587c9d791b75423af80740aeeb"  # rocm7.2
       "a1562984a053c33e34ca6615c84c34d3ef3092c84609bf41ce62d9868bea4c52"  # rocm7.14
       )
   set(__AOTRITON_IMAGE_LIST
