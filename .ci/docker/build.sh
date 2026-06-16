@@ -190,7 +190,7 @@ case "$tag" in
     KATEX=yes
     UCX_COMMIT=${_UCX_COMMIT}
     UCC_COMMIT=${_UCC_COMMIT}
-    PYTORCH_ROCM_ARCH="gfx90a;gfx942;gfx950;gfx1100"
+    PYTORCH_ROCM_ARCH="gfx90a;gfx942;gfx950;gfx1100;gfx1250"
     if [[ $tag =~ "benchmarks" ]]; then
       INDUCTOR_BENCHMARKS=yes
     fi

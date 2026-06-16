@@ -87,6 +87,15 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
     ck_tile::index_t batch_stride_bias = 0;
     ck_tile::index_t nhead_stride_bias = 0;
 
+    ck_tile::index_t nhead_stride_q_descale = 0;
+    ck_tile::index_t nhead_stride_k_descale = 0;
+    ck_tile::index_t nhead_stride_v_descale = 0;
+    ck_tile::index_t batch_stride_q_descale = 0;
+    ck_tile::index_t batch_stride_k_descale = 0;
+    ck_tile::index_t batch_stride_v_descale = 0;
+    ck_tile::index_t block_scale_size_q = 0;
+    ck_tile::index_t block_scale_size_kv = 0;
+
     if (attn_bias_.has_value()) {
         auto a_b = attn_bias_.value();
         CHECK_DEVICE(a_b);
@@ -112,7 +121,8 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          nullptr, // seqlen_k_ptr
                          nullptr, // cu_seqlen_q_ptr
                          nullptr, // cu_seqlen_k_ptr
-                         nullptr, // sink_ptr
+                         nullptr, // block_scale_seqstart_q_ptr
+                         nullptr, // block_scale_seqstart_k_ptr
                          seqlen_q,
                          seqlen_k,
                          b,
@@ -136,6 +146,9 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          nhead_stride_randval,
                          nhead_stride_lse,
                          nhead_stride_o,
+                         nhead_stride_q_descale,
+                         nhead_stride_k_descale,
+                         nhead_stride_v_descale,
                          batch_stride_q,
                          batch_stride_k,
                          batch_stride_v,
@@ -143,6 +156,9 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          batch_stride_randval,
                          batch_stride_lse,
                          batch_stride_o,
+                         batch_stride_q_descale,
+                         batch_stride_k_descale,
+                         batch_stride_v_descale,
                          mask.left,
                          mask.right,
                          0,                                 // sink_size
@@ -150,7 +166,9 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
                          -1,                                // min_seqlen_q
                          p_dropout,
                          has_dropout_randval,
-                         drop_seed_offset};
+                         drop_seed_offset,
+                         block_scale_size_q,
+                         block_scale_size_kv};
 }
 
 std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor, at::Tensor>
@@ -306,13 +324,13 @@ mha_fwd_ck(const at::Tensor &q,                      // batch_size x seqlen_q x 
 
         hipLaunchKernelGGL(
             flash::ParsePhiloxCudaState, dim3(1), dim3(64), 0, at::cuda::getCurrentCUDAStream(), philox_args, rng_state_ptr);
-        seed_t = at::scalar_tensor(at::Scalar(static_cast<uint64_t>(rng_state_ptr[0])), at::dtype(at::kLong));
-        offset_t = at::scalar_tensor(at::Scalar(static_cast<uint64_t>(rng_state_ptr[1])), at::dtype(at::kLong));
+        seed_t = at::scalar_tensor(at::Scalar(static_cast<uint64_t>(rng_state_ptr[0])), at::dtype(at::kUInt64));
+        offset_t = at::scalar_tensor(at::Scalar(static_cast<uint64_t>(rng_state_ptr[1])), at::dtype(at::kUInt64));
     }
     else
     {
-        seed_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
-        offset_t = at::empty({}, at::dtype(at::kLong).device(at::kCUDA));
+        seed_t = at::empty({}, at::dtype(at::kUInt64).device(at::kCUDA));
+        offset_t = at::empty({}, at::dtype(at::kUInt64).device(at::kCUDA));
     }
 
     std::optional<at::Tensor> attn_bias;
