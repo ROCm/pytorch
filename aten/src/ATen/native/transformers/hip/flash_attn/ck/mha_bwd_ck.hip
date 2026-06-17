@@ -400,7 +400,6 @@ mha_bwd_ck(const at::Tensor &dout,                   // batch_size x seqlen_q x 
     auto gen = at::get_generator_or_default<at::CUDAGeneratorImpl>(
             std::nullopt, at::cuda::detail::getDefaultCUDAGenerator());
 
-    uint64_t* drop_seed, drop_offset;
     int64_t counter_offset = batch_size * num_heads * ck_tile::get_warp_size();
     std::pair<uint64_t*, uint64_t*> drop_seed_offset = {nullptr,nullptr};
     if(is_dropout) {
