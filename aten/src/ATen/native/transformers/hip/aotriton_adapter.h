@@ -140,7 +140,7 @@ struct LazyTensorFunctions : public LazyTensorContext {
 #if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 12)
     auto ctx = (LazyTensorContext*)self->cookie;
 #else
-    auto ctx = (LazyTensorContext*)cookie;
+    auto ctx = (LazyTensorContext*)self;
 #endif
     if (!ctx->tensor.defined()) {
       auto q = ctx->like_tensor;
