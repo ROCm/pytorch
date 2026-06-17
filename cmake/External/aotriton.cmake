@@ -43,6 +43,7 @@ if(NOT __AOTRITON_INCLUDED)
       "amd-gfx110x"
       "amd-gfx115x"
       "amd-gfx120x"
+      "amd-gfx1250"
      )
   set(__AOTRITON_IMAGE_SHA256_LIST
      "bb8bf2237b77fc503bc2967ea0d99d6ca419126c479e951ea42b712737128086" # amd-gfx90a
