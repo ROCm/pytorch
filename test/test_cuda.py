@@ -4662,6 +4662,9 @@ class TestCudaAllocator(TestCase):
             pass
         finally:
             torch.cuda.memory._record_memory_history(None)
+            # This test requires to run gc.collec() to fix other memory tests
+            torch.cuda.synchronize()
+            gc.collect()
 
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC, "setContextRecorder not supported by CUDAMallocAsync"
