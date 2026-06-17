@@ -430,10 +430,10 @@ IF(USE_MSLK)
         list(PREPEND MSLK_EXTRA_HIPCC_FLAGS -mllvm -amdgpu-coerce-illegal-types=1)
       endif()
 
-    # Only compile for gfx942, gfx950, and gfx1250.
+    # Only compile for gfx942 and gfx950 (composable_kernel lacks gfx1250 support).
     set(HIP_CLANG_FLAGS_ORIGINAL ${HIP_CLANG_FLAGS})
     string(REGEX REPLACE "--offload-arch=[^ ]*" "" FILTERED_HIP_CLANG_FLAGS "${HIP_CLANG_FLAGS}")
-    foreach(ARCH gfx942 gfx950 gfx1250)
+    foreach(ARCH gfx942 gfx950)
       if(${ARCH} IN_LIST PYTORCH_ROCM_ARCH)
         list(APPEND FILTERED_HIP_CLANG_FLAGS --offload-arch=${ARCH})
       endif()
