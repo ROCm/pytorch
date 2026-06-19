@@ -1240,12 +1240,15 @@ class TestPatternMatcher(TestCase):
         FileCheck().check_not("extern_kernels.addmm(").run(code[0])
 
     @parametrize("dtype", [torch.bfloat16, torch.float16])
+<<<<<<< HEAD
     @inductor_config.patch(
         {
             "fx_graph_remote_cache": False,
             "keep_addmm_fused_for_half_dtypes": True,
         }
     )
+=======
+>>>>>>> upstream/release/2.11
     def test_unfuse_bias_addmm_half_dtypes(self, dtype):
         args = [
             torch.randn(20, device=GPU_TYPE, dtype=dtype),
@@ -1262,6 +1265,7 @@ class TestPatternMatcher(TestCase):
         _, (code) = run_and_get_code(fn, args[0], args[1], args[2])
         FileCheck().check("extern_kernels.addmm(").run(code[0])
 
+<<<<<<< HEAD
     @parametrize("dtype", [torch.bfloat16, torch.float16])
     @inductor_config.patch(
         {
@@ -1283,6 +1287,8 @@ class TestPatternMatcher(TestCase):
         _, (code) = run_and_get_code(fn, args[0], args[1], args[2])
         FileCheck().check_not("extern_kernels.addmm(").run(code[0])
 
+=======
+>>>>>>> upstream/release/2.11
     def test_addmm_alpha_beta_with_pointwise(self):
         # Test that addmm with alpha/beta != 1 is unfused correctly with pointwise ops
         # See https://github.com/pytorch/pytorch/issues/167313

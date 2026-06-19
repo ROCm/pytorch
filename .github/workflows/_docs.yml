@@ -99,7 +99,11 @@ jobs:
     name: build-docs-${{ matrix.docs_type }}-${{ inputs.push }}
     steps:
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -108,6 +112,13 @@ jobs:
             To start Python docs build type:
               cd docs && make html && make coverage
 
+<<<<<<< HEAD
+=======
+      # [see note: pytorch repo ref]
+      - name: Checkout PyTorch
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.11
+
+>>>>>>> upstream/release/2.11
       - name: Setup Linux
         uses: pytorch/pytorch/.github/actions/setup-linux@release/2.12
         with:
@@ -123,12 +134,20 @@ jobs:
 
       - name: Calculate docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           docker-image-name: ${{ inputs.docker-image }}
 
       - name: Pull docker image
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
 
@@ -268,7 +287,11 @@ jobs:
           echo "https://docs-preview.pytorch.org/pytorch/pytorch/nightly-${{ github.sha }}/cppdocs/index.html"
 
       - name: Teardown Linux
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.12
+=======
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.11
+>>>>>>> upstream/release/2.11
         if: always()
 
   build-docs-osdc:

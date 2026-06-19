@@ -71,7 +71,11 @@ jobs:
     steps:
       !{{ set_runner_specific_vars() }}
       !{{ setup_python(config.get("python_version", "3.10")) }}
+<<<<<<< HEAD
       !{{ common.checkout(deep_clone=False, checkout_pr_head=False) }}
+=======
+      !{{ common.checkout(deep_clone=False, directory="pytorch", checkout_pr_head=False) }}
+>>>>>>> upstream/release/2.11
       - name: Populate binary env
         run: |
           "${PYTORCH_ROOT}/.ci/pytorch/binary_populate_env.sh"

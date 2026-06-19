@@ -19,6 +19,7 @@ from torch.distributed.tensor._dtensor_spec import TensorMeta
 from torch.distributed.tensor._sharding_prop import ShardingPropagator
 from torch.distributed.tensor.debug import CommDebugMode
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     MI200_ARCH,
@@ -27,6 +28,9 @@ from torch.testing._internal.common_utils import (
     serialTest,
     skipIfRocmArch,
 )
+=======
+from torch.testing._internal.common_utils import MI200_ARCH, run_tests, skipIfRocmArch
+>>>>>>> upstream/release/2.11
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     create_local_tensor_test_class,
     DTensorContinuousTestBase,
@@ -627,7 +631,11 @@ class DistTensorOpsTest(DTensorContinuousTestBase):
             self.assertEqual(output_dt.full_tensor(), global_output)
 
     @skipIfRocmArch(MI200_ARCH)
+<<<<<<< HEAD
     @serialTest()  # heavy combinatorial _test_op calls, serialize to avoid OOM
+=======
+    @with_comms
+>>>>>>> upstream/release/2.11
     def test_index(self):
         meshes = [
             self.build_device_mesh(),  # 1D mesh

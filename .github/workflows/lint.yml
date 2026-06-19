@@ -22,7 +22,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.12
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.11
+>>>>>>> upstream/release/2.11
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -36,7 +40,11 @@ jobs:
       all_files: ${{ contains(github.event.pull_request.labels.*.name, 'lint-all-files') || contains(github.event.pull_request.labels.*.name, 'Reverted') || github.event_name == 'push' }}
 
   lintrunner-clang:
+<<<<<<< HEAD
     uses: ./.github/workflows/_lint.yml
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     # Needed to prevent deduping on HUD
     name: lintrunner-clang-${{ needs.get-changed-files.outputs.changed-files == '*' && 'all' || 'partial' }}
     needs: [get-label-type, get-changed-files]
@@ -72,7 +80,11 @@ jobs:
   #       fails to find types when it should
   # NOTE: We should be able to disable this and consolidate with Pyrefly
   lintrunner-pyrefly:
+<<<<<<< HEAD
     uses: ./.github/workflows/_lint.yml
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     name: lintrunner-pyrefly-${{ needs.get-changed-files.outputs.changed-files == '*' && 'all' || 'partial' }}
     needs: [get-label-type, get-changed-files]
     # Only run if there are changed files relevant to pyrefly
@@ -91,7 +103,11 @@ jobs:
         ADDITIONAL_LINTRUNNER_ARGS="--take PYREFLY --all-files" .github/scripts/lintrunner.sh
 
   lintrunner-noclang:
+<<<<<<< HEAD
     uses: ./.github/workflows/_lint.yml
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     name: lintrunner-noclang-${{ needs.get-changed-files.outputs.changed-files == '*' && 'all' || 'partial' }}
     needs: [get-label-type, get-changed-files]
     with:
@@ -107,7 +123,11 @@ jobs:
         fi
 
   quick-checks:
+<<<<<<< HEAD
     if: github.repository_owner == 'pytorch'
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     needs: get-label-type
     uses: ./.github/workflows/_lint.yml
     with:
@@ -144,7 +164,11 @@ jobs:
     if: ${{ github.event_name == 'pull_request' && !contains(github.event.pull_request.labels.*.name, 'skip-pr-sanity-checks') && github.repository_owner == 'pytorch' }}
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.12
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           submodules: false
           fetch-depth: -1
@@ -157,7 +181,11 @@ jobs:
           bash .github/scripts/pr-sanity-check.sh
 
   workflow-checks:
+<<<<<<< HEAD
     if: github.repository_owner == 'pytorch'
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     needs: get-label-type
     uses: ./.github/workflows/_lint.yml
     with:
@@ -165,7 +193,12 @@ jobs:
       docker-image: ghcr.io/pytorch/test-infra:cpu-x86_64-810d48d
       script: |
         # Regenerate workflows
+<<<<<<< HEAD
         RELEASE_VERSION_TAG=2.12 .github/scripts/generate_ci_workflows.py
+=======
+        export RELEASE_VERSION_TAG=2.11
+        .github/scripts/generate_ci_workflows.py
+>>>>>>> upstream/release/2.11
 
         RC=0
         # Assert that regenerating the workflows didn't change them
@@ -188,7 +221,11 @@ jobs:
         exit $RC
 
   toc:
+<<<<<<< HEAD
     if: github.repository_owner == 'pytorch'
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     needs: get-label-type
     uses: ./.github/workflows/_lint.yml
     with:
@@ -222,6 +259,10 @@ jobs:
   test-tools:
     name: Test tools
     if: ${{ github.repository == 'pytorch/pytorch' }}
+<<<<<<< HEAD
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     needs: get-label-type
     uses: ./.github/workflows/_lint.yml
     with:
@@ -239,7 +280,11 @@ jobs:
     runs-on: linux.24_04.4x
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.12
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           submodules: false
           fetch-depth: 1
@@ -276,7 +321,11 @@ jobs:
       # [see note: pytorch repo ref]
       # deep clone (fetch-depth 0) required, to allow us to use git log
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.12
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.11
+>>>>>>> upstream/release/2.11
         with:
           submodules: false
           fetch-depth: 1

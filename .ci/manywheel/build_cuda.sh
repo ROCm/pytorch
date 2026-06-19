@@ -114,7 +114,11 @@ case ${CUDA_VERSION} in
             TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST//8.6;/}"  # Remove 8.6 for libtorch
         fi
         ;;
+<<<<<<< HEAD
     13.0|13.2)
+=======
+    13.0)
+>>>>>>> upstream/release/2.11
         TORCH_CUDA_ARCH_LIST="${TORCH_CUDA_ARCH_LIST};$([[ "$ARCH" == "aarch64" ]] && echo "11.0;" || echo "")12.0"
         export TORCH_NVCC_FLAGS="-compress-mode=size"
         export BUILD_BUNDLE_PTXAS=1

@@ -3177,6 +3177,7 @@ def pointwise(
             ]
             # Additional configs appended for ROCm builds
             if torch.version.hip:
+<<<<<<< HEAD
                 configs.extend(
                     [
                         triton_config_with_settings(
@@ -3195,6 +3196,33 @@ def pointwise(
                         ),
                     ]
                 )
+=======
+                if inductor_meta.get("max_autotune_pointwise"):
+                    configs.extend(
+                        [
+                            triton_config_with_settings(
+                                size_hints, TRITON_MAX_BLOCK["X"], waves_per_eu=2
+                            ),
+                            triton_config_with_settings(
+                                size_hints,
+                                4096,  # wrt: better than the max_block for some kernel
+                            ),
+                            triton_config_with_settings(
+                                size_hints,
+                                2048,
+                                num_warps=8,
+                                num_stages=2,
+                                waves_per_eu=1,  # 20% improvement
+                            ),
+                            triton_config_with_settings(
+                                size_hints,
+                                512,
+                                num_warps=4,
+                                num_stages=4,  # 30% improvement
+                            ),
+                        ]
+                    )
+>>>>>>> upstream/release/2.11
                 if inductor_meta.get("atomic_add_found"):
                     configs.extend(
                         [
@@ -3564,6 +3592,7 @@ def _reduction_configs(
     ]
 
     if torch.version.hip:
+<<<<<<< HEAD
         hip_configs = [
             make_config(1024, 8, num_warps=4, num_stages=1, waves_per_eu=2),
             make_config(512, 8, num_warps=4, num_stages=1, waves_per_eu=1),
@@ -3582,6 +3611,13 @@ def _reduction_configs(
                 c
                 for c in result_configs
                 if c.kwargs.get("XBLOCK", 0) * max_persistent_rblock <= 4096
+=======
+        result_configs.extend(
+            [
+                make_config(1024, 8, num_warps=4, num_stages=1, waves_per_eu=2),
+                make_config(512, 8, num_warps=4, num_stages=1, waves_per_eu=1),
+                make_config(32, 128, num_warps=1, num_stages=1),  # 30% improvement
+>>>>>>> upstream/release/2.11
             ]
 
     return result_configs
@@ -4013,6 +4049,17 @@ def _persistent_reduction_configs(
             for conf in tiny_configs:
                 if conf not in configs:
                     configs.append(conf)
+
+            # Additional custom configs in support of customer workloads
+            configs.append(
+                triton_config_reduction(
+                    size_hints,
+                    1,
+                    rnumel,
+                    num_stages=3,
+                    num_warps=2,
+                )  # 18% improvement
+            )
 
     for c in configs:
         # we don't need Rn_BLOCK for persistent reduction

@@ -11,7 +11,11 @@ on:
 jobs:
   lint-urls:
     if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'skip-url-lint') }}
+<<<<<<< HEAD
     uses: ./.github/workflows/_lint.yml
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     with:
       runner: mt-l-x86iamx-8-16
       docker-image: ghcr.io/pytorch/test-infra:cpu-x86_64-810d48d
@@ -32,7 +36,11 @@ jobs:
 
   lint-xrefs:
     if: ${{ github.event_name != 'pull_request' || !contains(github.event.pull_request.labels.*.name, 'skip-xref-lint') }}
+<<<<<<< HEAD
     uses: ./.github/workflows/_lint.yml
+=======
+    uses: pytorch/test-infra/.github/workflows/linux_job_v2.yml@release/2.11
+>>>>>>> upstream/release/2.11
     with:
       runner: mt-l-x86iamx-8-16
       docker-image: ghcr.io/pytorch/test-infra:cpu-x86_64-810d48d

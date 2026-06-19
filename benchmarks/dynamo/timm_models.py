@@ -56,6 +56,57 @@ with open(filename) as fh:
         TIMM_MODELS[model_name] = int(batch_size)
 
 
+<<<<<<< HEAD
+=======
+# TODO - Figure out the reason of cold start memory spike
+
+BATCH_SIZE_DIVISORS = {
+    "beit_base_patch16_224": 2,
+    "deit_base_distilled_patch16_224": 2,
+    "gluon_xception65": 2,
+    "mobilevit_s": 2,
+    "swin_base_patch4_window7_224": 2,
+}
+
+REQUIRE_HIGHER_TOLERANCE = {
+    "inception_v3",
+    "mobilenetv3_large_100",
+}
+
+REQUIRE_HIGHER_TOLERANCE_FP16_XPU = {
+    "botnet26t_256",
+}
+
+REQUIRE_HIGHER_TOLERANCE_AMP = {}
+
+REQUIRE_EVEN_HIGHER_TOLERANCE = {
+    "deit_base_distilled_patch16_224",
+    "vit_base_patch16_siglip_256",
+}
+
+# These models need higher tolerance in MaxAutotune mode
+REQUIRE_EVEN_HIGHER_TOLERANCE_MAX_AUTOTUNE = {}
+
+REQUIRE_HIGHER_TOLERANCE_FOR_FREEZING = {
+    "adv_inception_v3",
+}
+
+SCALED_COMPUTE_LOSS = {
+    "mobilevit_s",
+}
+
+FORCE_AMP_FOR_FP16_BF16_MODELS = {}
+
+SKIP_ACCURACY_CHECK_AS_EAGER_NON_DETERMINISTIC_MODELS = {}
+
+REQUIRE_LARGER_MULTIPLIER_FOR_SMALLER_TENSOR = {
+    "inception_v3",
+    "mobilenetv3_large_100",
+    "vit_base_patch14_dinov2.lvd142m",
+}
+
+
+>>>>>>> upstream/release/2.11
 def refresh_model_names():
     import glob
 

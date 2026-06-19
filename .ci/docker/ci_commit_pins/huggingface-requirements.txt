@@ -1,2 +1,6 @@
+<<<<<<< HEAD
 transformers==5.5.3
+=======
+transformers==5.2.0
+>>>>>>> upstream/release/2.11
 soxr==0.5.0

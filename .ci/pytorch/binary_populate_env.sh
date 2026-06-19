@@ -6,7 +6,9 @@ export TZ=UTC
 tagged_version() {
   GIT_DIR="${workdir}/pytorch/.git"
   GIT_DESCRIBE="git --git-dir ${GIT_DIR} describe --tags --match v[0-9]*.[0-9]*.[0-9]*"
-  if [[ ! -d "${GIT_DIR}" ]]; then
+  if [[ -n "${CIRCLE_TAG:-}" ]]; then
+    echo "${CIRCLE_TAG}"
+  elif [[ ! -d "${GIT_DIR}" ]]; then
     echo "Abort, abort! Git dir ${GIT_DIR} does not exists!"
     kill $$
   elif ${GIT_DESCRIBE} --exact >/dev/null; then
@@ -70,6 +72,8 @@ fi
 
 export PYTORCH_BUILD_NUMBER=1
 
+# This part is done in the builder scripts so commenting the duplicate code
+: <<'BLOCK_COMMENT'
 # Set triton version as part of PYTORCH_EXTRA_INSTALL_REQUIREMENTS
 TRITON_VERSION=$(cat $PYTORCH_ROOT/.ci/docker/triton_version.txt)
 TRITON_CONSTRAINT="platform_system == 'Linux'"
@@ -111,6 +115,7 @@ if [[ "$PACKAGE_TYPE" =~ .*wheel.* && -n "$PYTORCH_BUILD_VERSION" && "$PYTORCH_B
         export PYTORCH_EXTRA_INSTALL_REQUIREMENTS="${PYTORCH_EXTRA_INSTALL_REQUIREMENTS} | ${TRITON_REQUIREMENT}"
     fi
 fi
+BLOCK_COMMENT
 
 USE_GLOO_WITH_OPENSSL="OFF"
 if [[ "$GPU_ARCH_TYPE" =~ .*aarch64.* ]]; then

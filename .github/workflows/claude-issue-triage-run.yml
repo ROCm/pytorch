@@ -108,6 +108,7 @@ jobs:
           fi
 
       - name: Upload usage metrics
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-claude-usage@release/2.12
 
       - name: Upload execution output to S3
@@ -132,3 +133,6 @@ jobs:
           else
             echo "No execution output found at ${OUTPUT_FILE}"
           fi
+=======
+        uses: pytorch/test-infra/.github/actions/upload-claude-usage@release/2.11
+>>>>>>> upstream/release/2.11

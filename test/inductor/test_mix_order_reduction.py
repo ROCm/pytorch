@@ -772,6 +772,7 @@ class MixOrderReductionTest(TestBase):
         compile_metrics = torch._dynamo.utils._compilation_metrics
         self.assertEqual(len(compile_metrics), 1, "Don't recompile")
 
+<<<<<<< HEAD
     @skipIfXpu(msg="https://github.com/intel/intel-xpu-backend-for-triton/issues/6398")
     def test_additive_rnumel(self):
         """
@@ -831,6 +832,8 @@ class MixOrderReductionTest(TestBase):
 
         torch.testing.assert_close(ref, act, atol=1e-3, rtol=1e-3)
 
+=======
+>>>>>>> upstream/release/2.11
     @largeTensorTest("36GB", device=GPU_TYPE, inductor=True)
     def test_out_of_shared_memory(self):
         """
@@ -952,6 +955,7 @@ class MixOrderReductionTest(TestBase):
         loss.backward()
         self.assertTrue(metrics.codegen_mix_order_reduction > 1)
 
+<<<<<<< HEAD
     @inductor_config.patch("triton.mix_order_reduction", True)
     @inductor_config.patch("triton.mix_order_reduction_non_strict_mode", True)
     def test_dimension_refactoring_mismatch(self):
@@ -1065,6 +1069,8 @@ class MixOrderReductionTest(TestBase):
             "Mix order reduction should be triggered",
         )
 
+=======
+>>>>>>> upstream/release/2.11
 
 @inductor_config.patch(
     "triton.mix_order_reduction", not inductor_config.triton.mix_order_reduction

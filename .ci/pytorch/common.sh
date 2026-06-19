@@ -5,7 +5,11 @@
 source "$(dirname "${BASH_SOURCE[0]}")/common_utils.sh"
 set -ex -o pipefail
 
+<<<<<<< HEAD
 # Source ROCm environment variables (paths may vary between tarball/wheel installs)
+=======
+# for ROCm environment variables
+>>>>>>> upstream/release/2.11
 if [[ "${BUILD_ENVIRONMENT}" == *rocm* ]] && [[ -f /etc/rocm_env.sh ]]; then
   # shellcheck disable=SC1091
   source /etc/rocm_env.sh
