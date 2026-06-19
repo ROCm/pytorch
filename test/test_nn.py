@@ -12267,7 +12267,18 @@ class TestThatContainsCUDAAssert(TestCase):
 if __name__ == '__main__':
     run_tests()
         """)
+<<<<<<< HEAD
         self.assertIn('CUDA error: device-side assert triggered', stderr)
+=======
+        # CUDA says "device-side assert triggered"
+        # ROCm says "unspecified launch failure", or HSA_STATUS_ERROR_EXCEPTION
+        has_cuda_assert = 'CUDA error: device-side assert triggered' in stderr
+        has_hip_assert = ('launch failure' in stderr
+                          or 'HSA_STATUS_ERROR_EXCEPTION' in stderr
+                          or 'illegal memory access' in stderr)
+        self.assertTrue(has_cuda_assert or has_hip_assert,
+                        f"Expected device assert error in stderr, got: {stderr}")
+>>>>>>> 52331f9ab53 ([release/2.11][ROCM] Fix test_cross_entropy_loss_2d_out_of_bounds_class (#187613) (#3336))
 
 
 
