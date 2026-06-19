@@ -13,8 +13,7 @@
 
 #if ROCM_VERSION < 60400
 __device__ inline __hip_bfloat162 preview_unsafeAtomicAdd(__hip_bfloat162* address, __hip_bfloat162 value) {
-// `__gfx1250__`-specific `s_wait_loadcnt(0)` path for committed store already there
-#if (defined(__gfx942__) || defined(__gfx1250__)) && \
+#if (defined(__gfx942__)) && \
   __has_builtin(__builtin_amdgcn_flat_atomic_fadd_v2bf16)
   typedef unsigned short __attribute__((ext_vector_type(2))) vec_short2;
   static_assert(sizeof(vec_short2) == sizeof(__hip_bfloat162_raw));

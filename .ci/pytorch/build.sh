@@ -150,7 +150,6 @@ if [[ "$BUILD_ENVIRONMENT" == *vulkan* ]]; then
   source /var/lib/jenkins/vulkansdk/setup-env.sh
 fi
 
-# Example BUILD_ENVIRONMENT: linux-noble-rocm-py3.12-gfx1250
 if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
   # hcc used to run out of memory, silently exiting without stopping
   # the build process, leaving undefined symbols in the shared lib,
@@ -160,23 +159,10 @@ if [[ "$BUILD_ENVIRONMENT" == *rocm* ]]; then
     export MAX_JOBS=$(($(nproc) - 1))
   fi
 
-  # Logic for multiple architectures based on the discriminator BUILD_ENVIRONMENT
-  # that is set by the workflow YAML and follows a consistent naming pattern.
   if [[ -n "$CI" && -z "$PYTORCH_ROCM_ARCH" ]]; then
-      if [[ "$BUILD_ENVIRONMENT" == *gfx1250* ]]; then
-          echo "Setting PYTORCH_ROCM_ARCH to gfx1250 for CI builds"
-          export PYTORCH_ROCM_ARCH="gfx1250"
-      elif [[ "$BUILD_ENVIRONMENT" == *mi355* ]] || [[ "$BUILD_ENVIRONMENT" == *gfx950* ]]; then
-          echo "Setting PYTORCH_ROCM_ARCH to gfx950 for CI builds"
-          export PYTORCH_ROCM_ARCH="gfx950"
-      elif [[ "$BUILD_ENVIRONMENT" == *mi300* ]] || [[ "$BUILD_ENVIRONMENT" == *gfx942* ]]; then
-          echo "Setting PYTORCH_ROCM_ARCH to gfx942 for CI builds"
-          export PYTORCH_ROCM_ARCH="gfx942"
-      else
-          # Set ROCM_ARCH to gfx906 for CI builds, if user doesn't override.
-          echo "Limiting PYTORCH_ROCM_ARCH to gfx906 for CI builds"
-          export PYTORCH_ROCM_ARCH="gfx906"
-      fi
+      # Set ROCM_ARCH to gfx906 for CI builds, if user doesn't override.
+      echo "Limiting PYTORCH_ROCM_ARCH to gfx906 for CI builds"
+      export PYTORCH_ROCM_ARCH="gfx906"
   fi
 
   # hipify sources
