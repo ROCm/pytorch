@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import ast
 import csv
 import os
 import re
@@ -266,6 +267,32 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
     return vals
 
 
+def _extract_message(raw):
+    """Turn a stored XML failure/error value into readable text.
+
+    summarize_xml_testreports.py writes the parsed XML failure node (a dict like
+    {'message': 'AssertionError: ...', 'text': '<full traceback>'}) into the
+    message_<set> CSV column via str(), so cells arrive as a dict repr. Prefer
+    the full traceback ('text'), fall back to the short 'message', and return
+    the raw string unchanged if it is not a dict repr.
+    """
+    if not raw:
+        return ''
+    raw = raw.strip()
+    if raw.startswith('{') and raw.endswith('}'):
+        try:
+            d = ast.literal_eval(raw)
+            if isinstance(d, dict):
+                return (d.get('text') or d.get('message') or '').strip()
+        except (ValueError, SyntaxError):
+            pass
+    return raw
+
+
+def _html_escape(s):
+    return (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+
+
 def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     """Return a list of failed test rows across all architectures.
 
@@ -278,6 +305,10 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     for arch in archs:
         d = arch_data[arch]
         s1_col, s2_col, s1_time, _ = d['cols']
+        # message_<name> columns mirror the status_<name> naming (incl. the
+        # status_set1/set2 fallback), so derive them from the resolved cols.
+        s1_msg_col = s1_col.replace('status_', 'message_', 1)
+        s2_msg_col = s2_col.replace('status_', 'message_', 1)
         has_set2 = d.get('has_set2', True)
         for r in d['rows']:
             s1 = r[s1_col].strip()
@@ -293,11 +324,13 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
                     f'shard_{s1_name}': r.get(f'shard_{s1_name}', ''),
                     f'job_url_{s1_name}': r.get(f'job_url_{s1_name}', ''),
                     f'status_{s1_name}': s1,
+                    'error_message': _extract_message(r.get(s1_msg_col, '')),
                 }
                 if has_set2:
                     entry[f'shard_{s2_name}'] = r.get(f'shard_{s2_name}', '')
                     entry[f'job_url_{s2_name}'] = r.get(f'job_url_{s2_name}', '')
                     entry[f'status_{s2_name}'] = s2
+                    entry['error_message_set2'] = _extract_message(r.get(s2_msg_col, ''))
                 failed.append(entry)
 
     return failed
@@ -609,6 +642,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
         if has_set2:
             header.append(f'Status ({s2_name})')
         header.append('Also Failing In')
+        header.append('Error Message')
         csv_rows.append(header)
         for t in s1_failed:
             row = [t['arch'], t['test_config'], t['test_file'],
@@ -623,6 +657,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
             if has_set2:
                 row.append(t.get(f'status_{s2_name}', ''))
             row.append(t.get('also_failing_in', ''))
+            row.append(t.get('error_message', ''))
             csv_rows.append(row)
         csv_rows.append([])
 
@@ -758,6 +793,24 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
             line += ' |'
             lines.append(line)
         lines.append('')
+
+        with_messages = [t for t in s1_failed if t.get('error_message')]
+        if with_messages:
+            lines.append('<details>')
+            lines.append(f'<summary>Failure messages ({len(with_messages)})</summary>')
+            lines.append('')
+            for t in with_messages:
+                ident = (f"{t['arch']} \u00b7 {t['test_config']} \u00b7 "
+                         f"{t['test_file']}::{t['test_class']}::{t['test_name']}")
+                lines.append('<details>')
+                lines.append(f'<summary>{_html_escape(ident)}</summary>')
+                lines.append('')
+                lines.append(f'<pre>{_html_escape(t["error_message"])}</pre>')
+                lines.append('')
+                lines.append('</details>')
+                lines.append('')
+            lines.append('</details>')
+            lines.append('')
     else:
         lines.append('### FAILED TESTS')
         lines.append('')
