@@ -293,6 +293,20 @@ def _html_escape(s):
     return (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
+def _truncate_message(msg, limit=2000):
+    """Cap a failure message for the markdown summary.
+
+    The whole .md is piped into $GITHUB_STEP_SUMMARY, which GitHub rejects above
+    1 MB, so many large tracebacks would drop the entire summary. Keep the tail
+    (the exception/assertion lives at the end of a traceback) and point readers
+    to the CSV 'Error Message' column, which keeps the full text for dashboards.
+    """
+    if not msg or len(msg) <= limit:
+        return msg
+    return ('...(truncated; full message in the Error Message column of the CSV artifact)\n'
+            + msg[-limit:])
+
+
 def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     """Return a list of failed test rows across all architectures.
 
@@ -805,7 +819,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
                 lines.append('<details>')
                 lines.append(f'<summary>{_html_escape(ident)}</summary>')
                 lines.append('')
-                lines.append(f'<pre>{_html_escape(t["error_message"])}</pre>')
+                lines.append(f'<pre>{_html_escape(_truncate_message(t["error_message"]))}</pre>')
                 lines.append('')
                 lines.append('</details>')
                 lines.append('')
