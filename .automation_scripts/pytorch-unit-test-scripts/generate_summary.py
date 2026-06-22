@@ -293,13 +293,28 @@ def _html_escape(s):
     return (s or '').replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
 
 
-def _truncate_message(msg, limit=2000):
+# The whole .md is piped into $GITHUB_STEP_SUMMARY, and GitHub restricts each
+# step summary to 1 MiB - past that the upload fails (and content can be dropped
+# silently as it nears the limit), so a single run with many large tracebacks
+# would lose the entire summary. We keep the rendered summary under this budget
+# (1 MiB minus headroom for the surrounding tables/markdown) and only clip the
+# longest failure messages when a run would otherwise exceed it; the full text
+# always stays in the 'Error Message' column of the CSV artifact.
+# https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-commands#step-isolation-and-limits
+STEP_SUMMARY_BYTE_BUDGET = 950_000
+
+# Per-message hard cap. Generous on purpose: real tracebacks fit well within it,
+# so they render in full; it only bounds pathological multi-MB messages. The
+# global budget above is what protects the summary when there are many failures.
+PER_MESSAGE_CHAR_LIMIT = 50_000
+
+
+def _truncate_message(msg, limit=PER_MESSAGE_CHAR_LIMIT):
     """Cap a failure message for the markdown summary.
 
-    The whole .md is piped into $GITHUB_STEP_SUMMARY, which GitHub rejects above
-    1 MB, so many large tracebacks would drop the entire summary. Keep the tail
-    (the exception/assertion lives at the end of a traceback) and point readers
-    to the CSV 'Error Message' column, which keeps the full text for dashboards.
+    Keeps the tail (the exception/assertion lives at the end of a traceback) and
+    points readers to the CSV 'Error Message' column, which keeps the full text
+    for dashboards.
     """
     if not msg or len(msg) <= limit:
         return msg
@@ -307,22 +322,68 @@ def _truncate_message(msg, limit=2000):
             + msg[-limit:])
 
 
-def _message_cell(msg):
+def _message_cell(msg, char_limit=PER_MESSAGE_CHAR_LIMIT):
     """Render a failure message as a collapsible cell for a markdown table.
 
     Table cells can't contain raw newlines or unescaped pipes, so the message
     is HTML-escaped, pipes are escaped, and newlines become &#10; inside a
     <pre> (GitHub renders these as line breaks). The whole thing is wrapped in
     a <details> so each row shows only a small 'view' toggle by default.
+    `char_limit` is set per-run by the budget pass below; 0 drops the body.
     """
-    msg = _truncate_message(msg)
     if not msg:
         return ''
+    if char_limit <= 0:
+        return ('<sub>message omitted to keep the summary under GitHub\u2019s 1 MiB '
+                'limit; see the Error Message column of the CSV artifact</sub>')
+    msg = _truncate_message(msg, char_limit)
     body = (_html_escape(msg)
             .replace('\r', '')
             .replace('\n', '&#10;')
             .replace('|', '\\|'))
     return f'<details><summary>view</summary><pre>{body}</pre></details>'
+
+
+def _fit_message_cap(messages, budget):
+    """Largest uniform per-message char cap whose rendered cells fit `budget`
+    bytes. Messages shorter than the cap are untouched, so only the longest
+    (outlier) messages get clipped, and only when a run would exceed the budget.
+    """
+    if budget <= 0:
+        return 0
+
+    def total_bytes(cap):
+        return sum(len(_message_cell(m, cap).encode('utf-8')) for m in messages)
+
+    if total_bytes(PER_MESSAGE_CHAR_LIMIT) <= budget:
+        return PER_MESSAGE_CHAR_LIMIT
+    lo, hi = 0, PER_MESSAGE_CHAR_LIMIT
+    while lo < hi:
+        mid = (lo + hi + 1) // 2
+        if total_bytes(mid) <= budget:
+            lo = mid
+        else:
+            hi = mid - 1
+    return lo
+
+
+def _fill_failure_messages(lines, fail_rows):
+    """Fill the deferred 'Error Message' cells of the FAILED TESTS table.
+
+    `fail_rows` is a list of (line_index, row_prefix, raw_message). We first
+    measure every other byte in the summary (rendering these cells empty), then
+    spend whatever remains of STEP_SUMMARY_BYTE_BUDGET on the messages via a
+    single uniform cap, so typical runs show full tracebacks and only oversized
+    runs clip their longest messages.
+    """
+    if not fail_rows:
+        return
+    for idx, prefix, _ in fail_rows:
+        lines[idx] = f"{prefix} |  |"
+    base_bytes = len('\n'.join('' if l is None else l for l in lines).encode('utf-8'))
+    cap = _fit_message_cap([m for _, _, m in fail_rows], STEP_SUMMARY_BYTE_BUDGET - base_bytes)
+    for idx, prefix, msg in fail_rows:
+        lines[idx] = f"{prefix} | {_message_cell(msg, cap)} |"
 
 
 def collect_failed_tests(arch_data, archs, s1_name, s2_name):
@@ -802,6 +863,9 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         cols.append(f'Job ID ({s2_name})')
     cols.append('Error Message')
 
+    # Filled in by _fill_failure_messages once the rest of the summary is sized,
+    # so the message column can use whatever byte budget is left.
+    fail_rows = []
     if s1_failed:
         lines.append(f'### FAILED TESTS ({len(s1_failed)})')
         lines.append('')
@@ -823,8 +887,8 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
             line += f" | {_job_id_link(t.get(f'job_url_{s1_name}', ''))}"
             if has_set2:
                 line += f" | {_job_id_link(t.get(f'job_url_{s2_name}', ''))}"
-            line += f" | {_message_cell(t.get('error_message', ''))} |"
-            lines.append(line)
+            lines.append(None)  # placeholder; message cell filled in below
+            fail_rows.append((len(lines) - 1, line, t.get('error_message', '')))
         lines.append('')
     else:
         lines.append('### FAILED TESTS')
@@ -869,6 +933,8 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
                     f"| {_job_id_link(lf.get('job_url', ''))} |"
                 )
             lines.append('')
+
+    _fill_failure_messages(lines, fail_rows)
 
     md = '\n'.join(lines)
     with open(output_path, 'w') as f:
