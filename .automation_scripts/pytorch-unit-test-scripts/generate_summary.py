@@ -307,6 +307,24 @@ def _truncate_message(msg, limit=2000):
             + msg[-limit:])
 
 
+def _message_cell(msg):
+    """Render a failure message as a collapsible cell for a markdown table.
+
+    Table cells can't contain raw newlines or unescaped pipes, so the message
+    is HTML-escaped, pipes are escaped, and newlines become &#10; inside a
+    <pre> (GitHub renders these as line breaks). The whole thing is wrapped in
+    a <details> so each row shows only a small 'view' toggle by default.
+    """
+    msg = _truncate_message(msg)
+    if not msg:
+        return ''
+    body = (_html_escape(msg)
+            .replace('\r', '')
+            .replace('\n', '&#10;')
+            .replace('|', '\\|'))
+    return f'<details><summary>view</summary><pre>{body}</pre></details>'
+
+
 def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     """Return a list of failed test rows across all architectures.
 
@@ -782,6 +800,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
     cols.append(f'Job ID ({s1_name})')
     if has_set2:
         cols.append(f'Job ID ({s2_name})')
+    cols.append('Error Message')
 
     if s1_failed:
         lines.append(f'### FAILED TESTS ({len(s1_failed)})')
@@ -804,27 +823,9 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
             line += f" | {_job_id_link(t.get(f'job_url_{s1_name}', ''))}"
             if has_set2:
                 line += f" | {_job_id_link(t.get(f'job_url_{s2_name}', ''))}"
-            line += ' |'
+            line += f" | {_message_cell(t.get('error_message', ''))} |"
             lines.append(line)
         lines.append('')
-
-        with_messages = [t for t in s1_failed if t.get('error_message')]
-        if with_messages:
-            lines.append('<details>')
-            lines.append(f'<summary>Failure messages ({len(with_messages)})</summary>')
-            lines.append('')
-            for t in with_messages:
-                ident = (f"{t['arch']} \u00b7 {t['test_config']} \u00b7 "
-                         f"{t['test_file']}::{t['test_class']}::{t['test_name']}")
-                lines.append('<details>')
-                lines.append(f'<summary>{_html_escape(ident)}</summary>')
-                lines.append('')
-                lines.append(f'<pre>{_html_escape(_truncate_message(t["error_message"]))}</pre>')
-                lines.append('')
-                lines.append('</details>')
-                lines.append('')
-            lines.append('</details>')
-            lines.append('')
     else:
         lines.append('### FAILED TESTS')
         lines.append('')
