@@ -5786,8 +5786,6 @@ class CommonTemplate:
             reference_in_float=False,
         )
 
-<<<<<<< HEAD
-=======
     @unittest.skipIf(
         TEST_WITH_ROCM and not torch.cuda.has_magma,
         "ROCm hipsolver backend does not currently support eig",
@@ -5808,7 +5806,6 @@ class CommonTemplate:
             check_lowp=False,
         )
 
->>>>>>> 15ced78d2a4 ([release/2.11][ROCm] Skip linalg UT's when MAGMA is not available with ROCM (#178229) (#3335))
     def test_view_as_complex(self):
         class Repro(torch.nn.Module):
             def __init__(self) -> None:
