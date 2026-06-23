@@ -853,7 +853,10 @@ class TestFlopCounter(TestCase):
         "FP8 is only supported on H100+, SM 8.9 and MI300+ devices",
     )
     def test_scaled_mm(self):
-        dtype = torch.float8_e4m3fnuz if torch.version.hip else torch.float8_e4m3fn
+        if (torch.version.hip and 'gfx942' in torch.cuda.get_device_properties(0).gcnArchName):
+            dtype = torch.float8_e4m3fnuz  
+        else:
+            dtype = torch.float8_e4m3fn
         with FlopCounterMode() as mode:
             torch._scaled_mm(
                 torch.randn((3 * 16, 5 * 16), device="cuda").to(dtype),

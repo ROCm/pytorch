@@ -55,6 +55,7 @@ from torch.profiler._pattern_matcher import (
 )
 from torch.testing._internal.common_cuda import TEST_MULTIGPU
 from torch.testing._internal.common_utils import (
+    MI200_ARCH,
     instantiate_parametrized_tests,
     IS_ARM64,
     IS_JETSON,
@@ -63,6 +64,8 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     serialTest,
+    skipIfRocm,
+    skipIfRocmArch,
     skipIfTorchDynamo,
     TemporaryDirectoryName,
     TemporaryFileName,
@@ -103,6 +106,7 @@ except ModuleNotFoundError:
 @unittest.skipIf(not HAS_PSUTIL, "Requires psutil to run")
 @unittest.skipIf(IS_WINDOWS, "Test is flaky on Windows")
 @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
+@skipIfRocmArch(MI200_ARCH) # https://github.com/pytorch/pytorch/issues/110995
 class TestProfilerCUDA(TestCase):
     def test_mem_leak(self):
         """Checks that there's no memory leak when using profiler with CUDA"""
@@ -1443,6 +1447,7 @@ class TestProfiler(TestCase):
 
     @unittest.skipIf(not kineto_available(), "Kineto is required")
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA is required")
+    @skipIfRocm(msg="hipDeviceSynchronize does not log 'cuda_sync' events")
     def test_profiler_cuda_sync_events(self):
         device = torch.device("cuda:0")
         t1, t2 = torch.ones(1, device=device), torch.ones(1, device=device)
@@ -1452,10 +1457,10 @@ class TestProfiler(TestCase):
             torch.cuda.synchronize()
             torch.add(t1, t2)
 
-        def trace_and_check(exp_config: Optional[_ExperimentalConfig]) -> None:
+        def trace_and_check(exp_config: _ExperimentalConfig | None) -> None:
             with _profile(
                 use_kineto=True,
-                use_cuda=True,
+                use_device="cuda",
                 experimental_config=exp_config,
             ) as prof:
                 workload()
@@ -1465,10 +1470,12 @@ class TestProfiler(TestCase):
                 prof.export_chrome_trace(fname)
                 with open(fname) as f:
                     j = json.load(f)
-                    cats = {e.get("cat", None) for e in j["traceEvents"]}
+                    cat_or_name = "cat" if torch.version.cuda else "name"
+                    cats = {e.get(cat_or_name, None) for e in j["traceEvents"]}
+            event_name = "cuda_sync" if torch.version.cuda else "hipDeviceSynchronize"
             self.assertTrue(
-                "cuda_sync" in cats,
-                f"Expected to find cuda_sync event found = {cats}",
+                event_name in cats,
+                f"Expected to find {event_name} event found = {cats}",
             )
 
         print("Testing enable_cuda_sync_events in _ExperimentalConfig")
@@ -2107,7 +2114,7 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
 
         self.assertTrue(any("aten" in e.name for e in p.events()))
 
-        self.assertTrue(any(device in e.name for e in p.events()))
+        self.assertTrue(any(device in e.name.lower() for e in p.events()))
 
         self.assertTrue(any("kernel" in e.name.lower() for e in p.events()))
 
@@ -2232,9 +2239,15 @@ assert KinetoStepTracker.current_step() == initial_step + 2 * niters
             if "cat" in event and event["cat"] in cuda_external_id_events:
                 if disable_external_correlation:
                     self.assertTrue("External id" not in event["args"])
-                elif event["name"] != "cudaDeviceSynchronize":
-                    self.assertTrue("External id" in event["args"])
-                    self.assertTrue(event["args"]["External id"] > 0)
+                else:
+                    excluded_events = (
+                        {"hipDeviceSynchronize"}
+                        if TEST_WITH_ROCM
+                        else {"cudaDeviceSynchronize"}
+                    )
+                    if event["name"] not in excluded_events:
+                        self.assertTrue("External id" in event["args"])
+                        self.assertTrue(event["args"]["External id"] > 0)
 
         def validate_json(prof, disable_external_correlation):
             with TemporaryFileName(mode="w+") as fname:

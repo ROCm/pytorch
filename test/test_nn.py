@@ -3956,7 +3956,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
 
             # input and weights are not at the same device
             with self.assertRaisesRegex(RuntimeError,
-                                        "Input and parameter tensors are not at the same device"):
+                                        "Expected all tensors to be on the same device"):
                 model(input.to('cuda:0'))
             with self.assertRaisesRegex(RuntimeError,
                                         "Input and parameter tensors are not at the same device"):
@@ -3970,7 +3970,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
                 else:
                     model(input, (hidden.to('cuda:0')))
             with self.assertRaisesRegex(RuntimeError,
-                                        r"Input and hidden tensors are not at the same device"):
+                                        r"Expected all tensors to be on the same device"):
                 if mode == 'LSTM':
                     model_cuda(input.to('cuda:0'), (hidden, hidden))
                 else:
@@ -3979,7 +3979,7 @@ tensor(..., device='meta', size=(1,), requires_grad=True)""")
             # hidden tensors are not at the same CUDA device
             if mode == 'LSTM':
                 with self.assertRaisesRegex(RuntimeError,
-                                            "Input and hidden tensors are not at the same device"):
+                                            "Expected all tensors to be on the same device"):
                     model(input.to('cuda:0'), (hidden.to('cuda:0'), hidden.to('cuda:1')))
 
     @unittest.skipIf(not TEST_MULTIGPU, "multi-GPU not supported")

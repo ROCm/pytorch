@@ -2527,7 +2527,8 @@ class TestSparseCSR(TestCase):
             self.assertEqual(actual.shape, c.shape)
 
         for m, n, k in itertools.product([0, 5], repeat=3):
-            c = torch.empty(m, n, dtype=dtype, device=device, layout=torch.sparse_csr)
+            with torch.sparse.check_sparse_tensor_invariants(enable=False):
+                c = torch.empty(m, n, dtype=dtype, device=device, layout=torch.sparse_csr)
             a = make_tensor((m, k), dtype=dtype, device=device)
             b = make_tensor((k, n), dtype=dtype, device=device)
             run_test(c, a, b)
