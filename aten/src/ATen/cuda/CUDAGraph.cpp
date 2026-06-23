@@ -122,9 +122,27 @@ void CUDAGraph::capture_end() {
   TORCH_CHECK(stream == capture_stream_,
               "Capture must end on the same stream it began on.");
 
+<<<<<<< HEAD
   AT_CUDA_CHECK(cudaStreamEndCapture(capture_stream_, &graph_));
 
   c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
+=======
+  // Capture is over once cudaStreamEndCapture returns (success or failure).
+  // Clear bookkeeping before propagating the return status so watchdog-side
+  // checks cannot observe stale "capture active" state on error paths.
+  cudaError_t endCaptureErr = cudaStreamEndCapture(capture_stream_, &graph_);
+  {
+    std::unique_lock<std::mutex> lock(_currently_capturing_graphs_mutex);
+    TORCH_CHECK(
+        _currently_capturing_graphs.count(capture_id_),
+        "capture_end() called before capture_begin().");
+    _currently_capturing_graphs.erase(capture_id_);
+  }
+
+  c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
+  at::getHostAllocator(at::kCUDA)->end_allocate_to_pool(mempool_id_);
+  AT_CUDA_CHECK(endCaptureErr);
+>>>>>>> 08b5c324de0 ([release/2.12] fix leak in CUDAGraph::capture_end (#180395) (#3357))
 
   TORCH_CHECK(graph_ != nullptr, "Invalid capture.");
 
