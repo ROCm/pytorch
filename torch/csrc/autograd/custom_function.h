@@ -512,6 +512,7 @@ auto Function<T>::apply(Args&&... args)
   auto view_as_self_fn = [](const at::Tensor& x) -> at::Tensor {
     return x.view_as(x);
   };
+std::fprintf(stderr, "cca_log Function<T>::apply\n");
 
   auto wrapped_outputs = _wrap_outputs(
       input_vars,

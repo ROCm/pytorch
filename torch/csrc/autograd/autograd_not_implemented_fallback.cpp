@@ -209,6 +209,7 @@ static void basicAutogradNotImplementedFallbackImpl(
           // but custom operators may have multiple Tensor(a!) returns,
           // rebase_history assumes single Tensor(a!) return, and in general
           // custom ops don't have a good in-place story.
+          CCADEBUG(std::fprintf(stderr, "cca_log basicAutogradNotImplementedFallbackImpl grad_fn->name %s\n", grad_fn->name().c_str()));
           if (!is_mutable_output) {
             set_history(t, grad_fn);
           }
@@ -459,6 +460,7 @@ static void autogradNotImplementedFallbackImpl(
   if (any_requires_grad) {
     _foreach_tensor(
         [&](size_t idx_tensor, size_t idx_ret, const at::Tensor& t) {
+          CCADEBUG(std::fprintf(stderr, "cca_log autogradNotImplementedFallbackImpl grad_fn->name %s\n", grad_fn->name().c_str()));
           if (isDifferentiableType(t.scalar_type())) {
             if (is_inplace_output[idx_ret]) {
               rebase_history(t, grad_fn);

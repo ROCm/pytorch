@@ -279,6 +279,7 @@ static optional_variable_list _process_backward_mode_ad(
                          bool is_modified,
                          bool is_differentiable,
                          bool is_saved_and_setup_context) {
+                          // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
     if (!is_differentiable) {
       if (!var.requires_grad()) {
         if (is_input && !is_modified) {
@@ -356,6 +357,8 @@ static optional_variable_list _process_backward_mode_ad(
   int num_diff_outputs = 0;
 
   for (const auto i : c10::irange(num_outputs)) {
+
+    // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
     // We put a undefined_input placeholder for outputs that are not tensor and
     // for when the output tensor is not differentiable (see below)
     if (!raw_outputs[i].has_value()) {
@@ -379,6 +382,8 @@ static optional_variable_list _process_backward_mode_ad(
     bool is_saved_and_setup_context =
         to_save_if_setup_context.count(out_tensor_impl) > 0;
 
+    // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
+    
     if (cdata) {
       uint32_t output_nr = 0;
       if (!is_differentiable) {
@@ -388,6 +393,9 @@ static optional_variable_list _process_backward_mode_ad(
       }
       AT_ASSERT(i == output_nr);
     }
+
+    // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
+
     set_history(
         var,
         i,
@@ -395,6 +403,8 @@ static optional_variable_list _process_backward_mode_ad(
         is_modified,
         is_differentiable,
         is_saved_and_setup_context);
+
+    // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
 
     // For deprecation cycle. Can be removed after 1.6. In the case where we
     // detected a view in no grad mode during the forward, only warn the user
@@ -406,6 +416,7 @@ static optional_variable_list _process_backward_mode_ad(
       auto diff_view_meta = impl::get_view_autograd_meta(var);
       diff_view_meta->set_creation_meta(CreationMeta::IN_CUSTOM_FUNCTION);
     }
+    // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
 
     if (is_differentiable) {
       ++num_diff_outputs;
@@ -449,11 +460,16 @@ optional_variable_list _wrap_outputs(
     const _jvp_fn_t& jvp_user_function,
     const std::unordered_set<at::TensorImpl*>& to_save_if_setup_context,
     const _view_as_self_fn_t& view_as_self_fn) {
+
+  // std::fprintf(stderr, "cca_log _wrap_outputs 453\n");
+
   std::unordered_map<at::TensorImpl*, size_t> inputs_mapping;
   inputs_mapping.reserve(input_vars.size());
   for (const auto i : c10::irange(input_vars.size())) {
     inputs_mapping.emplace(input_vars[i].unsafeGetTensorImpl(), i);
   }
+
+  // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
 
   auto outputs = _process_backward_mode_ad(
       inputs_mapping,
@@ -463,6 +479,8 @@ optional_variable_list _wrap_outputs(
       cdata,
       to_save_if_setup_context,
       view_as_self_fn);
+
+  // std::fprintf(stderr, "cca_log %s:%d\n", __FILE__, __LINE__);
 
   // This must happen after the backward processing as we expect the
   // computations happening here to track backward mode gradients.

@@ -62,6 +62,7 @@ ContextPtr addRecvRpcBackward(
         autogradMetadata, autogradContext, fromWorkerId, deviceMap);
     for (auto& tensor : tensors) {
       if (tensor.requires_grad()) {
+        CCADEBUG(std::fprintf(stderr, "cca_log 65 grad_fn->name %s\n", grad_fn->name().c_str()));
         torch::autograd::set_history(tensor, grad_fn);
       }
     }

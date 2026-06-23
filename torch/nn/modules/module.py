@@ -1783,7 +1783,16 @@ class Module:
         if not (self._backward_hooks or self._backward_pre_hooks or self._forward_hooks or self._forward_pre_hooks
                 or _global_backward_pre_hooks or _global_backward_hooks
                 or _global_forward_hooks or _global_forward_pre_hooks):
-            return forward_call(*args, **kwargs)
+            # return forward_call(*args, **kwargs)
+            pushed = False
+            if torch._C._autograd_is_stream_module(self):
+                torch._C._autograd_push_stream_tag()
+                pushed = True
+            try:
+                return forward_call(*args, **kwargs)
+            finally:
+                if pushed:
+                    torch._C._autograd_pop_stream_tag()
 
         result = None
         called_always_called_hooks = set()

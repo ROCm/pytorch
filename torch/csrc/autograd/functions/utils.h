@@ -13,6 +13,54 @@
 #include <memory>
 #include <vector>
 
+
+namespace torch::autograd::stream_tag {
+TORCH_API void push();
+TORCH_API void pop();
+TORCH_API bool active();
+} // namespace
+
+namespace torch::ddp_model2_stream {
+
+struct HasStream12 {
+  HasStream12() {}
+  HasStream12(bool has1, bool has2) : has_stream1(has1), has_stream2(has2) {}
+  bool has_stream1 = false;
+  bool has_stream2 = false;
+};
+
+struct Registry {
+  std::mutex mu;
+
+  // model2 module identity (python object)
+  PyObject* model2_module = nullptr;   // strong ref
+  bool enabled = false;
+  bool start_compute = false;
+
+  // // streams
+  // c10::Stream bwd_stream;
+  // c10::Stream rccl_stream;
+
+  int64_t bwd_stream_id = 0;
+  int64_t bwd_device_index = 0;
+  int64_t bwd_device_type = 0;
+
+  int64_t rccl_stream_id = 0;
+  int64_t rccl_device_index = 0;
+  int64_t rccl_device_type = 0;
+
+  int32_t rccl_cnt = 0;
+
+  // params (for bucket classification)
+  std::unordered_set<c10::TensorImpl*> model2_param_impls;
+
+  std::unordered_map<c10::TensorImpl*, HasStream12> bucket_tensor_has_stream;
+};
+
+TORCH_API Registry& registry();
+
+} // namespace torch::ddp_model2_stream
+
 namespace torch::autograd {
 
 using function_constructor = std::function<std::shared_ptr<Node>(edge_list&&)>;
@@ -67,6 +115,22 @@ inline void set_history(
     const at::Tensor& variable,
     const std::shared_ptr<Node>& grad_fn) {
   TORCH_CHECK(grad_fn != nullptr);
+
+  if (torch::autograd::stream_tag::active() && !grad_fn->cca_tag()) {
+    // CCADEBUG(std::fprintf(stderr, "cca_log set_history override_stream grad_fn->name %s GetTraceID %d\n", grad_fn->name().c_str(), GetTraceID(true)));
+    grad_fn->set_cca_tag(true);
+
+    auto& reg = torch::ddp_model2_stream::registry();
+    std::lock_guard<std::mutex> g(reg.mu);
+    auto bwd_stream = c10::Stream::unpack3(
+      reg.bwd_stream_id,
+      static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+      static_cast<c10::DeviceType>(reg.bwd_device_type));
+    grad_fn->set_override_stream(bwd_stream);
+  } else {
+    // CCADEBUG(std::fprintf(stderr, "cca_log set_history not_override_stream grad_fn->name %s GetTraceID %d\n", grad_fn->name().c_str(), GetTraceID(true)));
+  }
+
   if (variable.defined()) {
     // If the codegen triggers this, you most likely want to add your newly
     // added function to the DONT_REQUIRE_DERIVATIVE list in

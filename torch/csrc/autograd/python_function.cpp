@@ -44,6 +44,8 @@
 #include <utility>
 #include <vector>
 
+#include <torch/csrc/autograd/functions/utils.h>
+
 using namespace torch;
 using namespace torch::autograd;
 using at::Tensor;
@@ -602,6 +604,9 @@ static void _wrap_outputs(
     PyObject* outputs,
     bool is_executable,
     const std::unordered_set<at::TensorImpl*>& to_save_if_setup_context) {
+
+  // std::fprintf(stderr, "cca_log _wrap_outputs 606\n");
+
   auto cdata_if_executable = is_executable ? cdata : nullptr;
   Py_ssize_t num_outputs = PyTuple_GET_SIZE(raw_output);
   if (is_executable) {
@@ -1091,6 +1096,26 @@ PyObject* process_outputs(
     bool is_executable,
     torch::jit::Node* node,
     bool overridden_setup_context) {
+
+  if (cdata) {
+  // std::fprintf(stderr, "cca_log process_outputs %s\n", cdata->name().c_str());
+
+  if (torch::autograd::stream_tag::active() && !cdata->cca_tag()) {
+    // std::fprintf(stderr, "cca_log process_outputs override_stream cdata->name %s GetTraceID %d\n", cdata->name().c_str(), GetTraceID(true));
+    cdata->set_cca_tag(true);
+
+    auto& reg = torch::ddp_model2_stream::registry();
+    std::lock_guard<std::mutex> g(reg.mu);
+    auto bwd_stream = c10::Stream::unpack3(
+      reg.bwd_stream_id,
+      static_cast<c10::DeviceIndex>(reg.bwd_device_index),
+      static_cast<c10::DeviceType>(reg.bwd_device_type));
+    cdata->set_override_stream(bwd_stream);
+  } else {
+    // std::fprintf(stderr, "cca_log process_outputs not_override_stream cdata->name %s GetTraceID %d\n", cdata->name().c_str(), GetTraceID(true));
+  }
+  }
+
   bool unpack_output = ensure_tuple(raw_output);
 
   auto num_outputs = PyTuple_GET_SIZE(raw_output.get());
