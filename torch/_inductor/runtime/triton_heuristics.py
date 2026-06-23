@@ -2350,9 +2350,17 @@ def check_max_block(cfg: dict[str, int]):
 
 
 def _device_warp_size_for_heuristics() -> int:
-    # Wave size is not uniform across AMD GPUs: CDNA parts (gfx90a/942/950) are
-    # Wave64 while RDNA and gfx1250 (GFX12.5) are Wave32. Query the device so the
-    # warp-count heuristics below scale correctly instead of assuming Wave64.
+    # Wave size is not uniform across AMD GPUs: gfx90a/942/950 are Wave64 while
+    # gfx1250 are Wave32. Query the device so the warp-count heuristics below
+    # scale correctly instead of assuming Wave64.
+    #
+    # NOTE: This intentionally queries the *current* device (no index argument).
+    # The triton_config* helpers that consume this build configs at lowering time
+    # and are not parameterized by a target device, so there is no device index to
+    # thread through here. Inductor bakes the warp size into the config at
+    # construction time against the active device; on a hypothetical host mixing
+    # Wave32 and Wave64 GPUs, configs built under one device should not be reused
+    # verbatim under another.
     if not torch.version.hip:
         return _NUM_THREADS_PER_WARP
 
