@@ -127,7 +127,7 @@ inline __host__ __device__ uint32_t getAlignmentRoundUp(const void* p) {
   return diff == 0 ? 0 : uint32_t(Align) - diff;
 }
 
-// CDNA arch with MFMA and Warp-32 support
+// CDNA2+ arch with MFMA and Wave64 support
 #if defined(__gfx90a__) || defined(__gfx942__) || defined(__gfx950__)
 #define CDNA2_OR_LATER 1
 #else
@@ -1108,7 +1108,7 @@ at::Tensor _weight_int4pack_mm_cuda(
   if (isCDNA5orLater(A.device().index())) {
     TORCH_CHECK(false,
                 "_weight_int4pack_mm_cuda is not yet supported on gfx1250. "
-                "A WMMA-based implementation is required for gfx1250.")
+                "A WMMA-based implementation is required for gfx1250.");
   }
   if (!isCDNA2orLater(A.device().index())) {
     TORCH_CHECK(false, "_weight_int4pack_mm_cuda is only supported on AMD gpu arch greater than or equal to CDNA2");
@@ -1308,7 +1308,7 @@ at::Tensor _convert_weight_to_int4pack_cuda(
   if (isCDNA5orLater(in.device().index())) {
     TORCH_CHECK(false,
                 "_convert_weight_to_int4pack_cuda is not yet supported on gfx1250. "
-                "A WMMA-based implementation is required for gfx1250.")
+                "A WMMA-based implementation is required for gfx1250.");
   }
   if (!isCDNA2orLater(in.device().index())) {
     TORCH_CHECK(false, "_convert_weight_to_int4pack_cuda is only supported on AMD gpu arch greater than or equal to CDNA2");

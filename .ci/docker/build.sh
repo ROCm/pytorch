@@ -188,7 +188,9 @@ case "$tag" in
     NINJA_VERSION=1.9.0
     TRITON=yes
     KATEX=yes
-    PYTORCH_ROCM_ARCH="gfx90a;gfx942;gfx950;gfx1100"
+    UCX_COMMIT=${_UCX_COMMIT}
+    UCC_COMMIT=${_UCC_COMMIT}
+    PYTORCH_ROCM_ARCH="gfx90a;gfx942;gfx950;gfx1100;gfx1250"
     if [[ $tag =~ "benchmarks" ]]; then
       INDUCTOR_BENCHMARKS=yes
     fi
