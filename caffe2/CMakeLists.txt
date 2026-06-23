@@ -1465,6 +1465,9 @@ if(USE_ROCM)
   if(USE_ROCM_CK_SDPA)
     target_compile_definitions(torch_hip PRIVATE USE_ROCM_CK_SDPA)
   endif()
+  if(USE_ROCM_CK_GEMM)
+    target_compile_definitions(torch_hip PRIVATE USE_ROCM_CK_GEMM)
+  endif()
 endif()
 
 if(BUILD_LITE_INTERPRETER)
@@ -1796,11 +1799,16 @@ if(USE_ROCM)
     target_link_libraries(torch_hip PRIVATE ck_sdpa)
   endif()
 
+  if(USE_ROCM_CK_GEMM)
+    target_link_libraries(torch_hip PRIVATE ck_gemm)
+  endif()
+
   if(USE_FBGEMM_GENAI)
     if(USE_ROCM)
       target_link_libraries(torch_hip PRIVATE fbgemm_genai)
     endif()
   endif()
+
   # Since PyTorch files contain HIP headers, this is also needed to capture the includes.
   # ROCM_INCLUDE_DIRS is defined in LoadHIP.cmake and added as SYSTEM includes in cmake/Dependencies.cmake
   target_include_directories(torch_hip PRIVATE ${Caffe2_HIP_INCLUDE})
