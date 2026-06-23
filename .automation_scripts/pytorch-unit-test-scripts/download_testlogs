@@ -4,6 +4,7 @@
 try:
     import os
     import json
+    import time
     import argparse
     import requests
     import re
@@ -29,13 +30,47 @@ if missing_vars:
 
 # global variables
 error_msgs = []
-# Workflow names mapped to TEST_CONFIG values in PyTorch CI
-# These are set dynamically based on --arch argument in main()
+
+# Job-name matching config (workflow names, job-name prefixes, shard counts and
+# check-run regexes) lives in a single JSON file next to this script so
+# download_testlogs and parity-auto.yml share one source of truth. See
+# parity_job_config.json for the schema.
+PARITY_CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "parity_job_config.json")
+with open(PARITY_CONFIG_PATH) as _f:
+    PARITY_CONFIG = json.load(_f)
+
+# Every ROCm runner label follows the rocm.gpu convention, so the S3 artifact
+# downloader always filters on it to avoid pulling foreign platforms' reports.
+ROCM_ARTIFACT_SUBSTRINGS = ["rocm.gpu"]
+
+# Test configs whose sources are listed in the per-arch config (in order).
+_TEST_CONFIGS = ("default", "distributed", "inductor")
+
+
+def parity_config_views(cfg):
+    """Unpack the per-config ordered [{workflow, job_prefix}, ...] lists into the
+    flat dicts the matching logic expects: (workflows, job_prefixes, fallbacks).
+
+    The first list entry per test config is the primary source; the second (if
+    present) is its fallback. Test configs absent from cfg are simply skipped.
+    """
+    workflows, job_prefixes, fallbacks = {}, {}, {}
+    for tc in _TEST_CONFIGS:
+        sources = cfg.get(tc)
+        if not sources:
+            continue
+        workflows[tc] = sources[0]["workflow"]
+        job_prefixes[tc] = sources[0]["job_prefix"]
+        if len(sources) > 1:
+            fallbacks[tc] = {"workflow": sources[1]["workflow"],
+                             "job_prefix": sources[1]["job_prefix"]}
+    return workflows, job_prefixes, fallbacks
+
+
+# Workflow names mapped to TEST_CONFIG values in PyTorch CI.
+# ROCmWorkflowNames is set per --arch in main(); CUDA is arch-independent.
 ROCmWorkflowNames = {}
-CUDAWorkflowNames = {"default": "trunk",
-                    # Same as default, so not used for now
-                    # "distributed": "pull",
-                    "inductor": "inductor"}
+CUDAWorkflowNames, CUDA_JOB_PREFIXES, _ = parity_config_views(PARITY_CONFIG["cuda"])
 
 authentication_headers = None
 
@@ -98,20 +133,56 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
         with open(filename + ".job_url", "w", encoding="utf-8") as f:
             f.write(job_url)
 
-def get_workflow_jobs(wf):
-    """Get all jobs for a workflow run."""
+def _fetch_jobs_page(jobs_url, params, max_retries=5):
+    """GET one page of the jobs API, retrying transient failures.
+
+    When many parity runs fire at once they hammer the jobs API and GitHub
+    responds with 403 (secondary rate limit) or 5xx. Those bodies have no
+    'jobs' key, which previously surfaced as a bare KeyError. Retry with
+    exponential backoff (honouring Retry-After when present) and only give
+    up with a clear error after exhausting retries.
+    """
+    for attempt in range(max_retries):
+        response = requests.get(jobs_url, headers=authentication_headers, params=params)
+        if response.status_code == 200:
+            response_json = response.json()
+            if "jobs" in response_json:
+                return response_json
+        if attempt == max_retries - 1:
+            break
+        retry_after = response.headers.get("Retry-After")
+        delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+        print(f"  WARNING: jobs API returned HTTP {response.status_code} for {jobs_url} "
+              f"(attempt {attempt + 1}/{max_retries}); retrying in {delay}s")
+        time.sleep(delay)
+    raise Exception(
+        f"jobs API did not return a 'jobs' payload after {max_retries} attempts "
+        f"(last HTTP {response.status_code}) for {jobs_url}"
+    )
+
+def get_workflow_jobs(wf, all_attempts=False):
+    """Get all jobs for a workflow run.
+
+    By default GitHub returns only the latest attempt's jobs. Pass
+    all_attempts=True to include jobs from every run attempt: when a run is
+    re-run, shards that already passed are carried over (not re-executed) and
+    their test-report artifacts keep the job ID from the attempt that produced
+    them, so artifact matching by job ID must consider all attempts.
+    """
     if wf is None:
         raise Exception("wf is None!")
     page_size = 100 #max allowed by Github API
-    response = requests.get( wf['jobs_url'], headers=authentication_headers, params={'per_page':page_size} )
-    response_json = response.json()
+    base_params = {'per_page': page_size}
+    if all_attempts:
+        base_params['filter'] = 'all'
+    response_json = _fetch_jobs_page(wf['jobs_url'], base_params)
     jobs = response_json["jobs"]
 
     if response_json['total_count'] > page_size:
         import math
         for i in range(2, math.ceil(response_json['total_count']/page_size) + 1):
-            response = requests.get( wf['jobs_url'], headers=authentication_headers, params={'per_page':page_size, 'page':i} )
-            jobs += response.json()["jobs"]
+            page_json = _fetch_jobs_page(wf['jobs_url'], {**base_params, 'page': i})
+            jobs += page_json["jobs"]
     return jobs
 
 def get_check_runs_for_commit(sha, prefix):
@@ -146,9 +217,13 @@ def matches_job_prefix(job_name, prefix):
     """Match the exact CUDA job family without also matching -debug/-sm86 jobs."""
     return job_name.startswith(f"{prefix} / ")
 
+# CUDA test jobs are named "test-osdc" on main but plain "test" on PRs, so we
+# probe both spellings (in priority order) from the shared config.
+CUDA_TEST_KINDS = tuple(PARITY_CONFIG["cuda"]["test_kinds"])
+
 def get_cuda_test_jobs(jobs, cuda_job_prefix):
     """Return the CUDA test kind and jobs for either main or PR CI layouts."""
-    for test_kind in ("test-osdc", "test"):
+    for test_kind in CUDA_TEST_KINDS:
         test_jobs = [
             j for j in jobs
             if matches_job_prefix(j['name'], cuda_job_prefix)
@@ -156,18 +231,19 @@ def get_cuda_test_jobs(jobs, cuda_job_prefix):
         ]
         if test_jobs:
             return test_kind, test_jobs
-    return "test-osdc", []
+    return CUDA_TEST_KINDS[0], []
 
 def get_cuda_inductor_test_jobs(jobs):
     """Return the CUDA inductor test kind and jobs for either main or PR CI layouts."""
-    for test_kind in ("test-osdc", "test"):
+    inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
+    for test_kind in CUDA_TEST_KINDS:
         test_jobs = [
             j for j in jobs
-            if f"unit-test / inductor-test / {test_kind} (inductor," in j['name']
+            if f"{inductor_prefix} / {test_kind} (inductor," in j['name']
         ]
         if test_jobs:
             return test_kind, test_jobs
-    return "test-osdc", []
+    return CUDA_TEST_KINDS[0], []
 
 def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
@@ -276,16 +352,37 @@ def _shorten_unzipped_dirs():
                 print(f"  WARNING: {short_name} already exists, keeping {d.name}")
 
 def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
-    # Get from S3 artifacts
+    # Get from S3 artifacts.
+    #
+    # When an upstream run is re-run, GitHub only re-executes the jobs that
+    # failed; jobs that already succeeded are not re-run and keep their
+    # artifacts under the attempt in which they ran. So a run whose current
+    # attempt is N can still have test reports sitting under an earlier
+    # attempt's S3 path (e.g. CUDA test-osdc shards uploaded on attempt 1
+    # while a retried ROCm shard lives under attempt 2). Searching only the
+    # latest attempt misses those carried-over artifacts. For each prefix
+    # (one shard) try attempts from the latest down to 1 and take the first
+    # (highest) attempt that has it, mirroring the GHA fallback's
+    # "prefer highest attempt per shard" behaviour.
     artifact_paths = []
+    try:
+        max_attempt = int(workflow_run_attempts)
+    except (TypeError, ValueError):
+        max_attempt = 1
+    if max_attempt < 1:
+        max_attempt = 1
     for prefix in prefixes:
-        print("Trying to download S3 artifacts for workflow_run_attempt {} with prefix {}".format(workflow_run_attempts, prefix))
-        artifact_paths += download_s3_artifacts(
-            prefix,
-            workflow_run_id,
-            workflow_run_attempts,
-            allowed_substrings=allowed_substrings,
-        )
+        for attempt in range(max_attempt, 0, -1):
+            print("Trying to download S3 artifacts for workflow_run_attempt {} with prefix {}".format(attempt, prefix))
+            found = download_s3_artifacts(
+                prefix,
+                workflow_run_id,
+                attempt,
+                allowed_substrings=allowed_substrings,
+            )
+            if found:
+                artifact_paths += found
+                break
 
     # Filter out rerun_disabled_tests artifacts (same prefix, different job)
     before = len(artifact_paths)
@@ -428,7 +525,7 @@ def parse_args():
     parser.add_argument('--no_rocm', action='store_true')
     parser.add_argument('--no_cuda', action='store_true')
     parser.add_argument('--pr_id', type=int, help='The pull request ID')
-    parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi355', 'navi31', 'nightly'], default='mi355', help='ROCm GPU architecture (mi200, mi300, mi355, navi31, or nightly, default: mi355)')
+    parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi350', 'navi31', 'nightly'], default='mi350', help='ROCm GPU architecture (mi200, mi300, mi350, navi31, or nightly, default: mi350)')
     parser.add_argument('--include_inductor_periodic', action='store_true', help='Also download inductor-periodic benchmark artifacts (into a separate directory, not included in parity CSV)')
     parser.add_argument('--baseline_sha', type=str, help='Baseline commit SHA to compare against. Downloads the same ROCm workflows for this commit into baseline_xml/.')
     return parser.parse_args()
@@ -437,81 +534,103 @@ def parse_args():
 # Authenticated users get 5000 requests/day
 # Check rate-limit without penalty: curl -H "Authorization: token $GITHUB_TOKEN" -I https://api.github.com/users/octocat
 
+def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status=False):
+    """Resolve the canonical trunk.yml run for a SHA.
+
+    Upstream can produce more than one trunk.yml run for the same commit (for
+    example a reduced re-trigger that omits CUDA and only re-runs a subset of
+    the ROCm shards). The parity report has to read ROCm and CUDA from the
+    SAME full trunk push, otherwise it pairs a partial test set on one side
+    with the full set on the other and most columns come back empty. Only the
+    full push runs the CUDA test jobs, so anchor on the run that contains them
+    (falling back to the newest completed run when none can be found).
+
+    Returns (trunk_wf, cuda_test_jobs, cuda_test_kind, all_cuda_jobs).
+    """
+    params = {'per_page': 10, 'head_sha': sha}
+    if not ignore_status and status:
+        params['status'] = status
+    resp = requests.get(
+        f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{CUDAWorkflowNames['default']}.yml/runs",
+        headers=authentication_headers, params=params,
+    )
+    trunk_runs = resp.json().get('workflow_runs', [])
+    # Prefer the normal push trunk run over scheduled trunk runs. The scheduled
+    # trunk.yml runs are the periodic rerun_disabled_tests / mem_leak_check
+    # variants: their test jobs share the same names but run in a degenerate
+    # mode and produce near-empty reports. A stable sort keeps the API's
+    # newest-first order within each group, so we pick the newest push run.
+    trunk_runs.sort(key=lambda r: r.get('event') != 'push')
+
+    trunk_wf = None
+    cuda_test_jobs = []
+    cuda_test_kind = CUDA_TEST_KINDS[0]
+    all_cuda_jobs = []
+
+    for run in trunk_runs:
+        jobs = get_workflow_jobs(run)
+        kind, test_jobs = get_cuda_test_jobs(jobs, cuda_job_prefix)
+        if test_jobs:
+            trunk_wf = run
+            all_cuda_jobs = jobs
+            cuda_test_jobs = test_jobs
+            cuda_test_kind = kind
+            print(f"Found CUDA test jobs in trunk run {run['id']}")
+            break
+
+    if not cuda_test_jobs and trunk_runs:
+        # CUDA jobs may live in a run the jobs API does not surface (e.g. a
+        # reusable workflow); the check-runs API resolves the actual run.
+        print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
+        check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
+        cuda_test_kind, cuda_test_jobs = get_cuda_test_jobs(check_runs, cuda_job_prefix)
+        if cuda_test_jobs:
+            run_match = re.search(r'/runs/(\d+)/', cuda_test_jobs[0].get('details_url', ''))
+            if run_match:
+                actual_run_id = int(run_match.group(1))
+                trunk_wf = next((r for r in trunk_runs if r['id'] == actual_run_id), None)
+                if trunk_wf is None:
+                    resp = requests.get(
+                        f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{actual_run_id}",
+                        headers=authentication_headers,
+                    )
+                    trunk_wf = resp.json()
+                print(f"CUDA test jobs are in trunk run {trunk_wf['id']} (found via check-runs)")
+            all_cuda_jobs = list(cuda_test_jobs)
+
+    if trunk_wf is None and trunk_runs:
+        trunk_wf = trunk_runs[0]
+
+    return trunk_wf, cuda_test_jobs, cuda_test_kind, all_cuda_jobs
+
+
 def main():
     global args
     args = parse_args()
     if args.max_pages < 1:
         args.max_pages=1
 
-    # Set ROCm workflow names based on architecture
+    # All arch-specific matching (which upstream workflow each test type lives
+    # in, job-name prefixes, shard counts and fallbacks) comes from
+    # parity_job_config.json - see PARITY_CONFIG at the top of this file.
     global ROCmWorkflowNames
-    arch = args.arch  # 'mi200', 'mi300', 'mi355', 'navi31', or 'nightly'
-    if arch == 'nightly':
-        ROCmWorkflowNames = {
-            "default": "rocm-nightly",
-            "distributed": "rocm-nightly",
-            "inductor": "rocm-nightly",
-        }
-    elif arch == 'mi355':
-        ROCmWorkflowNames = {
-            "default": "trunk",
-            "distributed": "periodic-rocm-mi355",
-            "inductor": "inductor-rocm-mi355"
-        }
-    elif arch == 'mi200':
-        ROCmWorkflowNames = {
-            "default": "rocm-mi200",
-            "distributed": "periodic-rocm-mi200",
-            "inductor": "inductor-rocm-mi200"
-        }
-    else:
-        # MI300 and navi31 use dedicated ROCm workflows
-        ROCmWorkflowNames = {
-            "default": f"rocm-{arch}",
-            "distributed": f"periodic-rocm-{arch}",
-            "inductor": f"inductor-rocm-{arch}"
-        }
-    # Job key prefix for log downloads - architecture specific
-    # MI200 uses older jammy/py3.10 config, MI300 uses noble/py3.12
-    # Inductor jobs have a different naming format
-    rocm_job_prefixes = {
-        "nightly": {
-            "default": "linux-noble-rocm-nightly-py3.12-gfx942",
-            "distributed": "linux-noble-rocm-nightly-py3.12-gfx942",
-            "inductor": "linux-noble-rocm-nightly-py3.12-gfx942",
-        },
-        "mi200": {
-            "default": "linux-jammy-rocm-py3.10-mi200",
-            "distributed": "linux-jammy-rocm-py3.10-mi200",
-            "inductor": "linux-jammy-rocm-py3.10-mi200"
-        },
-        "mi300": {
-            "default": "linux-noble-rocm-py3.12-mi300",
-            "distributed": "linux-noble-rocm-py3.12-mi300",
-            "inductor": "linux-noble-rocm-py3.12-mi300"
-        },
-        "mi355": {
-            "default": "linux-jammy-rocm-py3.10-mi355",
-            "distributed": "linux-noble-rocm-py3.12-mi355",
-            "inductor": "linux-noble-rocm-py3.12-mi355"
-        },
-        "navi31": {
-            "default": "linux-jammy-rocm-py3.10-navi31",
-            "distributed": "linux-jammy-rocm-py3.10-navi31",
-            "inductor": "linux-jammy-rocm-py3.10-navi31"
-        }
-    }
-    # Architecture-specific shard counts
-    rocm_shard_counts = {
-        "nightly": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi200": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi300": {"default": 6, "distributed": 3, "inductor": 2},
-        "mi355": {"default": 10, "distributed": 4, "inductor": 2}, #trunk
-        "navi31": {"default": 2, "distributed": 3, "inductor": 2},
-    }
-    rocm_job_prefix = rocm_job_prefixes[arch]
-    rocm_shards = rocm_shard_counts[arch]
-    rocm_artifact_substrings = ["rocm.gpu"] if arch in ("mi355", "nightly") else None
+    arch = args.arch  # 'mi200', 'mi300', 'mi350', 'navi31', or 'nightly'
+    arch_config = PARITY_CONFIG["rocm"][arch]
+
+    ROCmWorkflowNames, rocm_job_prefix, arch_fallbacks = parity_config_views(arch_config)
+    rocm_shards = dict(arch_config["shard_counts"])
+    rocm_artifact_substrings = ROCM_ARTIFACT_SUBSTRINGS
+
+    # Fallback (workflow, job_prefix) to try per test type when the primary
+    # workflow run is missing for a SHA. Kept as tuples keyed by arch so the
+    # existing fallback logic below is unchanged.
+    def _fallbacks_for(test_type):
+        result = {}
+        for other_arch, other_config in PARITY_CONFIG["rocm"].items():
+            fallback = parity_config_views(other_config)[2].get(test_type)
+            if fallback:
+                result[other_arch] = (fallback["workflow"], fallback["job_prefix"])
+        return result
     # navi31 only has default tests (no distributed/inductor workflows)
     if arch in ("navi31",):
         if not args.exclude_distributed:
@@ -555,6 +674,32 @@ def main():
         current_prefix = ""
         baseline_prefix = "baseline_"
 
+    # Resolve the canonical trunk run for this SHA exactly once, so every
+    # section that reads from trunk (ROCm default, the ROCm distributed ->
+    # trunk fallback, and CUDA) shares the SAME full trunk push. Without this,
+    # ROCm picked the newest completed trunk run while CUDA picked the run
+    # carrying CUDA jobs; when upstream had a reduced re-trigger for the SHA
+    # those were different runs, pairing a partial set on one side with the
+    # full set on the other (mostly-empty columns).
+    arch_uses_trunk = "trunk" in ROCmWorkflowNames.values()
+    fallback_uses_trunk = any(
+        fb.get("workflow") == "trunk"
+        for fb in arch_fallbacks.values()
+    )
+    trunk_full_wf = None
+    trunk_cuda_test_jobs = []
+    trunk_cuda_test_kind = CUDA_TEST_KINDS[0]
+    trunk_all_cuda_jobs = []
+    if (not args.no_cuda) or arch_uses_trunk or fallback_uses_trunk:
+        print("==============================================")
+        print(f"Resolving canonical trunk run for sha: {sha}")
+        print("==============================================")
+        trunk_full_wf, trunk_cuda_test_jobs, trunk_cuda_test_kind, trunk_all_cuda_jobs = \
+            resolve_full_trunk_run(sha, CUDA_JOB_PREFIXES["default"], status, args.ignore_status)
+        if trunk_full_wf is not None:
+            print(f"Using trunk run {trunk_full_wf['id']} as the canonical run for this SHA "
+                  f"({len(trunk_cuda_test_jobs)} CUDA test jobs); ROCm-trunk and CUDA share it")
+
     if not args.exclude_distributed and not args.no_rocm:
         periodic_sha = sha
         print("==============================================")
@@ -568,14 +713,16 @@ def main():
             periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         except (IndexError, Exception):
             periodic_wf = None
-        periodic_fallbacks = {
-            "mi355": ("trunk", "linux-jammy-rocm-py3.10-mi355"),
-            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
-        }
+        periodic_fallbacks = _fallbacks_for("distributed")
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
             print(f"Distributed not found in {ROCmWorkflowNames['distributed']}, falling back to {fallback_wf}")
-            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            if fallback_wf == "trunk" and trunk_full_wf is not None:
+                # Reuse the canonical trunk run so distributed reads from the
+                # same full push as CUDA (see resolve_full_trunk_run).
+                periodic_wf = trunk_full_wf
+            else:
+                periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             periodic_fallback_used = True
         if periodic_wf is None:
             raise Exception(error_msg)
@@ -594,7 +741,7 @@ def main():
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
         # Make sure "Hide unstable jobs" is unselected, in case ROCm jobs are marked as unstable
     
-        if arch == "mi355":
+        if arch == "mi350":
             dist_shards = 3 if not periodic_fallback_used else rocm_shards["distributed"]
         else:
             dist_shards = rocm_shards["distributed"]
@@ -630,14 +777,17 @@ def main():
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         error_msg="Error: rocm workflow not found in scanned workflow runs. Try increasing max_pages."
         default_fallback_used = False
-        try:
-            rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["default"], sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        except (IndexError, Exception):
-            rocm_wf = None
-        default_fallbacks = {
-            "mi355": ("rocm-mi355", "linux-noble-rocm-py3.12-mi355"),
-            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
-        }
+        if ROCmWorkflowNames["default"] == "trunk" and trunk_full_wf is not None:
+            # Read ROCm default from the canonical trunk run rather than the
+            # newest completed one, so it matches the CUDA side (see
+            # resolve_full_trunk_run).
+            rocm_wf = trunk_full_wf
+        else:
+            try:
+                rocm_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["default"], sha=rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            except (IndexError, Exception):
+                rocm_wf = None
+        default_fallbacks = _fallbacks_for("default")
         if rocm_wf is None and arch in default_fallbacks:
             fallback_wf, fallback_prefix = default_fallbacks[arch]
             print(f"Default not found in {ROCmWorkflowNames['default']}, falling back to {fallback_wf}")
@@ -654,7 +804,7 @@ def main():
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
-        if arch == "mi355":
+        if arch == "mi350":
             default_shards = 6 if default_fallback_used else rocm_shards["default"]
         else:
             default_shards = rocm_shards["default"]
@@ -695,118 +845,78 @@ def main():
             inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
         except (IndexError, Exception):
             inductor_wf_rocm = None
-        inductor_fallbacks = {
-            "mi200": ("trunk-rocm-sandbox", "linux-jammy-rocm-py3.10"),
-        }
+        inductor_fallbacks = _fallbacks_for("inductor")
         if inductor_wf_rocm is None and arch in inductor_fallbacks:
             fallback_wf, fallback_prefix = inductor_fallbacks[arch]
             print(f"Inductor not found in {ROCmWorkflowNames['inductor']}, falling back to {fallback_wf}")
             inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             inductor_fallback_used = True
         if inductor_wf_rocm is None:
-            raise Exception(error_msg)
-        inductor_wf_name = ROCmWorkflowNames['inductor'] if not inductor_fallback_used else inductor_fallbacks[arch][0]
-        print(f"Using workflow '{inductor_wf_name}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
-
-        folder_list = get_or_create_test_folder(inductor_wf_rocm)
-
-        inductor_shards = rocm_shards["inductor"]
-        print(f"Using final ROCm shard count {inductor_shards} for inductor")
-        if inductor_fallback_used and arch in inductor_fallbacks:
-            inductor_job_prefix = inductor_fallbacks[arch][1]
+            # Inductor is optional and does not run for every SHA. Skip it
+            # instead of aborting the whole run, which would also drop the
+            # CUDA download below and publish an empty report.
+            print(f"WARNING: {error_msg} Skipping ROCm inductor for this SHA.")
         else:
-            inductor_job_prefix = rocm_job_prefix['inductor']
-    
-        # Download logs
-        if not args.artifacts_only:
-          test_log_list_rocm_inductor = [
-            [f"{current_prefix}rocm_inductor{i}.txt", f"{inductor_job_prefix} / test (inductor, {i}, {inductor_shards}"]
-            for i in range(1, inductor_shards + 1)
-          ]
-          download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
+            inductor_wf_name = ROCmWorkflowNames['inductor'] if not inductor_fallback_used else inductor_fallbacks[arch][0]
+            print(f"Using workflow '{inductor_wf_name}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
 
-        #Download artifacts
-        test_artifacts_list_rocm_inductor = [
-          f"test-reports-test-inductor-{i}-{inductor_shards}"
-          for i in range(1, inductor_shards + 1)
-        ]
-        download_artifacts(
-            inductor_wf_rocm,
-            test_artifacts_list_rocm_inductor,
-            test_folder=folder_list[2],
-            allowed_substrings=rocm_artifact_substrings,
-        )
-        os.chdir("..")
+            folder_list = get_or_create_test_folder(inductor_wf_rocm)
+
+            inductor_shards = rocm_shards["inductor"]
+            print(f"Using final ROCm shard count {inductor_shards} for inductor")
+            if inductor_fallback_used and arch in inductor_fallbacks:
+                inductor_job_prefix = inductor_fallbacks[arch][1]
+            else:
+                inductor_job_prefix = rocm_job_prefix['inductor']
+    
+            # Download logs
+            if not args.artifacts_only:
+              test_log_list_rocm_inductor = [
+                [f"{current_prefix}rocm_inductor{i}.txt", f"{inductor_job_prefix} / test (inductor, {i}, {inductor_shards}"]
+                for i in range(1, inductor_shards + 1)
+              ]
+              download_logs(inductor_wf_rocm, test_log_list_rocm_inductor, folder_list[0])
+
+            #Download artifacts
+            test_artifacts_list_rocm_inductor = [
+              f"test-reports-test-inductor-{i}-{inductor_shards}"
+              for i in range(1, inductor_shards + 1)
+            ]
+            download_artifacts(
+                inductor_wf_rocm,
+                test_artifacts_list_rocm_inductor,
+                test_folder=folder_list[2],
+                allowed_substrings=rocm_artifact_substrings,
+            )
+            os.chdir("..")
 
     if not args.no_cuda:
-        cuda_job_prefix = "linux-jammy-cuda13.0-py3.10-gcc11"
+        cuda_config = PARITY_CONFIG["cuda"]
+        cuda_job_prefix = CUDA_JOB_PREFIXES["default"]
+        cuda_shards = cuda_config["shard_counts"]
         print("==========================================")
         print(f"Finding CUDA tests in workflow '{CUDAWorkflowNames['default']}' by sha: {sha}")
         print("==========================================")
 
-        # There can be multiple trunk runs for the same SHA. Find the one
-        # that actually contains CUDA test jobs by checking each run's jobs
-        # list, falling back to check-runs API to resolve the correct run.
-        trunk_wf = None
-        all_cuda_jobs = []
-        cuda_test_jobs = []
-
-        trunk_runs = []
-        params = {'per_page': 10}
-        if not args.ignore_status:
-            params['status'] = status
-        params['head_sha'] = sha
-        resp = requests.get(
-            f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{CUDAWorkflowNames['default']}.yml/runs",
-            headers=authentication_headers, params=params,
-        )
-        trunk_runs = resp.json().get('workflow_runs', [])
-
-        for run in trunk_runs:
-            jobs = get_workflow_jobs(run)
-            test_kind, test_jobs = get_cuda_test_jobs(jobs, cuda_job_prefix)
-            if test_jobs:
-                trunk_wf = run
-                all_cuda_jobs = jobs
-                cuda_test_jobs = test_jobs
-                cuda_test_job_kind = test_kind
-                print(f"Found CUDA test jobs in trunk run {run['id']}")
-                break
-
-        if not cuda_test_jobs and trunk_runs:
-            # CUDA test jobs may be in a different run than the one returned
-            # by the jobs API. Use check-runs API to find the actual run.
-            print("No CUDA test jobs in any trunk run's jobs API, trying check-runs API...")
-            check_runs = get_check_runs_for_commit(sha, cuda_job_prefix)
-            cuda_test_job_kind, cuda_test_jobs = get_cuda_test_jobs(check_runs, cuda_job_prefix)
-            if cuda_test_jobs:
-                # Extract the actual workflow run ID from the check-run details URL
-                import re as _re
-                run_match = _re.search(r'/runs/(\d+)/', cuda_test_jobs[0].get('details_url', ''))
-                if run_match:
-                    actual_run_id = int(run_match.group(1))
-                    # Find or fetch the correct workflow run
-                    for run in trunk_runs:
-                        if run['id'] == actual_run_id:
-                            trunk_wf = run
-                            break
-                    if trunk_wf is None:
-                        resp = requests.get(
-                            f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{actual_run_id}",
-                            headers=authentication_headers,
-                        )
-                        trunk_wf = resp.json()
-                    print(f"CUDA test jobs are in trunk run {trunk_wf['id']} (found via check-runs)")
-                all_cuda_jobs = list(cuda_test_jobs)
-
-        if trunk_wf is None:
-            trunk_wf = trunk_runs[0] if trunk_runs else None
+        # Reuse the canonical trunk run resolved once at the top of main() so
+        # CUDA reads from the same full trunk push as the ROCm-trunk sections
+        # (see resolve_full_trunk_run).
+        trunk_wf = trunk_full_wf
+        cuda_test_jobs = trunk_cuda_test_jobs
+        cuda_test_job_kind = trunk_cuda_test_kind
+        all_cuda_jobs = trunk_all_cuda_jobs
         if trunk_wf is None:
             raise Exception("Error: No trunk workflow run found for CUDA tests")
 
         print(f"Using workflow '{CUDAWorkflowNames['default']}' with id:{trunk_wf['id']} for CUDA default")
 
-        cuda_job_ids = [str(j['id']) for j in cuda_test_jobs]
+        # Match artifacts by job ID across ALL run attempts. If trunk was
+        # re-run, CUDA shards that passed earlier are carried over and their
+        # S3 reports keep the original attempt's job ID; filtering only by the
+        # latest attempt's IDs would silently drop them (missing CUDA columns).
+        all_attempt_cuda_jobs = get_workflow_jobs(trunk_wf, all_attempts=True)
+        _, all_attempt_cuda_test_jobs = get_cuda_test_jobs(all_attempt_cuda_jobs, cuda_job_prefix)
+        cuda_job_ids = sorted({str(j['id']) for j in (cuda_test_jobs + all_attempt_cuda_test_jobs)})
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
         print(f"Using CUDA test job kind: {cuda_test_job_kind}")
@@ -814,46 +924,36 @@ def main():
 
         folder_list = get_or_create_test_folder(trunk_wf)
 
+        cuda_default_shards = cuda_shards["default"]
+        cuda_dist_shards = cuda_shards["distributed"]
+
         # Download logs
         if not args.artifacts_only:
-            test_log_list_cuda_default = [
-              ["cuda1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 1, 5"],
-              ["cuda2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 2, 5"],
-              ["cuda3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 3, 5"],
-              ["cuda4.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 4, 5"],
-              ["cuda5.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, 5, 5"],
+            test_log_list_cuda = [
+                [f"cuda{i}.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, {i}, {cuda_default_shards}"]
+                for i in range(1, cuda_default_shards + 1)
             ]
-            test_log_list_cuda = test_log_list_cuda_default
             if not args.exclude_distributed:
-                test_log_list_cuda_distributed = [
-                  ["cuda_dist1.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 1, 3"],
-                  ["cuda_dist2.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 2, 3"],
-                  ["cuda_dist3.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, 3, 3"],
+                test_log_list_cuda += [
+                    [f"cuda_dist{i}.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, {i}, {cuda_dist_shards}"]
+                    for i in range(1, cuda_dist_shards + 1)
                 ]
-                test_log_list_cuda += test_log_list_cuda_distributed
 
             download_logs(trunk_wf, test_log_list_cuda, folder_list[0], jobs=all_cuda_jobs)
 
         # Download artifacts
-        test_artifacts_list_cuda_default = [
-          f"test-reports-{cuda_test_job_kind}-default-1-5",
-          f"test-reports-{cuda_test_job_kind}-default-2-5",
-          f"test-reports-{cuda_test_job_kind}-default-3-5",
-          f"test-reports-{cuda_test_job_kind}-default-4-5",
-          f"test-reports-{cuda_test_job_kind}-default-5-5",
-        ]
-
         test_artifacts_list_cuda = []
         if not args.exclude_default:
-            test_artifacts_list_cuda += test_artifacts_list_cuda_default
+            test_artifacts_list_cuda += [
+                f"test-reports-{cuda_test_job_kind}-default-{i}-{cuda_default_shards}"
+                for i in range(1, cuda_default_shards + 1)
+            ]
 
         if not args.exclude_distributed:
-            test_artifacts_list_cuda_distributed = [
-              f"test-reports-{cuda_test_job_kind}-distributed-1-3",
-              f"test-reports-{cuda_test_job_kind}-distributed-2-3",
-              f"test-reports-{cuda_test_job_kind}-distributed-3-3",
+            test_artifacts_list_cuda += [
+                f"test-reports-{cuda_test_job_kind}-distributed-{i}-{cuda_dist_shards}"
+                for i in range(1, cuda_dist_shards + 1)
             ]
-            test_artifacts_list_cuda += test_artifacts_list_cuda_distributed
 
         if test_artifacts_list_cuda:
             download_artifacts(
@@ -878,7 +978,11 @@ def main():
 
             inductor_cuda_jobs = get_workflow_jobs(inductor_wf_cuda)
             cuda_inductor_test_job_kind, cuda_inductor_test_jobs = get_cuda_inductor_test_jobs(inductor_cuda_jobs)
-            cuda_inductor_job_ids = [str(j['id']) for j in cuda_inductor_test_jobs]
+            # Same carried-over-on-rerun reasoning as CUDA default above: match
+            # artifacts by job ID across all attempts of the inductor run.
+            all_attempt_inductor_jobs = get_workflow_jobs(inductor_wf_cuda, all_attempts=True)
+            _, all_attempt_inductor_test_jobs = get_cuda_inductor_test_jobs(all_attempt_inductor_jobs)
+            cuda_inductor_job_ids = sorted({str(j['id']) for j in (cuda_inductor_test_jobs + all_attempt_inductor_test_jobs)})
             cuda_inductor_artifact_substrings = (
                 [f"_{jid}" for jid in cuda_inductor_job_ids]
                 if cuda_inductor_job_ids
@@ -889,17 +993,20 @@ def main():
 
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
+            cuda_inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
+            cuda_inductor_shards = cuda_shards["inductor"]
+
             # Download logs
             if not args.artifacts_only:
               test_log_list_cuda_inductor = [
-                ["cuda_inductor1.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 1, 2"],
-                ["cuda_inductor2.txt", f"unit-test / inductor-test / {cuda_inductor_test_job_kind} (inductor, 2, 2"],
+                [f"cuda_inductor{i}.txt", f"{cuda_inductor_prefix} / {cuda_inductor_test_job_kind} (inductor, {i}, {cuda_inductor_shards}"]
+                for i in range(1, cuda_inductor_shards + 1)
               ]
               download_logs(inductor_wf_cuda, test_log_list_cuda_inductor, folder_list[0], jobs=inductor_cuda_jobs)
 
             test_artifacts_list_cuda_inductor = [
-              f"test-reports-{cuda_inductor_test_job_kind}-inductor-1-2",
-              f"test-reports-{cuda_inductor_test_job_kind}-inductor-2-2"
+              f"test-reports-{cuda_inductor_test_job_kind}-inductor-{i}-{cuda_inductor_shards}"
+              for i in range(1, cuda_inductor_shards + 1)
             ]
             download_artifacts(
                 inductor_wf_cuda,

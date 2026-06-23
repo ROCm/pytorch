@@ -1,13 +1,25 @@
 name: Parity Report
-run-name: "${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha || 'latest', inputs.baseline_sha) || inputs.csv_name || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha || 'latest' }} · ${{ inputs.arch || 'mi355, mi300, mi200' }}"
+
+# Generates the ROCm-vs-CUDA (or commit-vs-commit) test parity report for one
+# or more architectures. Three jobs run in sequence:
+#   1. setup-matrix    - turn the "arch" input into a job matrix + filename prefix
+#   2. generate-parity - per arch: download_testlogs -> per-arch CSV artifact
+#   3. summarize       - merge the per-arch CSVs into one report + step summary
+#
+# The run-name below is just a human-friendly title shown in the Actions list.
+# It reads as: [<csv_name>-]<label> · <archs>, where <label> is the first of:
+# "<sha> vs <baseline>", "PR <id>", or <sha> (which defaults to "latest").
+# csv_name, when given, is prepended so a custom run is easy to spot.
+run-name: "${{ inputs.csv_name && format('{0}-', inputs.csv_name) || '' }}${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha, inputs.baseline_sha) || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha }} · ${{ inputs.arch }}"
 
 on:
   workflow_dispatch:
     inputs:
       # download_testlogs flags
       sha:
-        description: 'Commit SHA to pull test results for. Example: 67f1ccf46a966e75f37facd497a03f7d1bd72982. Leave empty for latest green on main.'
+        description: 'Commit SHA to pull test results for. Example: 67f1ccf46a966e75f37facd497a03f7d1bd72982.'
         required: false
+        default: 'latest'
         type: string
       baseline_sha:
         description: 'Baseline commit SHA to compare against (same workflow/arch). Produces a commit-vs-commit report instead of ROCm-vs-CUDA.'
@@ -18,9 +30,9 @@ on:
         required: false
         type: string
       arch:
-        description: 'ROCm architectures, comma or space separated. Options: mi355, mi300, mi200, nightly, navi31. Example: "nightly, mi355" or "mi300"'
+        description: 'ROCm architectures, comma or space separated. Options: mi350, mi300, mi200, nightly, navi31. Example: "nightly, mi350" or "mi300"'
         required: false
-        default: 'mi355, mi300, mi200'
+        default: 'mi350, mi300, mi200'
         type: string
       exclude_distributed:
         description: 'Exclude distributed tests (auto-excluded for navi31)'
@@ -99,9 +111,12 @@ jobs:
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
           echo "Architectures: $JSON"
 
+          # Prefix for artifact names so the per-arch jobs and the summarize job
+          # agree on where to find each other's outputs. Prefer the most
+          # specific identifier the dispatcher gave us.
           if [ -n "${{ inputs.csv_name }}" ]; then
             PREFIX="${{ inputs.csv_name }}"
-          elif [ -n "${{ inputs.sha }}" ]; then
+          elif [ -n "${{ inputs.sha }}" ] && [ "${{ inputs.sha }}" != "latest" ]; then
             PREFIX="${{ inputs.sha }}"
           elif [ -n "${{ inputs.pr_id }}" ]; then
             PREFIX="${{ inputs.pr_id }}"
@@ -135,15 +150,21 @@ jobs:
       - name: Download artifacts
         working-directory: .automation_scripts/pytorch-unit-test-scripts
         env:
-          GITHUB_TOKEN: ${{ secrets.PARITY_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.PARITY_GITHUB_TOKEN || github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
+          # Forward run options to download_testlogs.
+          #
+          # pipefail: without it, tee's 0 exit code hides a download_testlogs
+          # failure and we'd publish a partial report as a green run.
+          set -o pipefail
           ARGS="--arch ${{ matrix.arch }}"
 
-          if [ -n "${{ inputs.sha }}" ]; then
+          if [ -n "${{ inputs.sha }}" ] && [ "${{ inputs.sha }}" != "latest" ]; then
             ARGS="$ARGS --sha1 ${{ inputs.sha }}"
-          elif [ -n "${{ inputs.pr_id }}" ]; then
+          fi
+          if [ -n "${{ inputs.pr_id }}" ]; then
             ARGS="$ARGS --pr_id ${{ inputs.pr_id }}"
           fi
           if [ "${{ inputs.exclude_distributed }}" = "true" ]; then
@@ -187,7 +208,6 @@ jobs:
           echo "folder=$FOLDER" >> "$GITHUB_OUTPUT"
           SHA=$(echo "$FOLDER" | grep -oP '[0-9a-f]{40}')
           echo "sha=$SHA" >> "$GITHUB_OUTPUT"
-          printf '%s\n' "$SHA" > "$FOLDER/hud_sha.txt"
           DATE=$(TZ='America/Los_Angeles' date '+%Y%m%d')
           echo "date=$DATE" >> "$GITHUB_OUTPUT"
           mv download_${{ matrix.arch }}.log "$FOLDER/" 2>/dev/null || true
@@ -261,7 +281,6 @@ jobs:
         run: |
           FOLDER=".automation_scripts/pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}"
           PATHS="${FOLDER}/*.csv
-          ${FOLDER}/hud_sha.txt
           ${FOLDER}/*.log
           ${FOLDER}/*.txt
           ${FOLDER}/inductor_periodic_rocm_dir/
@@ -306,6 +325,7 @@ jobs:
         run: |
           ARCHS="${{ inputs.arch }}"
           SHA="${{ inputs.sha }}"
+          [ "$SHA" = "latest" ] && SHA=""
           PR_ID="${{ inputs.pr_id }}"
           BASELINE_SHA="${{ inputs.baseline_sha }}"
           if [ -n "$BASELINE_SHA" ]; then
@@ -332,35 +352,6 @@ jobs:
             ARCH_ARGS+=("$ARCH")
           done
 
-          HUD_SHA="$SHA"
-          if [ -z "$HUD_SHA" ]; then
-            HUD_SHA_FILE=$(find ../../artifacts/ -name hud_sha.txt -print -quit)
-            if [ -n "$HUD_SHA_FILE" ]; then
-              HUD_SHA=$(cat "$HUD_SHA_FILE" | head -1)
-            fi
-          fi
-          if [ -z "$HUD_SHA" ]; then
-            HUD_SHA=$(find ../../artifacts/ -name '*.csv' | grep -oE '[0-9a-f]{40}' | head -1 || true)
-          fi
-          HUD_URL=""
-          if [ -n "$PR_ID" ]; then
-            if [ -n "$HUD_SHA" ]; then
-              HUD_URL="https://hud.pytorch.org/pytorch/pytorch/pull/${PR_ID}?sha=${HUD_SHA}"
-            else
-              echo "::warning::Unable to determine exact SHA for PR HUD link"
-            fi
-          elif [ -n "$HUD_SHA" ]; then
-            HUD_URL="https://hud.pytorch.org/pytorch/pytorch/commit/${HUD_SHA}"
-          fi
-          if [ -n "$HUD_URL" ]; then
-            {
-              echo "### HUD"
-              echo ""
-              echo "[HUD LINK]($HUD_URL)"
-              echo ""
-            } >> "$GITHUB_STEP_SUMMARY"
-          fi
-
           if [ ${#CSV_ARGS[@]} -eq 0 ]; then
             echo "::warning::No CSVs found for any architecture — some or all generate-parity jobs may have failed"
             echo "## ⚠ No CSVs produced" >> "$GITHUB_STEP_SUMMARY"
@@ -374,8 +365,9 @@ jobs:
           if [ -n "$SHA" ]; then
             ARGS+=(--sha "$SHA")
           else
-            if [ -n "$HUD_SHA" ]; then
-              ARGS+=(--sha "$HUD_SHA")
+            DETECTED_SHA=$(basename "$(find ../../artifacts/ -name '*.csv' | head -1)" | grep -oP '[0-9a-f]{40}' || true)
+            if [ -n "$DETECTED_SHA" ]; then
+              ARGS+=(--sha "$DETECTED_SHA")
             fi
           fi
           if [ -n "$PR_ID" ]; then
