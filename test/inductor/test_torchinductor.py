@@ -5786,6 +5786,26 @@ class CommonTemplate:
             reference_in_float=False,
         )
 
+    @unittest.skipIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma,
+        "ROCm hipsolver backend does not currently support eig",
+    )
+    @skipIfMPS
+    def test_linalg_eig_stride_consistency(self):
+        def fn(x):
+            eigenvals, eigenvecs = torch.linalg.eig(x)
+            return eigenvecs
+
+        x = torch.randn(5, 5, device=self.device, dtype=torch.float32)
+
+        self.common(
+            fn,
+            [x],
+            exact_stride=True,
+            exact_dtype=True,
+            check_lowp=False,
+        )
+
     def test_view_as_complex(self):
         class Repro(torch.nn.Module):
             def __init__(self) -> None:

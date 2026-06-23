@@ -64,6 +64,11 @@ test_failures = {
     "test_remove_noop_view_dtype": TestFailure(("xpu"), is_skip=True),
 }
 
+if TEST_WITH_ROCM and not torch.cuda.has_magma:
+    test_failures["test_linalg_eig_stride_consistency"] = TestFailure(
+        ("cuda",), is_skip=True
+    )
+
 
 class TestSubprocess(TestCase):
     def setUp(self):
