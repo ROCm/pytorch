@@ -2349,25 +2349,51 @@ def check_max_block(cfg: dict[str, int]):
             )
 
 
-def _num_warps(num_warps, max_num_warps=8, min_num_warps=2, register_intensive=False):
-    # On AMD GPU each warp has 64 lanes which is double the size on NV GPU,
-    # therefore using half the number of warps here correspondingly.
+def _device_warp_size_for_heuristics() -> int:
+    # Wave size is not uniform across AMD GPUs: CDNA parts (gfx90a/942/950) are
+    # Wave64 while RDNA and gfx1250 (GFX12.5) are Wave32. Query the device so the
+    # warp-count heuristics below scale correctly instead of assuming Wave64.
+    if not torch.version.hip:
+        return _NUM_THREADS_PER_WARP
+
+    try:
+        warp_size = torch.cuda.get_device_properties().warp_size
+    except (AssertionError, AttributeError, RuntimeError):
+        # Device properties are not available during config construction.
+        # Fall back to 64, which preserves the historical ROCm (Wave64)
+        # heuristic. Wave32 parts like gfx1250 report a real warp size of 32
+        # when properties are queryable, so they take the branch above.
+        return 64
+
+    return warp_size or 64
+
+
+def _num_warps(
+    num_warps,
+    max_num_warps=8,
+    min_num_warps=2,
+    register_intensive=False,
+    warp_size=None,
+):
     if torch.version.hip:
-        max_num_warps = (max_num_warps + 1) // 2
-        min_num_warps = (min_num_warps + 1) // 2
+        # On Wave64 AMD GPUs each warp has 64 lanes, double the 32-lane NV/Wave32
+        # warp, so the warp budget is scaled down by the wave-width ratio. Wave32
+        # parts (e.g. gfx1250) have warp_scale == 1 and keep the full warp count.
+        warp_size = warp_size or _device_warp_size_for_heuristics()
+        warp_scale = max(warp_size // _NUM_THREADS_PER_WARP, 1)
+        max_num_warps = (max_num_warps + warp_scale - 1) // warp_scale
+        min_num_warps = (min_num_warps + warp_scale - 1) // warp_scale
     # persistent reduction is register intensive
     if register_intensive:
         max_num_warps = max_num_warps // 2
     return next_power_of_2(min(max(num_warps, min_num_warps), max_num_warps))
 
 
-def _check_max_grid_x(size_hints, x, num_warps):
+def _check_max_grid_x(size_hints, x, num_warps, warp_size=None):
     # Check if maxGridSize is exceeded - if so then must scale XBLOCK further
     max_grid_x = 2147483647
     max_block_x = TRITON_MAX_BLOCK["X"]
-    warp_size = (
-        64 if torch.version.hip else 32
-    )  # TODO: query warp size once #129663 is merged
+    warp_size = warp_size or _device_warp_size_for_heuristics()
     num_blocks = (size_hints["x"] + x - 1) // x
 
     if torch.version.hip:
@@ -2459,10 +2485,14 @@ def triton_config(
     ):
         z *= 2
 
+    warp_size = _device_warp_size_for_heuristics()
+
     # Calculate num_warps if they are not hard passed to config
     if num_warps is None:
         num_warps = _num_warps(
-            conditional_product(x, y, z) // num_elements_per_warp, min_num_warps=1
+            conditional_product(x, y, z) // num_elements_per_warp,
+            min_num_warps=1,
+            warp_size=warp_size,
         )
     # we are going to arrive at 2 warps only if bs was too small due to
     # numel being too small. However to workaround some ptx bugs we still
@@ -2477,13 +2507,18 @@ def triton_config(
     znumel = size_hints.get("z")
 
     # Increase x to satisfy min_elem_per_thread requirements.
+    # NOTE: Keep this expressed in 32-lane units (_NUM_THREADS_PER_WARP), not the
+    # device warp size. Using the real warp size would double this min block size
+    # on Wave64 archs (gfx942/gfx950) relative to historical behavior, a silent
+    # perf change for already-shipping parts. gfx1250 is Wave32, so its real warp
+    # size is already 32 and it is unaffected by keeping the constant here.
     block_size = max(
         conditional_product(x, y, z),
         min_elem_per_thread * _NUM_THREADS_PER_WARP * num_warps,
     )
     x *= math.ceil(block_size / conditional_product(x, y, z))
 
-    x, _num_blocks = _check_max_grid_x(size_hints, x, num_warps)
+    x, _num_blocks = _check_max_grid_x(size_hints, x, num_warps, warp_size)
     x = min(x, size_hints["x"])
 
     cfg = {"XBLOCK": x}
@@ -2579,6 +2614,8 @@ def triton_config_reduction(
         while rnumels[prefix] < size_hints[prefix] and total_numel() < target:
             rnumels[prefix] *= 2
 
+    warp_size = _device_warp_size_for_heuristics()
+
     if num_warps is None:
         if reduction_hint == ReductionHint.INNER:
             # r is contiguous, ensure at least 8 elements per thread
@@ -2594,10 +2631,13 @@ def triton_config_reduction(
         _num_warps_func = _num_warps
 
     num_warps = _num_warps_func(
-        num_warps, max_num_warps=max_num_warps, register_intensive=register_intensive
+        num_warps,
+        max_num_warps=max_num_warps,
+        register_intensive=register_intensive,
+        warp_size=warp_size,
     )
 
-    x, _num_blocks = _check_max_grid_x(size_hints, x, num_warps)
+    x, _num_blocks = _check_max_grid_x(size_hints, x, num_warps, warp_size)
 
     for prefix in sorted(rnumels):
         while total_numel() > target:
@@ -2757,9 +2797,13 @@ def triton_config_tiled_reduction(
         y *= 2
 
     cfg = _get_config({"x": x, "y": y, **rnumels})
-    num_warps = _num_warps(total_numel() // 256, min_num_warps=1)
+    warp_size = _device_warp_size_for_heuristics()
+    num_warps = _num_warps(total_numel() // 256, min_num_warps=1, warp_size=warp_size)
     num_warps = _num_warps(
-        num_warps, max_num_warps=16, register_intensive=register_intensive
+        num_warps,
+        max_num_warps=16,
+        register_intensive=register_intensive,
+        warp_size=warp_size,
     )
     check_config(cfg, xnumel=size_hints["x"], ynumel=size_hints["y"])
     check_max_block(cfg)

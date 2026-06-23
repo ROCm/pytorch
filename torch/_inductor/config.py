@@ -2211,13 +2211,14 @@ class rocm:
     # If empty, the `native` arch is used
     arch: list[str] = []
 
-    # Enable the CK backend for CDNA2 and CDNA3 only (for now)
+    # Enable the CK backend for supported CDNA archs only (for now).
+    # gfx1250 is Wave32 and must stay off the current CK/XDL paths until
+    # composable_kernel has a gfx1250-safe WMMA/SWMMAC implementation.
     # Processor name reference: https://llvm.org/docs/AMDGPUUsage.html#processors
-    ck_supported_arch: list[Literal["gfx90a", "gfx942", "gfx950", "gfx1250"]] = [
+    ck_supported_arch: list[Literal["gfx90a", "gfx942", "gfx950"]] = [
         "gfx90a",
         "gfx942",
         "gfx950",
-        "gfx1250",
     ]
 
     # Optimization level, use to balance compilation speed and runtime performance.

@@ -228,9 +228,12 @@ C10_LAUNCH_BOUNDS_1(num_threads())
 __global__ void vectorized_elementwise_kernel(int N, func_t f, array_t data) {
   using traits = function_traits<func_t>;
   constexpr auto io_size = calc_io_size<func_t>();
-  // Extend the TWS (16) to GFX1250.
-#if defined(USE_ROCM) && (defined(__gfx942__) || defined(__gfx1250__))
-  // Similar check in launch_vectorized_kernel() as well. Both should be in sync.
+  // tws=16 is tuned for gfx942 (CDNA3, Wave64) and is NOT portable to Wave32
+  // archs. gfx1250 (GFX12.5, Wave32) falls through to the default `tws` below;
+  // re-enabling this fast path for gfx1250 requires retuning the constant
+  // against the 2x wave-width ratio. Keep this in sync with the host-side `tws`
+  // computation in launch_vectorized_kernel() (also gfx942-only).
+#if defined(USE_ROCM) && defined(__gfx942__)
   constexpr int tws = 16;
 #else
   constexpr int tws = elems_per_thread<io_size>();
