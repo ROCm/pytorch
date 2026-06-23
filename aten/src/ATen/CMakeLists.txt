@@ -200,6 +200,21 @@ file(GLOB native_flash_attn_api_cpp "native/transformers/cuda/flash_attn/flash_a
 
 # flash_attention hip sources
 file(GLOB flash_attention_hip_hip "native/transformers/hip/flash_attn/*.hip")
+# composable_kernel lacks gfx1250 support. CK GEMM/SDPA are otherwise built for
+# every arch except gfx1250 (the --offload-arch filtering below). If gfx1250 is
+# the ONLY arch there is no supported arch left to build CK for, so disable both
+# entirely here. caffe2_update_option writes the cache, so this is honored by the
+# conditional CK GEMM/SDPA defines and links in caffe2/CMakeLists.txt.
+if(USE_ROCM AND "gfx1250" IN_LIST PYTORCH_ROCM_ARCH)
+  set(_ck_supported_archs ${PYTORCH_ROCM_ARCH})
+  list(REMOVE_ITEM _ck_supported_archs gfx1250)
+  if("${_ck_supported_archs}" STREQUAL "")
+    message(WARNING "gfx1250 is the only arch in PYTORCH_ROCM_ARCH: disabling USE_ROCM_CK_GEMM and USE_ROCM_CK_SDPA (composable_kernel lacks gfx1250 support)")
+    caffe2_update_option(USE_ROCM_CK_GEMM OFF)
+    caffe2_update_option(USE_ROCM_CK_SDPA OFF)
+  endif()
+endif()
+
 # if USE_FLASH_ATTENTION is set, ensure CK instances get generated
 if(USE_FLASH_ATTENTION)
   if("$ENV{USE_CK_FLASH_ATTENTION}" STREQUAL "1")
@@ -289,9 +304,20 @@ if(USE_FLASH_ATTENTION)
          "native/transformers/hip/flash_attn/ck/fav_v3/*.hip")
 
     set_source_files_properties(${ck_sdpa_sources_hip} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+    # composable_kernel lacks gfx1250 support, so build CK SDPA for every arch
+    # except gfx1250 by filtering the --offload-arch flags for this target only.
+    set(HIP_CLANG_FLAGS_ORIGINAL ${HIP_CLANG_FLAGS})
+    string(REGEX REPLACE "--offload-arch=[^ ]*" "" FILTERED_HIP_CLANG_FLAGS "${HIP_CLANG_FLAGS}")
+    foreach(ARCH ${PYTORCH_ROCM_ARCH})
+      if(NOT ARCH STREQUAL "gfx1250")
+        list(APPEND FILTERED_HIP_CLANG_FLAGS --offload-arch=${ARCH})
+      endif()
+    endforeach()
+    set(HIP_CLANG_FLAGS ${FILTERED_HIP_CLANG_FLAGS})
     hip_add_library(ck_sdpa STATIC
                     ${ck_sdpa_sources_hip}
                     HIPCC_OPTIONS ${HIP_HCC_FLAGS} ${CK_SDPA_EXTRA_HIPCC_FLAGS})
+    set(HIP_CLANG_FLAGS ${HIP_CLANG_FLAGS_ORIGINAL})
     set_target_properties(ck_sdpa PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_compile_definitions(ck_sdpa PUBLIC ${CK_SDPA_EXTRA_HIPCC_OPTIONS})
     target_compile_definitions(ck_sdpa PRIVATE AITER_EMBEDDED_HSA_HEADER="aiter_embedded_hsa.h")
@@ -627,11 +653,41 @@ if(USE_ROCM)
     ${native_quantized_hip_hip}
     ${native_transformers_hip_hip} ${native_transformers_src_hip_hip}
   )
+  file(GLOB native_hip_bgemm "native/hip/bgemm_kernels/*.hip")
+  file(GLOB native_hip_ck "native/hip/ck*.hip")
   if(NOT USE_ROCM_CK_GEMM)
-    file(GLOB native_hip_bgemm "native/hip/bgemm_kernels/*.hip")
-    file(GLOB native_hip_ck "native/hip/ck*.hip")
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
+  else()
+    # composable_kernel lacks gfx1250 support, so the CK GEMM kernels are removed
+    # from the main HIP sources and compiled into a dedicated ck_gemm library for
+    # every arch except gfx1250 (the rest of torch_hip still builds for all archs).
+    # The --offload-arch filtering mirrors the mslk pattern above.
+    exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
+      ${native_hip_bgemm} ${native_hip_ck})
+    set(ck_gemm_sources_hip ${native_hip_bgemm} ${native_hip_ck})
+    set_source_files_properties(${ck_gemm_sources_hip} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+    set(HIP_CLANG_FLAGS_ORIGINAL ${HIP_CLANG_FLAGS})
+    string(REGEX REPLACE "--offload-arch=[^ ]*" "" FILTERED_HIP_CLANG_FLAGS "${HIP_CLANG_FLAGS}")
+    foreach(ARCH ${PYTORCH_ROCM_ARCH})
+      if(NOT ARCH STREQUAL "gfx1250")
+        list(APPEND FILTERED_HIP_CLANG_FLAGS --offload-arch=${ARCH})
+      endif()
+    endforeach()
+    set(HIP_CLANG_FLAGS ${FILTERED_HIP_CLANG_FLAGS})
+    hip_add_library(ck_gemm STATIC ${ck_gemm_sources_hip})
+    set(HIP_CLANG_FLAGS ${HIP_CLANG_FLAGS_ORIGINAL})
+    set_target_properties(ck_gemm PROPERTIES POSITION_INDEPENDENT_CODE ON)
+    # The define is no longer added globally in cmake/Dependencies.cmake; the
+    # ck_gemm_*.hip sources are guarded by #if defined(USE_ROCM_CK_GEMM).
+    target_compile_definitions(ck_gemm PRIVATE USE_ROCM_CK_GEMM)
+    target_include_directories(ck_gemm PRIVATE
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/include
+      ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/library/include
+      ${CMAKE_CURRENT_BINARY_DIR}/composable_kernel)
+    if(TARGET torch_cpu)
+      add_dependencies(ck_gemm torch_cpu)
+    endif()
   endif()
 
   # TODO: Codegen separate files for HIP and use those (s/cuda_generated_sources/hip_generated_sources)
