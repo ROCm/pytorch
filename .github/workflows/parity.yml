@@ -7,10 +7,11 @@ name: Parity Report
 #   3. summarize       - merge the per-arch CSVs into one report + step summary
 #
 # The run-name below is just a human-friendly title shown in the Actions list.
-# It reads as: [<csv_name>-]<label> · <archs>, where <label> is the first of:
-# "<sha> vs <baseline>", "PR <id>", or <sha> (which defaults to "latest").
-# csv_name, when given, is prepended so a custom run is easy to spot.
-run-name: "${{ inputs.csv_name && format('{0}-', inputs.csv_name) || '' }}${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha, inputs.baseline_sha) || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha }} · ${{ inputs.arch }}"
+# It reads as: [autoparity-][<csv_name>-]<label> · <archs>, where <label> is the
+# first of: "<sha> vs <baseline>", "PR <id>", or <sha> (which defaults to
+# "latest"). "autoparity-" only marks auto-trigger dispatches (parity-auto.yml)
+# and csv_name, when given, is prepended so a custom run is easy to spot.
+run-name: "${{ inputs.auto_triggered && 'autoparity-' || '' }}${{ inputs.csv_name && format('{0}-', inputs.csv_name) || '' }}${{ inputs.baseline_sha && format('{0} vs {1}', inputs.sha, inputs.baseline_sha) || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha }} · ${{ inputs.arch }}"
 
 on:
   workflow_dispatch:
@@ -34,6 +35,11 @@ on:
         required: false
         default: 'mi350, mi300, mi200'
         type: string
+      auto_triggered:
+        description: 'Internal: set by parity-auto.yml for runs dispatched by the auto-trigger. Only prefixes the run name with "autoparity-"; does not affect output/CSV filenames.'
+        required: false
+        default: false
+        type: boolean
       exclude_distributed:
         description: 'Exclude distributed tests (auto-excluded for navi31)'
         required: false
