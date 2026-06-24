@@ -53,15 +53,22 @@ def evaluate_gfx_arch_within(arch_list):
     # Hence the matching should be done reversely
     return any(arch in effective_arch for arch in arch_list)
 
-# CDNA 5 (CDNA-next / UDAN) arch helper
+# Per-generation gfx targets, ordered oldest -> newest. Each "OrLater" helper
+# below unions its own generation with every newer one, so the predicates are
+# nested by construction: CDNA5OrLater => CDNA3OrLater => CDNA2OrLater.
+_CDNA2_ARCHS = ["gfx90a"]
+_CDNA3_ARCHS = ["gfx942", "gfx950"]
+# CDNA 5 (CDNA-next / UDAN)
+_CDNA5_ARCHS = ["gfx1250"]
+
 def CDNA5OrLater():
-    return evaluate_gfx_arch_within(["gfx1250"])
+    return evaluate_gfx_arch_within(_CDNA5_ARCHS)
 
 def CDNA3OrLater():
-    return evaluate_gfx_arch_within(["gfx942", "gfx950"])
+    return evaluate_gfx_arch_within(_CDNA3_ARCHS + _CDNA5_ARCHS)
 
 def CDNA2OrLater():
-    return evaluate_gfx_arch_within(["gfx90a", "gfx942"])
+    return evaluate_gfx_arch_within(_CDNA2_ARCHS + _CDNA3_ARCHS + _CDNA5_ARCHS)
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:

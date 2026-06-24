@@ -979,17 +979,6 @@ if(USE_ROCM)
     message(INFO "Compiling with HIP for AMD.")
     caffe2_update_option(USE_ROCM ON)
 
-    # composable_kernel has no gfx1250 support. Mixed-arch builds are handled by
-    # target-local offload-arch filtering in ATen/CMakeLists.txt, so only disable
-    # CK globally when gfx1250 is the only requested ROCm arch.
-    set(_ck_global_supported_archs ${PYTORCH_ROCM_ARCH})
-    list(REMOVE_ITEM _ck_global_supported_archs gfx1250)
-    if("gfx1250" IN_LIST PYTORCH_ROCM_ARCH AND "${_ck_global_supported_archs}" STREQUAL "")
-      message(WARNING "gfx1250 is the only arch in PYTORCH_ROCM_ARCH: disabling USE_ROCM_CK_GEMM and USE_ROCM_CK_SDPA (composable_kernel lacks gfx1250 support)")
-      caffe2_update_option(USE_ROCM_CK_GEMM OFF)
-      caffe2_update_option(USE_ROCM_CK_SDPA OFF)
-    endif()
-
     if(USE_NCCL AND NOT USE_SYSTEM_NCCL)
       message(INFO "Forcing USE_SYSTEM_NCCL to ON since it's required by using RCCL")
       caffe2_update_option(USE_SYSTEM_NCCL ON)
