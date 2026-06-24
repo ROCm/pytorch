@@ -268,8 +268,15 @@ if(USE_FLASH_ATTENTION)
         CK_ENABLE_FP64
         CK_ENABLE_FP8
         CK_ENABLE_INT8
-        CK_USE_FNUZ_FP8
-        CK_USE_GFX94
+        #CK_USE_FNUZ_FP8
+        #CK_USE_GFX94
+        CK_USE_GFX1250
+        CK_USE_NATIVE_MX_SUPPORT
+        CK_GFX1250_SUPPORT
+        CK_GFX12_SUPPORT
+        CK_USE_OCP_FP8
+        CK_USE_WMMA
+        CK_USE_WMMA_FP8
         CK_USE_XDL
         __HIP_PLATFORM_AMD__=1
         __HIP_PLATFORM_HCC__=1
@@ -430,7 +437,7 @@ IF(USE_MSLK)
         list(PREPEND MSLK_EXTRA_HIPCC_FLAGS -mllvm -amdgpu-coerce-illegal-types=1)
       endif()
 
-    # Only compile for gfx942 and gfx950.
+    # Only compile for gfx942 and gfx950 (composable_kernel lacks gfx1250 support).
     set(HIP_CLANG_FLAGS_ORIGINAL ${HIP_CLANG_FLAGS})
     string(REGEX REPLACE "--offload-arch=[^ ]*" "" FILTERED_HIP_CLANG_FLAGS "${HIP_CLANG_FLAGS}")
     foreach(ARCH gfx942 gfx950)
