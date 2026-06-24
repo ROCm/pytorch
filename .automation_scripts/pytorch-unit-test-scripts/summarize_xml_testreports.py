@@ -29,11 +29,11 @@ EXCLUDED_TEST_SUITES = [
     "_nvfuser.test_dynamo",
     "_nvfuser.test_python_frontend",
     "_nvfuser.test_torchscript",
-    "test_jit_cuda_fuser",
     "test_nvfuser_dynamo",
     "test_nvfuser_frontend",
     # Blocklisted on ROCm upstream, so it never runs there and would otherwise
     # show up as falsely MISSED against the CUDA baseline.
+    "test_jit_cuda_fuser",
     "inductor.test_cpu_repro"
 ]
 
