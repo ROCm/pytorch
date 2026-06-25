@@ -699,6 +699,42 @@ def _parse_log_failure_names(lf):
     return parts[0], parts[1]
 
 
+def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
+    """ROCm log-detected failures not already in the XML FAILED TESTS table,
+    deduplicated to one row per test.
+
+    A single test can appear in log_failures more than once - e.g. a per-test
+    'FAILED' line and a 'FAILED CONSISTENTLY' line (category CONSISTENT_FAILURE)
+    describe the same test. Collapse those to a single row, preferring
+    CONSISTENT_FAILURE over a one-off FAILED so a test is never listed as both.
+    """
+    xml_failed_keys = {
+        (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
+        for t in (failed_tests or [])
+    }
+    best = {}
+    order = []
+    for lf in (log_failures or []):
+        if lf.get('platform', '') != s1_name:
+            continue
+        test_class, test_name = _parse_log_failure_names(lf)
+        key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
+               test_class, test_name)
+        # Skip entries already present in the XML-based FAILED TESTS table to
+        # avoid double-counting the same failure, except FLAKY entries which
+        # represent an independent signal (a rerun passed).
+        if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
+            continue
+        existing = best.get(key)
+        if existing is None:
+            best[key] = lf
+            order.append(key)
+        elif (lf.get('category') == 'CONSISTENT_FAILURE'
+              and existing.get('category') != 'CONSISTENT_FAILURE'):
+            best[key] = lf
+    return [best[k] for k in order]
+
+
 def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None, shard_lookup=None):
     csv_rows = []
     csv_rows.append([''] + list(archs))
@@ -755,23 +791,7 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
         csv_rows.append([])
 
     if log_failures:
-        xml_failed_keys = {
-            (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
-            for t in (failed_tests or [])
-        }
-        rocm_log_failures = []
-        for lf in log_failures:
-            if lf.get('platform', '') != s1_name:
-                continue
-            test_class, test_name = _parse_log_failure_names(lf)
-            key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
-                   test_class, test_name)
-            # Skip entries already present in the XML-based FAILED TESTS table
-            # to avoid double-counting the same failure, except for FLAKY
-            # entries which represent an independent signal (a rerun passed).
-            if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
-                continue
-            rocm_log_failures.append(lf)
+        rocm_log_failures = _select_rocm_log_failures(log_failures, failed_tests, s1_name)
         if rocm_log_failures:
             csv_rows.append(['LOG-BASED FAILURES (not in XML)'])
             csv_rows.append(['Arch', 'Platform', 'Test Config', 'Test File', 'Test Class',
@@ -897,20 +917,7 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
         lines.append('')
 
     if log_failures:
-        xml_failed_keys = {
-            (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
-            for t in (failed_tests or [])
-        }
-        rocm_log_failures = []
-        for lf in log_failures:
-            if lf.get('platform', '') != s1_name:
-                continue
-            test_class, test_name = _parse_log_failure_names(lf)
-            key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
-                   test_class, test_name)
-            if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
-                continue
-            rocm_log_failures.append(lf)
+        rocm_log_failures = _select_rocm_log_failures(log_failures, failed_tests, s1_name)
         if rocm_log_failures:
             lines.append(f'### LOG-BASED FAILURES (not in XML) ({len(rocm_log_failures)})')
             lines.append('')
