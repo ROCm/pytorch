@@ -106,9 +106,7 @@ struct C10_API StorageImpl : public c10::intrusive_ptr_target {
   }
 
   void incref_pyobject() const noexcept final;
-
   void decref_pyobject() const noexcept final;
-
   bool try_incref_pyobject() const noexcept final;
 
   size_t nbytes() const {
@@ -309,6 +307,14 @@ struct C10_API StorageImpl : public c10::intrusive_ptr_target {
       std::optional<std::string> s) {
     throw_on_immutable_data_ptr_ = true;
     get_extra_meta().custom_data_ptr_error_msg_ = std::move(s);
+    refresh_has_data_ptr_check();
+  }
+
+  void clear_data_ptr_access_error_msg_() {
+    throw_on_immutable_data_ptr_ = false;
+    if (extra_meta_) {
+      extra_meta_->custom_data_ptr_error_msg_ = std::nullopt;
+    }
     refresh_has_data_ptr_check();
   }
 

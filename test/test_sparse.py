@@ -23,12 +23,13 @@ from torch.testing._internal.common_cuda import \
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, ops, dtypes, dtypesIfCUDA, dtypesIfMPS, onlyCPU, onlyCUDA, precisionOverride,
      deviceCountAtLeast, OpDTypes, onlyNativeDeviceTypes, skipCUDAIf, expectedFailureMPS,
-     expectedFailureMPSComplex, largeTensorTest)
+     largeTensorTest)
 from torch.testing._internal.common_methods_invocations import \
     (op_db, reduction_ops, sparse_unary_ufuncs, sparse_masked_reduction_ops, binary_ufuncs)
 from torch.testing._internal.common_dtype import (
     all_types, all_types_and_complex, all_mps_types, all_types_and_complex_and, floating_and_complex_types,
-    floating_and_complex_types_and, integral_types, floating_types_and,
+    floating_and_complex_types_and, highest_precision_complex, highest_precision_float,
+    integral_types, floating_types_and,
 )
 from torch.testing._internal.opinfo.definitions.sparse import validate_sample_input_sparse
 from torch.testing._internal.opinfo.refs import (
@@ -339,7 +340,7 @@ class TestSparse(TestSparseBase):
             if values.dtype == torch.double:
                 dtypes.append(torch.float)
             else:
-                dtypes.append(torch.double if values.device != torch.device("mps:0") else torch.float32)
+                dtypes.append(highest_precision_float(values.device))
             for dtype in dtypes:
                 printed.append(f"########## {dtype} ##########")
                 x = sp_tensor.detach().to(dtype)
@@ -589,7 +590,7 @@ class TestSparse(TestSparseBase):
             x.requires_grad_(True)
             gradcheck(fn, (x,))
 
-        values_types = [torch.double, torch.cdouble] if device != "mps:0" else [torch.float32, torch.complex64]
+        values_types = [highest_precision_float(device), highest_precision_complex(device)]
         for value_type in values_types:
             i = self.index_tensor([
                 [0, 1, 2, 2],
@@ -634,7 +635,7 @@ class TestSparse(TestSparseBase):
     def test_to_sparse(self, device, dtype, coalesced):
         shape = [5, 2, 10, 4]
         max_nnz = 1
-        dtypes = [torch.double, torch.cdouble] if device != "mps:0" else [torch.float32, torch.complex64]
+        dtypes = [highest_precision_float(device), highest_precision_complex(device)]
         for value_type in dtypes:
             for dim, dim_sz in enumerate(shape, 1):
                 max_nnz *= dim_sz
@@ -969,7 +970,7 @@ class TestSparse(TestSparseBase):
         x1.copy_(x2)
         self.assertEqual(x1_dtype, x1.dtype)
 
-        x2 = x2.to(torch.float64) if device != "mps:0" else x2.to(torch.float32)
+        x2 = x2.to(highest_precision_float(device))
         x1_dtype = x1.dtype
         x1.copy_(x2)
         self.assertEqual(x1_dtype, x1.dtype)
@@ -1819,19 +1820,25 @@ class TestSparse(TestSparseBase):
     @unittest.skipIf(TEST_WITH_CROSSREF, "generator unsupported triggers assertion error")
     @gradcheck_semantics()
     def test_sparse_mul(self, device, dtype, coalesced, gradcheck):
+        # check_batched_grad=False: slow gradcheck's batched/vmap Jacobian
+        # path calls aten::view which is unsupported for sparse tensors.
         # https://github.com/pytorch/pytorch/issues/79914
         a = torch.tensor([[0., 1]], dtype=dtype, device=device).to_sparse().requires_grad_(True)
         b = torch.tensor([[0., 1]], dtype=dtype, device=device).to_sparse().requires_grad_(True)
-        gradcheck(lambda x, y: torch.sparse.sum(x * y).to_dense(masked_grad=gradcheck.masked), [a, b])
+        gradcheck(
+            lambda x, y: torch.sparse.sum(x * y).to_dense(masked_grad=gradcheck.masked),
+            [a, b],
+            check_batched_grad=False,
+        )
 
         def test_shape(sparse_dims, nnz, with_shape):
             a = self._gen_sparse(sparse_dims, nnz, with_shape, dtype, device, coalesced)[0].requires_grad_(True)
             b = self._gen_sparse(sparse_dims, nnz, with_shape, dtype, device, coalesced)[0].requires_grad_(True)
 
             self.assertEqual((a * b).to_dense(), a.to_dense() * b.to_dense())
-            gradcheck(lambda x, y: (x * y).to_dense(), [a, b])
+            gradcheck(lambda x, y: (x * y).to_dense(), [a, b], check_batched_grad=False)
             # Issues with 0-dim indices/values
-            gradcheck(lambda x, y: torch.sparse.sum(x * y).to_dense(), [a, b], masked=True)
+            gradcheck(lambda x, y: torch.sparse.sum(x * y).to_dense(), [a, b], masked=True, check_batched_grad=False)
 
         test_shape(2, 3, [2, 3, 4, 5])
         test_shape(2, 3, [2, 2, 0])
@@ -1967,7 +1974,6 @@ class TestSparse(TestSparseBase):
         self.assertEqual(res_fp32, res_bf16, atol=1e-2, rtol=0)
 
     @coalescedonoff
-    @expectedFailureMPSComplex
     @dtypes(torch.double, torch.cdouble)
     @dtypesIfMPS(torch.float32, torch.complex64)
     def test_norm(self, device, dtype, coalesced):

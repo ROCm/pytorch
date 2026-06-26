@@ -44,7 +44,7 @@ from torch.fx.experimental.symbolic_shapes import (
     find_symbol_binding_fx_nodes,
     free_symbols,
     is_symbol_binding_fx_node,
-    size_hint,
+    optimization_hint,
     statically_known_false,
     statically_known_true,
 )
@@ -67,6 +67,7 @@ from ._aot_autograd.descriptors import (
     SavedForBackwardsNoVcCheckAOTOutput,
 )
 from ._aot_autograd.functional_utils import _is_functional_graph
+from ._aot_autograd.graph_compile import is_opaque_node
 from ._aot_autograd.logging_utils import get_aot_graph_name
 from ._aot_autograd.utils import (
     _is_bwd_seed_offset,
@@ -382,6 +383,12 @@ def _extract_graph_with_inputs_outputs(
             output_values.append(x)
     out = new_graph.output(tuple(output_values))
     out.meta["desc"] = outputs_descs
+    # Snapshot stack traces on the output node before passes run,
+    # as later passes may strip stack_trace from individual nodes.
+    out.meta["output_stack_traces"] = [
+        v.meta.get("stack_trace") if isinstance(v, fx.Node) else None
+        for v in output_values
+    ]
 
     new_graph.eliminate_dead_code()
     new_graph.lint()
@@ -697,7 +704,7 @@ def calculate_range(dtype: torch.dtype) -> tuple[float, float]:
     return info.min, info.max
 
 
-def quantize_activation_fw(graph: torch.fx.Graph) -> None:
+def quantize_activation_fw(graph: torch.fx.Graph, num_fwd_outputs: int = 0) -> None:
     output = graph.find_nodes(op="output")[0]
     fwd_outputs = output.args[0]
     quant_type = get_quant_type()
@@ -706,6 +713,14 @@ def quantize_activation_fw(graph: torch.fx.Graph) -> None:
     tensor_scale_nodes: list[fx.Node] = []
     sym_scale_nodes: list[fx.Node] = []
     for position, node in enumerate(fwd_outputs):
+        # Don't quantize user-visible forward outputs. A tensor may appear as
+        # both a user output and a saved-for-backward activation (same FX node
+        # at two positions). Quantizing the user output position would:
+        # 1. Return fp8 to the user instead of the original precision
+        # 2. Create duplicate fp8_quant/fp8_scale backward placeholders that
+        #    shift the stride mapping in _aot_stage2b_bw_compile (T264303372)
+        if position < num_fwd_outputs:
+            continue
         # check if the activation node is the node saved for quantization
         if node.meta.get("saved_for_quantization", False):
             # case: use scaling
@@ -846,6 +861,7 @@ def perform_fp8_activation_quantization(
     fwd_module: fx.GraphModule,
     bwd_module: fx.GraphModule,
     bwd_module_inputs: dict[str, fx.Node],
+    num_fwd_outputs: int = 0,
 ) -> None:
     trace_structured(
         "artifact",
@@ -858,7 +874,7 @@ def perform_fp8_activation_quantization(
         ),
     )
 
-    quantize_activation_fw(fwd_module.graph)
+    quantize_activation_fw(fwd_module.graph, num_fwd_outputs)
 
     trace_structured(
         "artifact",
@@ -937,6 +953,7 @@ def enable_activation_quantization(
     fwd_module: fx.GraphModule,
     bwd_module: fx.GraphModule,
     static_lifetime_input_nodes: OrderedSet[fx.Node] | None = None,
+    num_fwd_outputs: int = 0,
 ) -> None:
     static_input_names: list[str] = (
         [node.name for node in static_lifetime_input_nodes]
@@ -968,13 +985,16 @@ def enable_activation_quantization(
             should_perform_fp8_quant = True
 
     if should_perform_fp8_quant:
-        perform_fp8_activation_quantization(fwd_module, bwd_module, bwd_module_inputs)
+        perform_fp8_activation_quantization(
+            fwd_module, bwd_module, bwd_module_inputs, num_fwd_outputs
+        )
 
 
 def _extract_fwd_bwd_modules(
     joint_module: fx.GraphModule,
     saved_values: list[fx.Node],
     saved_sym_nodes: list[fx.Node],
+    saved_opaque_nodes: list[fx.Node] | None = None,
     *,
     num_fwd_outputs: int,
     static_lifetime_input_nodes: OrderedSet[fx.Node] | None = None,
@@ -1007,9 +1027,16 @@ def _extract_fwd_bwd_modules(
     bwd_seed_offset_inputs = [*filter(_is_bwd_seed_offset, placeholders)]
     backward_state_inputs = [*filter(_is_backward_state, placeholders)]
 
+    if saved_opaque_nodes is None:
+        saved_opaque_nodes = []
+
     bwd_graph = _extract_graph_with_inputs_outputs(
         joint_module.graph,
-        saved_sym_nodes + saved_values + tangent_inputs + bwd_seed_offset_inputs,
+        saved_sym_nodes
+        + saved_opaque_nodes
+        + saved_values
+        + tangent_inputs
+        + bwd_seed_offset_inputs,
         bwd_outputs,
         bwd_outputs_descs,
         "backward",
@@ -1023,6 +1050,7 @@ def _extract_fwd_bwd_modules(
         if not node.users:
             _remove_by_name(saved_values, node.name)
             _remove_by_name(saved_sym_nodes, node.name)
+            _remove_by_name(saved_opaque_nodes, node.name)
         # wait_tensor is a bit special: if we have a "dead activation" that is not used in the bw,
         # but this dead activation is actually a collective,
         # then the collective will generally by followed by a wait_tensor() call.
@@ -1034,6 +1062,7 @@ def _extract_fwd_bwd_modules(
         ):
             _remove_by_name(saved_values, node.name)
             _remove_by_name(saved_sym_nodes, node.name)
+            _remove_by_name(saved_opaque_nodes, node.name)
         elif _is_backward_state(node):
             # BackwardState is saved directly
             _remove_by_name(saved_values, node.name)
@@ -1117,18 +1146,25 @@ def _extract_fwd_bwd_modules(
 
         # Now, we re-generate the fwd/bwd graphs.
         # NB: This might increase compilation time, but I doubt it matters
-        # Convention for saved acts is (tensors_with_vc_check, tensors_no_vc_check, opaque_objects, symints)
+        # Convention for saved acts is (tensors_with_vc_check, tensors_no_vc_check, opaque_objects, symints, opaque_nodes)
         fwd_graph = _extract_graph_with_inputs_outputs(
             joint_module.graph,
             primal_inputs + fwd_seed_offset_inputs,
-            fwd_outputs + saved_values + saved_opaque_objects + saved_sym_nodes,
+            fwd_outputs
+            + saved_values
+            + saved_opaque_objects
+            + saved_opaque_nodes
+            + saved_sym_nodes,
             fwd_outputs_descs
             + [
                 SavedForBackwardsNoVcCheckAOTOutput(i)
                 if i >= no_vc_check_start_idx and i < len(saved_values)
                 else SavedForBackwardsAOTOutput(i)
                 for i in range(
-                    len(saved_values) + len(saved_opaque_objects) + len(saved_sym_nodes)
+                    len(saved_values)
+                    + len(saved_opaque_objects)
+                    + len(saved_opaque_nodes)
+                    + len(saved_sym_nodes)
                 )
             ],
             "forward",
@@ -1139,6 +1175,7 @@ def _extract_fwd_bwd_modules(
             saved_sym_nodes
             + saved_values
             + saved_opaque_objects
+            + saved_opaque_nodes
             + tangent_inputs
             + bwd_seed_offset_inputs
             + backward_state_inputs,
@@ -1182,7 +1219,11 @@ def _extract_fwd_bwd_modules(
         is not None
     ):
         enable_activation_quantization(
-            saved_values, fwd_module, bwd_module, static_lifetime_input_nodes
+            saved_values,
+            fwd_module,
+            bwd_module,
+            static_lifetime_input_nodes,
+            num_fwd_outputs,
         )
     return fwd_module, bwd_module
 
@@ -1267,6 +1308,7 @@ def default_partition(
 
     saved_values = []
     saved_sym_nodes = []
+    saved_opaque_nodes = []
 
     distributed_enabled = torch.distributed.is_available()
 
@@ -1326,14 +1368,23 @@ def default_partition(
             # Must be ordered before MUST_SAVE tags to avoid saving tuples marked MUST_SAVE.
             continue
         if node.meta.get("recompute") == CheckpointPolicy.MUST_SAVE:
-            saved_values.append(node)
+            if is_opaque_node(node):
+                saved_opaque_nodes.append(node)
+            else:
+                saved_values.append(node)
             continue
         if is_impure(node):
             if graph_has_recomputable_ops:
                 raise AssertionError(
                     f"Trying to apply AC on a graph with impure op: {node}, {node.target}"
                 )
-            saved_values.append(node)
+            if is_opaque_node(node):
+                saved_opaque_nodes.append(node)
+            else:
+                saved_values.append(node)
+            continue
+        if is_opaque_node(node):
+            saved_opaque_nodes.append(node)
             continue
         if not is_tensor(node) and node.op == "call_function":
             raise AssertionError(f"Expected {node} to be a tensor")
@@ -1354,6 +1405,7 @@ def default_partition(
 
     saved_values = list(dict.fromkeys(saved_values).keys())
     saved_sym_nodes = list(dict.fromkeys(saved_sym_nodes).keys())
+    saved_opaque_nodes = list(dict.fromkeys(saved_opaque_nodes).keys())
 
     if config._sync_decision_cross_ranks:
         saved_values = _sync_decision_cross_ranks(joint_module.graph, saved_values)
@@ -1364,6 +1416,7 @@ def default_partition(
         joint_module,
         saved_values,
         saved_sym_nodes=saved_sym_nodes,
+        saved_opaque_nodes=saved_opaque_nodes,
         num_fwd_outputs=num_fwd_outputs,
         static_lifetime_input_nodes=static_lifetime_input_nodes,
     )
@@ -1415,7 +1468,7 @@ def _size_of(node: fx.Node) -> int:
     def object_nbytes(x: object) -> int:
         if not isinstance(x, torch.Tensor):
             return 0
-        return _tensor_nbytes(size_hint(x.numel(), fallback=4096), x.dtype)
+        return _tensor_nbytes(optimization_hint(x.numel(), fallback=4096), x.dtype)
 
     if "val" in node.meta:
         val = node.meta["val"]
@@ -1706,7 +1759,7 @@ def functionalize_rng_ops(
         return torch.device("cpu")
 
     def get_sample_rng_state(device: torch.device | None) -> torch.Tensor:
-        from torch._guards import detect_fake_mode  # noqa: F401
+        from torch._guards import detect_fake_mode
 
         fake_mode = detect_fake_mode()
         if fake_mode is None:
@@ -2300,9 +2353,12 @@ def solve_min_cut(
             weight = float(sym_node_size(node))
             cannot_save_reason = None
         elif is_non_tensor_node:
-            # FakeScriptObjects (opaque objects) should have weight 0.0 so they can be
-            # properly partitioned between forward and backward, like BackwardState.
-            if isinstance(node.meta.get("val"), (BackwardState, FakeScriptObject)):
+            # FakeScriptObjects and opaque objects should have weight 0.0
+            # so they can be properly partitioned between forward and
+            # backward, like BackwardState.
+            if isinstance(
+                node.meta.get("val"), (BackwardState, FakeScriptObject)
+            ) or is_opaque_node(node):
                 weight = 0.0
                 cannot_save_reason = None
             else:
@@ -2804,7 +2860,7 @@ def get_default_op_list() -> OpTypes:
         aten.unsqueeze,
         aten.rsub,
         aten._to_copy,
-    ]  # noqa: E501,B950
+    ]
     recomputable_view_ops = [aten.squeeze, aten.unsqueeze, aten.alias]
     recomputable_view_ops += [
         aten.view,
@@ -2854,7 +2910,7 @@ def get_default_op_list() -> OpTypes:
         aten.maximum,
         prims.iota,
         prims._low_memory_max_pool_offsets_to_indices,
-    ]  # noqa: E501,B950
+    ]
     # Natalia said that we should allow recomputing indexing :)
     default_recomputable_ops += [aten.index, aten.gather]
     default_recomputable_ops += view_ops
@@ -2883,7 +2939,7 @@ def get_default_op_list() -> OpTypes:
         aten._efficient_attention_forward,
         aten.upsample_bilinear2d,
         aten._scaled_mm,
-    ]  # noqa: E501,B950
+    ]
 
     fusible_ops = recomputable_ops | random_ops
     return OpTypes(
@@ -2958,7 +3014,7 @@ def _remove_symbols_without_guarding(x: torch.Tensor, fallback: int) -> torch.Te
     shape = list(x.shape)
 
     def realize_symbol(d: torch.SymInt | int) -> int:
-        return size_hint(d, fallback=fallback)
+        return optimization_hint(d, fallback=fallback)
 
     shape = [realize_symbol(s) for s in shape]
     stride = [realize_symbol(s) for s in x.stride()]
@@ -2972,7 +3028,7 @@ def estimate_runtime(node: fx.Node) -> float:
         if isinstance(x, fx.Node) and isinstance(x.meta["val"], torch.Tensor):
             return _remove_symbols_without_guarding(x.meta["val"], fallback=4096)
         elif isinstance(x, fx.Node) and isinstance(x.meta["val"], torch.SymInt):
-            return size_hint(x.meta["val"], fallback=4096)
+            return optimization_hint(x.meta["val"], fallback=4096)
         elif isinstance(x, fx.Node) and isinstance(x.meta["val"], torch.SymFloat):
             return 1.0
         elif isinstance(x, fx.Node) and isinstance(x.meta["val"], torch.SymBool):
@@ -3155,7 +3211,7 @@ def choose_saved_values_set(
             # if idx in all_recomputable_banned_nodes:
             try:
                 dont_ban.add(all_recomputable_banned_nodes[idx])
-            except BaseException:  # noqa: B036
+            except BaseException:
                 pass
 
         if not dont_ban.issubset(all_recomputable_banned_nodes):
@@ -3587,9 +3643,27 @@ def min_cut_rematerialization_partition(
     # pyrefly: ignore [unbound-name]
     if config._sync_decision_cross_ranks:
         saved_values = _sync_decision_cross_ranks(joint_graph, saved_values)
+
     # save_for_backward on tensors and stashes symints in autograd .ctx
-    saved_sym_nodes = list(filter(is_sym_node, saved_values))
-    saved_values = list(filter(lambda n: not is_sym_node(n), saved_values))
+    # Skip SymBool nodes whose only consumers are _assert_scalar calls.
+    # These are runtime assertion intermediates and are not needed in backward
+    # for any real computation.
+    def _is_assert_only_symbool(n: fx.Node) -> bool:
+        return (
+            isinstance(n.meta.get("val"), torch.SymBool)
+            and len(n.users) > 0
+            and all(u.target is torch.ops.aten._assert_scalar.default for u in n.users)
+        )
+
+    saved_sym_nodes = list(
+        filter(
+            lambda n: is_sym_node(n) and not _is_assert_only_symbool(n), saved_values
+        )
+    )
+    saved_opaque_nodes = list(filter(is_opaque_node, saved_values))
+    saved_values = list(
+        filter(lambda n: not is_sym_node(n) and not is_opaque_node(n), saved_values)
+    )
 
     # NB: saved_sym_nodes will be mutated to reflect the actual saved symbols
     fw_module, bw_module = _extract_fwd_bwd_modules(
@@ -3597,6 +3671,7 @@ def min_cut_rematerialization_partition(
         saved_values,
         # pyrefly: ignore [bad-argument-type]
         saved_sym_nodes=saved_sym_nodes,
+        saved_opaque_nodes=saved_opaque_nodes,
         num_fwd_outputs=num_fwd_outputs,
         static_lifetime_input_nodes=node_info.static_lifetime_input_nodes,
     )
