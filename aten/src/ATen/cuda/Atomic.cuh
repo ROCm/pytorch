@@ -18,11 +18,18 @@ struct AtomicFPOp<at::Half> {
   template <typename func_t>
   inline __device__ at::Half operator() (at::Half *address, at::Half val, const func_t& func) {
     unsigned int * address_as_ui =
-      (unsigned int *) ((char *)address - ((size_t)address & 2));
-    unsigned int old = *address_as_ui;
-    unsigned int assumed;
+        (unsigned int *) ((char *)address - ((size_t)address & 2));
 
+    // Read only 2 bytes to avoid out-of-bounds access on last array element
+    unsigned short target_val = *reinterpret_cast<unsigned short*>(address);
+
+    unsigned int old = ((size_t)address & 2)
+        ? (static_cast<unsigned int>(target_val) << 16)
+        : static_cast<unsigned int>(target_val);
+
+    unsigned int assumed;
     at::Half hsum;
+
     do {
       assumed = old;
       hsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
@@ -30,6 +37,7 @@ struct AtomicFPOp<at::Half> {
       old = (size_t)address & 2 ? (old & 0xffff) | (hsum.x << 16) : (old & 0xffff0000) | hsum.x;
       old = atomicCAS(address_as_ui, assumed, old);
     } while (assumed != old);
+
     hsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
     return hsum;
   }
@@ -40,11 +48,18 @@ struct AtomicFPOp<at::BFloat16> {
   template <typename func_t>
   inline __device__ at::BFloat16 operator() (at::BFloat16 *address, at::BFloat16 val, const func_t& func) {
     unsigned int * address_as_ui =
-      (unsigned int *) ((char *)address - ((size_t)address & 2));
-    unsigned int old = *address_as_ui;
-    unsigned int assumed;
+        (unsigned int *) ((char *)address - ((size_t)address & 2));
 
+    // Read only 2 bytes to avoid out-of-bounds access on last array element
+    unsigned short target_val = *reinterpret_cast<unsigned short*>(address);
+
+    unsigned int old = ((size_t)address & 2)
+        ? (static_cast<unsigned int>(target_val) << 16)
+        : static_cast<unsigned int>(target_val);
+
+    unsigned int assumed;
     at::BFloat16 bsum;
+
     do {
       assumed = old;
       bsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
@@ -52,8 +67,9 @@ struct AtomicFPOp<at::BFloat16> {
       old = (size_t)address & 2 ? (old & 0xffff) | (bsum.x << 16) : (old & 0xffff0000) | bsum.x;
       old = atomicCAS(address_as_ui, assumed, old);
     } while (assumed != old);
+
     bsum.x = (size_t)address & 2 ? (old >> 16) : (old & 0xffff);
-    return bsum.x;
+    return bsum;
   }
 };
 
