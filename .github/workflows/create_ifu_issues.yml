@@ -27,6 +27,11 @@ on:
         required: false
         default: "ROCm"
         type: string
+      source_branch:
+        description: "Upstream source branch used for IFU (e.g. main, viable/strict)"
+        required: false
+        default: "main"
+        type: string
 
   # Called by create_ifu_tag.yml after tagging
   workflow_call:
@@ -53,6 +58,11 @@ on:
         description: "Project owner"
         required: false
         default: "ROCm"
+        type: string
+      source_branch:
+        description: "Upstream source branch used for IFU (e.g. main, viable/strict)"
+        required: false
+        default: "main"
         type: string
     secrets:
       IFU_GITHUB_TOKEN:
@@ -88,14 +98,20 @@ jobs:
           echo "branch=$branch" >> $GITHUB_OUTPUT
 
       - name: Fetch upstream
+        env:
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
         run: |
           git remote add upstream https://github.com/pytorch/pytorch.git 2>/dev/null || true
           git fetch upstream main --force
+          if [[ "${SOURCE_BRANCH}" != "main" ]]; then
+            echo "Also fetching upstream/${SOURCE_BRANCH}..."
+            git fetch upstream "${SOURCE_BRANCH}" --force
+          fi
 
       - name: List commits in range
         run: |
-          echo "ROCm-only commits between ${{ inputs.prev_post_tag }} and ${{ inputs.curr_pre_tag }}:"
-          git log ${{ inputs.prev_post_tag }}..${{ inputs.curr_pre_tag }} --oneline --no-merges --not upstream/main
+          echo "ROCm-only commits between ${{ inputs.prev_post_tag }} and ${{ inputs.curr_pre_tag }} (not in upstream/${{ inputs.source_branch }}):"
+          git log ${{ inputs.prev_post_tag }}..${{ inputs.curr_pre_tag }} --oneline --no-merges --not upstream/${{ inputs.source_branch }}
 
       - name: Get or create project fields
         id: project_fields
@@ -173,44 +189,67 @@ jobs:
           echo "Project ID: $project_id"
           echo "project_id=$project_id" >> $GITHUB_OUTPUT
 
-          # Find or create 'branch' field
-          branch_field_id=$(echo "$fields_json" | jq -r '.[] | select(.name == "branch") | .id')
-          if [[ -z "$branch_field_id" || "$branch_field_id" == "null" ]]; then
-            echo "Creating 'branch' field..."
-            branch_field_id=$(gh api graphql -f query='
+          # Helper: resolve a field by name — check cached fields, try create, re-query on conflict.
+          resolve_field() {
+            local field_name="$1"
+            local cached_fields="$2"
+            local proj_id="$3"
+
+            # 1) Check cached fields from initial query
+            local fid
+            fid=$(echo "$cached_fields" | jq -r --arg n "$field_name" '.[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' 2>/dev/null || true)
+            if [[ -n "$fid" && "$fid" != "null" ]]; then
+              echo "Found existing '$field_name' field: $fid" >&2
+              echo "$fid"
+              return
+            fi
+
+            # 2) Try to create it
+            echo "Field '$field_name' not found. Creating..." >&2
+            local result
+            result=$(gh api graphql -f query='
               mutation($projectId: ID!, $name: String!) {
                 createProjectV2Field(input: {projectId: $projectId, dataType: TEXT, name: $name}) {
-                  projectV2Field {
-                    ... on ProjectV2Field {
-                      id
+                  projectV2Field { ... on ProjectV2Field { id } }
+                }
+              }' -f projectId="$proj_id" -f name="$field_name" 2>&1 || true)
+            fid=$(echo "$result" | jq -r '.data.createProjectV2Field.projectV2Field.id // empty' 2>/dev/null || true)
+            if [[ -n "$fid" ]]; then
+              echo "Created '$field_name' field: $fid" >&2
+              echo "$fid"
+              return
+            fi
+
+            # 3) Create failed (already exists). Re-query project fields to find its ID.
+            echo "Create failed (field likely exists). Re-querying project fields..." >&2
+            local requery
+            requery=$(gh api graphql -f query='
+              query($pid: ID!) {
+                node(id: $pid) {
+                  ... on ProjectV2 {
+                    fields(first: 50) {
+                      nodes {
+                        ... on ProjectV2Field { id name }
+                        ... on ProjectV2SingleSelectField { id name }
+                        ... on ProjectV2IterationField { id name }
+                      }
                     }
                   }
                 }
-              }' -f projectId="$project_id" -f name="branch" --jq '.data.createProjectV2Field.projectV2Field.id')
-            echo "Created 'branch' field: $branch_field_id"
-          else
-            echo "Found existing 'branch' field: $branch_field_id"
-          fi
+              }' -f pid="$proj_id" 2>/dev/null || true)
+            fid=$(echo "$requery" | jq -r --arg n "$field_name" '.data.node.fields.nodes[] | select(.name | ascii_downcase == ($n | ascii_downcase)) | .id' 2>/dev/null || true)
+            if [[ -n "$fid" && "$fid" != "null" ]]; then
+              echo "Found '$field_name' field via re-query: $fid" >&2
+              echo "$fid"
+            else
+              echo "Warning: Could not resolve '$field_name' field ID." >&2
+            fi
+          }
+
+          branch_field_id=$(resolve_field "branch" "$fields_json" "$project_id")
           echo "branch_field_id=$branch_field_id" >> $GITHUB_OUTPUT
 
-          # Find or create 'commit_hash' field
-          commit_hash_field_id=$(echo "$fields_json" | jq -r '.[] | select(.name == "commit_hash") | .id')
-          if [[ -z "$commit_hash_field_id" || "$commit_hash_field_id" == "null" ]]; then
-            echo "Creating 'commit_hash' field..."
-            commit_hash_field_id=$(gh api graphql -f query='
-              mutation($projectId: ID!, $name: String!) {
-                createProjectV2Field(input: {projectId: $projectId, dataType: TEXT, name: $name}) {
-                  projectV2Field {
-                    ... on ProjectV2Field {
-                      id
-                    }
-                  }
-                }
-              }' -f projectId="$project_id" -f name="commit_hash" --jq '.data.createProjectV2Field.projectV2Field.id')
-            echo "Created 'commit_hash' field: $commit_hash_field_id"
-          else
-            echo "Found existing 'commit_hash' field: $commit_hash_field_id"
-          fi
+          commit_hash_field_id=$(resolve_field "commit_hash" "$fields_json" "$project_id")
           echo "commit_hash_field_id=$commit_hash_field_id" >> $GITHUB_OUTPUT
 
       - name: Create issues for commits
@@ -222,13 +261,14 @@ jobs:
           PROJECT_OWNER: ${{ inputs.project_owner }}
           REPO_NAME: ${{ github.repository }}
           BRANCH: ${{ steps.parse.outputs.branch }}
+          SOURCE_BRANCH: ${{ inputs.source_branch }}
           PROJECT_ID: ${{ steps.project_fields.outputs.project_id }}
           BRANCH_FIELD_ID: ${{ steps.project_fields.outputs.branch_field_id }}
           COMMIT_HASH_FIELD_ID: ${{ steps.project_fields.outputs.commit_hash_field_id }}
         run: |
           echo "Creating issues for commits..."
 
-          commit_count=$(git rev-list --count --no-merges "${PREV_POST_TAG}..${CURR_PRE_TAG}" --not upstream/main)
+          commit_count=$(git rev-list --count --no-merges "${PREV_POST_TAG}..${CURR_PRE_TAG}" --not upstream/${SOURCE_BRANCH})
           if [[ "${commit_count}" -eq 0 ]]; then
             echo "No ROCm-only commits in range ${PREV_POST_TAG}..${CURR_PRE_TAG}; nothing to create."
             exit 0
@@ -236,13 +276,25 @@ jobs:
 
           echo "Found ${commit_count} ROCm-only commits to process."
 
-          git log "${PREV_POST_TAG}..${CURR_PRE_TAG}" --format="%H" --no-merges --not upstream/main | while read hash; do
+          git log "${PREV_POST_TAG}..${CURR_PRE_TAG}" --format="%H" --no-merges --not upstream/${SOURCE_BRANCH} | while read hash; do
             short_hash="${hash:0:5}"
             subject=$(git log -1 --format="%s" "$hash")
             author=$(git log -1 --format="%an" "$hash")
             email=$(git log -1 --format="%ae" "$hash")
 
             echo "Processing ${short_hash}: ${subject}"
+
+            # Explicitly check presence in both upstream/main and upstream/source_branch.
+            # Issue creation is still based on "not in source_branch" (the filtered input list).
+            in_upstream_main=false
+            if git merge-base --is-ancestor "$hash" "upstream/main"; then
+              in_upstream_main=true
+            fi
+            in_upstream_source=false
+            if git merge-base --is-ancestor "$hash" "upstream/${SOURCE_BRANCH}"; then
+              in_upstream_source=true
+            fi
+            echo "  Presence check -> upstream/main: ${in_upstream_main}, upstream/${SOURCE_BRANCH}: ${in_upstream_source}"
 
             # Try to get GitHub username via API first
             gh_username=""
@@ -267,31 +319,34 @@ jobs:
               --json url,body \
               | jq -r --arg hash "$hash" '.[] | select((.body // "") | contains("**Commit:** " + $hash)) | .url' \
               | head -n 1 || true)
+
             if [[ -n "${existing_issue_url}" ]]; then
-              echo "  Existing issue found for commit ${short_hash}: ${existing_issue_url}"
-              echo "  Skipping duplicate issue creation."
-              continue
+              echo "  Existing issue found: ${existing_issue_url} — ensuring assign/project/fields are set."
+              issue_url="${existing_issue_url}"
+            else
+              body="**Commit:** ${hash}"$'\n'"**Author:** ${author} (${email})"$'\n'"**Branch:** ${BRANCH}"$'\n'"**Link:** [View commit](https://github.com/${REPO_NAME}/commit/${hash})"$'\n'$'\n'"### Upstream Tracking"$'\n'"- [ ] Needs to be in upstream/main"
+              if [[ "${SOURCE_BRANCH}" != "main" ]]; then
+                body="${body}"$'\n'"- [ ] Needs to be in upstream/${SOURCE_BRANCH}"
+              fi
+
+              issue_url=$(gh issue create \
+                --repo "${TARGET_REPO}" \
+                --title "${subject}" \
+                --body "${body}" 2>/dev/null || true)
+
+              if [[ -z "${issue_url}" ]]; then
+                echo "  ERROR: Failed to create issue for ${short_hash}. Skipping."
+                continue
+              fi
+
+              echo "  Created: ${issue_url}"
             fi
 
-            body="**Commit:** ${hash}"$'\n'"**Author:** ${author} (${email})"$'\n'"**Branch:** ${BRANCH}"$'\n'"**Link:** [View commit](https://github.com/${REPO_NAME}/commit/${hash})"
-
-            issue_url=$(gh issue create \
-              --repo "${TARGET_REPO}" \
-              --title "${subject}" \
-              --body "${body}" 2>/dev/null || true)
-
-            if [[ -z "${issue_url}" ]]; then
-              echo "  ERROR: Failed to create issue for ${short_hash}. Skipping."
-              continue
-            fi
-
-            echo "  Created: ${issue_url}"
-
-            # Try to assign the issue
+            # Assign (idempotent — no-op if already assigned)
             if [[ -n "${gh_username}" ]]; then
-              echo "  Trying to assign to @${gh_username}..."
+              echo "  Ensuring @${gh_username} is assigned..."
               if gh issue edit "${issue_url}" --add-assignee "${gh_username}" 2>/dev/null; then
-                echo "  Successfully assigned issue"
+                echo "  Assignee OK"
               else
                 echo "  Could not assign, adding comment instead"
                 gh issue comment "${issue_url}" --body "cc @${gh_username} - you authored this commit" || true
