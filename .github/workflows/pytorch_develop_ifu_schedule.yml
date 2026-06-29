@@ -1,4 +1,4 @@
-name: Scheduled develop IFU
+name: PyTorch develop branch IFU
 run-name: "Scheduled develop IFU sync with pytorch/pytorch main"
 
 # Dispatches pytorch_ifu.yml on a ~biweekly cadence to merge upstream main into develop.
