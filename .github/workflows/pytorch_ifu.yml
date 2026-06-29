@@ -11,7 +11,7 @@ on:
       ifu_target_branch:
         description: "Target branch for IFU"
         required: true
-        default: "rocm7.1_internal_testing"
+        default: "develop"
         type: string
       ifu_source_repo:
         description: "Source repo for IFU"
