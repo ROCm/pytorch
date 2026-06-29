@@ -9,7 +9,7 @@ on:
     - cron: '0 9 1,15 * *'
   pull_request:
     paths:
-      - '.github/workflows/develop_ifu_schedule.yml'
+      - '.github/workflows/pytorch_develop_ifu_schedule.yml'
       - '.github/workflows/pytorch_ifu.yml'
   workflow_dispatch:
 
