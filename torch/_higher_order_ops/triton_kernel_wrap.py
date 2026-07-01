@@ -9,18 +9,19 @@ import operator
 import threading
 from collections import defaultdict
 from collections.abc import Callable, Sequence
-from typing import Any, Optional, TYPE_CHECKING, Union
+from typing import Any, cast, Optional, TYPE_CHECKING, Union
 from typing_extensions import Never
 
 import sympy
 
+import torch
 import torch.fx as fx
 import torch.utils._pytree as pytree
 from torch import SymInt, Tensor
 from torch._C import DispatchKey
 from torch._higher_order_ops.utils import redirect_to_mode
 from torch._ops import HigherOrderOperator
-from torch._prims_common import clone_preserve_strides
+from torch._prims_common import compute_required_storage_length
 from torch._subclasses.fake_tensor import FakeTensorMode
 from torch.fx.experimental.proxy_tensor import (
     disable_proxy_modes_tracing,
@@ -196,6 +197,23 @@ class KernelSideTable:
 kernel_side_table = KernelSideTable()
 
 
+def clone_preserve_strides_for_triton_kernel_wrapper(x: Tensor) -> Tensor:
+    storage_offset = cast(int, x.storage_offset())
+    needed_size = compute_required_storage_length(x.size(), x.stride(), storage_offset)
+    if torch._debug_has_internal_overlap(x) == 1:
+        raise RuntimeError(
+            "Cannot safely clone an internally overlapping mutated Triton kernel "
+            "argument."
+        )
+    buffer = torch.empty_strided((needed_size,), (1,), dtype=x.dtype, device=x.device)
+    out = torch.as_strided(buffer, x.size(), x.stride(), storage_offset)
+    # Copy logical elements only. Inductor may use a compact internal
+    # materialization for strided views, so flattening the source storage span
+    # can read past the realized buffer.
+    out.copy_(x)
+    return out
+
+
 ###############################################################################
 # Mutation Tracker
 
@@ -330,11 +348,6 @@ def generate_ttir(
                 return True
         return False
 
-    def is_tensor_like_arg(arg: Any) -> bool:
-        if isinstance(arg, Tensor) or is_stable_tensor_descriptor_arg(arg):
-            return True
-        return False
-
     # Note: one would expect that each input to the triton kernel maps to
     # one input parameter in the TTIR. This is _not_ true for TMA descriptors:
     # one TMA descriptor gets converted into:
@@ -343,9 +356,13 @@ def generate_ttir(
     #   * N sizes, for a rank-N tensor
     # To account for this, we inject some fake arg names as placeholders for
     # the stride and size parameters.
-    def get_tensor_names(name: str, arg: Any) -> list[str]:
-        if isinstance(arg, Tensor):
-            return [name]
+    #
+    # Tensors and scalars both become single TTIR parameters, whereas
+    # `constexpr` are inlined. This matters for "odd" ordering
+    # (eg. [tensor, scalar, tensor]).
+    def get_arg_names(name: str, arg: Any, is_constexpr) -> list[str]:
+        if is_constexpr or arg is None:
+            return []
         if is_stable_tensor_descriptor_arg(arg):
             stable_meta = maybe_unpack_tma_stable_metadata(
                 tma_descriptor_metadata[name]
@@ -358,11 +375,12 @@ def generate_ttir(
             names.extend(name + f" STRIDE PLACEHOLDER {i}" for i in range(tensor_rank))
             names.extend(name + f" SIZE PLACEHOLDER {i}" for i in range(tensor_rank))
             return names
-        return []
+        return [name]
 
-    ordered_tensor_names = list(
+    ordered_arg_names = list(
         itertools.chain.from_iterable(
-            get_tensor_names(name, arg) for name, arg in ordered_args.items()
+            get_arg_names(name, arg, param.is_constexpr)
+            for (name, arg), param in zip(ordered_args.items(), kernel.params)
         )
     )
 
@@ -452,8 +470,14 @@ def generate_ttir(
             return attrs
 
     specialization = _get_specialization(ordered_args.values())
+
+    # Triton explicitly interprets ASTSource.constants entries as constexpr
+    # (triton-lang/triton#8248). Thus, only arguments marked `is_constexpr`
+    # should be treated as such, not just non-tensor-like arguments.
     constants = {
-        name: arg for name, arg in ordered_args.items() if not is_tensor_like_arg(arg)
+        (i,): arg
+        for i, ((_, arg), param) in enumerate(zip(ordered_args.items(), kernel.params))
+        if param.is_constexpr
     }
 
     if (mangle_type := getattr(triton.runtime.jit, "mangle_type", None)) is not None:
@@ -518,7 +542,7 @@ def generate_ttir(
     if not ttir_module.verify():
         raise RuntimeError("Verification for TTIR module has failed")
 
-    return ttir_module, ordered_tensor_names
+    return ttir_module, ordered_arg_names
 
 
 def ttir_to_functions(
@@ -987,11 +1011,12 @@ def identify_mutated_tensors(
     2) Parses the TTIR and creates a control flow graph
     3) Analyzes the graph to detect all input tensor mutations
     """
+    from torch._inductor.ir import TensorBox
 
     ttir_module = None
     functions = None
     try:
-        ttir_module, ordered_tensor_names = generate_ttir(
+        ttir_module, ordered_arg_names = generate_ttir(
             kernel, kwargs, tma_descriptor_metadata
         )
 
@@ -1014,11 +1039,13 @@ def identify_mutated_tensors(
         analyze_kernel_mutations.reset()
         get_tma_stores.reset()
         mutations = analyze_kernel_mutations(
-            functions, kernel_name, len(ordered_tensor_names)
+            functions, kernel_name, len(ordered_arg_names)
         )
 
         return [
-            ordered_tensor_names[i] for i, mutated in enumerate(mutations) if mutated
+            ordered_arg_names[i]
+            for i, mutated in enumerate(mutations)
+            if mutated and isinstance(kwargs[ordered_arg_names[i]], (Tensor, TensorBox))
         ]
     except Exception:
         import torch._inductor.ir
@@ -1339,11 +1366,15 @@ def triton_kernel_wrapper_functional_dense(
     tensors_to_clone: list[str],
 ) -> dict[str, Any]:
     # TODO(oulgen): For performance reasons, we want to ensure that these
-    # `clone_preserve_strides` calls are never executed at runtime
+    # strided clone calls are never executed at runtime
     # (inductor should always optimize them away).
     # Requires https://github.com/pytorch/pytorch/issues/109240
     kwargs = {
-        key: (clone_preserve_strides(val) if key in tensors_to_clone else val)
+        key: (
+            clone_preserve_strides_for_triton_kernel_wrapper(val)
+            if key in tensors_to_clone
+            else val
+        )
         for key, val in kwargs.items()
     }
     triton_kernel_wrapper_mutation(
@@ -1368,12 +1399,12 @@ def triton_kernel_wrapper_functional_fake_tensor_mode(
     tensors_to_clone: list[str],
 ) -> dict[str, Any]:
     # TODO(oulgen): For performance reasons, we want to ensure that these
-    # `clone_preserve_strides` calls are never executed at runtime
+    # strided clone calls are never executed at runtime
     # (inductor should always optimize them away).
     # Requires https://github.com/pytorch/pytorch/issues/109240
     with mode:
         return {
-            key: clone_preserve_strides(val)
+            key: clone_preserve_strides_for_triton_kernel_wrapper(val)
             for key, val in kwargs.items()
             if key in tensors_to_clone
         }

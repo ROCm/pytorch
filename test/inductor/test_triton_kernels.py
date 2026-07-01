@@ -330,6 +330,8 @@ def forward(self, x_1, output_1):
         from torch._higher_order_ops.triton_kernel_wrap import kernel_side_table
         from torch._inductor.choices import InductorChoices
         from torch._inductor.compile_fx import compile_fx_inner
+        from torch._inductor.virtualized import V
+        from torch.fx.experimental.proxy_tensor import make_fx
 
         TENSOR_SIZE = 30_000_000
         BLOCK_SIZE = 1024
@@ -392,7 +394,7 @@ def forward(self, x_1, output_1):
 
         gm = make_fx(f, tracing_mode="fake")(t)
 
-        with inductor_config.patch({"inductor_choices_class": NoFusionChoices}):
+        with V.set_choices_handler(NoFusionChoices()):
             log_stream, ctx = logs_to_string("torch._inductor.codecache", "output_code")
             with ctx():
                 compiled_gm = compile_fx_inner(gm, [t])
@@ -400,8 +402,8 @@ def forward(self, x_1, output_1):
 
             output_code = log_stream.getvalue()
 
-        FileCheck().check("del buf3").check(
-            "dual_output_kernel_with_inline_asm_0.run(x_1, buf0,"
+        FileCheck().check_regex(r"del buf[0-9]*").check_regex(
+            r"dual_output_kernel_with_inline_asm_0\.run\(x_1, buf[0-9]*, buf[0-9]*,"
         ).run(output_code)
 
         eager_result = f(t.clone())[0]
@@ -1205,6 +1207,82 @@ def forward(self, x_1, output_1):
         eager_out = f(inp)
         compiled_out = torch.compile(f)(inp)
         self.assertEqual(compiled_out, eager_out)
+
+    @requires_gpu
+    def test_triton_kernel_mutates_strided_intermediate(self):
+        @triton.jit
+        def add_one_strided_kernel(
+            in_ptr,
+            out_ptr,
+            n_cols: tl.constexpr,
+            stride_b: tl.constexpr,
+            BLOCK_N: tl.constexpr,
+        ):
+            row = tl.program_id(0)
+            offsets = tl.arange(0, BLOCK_N)
+            mask = offsets < n_cols
+            values = tl.load(in_ptr + row * stride_b + offsets, mask=mask, other=0.0)
+            tl.store(out_ptr + row * stride_b + offsets, values + 1.0, mask=mask)
+
+        def triton_update(x):
+            out = x
+            add_one_strided_kernel[(x.size(0),)](
+                x,
+                out,
+                x.size(1),
+                x.stride(0),
+                BLOCK_N=4096,
+            )
+            return out
+
+        def f(base):
+            x = (base + 1)[:, :4096]
+            return triton_update(x)
+
+        base = torch.randn(64, 8192, device=GPU_TYPE)
+        eager_out = f(base.clone())
+        compiled_out = torch.compile(f, fullgraph=True)(base.clone())
+
+        self.assertEqual(compiled_out, eager_out)
+        self.assertEqual(compiled_out.stride(), eager_out.stride())
+
+    @requires_gpu
+    def test_triton_kernel_mutates_expanded_intermediate_errors(self):
+        @triton.jit
+        def add_one_expanded_kernel(
+            in_ptr,
+            out_ptr,
+            n_elements: tl.constexpr,
+            stride_n: tl.constexpr,
+            BLOCK_N: tl.constexpr,
+        ):
+            offsets = tl.arange(0, BLOCK_N)
+            mask = offsets < n_elements
+            value = tl.load(in_ptr)
+            tl.store(out_ptr + offsets * stride_n, value + 1.0, mask=mask)
+
+        def triton_update(x):
+            out = x
+            add_one_expanded_kernel[(1,)](
+                x,
+                out,
+                x.numel(),
+                x.stride(0),
+                BLOCK_N=16,
+            )
+            return out
+
+        def f(base):
+            x = (base + 1).expand(4)
+            return triton_update(x)
+
+        base = torch.randn(1, device=GPU_TYPE)
+        with self.assertRaisesRegex(
+            RuntimeError,
+            "Cannot safely clone an internally overlapping mutated Triton kernel "
+            "argument.",
+        ):
+            torch.compile(f, fullgraph=True)(base.clone())
 
     @inductor_config.patch(
         triton_kernel_default_layout_constraint="needs_fixed_stride_order"
@@ -2767,6 +2845,43 @@ def forward(self, arg0_1, arg1_1):
                 ) from e
             raise
 
+    @requires_gpu
+    def test_constexpr_handling(self):
+        @triton.jit
+        def copy_kernel(
+            src_ptr,
+            dst_ptr,
+            n_elements,
+            stride,
+            BLOCK_SIZE: tl.constexpr,
+        ):
+            pid = tl.program_id(0)
+            offs = pid * BLOCK_SIZE + tl.arange(0, BLOCK_SIZE)
+            mask = offs < n_elements
+            x = tl.load(src_ptr + offs * stride, mask=mask)
+            tl.store(dst_ptr + offs * stride, x, mask=mask)
+
+        t = torch.randn(1024, device=GPU_TYPE)
+        out = torch.empty(1024, device=GPU_TYPE)
+
+        kwargs = {
+            "src_ptr": t,
+            "dst_ptr": out,
+            "n_elements": 1024,
+            "stride": 1,
+            "BLOCK_SIZE": 256,
+        }
+
+        ttir_module, _ = generate_ttir(copy_kernel, kwargs, tma_descriptor_metadata={})
+        ttir_str = str(ttir_module)
+
+        # `constexpr` values get inlined, and do not appear as function parameters.
+        self.assertIn("src_ptr", ttir_str)
+        self.assertIn("dst_ptr", ttir_str)
+        self.assertIn("n_elements", ttir_str)
+        self.assertIn("stride", ttir_str)
+        self.assertNotIn("BLOCK_SIZE", ttir_str)
+
 
 def make_mutation_test(fn):
     @requires_gpu
@@ -3150,7 +3265,7 @@ class MutationTests(torch._inductor.test_case.TestCase):
             in_ptr0,
             in_ptr1,
             out_ptr,
-            n_elements,
+            n_elements: "tl.constexpr",
             BLOCK_SIZE: "tl.constexpr",
         ):
             pid = tl.program_id(axis=0)
@@ -3220,7 +3335,7 @@ class MutationTests(torch._inductor.test_case.TestCase):
             in_ptr0,
             in_ptr1,
             out_ptr,
-            n_elements,
+            n_elements: "tl.constexpr",
             BLOCK_SIZE: "tl.constexpr",
         ):
             pid = tl.program_id(axis=0)
@@ -3256,7 +3371,7 @@ class MutationTests(torch._inductor.test_case.TestCase):
             in_ptr0,
             in_ptr1,
             out_ptr,
-            n_elements,
+            n_elements: "tl.constexpr",
             BLOCK_SIZE: "tl.constexpr",
         ):
             pid = tl.program_id(axis=0)

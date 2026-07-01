@@ -35,7 +35,6 @@ from torch.nn.attention.flex_attention import (
     _identity,
     _mask_mod_signature,
     _score_mod_signature,
-    _WARNINGS_SHOWN,
     and_masks,
     AuxOutput,
     AuxRequest,
@@ -445,6 +444,20 @@ def batch_reserve(paged_attention: PagedAttention, target_seq_len: Tensor):
             torch.tensor(b),
             target_seq_len[b],
         )
+
+
+class TestFlexAttentionTDMOptions(InductorTestCase):
+    def test_apply_tdm_num_stages_uses_triton_launch_option(self):
+        from torch._inductor.kernel.flex.common import apply_tdm_num_stages
+
+        kernel_options = {"num_stages": 1, "NUM_STAGES": 4}
+
+        apply_tdm_num_stages(kernel_options)
+
+        self.assertEqual(
+            kernel_options["num_stages"], config.tdm.max_outstanding_per_wave
+        )
+        self.assertNotIn("NUM_STAGES", kernel_options)
 
 
 @large_tensor_test_class("2GB", device=test_device[0])
@@ -2326,6 +2339,8 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         """Test that deprecation warnings are issued for legacy parameters"""
         import warnings
 
+        import torch.nn.attention.flex_attention as fa
+
         make_tensor = functools.partial(
             torch.randn,
             (2, 2, 64, 16),
@@ -2335,8 +2350,8 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
         query, key, value = make_tensor(), make_tensor(), make_tensor()
 
         # Clear shown warnings to ensure we can test them
-        original_shown = _WARNINGS_SHOWN.copy()
-        _WARNINGS_SHOWN.clear()
+        original_shown = fa._WARNINGS_SHOWN.copy()
+        fa._WARNINGS_SHOWN.clear()
 
         try:
             # Test deprecation warning for return_lse
@@ -2351,7 +2366,7 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
                 )
 
             # Clear for next test
-            _WARNINGS_SHOWN.clear()
+            fa._WARNINGS_SHOWN.clear()
 
             # Test error when both old and new API are used
             with self.assertRaises(ValueError) as cm:
@@ -2368,8 +2383,8 @@ def forward(self, arg0_1, arg1_1, arg2_1, arg3_1, arg4_1):
 
         finally:
             # Restore original warnings state
-            _WARNINGS_SHOWN.clear()
-            _WARNINGS_SHOWN.update(original_shown)
+            fa._WARNINGS_SHOWN.clear()
+            fa._WARNINGS_SHOWN.update(original_shown)
 
     @supported_platform
     @dtypes(*device_configs["cpu"].dtypes)
@@ -5477,7 +5492,8 @@ class GraphModule(torch.nn.Module):
 
         finally:
             fa._FLEX_ATTENTION_DISABLE_COMPILE_DEBUG = original_flag
-            fa._WARNINGS_SHOWN = original_warnings_shown
+            fa._WARNINGS_SHOWN.clear()
+            fa._WARNINGS_SHOWN.update(original_warnings_shown)
 
     @supported_platform
     def test_mask_mod_functools_partial(self, device):
@@ -7673,12 +7689,17 @@ class TestLearnableBiases(InductorTestCase):
 
     @skip_on_cpu
     def test_flex_attention_logging(self, device):
+        from torch._inductor.select_algorithm import get_flex_attention_log_filename
+
         with tempfile.TemporaryDirectory() as tmpdir:
             log_file = os.path.join(tmpdir, "flex_attention_configs")
 
             with patch.dict(
                 os.environ, {"TORCHINDUCTOR_FLEX_ATTENTION_LOGGING_FILE": log_file}
             ):
+                get_flex_attention_log_filename.cache_clear()
+                self.addCleanup(get_flex_attention_log_filename.cache_clear)
+
                 query = torch.randn(
                     1,
                     2,

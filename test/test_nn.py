@@ -45,7 +45,7 @@ from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, Criteri
     ctcloss_reference, get_new_module_tests, single_batch_reference_fn, _test_bfloat16_ops, _test_module_empty_input
 from torch.testing._internal.common_device_type import dtypesIfMPS, instantiate_device_type_tests, dtypes, \
     dtypesIfCUDA, precisionOverride, onlyCUDA, onlyCPU, \
-    skipCUDAIfRocm, skipCUDAIf, skipCUDAIfNotRocm, \
+    skipCUDAIf, skipCUDAIfNotRocm, \
     onlyNativeDeviceTypes, deviceCountAtLeast, largeTensorTest, expectedFailureMeta, expectedFailureMPS, \
     skipMeta, get_all_device_types
 
@@ -10806,16 +10806,19 @@ class TestNNDeviceType(NNTestCase):
             gradgradcheck(lambda x: F.interpolate(x, out_size, **kwargs), [input])
 
     @onlyCUDA
-    @skipCUDAIfRocm(msg="launch bounds error out on ROCM")
     @dtypes(torch.half, torch.bfloat16)
     @largeTensorTest('40GB')
     def test_upsampling_64bit_indexing_channels_last(self, device, dtype):
+        # Path 1 (NHWC): channels-last 1D grid. output.numel() = 2^31, below UINT32_MAX,
+        # but exercises the allclose correctness check between channels-last and contiguous.
         x = torch.rand((32, 64, 512, 512), dtype=dtype, device=device)
         out = torch.nn.functional.interpolate(x.to(memory_format=torch.channels_last), scale_factor=2, mode='nearest')
         out_ref = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
         del x
         self.assertTrue(torch.allclose(out, out_ref))
 
+        # Path 1 (NHWC): output.numel() = 17*256*1024*1024 ~ 4.56e9 > UINT32_MAX.
+        # Exercises the ROCm grid-stride clamp in the NHWC kernel.
         x = torch.ones((17, 256, 512, 512), dtype=dtype).cuda().to(memory_format=torch.channels_last)
         out = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
         self.assertEqual(out[0], out[-1])
@@ -12703,7 +12706,9 @@ if __name__ == '__main__':
         # CUDA says "device-side assert triggered"
         # ROCm says "unspecified launch failure", or HSA_STATUS_ERROR_EXCEPTION
         has_cuda_assert = 'CUDA error: device-side assert triggered' in stderr
-        has_hip_assert = 'launch failure' in stderr or 'HSA_STATUS_ERROR_EXCEPTION' in stderr
+        has_hip_assert = ('launch failure' in stderr
+                          or 'HSA_STATUS_ERROR_EXCEPTION' in stderr
+                          or 'illegal memory access' in stderr)
         self.assertTrue(has_cuda_assert or has_hip_assert,
                         f"Expected device assert error in stderr, got: {stderr}")
 

@@ -684,7 +684,7 @@ print(t.is_pinned())
                 gcn_arch = str(
                     torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
                 )
-                if gcn_arch in ["gfx90a", "gfx942", "gfx950", "gfx1200", "gfx1201"]:
+                if gcn_arch in ["gfx90a", "gfx942", "gfx950", "gfx1200", "gfx1201", "gfx1250"]:
                     self.assertTrue(default == torch._C._BlasBackend.Cublaslt)
                 else:
                     self.assertTrue(default == torch._C._BlasBackend.Cublas)
@@ -754,7 +754,7 @@ print(t.is_pinned())
             gcn_arch = str(
                 torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
             )
-            if "gfx94" in gcn_arch or "gfx95" in gcn_arch:
+            if "gfx94" in gcn_arch or "gfx95" in gcn_arch or "gfx1250" in gcn_arch:
                 default_workspace_size = 1024 * 128 * 1024  # :1024:128
         else:
             default_workspace_size = (
@@ -4505,6 +4505,9 @@ class TestCudaMallocAsync(TestCase):
             pass
         finally:
             torch.cuda.memory._record_memory_history(None)
+            # This test requires to run gc.collec() to fix other memory tests
+            torch.cuda.synchronize()
+            gc.collect()
 
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC, "setContextRecorder not supported by CUDAMallocAsync"
@@ -6710,6 +6713,7 @@ class TestMemPool(TestCase):
 
     @serialTest()
     def test_mempool_ctx_multithread(self):
+        torch._C._cuda_clearCublasWorkspaces()
         torch.cuda.empty_cache()
         segments = torch.cuda.memory._snapshot()["segments"]
         self.assertEqual(len(segments), 0, "Expected empty pool in the beginning")
@@ -8011,9 +8015,13 @@ class TestCompileKernel(TestCase):
 
         # Test error handling with more than supported shared memory size
         if torch.version.hip:
-            max_smem = (
-                65536 if get_device_properties().gcnArchName != "gfx950" else 160 * 1024
-            )
+            arch_name = get_device_properties().gcnArchName
+            if "gfx1250" in arch_name:
+                max_smem = 320 * 1024
+            elif "gfx950" in arch_name:
+                max_smem = 160 * 1024
+            else:
+                max_smem = 65536
         else:
             max_smem = get_device_properties().shared_memory_per_block_optin
         excessive_shared_mem = max_smem * 2

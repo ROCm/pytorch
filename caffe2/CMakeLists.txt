@@ -1461,6 +1461,9 @@ if(USE_ROCM)
   if(USE_ROCM_CK_SDPA)
     target_compile_definitions(torch_hip PRIVATE USE_ROCM_CK_SDPA)
   endif()
+  if(USE_ROCM_CK_GEMM)
+    target_compile_definitions(torch_hip PRIVATE USE_ROCM_CK_GEMM)
+  endif()
 endif()
 
 if(BUILD_LITE_INTERPRETER)
@@ -1790,6 +1793,10 @@ if(USE_ROCM)
 
   if(USE_ROCM_CK_SDPA)
     target_link_libraries(torch_hip PRIVATE ck_sdpa)
+  endif()
+
+  if(USE_ROCM_CK_GEMM)
+    target_link_libraries(torch_hip PRIVATE ck_gemm)
   endif()
 
   if(USE_MSLK)

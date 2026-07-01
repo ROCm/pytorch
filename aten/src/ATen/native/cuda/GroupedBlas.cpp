@@ -691,6 +691,9 @@ std::optional<c10::ScalarType> out_dtype) {
   // To enable CK path, use env variable ROCM_ALLOW_GROUP_GEMM_CK=1.
   bool use_fast_path = false;
   // ifdef USE_ROCM_CK_GEMM is required since ROCm systems w/o CK should not call ck path.
+  // NOTE: gfx1250 is intentionally excluded. The CK grouped GEMM path dispatches
+  // Wave64/MFMA-style XDL templates; gfx1250 is Wave32 and needs a WMMA/SWMMAC
+  // path, so it must stay on the fallback until a gfx1250-safe CK path exists.
 #if defined(USE_ROCM_CK_GEMM)
   if (at::globalContext().rocmAllowGroupGemmCk() && at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx90a"})) {
     use_fast_path = true;
@@ -699,7 +702,9 @@ std::optional<c10::ScalarType> out_dtype) {
   const auto out_dtype_ = _resolve_grouped_mm_out_dtype(mat_a, mat_b, out_dtype);
   Tensor out = create_grouped_gemm_output_tensor(mat_a, mat_b, offs, out_dtype_);
   if (use_fast_path) {
+#if defined(USE_ROCM_CK_GEMM)
     at::hip::detail::group_gemm_ck(mat_a, mat_b, offs, bias, out);
+#endif //USE_ROCM_CK_GEMM
   } else {
     _grouped_mm_fallback(mat_a, mat_b, offs, bias, out_dtype, out);
   }
