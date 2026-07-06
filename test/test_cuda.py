@@ -4013,6 +4013,13 @@ print(f"{{r1}}, {{r2}}")
             with self.assertRaisesRegex(RuntimeError, error_msg):
                 torch.cuda.gds.GdsFile(f, os.O_CREAT | os.O_RDWR)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        IS_WINDOWS, "test relies on fork; Windows multiprocessing uses spawn"
+    )
+    @unittest.skipIf(sys.version_info >= (3, 14), "test fails on Python 3.14+")
+>>>>>>> e2cfd1a746d ([release/2.11] Skip test_is_pinned_no_context on python 3.14 and above due to known behavior change (#3394))
     def test_is_pinned_no_context(self):
         test_script = """\
 import torch
