@@ -251,12 +251,15 @@ void map_block(
       0,
       reinterpret_cast<hipMemGenericAllocationHandle_t>(handle),
       0ULL));
+<<<<<<< HEAD
   C10_HIP_CHECK(hipMemMap(
       *ptr,
       size,
       0,
       reinterpret_cast<hipMemGenericAllocationHandle_t>(handle),
       0ULL));
+=======
+>>>>>>> 7a68a172a90 ([release/2.12] [ROCm] Fixed memory errors in SymmetricMemory caused by repeated call… (#3403))
 
   hipMemAccessDesc desc;
   desc.location.type = hipMemLocationTypeDevice;
