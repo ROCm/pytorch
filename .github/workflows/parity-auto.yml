@@ -1,10 +1,16 @@
 name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
-# Every 10 min, dispatch parity.yml once per completed upstream trunk.yml push
-# whose parity inputs have all finished. Scope is trunk only: the mi350 ROCm
-# shards that ride along in trunk.yml vs that run's CUDA shards. Other arches
-# have their own periodic workflows - run parity.yml manually for those.
+# Every 10 min, dispatch parity.yml once per upstream SHA whose parity inputs
+# have all finished. Candidate SHAs come from two sources: completed trunk.yml
+# pushes (mi350 rides along there) and the scheduled per-arch workflows for
+# mi300/mi200/navi31 (which run on their own SHAs at their own cadence). A SHA
+# that carries several arches yields ONE combined parity report (parity.yml's
+# matrix emits a per-arch artifact plus a merged summary).
+#
+# Because the scheduled arches lag trunk, we hold back SHAs newer than the
+# newest scheduled run so a late mi300/mi200 batch can still join that SHA's
+# report instead of producing a premature trunk-only one.
 #
 # Readiness is gated per check-run, not on workflow_run conclusion: one failed
 # shard flips the parent run to failure while siblings are still going, so we
@@ -76,9 +82,11 @@ jobs:
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          # Auto-parity is trunk-scoped: mi350 is the only ROCm arch that rides
-          # along in trunk.yml. Other arches have their own periodic workflows.
-          ARCHS_IN: mi350
+          # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31 run in
+          # their own scheduled workflows on their own SHAs. We scan both sources
+          # (see fetch_candidate_commits) so a SHA that carries several arches
+          # yields one combined parity report once every arch's run has finished.
+          ARCHS_IN: mi350 mi300 mi200 navi31
           # Optional manual overrides; blank means "derive from parity_job_config.json".
           ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
           ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}
@@ -117,6 +125,15 @@ jobs:
                 | "(^|/)(" + join("|") + ")[.]yml$"
               )')}
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
+            # Upstream workflow file names for the non-trunk arches (mi350 rides
+            # trunk; nightly is not auto-scanned). Their scheduled runs land on
+            # their own SHAs, so fetch_scheduled_commits mines those SHAs as
+            # extra candidates on top of the trunk pushes.
+            SCHEDULED_WORKFLOWS=$(echo "$config_json" | jq -r '
+              [ .rocm | to_entries[]
+                | select(.key != "mi350" and .key != "nightly")
+                | (.value.default[]?, .value.distributed[]?, .value.inductor[]?).workflow ]
+              | unique | .[]')
           }
 
           print_run_config() {
@@ -124,6 +141,7 @@ jobs:
               "Upstream:        $UPSTREAM@$BRANCH" \
               "Target ref:      $TARGET_REF" \
               "Scope archs:     $ARCHS" \
+              "Scheduled wfs:   $(echo "$SCHEDULED_WORKFLOWS" | tr '\n' ' ')" \
               "Max trunk runs:  $MAX_COMMITS" \
               "Max dispatches:  $MAX_DISPATCHES" \
               "Max age:         ${MAX_AGE_HOURS}h" \
@@ -164,6 +182,33 @@ jobs:
               page=$((page + 1))
             done
             echo "$commits_json" | jq -r '.[] | "\(.head_sha) \(.created_at)"'
+          }
+
+          # Echo "<sha> <created_at>" lines for recent completed runs of the
+          # non-trunk arch workflows (mi300/mi200/navi31). These arches run on a
+          # schedule against whatever main HEAD was current then, so their runs
+          # surface SHAs that the trunk-push scan alone would rank too low to
+          # reach. 404/stale workflows simply yield nothing.
+          fetch_scheduled_commits() {
+            local wf rows
+            for wf in $SCHEDULED_WORKFLOWS; do
+              rows=$(gh api \
+                "repos/$UPSTREAM/actions/workflows/$wf.yml/runs?branch=$BRANCH&status=completed&per_page=30" \
+                --jq '.workflow_runs[] | "\(.head_sha) \(.created_at)"' 2>/dev/null)
+              [ -n "$rows" ] && printf '%s\n' "$rows"
+            done
+          }
+
+          # Merge trunk pushes + the already-fetched scheduled candidates (global
+          # SCHEDULED_COMMITS) into one newest-first "<sha> <created_at>" list, one
+          # row per SHA, capped at MAX_COMMITS. Called in a subshell via $(), so it
+          # only reads globals - main computes NEWEST_SCHEDULED_EPOCH itself.
+          fetch_candidate_commits() {
+            # $1 ~ 40-hex guard drops any stray non-row output (e.g. a 404 body
+            # from a missing scheduled workflow) that slipped past the API calls.
+            { fetch_trunk_commits; printf '%s\n' "$SCHEDULED_COMMITS"; } \
+              | awk 'NF>=2 && $1 ~ /^[0-9a-f]{40}$/' \
+              | sort -k2,2r | awk '!seen[$1]++' | head -n "$MAX_COMMITS"
           }
 
           # Echo a JSON array of recent auto-parity workflow_dispatch runs in our
@@ -261,6 +306,18 @@ jobs:
               return 1
             fi
 
+            # Hold back SHAs newer than the newest scheduled arch run: the schedule
+            # has not reached them yet, so a mi300/mi200/navi batch may still land
+            # on this SHA. Waiting lets us emit ONE combined report per SHA once
+            # every arch that will run has finished, rather than a premature
+            # trunk-only report that a later batch can no longer join. (When no
+            # scheduled runs exist NEWEST_SCHEDULED_EPOCH == now, so nothing is
+            # held and mi350/trunk behaves exactly as before.)
+            if [ "$commit_epoch" -ne 0 ] && [ "$commit_epoch" -gt "$NEWEST_SCHEDULED_EPOCH" ]; then
+              echo "[$short] $date  newer than newest scheduled arch run - waiting for scheduled arches to catch up"
+              return 0
+            fi
+
             if sha_already_dispatched "$sha"; then
               echo "[$short] parity report already exists for this SHA - skip"
               return 0
@@ -300,6 +357,31 @@ jobs:
               return 0
             fi
 
+            # Per-config CUDA baseline presence. A config whose CUDA test jobs did
+            # not run on this SHA (e.g. a failed trunk run that never launched CUDA
+            # default) has no baseline to compare against, so exclude it from the
+            # dispatch instead of emitting a bogus all-MISSED column. The length
+            # check above guarantees at least one config still has a baseline.
+            EXCLUDE_FLAGS=""
+            local cfg cuda_missing=""
+            for cfg in default distributed inductor; do
+              if ! echo "$cuda_check_runs" | jq -e --arg c "$cfg" \
+                   'any(.[]; .name | test("[(]" + $c + ","))' >/dev/null; then
+                EXCLUDE_FLAGS="$EXCLUDE_FLAGS -f exclude_${cfg}=true"
+                cuda_missing="$cuda_missing $cfg"
+              fi
+            done
+            cuda_missing=$(echo "$cuda_missing" | xargs)
+            if [ -n "$cuda_missing" ]; then
+              # Drop the excluded configs' ROCm check-runs from the completion gate
+              # so a missing-CUDA config never makes us wait on its ROCm shards.
+              local miss_rx
+              miss_rx=$(echo "$cuda_missing" | tr ' ' '|')
+              ROCM_CHECK_RUNS=$(echo "$ROCM_CHECK_RUNS" | jq --arg rx "[(]($miss_rx)," \
+                '[.[] | select((.name | test($rx)) | not)]')
+              echo "[$short] $date  no CUDA baseline for: $cuda_missing - excluding from report"
+            fi
+
             # Gate 1: every check-run the report consumes (ROCm shards for arches
             # that ran + CUDA tests) must be status=completed - we author the
             # SHA's report on dispatch, so dispatching early = partial data.
@@ -328,22 +410,24 @@ jobs:
             fi
 
             arch_dispatch=$(echo "$READY" | sed 's/ /, /g')
-            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; not-run: ${NOT_RUN_NOTES:-none})"
-            echo "[$short] dispatching for: '$(echo "$READY" | tr ' ' ',')'"
+            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; not-run: ${NOT_RUN_NOTES:-none}; excluded-configs: ${cuda_missing:-none})"
+            echo "[$short] dispatching for: '$(echo "$READY" | tr ' ' ',')'${EXCLUDE_FLAGS:+ (excluding${cuda_missing:+ }$cuda_missing)}"
 
             if [ "$DRY_RUN" = "true" ]; then
               echo "[$short] DRY_RUN=true - not dispatching"
             else
+              # $EXCLUDE_FLAGS is intentionally unquoted so its -f pairs word-split.
               gh workflow run parity.yml \
                 --repo "$GITHUB_REPOSITORY" \
                 --ref  "$TARGET_REF" \
                 -f sha="$sha" \
                 -f arch="$arch_dispatch" \
-                -f auto_triggered=true
+                -f auto_triggered=true \
+                $EXCLUDE_FLAGS
             fi
 
             DISPATCHED_COUNT=$((DISPATCHED_COUNT + 1))
-            DISPATCHED_SUMMARY="${DISPATCHED_SUMMARY}${short}:${arch_dispatch}"$'\n'
+            DISPATCHED_SUMMARY="${DISPATCHED_SUMMARY}${short}:${arch_dispatch}${cuda_missing:+ (no-cuda:$(echo "$cuda_missing" | tr ' ' ','))}"$'\n'
             if [ "$DISPATCHED_COUNT" -ge "$MAX_DISPATCHES" ]; then
               echo "Reached max dispatches for this scan ($MAX_DISPATCHES); stopping"
               return 1
@@ -388,10 +472,23 @@ jobs:
             load_matching_config
             print_run_config
 
+            # Fetch scheduled-arch candidates once (global, read by
+            # fetch_candidate_commits) and record the newest scheduled run time so
+            # process_commit can hold back not-yet-reached SHAs. No scheduled runs
+            # => hold nothing (NEWEST_SCHEDULED_EPOCH = now).
+            SCHEDULED_COMMITS=$(fetch_scheduled_commits)
+            local newest
+            newest=$(printf '%s\n' "$SCHEDULED_COMMITS" | awk 'NF>=2 && $1 ~ /^[0-9a-f]{40}$/{print $2}' | sort -r | head -1)
+            if [ -n "$newest" ]; then
+              NEWEST_SCHEDULED_EPOCH=$(date -u -d "$newest" +%s 2>/dev/null || echo "$NOW_EPOCH")
+            else
+              NEWEST_SCHEDULED_EPOCH=$NOW_EPOCH
+            fi
+
             local commits
-            commits=$(fetch_trunk_commits)
+            commits=$(fetch_candidate_commits)
             if [ -z "$commits" ]; then
-              echo "::warning::No completed trunk.yml push runs returned from $UPSTREAM@$BRANCH"
+              echo "::warning::No completed trunk/scheduled workflow runs returned from $UPSTREAM@$BRANCH"
               exit 0
             fi
 
