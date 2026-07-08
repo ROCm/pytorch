@@ -89,41 +89,62 @@ def _block_extra(b):
 
 def format_flamegraph(flamegraph_lines, flamegraph_script=None):
     if flamegraph_script is None:
-        cache_dir = os.path.expanduser("~/.cache/")
+        flamegraph_script = os.path.expanduser("~/.cache/flamegraph.pl")
+        cache_dir = os.path.dirname(flamegraph_script)
         os.makedirs(cache_dir, exist_ok=True)
-        flamegraph_script = f"{cache_dir}/flamegraph.pl"
+        # flamegraph_script = os.path.join(cache_dir, "flamegraph.pl")
     if not os.path.exists(flamegraph_script):
         import tempfile
         import urllib.request
+        import shutil
 
-        print(f"Downloading flamegraph.pl to: {flamegraph_script}")
+        print(f"Downloading flamegraph.pl to >>>>: {flamegraph_script}")
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".pl") as f:
+            print(f"****** file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}")
+            print(f"****** file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}")
             urllib.request.urlretrieve(
                 "https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl",
                 f.name,
             )
             try:
+                print(f"====== file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}", file=sys.stderr)
+                print(f"====== file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
                 os.chmod(f.name, 0o755)
-                os.rename(f.name, flamegraph_script)
-            except OSError:  # noqa: B001,E722
+                try:
+                    shutil.copyfile(f.name, flamegraph_script)
+                    os.chmod(flamegraph_script, 0o755)
+                except Exception as e:
+                    print(f"Error with shutil.copyfile: {e}", file=sys.stderr)
+                    raise
+            except OSError as e:  # noqa: B001,E722
                 # Ok to skip, the file will be removed by tempfile
-                pass
+                print(f"Error with flamegraph.pl: {e}", file=sys.stderr)
+                # pass
+            finally:
+                # print(f"++++++ file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}")
+                print(f"++++++!!! file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
     args = [flamegraph_script, "--countname", "bytes"]
-    with subprocess.Popen(
-        args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding="utf-8"
-    ) as p:
-        if p.stdin is None:
-            raise AssertionError("p.stdin is None")
-        if p.stdout is None:
-            raise AssertionError("p.stdout is None")
-        p.stdin.write(flamegraph_lines)
-        p.stdin.close()
-        result = p.stdout.read()
-        p.stdout.close()
-        p.wait()
-        if p.wait() != 0:
-            raise AssertionError(f"flamegraph process exited with code {p.wait()}")
-        return result
+    # print(f">>>>> file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}", file=sys.stderr)
+    print(f">>>>> file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
+    try:
+        with subprocess.Popen(
+            args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding="utf-8"
+        ) as p:
+            if p.stdin is None:
+                raise AssertionError("p.stdin is None")
+            if p.stdout is None:
+                raise AssertionError("p.stdout is None")
+            p.stdin.write(flamegraph_lines)
+            p.stdin.close()
+            result = p.stdout.read()
+            p.stdout.close()
+            p.wait()
+            if p.wait() != 0:
+                raise AssertionError(f"flamegraph process exited with code {p.wait()}")
+            return result
+    except Exception as e:
+        print(f"Error with flamegraph.pl subprocess: {e}", file=sys.stderr)
+        raise
 
 
 def _write_blocks(f, prefix, blocks):
