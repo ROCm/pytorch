@@ -685,11 +685,6 @@ if(USE_ROCM)
   file(GLOB native_hip_bgemm CONFIGURE_DEPENDS "native/hip/bgemm_kernels/*.hip")
   file(GLOB native_hip_ck CONFIGURE_DEPENDS "native/hip/ck*.hip")
   if(NOT USE_ROCM_CK_GEMM)
-<<<<<<< HEAD
-    file(GLOB native_hip_bgemm "native/hip/bgemm_kernels/*.hip")
-    file(GLOB native_hip_ck "native/hip/ck*.hip")
-=======
->>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
   else()

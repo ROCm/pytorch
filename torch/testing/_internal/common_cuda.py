@@ -78,12 +78,6 @@ def CDNA3OrLater():
     return evaluate_gfx_arch_within(_CDNA3_ARCHS + _CDNA5_ARCHS)
 
 def CDNA2OrLater():
-<<<<<<< HEAD
-    return evaluate_gfx_arch_within(["gfx90a", "gfx942"])
-
-def evaluate_platform_supports_flash_attention():
-    if TEST_WITH_ROCM:
-=======
     return evaluate_gfx_arch_within(_CDNA2_ARCHS + _CDNA3_ARCHS + _CDNA5_ARCHS)
 
 # Archs that take the opportunistic_fastAtomicAdd path (packed 2x16 atomics + DPP
@@ -101,7 +95,6 @@ def evaluate_platform_supports_flash_attention():
         # (see cmake/External/aotriton.cmake). The CK FAv3/AITER codegen is
         # separately not yet wired for gfx1250
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
->>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
@@ -120,14 +113,11 @@ def evaluate_platform_supports_ck_sdpa():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-<<<<<<< HEAD
-=======
         # NOTE: gfx1250 is omitted until mem-efficient-attention artifacts ship
         # for it. The AOTriton gfx1250 image (from AOTriton 0.12.1b) is wired up
         # by PR #188242, which also adds gfx1250 here; this gate-only PR leaves
         # it out to avoid conflicting with that change. The CK FAv3/AITER codegen
         # is separately not yet wired for gfx1250.
->>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]

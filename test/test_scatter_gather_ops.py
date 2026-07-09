@@ -13,11 +13,7 @@ from torch.testing._internal.common_device_type import \
 from torch.testing._internal.common_dtype import \
     (get_all_dtypes,)
 
-<<<<<<< HEAD
-from torch.testing._internal.common_cuda import CDNA3OrLater
-=======
 from torch.testing._internal.common_cuda import gfx_arch_supports_opportunistic_fastatomics, SM90OrLater
->>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
 
 # Protects against includes accidentally setting the default dtype
 if torch.get_default_dtype() is not torch.float32:
