@@ -211,19 +211,24 @@ if(USE_FLASH_ATTENTION)
     else()
       caffe2_update_option(USE_ROCM_CK_SDPA ON)
     endif()
-    # CK SDPA only supports gfx942/gfx950. Auto-disable when none of those archs
-    # are in PYTORCH_ROCM_ARCH; otherwise the ck_sdpa target ends up with an
-    # empty HIP_ARCHITECTURES and CMake errors out.
+    # CK SDPA only supports gfx942/gfx950. Compute the intersection of the
+    # requested PYTORCH_ROCM_ARCH with the supported archs and build the
+    # ck_sdpa target for that subset only. This keeps CK SDPA working when
+    # PYTORCH_ROCM_ARCH mixes supported and unsupported archs: e.g.
+    # "gfx942;gfx1010" builds CK SDPA for gfx942 and skips gfx1010. If none of
+    # the supported archs are requested, disable the target entirely so it does
+    # not end up with an empty arch list and error out.
     if(USE_ROCM_CK_SDPA)
-      set(_have_ck_sdpa_arch FALSE)
-      foreach(ARCH gfx942 gfx950)
-        if("${ARCH}" IN_LIST PYTORCH_ROCM_ARCH)
-          set(_have_ck_sdpa_arch TRUE)
-          break()
+      set(CK_SDPA_ARCHS "")
+      foreach(ARCH ${PYTORCH_ROCM_ARCH})
+        if("${ARCH}" STREQUAL "gfx942" OR "${ARCH}" STREQUAL "gfx950")
+          list(APPEND CK_SDPA_ARCHS "${ARCH}")
         endif()
       endforeach()
-      if(NOT _have_ck_sdpa_arch)
-        message(STATUS "USE_ROCM_CK_SDPA disabled: PYTORCH_ROCM_ARCH (${PYTORCH_ROCM_ARCH}) has no MI3xx arch (gfx942/gfx950)")
+      if(CK_SDPA_ARCHS)
+        message(STATUS "USE_ROCM_CK_SDPA enabled for supported archs: ${CK_SDPA_ARCHS} (from PYTORCH_ROCM_ARCH: ${PYTORCH_ROCM_ARCH})")
+      else()
+        message(STATUS "USE_ROCM_CK_SDPA disabled: PYTORCH_ROCM_ARCH (${PYTORCH_ROCM_ARCH}) has no supported arch (gfx942/gfx950)")
         caffe2_update_option(USE_ROCM_CK_SDPA OFF)
       endif()
     endif()
@@ -311,9 +316,31 @@ if(USE_FLASH_ATTENTION)
          "native/transformers/hip/flash_attn/ck/fav_v3/*.hip")
 
     set_source_files_properties(${ck_sdpa_sources_hip} PROPERTIES HIP_SOURCE_PROPERTY_FORMAT 1)
+
+    # hip_add_library() inherits the global HIP_CLANG_FLAGS, which carry an
+    # --offload-arch=<arch> entry for every arch in PYTORCH_ROCM_ARCH (see
+    # cmake/Dependencies.cmake), including archs CK SDPA does not support. Strip
+    # those inherited offload-arch flags for this target and re-add only the
+    # supported archs (CK_SDPA_ARCHS), so ck_sdpa compiles for gfx942/gfx950
+    # only, regardless of what else PYTORCH_ROCM_ARCH requests. Restore the
+    # flags afterwards so other HIP targets keep building for the full arch list.
+    set(_ck_sdpa_saved_hip_clang_flags "${HIP_CLANG_FLAGS}")
+    set(_ck_sdpa_hip_clang_flags "")
+    foreach(_flag ${HIP_CLANG_FLAGS})
+      if(NOT "${_flag}" MATCHES "^--offload-arch=")
+        list(APPEND _ck_sdpa_hip_clang_flags "${_flag}")
+      endif()
+    endforeach()
+    foreach(_arch ${CK_SDPA_ARCHS})
+      list(APPEND _ck_sdpa_hip_clang_flags "--offload-arch=${_arch}")
+    endforeach()
+    set(HIP_CLANG_FLAGS "${_ck_sdpa_hip_clang_flags}")
+
     hip_add_library(ck_sdpa STATIC
                     ${ck_sdpa_sources_hip}
                     HIPCC_OPTIONS ${HIP_HCC_FLAGS} ${CK_SDPA_EXTRA_HIPCC_FLAGS})
+
+    set(HIP_CLANG_FLAGS "${_ck_sdpa_saved_hip_clang_flags}")
     set_target_properties(ck_sdpa PROPERTIES POSITION_INDEPENDENT_CODE ON)
     target_compile_definitions(ck_sdpa PUBLIC ${CK_SDPA_EXTRA_HIPCC_OPTIONS})
     target_compile_definitions(ck_sdpa PRIVATE AITER_EMBEDDED_HSA_HEADER="aiter_embedded_hsa.h")
