@@ -211,16 +211,6 @@ if(USE_FLASH_ATTENTION)
     else()
       caffe2_update_option(USE_ROCM_CK_SDPA ON)
     endif()
-  endif()
-  # Now building CK by default
-  if(USE_ROCM)
-    if(DEFINED ENV{USE_ROCM_CK_SDPA})
-        if(ENV{USE_ROCM_CK_SDPA} EQUAL 1)
-          caffe2_update_option(USE_ROCM_CK_SDPA ON)
-        endif()
-    else()
-      caffe2_update_option(USE_ROCM_CK_SDPA ON)
-    endif()
     # CK SDPA only supports gfx942/gfx950. Auto-disable when none of those archs
     # are in PYTORCH_ROCM_ARCH; otherwise the ck_sdpa target ends up with an
     # empty HIP_ARCHITECTURES and CMake errors out.
