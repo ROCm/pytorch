@@ -70,7 +70,7 @@ def build_triton(
         triton_basedir = Path(tmpdir) / "triton"
         triton_pythondir = triton_basedir / "python"
 
-        triton_repo = "https://github.com/openai/triton"
+        triton_repo = "https://github.com/ROCm/triton"
         if device == "rocm":
             triton_pkg_name = "triton-rocm"
         elif device == "xpu":
@@ -79,21 +79,22 @@ def build_triton(
         else:
             triton_pkg_name = "triton"
         check_call(["git", "clone", triton_repo, "triton"], cwd=tmpdir)
-        if release:
+        if device == "xpu" and release:
             ver, rev, patch = version.split(".")
-            if device == "xpu":
-                # XPU uses the patch version in the release branch name
-                check_call(
-                    ["git", "checkout", f"release/{ver}.{rev}.{patch}"],
-                    cwd=triton_basedir,
-                )
-            else:
-                check_call(
-                    ["git", "checkout", f"release/{ver}.{rev}.x"], cwd=triton_basedir
-                )
-        else:
+            # XPU uses the patch version in the release branch name
+            check_call(
+                ["git", "checkout", f"release/{ver}.{rev}.{patch}"],
+                cwd=triton_basedir,
+            )
+        elif device == "xpu":
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
             check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
+        else:
+            ver, rev, _patch = version.split(".")
+            check_call(
+                ["git", "checkout", f"release/internal/{ver}.{rev}.x"],
+                cwd=triton_basedir,
+            )
 
         # change built wheel name and version
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
