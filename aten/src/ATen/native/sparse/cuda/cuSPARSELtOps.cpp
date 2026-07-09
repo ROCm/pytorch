@@ -2,6 +2,12 @@
 #include <unordered_map>
 #include <mutex>
 #include <string_view>
+<<<<<<< HEAD
+=======
+#include <unordered_map>
+#include <vector>
+#include <c10/util/StringUtil.h>
+>>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
 #if AT_CUSPARSELT_ENABLED()
 
 namespace at::native {
@@ -22,9 +28,36 @@ thread_local bool handle_initialized = false;
 c10::once_flag g_hipSparseLtSupportInitFlag;
 static bool g_hipSparseLtSupported = false;
 
+static const std::vector<std::string>& hipSparseLtSupportedArchs() {
+#if ROCM_VERSION >= 71400
+  static const std::vector<std::string> archs = {"gfx950", "gfx942", "gfx1250"};
+#elif ROCM_VERSION >= 71200
+  static const std::vector<std::string> archs = {"gfx950", "gfx942"};
+#else
+  static const std::vector<std::string> archs = {};
+#endif
+  return archs;
+}
+
 // Initialize the hipSparseLt support status once for the platform
 static void initHipSparseLtSupport() {
+<<<<<<< HEAD
     // Default to not supported
+=======
+  // Default to not supported
+  g_hipSparseLtSupported = false;
+
+  // Check only the first available device
+  try {
+    if (at::cuda::device_count() > 0) {
+      g_hipSparseLtSupported = at::detail::getCUDAHooks().isGPUArch(
+          hipSparseLtSupportedArchs(), 0);
+    }
+  } catch (const std::exception&) {
+    // If an exception occurs during device property check, we assume
+    // hipSparseLt is not supported This could happen due to driver issues,
+    // device access problems, or other runtime errors
+>>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
     g_hipSparseLtSupported = false;
 
     // Check only the first available device
@@ -44,6 +77,7 @@ static bool isHipSparseLtSupported() {
     // Initialize support check only once
     c10::call_once(g_hipSparseLtSupportInitFlag, initHipSparseLtSupport);
 
+<<<<<<< HEAD
     // Return cached result (platform-wide)
     if (!g_hipSparseLtSupported) {
         TORCH_CHECK(
@@ -53,6 +87,17 @@ static bool isHipSparseLtSupported() {
             "required ROCM version: 6.4.0 or later.");
     }
     return g_hipSparseLtSupported;
+=======
+  // Return cached result (platform-wide)
+  if (!g_hipSparseLtSupported) {
+    TORCH_CHECK(
+        false,
+        "hipSparseLt not supported on this device. Supported architectures: ",
+        c10::Join(", ", hipSparseLtSupportedArchs()),
+        ". hipSparseLt on ROCm requires ROCm 7.12 or newer.");
+  }
+  return g_hipSparseLtSupported;
+>>>>>>> e7206c023e2 ([ROCm] Add initial support for gfx1250 (#188597))
 }
 #endif
 
