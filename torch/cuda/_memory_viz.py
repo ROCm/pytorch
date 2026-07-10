@@ -106,7 +106,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
             try:
                 # os.chmod(f.name, 0o755)
                 try:
-                    shutil.move(f.name, flamegraph_script)
+                    shutil.copyfile(f.name, flamegraph_script)
                     os.chmod(flamegraph_script, 0o755)
                 except Exception as e:
                     print(f"Error with shutil.copyfile: {e}", file=sys.stderr)
