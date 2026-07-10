@@ -116,7 +116,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
                 # Ok to skip, the file will be removed by tempfile
                 print(f"Error with move file {f.name} to {flamegraph_script}: {e}", file=sys.stderr)
                 # pass
-    args = ["/usr/bin/perl", "-w", flamegraph_script, "--countname", "bytes"]
+    args = [flamegraph_script, "--countname", "bytes"]
     try:
         with subprocess.Popen(
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding="utf-8"
