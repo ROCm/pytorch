@@ -1387,6 +1387,51 @@ void cuComputeGradGammaBeta(
     }
 }
 
+// Legacy two-pass gamma/beta backward: cuComputePartGradGammaBeta reduces
+// dgamma/dbeta partial sums across part_size row-blocks, then
+// cuComputeGradGammaBeta finishes the reduction across those partial sums.
+template <typename T, typename T_ACC, bool rms_norm>
+void LaunchLegacyGammaBetaBackwardCUDAKernel(
+    const T* dY_data,
+    const T* X_data,
+    const Tensor& X,
+    const Tensor& gamma,
+    const T_ACC* mean_data,
+    const T_ACC* rstd_data,
+    int64_t M,
+    int64_t N,
+    T* dgamma_data,
+    T* dbeta_data,
+    cudaStream_t cuda_stream) {
+  const int warp_size = at::cuda::warp_size();
+  const int part_size = warp_size;
+  const dim3 threads2(warp_size, 4, 1);
+  const dim3 blocks2((N + threads2.x - 1) / threads2.x, part_size, 1);
+  const int nshared2_a = 2 * sizeof(T_ACC) * threads2.y * threads2.y * (threads2.x + 1);
+  const int nshared2_b = threads2.x * threads2.y * sizeof(T_ACC);
+  const int nshared2 = nshared2_a > nshared2_b ? nshared2_a : nshared2_b;
+
+  const auto part_grad_dtype = at::toAccumulateType(X.scalar_type(), true);
+  Tensor part_grad_gamma = at::empty({part_size, N}, gamma.options().dtype(part_grad_dtype));
+  Tensor part_grad_beta = at::native::empty_like(part_grad_gamma);
+
+  cuComputePartGradGammaBeta<T, T_ACC, rms_norm><<<blocks2, threads2, nshared2, cuda_stream>>>(
+      dY_data, X_data, M, N, mean_data, rstd_data,
+      part_grad_gamma.template data_ptr<T_ACC>(),
+      part_grad_beta.template data_ptr<T_ACC>());
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
+
+  const dim3 threads3(warp_size, 8, 1); // Optimization for ROCm
+  const dim3 blocks3((N + threads3.x - 1) / threads3.x, 1, 1);
+  const int nshared3 = threads3.x * threads3.y * sizeof(T_ACC);
+
+  cuComputeGradGammaBeta<T, T_ACC, rms_norm><<<blocks3, threads3, nshared3, cuda_stream>>>(
+      part_grad_gamma.template data_ptr<T_ACC>(),
+      part_grad_beta.template data_ptr<T_ACC>(),
+      part_size, M, N, dgamma_data, dbeta_data);
+  C10_CUDA_KERNEL_LAUNCH_CHECK();
+}
+
 template<typename T, typename T_ACC, bool rms_norm> __global__
 void cuComputeGradInput(
     const T* __restrict__ dout,
@@ -1621,12 +1666,24 @@ void LayerNormBackwardKernelImplInternal(
               dbeta_data);
       C10_CUDA_KERNEL_LAUNCH_CHECK();
     } else {
-      // Use the optimized tiled kernel adapted for wavefront-64.
-      // This replaces the legacy two-pass cuComputePartGradGammaBeta +
-      // cuComputeGradGammaBeta approach with a single-pass tiled reduction
-      // that has coalesced memory access and adaptive tile sizing.
-      LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
-        dY_data, X_data, mean_data, rstd_data, M, N, dgamma, dbeta, cuda_stream);
+      constexpr int block_dim_x = 64; // matches LaunchGammaBetaBackwardCUDAKernel's ROCm tile width
+      const int sm_count = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
+      // LaunchGammaBetaBackwardCUDAKernel already special-cases M >> N (huge M, small N)
+      // with its own two-pass reduction, which benchmarks ~2-6x faster than the legacy
+      // kernel below for that regime (see layer_norm_gamma_beta_backward perf reproducer:
+      // two_pass_huge_M, llm_hidden_4096, rms_llm, rms_two_pass). For every other M >= 256
+      // shape we measured (tile256_large/_bf16/_fp32, gpt2_style, rms_tile256), the legacy
+      // two-pass kernel is faster than LaunchGammaBetaBackwardCUDAKernel's tile-256 config,
+      // so we use it here instead.
+      const bool use_tiled_huge_M_kernel =
+          M > 64 * 1024 && N / block_dim_x < sm_count / 2;
+      if (use_tiled_huge_M_kernel) {
+        LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
+          dY_data, X_data, mean_data, rstd_data, M, N, dgamma, dbeta, cuda_stream);
+      } else {
+        LaunchLegacyGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
+          dY_data, X_data, X, gamma, mean_data, rstd_data, M, N, dgamma_data, dbeta_data, cuda_stream);
+      }
     }
 #else
     LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
