@@ -92,40 +92,30 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
         flamegraph_script = os.path.expanduser("~/.cache/flamegraph.pl")
         cache_dir = os.path.dirname(flamegraph_script)
         os.makedirs(cache_dir, exist_ok=True)
-        # flamegraph_script = os.path.join(cache_dir, "flamegraph.pl")
     if not os.path.exists(flamegraph_script):
         import tempfile
         import urllib.request
         import shutil
 
-        print(f"Downloading flamegraph.pl to >>>>: {flamegraph_script}")
+        print(f"Downloading flamegraph.pl to: {flamegraph_script}")
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".pl") as f:
-            print(f"****** file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}")
-            print(f"****** file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}")
             urllib.request.urlretrieve(
                 "https://raw.githubusercontent.com/brendangregg/FlameGraph/master/flamegraph.pl",
                 f.name,
             )
             try:
-                print(f"====== file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}", file=sys.stderr)
-                print(f"====== file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
                 os.chmod(f.name, 0o755)
                 try:
-                    shutil.copyfile(f.name, flamegraph_script)
-                    os.chmod(flamegraph_script, 0o755)
+                    shutil.move(f.name, flamegraph_script)
+                    # os.chmod(flamegraph_script, 0o755)
                 except Exception as e:
                     print(f"Error with shutil.copyfile: {e}", file=sys.stderr)
                     raise
             except OSError as e:  # noqa: B001,E722
                 # Ok to skip, the file will be removed by tempfile
-                print(f"Error with flamegraph.pl: {e}", file=sys.stderr)
+                print(f"Error with move file {f.name} to {flamegraph_script}: {e}", file=sys.stderr)
                 # pass
-            finally:
-                # print(f"++++++ file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}")
-                print(f"++++++!!! file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
-    args = [r"/usr/bin/perl", "-w", flamegraph_script, "--countname", "bytes"]
-    # print(f">>>>> file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}", file=sys.stderr)
-    print(f">>>>> file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
+    args = [flamegraph_script, "--countname", "bytes"]
     try:
         with subprocess.Popen(
             args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding="utf-8"
