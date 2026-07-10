@@ -96,6 +96,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
         import tempfile
         import urllib.request
         import shutil
+        import stat
 
         print(f"Downloading flamegraph.pl to: {flamegraph_script}")
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".pl") as f:
@@ -133,7 +134,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
                 raise AssertionError(f"flamegraph process exited with code {p.wait()}")
             return result
     except Exception as e:
-        print(f"Error with flamegraph.pl subprocess: {e}", file=sys.stderr)
+        print(f"Error with flamegraph.pl exists: {os.path.exists(flamegraph_script)} mode: {oct(stat.S_IMODE(os.stat(flamegraph_script).st_mode))} readable: {os.access(flamegraph_script, os.R_OK)} executable: {os.access(flamegraph_script, os.X_OK)} subprocess: {e}", file=sys.stderr)
         raise
 
 
