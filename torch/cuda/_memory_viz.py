@@ -123,7 +123,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
             finally:
                 # print(f"++++++ file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}")
                 print(f"++++++!!! file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
-    args = [flamegraph_script, "--countname", "bytes"]
+    args = [r"/usr/bin/perl", "-w", flamegraph_script, "--countname", "bytes"]
     # print(f">>>>> file: {f.name} {'exists' if os.path.exists(f.name) else 'does not exist!!!!'}", file=sys.stderr)
     print(f">>>>> file: {flamegraph_script} {'exists' if os.path.exists(flamegraph_script) else 'does not exist!!!!'}", file=sys.stderr)
     try:
