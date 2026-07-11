@@ -1387,11 +1387,11 @@ void cuComputeGradGammaBeta(
     }
 }
 
-// Legacy two-pass gamma/beta backward: cuComputePartGradGammaBeta reduces
+// Two-pass gamma/beta backward: cuComputePartGradGammaBeta reduces
 // dgamma/dbeta partial sums across part_size row-blocks, then
 // cuComputeGradGammaBeta finishes the reduction across those partial sums.
 template <typename T, typename T_ACC, bool rms_norm>
-void LaunchLegacyGammaBetaBackwardCUDAKernel(
+void LaunchTwoPassGammaBetaBackwardCUDAKernel(
     const T* dY_data,
     const T* X_data,
     const Tensor& X,
@@ -1669,19 +1669,14 @@ void LayerNormBackwardKernelImplInternal(
       constexpr int block_dim_x = 64; // matches LaunchGammaBetaBackwardCUDAKernel's ROCm tile width
       const int sm_count = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
       // LaunchGammaBetaBackwardCUDAKernel already special-cases M >> N (huge M, small N)
-      // with its own two-pass reduction, which benchmarks ~2-6x faster than the legacy
-      // kernel below for that regime (see layer_norm_gamma_beta_backward perf reproducer:
-      // two_pass_huge_M, llm_hidden_4096, rms_llm, rms_two_pass). For every other M >= 256
-      // shape we measured (tile256_large/_bf16/_fp32, gpt2_style, rms_tile256), the legacy
-      // two-pass kernel is faster than LaunchGammaBetaBackwardCUDAKernel's tile-256 config,
-      // so we use it here instead.
+      // hich benchmarks ~2-6x faster than the two-pass kernel below for that regime.
       const bool use_tiled_huge_M_kernel =
           M > 64 * 1024 && N / block_dim_x < sm_count / 2;
       if (use_tiled_huge_M_kernel) {
         LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
           dY_data, X_data, mean_data, rstd_data, M, N, dgamma, dbeta, cuda_stream);
       } else {
-        LaunchLegacyGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
+        LaunchTwoPassGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
           dY_data, X_data, X, gamma, mean_data, rstd_data, M, N, dgamma_data, dbeta_data, cuda_stream);
       }
     }
