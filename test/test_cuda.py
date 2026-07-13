@@ -4387,6 +4387,8 @@ class TestCudaAllocator(TestCase):
             del x
             torch.cuda.empty_cache()
             ss = torch.cuda.memory._snapshot()
+            text = json.dumps(ss, indent=2)
+            print(f"##### test_memory_snapshot text:\n{text}")
             self.assertTrue(
                 ss["device_traces"][0][-1]["action"]
                 in ("segment_free", "segment_unmap")
@@ -4585,8 +4587,8 @@ class TestCudaAllocator(TestCase):
                 trace_plot(ss)
                 trace_plot(ss, filter_freed=True)
                 segment_plot(ss)
-                text = json.dumps(ss)
-
+                text = json.dumps(ss, indent=2)
+                print(f"##### test_memory_plots text:\n{text}")
                 self.assertTrue(record_context == ("test_memory_plots" in text))
                 self.assertTrue(cpp == ("::rand" in text))
                 self.assertTrue(str(128 * 128 * 4) in text)
@@ -4738,7 +4740,8 @@ class TestCudaAllocator(TestCase):
                 del x
                 torch.cuda.memory.empty_cache()
 
-                ss = json.dumps(torch.cuda.memory._snapshot())
+                ss = json.dumps(torch.cuda.memory._snapshot(), indent=2)
+                print(f"##### test_memory_plots_free_segment_stack ss:\n{ss}")
                 self.assertEqual(("empty_cache" in ss), (context == "all"))
             finally:
                 torch.cuda.memory._record_memory_history(None)
