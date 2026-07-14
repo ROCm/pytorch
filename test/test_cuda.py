@@ -4388,10 +4388,11 @@ class TestCudaAllocator(TestCase):
             del unused
             del x
             
+            gc.collect()
             torch._C._cuda_clearCublasWorkspaces()
             torch.cuda.empty_cache()
             torch.cuda.synchronize()
-            # gc.collect()
+            
             ss2 = torch.cuda.memory._snapshot()
             text = json.dumps(ss2, indent=2)
             print(f"##### test_memory_snapshot ss2:\n{text}")
