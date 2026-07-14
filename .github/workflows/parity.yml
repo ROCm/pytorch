@@ -154,6 +154,7 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Download artifacts
+        id: download
         working-directory: .automation_scripts/pytorch-unit-test-scripts
         env:
           GITHUB_TOKEN: ${{ secrets.PARITY_GITHUB_TOKEN || github.token }}
@@ -200,7 +201,20 @@ jobs:
           fi
 
           echo "Running: python3 ./download_testlogs $ARGS"
+          # Don't abort the job here on a partial download (e.g. a config whose
+          # upstream job was skipped -- ROCm distributed during GPU capacity
+          # crunches). Capture download_testlogs' real exit code, keep going so
+          # the report still generates and uploads from whatever downloaded,
+          # then fail the job at the end (see "Flag incomplete download") so the
+          # run is still clearly marked failed.
+          set +e
           python3 ./download_testlogs $ARGS 2>&1 | tee download_${{ matrix.arch }}.log
+          DL_RC=${PIPESTATUS[0]}
+          set -e
+          echo "download_rc=$DL_RC" >> "$GITHUB_OUTPUT"
+          if [ "$DL_RC" -ne 0 ]; then
+            echo "::warning::download_testlogs exited $DL_RC for ${{ matrix.arch }}; building a partial report, the job will be failed at the end."
+          fi
 
       - name: Identify output folder
         id: folder
@@ -284,6 +298,7 @@ jobs:
 
       - name: Collect upload paths
         id: upload-paths
+        if: ${{ always() && steps.folder.outputs.folder != '' }}
         run: |
           FOLDER=".automation_scripts/pytorch-unit-test-scripts/${{ steps.folder.outputs.folder }}"
           PATHS="${FOLDER}/*.csv
@@ -302,10 +317,21 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifacts
+        if: ${{ always() && steps.upload-paths.outputs.paths != '' }}
         uses: actions/upload-artifact@v4
         with:
           name: ${{ needs.setup-matrix.outputs.prefix }}-results-${{ matrix.arch }}
           path: ${{ steps.upload-paths.outputs.paths }}
+
+      - name: Flag incomplete download
+        # A partial download (some config's upstream jobs missing) still produces
+        # and uploads a report above; fail the job here so the run is clearly
+        # marked failed for that arch without losing the report.
+        if: ${{ always() && steps.download.outputs.download_rc != '0' && steps.download.outputs.download_rc != '' }}
+        run: |
+          echo "download_testlogs reported an incomplete download (rc=${{ steps.download.outputs.download_rc }}) for ${{ matrix.arch }}."
+          echo "A partial report was still generated and uploaded; failing the job to flag the incomplete download."
+          exit 1
 
   summarize:
     needs: [setup-matrix, generate-parity]
