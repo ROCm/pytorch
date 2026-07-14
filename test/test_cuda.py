@@ -4368,6 +4368,8 @@ class TestCudaAllocator(TestCase):
             torch.rand(128 * 5, device="cuda")
 
             ss = torch.cuda.memory._snapshot()
+            text1 = json.dumps(ss, indent=2)
+            print(f"##### test_memory_snapshot ss:\n{text1}")
             found_it = False
             for seg in ss["segments"]:
                 self.assertTrue("frames" in seg)
@@ -4388,12 +4390,13 @@ class TestCudaAllocator(TestCase):
             
             torch._C._cuda_clearCublasWorkspaces()
             torch.cuda.empty_cache()
+            torch.cuda.synchronize()
             # gc.collect()
-            ss = torch.cuda.memory._snapshot()
-            text = json.dumps(ss, indent=2)
-            print(f"##### test_memory_snapshot text:\n{text}")
+            ss2 = torch.cuda.memory._snapshot()
+            text = json.dumps(ss2, indent=2)
+            print(f"##### test_memory_snapshot ss2:\n{text}")
             self.assertTrue(
-                ss["device_traces"][0][-1]["action"]
+                ss2["device_traces"][0][-1]["action"]
                 in ("segment_free", "segment_unmap")
             )
 
