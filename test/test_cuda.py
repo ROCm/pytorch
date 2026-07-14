@@ -4390,7 +4390,7 @@ class TestCudaAllocator(TestCase):
             del x
             
             # gc.collect()
-            # torch._C._cuda_clearCublasWorkspaces()
+            torch._C._cuda_clearCublasWorkspaces()
             torch.cuda.empty_cache()
             # torch.cuda.synchronize()
             
