@@ -4348,7 +4348,7 @@ class TestCudaAllocator(TestCase):
     )
     def test_memory_snapshot(self):
         try:
-            torch._C._cuda_clearCublasWorkspaces()
+            # torch._C._cuda_clearCublasWorkspaces()
             torch.cuda.memory.empty_cache()
             torch.cuda.memory._record_memory_history("state", stacks="python")
             # make x the second block in a segment
@@ -4389,10 +4389,10 @@ class TestCudaAllocator(TestCase):
             del unused
             del x
             
-            gc.collect()
-            torch._C._cuda_clearCublasWorkspaces()
+            # gc.collect()
+            # torch._C._cuda_clearCublasWorkspaces()
             torch.cuda.empty_cache()
-            torch.cuda.synchronize()
+            # torch.cuda.synchronize()
             
             ss2 = torch.cuda.memory._snapshot()
             text = json.dumps(ss2, indent=2)
