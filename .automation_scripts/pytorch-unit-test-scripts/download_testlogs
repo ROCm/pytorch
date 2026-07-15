@@ -842,10 +842,18 @@ def main():
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
         inductor_fallback_used = False
-        try:
-            inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        except (IndexError, Exception):
-            inductor_wf_rocm = None
+        if ROCmWorkflowNames["inductor"] == "trunk" and trunk_full_wf is not None:
+            # Read ROCm inductor from the canonical trunk push run (same as
+            # default/distributed above). Resolving a fresh trunk run here can
+            # land on the periodic rerun_disabled_tests/mem_leak_check trunk run,
+            # which only has the variant inductor jobs (a handful of flaky
+            # reruns) and makes the whole inductor suite look MISSED.
+            inductor_wf_rocm = trunk_full_wf
+        else:
+            try:
+                inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["inductor"], sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            except (IndexError, Exception):
+                inductor_wf_rocm = None
         inductor_fallbacks = _fallbacks_for("inductor")
         if inductor_wf_rocm is None and arch in inductor_fallbacks:
             fallback_wf, fallback_prefix = inductor_fallbacks[arch]
