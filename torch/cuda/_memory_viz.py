@@ -105,11 +105,10 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
             )
             try:
                 shutil.copyfile(f.name, flamegraph_script)
-                os.chmod(flamegraph_script, 0o755)
             except OSError:
                 # Ok to skip, the file will be removed by tempfile
                 pass
-    args = [flamegraph_script, "--countname", "bytes"]
+    args = ["/usr/bin/perl", "-w", flamegraph_script, "--countname", "bytes"]
     with subprocess.Popen(
         args, stdin=subprocess.PIPE, stdout=subprocess.PIPE, encoding="utf-8"
     ) as p:
