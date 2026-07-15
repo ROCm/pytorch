@@ -4687,6 +4687,7 @@ class TestCudaAllocator(TestCase):
                 if len(allocation_sequence) > 0 and allocation_sequence[-1] == context:
                     continue
                 allocation_sequence.append(context)
+            print(f"##### test_memory_compile_regions allocation_sequence: {allocation_sequence}", file=sys.stderr)
             self.assertTrue(allocation_sequence == expected_allocation_sequence)
         except RuntimeError as e:
             print(f"##### test_memory_compile_regions error:\n{e}", file=sys.stderr)
