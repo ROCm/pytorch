@@ -4689,12 +4689,16 @@ class TestCudaAllocator(TestCase):
                 allocation_sequence.append(context)
             self.assertTrue(allocation_sequence == expected_allocation_sequence)
         except RuntimeError as e:
-            pass
+            print(f"##### test_memory_compile_regions error:\n{e}", file=sys.stderr)
         finally:
             torch.cuda.memory._record_memory_history(None)
+            del compiled_model, model, input_tensor
+            ss = None
+            torch._dynamo.reset()
             # This test requires to run gc.collec() to fix other memory tests
-            torch.cuda.synchronize()
             gc.collect()
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
 
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC, "setContextRecorder not supported by CUDAMallocAsync"
