@@ -106,7 +106,7 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
             try:
                 shutil.copyfile(f.name, flamegraph_script)
             except OSError as e:
-                print(f"flamegraph copy error {e}")
+                print(f"flamegraph copy error {e}", file=sys.stderr)
                 # Ok to skip, the file will be removed by tempfile
                 # pass
     args = ["/usr/bin/perl", "-w", flamegraph_script, "--countname", "bytes"]
