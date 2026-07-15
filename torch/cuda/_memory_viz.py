@@ -97,6 +97,9 @@ def format_flamegraph(flamegraph_lines, flamegraph_script=None):
         import urllib.request
         import shutil
 
+        result_git = subprocess.run(["git", "show"], capture_output=True, text=True)
+        print("GIT SHOW:\n", result_git.stdout, file=sys.stderr)
+
         print(f"Downloading flamegraph.pl to: {flamegraph_script}")
         with tempfile.NamedTemporaryFile(mode="wb", suffix=".pl") as f:
             urllib.request.urlretrieve(
