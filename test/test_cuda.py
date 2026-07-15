@@ -4653,6 +4653,7 @@ class TestCudaAllocator(TestCase):
                 return x
 
         try:
+            torch._dynamo.reset()
             torch.cuda.memory.empty_cache()
             input_tensor = torch.randn(1, 10, device="cuda")
             # Create an instance of the model
