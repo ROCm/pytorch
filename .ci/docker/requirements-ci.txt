@@ -105,7 +105,8 @@ mypy==1.16.0 ; platform_system == "Linux"
 #Pinned versions: 1.16.0
 #test that import: test_typing.py, test_type_hints.py
 
-networkx==2.8.8
+networkx==2.8.8 ; python_version < "3.13"
+networkx==3.0.0 ; python_version >= "3.13"
 #Description: creation, manipulation, and study of
 #the structure, dynamics, and functions of complex networks
 #Pinned versions: 2.8.8
