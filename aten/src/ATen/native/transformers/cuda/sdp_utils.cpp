@@ -150,6 +150,9 @@ inline int aotriton_max_hdim() {
     if (arch.starts_with("gfx11")) {
       return 256;
     }
+    if (arch.starts_with("gfx1250")) {
+      return 256;
+    }
 #endif // AOTriton 0.11
 #if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 9)
     return 512;
