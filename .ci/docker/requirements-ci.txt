@@ -242,7 +242,8 @@ pygments==2.20.0
 #Pinned versions: 14.1.0
 #test that import:
 
-scikit-image==0.22.0
+scikit-image==0.22.0 ; python_version < "3.13"
+scikit-image==0.26.0 ; python_version >= "3.13"
 #Description: image processing routines
 #Pinned versions: 0.22.0
 #test that import: test_nn.py
@@ -283,10 +284,9 @@ unittest-xml-reporting==3.2.0
 #Pinned versions:
 #test that import:
 
-#lintrunner is supported on aarch64-linux only from 0.12.4 version
-lintrunner==0.12.11
+lintrunner==0.13.0
 #Description: all about linters!
-#Pinned versions: 0.12.11
+#Pinned versions: 0.13.0
 #test that import:
 
 spin==0.17
@@ -324,7 +324,8 @@ tensorboard==2.18.0
 #test that import: test_tensorboard
 
 pywavelets==1.4.1 ; python_version < "3.12"
-pywavelets==1.7.0 ; python_version >= "3.12"
+pywavelets==1.7.0 ; python_version >= "3.12" and python_version < "3.14"
+pywavelets==1.9.0 ; python_version >= "3.14"
 #Description: This is a requirement of scikit-image, we need to pin
 # it here because 1.5.0 conflicts with numpy 1.21.2 used in CI
 #Pinned versions: 1.4.1
@@ -373,7 +374,8 @@ pwlf==2.2.1
 # To build PyTorch itself
 pip==26.0.1
 pyyaml==6.0.3
-pyzstd==0.16.2
+pyzstd==0.16.2 ; python_version < "3.14"
+pyzstd==0.18.0 ; python_version >= "3.14"
 setuptools==79.0.1
 packaging==25.0
 six==1.17.0
