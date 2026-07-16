@@ -27,23 +27,9 @@
 #endif
 
 // There were many bc-breaking changes in major version release of CCCL v3.0.0
-<<<<<<< HEAD
 // Please see https://nvidia.github.io/cccl/cccl/3.0_migration_guide.html
 #if CUB_VERSION >= 200800
 #define CUB_V3_PLUS() true
 #else
-=======
-// Please see https://github.com/NVIDIA/cccl/blob/main/docs/cccl/3.0_migration_guide.rst
-#if CUB_VERSION >= 300400
-#define CUB_V3_4_PLUS() true
-#define CUB_V3_PLUS() false
-#elif CUB_VERSION >= 200800
-// CCCL 2.8 introduced new CUB v3 API.
-#define CUB_V3_4_PLUS() false
-#define CUB_V3_PLUS() true
-#else
-// Pre CCCL 2.8.
-#define CUB_V3_4_PLUS() false
->>>>>>> c8e24736809 ([ROCm] derive the hipcub compatible cccl version from 'HIPCUB_CCCL_VERSION' (#188072))
 #define CUB_V3_PLUS() false
 #endif
