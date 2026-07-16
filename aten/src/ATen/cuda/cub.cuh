@@ -70,19 +70,16 @@
 #define ATEN_CUB_MAXIMUM() NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::Max()
 #endif
 
-<<<<<<< HEAD
-#if (!defined(USE_ROCM) && !CUB_SUPPORTS_NV_BFLOAT16()) || defined(USE_ROCM)
+#if (!defined(USE_ROCM) && !CUB_SUPPORTS_NV_BFLOAT16()) || (defined(USE_ROCM) && CUB_VERSION < 300000)
 
 #if !defined(USE_ROCM)
 namespace at_cuda_detail {
 #endif
-=======
+
 // Pre ROCm 8.0 we require backporting of FpLimits specialization
 // for 'c10::BFloat16'. However, ROCm 8.0 lifts the compatible
 // CUB version to 3.x which uses libhipcxx and derives numerical
 // limits from there.
-#if defined(USE_ROCM) && CUB_VERSION < 300000
->>>>>>> c8e24736809 ([ROCm] derive the hipcub compatible cccl version from 'HIPCUB_CCCL_VERSION' (#188072))
 
 // backport https://github.com/NVIDIA/cub/pull/306 for c10::BFloat16
 
