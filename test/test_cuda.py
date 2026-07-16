@@ -16,6 +16,7 @@ import threading
 import time
 import unittest
 import warnings
+from unittest.mock import patch
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product
@@ -487,6 +488,9 @@ print(t.is_pinned())
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC or IS_JETSON, "Segmentation fault (core dumped)"
     )
+    # On MI350 (gfx950) allocating ~1.02x of the reported free memory does not
+    # raise an OOM RuntimeError, so the assertRaisesRegex below fails.
+    @skipIfRocmArch(MI350_ARCH)
     @serialTest()
     def test_out_of_memory_retry(self):
         torch.cuda.empty_cache()
@@ -6739,6 +6743,10 @@ class TestMemPool(TestCase):
 
     @serialTest()
     def test_mempool_ctx_multithread(self):
+        # Collect first: a tensor leaked by a prior test that is only reachable
+        # through a reference cycle keeps its segment active, so empty_cache
+        # can't reclaim it and the "empty pool" assertion below flakes.
+        gc.collect()
         torch._C._cuda_clearCublasWorkspaces()
         torch.cuda.empty_cache()
         segments = torch.cuda.memory._snapshot()["segments"]
@@ -8623,6 +8631,38 @@ instantiate_parametrized_tests(TestCompileKernel)
 instantiate_parametrized_tests(TestCachingHostAllocatorCudaGraph)
 instantiate_device_type_tests(TestCudaOptims, globals())
 instantiate_device_type_tests(TestCudaDeviceParametrized, globals())
+
+class TestMemoryViz(TestCase):
+    def test_format_flamegraph_download_moves_temp_file(self):
+        # Regression test: format_flamegraph downloads flamegraph.pl into a temp
+        # file and moves it into place. Previously the temp file was created by a
+        # delete=True NamedTemporaryFile, so after os.rename moved it away the
+        # context manager raised FileNotFoundError on exit (a CI flake, since the
+        # download only happens when the cached script is absent).
+        from torch.cuda import _memory_viz
+
+        def fake_urlretrieve(url, filename):
+            with open(filename, "wb") as f:
+                f.write(b"#!/usr/bin/perl\n")
+            return filename, None
+
+        @contextlib.contextmanager
+        def fake_popen(*args, **kwargs):
+            proc = unittest.mock.MagicMock()
+            proc.stdout.read.return_value = "FLAMEGRAPH_OUTPUT"
+            proc.wait.return_value = 0
+            yield proc
+
+        with tempfile.TemporaryDirectory() as cache_dir:
+            script = os.path.join(cache_dir, "flamegraph.pl")
+            with (
+                patch("urllib.request.urlretrieve", fake_urlretrieve),
+                patch.object(_memory_viz.subprocess, "Popen", fake_popen),
+            ):
+                result = _memory_viz.format_flamegraph("stack 1\n", script)
+            self.assertEqual(result, "FLAMEGRAPH_OUTPUT")
+            self.assertTrue(os.path.exists(script))
+
 
 if __name__ == "__main__":
     run_tests()
