@@ -49,12 +49,12 @@ if(NOT __AOTRITON_INCLUDED)
       "amd-gfx1250"
      )
   set(__AOTRITON_IMAGE_SHA256_LIST
-     "bb8bf2237b77fc503bc2967ea0d99d6ca419126c479e951ea42b712737128086" # amd-gfx90a
-     "f08edacf83c9ccf1c4bdcb51f1cab052d1680abea31c9e035f3f9fadb2f13ba4" # amd-gfx942
-     "307a37d729cda3a2120449909e5192cd71c2badccbd37f0222786098e69c7a91" # amd-gfx950
-     "c9cac7cf6f277168e1659ac2f04706f8823580b7c7e3e895f5a5503ed6bdd55f" # amd-gfx110x
-     "3177387a15c678b30057f4584d1fc1b8f8db56163890cb5c98f27450209f5a7b" # amd-gfx115x
-     "68572511ce6487a83f9014bd255bd69c8943f87d0c93bd57b2daac5fbc6c79c1" # amd-gfx120x
+     "a3d1a6868ce290ba8118618207093e785252eff4e18a64f495752cb5a03ffed6" # amd-gfx90a
+     "ccdbc7e3d96839be4895ee004f21531cc55d590c9018937b9e314bba363b3927" # amd-gfx942
+     "518fd072eb05948fc0a6c25a20832591c6406df865e3b691a2aeff3fd4c5ce1d" # amd-gfx950
+     "efe773e7a2c8adc995d90ecd0daca2db801285445ee10432df2b29c67d5b11d2" # amd-gfx110x
+     "1bc50e8aa8b6bda3410e92886ccca8fd45df3e60a6cbda9ffc58b2c541efd5c2" # amd-gfx115x
+     "6a465dbc03148bba8a2d78c4c2a3cb83155eca00f4f7f749e676402d7660968c" # amd-gfx120x
      "a9719bfb2e9688d967185f39339ac7b91f593dc7d3f592d596462988e79c1421" # amd-gfx1250
      )
   set(__AOTRITON_BASE_URL "$ENV{PYTORCH_AOTRITON_BASE_URL}")
