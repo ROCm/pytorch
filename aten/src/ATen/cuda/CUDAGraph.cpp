@@ -112,6 +112,11 @@ void CUDAGraph::capture_begin(MempoolId_t pool/*=0*/, cudaStreamCaptureMode capt
     return filter(CUDAStream(CUDAStream::UNCHECKED, stream));
   });
 
+  // The pool is now acquired and being recorded to. Track this so reset() can
+  // release it even if the capture fails before capture_end() completes.
+  allocated_pool_ = true;
+  capturing_to_pool_ = true;
+
   // cudaStreamCaptureModeGlobal is the most conservative option to
   // prevent potentially unsafe CUDA API calls during capture.  See
   // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__STREAM.html#group__CUDART__STREAM_1g9d0535d93a214cbf126835257b16ba85
@@ -133,6 +138,8 @@ void CUDAGraph::capture_end() {
 
   c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
   at::getHostAllocator(at::kCUDA)->end_allocate_to_pool(mempool_id_);
+  // Allocation recording has stopped, so reset() must not end the pool again.
+  capturing_to_pool_ = false;
 
   TORCH_CHECK(graph_ != nullptr, "Invalid capture.");
 
@@ -261,11 +268,21 @@ void CUDAGraph::reset() {
   // and the allocator could end up in all kinds of weird states depending where failure occurred.
   // If the user catches the failure exception in a script, or is running in REPL or (god forbid)
   // a Jupyter notebook, I don't see an easy way for reset() to gracefully fix all such possible error states.
-  if (capture_ended_) {
+  if (allocated_pool_) {
+    if (capturing_to_pool_) {
+      // Capture was abandoned before capture_end() ran, so the allocator is
+      // still routing allocations to this pool. Stop that before releasing so
+      // the pool is left in a consistent, freeable state.
+      c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
+      at::getHostAllocator(at::kCUDA)->end_allocate_to_pool(mempool_id_);
+      capturing_to_pool_ = false;
+    }
+
     // notifyCaptureDestroy may throw. How should we handle this?
     c10::cuda::CUDACachingAllocator::releasePool(capture_dev_, mempool_id_);
     at::getHostAllocator(at::kCUDA)->release_pool(mempool_id_);
     capture_ended_ = false;
+    allocated_pool_ = false;
   }
   if (has_graph_) {
     C10_CUDA_CHECK_WARN(cudaGraphDestroy(graph_));
