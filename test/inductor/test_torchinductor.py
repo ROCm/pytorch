@@ -76,6 +76,7 @@ from torch.testing._internal.common_cuda import (
     IS_SM90,
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
+    ROCM_VERSION,
     SM100OrLater,
     SM80OrLater,
     SM90OrLater,
@@ -7357,8 +7358,8 @@ for dtype in (torch.int32, torch.int64):
         )
 
     @unittest.skipIf(
-        TEST_WITH_ROCM and not torch.cuda.has_magma,
-        "ROCm hipsolver backend does not currently support eig",
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
     )
     @xfail_if_mps_unimplemented  # aten::linalg_eig not implemented for MPS
     @skipIfNoLapack

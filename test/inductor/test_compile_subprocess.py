@@ -27,6 +27,7 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_ASAN,
     TEST_WITH_ROCM,
 )
+from torch.testing._internal.common_cuda import ROCM_VERSION
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     IS_BIG_GPU,
@@ -83,7 +84,7 @@ test_failures = {
     ),
 }
 
-if TEST_WITH_ROCM and not torch.cuda.has_magma:
+if TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14):
     test_failures["test_linalg_eig_stride_consistency"] = TestFailure(
         ("cuda",), is_skip=True
     )
