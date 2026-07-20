@@ -42,8 +42,10 @@ expecttest==0.3.0
 #Pinned versions: 0.3.0
 #test that import:
 
-fbscribelogger==0.1.7
+fbscribelogger==0.1.7 ; python_version < "3.14"
 #Description: write to scribe from authenticated jobs on CI
+#fbscribelogger caps thriftpy2<0.6.0, which has no cp314 wheel; skip on 3.14
+#(no-op on OSS/ROCm CI anyway) to avoid a source build in the compiler-less test image
 #Pinned versions: 0.1.6
 #test that import:
 
