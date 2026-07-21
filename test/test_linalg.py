@@ -33,14 +33,9 @@ from torch.testing._internal.common_utils import \
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, dtypes, has_cusolver, onlyCPU, skipIf, skipCPUIfNoLapack, precisionOverride,
      skipCUDAIf,
-<<<<<<< HEAD
-     skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfNoMagmaAndNoLinalgsolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
-     onlyCUDA, skipMeta, skipCUDAIfNotRocm, dtypesIfMPS, largeTensorTest)
-=======
      skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfNoMagmaAndNoLinalgsolver, onlyNativeDeviceTypes, dtypesIfCUDA,
      onlyCUDA, onlyAccelerator, skipMeta, skipCUDAIfNotRocm, dtypesIfMPS, largeTensorTest,
      e4m3_type, e5m2_type)
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import (
     all_types, all_types_and_complex_and, floating_and_complex_types, integral_types,
@@ -2269,14 +2264,10 @@ class TestLinalg(TestCase):
         self.assertEqual(result, expected)
 
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-    @skipCUDAIfNoMagma
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
     @dtypes(torch.float64, torch.complex128)
@@ -2325,14 +2316,10 @@ class TestLinalg(TestCase):
             run_test(shape, symmetric=True)
 
     @onlyCUDA
-<<<<<<< HEAD
-    @skipCUDAIfNoMagma
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eig_identity(self, device, dtype):
 
@@ -2400,14 +2387,10 @@ class TestLinalg(TestCase):
 
 
     @onlyCUDA
-<<<<<<< HEAD
-    @skipCUDAIfNoMagmaAndNoCusolver
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eigvals_out_variants(self, device, dtype):
         from torch.testing._internal.common_utils import random_symmetric_matrix
@@ -2449,14 +2432,10 @@ class TestLinalg(TestCase):
 
 
     @onlyCUDA
-<<<<<<< HEAD
-    @skipCUDAIfNoMagmaAndNoCusolver
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eig_out_variants(self, device, dtype):
         from torch.testing._internal.common_utils import random_symmetric_matrix
@@ -2510,7 +2489,6 @@ class TestLinalg(TestCase):
 
     @slowTest
     @onlyCUDA
-<<<<<<< HEAD
     @skipCUDAIfNoMagma
     @dtypes(torch.float32)
     def test_eig_check_magma(self, device, dtype):
@@ -2521,14 +2499,12 @@ class TestLinalg(TestCase):
         # check correctness using eigendecomposition identity
         self.assertEqual(a.to(v.dtype) @ v, w * v, atol=1e-3, rtol=1e-3)
 
+    @slowTest
     @onlyCUDA
-    @skipIf(TEST_WITH_ROCM and not torch.cuda.has_magma, "ROCm hipsolver backend does not currently support eig")
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(torch.float32, torch.float64)
     def test_eig_cuda_complex_eigenvectors(self, device, dtype):
         """Test CUDA eigenvector decoding with known ground truth, including batching."""
@@ -2615,13 +2591,10 @@ class TestLinalg(TestCase):
 
     @skipCUDAIfNoMagma
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eig_errors_and_warnings(self, device, dtype):
         # eig requires the input to be at least 2 dimensional tensor
@@ -2683,14 +2656,10 @@ class TestLinalg(TestCase):
                 torch.linalg.eig(a, out=(out_w, out_v))
 
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-    @skipCUDAIfNoMagma
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eig_with_nan(self, device, dtype):
         for val in [np.inf, np.nan]:
@@ -2702,14 +2671,10 @@ class TestLinalg(TestCase):
                     torch.linalg.eig(a)
 
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-    @skipCUDAIfNoMagma
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
     @dtypes(torch.float64, torch.complex128)
@@ -2757,13 +2722,10 @@ class TestLinalg(TestCase):
 
     @skipCUDAIfNoMagma
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(*floating_and_complex_types())
     def test_eigvals_errors_and_warnings(self, device, dtype):
         # eig requires the input to be at least 2 dimensional tensor
@@ -3192,13 +3154,10 @@ class TestLinalg(TestCase):
 
     @skipCUDAIfNoMagmaAndNoCusolver
     @skipCPUIfNoLapack
-<<<<<<< HEAD
-=======
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
->>>>>>> 3184cda6678 ([ROCm] Enable linalg tests for eig, ldl_solve operator (hipsolver) & enable test_linalg_solve, test_triangular_solve linalg tests with cuBLAS path (#185557))
     @dtypes(torch.complex128)
     def test_invariance_error_spectral_decompositions(self, device, dtype):
         make_arg = partial(make_tensor, device=device, dtype=dtype, requires_grad=True)
