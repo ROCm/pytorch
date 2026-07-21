@@ -70,6 +70,7 @@ from torch.library import _scoped_library
 from torch.nn import functional as F
 from torch.testing import FileCheck, make_tensor
 from torch.testing._internal.common_cuda import (
+    _get_torch_rocm_version,
     IS_SM90,
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
@@ -6225,6 +6226,10 @@ class CommonTemplate:
 
     @xfail_if_mps_unimplemented  # aten::linalg_eig not implemented for MPS
     @skipIfNoLapack
+    @unittest.skipIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and _get_torch_rocm_version() < (7, 14),
+        "linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
+    )
     def test_linalg_eig_stride_consistency(self):
         def fn(x):
             eigenvals, eigenvecs = torch.linalg.eig(x)

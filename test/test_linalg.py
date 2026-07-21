@@ -42,7 +42,7 @@ from torch.testing._internal.common_dtype import (
     floating_and_complex_types_and, floating_types_and, complex_types,
 )
 from torch.testing._internal.common_cuda import CDNA2OrLater, SM80OrLater, SM90OrLater, tf32_on_and_off, _get_magma_version, \
-    _get_torch_cuda_version, TEST_MULTIGPU
+    _get_torch_cuda_version, _get_torch_rocm_version, TEST_MULTIGPU
 from torch.testing._internal.common_quantization import _group_quantize_tensor, _dynamically_quantize_per_channel, \
     _group_quantize_tensor_symmetric
 from torch.testing._internal.common_mkldnn import reduced_f32_on_and_off
@@ -2228,6 +2228,10 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
+    )
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
     @dtypes(torch.float64, torch.complex128)
@@ -2279,6 +2283,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     @dtypes(*floating_and_complex_types())
     def test_eig_identity(self, device, dtype):
@@ -2351,6 +2359,10 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
+    )
     @dtypes(*floating_and_complex_types())
     def test_eigvals_out_variants(self, device, dtype):
         from torch.testing._internal.common_utils import random_symmetric_matrix
@@ -2395,6 +2407,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     @dtypes(*floating_and_complex_types())
     def test_eig_out_variants(self, device, dtype):
@@ -2464,6 +2480,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     @dtypes(torch.float32, torch.float64)
     def test_eig_cuda_complex_eigenvectors(self, device, dtype):
@@ -2555,6 +2575,10 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
+    )
     @dtypes(*floating_and_complex_types())
     def test_eig_errors_and_warnings(self, device, dtype):
         # eig requires the input to be at least 2 dimensional tensor
@@ -2620,6 +2644,10 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
+    )
     @dtypes(*floating_and_complex_types())
     def test_eig_with_nan(self, device, dtype):
         for val in [np.inf, np.nan]:
@@ -2634,6 +2662,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
@@ -2685,6 +2717,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     @dtypes(*floating_and_complex_types())
     def test_eigvals_errors_and_warnings(self, device, dtype):
@@ -3117,6 +3153,10 @@ class TestLinalg(TestCase):
     @skipCUDAIf(
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
+    )
+    @skipCUDAIf(
+        TEST_WITH_ROCM and _get_torch_rocm_version() < (7, 14) and not torch.cuda.has_magma,
+        "torch.linalg.eig requires ROCm >= 7.14 (hipSOLVER xgeev) or MAGMA",
     )
     @dtypes(torch.complex128)
     def test_invariance_error_spectral_decompositions(self, device, dtype):
