@@ -100,6 +100,7 @@ from torch.testing._internal.common_utils import (
     parametrize,
     serialTest,
     skipIfMPS,
+    skipIfNoLapack,
     skipIfRocm,
     skipIfRocmArch,
     skipIfWindows,
