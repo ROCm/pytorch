@@ -32,12 +32,8 @@ from torch.testing._internal.common_utils import \
      runOnRocmArch, MI200_ARCH, MI300_ARCH, MI350_ARCH, NAVI_ARCH, TEST_CUDA)
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, dtypes, has_cusolver, onlyCPU, skipIf, skipCUDAIfNoMagma, skipCPUIfNoLapack, precisionOverride,
-<<<<<<< HEAD
-     skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
-=======
      skipCUDAIf,
-     skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoLinalgsolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
->>>>>>> 868bcb1603f ([ROCm] Enabled test_linalg tests that were skipped due to skipCUDAIfNoMagmaAndNoCusolver (#180303))
+     skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoCusolver, skipCUDAIfNoMagmaAndNoLinalgsolver, skipCUDAIfRocm, onlyNativeDeviceTypes, dtypesIfCUDA,
      onlyCUDA, skipMeta, skipCUDAIfNotRocm, dtypesIfMPS, largeTensorTest)
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import (
@@ -1051,29 +1047,7 @@ class TestLinalg(TestCase):
         with self.assertRaises(RuntimeError):
             op(t)
 
-<<<<<<< HEAD
-    @skipCUDAIfNoMagma
-=======
-    @skipCUDAIfNoCusolver
-    @skipCPUIfNoLapack
-    @dtypes(torch.double, torch.cdouble)
-    def test_det_backward(self, device, dtype):
-        # Regression test for #80761.
-        input = torch.tensor([[0.]], device=device, dtype=dtype, requires_grad=True)
-        self.assertTrue(torch.autograd.gradcheck(torch.det, inputs=input))
-
-        # When A has 0 elements (e.g. empty batch), backward should return a
-        # zeros tensor with the same shape as A, not an undefined tensor.
-        for shape in [(0, 3, 3), (2, 0, 0)]:
-            A = torch.randn(shape, device=device, dtype=dtype, requires_grad=True)
-            det = torch.linalg.det(A)
-            det.backward(torch.ones_like(det))
-            self.assertIsNotNone(A.grad)
-            self.assertEqual(A.grad.shape, A.shape)
-            self.assertEqual(A.grad, torch.zeros_like(A))
-
     @skipCUDAIfNoMagmaAndNoLinalgsolver
->>>>>>> 868bcb1603f ([ROCm] Enabled test_linalg tests that were skipped due to skipCUDAIfNoMagmaAndNoCusolver (#180303))
     @skipCPUIfNoLapack
     @dtypes(*floating_and_complex_types())
     @precisionOverride({torch.float32: 1e-4, torch.complex64: 1e-4})
