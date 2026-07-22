@@ -65,6 +65,7 @@ from torch.testing._internal.common_utils import (
     freeze_rng_state,
     gcIfJetson,
     get_cycles_per_ms,
+    getRocmVersion,
     instantiate_parametrized_tests,
     IS_ARM64,
     IS_FBCODE,
@@ -3658,6 +3659,7 @@ exit(2)
             model_graphed({"x": real_inputs[0]}), model_control({"x": real_inputs[0]})
         )
 
+    @skipIfRocm(msg="https://github.com/pytorch/pytorch/issues/179961")
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
@@ -4217,6 +4219,9 @@ with torch.cuda.graph(g):
     @unittest.skipIf(not TEST_WITH_ROCM, "not relevant for CUDA testing")
     def test_hip_device_count(self):
         """Validate device_count works with both CUDA/HIP visible devices"""
+        if getRocmVersion() in [(7, 13), (7, 14)]:
+            self.skipTest("Failed on ROCm 7.13 and 7.14 due to rocprof-sdk issue (AIPROFSDK-840) ")
+        
         test_script = """\
 import torch
 import os
