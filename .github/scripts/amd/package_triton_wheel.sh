@@ -28,8 +28,15 @@ if [[ -z "${TRITON_ROCM_DIR}" ]]; then
     export TRITON_ROCM_DIR=third_party/amd/backend
 fi
 
-# Remove packaged libs and headers
-rm -rf $TRITON_ROCM_DIR/include/*
+# Remove previously packaged ROCm headers only.
+# NOTE: do not wipe the whole include dir ("include/*") - it also contains
+# Triton's own AMD backend headers (e.g. TDMCommon.h, required by
+# TritonAMDGPUToLLVM/TDMUtility.cpp as of Triton 3.8.x). Removing them breaks
+# the build with: fatal error: '../../backend/include/TDMCommon.h' file not found.
+rm -rf $TRITON_ROCM_DIR/include/hip \
+       $TRITON_ROCM_DIR/include/roctracer \
+       $TRITON_ROCM_DIR/include/hsa \
+       $TRITON_ROCM_DIR/include/hipblas-common
 
 LIBNUMA_PATH="/usr/lib64/libnuma.so.1"
 LIBELF_PATH="/usr/lib64/libelf.so.1"
