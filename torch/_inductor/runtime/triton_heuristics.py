@@ -712,38 +712,45 @@ class CachingAutotuner(KernelInterface):
         from torch._dynamo.device_interface import DeviceGuard
 
         device_interface = self.get_device_interface()
-
-        # load binary to the correct device
-        with DeviceGuard(device_interface, self.triton_meta["device"]):
-            launchers = []
-            exc = None
-            for result in self.compile_results:
-                try:
-                    launchers.append(result.make_launcher())
-
-                except (
-                    OutOfResources,
-                    PTXASError,
-                    torch.cuda.OutOfMemoryError,
-                    IntelGPUError,
-                ) as e:
-                    exc = e
-            if len(launchers) == 0:
-                result = self.compile_results[-1]
-                config = result.config
-                if (
-                    isinstance(exc, (OutOfResources, torch.cuda.OutOfMemoryError))
-                    and (
-                        config.num_stages > 1 or config.kwargs.get("NUM_STAGES", 1) > 1
+        launchers = []
+        exc = None
+        try:
+            # Load each binary on the correct device.
+            with DeviceGuard(device_interface, self.triton_meta["device"]):
+                for result in self.compile_results:
+                    try:
+                        launchers.append(result.make_launcher())
+                    except (
+                        OutOfResources,
+                        PTXASError,
+                        torch.cuda.OutOfMemoryError,
+                        IntelGPUError,
+                    ) as e:
+                        exc = e
+                if len(launchers) == 0:
+                    result = self.compile_results[-1]
+                    config = result.config
+                    if (
+                        isinstance(exc, (OutOfResources, torch.cuda.OutOfMemoryError))
+                        and (
+                            config.num_stages > 1
+                            or config.kwargs.get("NUM_STAGES", 1) > 1
+                        )
+                        and self.inductor_meta.get("dynamic_disable_pipelining", True)
+                    ):
+                        self.launchers = [
+                            self.compile_by_disabling_pipelining(config)
+                        ]
+                        return
+                    raise RuntimeError(
+                        f"No valid triton configs. {type(exc).__name__}: {exc}"
                     )
-                    and self.inductor_meta.get("dynamic_disable_pipelining", True)
-                ):
-                    self.launchers = [self.compile_by_disabling_pipelining(config)]
-                    return
-                raise RuntimeError(
-                    f"No valid triton configs. {type(exc).__name__}: {exc}"
-                )
-        self.launchers = launchers
+            self.launchers = launchers
+        finally:
+            # Do not retain a failed launcher's exception and traceback. The
+            # traceback keeps its frame chain alive and can pin Triton's large
+            # benchmark cache-flush buffer until cyclic GC runs.
+            exc = None
 
     def _prune_compile_results_to_launcher(self, launcher: LauncherType) -> None:
         if not self.compile_results:

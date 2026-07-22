@@ -875,6 +875,61 @@ class TestWarpSizeUnification(TestCase):
         self.assertEqual(cfg64.kwargs["XBLOCK"], 2 * cfg32.kwargs["XBLOCK"])
 
 
+class TestMakeLaunchersMemory(TestCase):
+    def test_failed_config_exception_not_retained(self):
+        """A failed launcher build must not retain its traceback frame chain."""
+        import contextlib
+        import gc
+        import types
+        import weakref
+
+        class _Result:
+            config = types.SimpleNamespace(num_stages=1, kwargs={})
+
+            def __init__(self, succeeds):
+                self.succeeds = succeeds
+
+            def make_launcher(self):
+                if self.succeeds:
+                    return object()
+                raise torch.cuda.OutOfMemoryError("out of resource (test)")
+
+        results = [_Result(True), _Result(False)]
+        fake_self = types.SimpleNamespace(
+            launchers=[],
+            compile_results=results,
+            triton_meta={"device": 0},
+            inductor_meta={},
+            get_device_interface=lambda: None,
+        )
+
+        class _Sentinel:
+            pass
+
+        def run():
+            l2_buffer = _Sentinel()
+            ref = weakref.ref(l2_buffer)
+            with patch(
+                "torch._dynamo.device_interface.DeviceGuard",
+                lambda *args, **kwargs: contextlib.nullcontext(),
+            ):
+                CachingAutotuner._make_launchers(fake_self)
+            return ref
+
+        gc.disable()
+        try:
+            ref = run()
+            self.assertIsNone(
+                ref(),
+                "_make_launchers retained the failed-config exception; its "
+                "traceback pins caller frames until cyclic GC.",
+            )
+        finally:
+            gc.enable()
+
+        self.assertEqual(len(fake_self.launchers), 1)
+
+
 
 if __name__ == "__main__":
     if IS_LINUX and HAS_GPU:
