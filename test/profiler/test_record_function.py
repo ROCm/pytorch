@@ -1,9 +1,12 @@
 # Owner(s): ["oncall: profiler"]
 # ruff: noqa: F841
 
+import sys
 from typing import Any
+from unittest import mock
 
 import torch
+import torch.autograd.profiler as autograd_profiler
 import torch.optim
 import torch.utils.data
 import torch.utils.data.datapipes as dp
@@ -35,6 +38,18 @@ Json = dict[str, Any]
 
 
 class TestRecordFunction(TestCase):
+    class _FakeRoctx:
+        def __init__(self):
+            self.events = []
+
+        def rangePush(self, name):
+            self.events.append(("push", name))
+            return 0
+
+        def rangePop(self):
+            self.events.append(("pop", None))
+            return 0
+
     def _record_function_with_param(self):
         u = torch.randn(3, 4, 5, requires_grad=True)
         with _profile(
@@ -73,6 +88,159 @@ class TestRecordFunction(TestCase):
         self.assertTrue(found_test_2)
         self.assertTrue(found_test_3)
         self.assertTrue(found_test_4)
+
+    def test_record_function_roctx_ranges(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            with record_function("outer"):
+                with record_function("inner"):
+                    pass
+
+        self.assertEqual(
+            roctx.events,
+            [
+                ("push", "outer"),
+                ("push", "inner"),
+                ("pop", None),
+                ("pop", None),
+            ],
+        )
+
+    def test_record_function_roctx_balanced_on_exception(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "expected"):
+                with record_function("failing"):
+                    raise RuntimeError("expected")
+
+        self.assertEqual(roctx.events, [("push", "failing"), ("pop", None)])
+
+    def test_record_function_roctx_disabled_or_nvtx_active(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", False),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+        ):
+            with record_function("disabled"):
+                pass
+
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=True
+            ),
+        ):
+            with record_function("nvtx"):
+                pass
+
+        self.assertEqual(roctx.events, [])
+
+    def test_record_function_roctx_closes_before_deferred_callbacks(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            future: torch.futures.Future[int] = torch.futures.Future()
+            with record_function("deferred") as rf:
+                profiled_future = rf._call_end_callbacks_on_future(future)
+
+            self.assertEqual(roctx.events, [("push", "deferred"), ("pop", None)])
+            future.set_result(1)
+            self.assertEqual(profiled_future.wait(), 1)
+
+    def test_record_function_roctx_lazy_import(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", None),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+            mock.patch.object(
+                autograd_profiler.importlib,
+                "import_module",
+                return_value=roctx,
+            ) as import_module,
+        ):
+            with record_function("first"):
+                pass
+            with record_function("second"):
+                pass
+
+        import_module.assert_called_once_with("roctx")
+        self.assertEqual(
+            roctx.events,
+            [
+                ("push", "first"),
+                ("pop", None),
+                ("push", "second"),
+                ("pop", None),
+            ],
+        )
+
+    def test_record_function_roctx_missing_module(self):
+        rf = record_function("missing_roctx")
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", None),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+            mock.patch.dict(sys.modules, {"roctx": None}),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "requires.*roctx.*module"):
+                rf.__enter__()
+
+        self.assertIsNone(rf.record)
+
+    def test_record_function_roctx_pop_failure_can_be_retried(self):
+        class FailOnceRoctx(TestRecordFunction._FakeRoctx):
+            def __init__(self):
+                super().__init__()
+                self.fail_pop = True
+
+            def rangePop(self):
+                if self.fail_pop:
+                    self.fail_pop = False
+                    raise RuntimeError("pop failed")
+                return super().rangePop()
+
+        roctx = FailOnceRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            rf = record_function("retry")
+            rf.__enter__()
+            with self.assertRaisesRegex(RuntimeError, "pop failed"):
+                rf.__exit__(None, None, None)
+            self.assertTrue(rf._roctx_range_active)
+
+            rf.run_callbacks_on_exit = False
+            rf.__exit__(None, None, None)
+            self.assertFalse(rf._roctx_range_active)
+
+        self.assertEqual(roctx.events, [("push", "retry"), ("pop", None)])
 
     def test_datapipe_with_record_function(self):
         with _profile(

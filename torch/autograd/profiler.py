@@ -1,8 +1,10 @@
 # mypy: allow-untyped-defs
 import ast
 import copy
+import importlib
 import json
 import logging
+import os
 import re
 import uuid
 from bisect import bisect_left
@@ -86,6 +88,43 @@ except ImportError:
 # global python state - whether profiler is currently enabled
 # useful for fast python checks to reduce latency
 _is_profiler_enabled: bool = False
+
+_ROCTX_MARKER_ENV_VAR = "TORCH_PROFILER_EMIT_ROCTX"
+_roctx_markers_enabled: bool = getattr(
+    torch.version, "hip", None
+) is not None and os.environ.get(_ROCTX_MARKER_ENV_VAR, "").strip().lower() in {
+    "1",
+    "true",
+    "yes",
+    "on",
+}
+_roctx_module: Any | None = None
+
+
+def _get_roctx_module() -> Any | None:
+    global _roctx_module
+
+    if not _roctx_markers_enabled:
+        return None
+
+    if _roctx_module is None:
+        try:
+            _roctx_module = importlib.import_module("roctx")
+        except ImportError as exc:
+            raise RuntimeError(
+                f"{_ROCTX_MARKER_ENV_VAR}=1 requires the rocprofiler-sdk "
+                "'roctx' Python module to be importable by this interpreter"
+            ) from exc
+
+    return _roctx_module
+
+
+def _nvtx_profiler_active() -> bool:
+    return (
+        torch._C._autograd._profiler_type()
+        == torch._C._profiler.ActiveProfilerType.NVTX
+    )
+
 
 # https://github.com/pytorch/kineto/blob/a054a4be0db117c579a21747debf19c863631f26/libkineto/src/output_json.cpp#L559
 # Kernel and CUDA runtime API events are connected by ac2g; forward and backward
@@ -1287,6 +1326,10 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
     """Context manager/function decorator that adds a label to a code block/function when running autograd profiler.
     Label will only appear if CPU activity tracing is enabled.
 
+    On ROCm, profiler launchers can set ``TORCH_PROFILER_EMIT_ROCTX=1`` to
+    emit the same label as an ROCTx range. This requires the rocprofiler-sdk
+    ``roctx`` Python module to be importable.
+
     It is useful when tracing the code profile.
 
     Args:
@@ -1335,6 +1378,7 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
             None,
         )
         self._cupti_monitor_external_id: int | None = None
+        self._roctx_range_active: bool = False
 
     def __enter__(self):
         self.record = torch.ops.profiler._record_function_enter_new(
@@ -1345,6 +1389,22 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
         # the cupti chain. Guarded by is_scripting() (the global access doesn't compile under
         # TorchScript), and the global is read inside the guard so it is dead-code-eliminated.
         if not torch.jit.is_scripting():
+            if _roctx_markers_enabled and not _nvtx_profiler_active():
+                try:
+                    roctx = _get_roctx_module()
+                    if roctx is None:
+                        raise AssertionError("Expected ROCTX module to be loaded")
+                    roctx.rangePush(self.name)
+                    self._roctx_range_active = True
+                except Exception:
+                    record = self.record
+                    if record is not None:
+                        with torch._C.DisableTorchFunctionSubclass():
+                            torch.ops.profiler._record_function_exit._RecordFunction(
+                                record
+                            )
+                        self.record = None
+                    raise
             observer = _active_cupti_profiler_observer
             if observer is not None:
                 self._cupti_monitor_external_id = observer.push_annotation(self.name)
@@ -1357,21 +1417,27 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
                 if observer is not None:
                     observer.pop_annotation()
                 self._cupti_monitor_external_id = None
-        if not self.run_callbacks_on_exit:
-            return
 
-        # Local variable is needed by TorchScript to refine Optional[T] to T
-        record = self.record
-        if record is None:
-            raise AssertionError("Expected record to be set")
+        if self.run_callbacks_on_exit:
+            # Local variable is needed by TorchScript to refine Optional[T] to T
+            record = self.record
+            if record is None:
+                raise AssertionError("Expected record to be set")
 
-        # TODO: Too slow with __torch_function__ handling enabled
-        # See https://github.com/pytorch/pytorch/issues/76410
-        if not torch.jit.is_scripting():
-            with torch._C.DisableTorchFunctionSubclass():
-                torch.ops.profiler._record_function_exit._RecordFunction(record)
-        else:
-            torch.ops.profiler._record_function_exit(record)
+            # TODO: Too slow with __torch_function__ handling enabled
+            # See https://github.com/pytorch/pytorch/issues/76410
+            if not torch.jit.is_scripting():
+                with torch._C.DisableTorchFunctionSubclass():
+                    torch.ops.profiler._record_function_exit._RecordFunction(record)
+            else:
+                torch.ops.profiler._record_function_exit(record)
+
+        if not torch.jit.is_scripting() and self._roctx_range_active:
+            roctx = _get_roctx_module()
+            if roctx is None:
+                raise AssertionError("Expected ROCTX module to be loaded")
+            roctx.rangePop()
+            self._roctx_range_active = False
 
     def _call_end_callbacks_on_future(self, fut: Future[Any]) -> Future[Any]:
         """Use for profiling async calls that return a future.
