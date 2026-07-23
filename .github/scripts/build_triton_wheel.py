@@ -118,7 +118,24 @@ def build_triton(
             )
         else:
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
-            check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
+            if device == "rocm":
+                # Check the pinned commit out onto a "release/"-prefixed local
+                # branch. ROCm/triton's setup.py computes
+                #   TRITON_VERSION = "<ver>" + get_triton_version_suffix()
+                # and get_triton_version_suffix() appends "+git<sha>" unless the
+                # current branch name starts with "release". A detached-HEAD
+                # checkout would therefore produce a wheel versioned
+                # "<ver>+git<sha>.rocm<rocm>.git<sha>", which does not match the
+                # "triton==<ver>+rocm<rocm>.git<sha>" dependency pinned into the
+                # torch wheel and breaks `pip install torch`. Using a release
+                # branch keeps triton's git suffix empty so the wheel is
+                # versioned canonically as "<ver>+rocm<rocm>.git<sha>".
+                check_call(
+                    ["git", "checkout", "-B", "release/pinned-commit", commit_hash],
+                    cwd=triton_basedir,
+                )
+            else:
+                check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
