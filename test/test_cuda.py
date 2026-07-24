@@ -16,11 +16,11 @@ import threading
 import time
 import unittest
 import warnings
-from unittest.mock import patch
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product
 from random import randint
+from unittest.mock import patch
 
 import psutil
 
@@ -44,7 +44,6 @@ from torch.testing._internal.common_cuda import (
     TEST_CUDNN,
     TEST_MULTIGPU,
     tf32_on_and_off,
-    xfailCUDAIfSM89OrLaterOnWindows,
 )
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
@@ -2329,7 +2328,6 @@ torch.cuda.synchronize()
             self.assertEqual(random_values, graphed_random_values)
 
     @skipIfRocmVersionLessThan((7, 14))
-    @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
