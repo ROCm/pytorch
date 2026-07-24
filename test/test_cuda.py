@@ -20,6 +20,7 @@ from collections import defaultdict
 from copy import deepcopy
 from itertools import product
 from random import randint
+from unittest.mock import patch
 
 import psutil
 
@@ -83,6 +84,7 @@ from torch.testing._internal.common_utils import (
     skipCUDANonDefaultStreamIf,
     skipIfRocm,
     skipIfRocmArch,
+    skipIfRocmVersionLessThan,
     slowTest,
     subtest,
     TemporaryFileName,
@@ -487,6 +489,9 @@ print(t.is_pinned())
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC or IS_JETSON, "Segmentation fault (core dumped)"
     )
+    # On MI350 (gfx950) allocating ~1.02x of the reported free memory does not
+    # raise an OOM RuntimeError, so the assertRaisesRegex below fails.
+    @skipIfRocmArch(MI350_ARCH)
     @serialTest()
     def test_out_of_memory_retry(self):
         torch.cuda.empty_cache()
@@ -1031,6 +1036,37 @@ print(t.is_pinned())
             self.assertEqual(x, y)
             self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
+
+    def test_lazy_call_reentrant_set_rng_state_does_not_deadlock(self):
+        # Separate process: a regression deadlocks the interpreter (non-reentrant lock).
+        # Happy path is usually a few seconds; allow margin for slow CI / CUDA init.
+        timeout_sec = 15
+        script = (
+            "import torch; "
+            "torch.cuda.init(); "
+            "state = torch.cuda.get_rng_state(); "
+            "torch.cuda._lazy_call(lambda: torch.cuda.set_rng_state(state)); "
+            "print('done')"
+        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", script],
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+            )
+        except subprocess.TimeoutExpired as e:
+            self.fail(
+                f"lazy_call reentrancy subprocess did not finish within {timeout_sec}s "
+                "(likely deadlock in torch.cuda._lazy_call); "
+                f"cmd={e.cmd!r}"
+            )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            msg=f"stdout={proc.stdout!r}\nstderr={proc.stderr!r}",
+        )
+        self.assertIn("done", proc.stdout)
 
     def test_specify_improper_device_name(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2290,6 +2326,42 @@ torch.cuda.synchronize()
             self.assertEqual(offset, graph_offset)
             # Compare the states generated outside and inside the graph
             self.assertEqual(random_values, graphed_random_values)
+
+    @skipIfRocmVersionLessThan((7, 14))
+    @unittest.skipIf(
+        not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
+    )
+    def test_graph_capture_error_releases_reserved_segments(self):
+        # A failed capture (capture_end raises) must still release the graph's
+        # private mempool on reset(); otherwise its reserved segments leak for
+        # the rest of the process. Unlike test_graph_rng_after_failed_capture,
+        # which asserts on active.all.current (no leaked live allocations), this
+        # checks memory_reserved(): a leaked pool can show zero active bytes yet
+        # still hold reserved segments, so only this assertion catches the leak.
+        torch.cuda.synchronize()
+        torch.cuda.empty_cache()
+        reserved_before = torch.cuda.memory_reserved()
+
+        s = torch.cuda.Stream()
+        s.wait_stream(torch.cuda.current_stream())
+        g = torch.cuda.CUDAGraph()
+        with torch.cuda.stream(s):
+            g.capture_begin()
+            x = torch.empty(8 * 1024 * 1024, device="cuda")
+            # A synchronizing op during capture invalidates it, but we must
+            # still call capture_end() so the stream's capture is ended (with an
+            # error); otherwise the stream is left mid-capture and teardown fails.
+            with self.assertRaises(RuntimeError):
+                torch.cuda.synchronize()
+            with self.assertRaises(RuntimeError):
+                g.capture_end()
+
+        del x
+        g.reset()
+        del g
+        torch.cuda.synchronize()
+        torch.cuda.empty_cache()
+        self.assertEqual(torch.cuda.memory_reserved(), reserved_before)
 
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
@@ -4492,6 +4564,10 @@ class TestCudaMallocAsync(TestCase):
 
         try:
             torch.cuda.memory.empty_cache()
+            # Region ids come from Dynamo's process-global frame counter, which
+            # reset() zeroes; do it before compiling so the region strings are
+            # deterministic.
+            torch._dynamo.reset()
             input_tensor = torch.randn(1, 10, device="cuda")
             # Create an instance of the model
             model = MyModel()
@@ -4515,14 +4591,19 @@ class TestCudaMallocAsync(TestCase):
                 if len(allocation_sequence) > 0 and allocation_sequence[-1] == context:
                     continue
                 allocation_sequence.append(context)
-            self.assertTrue(allocation_sequence == expected_allocation_sequence)
+            self.assertEqual(allocation_sequence, expected_allocation_sequence)
         except RuntimeError as e:
             pass
         finally:
             torch.cuda.memory._record_memory_history(None)
+            # Clean up the model and input tensor to fix memory leaks in other tests
+            del compiled_model, model, input_tensor
+            ss = None
+            torch._dynamo.reset()
             # This test requires to run gc.collec() to fix other memory tests
-            torch.cuda.synchronize()
             gc.collect()
+            torch.cuda.synchronize()
+            torch.cuda.empty_cache()
 
     @unittest.skipIf(
         TEST_CUDAMALLOCASYNC, "setContextRecorder not supported by CUDAMallocAsync"
@@ -6739,6 +6820,10 @@ class TestMemPool(TestCase):
 
     @serialTest()
     def test_mempool_ctx_multithread(self):
+        # Collect first: a tensor leaked by a prior test that is only reachable
+        # through a reference cycle keeps its segment active, so empty_cache
+        # can't reclaim it and the "empty pool" assertion below flakes.
+        gc.collect()
         torch._C._cudnn_clear_dropout_state()
         torch._C._cuda_clearCublasWorkspaces()
         torch.cuda.empty_cache()
@@ -8624,6 +8709,38 @@ instantiate_parametrized_tests(TestCompileKernel)
 instantiate_parametrized_tests(TestCachingHostAllocatorCudaGraph)
 instantiate_device_type_tests(TestCudaOptims, globals())
 instantiate_device_type_tests(TestCudaDeviceParametrized, globals())
+
+class TestMemoryViz(TestCase):
+    def test_format_flamegraph_download_moves_temp_file(self):
+        # Regression test: format_flamegraph downloads flamegraph.pl into a temp
+        # file and moves it into place. Previously the temp file was created by a
+        # delete=True NamedTemporaryFile, so after os.rename moved it away the
+        # context manager raised FileNotFoundError on exit (a CI flake, since the
+        # download only happens when the cached script is absent).
+        from torch.cuda import _memory_viz
+
+        def fake_urlretrieve(url, filename):
+            with open(filename, "wb") as f:
+                f.write(b"#!/usr/bin/perl\n")
+            return filename, None
+
+        @contextlib.contextmanager
+        def fake_popen(*args, **kwargs):
+            proc = unittest.mock.MagicMock()
+            proc.stdout.read.return_value = "FLAMEGRAPH_OUTPUT"
+            proc.wait.return_value = 0
+            yield proc
+
+        with tempfile.TemporaryDirectory() as cache_dir:
+            script = os.path.join(cache_dir, "flamegraph.pl")
+            with (
+                patch("urllib.request.urlretrieve", fake_urlretrieve),
+                patch.object(_memory_viz.subprocess, "Popen", fake_popen),
+            ):
+                result = _memory_viz.format_flamegraph("stack 1\n", script)
+            self.assertEqual(result, "FLAMEGRAPH_OUTPUT")
+            self.assertTrue(os.path.exists(script))
+
 
 if __name__ == "__main__":
     run_tests()
