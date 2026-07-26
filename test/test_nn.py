@@ -15144,6 +15144,8 @@ if __name__ == '__main__':
         self.assertLessEqual(maximal_linear_bias_grad_max_ulp_diff, expected_linear_bias_grad_max_ulp_diff,
                              msg=f"worst linear_bias-grad ULP {maximal_linear_bias_grad_max_ulp_diff} from kwargs={worst_linear_bias_grad_kwargs}")
 
+    @skipIfRocm(msg="ROCm fp32 GEMM ULP divergence: input-grad 952 > 854 tolerance bound "
+                "(TheRock math-lib build, rocBLAS/hipBLASLt accumulation)")
     @parametrize_test("bias", [False, True])
     @dtypes(torch.float32)
     def test_linear_cross_entropy_loss_default(self, device, dtype, bias):

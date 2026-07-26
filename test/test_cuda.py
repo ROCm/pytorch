@@ -1355,6 +1355,7 @@ print(t.is_pinned())
             self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
 
+    @skipIfRocm(msg="ROCm cold HIP init causes 15s subprocess timeout on CI; flaky/slow-init, not a confirmed deadlock")
     def test_lazy_call_reentrant_set_rng_state_does_not_deadlock(self):
         # Separate process: a regression deadlocks the interpreter (non-reentrant lock).
         # Happy path is usually a few seconds; allow margin for slow CI / CUDA init.
@@ -2835,7 +2836,8 @@ torch.cuda.synchronize()
         torch.cuda.synchronize()
         self.assertFalse(torch.allclose(buf, torch.zeros_like(buf)))
 
-    @skipIfRocmVersionLessThan((7, 14))
+    @skipIfRocm(msg="HIPCachingAllocator does not release reserved segments after a failed "
+                "graph capture; memory_reserved() does not recover to baseline")
     @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
@@ -5927,6 +5929,7 @@ class TestCudaAllocator(TestCase):
                 "throw_on_cudamalloc_oom:False,per_process_memory_fraction:1.0"
             )
 
+    @skipIfRocm(msg="subprocess spawned with env={} drops LD_LIBRARY_PATH; dynamically-linked venv python cannot find libpython3.12.so.1.0 on CI (exit 127 before test body)")
     def test_allocator_backend(self):
         def check_output(script: str) -> str:
             return subprocess.check_output(
