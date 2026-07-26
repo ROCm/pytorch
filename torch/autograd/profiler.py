@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import re
+import threading
 import uuid
 from bisect import bisect_left
 from collections import defaultdict
@@ -15,13 +16,13 @@ from time import perf_counter_ns
 from typing import Any, Optional
 from warnings import warn
 
-
 log = logging.getLogger(__name__)
 
 import torch
 import torch.cuda
 from torch._C import _get_privateuse1_backend_name
 from torch._C._profiler import _ExperimentalConfig
+from torch._jit_internal import unused as _jit_unused
 from torch.autograd import (
     _disable_profiler,
     _enable_profiler,
@@ -47,7 +48,6 @@ from torch.autograd.profiler_util import (
     OUT_OF_MEMORY_EVENT_NAME,
 )
 from torch.futures import Future
-
 
 __all__ = [
     "profile",
@@ -90,15 +90,24 @@ except ImportError:
 _is_profiler_enabled: bool = False
 
 _ROCTX_MARKER_ENV_VAR = "TORCH_PROFILER_EMIT_ROCTX"
-_roctx_markers_enabled: bool = getattr(
-    torch.version, "hip", None
-) is not None and os.environ.get(_ROCTX_MARKER_ENV_VAR, "").strip().lower() in {
+_ROCTX_SELECTED_REGIONS_ENV_VAR = "TORCH_PROFILER_ROCTX_SELECTED_REGIONS"
+_ROCTX_TRUE_VALUES = {
     "1",
     "true",
     "yes",
     "on",
 }
+_roctx_markers_enabled: bool = (
+    getattr(torch.version, "hip", None) is not None
+    and os.environ.get(_ROCTX_MARKER_ENV_VAR, "").strip().lower() in _ROCTX_TRUE_VALUES
+)
+_roctx_selected_regions_enabled: bool = (
+    _roctx_markers_enabled
+    and os.environ.get(_ROCTX_SELECTED_REGIONS_ENV_VAR, "").strip().lower()
+    in _ROCTX_TRUE_VALUES
+)
 _roctx_module: Any | None = None
+_roctx_range_state = threading.local()
 
 
 def _get_roctx_module() -> Any | None:
@@ -124,6 +133,21 @@ def _nvtx_profiler_active() -> bool:
         torch._C._autograd._profiler_type()
         == torch._C._profiler.ActiveProfilerType.NVTX
     )
+
+
+def _get_roctx_range_stack() -> list[Any]:
+    stack = getattr(_roctx_range_state, "stack", None)
+    if stack is None:
+        stack = []
+        _roctx_range_state.stack = stack
+    return stack
+
+
+def _check_roctx_profiler_result(operation: str, result: int) -> None:
+    if result != 0:
+        raise RuntimeError(
+            f"ROCTx profiler {operation} failed with error code {result}"
+        )
 
 
 # https://github.com/pytorch/kineto/blob/a054a4be0db117c579a21747debf19c863631f26/libkineto/src/output_json.cpp#L559
@@ -1327,8 +1351,10 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
     Label will only appear if CPU activity tracing is enabled.
 
     On ROCm, profiler launchers can set ``TORCH_PROFILER_EMIT_ROCTX=1`` to
-    emit the same label as an ROCTx range. This requires the rocprofiler-sdk
-    ``roctx`` Python module to be importable.
+    emit the same label as an ROCTx range. A launcher can additionally set
+    ``TORCH_PROFILER_ROCTX_SELECTED_REGIONS=1`` to resume profiling while at
+    least one such range is active and pause it outside those ranges. This
+    requires the rocprofiler-sdk ``roctx`` Python module to be importable.
 
     It is useful when tracing the code profile.
 
@@ -1379,65 +1405,196 @@ class record_function(_ContextDecorator):  # pyrefly: ignore [invalid-inheritanc
         )
         self._cupti_monitor_external_id: int | None = None
         self._roctx_range_active: bool = False
+        self._roctx_range_pop_pending: bool = False
+        self._roctx_profiler_region_active: bool = False
+
+    @_jit_unused
+    def _recreate_cm(self):
+        return record_function(self.name, self.args)
 
     def __enter__(self):
-        self.record = torch.ops.profiler._record_function_enter_new(
-            self.name, self.args
-        )
-        # Route the region to the active cupti_monitor observer, if any. The reference is
-        # None unless a cupti_monitor profile is running, so a non-cupti run never touches
-        # the cupti chain. Guarded by is_scripting() (the global access doesn't compile under
-        # TorchScript), and the global is read inside the guard so it is dead-code-eliminated.
-        if not torch.jit.is_scripting():
-            if _roctx_markers_enabled and not _nvtx_profiler_active():
-                try:
-                    roctx = _get_roctx_module()
-                    if roctx is None:
-                        raise AssertionError("Expected ROCTX module to be loaded")
-                    roctx.rangePush(self.name)
-                    self._roctx_range_active = True
-                except Exception:
-                    record = self.record
-                    if record is not None:
-                        with torch._C.DisableTorchFunctionSubclass():
-                            torch.ops.profiler._record_function_exit._RecordFunction(
-                                record
-                            )
-                        self.record = None
-                    raise
+        if torch.jit.is_scripting():
+            self.record = torch.ops.profiler._record_function_enter_new(
+                self.name, self.args
+            )
+        elif not _roctx_markers_enabled:
+            self.record = torch.ops.profiler._record_function_enter_new(
+                self.name, self.args
+            )
             observer = _active_cupti_profiler_observer
             if observer is not None:
                 self._cupti_monitor_external_id = observer.push_annotation(self.name)
+        else:
+            self._enter_eager()
         return self
 
+    @_jit_unused
+    def _enter_eager(self) -> None:
+        roctx = None
+        try:
+            if _roctx_markers_enabled and _roctx_selected_regions_enabled:
+                roctx = _get_roctx_module()
+                if roctx is None:
+                    raise AssertionError("Expected ROCTX module to be loaded")
+                self._resume_roctx_profiler(roctx)
+
+            self.record = torch.ops.profiler._record_function_enter_new(
+                self.name, self.args
+            )
+            if _roctx_markers_enabled and not _nvtx_profiler_active():
+                if roctx is None:
+                    roctx = _get_roctx_module()
+                if roctx is None:
+                    raise AssertionError("Expected ROCTX module to be loaded")
+                range_level = roctx.rangePush(self.name)
+                if range_level < 0:
+                    raise RuntimeError(
+                        f"ROCTx range push failed with error code {range_level}"
+                    )
+                self._roctx_range_active = True
+                _get_roctx_range_stack().append(self)
+
+            # Route the region to the active cupti_monitor observer, if any. The reference
+            # is None unless a cupti_monitor profile is running, so a non-cupti run never
+            # touches the cupti chain.
+            observer = _active_cupti_profiler_observer
+            if observer is not None:
+                self._cupti_monitor_external_id = observer.push_annotation(self.name)
+        except Exception:
+            try:
+                record = self.record
+                if record is not None:
+                    with torch._C.DisableTorchFunctionSubclass():
+                        torch.ops.profiler._record_function_exit._RecordFunction(record)
+                    self.record = None
+            finally:
+                try:
+                    if self._roctx_range_active:
+                        if roctx is None:
+                            roctx = _get_roctx_module()
+                        if roctx is None:
+                            raise AssertionError("Expected ROCTX module to be loaded")
+                        self._pop_roctx_range(roctx)
+                finally:
+                    if self._roctx_profiler_region_active:
+                        if roctx is None:
+                            roctx = _get_roctx_module()
+                        if roctx is None:
+                            raise AssertionError("Expected ROCTX module to be loaded")
+                        self._pause_roctx_profiler(roctx)
+            raise
+
+    @_jit_unused
+    def _resume_roctx_profiler(self, roctx: Any) -> None:
+        result = roctx.profilerResume(0)
+        # rocprofv3 observes the control call regardless of its return value.
+        self._roctx_profiler_region_active = True
+        _check_roctx_profiler_result("resume", result)
+
+    @_jit_unused
+    def _pause_roctx_profiler(self, roctx: Any) -> None:
+        result = roctx.profilerPause(0)
+        # rocprofv3 observes the control call regardless of its return value.
+        self._roctx_profiler_region_active = False
+        _check_roctx_profiler_result("pause", result)
+
+    @_jit_unused
+    def _pop_roctx_range(self, roctx: Any) -> None:
+        stack = _get_roctx_range_stack()
+
+        # If a nested pop raised before returning, retry that pending pop before
+        # touching this range. This prevents an outer exit from popping the
+        # still-active inner native range.
+        while stack and stack[-1] is not self:
+            pending = stack[-1]
+            if not pending._roctx_range_pop_pending:
+                raise RuntimeError("ROCTx ranges must exit in stack order")
+            try:
+                pending._pop_roctx_range(roctx)
+            except Exception:
+                if pending._roctx_range_active:
+                    raise
+
+        if not stack or stack[-1] is not self:
+            raise RuntimeError("ROCTx range stack is inconsistent")
+
+        self._roctx_range_pop_pending = True
+        result = roctx.rangePop()
+
+        stack.pop()
+        self._roctx_range_active = False
+        self._roctx_range_pop_pending = False
+        if result < 0:
+            raise RuntimeError(f"ROCTx range pop failed with error code {result}")
+
     def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any):
-        if not torch.jit.is_scripting():
+        if torch.jit.is_scripting():
+            if self.run_callbacks_on_exit:
+                # Local variable is needed by TorchScript to refine Optional[T] to T
+                record = self.record
+                if record is None:
+                    raise AssertionError("Expected record to be set")
+                torch.ops.profiler._record_function_exit(record)
+        elif not self._roctx_range_active and not self._roctx_profiler_region_active:
             if self._cupti_monitor_external_id is not None:
                 observer = _active_cupti_profiler_observer
                 if observer is not None:
                     observer.pop_annotation()
                 self._cupti_monitor_external_id = None
 
-        if self.run_callbacks_on_exit:
-            # Local variable is needed by TorchScript to refine Optional[T] to T
-            record = self.record
-            if record is None:
-                raise AssertionError("Expected record to be set")
-
-            # TODO: Too slow with __torch_function__ handling enabled
-            # See https://github.com/pytorch/pytorch/issues/76410
-            if not torch.jit.is_scripting():
+            if self.run_callbacks_on_exit:
+                record = self.record
+                if record is None:
+                    raise AssertionError("Expected record to be set")
                 with torch._C.DisableTorchFunctionSubclass():
                     torch.ops.profiler._record_function_exit._RecordFunction(record)
-            else:
-                torch.ops.profiler._record_function_exit(record)
+        else:
+            self._exit_eager()
 
-        if not torch.jit.is_scripting() and self._roctx_range_active:
-            roctx = _get_roctx_module()
-            if roctx is None:
-                raise AssertionError("Expected ROCTX module to be loaded")
-            roctx.rangePop()
-            self._roctx_range_active = False
+    @_jit_unused
+    def _exit_eager(self) -> None:
+        try:
+            if self._cupti_monitor_external_id is not None:
+                observer = _active_cupti_profiler_observer
+                if observer is not None:
+                    observer.pop_annotation()
+                self._cupti_monitor_external_id = None
+
+            if self.run_callbacks_on_exit:
+                record = self.record
+                if record is None:
+                    raise AssertionError("Expected record to be set")
+
+                # TODO: Too slow with __torch_function__ handling enabled
+                # See https://github.com/pytorch/pytorch/issues/76410
+                with torch._C.DisableTorchFunctionSubclass():
+                    torch.ops.profiler._record_function_exit._RecordFunction(record)
+        finally:
+            roctx = None
+            try:
+                if self._roctx_range_active:
+                    if (
+                        _roctx_markers_enabled
+                        and _roctx_selected_regions_enabled
+                        and not self._roctx_profiler_region_active
+                    ):
+                        roctx = _get_roctx_module()
+                        if roctx is None:
+                            raise AssertionError("Expected ROCTX module to be loaded")
+                        self._resume_roctx_profiler(roctx)
+
+                    if roctx is None:
+                        roctx = _get_roctx_module()
+                    if roctx is None:
+                        raise AssertionError("Expected ROCTX module to be loaded")
+                    self._pop_roctx_range(roctx)
+            finally:
+                if self._roctx_profiler_region_active:
+                    if roctx is None:
+                        roctx = _get_roctx_module()
+                    if roctx is None:
+                        raise AssertionError("Expected ROCTX module to be loaded")
+                    self._pause_roctx_profiler(roctx)
 
     def _call_end_callbacks_on_future(self, fut: Future[Any]) -> Future[Any]:
         """Use for profiling async calls that return a future.

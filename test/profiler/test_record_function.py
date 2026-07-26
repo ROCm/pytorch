@@ -2,6 +2,7 @@
 # ruff: noqa: F841
 
 import sys
+import threading
 from typing import Any
 from unittest import mock
 
@@ -19,7 +20,6 @@ from torch.autograd import (
 from torch.autograd.profiler import profile as _profile
 from torch.profiler import kineto_available, record_function
 from torch.testing._internal.common_utils import run_tests, TestCase
-
 
 # if tqdm is not shutdown properly, it will leave the monitor thread alive.
 # This causes an issue in the multithreading test because we check all events
@@ -41,6 +41,7 @@ class TestRecordFunction(TestCase):
     class _FakeRoctx:
         def __init__(self):
             self.events = []
+            self.profiler_count = 0
 
         def rangePush(self, name):
             self.events.append(("push", name))
@@ -48,6 +49,16 @@ class TestRecordFunction(TestCase):
 
         def rangePop(self):
             self.events.append(("pop", None))
+            return 0
+
+        def profilerResume(self, tid=0):
+            self.events.append(("resume", tid))
+            self.profiler_count += 1
+            return 0
+
+        def profilerPause(self, tid=0):
+            self.events.append(("pause", tid))
+            self.profiler_count -= 1
             return 0
 
     def _record_function_with_param(self):
@@ -93,6 +104,9 @@ class TestRecordFunction(TestCase):
         roctx = self._FakeRoctx()
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", roctx),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -116,6 +130,9 @@ class TestRecordFunction(TestCase):
         roctx = self._FakeRoctx()
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", roctx),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -138,6 +155,9 @@ class TestRecordFunction(TestCase):
 
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", roctx),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=True
@@ -152,6 +172,9 @@ class TestRecordFunction(TestCase):
         roctx = self._FakeRoctx()
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", roctx),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -169,6 +192,9 @@ class TestRecordFunction(TestCase):
         roctx = self._FakeRoctx()
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", None),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -199,6 +225,9 @@ class TestRecordFunction(TestCase):
         rf = record_function("missing_roctx")
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", None),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -225,6 +254,9 @@ class TestRecordFunction(TestCase):
         roctx = FailOnceRoctx()
         with (
             mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", False
+            ),
             mock.patch.object(autograd_profiler, "_roctx_module", roctx),
             mock.patch.object(
                 autograd_profiler, "_nvtx_profiler_active", return_value=False
@@ -241,6 +273,388 @@ class TestRecordFunction(TestCase):
             self.assertFalse(rf._roctx_range_active)
 
         self.assertEqual(roctx.events, [("push", "retry"), ("pop", None)])
+
+    def test_record_function_roctx_selected_regions(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            with record_function("outer"):
+                with record_function("inner"):
+                    pass
+
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "outer"),
+                ("resume", 0),
+                ("push", "inner"),
+                ("pop", None),
+                ("pause", 0),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
+
+    def test_record_function_roctx_selected_regions_overlapping_threads(self):
+        roctx = self._FakeRoctx()
+        entered = threading.Barrier(3)
+        exit_range = threading.Barrier(3)
+        errors = []
+
+        @record_function("worker")
+        def decorated_worker():
+            entered.wait(timeout=10)
+            exit_range.wait(timeout=10)
+
+        def worker():
+            try:
+                decorated_worker()
+            except Exception as error:
+                errors.append(error)
+
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            threads = [threading.Thread(target=worker) for _ in range(2)]
+            for thread in threads:
+                thread.start()
+            entered.wait(timeout=10)
+            exit_range.wait(timeout=10)
+            for thread in threads:
+                thread.join(timeout=10)
+                self.assertFalse(thread.is_alive())
+
+        self.assertEqual(errors, [])
+        self.assertEqual(len(roctx.events), 8)
+        self.assertEqual(sum(event[0] == "resume" for event in roctx.events), 2)
+        self.assertEqual(sum(event[0] == "push" for event in roctx.events), 2)
+        self.assertEqual(sum(event[0] == "pop" for event in roctx.events), 2)
+        self.assertEqual(sum(event[0] == "pause" for event in roctx.events), 2)
+        self.assertEqual(
+            {event[1] for event in roctx.events if event[0] == "push"},
+            {"worker"},
+        )
+        self.assertEqual(roctx.profiler_count, 0)
+
+    def test_record_function_roctx_selected_regions_balanced_on_exception(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "expected"):
+                with record_function("failing"):
+                    raise RuntimeError("expected")
+
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "failing"),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
+
+    def test_record_function_roctx_selected_regions_with_nvtx(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=True
+            ),
+        ):
+            with record_function("nvtx"):
+                pass
+
+        self.assertEqual(roctx.events, [("resume", 0), ("pause", 0)])
+
+    def test_record_function_roctx_selected_regions_deferred_callbacks(self):
+        roctx = self._FakeRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            future: torch.futures.Future[int] = torch.futures.Future()
+            with record_function("deferred") as rf:
+                profiled_future = rf._call_end_callbacks_on_future(future)
+
+            self.assertEqual(
+                roctx.events,
+                [
+                    ("resume", 0),
+                    ("push", "deferred"),
+                    ("pop", None),
+                    ("pause", 0),
+                ],
+            )
+            future.set_result(1)
+            self.assertEqual(profiled_future.wait(), 1)
+
+    def test_record_function_roctx_selected_regions_push_failure_pauses(self):
+        class FailPushRoctx(TestRecordFunction._FakeRoctx):
+            def rangePush(self, name):
+                raise RuntimeError("push failed")
+
+        roctx = FailPushRoctx()
+        rf = record_function("failing_push")
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+            self.assertRaisesRegex(RuntimeError, "push failed"),
+        ):
+            rf.__enter__()
+
+        self.assertIsNone(rf.record)
+        self.assertFalse(rf._roctx_range_active)
+        self.assertFalse(rf._roctx_profiler_region_active)
+        self.assertEqual(roctx.events, [("resume", 0), ("pause", 0)])
+        self.assertEqual(roctx.profiler_count, 0)
+
+    def test_record_function_roctx_selected_regions_resume_failure_does_not_enter(
+        self,
+    ):
+        class FailResumeRoctx(TestRecordFunction._FakeRoctx):
+            def profilerResume(self, tid=0):
+                super().profilerResume(tid)
+                return 1
+
+        roctx = FailResumeRoctx()
+        rf = record_function("failing_resume")
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            self.assertRaisesRegex(RuntimeError, "resume failed"),
+        ):
+            rf.__enter__()
+
+        self.assertIsNone(rf.record)
+        self.assertFalse(rf._roctx_range_active)
+        self.assertFalse(rf._roctx_profiler_region_active)
+        self.assertEqual(roctx.events, [("resume", 0), ("pause", 0)])
+        self.assertEqual(roctx.profiler_count, 0)
+
+    def test_record_function_roctx_selected_regions_pop_failure_can_be_retried(self):
+        class FailOnceRoctx(TestRecordFunction._FakeRoctx):
+            def __init__(self):
+                super().__init__()
+                self.fail_pop = True
+
+            def rangePop(self):
+                if self.fail_pop:
+                    self.fail_pop = False
+                    raise RuntimeError("pop failed")
+                return super().rangePop()
+
+        roctx = FailOnceRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            rf = record_function("retry")
+            rf.__enter__()
+            with self.assertRaisesRegex(RuntimeError, "pop failed"):
+                rf.__exit__(None, None, None)
+
+            self.assertTrue(rf._roctx_range_active)
+            self.assertTrue(rf._roctx_range_pop_pending)
+            self.assertFalse(rf._roctx_profiler_region_active)
+
+            rf.run_callbacks_on_exit = False
+            rf.__exit__(None, None, None)
+
+        self.assertFalse(rf._roctx_range_active)
+        self.assertFalse(rf._roctx_range_pop_pending)
+        self.assertFalse(rf._roctx_profiler_region_active)
+        self.assertEqual(roctx.profiler_count, 0)
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "retry"),
+                ("pause", 0),
+                ("resume", 0),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
+
+    def test_record_function_roctx_selected_regions_nested_pop_failure(self):
+        class FailOnceRoctx(TestRecordFunction._FakeRoctx):
+            def __init__(self):
+                super().__init__()
+                self.fail_pop = True
+
+            def rangePop(self):
+                if self.fail_pop:
+                    self.fail_pop = False
+                    raise RuntimeError("pop failed")
+                return super().rangePop()
+
+        roctx = FailOnceRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            with self.assertRaisesRegex(RuntimeError, "pop failed"):
+                with record_function("outer") as outer:
+                    with record_function("inner") as inner:
+                        pass
+
+        self.assertFalse(inner._roctx_range_active)
+        self.assertFalse(inner._roctx_range_pop_pending)
+        self.assertFalse(outer._roctx_range_active)
+        self.assertFalse(outer._roctx_range_pop_pending)
+        self.assertEqual(roctx.profiler_count, 0)
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "outer"),
+                ("resume", 0),
+                ("push", "inner"),
+                ("pause", 0),
+                ("pop", None),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
+
+    def test_record_function_roctx_range_pop_underflow_is_reported(self):
+        class UnderflowRoctx(TestRecordFunction._FakeRoctx):
+            def rangePop(self):
+                self.events.append(("pop", None))
+                return -1
+
+        roctx = UnderflowRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            rf = record_function("underflow")
+            rf.__enter__()
+            with self.assertRaisesRegex(RuntimeError, "range pop failed"):
+                rf.__exit__(None, None, None)
+
+        self.assertFalse(rf._roctx_range_active)
+        self.assertFalse(rf._roctx_range_pop_pending)
+        self.assertFalse(rf._roctx_profiler_region_active)
+        self.assertEqual(roctx.profiler_count, 0)
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "underflow"),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
+
+    def test_record_function_roctx_selected_regions_pause_error_stays_balanced(self):
+        class FailOnceRoctx(TestRecordFunction._FakeRoctx):
+            def __init__(self):
+                super().__init__()
+                self.fail_pause = True
+
+            def profilerPause(self, tid=0):
+                result = super().profilerPause(tid)
+                if self.fail_pause:
+                    self.fail_pause = False
+                    return 1
+                return result
+
+        roctx = FailOnceRoctx()
+        with (
+            mock.patch.object(autograd_profiler, "_roctx_markers_enabled", True),
+            mock.patch.object(
+                autograd_profiler, "_roctx_selected_regions_enabled", True
+            ),
+            mock.patch.object(autograd_profiler, "_roctx_module", roctx),
+            mock.patch.object(
+                autograd_profiler, "_nvtx_profiler_active", return_value=False
+            ),
+        ):
+            rf = record_function("retry_pause")
+            rf.__enter__()
+            with self.assertRaisesRegex(RuntimeError, "pause failed"):
+                rf.__exit__(None, None, None)
+
+            self.assertFalse(rf._roctx_range_active)
+            self.assertFalse(rf._roctx_profiler_region_active)
+
+            rf.run_callbacks_on_exit = False
+            rf.__exit__(None, None, None)
+
+        self.assertFalse(rf._roctx_profiler_region_active)
+        self.assertEqual(roctx.profiler_count, 0)
+        self.assertEqual(
+            roctx.events,
+            [
+                ("resume", 0),
+                ("push", "retry_pause"),
+                ("pop", None),
+                ("pause", 0),
+            ],
+        )
 
     def test_datapipe_with_record_function(self):
         with _profile(
