@@ -21,12 +21,10 @@ from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.testing._internal.common_cuda import SM90OrLater
 from torch.testing._internal.common_utils import (
     find_free_port,
-    getRocmVersion,
     IS_WINDOWS,
     munge_exc,
     skipIfTorchDynamo,
     skipIfWindows,
-    TEST_WITH_ROCM,
     TEST_XPU,
     xfailIf,
 )
@@ -1418,6 +1416,11 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         )
 
     def test_logs_out(self):
+        from torch.testing._internal.common_utils import (
+            getRocmVersion,
+            TEST_WITH_ROCM,
+        )
+
         if TEST_WITH_ROCM and getRocmVersion() >= (7, 14):
             self.skipTest(
                 "ROCm runtime emits spurious W-lines into the captured log stream "
