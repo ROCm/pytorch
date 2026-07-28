@@ -1727,6 +1727,8 @@ def get_new_module_tests():
             check_gradgrad=False,
             desc='discontiguous',
             default_dtype=torch.double,
+            test_cuda=False, # skip flaky test_nn.py::TestNN::test_Embedding_discontiguous_cuda (https://github.com/pytorch/pytorch/issues/186910)
+            cuda_skip_reason='Test is flaky (https://github.com/pytorch/pytorch/issues/186910)',
             decorator=skipIfTorchDynamo("https://github.com/pytorch/pytorch/issues/117971")
         ),
         dict(
@@ -3412,6 +3414,15 @@ class TestBase:
     def _get_input(self, unpack=True):
         return self._get_arg('input', unpack)
 
+    def _skip_unless_cuda_test_enabled(self) -> None:
+        if not TEST_CUDA:
+            raise unittest.SkipTest('CUDA not available')
+        if not getattr(self, 'should_test_cuda', True):
+            raise unittest.SkipTest(
+                getattr(self, 'cuda_skip_reason', None)
+                or 'Excluded from CUDA tests (test_cuda=False)',
+            )
+
     def __call__(self, test_case):
         raise NotImplementedError
 
@@ -3426,6 +3437,7 @@ class ModuleTest(TestBase):
         super().__init__(*args, **kwargs)
         self.jacobian_input = kwargs.get('jacobian_input', True)
         self.should_test_cuda = kwargs.get('test_cuda', True)
+        self.cuda_skip_reason = kwargs.get('cuda_skip_reason')
         self.should_test_pickle = kwargs.get('pickle', True)
         self.check_gradgrad = kwargs.get('check_gradgrad', True)
         self.FIXME_no_cuda_gradgrad_comparison = \
@@ -3525,8 +3537,7 @@ class ModuleTest(TestBase):
                 test_case.assertEqual(test_case._get_parameters(module)[1], d_param)
 
     def test_cuda(self, test_case):
-        if not TEST_CUDA or not self.should_test_cuda:
-            raise unittest.SkipTest('Excluded from CUDA tests')
+        self._skip_unless_cuda_test_enabled()
 
         with set_default_dtype(self.default_dtype):
             cpu_input = self._get_input()
@@ -3844,6 +3855,7 @@ class CriterionTest(InputVariableMixin, TestBase):  # type: ignore[misc]
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.should_test_cuda = kwargs.get('test_cuda', True)
+        self.cuda_skip_reason = kwargs.get('cuda_skip_reason')
         self.check_forward_only = kwargs.get('check_forward_only', False)
         self.check_gradgrad = kwargs.get('check_gradgrad', True)
         self.check_half = kwargs.get('check_half', True)
@@ -3903,8 +3915,7 @@ class CriterionTest(InputVariableMixin, TestBase):  # type: ignore[misc]
             else:
                 return obj
 
-        if not TEST_CUDA or not self.should_test_cuda:
-            raise unittest.SkipTest('Excluded from CUDA tests')
+        self._skip_unless_cuda_test_enabled()
 
         with set_default_dtype(self.default_dtype):
             cpu_input = self._get_input()
