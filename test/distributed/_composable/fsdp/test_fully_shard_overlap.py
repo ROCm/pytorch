@@ -28,6 +28,7 @@ from torch.testing._internal.common_fsdp import (
 )
 from torch.testing._internal.common_utils import (
     get_cycles_per_ms,
+    IS_LINUX,
     MI200_ARCH,
     run_tests,
     TEST_HPU,
