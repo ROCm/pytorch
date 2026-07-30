@@ -888,58 +888,66 @@ def make_graphed_callables(
     # the safest approach is to capture all passes in the same order they'll run:
     # fwd 1, fwd 2, ... fwd N, then bwd N, bwd N-1, ... bwd 1.
 
-    # Capture forward graphs
-    per_callable_static_outputs = []
-    per_callable_output_unflatten_spec = []
-    for func, args, fwd_graph in zip(callables, _sample_args, fwd_graphs):
-        with torch.cuda.graph(fwd_graph, stream=stream, pool=mempool):
-            func_outputs = func(*args)
+    # Disable GC during capture. On ROCm, a GC cycle during backward capture can
+    # destroy a CUDAGraph whose destructor calls capture-unsafe HIP APIs.
+    gc_was_enabled = gc.isenabled()
+    gc.disable()
+    try:
+        # Capture forward graphs
+        per_callable_static_outputs = []
+        per_callable_output_unflatten_spec = []
+        for func, args, fwd_graph in zip(callables, _sample_args, fwd_graphs):
+            with torch.cuda.graph(fwd_graph, stream=stream, pool=mempool):
+                func_outputs = func(*args)
 
-        flatten_outputs, spec = torch.utils._pytree.tree_flatten(func_outputs)
-        per_callable_static_outputs.append(tuple(flatten_outputs))
-        per_callable_output_unflatten_spec.append(spec)
+            flatten_outputs, spec = torch.utils._pytree.tree_flatten(func_outputs)
+            per_callable_static_outputs.append(tuple(flatten_outputs))
+            per_callable_output_unflatten_spec.append(spec)
 
-    # Capture backward graphs in reverse order
-    per_callable_static_grad_outputs = []
-    per_callable_static_grad_inputs = []
-    for static_input_surface, static_outputs, bwd_graph in zip(
-        reversed(per_callable_static_input_surfaces),
-        reversed(per_callable_static_outputs),
-        reversed(bwd_graphs),
-    ):
-        # For now, assumes all static_outputs require grad
-        # assert all(o.requires_grad for o in static_outputs), "Outputs of graphed callables must require grad."
-        static_grad_outputs = tuple(
-            torch.empty_like(o) if o.requires_grad else None for o in static_outputs
-        )
+        # Capture backward graphs in reverse order
+        per_callable_static_grad_outputs = []
+        per_callable_static_grad_inputs = []
+        for static_input_surface, static_outputs, bwd_graph in zip(
+            reversed(per_callable_static_input_surfaces),
+            reversed(per_callable_static_outputs),
+            reversed(bwd_graphs),
+        ):
+            # For now, assumes all static_outputs require grad
+            # assert all(o.requires_grad for o in static_outputs), "Outputs of graphed callables must require grad."
+            static_grad_outputs = tuple(
+                torch.empty_like(o) if o.requires_grad else None for o in static_outputs
+            )
 
-        outputs_grad = tuple(o for o in static_outputs if o.requires_grad)
-        grad_inputs = None
-        if len(outputs_grad) > 0:
-            with torch.cuda.graph(bwd_graph, stream=stream, pool=mempool):
-                grad_inputs = torch.autograd.grad(
-                    outputs=outputs_grad,
-                    inputs=tuple(i for i in static_input_surface if i.requires_grad),
-                    grad_outputs=tuple(o for o in static_grad_outputs if o is not None),
-                    only_inputs=True,
-                    allow_unused=allow_unused_input,
-                )
+            outputs_grad = tuple(o for o in static_outputs if o.requires_grad)
+            grad_inputs = None
+            if len(outputs_grad) > 0:
+                with torch.cuda.graph(bwd_graph, stream=stream, pool=mempool):
+                    grad_inputs = torch.autograd.grad(
+                        outputs=outputs_grad,
+                        inputs=tuple(i for i in static_input_surface if i.requires_grad),
+                        grad_outputs=tuple(o for o in static_grad_outputs if o is not None),
+                        only_inputs=True,
+                        allow_unused=allow_unused_input,
+                    )
 
-        # Constructs a tuple suitable for returning from Graphed.backward:
-        # Pads out the actually-needed grads with Nones in gradient slots for inputs that don't require grad.
-        # I couldn't think of a slick one-liner for this pattern.
-        static_grad_inputs = []
-        grad_idx = 0
-        for arg in static_input_surface:
-            if arg.requires_grad and grad_inputs is not None:
-                static_grad_inputs.append(grad_inputs[grad_idx])
-                grad_idx += 1
-            else:
-                static_grad_inputs.append(None)  # type: ignore[arg-type]
-        static_grad_inputs = tuple(static_grad_inputs)  # type: ignore[assignment]
+            # Constructs a tuple suitable for returning from Graphed.backward:
+            # Pads out the actually-needed grads with Nones in gradient slots for inputs that don't require grad.
+            # I couldn't think of a slick one-liner for this pattern.
+            static_grad_inputs = []
+            grad_idx = 0
+            for arg in static_input_surface:
+                if arg.requires_grad and grad_inputs is not None:
+                    static_grad_inputs.append(grad_inputs[grad_idx])
+                    grad_idx += 1
+                else:
+                    static_grad_inputs.append(None)  # type: ignore[arg-type]
+            static_grad_inputs = tuple(static_grad_inputs)  # type: ignore[assignment]
 
-        per_callable_static_grad_outputs.append(static_grad_outputs)
-        per_callable_static_grad_inputs.append(static_grad_inputs)
+            per_callable_static_grad_outputs.append(static_grad_outputs)
+            per_callable_static_grad_inputs.append(static_grad_inputs)
+    finally:
+        if gc_was_enabled:
+            gc.enable()
 
     # Reverses the most recent two lists
     per_callable_static_grad_outputs.reverse()

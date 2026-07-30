@@ -31,6 +31,53 @@ bool is_graph_capture_active() {
   std::unique_lock<std::mutex> lock(_currently_capturing_graphs_mutex);
   return !_currently_capturing_graphs.empty();
 }
+
+namespace {
+
+struct DeferredCUDAGraphCleanup {
+  cudaGraph_t graph = nullptr;
+  cudaGraphExec_t graph_exec = nullptr;
+  c10::DeviceIndex capture_dev = -1;
+};
+
+std::mutex g_deferred_cudagraph_cleanup_mutex;
+std::vector<DeferredCUDAGraphCleanup> g_deferred_cudagraph_cleanups;
+
+void defer_cudagraph_cleanup(
+    cudaGraph_t graph,
+    cudaGraphExec_t graph_exec,
+    c10::DeviceIndex capture_dev) {
+  if (graph == nullptr && graph_exec == nullptr) {
+    return;
+  }
+  std::lock_guard<std::mutex> lock(g_deferred_cudagraph_cleanup_mutex);
+  g_deferred_cudagraph_cleanups.push_back({graph, graph_exec, capture_dev});
+}
+
+void flush_deferred_cudagraph_cleanups() {
+  std::vector<DeferredCUDAGraphCleanup> cleanups;
+  {
+    std::lock_guard<std::mutex> lock(g_deferred_cudagraph_cleanup_mutex);
+    if (g_deferred_cudagraph_cleanups.empty()) {
+      return;
+    }
+    cleanups.swap(g_deferred_cudagraph_cleanups);
+  }
+  for (const auto& cleanup : cleanups) {
+    if (cleanup.graph != nullptr) {
+      C10_CUDA_CHECK_WARN(cudaGraphDestroy(cleanup.graph));
+    }
+    if (cleanup.graph_exec != nullptr) {
+      C10_CUDA_CHECK_WARN(cudaGraphExecDestroy(cleanup.graph_exec));
+    }
+    if (cleanup.capture_dev >= 0) {
+      C10_CUDA_CHECK_WARN(cudaSetDevice(cleanup.capture_dev));
+      C10_CUDA_CHECK_WARN(cudaDeviceSynchronize());
+    }
+  }
+}
+
+} // namespace
 #endif // defined(USE_ROCM)
 
 CUDAGraph* get_graph_from_capture_id(CaptureId_t capture_id) {
@@ -218,6 +265,11 @@ void CUDAGraph::capture_end_pre() {
         "capture_end() called before capture_begin().");
     _currently_capturing_graphs.erase(capture_id_);
   }
+#if defined(USE_ROCM)
+  if (!is_graph_capture_active()) {
+    flush_deferred_cudagraph_cleanups();
+  }
+#endif
 
   // End pool allocation before checking the capture error. This ensures
   // captures_underway is cleaned up even if cudaStreamEndCapture failed
@@ -386,12 +438,29 @@ void CUDAGraph::reset() {
     at::getHostAllocator(at::kCUDA)->release_pool(mempool_id_);
     capture_ended_ = false;
   }
-  if (has_graph_) {
-    C10_CUDA_CHECK_WARN(cudaGraphDestroy(graph_));
+  if (has_graph_ || has_graph_exec_) {
+#if defined(USE_ROCM)
+    if (is_graph_capture_active()) {
+      defer_cudagraph_cleanup(graph_, graph_exec_, capture_dev_);
+      graph_ = nullptr;
+      graph_exec_ = nullptr;
+    } else {
+      if (has_graph_) {
+        C10_CUDA_CHECK_WARN(cudaGraphDestroy(graph_));
+      }
+      if (has_graph_exec_) {
+        C10_CUDA_CHECK_WARN(cudaGraphExecDestroy(graph_exec_));
+      }
+    }
+#else
+    if (has_graph_) {
+      C10_CUDA_CHECK_WARN(cudaGraphDestroy(graph_));
+    }
+    if (has_graph_exec_) {
+      C10_CUDA_CHECK_WARN(cudaGraphExecDestroy(graph_exec_));
+    }
+#endif
     has_graph_ = false;
-  }
-  if (has_graph_exec_) {
-    C10_CUDA_CHECK_WARN(cudaGraphExecDestroy(graph_exec_));
     has_graph_exec_ = false;
   }
 #if !defined(USE_ROCM) && (defined(CUDA_VERSION) && CUDA_VERSION >= 12040)
@@ -422,8 +491,11 @@ CUDAGraph::~CUDAGraph() {
 // hipGraphLaunch are finished before we release any memory. This feature was enabled in rocm6.2.
 // We need to ensure all async operations finish before deleting the object.
 #if defined(USE_ROCM)
-  if (capture_dev_ != UNDEFINED_DEVICE) // check if capture_dev_ contains the real device id
-  {
+  // hipGraphExecDestroy waits for the next device sync to reclaim memory.
+  // cudaDeviceSynchronize is illegal while another stream is capturing, which
+  // can happen if Python GC destroys a CUDAGraph mid-capture (e.g. during
+  // make_graphed_callables' backward capture). Defer sync/destroy instead.
+  if (capture_dev_ != UNDEFINED_DEVICE && !is_graph_capture_active()) {
     AT_CUDA_CHECK(cudaSetDevice(capture_dev_));
     AT_CUDA_CHECK(cudaDeviceSynchronize());
   }
