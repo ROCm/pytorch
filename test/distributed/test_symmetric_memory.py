@@ -33,7 +33,6 @@ from torch.distributed._symmetric_memory._nccl import (
 )
 from torch.distributed.distributed_c10d import _TORCHCOMM_AVAILABLE
 from torch.testing._internal.common_cuda import (
-    ROCM_VERSION,
     SM100OrLater,
     SM89OrLater,
     SM90OrLater,
@@ -474,11 +473,8 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
-    @skipIf(
-        TEST_WITH_ROCM and ROCM_VERSION == (7, 14),
-        "ROCm 7.14 rejects valid peer VMM mappings in hipMemSetAccess",
-    )
     @skip_if_lt_x_gpu(4)
+    @skip_if_rocm_ver_atleast_multiprocess([7, 14])
     def test_subgroup(self) -> None:
         self._init_process()
 
@@ -1235,11 +1231,8 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
     @skipIf(
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
-    @skipIf(
-        TEST_WITH_ROCM and ROCM_VERSION == (7, 14),
-        "ROCm 7.14 rejects valid peer VMM mappings in hipMemSetAccess",
-    )
     @skip_if_lt_x_gpu(4)
+    @skip_if_rocm_ver_atleast_multiprocess([7, 14])
     def test_one_shot_all_reduce(self) -> None:
         self._init_process()
         group_name = dist.group.WORLD.group_name
