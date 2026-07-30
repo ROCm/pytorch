@@ -121,6 +121,8 @@ void CUDAGraph::capture_begin(MempoolId_t pool/*=0*/, cudaStreamCaptureMode capt
   // prevent potentially unsafe CUDA API calls during capture.  See
   // https://docs.nvidia.com/cuda/cuda-runtime-api/group__CUDART__STREAM.html#group__CUDART__STREAM_1g9d0535d93a214cbf126835257b16ba85
   AT_CUDA_CHECK(cudaStreamBeginCapture(capture_stream_, capture_mode));
+  c10::cuda::CUDACachingAllocator::markCaptureBegin(capture_dev_);
+  capture_marked_active_ = true;
 
   cudaStreamCaptureStatus status{};
   AT_CUDA_CHECK(cudaStreamGetCaptureInfo(stream, &status, &capture_id_));
@@ -134,7 +136,10 @@ void CUDAGraph::capture_end() {
   TORCH_CHECK(stream.stream() == capture_stream_.stream(),
               "Capture must end on the same stream it began on.");
 
-  AT_CUDA_CHECK(cudaStreamEndCapture(capture_stream_, &graph_));
+  cudaError_t endCaptureErr = cudaStreamEndCapture(capture_stream_, &graph_);
+  c10::cuda::CUDACachingAllocator::markCaptureEnd(capture_dev_);
+  capture_marked_active_ = false;
+  AT_CUDA_CHECK(endCaptureErr);
 
   c10::cuda::CUDACachingAllocator::endAllocateToPool(capture_dev_, mempool_id_);
   at::getHostAllocator(at::kCUDA)->end_allocate_to_pool(mempool_id_);
@@ -269,6 +274,10 @@ void CUDAGraph::reset() {
   // If the user catches the failure exception in a script, or is running in REPL or (god forbid)
   // a Jupyter notebook, I don't see an easy way for reset() to gracefully fix all such possible error states.
   if (allocated_pool_) {
+    if (capture_marked_active_) {
+      c10::cuda::CUDACachingAllocator::markCaptureEnd(capture_dev_);
+      capture_marked_active_ = false;
+    }
     if (capturing_to_pool_) {
       // Capture was abandoned before capture_end() ran, so the allocator is
       // still routing allocations to this pool. Stop that before releasing so

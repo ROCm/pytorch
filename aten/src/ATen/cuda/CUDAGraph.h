@@ -65,6 +65,9 @@ struct TORCH_CUDA_CPP_API CUDAGraph {
   // still routing allocations to the pool (capture abandoned before capture_end
   // ran) and must be ended before the pool can be released.
   bool capturing_to_pool_ = false;
+  // Set to true after markCaptureBegin and cleared after markCaptureEnd.
+  // Tells reset() to call markCaptureEnd if capture was abandoned mid-flight.
+  bool capture_marked_active_ = false;
 
   // the ID assigned by cuda during graph capture,
   // used to identify when a stream is participating in capture
