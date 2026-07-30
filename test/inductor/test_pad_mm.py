@@ -15,6 +15,7 @@ from torch._inductor.fx_passes.pad_mm import (
 from torch._inductor.test_case import run_tests, TestCase
 from torch._inductor.utils import fresh_cache, is_big_gpu, run_and_get_code
 from torch.testing import FileCheck
+from torch.testing._internal.common_utils import skipIfRocmVersionAtLeast
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU_AND_TRITON
 
 
@@ -417,6 +418,7 @@ class PadMMTest(TestCase):
         if not torch.allclose(res2, bmm_expected_result):
             raise AssertionError("BMM results are not identical")
 
+    @skipIfRocmVersionAtLeast([7, 14])
     @fresh_cache()
     def test_exclude_padding(self):
         @torch.compile()
