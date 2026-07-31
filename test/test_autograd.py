@@ -59,6 +59,7 @@ from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     onlyCPU,
     onlyCUDA,
+    skipCUDAIf,
     skipMeta,
 )
 from torch.testing._internal.common_dtype import floating_types_and
@@ -13294,6 +13295,10 @@ class TestAutogradDeviceType(TestCase):
         self.assertIsNone(t1.grad)
         self.assertIsNone(t3.grad)
 
+    @skipCUDAIf(
+        True,
+        "Flaky test: https://github.com/pytorch/pytorch/issues/86735",
+    )
     @onlyCUDA
     def test_reentrant_parent_error_on_cpu(self, device):
         def _get_cuda_memory_usage():
