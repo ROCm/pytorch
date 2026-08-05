@@ -29,6 +29,7 @@ from torch.distributed.elastic.utils.distributed import get_free_port
 from torch.testing._internal.common_utils import (
     run_tests,
     skip_but_pass_in_sandcastle_if,
+    skipIfRocm,
     TEST_CUDA,
     TEST_WITH_DEV_DBG_ASAN,
     TestCase,
@@ -680,6 +681,7 @@ class ElasticLaunchTest(TestCase):
         for i in range(nproc_per_node):
             self.assertTrue(f"[rank{i}]: creating " in captured_out.getvalue())
 
+    @skipIfRocm(msg="Skipped to stabilize TheRock CI")
     @skip_but_pass_in_sandcastle_if(
         TEST_WITH_DEV_DBG_ASAN, "test incompatible with dev/dbg asan"
     )
