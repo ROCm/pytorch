@@ -12938,8 +12938,21 @@ class TestNNDeviceType(NNTestCase):
     def test_cross_entropy_loss_2d_out_of_bounds_class_index(self, device, dtype):
         # Test for issue #117532
         # Run in a different process to prevent the device-side assert from affecting other tests
-        stderr = TestCase.runWithPytorchAPIUsageStderr(f"""\
-#!/usr/bin/env python3
+        rocm_subprocess_env = {
+            "HSA_ENABLE_VM_FAULT_MESSAGE": "1",
+            "HIP_LAUNCH_BLOCKING": "1",
+        }
+        returncode, stdout, stderr = TestCase.runWithPytorchAPIUsageSubprocess(
+            f"""\
+import os
+import sys
+
+# ROCm device-fault diagnostics (before torch / HIP init)
+for _key, _val in (
+    ("HSA_ENABLE_VM_FAULT_MESSAGE", "1"),
+    ("HIP_LAUNCH_BLOCKING", "1"),
+):
+    os.environ.setdefault(_key, _val)
 
 import torch
 import torch.nn.functional as F
@@ -12960,23 +12973,56 @@ class TestThatContainsCUDAAssert(TestCase):
         # Set invalid class index
         labels[5, 200, 200] = 254
 
+        print(
+            f"PYTORCH_CE_OOB_DEBUG torch={{torch.__version__}} "
+            f"hip={{getattr(torch.version, 'hip', None)}} device={{device}} dtype={{dtype}}",
+            file=sys.stderr,
+        )
         x = F.cross_entropy(
             pred, labels, reduction="none", ignore_index=ignore_index
         )
         torch.cuda.synchronize()
+        print("PYTORCH_CE_OOB_DEBUG synchronize ok", file=sys.stderr)
 
 
 if __name__ == '__main__':
     run_tests()
-        """)
+            """,
+            extra_env=rocm_subprocess_env,
+        )
+        import sys
+
+        print(
+            "PYTORCH_CE_OOB_SUBPROCESS_LOG\n"
+            f"returncode={returncode}\n"
+            f"--- stdout ---\n{stdout}\n"
+            f"--- stderr ---\n{stderr}\n",
+            file=sys.stderr,
+            flush=True,
+        )
+        diag = (
+            f"returncode={returncode}\n"
+            f"stdout={stdout!r}\n"
+            f"stderr={stderr!r}"
+        )
+        # Subprocess should not complete successfully after device-side failure.
+        self.assertNotEqual(
+            returncode,
+            0,
+            f"Expected nonzero subprocess exit after OOB class index; {diag}",
+        )
         # CUDA says "device-side assert triggered"
         # ROCm says "unspecified launch failure", or HSA_STATUS_ERROR_EXCEPTION
         has_cuda_assert = 'CUDA error: device-side assert triggered' in stderr
         has_hip_assert = ('launch failure' in stderr
                           or 'HSA_STATUS_ERROR_EXCEPTION' in stderr
-                          or 'illegal memory access' in stderr)
-        self.assertTrue(has_cuda_assert or has_hip_assert,
-                        f"Expected device assert error in stderr, got: {stderr}")
+                          or 'illegal memory access' in stderr
+                          or 'Memory access fault' in stderr
+                          or 'Memory Fault Error' in stderr)
+        self.assertTrue(
+            has_cuda_assert or has_hip_assert,
+            f"Expected device assert error in stderr; {diag}",
+        )
 
 
 

@@ -4764,17 +4764,43 @@ class TestCase(expecttest.TestCase):
             (stdout, stderr) = p.communicate()
             return (stdout, stderr)
 
-    # returns captured stderr
     @staticmethod
-    def runWithPytorchAPIUsageStderr(code):
+    def _pytorch_api_usage_subprocess_env() -> dict[str, str]:
         env = os.environ.copy()
         env["PYTORCH_API_USAGE_STDERR"] = "1"
         # remove CI flag since this is a wrapped test process.
         # CI flag should be set in the parent process only.
         env.pop("CI", None)
         env.pop("TEST_SHOWLOCALS", None)
+        return env
+
+    # returns captured stderr
+    @staticmethod
+    def runWithPytorchAPIUsageStderr(code):
+        env = TestCase._pytorch_api_usage_subprocess_env()
         _stdout, stderr = TestCase.run_process_no_exception(code, env=env)
         return stderr.decode('ascii')
+
+    @staticmethod
+    def runWithPytorchAPIUsageSubprocess(code, extra_env: dict[str, str] | None = None):
+        """Run code in a subprocess; return (returncode, stdout, stderr) as str."""
+        import subprocess
+
+        env = TestCase._pytorch_api_usage_subprocess_env()
+        if extra_env:
+            env.update(extra_env)
+        with subprocess.Popen(
+            [sys.executable, "-c", code],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+        ) as p:
+            stdout, stderr = p.communicate()
+            return (
+                p.returncode,
+                stdout.decode("ascii", errors="replace"),
+                stderr.decode("ascii", errors="replace"),
+            )
 
     def _attempt_load_from_subprocess(
         self,
