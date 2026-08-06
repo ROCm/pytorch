@@ -134,4 +134,5 @@
 	url = https://github.com/meta-pytorch/MSLK.git
 [submodule "third_party/rlog"]
 	path = third_party/rlog
-	url = https://github.com/ROCm/rlog.git
+	url = https://github.com/ROCm/rocmProfileData.git
+	branch = rlog
