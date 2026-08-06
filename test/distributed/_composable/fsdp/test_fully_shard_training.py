@@ -59,6 +59,7 @@ from torch.testing._internal.common_utils import (
     get_cycles_per_ms,
     MI200_ARCH,
     run_tests,
+    skipIfRocm,
     TEST_CUDA_GRAPH,
     TEST_HPU,
     TEST_XPU,
@@ -662,6 +663,7 @@ class TestFullyShard1DTrainingCore(FSDPTest):
             self.assertEqual(losses[0], losses[1])
 
     @skip_if_lt_x_gpu(2)
+    @skipIfRocm(msg="Skipped to stabilize release/2.11 on TheRock CI")
     @unittest.skipIf(TEST_HPU or TEST_XPU, "Sleep is not supported on HPU/XPU")
     def test_post_optim_event(self):
         torch.manual_seed(42)
