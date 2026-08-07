@@ -21,6 +21,7 @@ from torch._inductor.pattern_matcher import (
 )
 from torch._inductor.utils import is_big_gpu, run_and_get_code
 from torch.testing import FileCheck
+from torch.testing._internal.common_cuda import TEST_WITH_ROCM
 from torch.testing._internal.common_utils import (
     run_tests,
     skipIfTorchDynamo,
@@ -190,7 +191,10 @@ class TestInvokeQuantInductor(TestInvokeQuant):
     @requires_gpu()
     @config.patch(prologue_fusion=True)
     def test_prologue(self):
-        if not is_big_gpu():
+        # max-autotune benchmarks many Triton GEMM configs; on ROCm this can trigger
+        # HSA_STATUS_ERROR_MEMORY_FAULT for small fp16 matmuls during autotuning.
+        use_max_autotune = not TEST_WITH_ROCM
+        if use_max_autotune and not is_big_gpu():
             raise unittest.SkipTest("requires large gpu to max-autotune")
 
         def gn(x, y):
@@ -220,8 +224,17 @@ class TestInvokeQuantInductor(TestInvokeQuant):
         y_clone = y.clone().detach().requires_grad_(False)
         z_clone = z.clone().detach().requires_grad_(False)
         torch._dynamo.reset()
-        with torch.no_grad(), config.patch(max_autotune_gemm_backends="TRITON"):
-            fn_c = torch.compile(fn, mode="max-autotune-no-cudagraphs")
+        compile_config = (
+            config.patch(max_autotune_gemm_backends="TRITON")
+            if use_max_autotune
+            else contextlib.nullcontext()
+        )
+        with torch.no_grad(), compile_config:
+            fn_c = (
+                torch.compile(fn, mode="max-autotune-no-cudagraphs")
+                if use_max_autotune
+                else torch.compile(fn)
+            )
             res, code = run_and_get_code(fn_c, x_clone, y_clone, z_clone)
 
             FileCheck().check("k_idx in range").check_not("tl.float32").check(
