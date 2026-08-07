@@ -572,8 +572,12 @@ void findAlgorithm(const ConvolutionArgs& args, bool benchmark, algo_t* algo) {
     return;
   }
 
-  if (args.params.deterministic && !benchmark) {
+  if (args.params.deterministic) {
     *algo = search::DEFAULT_ALGO;
+    size_t workspace_size = getWorkspaceSize(args, *algo);
+    cache.insert(args.params, *algo);
+    wsscache.insert(args.params, workspace_size);
+    return;
   }
 
   if (cache.find(args.params, algo)) {
@@ -623,7 +627,7 @@ template<typename algo_t>
 Workspace chooseSolution(const ConvolutionArgs& args, uint64_t* solution_id)
 {
   using search = algorithm_search<algo_t>;
-  miopenConvSolution_t solution = search::getSolution(args, false);
+  miopenConvSolution_t solution = search::getSolution(args, args.params.deterministic);
   try {
     *solution_id = solution.solution_id;
     return Workspace(solution.workspace_size);

@@ -152,7 +152,10 @@ struct TORCH_CUDA_CPP_API ConvolutionDescriptor
     MIOPEN_CHECK(miopenInitConvolutionNdDescriptor(mut_desc(), dim, pad, stride, upscale, c_mode));
     MIOPEN_CHECK(miopenSetConvolutionGroupCount(mut_desc(), groups));
     MIOPEN_CHECK(miopenSetConvolutionAttribute(mut_desc(), MIOPEN_CONVOLUTION_ATTRIB_DETERMINISTIC, deterministic ? 1 : 0));
-    if (benchmark) {
+    // Deterministic convolutions must not run MIOpen find/autotune even if
+    // benchmark is also requested. Autotune can JIT-compile solvers that fail
+    // on some targets (e.g. gfx1250 ImplicitGemm kernels).
+    if (benchmark && !deterministic) {
       MIOPEN_CHECK(miopenSetConvolutionFindMode(mut_desc(), miopenConvolutionFindModeNormal));
     }
   }
