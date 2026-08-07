@@ -6,7 +6,6 @@
 #include <torch/csrc/jit/api/function_impl.h>
 #include <torch/csrc/jit/jit_log.h>
 #include <torch/csrc/jit/passes/inliner.h>
-#include <torch/csrc/jit/passes/utils/subgraph_utils.h>
 #include <torch/csrc/jit/runtime/operator.h>
 #include <fstream>
 #include <iostream>
@@ -419,14 +418,14 @@ std::string AliasDb::getElementName(const Element* e) const {
   } else {
     std::ostringstream ss;
     if (e->values.size() == 1) {
-      ss << "%" << (*e->values.begin())->debugName();
+      ss << '%' << (*e->values.begin())->debugName();
       return ss.str();
     }
-    ss << "(";
+    ss << '(';
     for (const Value* v : e->values) {
-      ss << "%" << v->debugName() << ", ";
+      ss << '%' << v->debugName() << ", ";
     }
-    ss << ")";
+    ss << ')';
     return ss.str();
   }
 }
@@ -454,7 +453,7 @@ std::string AliasDb::toString() const {
         ++ct;
         ss << getElementName(memoryDAG_->fromIndex(pointedTo));
       }
-      ss << "\n";
+      ss << '\n';
     }
     ct = 0;
     if (!element->containedElements.empty()) {
@@ -466,7 +465,7 @@ std::string AliasDb::toString() const {
         }
         ++ct;
       }
-      ss << "\n";
+      ss << '\n';
     }
   }
 
@@ -479,10 +478,10 @@ std::string AliasDb::toString() const {
     for (const auto value : values) {
       ss << getElementName(memoryDAG_->fromIndex(value)) << ", ";
     }
-    ss << "\n";
+    ss << '\n';
   }
-  ss << "\n";
-  return ss.str();
+  ss << '\n';
+  return std::move(ss).str();
 }
 
 bool AliasDb::dumpToGraphvizFile(const char* filename) const {
@@ -511,7 +510,7 @@ std::string AliasDb::toGraphviz() const {
     } else {
       std::ostringstream ss;
       if (e->values.size() == 1) {
-        ss << "\"\\%" << (*e->values.begin())->debugName() << "\"";
+        ss << "\"\\%" << (*e->values.begin())->debugName() << '"';
         return ss.str();
       }
       ss << "\"(";
@@ -538,7 +537,7 @@ std::string AliasDb::toGraphviz() const {
     if (!element->pointsTo.empty()) {
       for (const auto pointedTo : element->pointsTo) {
         dot << "  " << name(element) << " -> "
-            << name(memoryDAG_->fromIndex(pointedTo)) << "\n";
+            << name(memoryDAG_->fromIndex(pointedTo)) << '\n';
       }
     }
     if (!element->containedElements.empty()) {
@@ -551,7 +550,7 @@ std::string AliasDb::toGraphviz() const {
   }
 
   dot << "}\n";
-  return dot.str();
+  return std::move(dot).str();
 }
 
 void AliasDb::analyze(const std::shared_ptr<Graph>& graph) {
@@ -585,7 +584,7 @@ bool AliasDb::tryRegisteredAnalysis(Node* node) {
 
 // The basic strategy is:
 //   1. Retrieve alias information for every input.
-//   2. Use the node's schema's alias annotations to propgagate alias/write
+//   2. Use the node's schema's alias annotations to propagate alias/write
 //      information to the outputs. For unschematized nodes, a special analyzer
 //      will have to be handwritten.
 void AliasDb::analyzeImpl(Node* node) {
@@ -738,7 +737,7 @@ void AliasDb::analyzeImpl(Node* node) {
       return;
     case prim::CallFunction:
     case prim::CallMethod: {
-      // TODO: this can be improved with summarizes of what the function does
+      // TODO: this can be improved with summaries of what the function does
       // for now we assume the worst
       if (!descend_function_calls_) {
         return analyzeConservative(node);
@@ -770,7 +769,7 @@ void AliasDb::analyzeImpl(Node* node) {
     }
     case prim::Enter:
     case prim::Exit:
-      // TODO: this can be improved with summarizes of what the function does
+      // TODO: this can be improved with summaries of what the function does
       // for now we assume the worst
       // NB: update safeToChangeAliasingRelationship if changed
       return analyzeConservative(node);
@@ -853,7 +852,7 @@ void AliasDb::analyzeImpl(Node* node) {
         "Composite types for alias analysis not yet supported");
     TORCH_INTERNAL_ASSERT(
         !formal->isWildcardBefore(),
-        "Doesn't make sense for a input value to begin as a wildcard");
+        "Doesn't make sense for an input value to begin as a wildcard");
     // This is a special case where we have alias info before [] but not after,
     // such as `Tensor(a!)[]`
     if (formal->containedTypes().size() == 1 && formal->beforeSets().empty()) {
@@ -1018,7 +1017,7 @@ void AliasDb::analyzeSubgraph(
   analyze(subgraphBlock);
 
   // Note: the subgraph outputs and node outputs are NOT NECESSARILY the
-  // same length. Autodifferentiation maybe capture additional outputs in the
+  // same length. Autodifferentiation may capture additional outputs in the
   // subgraph block.
   TORCH_INTERNAL_ASSERT(
       subgraphBlock->outputs().size() >= node->outputs().size());
@@ -2014,7 +2013,7 @@ void Lint(const AliasDb* db) {
          << "It was defined in " << *v->node();
     }
   }
-  TORCH_INTERNAL_ASSERT(!failed, ss.str());
+  TORCH_INTERNAL_ASSERT(!failed, std::move(ss).str());
 
   // Two checks that we want to add but can't until the mutation API is more
   // fully developed.

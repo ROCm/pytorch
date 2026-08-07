@@ -53,6 +53,9 @@ on:
       build-outcome:
         value: ${{ jobs.build.outputs.build-outcome }}
         description: The outcome of the build step. This is used to influence test filtering logic later on.
+      build-environment:
+        value: ${{ jobs.build.outputs.build-environment }}
+        description: Top-level label for what's being built/tested.
 
 jobs:
   build:
@@ -65,13 +68,14 @@ jobs:
     outputs:
       build-outcome: ${{ steps.build.outcome }}
       test-matrix: ${{ steps.filter.outputs.test-matrix }}
+      build-environment: ${{ inputs.build-environment }}
     steps:
       - name: Clean up disk space before running MacOS workflow
-        uses: pytorch/test-infra/.github/actions/check-disk-space@main
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.13
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
-        uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
 
       - name: Set xcode version
         env:
@@ -82,10 +86,10 @@ jobs:
           fi
 
       - name: Setup Python
-        uses: pytorch/test-infra/.github/actions/setup-python@main
+        uses: pytorch/test-infra/.github/actions/setup-python@release/2.13
         with:
           python-version: ${{ inputs.python-version }}
-          pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
+          pip-requirements-file: .ci/docker/requirements-ci.txt
 
       - name: Install sccache (only for non-forked PRs, and pushes to trunk)
         uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
@@ -188,4 +192,4 @@ jobs:
       - name: Clean up disk space
         if: always()
         continue-on-error: true
-        uses: pytorch/test-infra/.github/actions/check-disk-space@main
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.13

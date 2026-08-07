@@ -251,7 +251,7 @@ TEST(OperatorRegistrationTest, whenRegisteringCPUTensorType_thenCanOnlyCallUnbox
   callOpUnboxedWithPrecomputedDispatchKeySet<void, Tensor>(*op, c10::DispatchKeySet(c10::DispatchKey::CPU), dummyTensor(c10::DispatchKey::CUDA));
   EXPECT_TRUE(called_kernel_cpu);
 
-  // Ensure that disptach key from tensor is not used here.
+  // Ensure that dispatch key from tensor is not used here.
   called_kernel_cpu = false;
   expectThrows<c10::Error>([&] {
     callOpUnboxedWithPrecomputedDispatchKeySet<void, Tensor>(*op, c10::DispatchKeySet(c10::DispatchKey::CUDA), dummyTensor(c10::DispatchKey::CPU));
@@ -2030,7 +2030,7 @@ TEST(NewOperatorRegistrationTest, testImplNoDefGetsCaught) {
       if (op_name.overload_name != "") {
           error_str += "." + op_name.overload_name;
       }
-      error_str += "\n";
+      error_str += '\n';
   }
   ASSERT_EQ(danglingImpls.size(), 0) << error_str;
 }

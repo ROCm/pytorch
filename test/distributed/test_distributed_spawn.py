@@ -13,6 +13,9 @@ if not dist.is_available():
     print("Distributed not available, skipping tests", file=sys.stderr)
     sys.exit(0)
 
+from torch.testing._internal.common_distributed import (
+    skip_if_rocm_ver_atleast_multiprocess,
+)
 from torch.testing._internal.common_utils import run_tests, TEST_WITH_DEV_DBG_ASAN
 from torch.testing._internal.distributed.distributed_test import (
     DistributedTest,
@@ -51,6 +54,10 @@ if BACKEND in _allowed_backends:
             super().setUp()
             self._spawn_processes()
             torch.backends.cudnn.flags(enabled=True, allow_tf32=False).__enter__()
+
+        @skip_if_rocm_ver_atleast_multiprocess([7, 14])
+        def test_monitored_barrier_allreduce_hang(self):
+            super().test_monitored_barrier_allreduce_hang()
 
 else:
     print(f"Invalid backend {BACKEND}. Tests will not be run!")

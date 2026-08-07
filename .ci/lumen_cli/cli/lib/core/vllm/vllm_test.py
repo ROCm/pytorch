@@ -11,7 +11,7 @@ from typing import Any
 
 from cli.lib.common.cli_helper import BaseRunner
 from cli.lib.common.envs_helper import env_path_field, env_str_field, get_env
-from cli.lib.common.path_helper import copy, remove_dir
+from cli.lib.common.path_helper import copy, get_path, remove_dir
 from cli.lib.common.pip_helper import (
     pip_install_first_match,
     pip_install_packages,
@@ -23,6 +23,23 @@ from cli.lib.core.vllm.lib import clone_vllm, run_test_plan, sample_vllm_test_li
 
 
 logger = logging.getLogger(__name__)
+
+# generate_binary_build_matrix.py is not importable as a package (it lives in
+# .github/scripts, outside the cli package), so add that dir to sys.path the
+# same way .github/scripts/get_ci_variable.py does.
+_SCRIPTS_DIR = Path(__file__).resolve().parents[6] / ".github" / "scripts"
+
+
+def _stable_torch_backend() -> str:
+    # The uv --torch-backend channel must match the CUDA toolchain of the
+    # build, so reuse CUDA_STABLE from generate_binary_build_matrix.py (the
+    # single source of truth for the stable CUDA version, e.g. "13.0" -> cu130)
+    # rather than hardcoding the channel here.
+    if str(_SCRIPTS_DIR) not in sys.path:
+        sys.path.insert(0, str(_SCRIPTS_DIR))
+    from generate_binary_build_matrix import CUDA_STABLE
+
+    return f"cu{CUDA_STABLE.replace('.', '')}"
 
 
 @dataclass
@@ -42,6 +59,10 @@ class VllmTestParameters:
     )
 
     torch_cuda_arch_list: str = env_str_field("TORCH_CUDA_ARCH_LIST", "8.9")
+
+    cleaning_script: Path = env_path_field(
+        "cleaning_script", ".github/ci_configs/vllm/use_existing_torch.py"
+    )
 
     def __post_init__(self):
         if not self.torch_whls_path.exists():
@@ -78,9 +99,7 @@ class VllmTestRunner(BaseRunner):
 
         # Match the structure of the artifacts.zip from vllm external build
         self.VLLM_TEST_WHLS_REGEX = [
-            "xformers/*.whl",
             "vllm/vllm*.whl",
-            "flashinfer-python/flashinfer*.whl",
         ]
 
     def prepare(self):
@@ -92,11 +111,13 @@ class VllmTestRunner(BaseRunner):
         self._set_envs(params)
 
         clone_vllm(dst=self.work_directory)
+        self.cp_torch_cleaning_script(params)
         with working_directory(self.work_directory):
             remove_dir(Path("vllm"))
             self._install_wheels(params)
             self._install_dependencies()
         # verify the torches are not overridden by test dependencies
+
         check_versions()
 
     def run(self):
@@ -104,20 +125,31 @@ class VllmTestRunner(BaseRunner):
         main function to run vllm test
         """
         self.prepare()
-        with working_directory(self.work_directory):
-            if self.test_type == TestInpuType.TEST_PLAN:
-                if self.num_shards > 1:
-                    run_test_plan(
-                        self.test_plan,
-                        "vllm",
-                        sample_vllm_test_library(),
-                        self.shard_id,
-                        self.num_shards,
-                    )
+        try:
+            with working_directory(self.work_directory):
+                if self.test_type == TestInpuType.TEST_PLAN:
+                    if self.num_shards > 1:
+                        run_test_plan(
+                            self.test_plan,
+                            "vllm",
+                            sample_vllm_test_library(),
+                            self.shard_id,
+                            self.num_shards,
+                        )
+                    else:
+                        run_test_plan(
+                            self.test_plan, "vllm", sample_vllm_test_library()
+                        )
                 else:
-                    run_test_plan(self.test_plan, "vllm", sample_vllm_test_library())
-            else:
-                raise ValueError(f"Unknown test type {self.test_type}")
+                    raise ValueError(f"Unknown test type {self.test_type}")
+        finally:
+            # double check the torches are not overridden by other packages
+            check_versions()
+
+    def cp_torch_cleaning_script(self, params: VllmTestParameters):
+        script = get_path(params.cleaning_script, resolve=True)
+        vllm_script = Path(f"./{self.work_directory}/use_existing_torch.py")
+        copy(script, vllm_script)
 
     def _install_wheels(self, params: VllmTestParameters):
         logger.info("Running vllm test with inputs: %s", params)
@@ -146,21 +178,23 @@ class VllmTestRunner(BaseRunner):
     def _install_test_dependencies(self):
         """
         This method replaces torch dependencies with local torch wheel info in
-        requirements/test.in file from vllm repo. then generates the test.txt
+        requirements/test/cuda.in file from vllm repo. then generates the test.txt
         in runtime
         """
-        logger.info("generate test.txt from requirements/test.in with local torch whls")
+        logger.info(
+            "generate test.txt from requirements/test/cuda.in with local torch whls"
+        )
         preprocess_test_in()
-        copy("requirements/test.txt", "snapshot_constraint.txt")
+        copy("requirements/test/cuda.txt", "snapshot_constraint.txt")
 
         run_command(
-            f"{sys.executable} -m uv pip compile requirements/test.in "
-            "-o test.txt "
+            f"{sys.executable} -m uv pip compile requirements/test/cuda.in "
+            "-o test/cuda.txt "
             "--index-strategy unsafe-best-match "
             "--constraint snapshot_constraint.txt "
-            "--torch-backend cu128"
+            f"--torch-backend {_stable_torch_backend()}"
         )
-        pip_install_packages(requirements="test.txt", prefer_uv=True)
+        pip_install_packages(requirements="test/cuda.txt", prefer_uv=True)
         logger.info("Done. installed requirements for test dependencies")
 
     def _install_dependencies(self):
@@ -172,7 +206,7 @@ class VllmTestRunner(BaseRunner):
         run_python("use_existing_torch.py")
 
         # install common packages
-        for requirements in ["requirements/common.txt", "requirements/build.txt"]:
+        for requirements in ["requirements/common.txt", "requirements/build/cuda.txt"]:
             pip_install_packages(
                 requirements=requirements,
                 prefer_uv=True,
@@ -182,6 +216,8 @@ class VllmTestRunner(BaseRunner):
 
     def _set_envs(self, inputs: VllmTestParameters):
         os.environ["TORCH_CUDA_ARCH_LIST"] = inputs.torch_cuda_arch_list
+        # vLLM has known third-party custom ops with aliasing schemas.
+        os.environ["TORCHINDUCTOR_ERROR_ON_CUSTOM_OP_ALIASING"] = "0"
         if not validate_cuda(get_env("TORCH_CUDA_ARCH_LIST")):
             logger.warning(
                 "Missing supported TORCH_CUDA_ARCH_LIST. "
@@ -198,27 +234,34 @@ class VllmTestRunner(BaseRunner):
             raise ValueError(
                 "missing required TORCH_CUDA_ARCH_LIST, please set TORCH_CUDA_ARCH_LIST env var"
             )
+        # HF_HOME is absolutely needed on CI to avoid rate limit to HF, so explicitly fail
+        # vLLM jobs when it's not set so that we know when it's missing
+        if get_env("CI") and not get_env("HF_HOME"):
+            raise ValueError(
+                "missing required HF_HOME when running on CI, please set HF_HOME env var"
+            )
 
 
 def preprocess_test_in(
-    target_file: str = "requirements/test.in", additional_packages: Iterable[str] = ()
+    target_file: str = "requirements/test/cuda.in",
+    additional_packages: Iterable[str] = (),
 ):
     """
     This modifies the target_file file in place in vllm work directory.
     It removes torch and unwanted packages in target_file and replace with local torch whls
-    package  with format "$WHEEL_PACKAGE_NAME @ file://<LOCAL_PATH>"
+    package with format "$WHEEL_PACKAGE_NAME @ file://<LOCAL_PATH>"
     """
     additional_package_to_move = list(additional_packages or ())
     pkgs_to_remove = [
         "torch",
         "torchvision",
         "torchaudio",
-        "xformers",
-        "mamba_ssm",
     ] + additional_package_to_move
     # Read current requirements
     target_path = Path(target_file)
     lines = target_path.read_text().splitlines()
+
+    pkgs_to_add = []
 
     # Remove lines starting with the package names (==, @, >=) — case-insensitive
     pattern = re.compile(rf"^({'|'.join(pkgs_to_remove)})\s*(==|@|>=)", re.IGNORECASE)
@@ -236,7 +279,11 @@ def preprocess_test_in(
     ]
 
     # Write back: header_lines + blank + kept_lines
-    out = "\n".join(header_lines + [""] + kept_lines) + "\n"
+    out_lines = header_lines + [""] + kept_lines
+    if pkgs_to_add:
+        out_lines += [""] + pkgs_to_add
+
+    out = "\n".join(out_lines) + "\n"
     target_path.write_text(out)
     logger.info("[INFO] Updated %s", target_file)
 
@@ -251,7 +298,7 @@ def check_versions():
     check installed packages version
     """
     logger.info("Double check installed packages")
-    patterns = ["torch", "xformers", "torchvision", "torchaudio", "vllm"]
+    patterns = ["torch", "torchvision", "torchaudio", "vllm"]
     for pkg in patterns:
         pkg_exists(pkg)
     logger.info("Done. checked installed packages")

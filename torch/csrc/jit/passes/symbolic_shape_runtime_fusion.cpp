@@ -1,7 +1,6 @@
 #include <ATen/core/functional.h>
 #include <ATen/core/interned_strings.h>
 #include <c10/core/MemoryFormat.h>
-#include <c10/core/ScalarType.h>
 #include <c10/util/Exception.h>
 #include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/ir/ir_views.h>
@@ -216,12 +215,11 @@ static void moveConstantTensorsOutOfSubgraph(
     const std::shared_ptr<Graph>& tensorexpr_graph) {
   auto parent = tensorexpr_graph_node->owningGraph();
 
-  auto env = [&](Value* v) {
+  auto env = [&](Value* v) -> Value* {
     TORCH_INTERNAL_ASSERT(
         false,
         "this should never happen since constant nodes do not have any inputs",
         v->debugName());
-    return v;
   };
 
   WithInsertPoint wip(tensorexpr_graph_node);
@@ -427,7 +425,7 @@ void insertDynamicShapesGuard(
     guarded_node->addInput(pair.second);
     std::stringstream ss;
     ss << "SS_" << -pair.first;
-    subgraph->addInput(ss.str())->setType(IntType::get());
+    subgraph->addInput(std::move(ss).str())->setType(IntType::get());
   }
   guarded_node->is_(
       attr::symbolic_shape_inputs, std::move(symbolic_shape_inputs));
@@ -594,7 +592,7 @@ static RegisterOperators reg_guard({
                   sym_dim_index = sym_dim_flat_index[value];
                 }
                 // TODO: potential optimization - if there is a Symbolic
-                // Sym with only one use we dont need to test anything
+                // Sym with only one use we don't need to test anything
                 flattened_input_dims.push_back(
                     static_cast<int64_t>(sym_dim_index));
               }
@@ -610,8 +608,7 @@ static RegisterOperators reg_guard({
                   flattened_input_dims,
                   flattened_input_striding,
                   num_symbolic_dims](Stack& stack) {
-            at::ArrayRef<IValue> inputs = last(stack, num_inputs);
-            drop(stack, num_inputs);
+            auto inputs = pop(stack, num_inputs);
             // each invocation we need to reset what value of each symbolic
             // symbol is.
             // TODO: could this be a reference and not allocated on

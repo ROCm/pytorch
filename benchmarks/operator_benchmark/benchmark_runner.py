@@ -16,6 +16,7 @@ parser = argparse.ArgumentParser(
     description="Run microbenchmarks.",
     formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     conflict_handler="resolve",
+    allow_abbrev=False,
 )
 
 
@@ -60,6 +61,13 @@ def parse_args():
         "--output_json",
         help="JSON file path to write the results to",
         default=None,
+    )
+
+    parser.add_argument(
+        "--benchmark-name",
+        "--benchmark_name",
+        help="Name of the benchmark to store results to",
+        default="PyTorch operator benchmark",
     )
 
     parser.add_argument(
@@ -136,6 +144,16 @@ def parse_args():
     )
 
     parser.add_argument(
+        "--use-compile",
+        "--use_compile",
+        type=benchmark_utils.str2bool,
+        nargs="?",
+        const=True,
+        default=False,
+        help="Run operators with PyTorch Compile mode",
+    )
+
+    parser.add_argument(
         "--forward-only",
         "--forward_only",
         type=benchmark_utils.str2bool,
@@ -162,7 +180,7 @@ def parse_args():
         "--output-json-for-dashboard",
         "--output_json_for_dashboard",
         help="Save results in JSON format for display on the OSS dashboard",
-        default="False",
+        default="benchmark-results.json",
     )
 
     args, _ = parser.parse_known_args()

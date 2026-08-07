@@ -21,12 +21,10 @@ struct C10_API PyInterpreterHooksInterface {
   }
 };
 
+// Deprecated: no longer used internally, kept for ABI compatibility.
 struct C10_API PyInterpreterHooksArgs{};
 
-C10_DECLARE_REGISTRY(
-    PyInterpreterHooksRegistry,
-    PyInterpreterHooksInterface,
-    PyInterpreterHooksArgs);
+C10_DECLARE_REGISTRY(PyInterpreterHooksRegistry, PyInterpreterHooksInterface);
 
 #define REGISTER_PYTHON_HOOKS(clsname) \
   C10_REGISTER_CLASS(PyInterpreterHooksRegistry, clsname, clsname)
@@ -34,6 +32,7 @@ C10_DECLARE_REGISTRY(
 // Get the global PyInterpreter hooks instance
 C10_API const PyInterpreterHooksInterface& getPyInterpreterHooks();
 
+// Helper function to get the global interpreter
 C10_API PyInterpreter* getGlobalPyInterpreter();
 
 } // namespace c10::impl

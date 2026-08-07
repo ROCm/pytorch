@@ -7,11 +7,15 @@ from dataclasses import dataclass
 
 import torch
 from torch.multiprocessing.reductions import reduce_tensor
-from torch.testing._internal.common_distributed import MultiProcContinuousTest
+from torch.testing._internal.common_cuda import SM100OrLater
+from torch.testing._internal.common_distributed import (
+    MultiProcContinuousTest,
+    skip_if_rocm_multiprocess,
+)
 from torch.testing._internal.common_utils import (
     requires_cuda_p2p_access,
     run_tests,
-    skipIfRocm,
+    skip_but_pass_in_sandcastle_if,
 )
 
 
@@ -41,7 +45,10 @@ def from_buffer(
     data = torch.as_tensor(CupyWrapper(data_ptr, size_in_bytes), device=device).view(
         dtype
     )
-    assert data.data_ptr() == data_ptr
+    if data.data_ptr() != data_ptr:
+        raise AssertionError(
+            f"Expected data_ptr to be {data_ptr}, got {data.data_ptr()}"
+        )
     return data
 
 
@@ -53,7 +60,7 @@ class CupyAsTensorTest(MultiProcContinuousTest):
 
     def _init_device(self) -> None:
         # need to use vmm api to test it,
-        # see https://forums.developer.nvidia.com/t/inconsistent-behavior-of-cudapointergetattributes-between-cudamalloc-ipc-and-vmm-based-ipc/339025/5 # noqa: B950
+        # see https://forums.developer.nvidia.com/t/inconsistent-behavior-of-cudapointergetattributes-between-cudamalloc-ipc-and-vmm-based-ipc/339025/5
         torch.cuda.memory._set_allocator_settings("expandable_segments:True")
         # init and pin the process to the device
         device_module.set_device(self.device)
@@ -63,7 +70,11 @@ class CupyAsTensorTest(MultiProcContinuousTest):
     def device(self) -> torch.device:
         return torch.device(device_type, self.rank)
 
-    @skipIfRocm
+    @skip_if_rocm_multiprocess  # RuntimeError: pidfd_getfd Operation not permitted"
+    @skip_but_pass_in_sandcastle_if(
+        SM100OrLater,
+        "Fails if ran in docker environment without privileged access (https://github.com/pytorch/pytorch/issues/165170)",
+    )
     def test_cupy_as_tensor(self) -> None:
         """
         Test that torch.as_tensor works for cupy array interface
@@ -97,7 +108,8 @@ class CupyAsTensorTest(MultiProcContinuousTest):
             tensor.fill_(1)
         device_module.synchronize()
         torch.distributed.barrier()
-        assert tensor.allclose(tensor, 1)
+        if not tensor.allclose(tensor, 1):
+            raise AssertionError("Expected tensor to be close to 1")
         torch.distributed.barrier()
 
     @classmethod

@@ -14,10 +14,11 @@
 #include <torch/nativert/kernels/HigherOrderKernel.h>
 #include <torch/nativert/kernels/KernelFactory.h>
 #include <torch/nativert/kernels/PrimKernelRegistry.h>
+#include <torch/nativert/kernels/TritonKernel.h>
 
 namespace torch::nativert {
 
-inline constexpr std::array<std::string_view, 7> kSymIntOps = {
+inline constexpr auto kSymIntOps = std::to_array<std::string_view>({
     "_operator.floordiv",
     "_operator.mod",
     "torch.sym_int",
@@ -25,9 +26,9 @@ inline constexpr std::array<std::string_view, 7> kSymIntOps = {
     "torch.sym_ite",
     "torch.sym_max",
     "torch.sym_min",
-};
+});
 
-inline constexpr std::array<std::string_view, 8> kSymBoolOps = {
+inline constexpr auto kSymBoolOps = std::to_array<std::string_view>({
     "_operator.eq",
     "_operator.ne",
     "_operator.le",
@@ -36,21 +37,21 @@ inline constexpr std::array<std::string_view, 8> kSymBoolOps = {
     "_operator.gt",
     "_operator.and_",
     "torch.sym_not",
-};
+});
 
-inline constexpr std::array<std::string_view, 4> kSymFloatOps = {
+inline constexpr auto kSymFloatOps = std::to_array<std::string_view>({
     "torch._sym_sqrt",
     "math.trunc",
     "_operator.neg",
     "_operator.truediv",
-};
+});
 
-inline constexpr std::array<std::string_view, 4> kScalarBinaryOps = {
+inline constexpr auto kScalarBinaryOps = std::to_array<std::string_view>({
     "_operator.mul",
     "_operator.add",
     "_operator.sub",
     "_operator.pow",
-};
+});
 
 namespace {
 
@@ -130,6 +131,11 @@ ExecutionKernels KernelFactory::initializeNodeKernels(
     } else if (c10::starts_with(
                    node.target(), "torch.ops.higher_order.call_torchbind")) {
       nodeKernels.push_back(std::make_unique<CallTorchBindKernel>(&node));
+    } else if (c10::starts_with(
+                   node.target(),
+                   "torch.ops.higher_order.triton_kernel_wrapper_functional")) {
+      nodeKernels.push_back(
+          std::make_unique<TritonKernel>(&node, pytorchStreamReader.get()));
     } else if (
         c10::starts_with(
             node.target(),
@@ -175,17 +181,16 @@ ExecutionKernels KernelFactory::initializeNodeKernels(
               executionKernels.constFoldingExecutions.empty(),
               "HigherOrderKernel does not support const folding");
           if (executorConfig.maxParallelOps > 1) {
-            graphExecutors.emplace_back(
-                std::unique_ptr<GraphExecutorBase>(new ParallelGraphExecutor(
-                    *subgraph,
-                    std::move(executionKernels.nodeKernels),
-                    executorConfig)));
+            graphExecutors.emplace_back(std::make_unique<ParallelGraphExecutor>(
+                *subgraph,
+                std::move(executionKernels.nodeKernels),
+                executorConfig));
           } else {
-            graphExecutors.emplace_back(std::unique_ptr<GraphExecutorBase>(
-                new torch::nativert::SerialGraphExecutor(
+            graphExecutors.emplace_back(
+                std::make_unique<torch::nativert::SerialGraphExecutor>(
                     *subgraph,
                     std::move(executionKernels.nodeKernels),
-                    executorConfig)));
+                    executorConfig));
           }
         }
       }
@@ -216,7 +221,7 @@ ExecutionKernels KernelFactory::initializeNodeKernels(
       ss << op << ": " << count << ", \n";
     }
     LOG(WARNING) << "Following ops are missing static dispatched kernels: \n"
-                 << ss.str();
+                 << std::move(ss).str();
   }
 
   return {

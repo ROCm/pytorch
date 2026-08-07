@@ -59,7 +59,7 @@ jobs:
       matrix: ${{ fromJSON(inputs.test-matrix) }}
       fail-fast: false
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: ${{ matrix.mem_leak_check == 'mem_leak_check' && 600 || inputs.timeout-minutes }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     defaults:
       run:
         shell: bash
@@ -70,17 +70,15 @@ jobs:
         run: |
           git config --global core.longpaths true
           git config --global core.symlinks true
+          git config --global core.ignorecase false
 
           # https://git-scm.com/docs/git-fsmonitor--daemon.  The daemon could lock
           # the directory on Windows and prevent GHA from checking out as reported
           # in https://github.com/actions/checkout/issues/1018
           git config --global core.fsmonitor false
 
-      - name: Clean up leftover processes on non-ephemeral Windows runner
-        uses: pytorch/test-infra/.github/actions/cleanup-runner@main
-
       - name: Setup SSH (Click me for login details)
-        uses: pytorch/test-infra/.github/actions/setup-ssh@main
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
           instructions: |
@@ -96,26 +94,15 @@ jobs:
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
-        uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
         with:
           no-sudo: true
+          submodules: false
 
       - name: Setup Windows
         uses: ./.github/actions/setup-win
         with:
           cuda-version: ${{ inputs.cuda-version }}
-
-      # TODO: Move to a requirements.txt file for windows
-      - name: Install pip dependencies
-        uses: nick-fields/retry@7152eba30c6575329ac0576536151aca5a72780e # v3.0.0
-        with:
-          shell: bash
-          timeout_minutes: 5
-          max_attempts: 5
-          retry_wait_seconds: 30
-          command: |
-            set -eu
-            python3 -m pip install 'xdoctest>=1.1.0'
 
       - name: Get workflow job id
         id: get-job-id
@@ -172,7 +159,7 @@ jobs:
         id: test-timeout
         shell: bash
         env:
-          JOB_TIMEOUT: ${{ matrix.mem_leak_check == 'mem_leak_check' && 600 || inputs.timeout-minutes }}
+          JOB_TIMEOUT: ${{ inputs.timeout-minutes }}
         run: |
           echo "timeout=$((JOB_TIMEOUT-30))" >> "${GITHUB_OUTPUT}"
 
@@ -183,7 +170,7 @@ jobs:
         env:
           USE_CUDA: ${{ inputs.cuda-version != 'cpu' && '1' || '0' }}
           INSTALL_WINDOWS_SDK: 1
-          PYTHON_VERSION: 3.9
+          PYTHON_VERSION: "3.10"
           CONTINUE_THROUGH_ERROR: ${{ steps.keep-going.outputs.keep-going }}
           VERBOSE_TEST_LOGS: ${{ steps.keep-going.outputs.ci-verbose-test-logs }}
           TEST_SHOWLOCALS: ${{ steps.keep-going.outputs.ci-test-showlocals }}
@@ -213,7 +200,6 @@ jobs:
           TEST_CONFIG: ${{ matrix.config }}
           REENABLED_ISSUES: ${{ github.event.pull_request.reenabled-issues }}
           TORCH_CUDA_ARCH_LIST: "8.6"
-          PYTORCH_TEST_CUDA_MEM_LEAK_CHECK: ${{ matrix.mem_leak_check && '1' || '0' }}
           PYTORCH_TEST_RERUN_DISABLED_TESTS: ${{ matrix.rerun_disabled_tests && '1' || '0' }}
         run: |
           pushd "${PYTORCH_FINAL_PACKAGE_DIR}"
@@ -270,15 +256,6 @@ jobs:
         id: parse-ref
         shell: bash
         run: python3 .github/scripts/parse_ref.py
-
-      - name: Uninstall PyTorch
-        if: always()
-        continue-on-error: true
-        shell: bash
-        run: |
-          # This step removes PyTorch installed by the test to give a clean slate
-          # to the next job
-          python3 -mpip uninstall -y torch
 
       - name: Teardown Windows
         uses: ./.github/actions/teardown-win

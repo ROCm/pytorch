@@ -1,11 +1,9 @@
 #include <ATen/core/ivalue.h>
 #include <c10/util/Exception.h>
-#include <caffe2/serialize/file_adapter.h>
 #include <caffe2/serialize/inline_container.h>
 #include <torch/csrc/jit/mobile/compatibility/backport_manager.h>
 #include <torch/csrc/jit/mobile/compatibility/model_compatibility.h>
 #include <torch/csrc/jit/mobile/import.h>
-#include <torch/csrc/jit/mobile/module.h>
 #include <torch/csrc/jit/serialization/export.h>
 #include <torch/csrc/jit/serialization/import.h>
 #include <torch/csrc/jit/serialization/pickler.h>
@@ -254,7 +252,7 @@ namespace {
 
 /*
 The following functions needed for backport model from v5 to v4.
-Backport function bytecode v5 that deduplicate constanst table.
+Backport function bytecode v5 that deduplicate constants table.
 Previously, in v4, constant table will be exported twice, in both archive
 bytecode and archive constants, and majority (almost all) are duplicates.
 Currently, in v5, JIT and mobile will share archive constants, and all

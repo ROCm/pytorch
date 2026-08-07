@@ -2,6 +2,9 @@
 #include <unordered_map>
 #include <mutex>
 #include <string_view>
+#include <unordered_map>
+#include <vector>
+#include <c10/util/StringUtil.h>
 #if AT_CUSPARSELT_ENABLED()
 
 namespace at::native {
@@ -22,37 +25,51 @@ thread_local bool handle_initialized = false;
 c10::once_flag g_hipSparseLtSupportInitFlag;
 static bool g_hipSparseLtSupported = false;
 
+static const std::vector<std::string>& hipSparseLtSupportedArchs() {
+#if ROCM_VERSION >= 71400
+  static const std::vector<std::string> archs = {"gfx950", "gfx942", "gfx1250"};
+#elif ROCM_VERSION >= 71200
+  static const std::vector<std::string> archs = {"gfx950", "gfx942"};
+#else
+  static const std::vector<std::string> archs = {};
+#endif
+  return archs;
+}
+
 // Initialize the hipSparseLt support status once for the platform
 static void initHipSparseLtSupport() {
-    // Default to not supported
-    g_hipSparseLtSupported = false;
+  // Default to not supported
+  g_hipSparseLtSupported = false;
 
-    // Check only the first available device
-    try {
-        if (at::cuda::device_count() > 0) {
-            g_hipSparseLtSupported = at::detail::getCUDAHooks().isGPUArch({"gfx950", "gfx942"}, 0);
-        }
-    } catch (const std::exception&) {
-        // If an exception occurs during device property check, we assume hipSparseLt is not supported
-        // This could happen due to driver issues, device access problems, or other runtime errors
-        g_hipSparseLtSupported = false;
-        TORCH_WARN("Exception occurred while checking hipSparseLt support. Assuming not supported.");
+  // Check only the first available device
+  try {
+    if (at::cuda::device_count() > 0) {
+      g_hipSparseLtSupported = at::detail::getCUDAHooks().isGPUArch(
+          hipSparseLtSupportedArchs(), 0);
     }
+  } catch (const std::exception&) {
+    // If an exception occurs during device property check, we assume
+    // hipSparseLt is not supported This could happen due to driver issues,
+    // device access problems, or other runtime errors
+     g_hipSparseLtSupported = false;
+    TORCH_WARN(
+        "Exception occurred while checking hipSparseLt support. Assuming not supported.");
+  }
 }
 
 static bool isHipSparseLtSupported() {
     // Initialize support check only once
     c10::call_once(g_hipSparseLtSupportInitFlag, initHipSparseLtSupport);
 
-    // Return cached result (platform-wide)
-    if (!g_hipSparseLtSupported) {
-        TORCH_CHECK(
-            false,
-            "hipSparseLt not supported on this device, supported architectures: "
-            "gfx950, gfx942. "
-            "required ROCM version: 6.4.0 or later.");
-    }
-    return g_hipSparseLtSupported;
+  // Return cached result (platform-wide)
+  if (!g_hipSparseLtSupported) {
+    TORCH_CHECK(
+        false,
+        "hipSparseLt not supported on this device. Supported architectures: ",
+        c10::Join(", ", hipSparseLtSupportedArchs()),
+        ". hipSparseLt on ROCm requires ROCm 7.12 or newer.");
+  }
+  return g_hipSparseLtSupported;
 }
 #endif
 
@@ -64,7 +81,6 @@ at::Tensor _cslt_compress(const Tensor& sparse_input) {
   // create sparse descriptor, dtype
   cusparseLtMatDescriptor_t sparse_input_descriptor;
   cudaDataType type;
-  auto compression_factor = 9;
 
   #ifdef USE_ROCM
   TORCH_CHECK(isHipSparseLtSupported());
@@ -73,7 +89,6 @@ at::Tensor _cslt_compress(const Tensor& sparse_input) {
   switch (sparse_input.scalar_type()) {
     case at::ScalarType::Char:
       type = CUDA_R_8I;
-      compression_factor = 10;
       break;
     case at::ScalarType::Half:
       type = CUDA_R_16F;
@@ -86,20 +101,15 @@ at::Tensor _cslt_compress(const Tensor& sparse_input) {
       type = CUDA_R_32F;
       break;
 #endif
-#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 && !defined(USE_ROCM)
+#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 || defined(USE_ROCM)
     case at::ScalarType::Float8_e4m3fn:
       type = CUDA_R_8F_E4M3;
-      compression_factor = 10;
       break;
 #endif
     default:
       TORCH_CHECK(false, "Unsupported dtype for cuSPARSELt/hipSparseLt compressed matrix");
       break;
   }
-
-  // create a new compressed tensor with the same dtype as
-  auto compressed_tensor =
-      sparse_input.new_empty(sparse_input.numel() * compression_factor / 16);
 
   TORCH_CUDASPARSE_CHECK(cusparseLtStructuredDescriptorInit(
       &handle,
@@ -120,6 +130,15 @@ at::Tensor _cslt_compress(const Tensor& sparse_input) {
       &sparse_input_descriptor,
       &compressed_size,
       &compressed_buffer_size));
+
+  // create a new compressed tensor with the same dtype as the input,
+  // and with packed data/metadata stored in an array with original
+  // number of rows, and sufficient columns to provide compressed_size
+  // buffer (in bytes)
+  size_t orig_m = sparse_input.size(0);
+  size_t div = orig_m * sparse_input.itemsize();
+  size_t new_n = (compressed_size + div - 1) / div; // ceil(s,d) = (s+d-1)/d
+  auto compressed_tensor = sparse_input.new_empty({(int64_t)orig_m, (int64_t)new_n});
 
   auto& allocator = *::c10::cuda::CUDACachingAllocator::get();
   auto compressedBufferPtr = allocator.allocate(compressed_buffer_size);
@@ -153,7 +172,7 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
     TORCH_CUDASPARSE_CHECK(cusparseLtInit(&handle));
     handle_initialized = true;
   }
-  // cupsarselt constructs
+  // cuSPARSELt constructs
   cusparseLtMatmulDescriptor_t matmul;
   cusparseLtMatmulPlan_t plan;
   cusparseLtMatmulAlgSelection_t alg_sel;
@@ -165,7 +184,6 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
   cudaDataType output_type;
   cudaDataType C_type;
   cusparseComputeType compute_type;
-  auto compression_factor = 9;
 
   #ifdef USE_ROCM
   TORCH_CHECK(isHipSparseLtSupported());
@@ -177,7 +195,6 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
       output_type = CUDA_R_8I;
       C_type = CUDA_R_8I;
       compute_type = CUSPARSE_COMPUTE_32I;
-      compression_factor = 10;
       break;
 
 // cuSPARSELt v0.5.2 onwards changes CUSPARSE_COMPUTE_TF32, CUSPARSE_COMPUT_16F
@@ -203,14 +220,19 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
       compute_type = CUSPARSE_COMPUTE_32F;
       break;
 #endif
-// if cuSPARSELt >= 6.2.3, we can add Float8 support
-#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 && !defined(USE_ROCM)
+// cuSPARSELt >= 0.6.2 or hipSparseLt: add Float8 support
+#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 || defined(USE_ROCM)
     case at::ScalarType::Float8_e4m3fn:
       input_type = CUDA_R_8F_E4M3;
+#ifdef USE_ROCM
+      // hipSparseLt 0.2.7: FP8 input only supports FP32 output
+      output_type = CUDA_R_32F;
+      C_type = CUDA_R_32F;
+#else
       output_type = CUDA_R_8F_E4M3;
       C_type = CUDA_R_16F;
+#endif
       compute_type = CUSPARSE_COMPUTE_32F;
-      compression_factor = 10;
       break;
 #endif
 // cuSPARSELt <= v0.5.2 uses CUSPARSE_COMPUTE_TF32, CUSPARSE_COMPUTE_16F
@@ -266,10 +288,11 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
           break;
       }
     }
-// cslt 0.6.2+: fp8 fp8 -> {fp8, fp16, bf16, fp32} support
-#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 && !defined(USE_ROCM)
+// cslt 0.6.2+ or hipSparseLt: fp8 output dtype support
+#if defined(CUSPARSELT_VERSION) && CUSPARSELT_VERSION >= 602 || defined(USE_ROCM)
     else if (input_type == CUDA_R_8F_E4M3) {
       switch (out_dtype) {
+#ifndef USE_ROCM
         case at::ScalarType::Float8_e4m3fn:
           output_type = CUDA_R_8F_E4M3;
           C_type = CUDA_R_16F;
@@ -282,6 +305,7 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
           output_type = CUDA_R_16BF;
           C_type = CUDA_R_16BF;
           break;
+#endif
         case at::ScalarType::Float:
           output_type = CUDA_R_32F;
           C_type = CUDA_R_32F;
@@ -289,7 +313,11 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
         default:
           TORCH_CHECK(
               false,
-              "Unsupported out_dtype passed, must be one of {fp16, bf16, float32} for fp8 inputs");
+#ifdef USE_ROCM
+              "Unsupported out_dtype passed, must be float32 for fp8 inputs on ROCm");
+#else
+              "Unsupported out_dtype passed, must be one of {fp8, fp16, bf16, float32} for fp8 inputs");
+#endif
           break;
       }
     }
@@ -300,9 +328,10 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
     }
   }
 
+  TORCH_INTERNAL_ASSERT(compressed_A.dim() == 2); // encoded M x S
   int64_t k = dense_B.size(0);
   int64_t n = dense_B.size(1);
-  int64_t m = (compressed_A.numel() * 16 / compression_factor) / k;
+  int64_t m = compressed_A.size(0);
 
   // initialize sparse descriptor
   cusparseLtMatDescriptor_t sparse_input_descriptor;
@@ -468,6 +497,8 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
         &alg_id,
         sizeof(alg_id)));
 
+#ifndef USE_ROCM
+    // hipSPARSELt does not support querying SPLIT_K attributes
     TORCH_CUDASPARSE_CHECK(cusparseLtMatmulAlgGetAttribute(
         &handle,
         &alg_sel,
@@ -481,6 +512,7 @@ std::tuple<at::Tensor, int64_t, int64_t, int64_t, int64_t> _cslt_sparse_mm_impl(
         CUSPARSELT_MATMUL_SPLIT_K_MODE,
         &splitKMode,
         sizeof(splitKMode)));
+#endif
 
     TORCH_CUDASPARSE_CHECK(cusparseLtMatmulAlgGetAttribute(
         &handle,

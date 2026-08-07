@@ -499,7 +499,7 @@ TORCH_META_FUNC(linalg_ldl_factor_ex)
 
   // prefer column major strides
   auto ld_strides = at::native::batched_matrix_contiguous_strides(shape, /*f-contig=*/true);
-  set_output_strided(0, shape, ld_strides, self.options(), {}); // LD
+  set_output_strided(0, shape, ld_strides, self.options()); // LD
 
   set_output_contiguous(
       1, shape.slice(0, ndim - 1), self.options().dtype(ScalarType::Int)); // pivots
@@ -545,7 +545,7 @@ TORCH_META_FUNC(linalg_ldl_solve)
 
   // prefer column major strides
   auto result_strides = at::native::batched_matrix_contiguous_strides(B_broadcast_size, /*f_contig=*/true);
-  set_output_strided(0, B_broadcast_size, result_strides, B.options(), {});
+  set_output_strided(0, B_broadcast_size, result_strides, B.options());
 }
 
 TORCH_META_FUNC(triangular_solve)(const Tensor& self, const Tensor& A, bool upper, bool transpose, bool unitriangular) {
@@ -561,15 +561,15 @@ TORCH_META_FUNC(triangular_solve)(const Tensor& self, const Tensor& A, bool uppe
 
     // make column major strides for BLAS
     const auto solution_strides = at::native::batched_matrix_contiguous_strides(self_broadcast_size, /*f-contig=*/true);
-    set_output_raw_strided(0, self_broadcast_size, solution_strides, self.options(), {});
+    set_output_raw_strided(0, self_broadcast_size, solution_strides, self.options());
 
     // make column major strides for BLAS
     auto clone_A_strides = at::native::batched_matrix_contiguous_strides(A_broadcast_size, /*f_contig=*/true);
-    set_output_raw_strided(1, A_broadcast_size, clone_A_strides, A.options(), {});
+    set_output_raw_strided(1, A_broadcast_size, clone_A_strides, A.options());
   } else if (A.layout() == Layout::SparseCsr || A.layout() == Layout::SparseBsr) {
     // no broadcasting for non-strided layout
-    set_output_raw_strided(0, self.sizes(), {}, self.options(), {}); // make row major strides for Sparse BLAS
-    set_output_raw_strided(1, {0}, {}, self.options(), {}); // return 0-sized tensor
+    set_output_raw_strided(0, self.sizes(), {}, self.options()); // make row major strides for Sparse BLAS
+    set_output_raw_strided(1, {0}, {}, self.options()); // return 0-sized tensor
   } else if (A.layout() == Layout::SparseCsc) {
       TORCH_CHECK_VALUE(false, "triangular_solve: unsupported sparse layout.");
   } else {
@@ -605,14 +605,14 @@ TORCH_META_FUNC(_linalg_solve_ex)(const Tensor& A,
   // row major for mps implementation
   auto result_strides = at::native::batched_matrix_contiguous_strides(result_shape, /*f_contig=*/A.device().type() != at::kMPS? left : false);
 
-  set_output_strided(0, result_shape, result_strides, B.options(), {});
+  set_output_strided(0, result_shape, result_strides, B.options());
 
   auto shape = A.sizes();
   auto ndim = shape.size();
 
   // LU, row major for mps
   auto LU_strides = at::native::batched_matrix_contiguous_strides(shape, /*f-contig*=*/A.device().type() != at::kMPS? true : false);
-  set_output_strided(1, shape, LU_strides, A.options(), {});
+  set_output_strided(1, shape, LU_strides, A.options());
 
   // pivots
   set_output_contiguous(2, shape.slice(0, ndim - 1), A.options().dtype(kInt));
@@ -628,7 +628,7 @@ TORCH_META_FUNC(linalg_inv_ex)(const Tensor& A, bool check_errors) {
   auto shape = A.sizes();
 
   auto result_strides = at::native::batched_matrix_contiguous_strides(shape, /*f-contig*=*/true);
-  set_output_strided(0, shape, result_strides, A.options(), {});
+  set_output_strided(0, shape, result_strides, A.options());
   set_output_contiguous(
       1, shape.slice(0, shape.size() - 2), A.options().dtype(ScalarType::Int)); // info
 }
@@ -642,16 +642,16 @@ TORCH_META_FUNC(linalg_lu_factor_ex)(const Tensor& A, bool pivot, bool check_err
 
   // row major for MPS device, otherwise column major strides for BLAS
   auto LU_strides = at::native::batched_matrix_contiguous_strides(sizes, /*f-contig*=*/A.device().type() != at::kMPS);
-  set_output_strided(0, sizes, LU_strides, A.options(), {});
+  set_output_strided(0, sizes, LU_strides, A.options());
 
   // Set sizes to the size of pivots
   sizes.pop_back();
   sizes.back() = std::min(m, n);
-  set_output_contiguous(1, sizes, A.options().dtype(kInt), {});
+  set_output_contiguous(1, sizes, A.options().dtype(kInt));
 
   // Set sizes to the size of info
   sizes.pop_back();
-  set_output_contiguous(2, sizes, A.options().dtype(kInt), {});
+  set_output_contiguous(2, sizes, A.options().dtype(kInt));
 }
 
 TORCH_META_FUNC(linalg_lu_solve)(const Tensor& LU,
@@ -684,7 +684,7 @@ TORCH_META_FUNC(linalg_lu_solve)(const Tensor& LU,
   auto B_broadcast_size = std::get<0>(at::native::_linalg_broadcast_batch_dims(B, LU));
   auto result_strides = at::native::batched_matrix_contiguous_strides(B_broadcast_size, /*f_contig=*/left);
 
-  set_output_strided(0, B_broadcast_size, result_strides, B.options(), {});
+  set_output_strided(0, B_broadcast_size, result_strides, B.options());
 }
 
 TORCH_META_FUNC(linalg_cholesky_ex)(const Tensor& A,
@@ -698,7 +698,7 @@ TORCH_META_FUNC(linalg_cholesky_ex)(const Tensor& A,
 
   // L
   auto L_strides = at::native::batched_matrix_contiguous_strides(A_shape, /*f-contig*=*/true);
-  set_output_strided(0, A_shape, L_strides, A.options(), {});
+  set_output_strided(0, A_shape, L_strides, A.options());
 
   // info
   set_output_contiguous(1, A_shape.slice(0, ndim - 2), A.options().dtype(ScalarType::Int));
@@ -719,16 +719,16 @@ TORCH_META_FUNC(linalg_qr)(const Tensor& A,
     auto Q_shape = A_shape;
     Q_shape.end()[-1] = reduced_mode ? k : m;
     auto Q_strides = at::native::batched_matrix_contiguous_strides(Q_shape, /*f-contig*=*/true);
-    set_output_strided(0, Q_shape, Q_strides, A.options(), {});
+    set_output_strided(0, Q_shape, Q_strides, A.options());
   } else {
-    set_output_raw_strided(0, {0}, {}, A.options(), {});
+    set_output_raw_strided(0, {0}, {}, A.options());
   }
 
   // For readability
   auto R_shape = std::move(A_shape);
   R_shape.end()[-2] = (reduced_mode || !compute_q) ? k : m;
   auto R_strides = at::native::batched_matrix_contiguous_strides(R_shape, /*f-contig*=*/true);
-  set_output_strided(1, R_shape, R_strides, A.options(), {});
+  set_output_strided(1, R_shape, R_strides, A.options());
 }
 
 
@@ -748,7 +748,7 @@ TORCH_META_FUNC(_linalg_svd)(const Tensor& A,
   if (compute_uv) {
     sizes.back() = full_matrices ? m : k;
     auto U_strides = at::native::batched_matrix_contiguous_strides(sizes, /*f-contig*=*/true);
-    set_output_strided(0, sizes, U_strides, A.options(), {});
+    set_output_strided(0, sizes, U_strides, A.options());
 
     // Prepare sizes for Vh
     sizes.end()[-2] = full_matrices ? n : k;
@@ -758,16 +758,16 @@ TORCH_META_FUNC(_linalg_svd)(const Tensor& A,
     // expect F-contig matrices, but they compute V rather than Vh
     const bool use_cusolver = at::native::svd_uses_cusolver(A);
     auto Vh_strides = at::native::batched_matrix_contiguous_strides(sizes, /*f-contig*=*/!use_cusolver);
-    set_output_strided(2, sizes, Vh_strides, A.options(), {});
+    set_output_strided(2, sizes, Vh_strides, A.options());
   } else {
-    set_output_raw_strided(0, {0}, {}, A.options(), {});
-    set_output_raw_strided(2, {0}, {}, A.options(), {});
+    set_output_raw_strided(0, {0}, {}, A.options());
+    set_output_raw_strided(2, {0}, {}, A.options());
   }
 
   // Prepare sizes for S. S is always real, even when A is complex.
   sizes.pop_back();
   sizes.end()[-1] = k;
-  set_output_contiguous(1, sizes, A.options().dtype(c10::toRealValueType(A.scalar_type())), {});
+  set_output_contiguous(1, sizes, A.options().dtype(c10::toRealValueType(A.scalar_type())));
 }
 
 TORCH_META_FUNC(lu_unpack)(const Tensor& LU, const Tensor& pivots, bool unpack_data, bool unpack_pivots) {
@@ -786,23 +786,23 @@ TORCH_META_FUNC(lu_unpack)(const Tensor& LU, const Tensor& pivots, bool unpack_d
   // P.shape[-2:] == (m, m) (or size zero if pivot == False)
   sizes.end()[-1] = m;
   if (unpack_pivots) {
-    set_output_raw_strided(0, sizes, {}, LU.options(), {});
+    set_output_raw_strided(0, sizes, {}, LU.options());
   } else {
-    set_output_raw_strided(0, {0}, {}, LU.options(), {});
+    set_output_raw_strided(0, {0}, {}, LU.options());
   }
 
   if (unpack_data) {
     // L.shape[-2:] == (m, k)
     sizes.end()[-1] = k;
-    set_output_raw_strided(1, sizes, {}, LU.options(), {});
+    set_output_raw_strided(1, sizes, {}, LU.options());
 
     // U.shape[-2:] == (k, n)
     sizes.end()[-2] = k;
     sizes.end()[-1] = n;
-    set_output_raw_strided(2, sizes, {}, LU.options(), {});
+    set_output_raw_strided(2, sizes, {}, LU.options());
   } else {
-    set_output_raw_strided(1, {0}, {}, LU.options(), {});
-    set_output_raw_strided(2, {0}, {}, LU.options(), {});
+    set_output_raw_strided(1, {0}, {}, LU.options());
+    set_output_raw_strided(2, {0}, {}, LU.options());
   }
 }
 
@@ -816,14 +816,14 @@ TORCH_META_FUNC(_linalg_eigh)(const Tensor& A,
   if (compute_v) {
     // eigenvectors
     auto V_strides = at::native::batched_matrix_contiguous_strides(shape, /*f-contig*=*/true);
-    set_output_strided(1, shape, V_strides, A.options(), {});
+    set_output_strided(1, shape, V_strides, A.options());
   } else {
-    set_output_raw_strided(1, {0}, {}, A.options(), {});
+    set_output_raw_strided(1, {0}, {}, A.options());
   }
 
   // eigenvalues
   shape.pop_back();
-  set_output_contiguous(0, shape, A.options().dtype(c10::toRealValueType(A.scalar_type())), {});
+  set_output_contiguous(0, shape, A.options().dtype(c10::toRealValueType(A.scalar_type())));
 }
 
 TORCH_META_FUNC(linalg_lu)(const Tensor& A, bool pivot) {
@@ -837,19 +837,19 @@ TORCH_META_FUNC(linalg_lu)(const Tensor& A, bool pivot) {
   // P.shape[-2:] == (m, m) (or size zero if pivot == False)
   sizes.end()[-1] = m;
   if (pivot) {
-    set_output_raw_strided(0, sizes, {}, A.options(), {});
+    set_output_raw_strided(0, sizes, {}, A.options());
   } else {
-    set_output_raw_strided(0, {0}, {}, A.options(), {});
+    set_output_raw_strided(0, {0}, {}, A.options());
   }
 
   // L.shape[-2:] == (m, k)
   sizes.end()[-1] = k;
-  set_output_raw_strided(1, sizes, {}, A.options(), {});
+  set_output_raw_strided(1, sizes, {}, A.options());
 
   // U.shape[-2:] == (k, n)
   sizes.end()[-2] = k;
   sizes.end()[-1] = n;
-  set_output_raw_strided(2, sizes, {}, A.options(), {});
+  set_output_raw_strided(2, sizes, {}, A.options());
 }
 
 } // namespace at::meta
@@ -1843,7 +1843,21 @@ TORCH_IMPL_FUNC(linalg_cholesky_ex_out)(const Tensor& A,
 
   cholesky_stub(L.device().type(), L, info, upper);
 
-  if (!cpu) {
+  // On non-CPU devices (MAGMA) the pre-copy doesn't zero the unused triangle,
+  // so we must clean up after. On macOS, Accelerate's LAPACK writes into the
+  // unreferenced triangle for matrices larger than its internal block size
+  // (e.g. n > 64), violating the LAPACK spec which says "not referenced"
+  // elements are "never read, written to, or otherwise accessed"
+  // (see https://www.netlib.org/lapack/lug/node121.html).
+  // We work around this by applying the same cleanup on macOS.
+  // TODO(https://github.com/pytorch/pytorch/issues/179152): always
+  // clean up the unused triangle on all platforms.
+#if defined(__APPLE__)
+  constexpr bool needs_triangle_cleanup = true;
+#else
+  const bool needs_triangle_cleanup = !cpu;
+#endif
+  if (needs_triangle_cleanup) {
     if (upper) {
       L.triu_();
     } else {
@@ -1957,15 +1971,10 @@ TORCH_IMPL_FUNC(_linalg_solve_ex_out)(const Tensor& A,
                                       const Tensor& LU,
                                       const Tensor& pivots,
                                       const Tensor& info) {
-  // Possible optimization: Compute the LU factorization of A^T if A is contiguous
-  // Then we solve A^T X = B with adjoint=True
-  // This saves a copy as A doesn't need to be copied into an F-contig matrix in lu_factor
-  // This optimization makes functorch's batching rule difficult. See NOTE [ solve_ex Batch Rule Contiguity ]
-  const bool use_A_T = A.is_contiguous() && !A.is_complex();
   at::linalg_lu_factor_ex_out(const_cast<Tensor&>(LU),
                               const_cast<Tensor&>(pivots),
                               const_cast<Tensor&>(info),
-                              use_A_T ? A.mT() : A);
+                              A);
   if (check_errors) {
     at::_linalg_check_errors(info, "torch.linalg.solve_ex", A.dim() == 2);
   }
@@ -1974,7 +1983,7 @@ TORCH_IMPL_FUNC(_linalg_solve_ex_out)(const Tensor& A,
   const bool vector_case = at::native::linalg_solve_is_vector_rhs(LU, B);
   auto result_ = vector_case ? result.unsqueeze(-1) : result;
   auto B_ = vector_case ? B.unsqueeze(-1) : B;
-  at::linalg_lu_solve_out(result_, LU, pivots, B_, left, /*adjoint*/use_A_T);
+  at::linalg_lu_solve_out(result_, LU, pivots, B_, left);
 }
 
 std::tuple<Tensor&, Tensor&> linalg_solve_ex_out(const Tensor& A,
@@ -2060,7 +2069,7 @@ std::tuple<Tensor, Tensor> linalg_lu_factor(const Tensor& A, bool pivot) {
 }
 
 // TODO Deprecate this function in favour of linalg_lu_factor_ex
-std::tuple<Tensor, Tensor, Tensor> _lu_with_info(const Tensor& self, bool compute_pivots, bool) {
+std::tuple<Tensor, Tensor, Tensor> _lu_with_info(const Tensor& self, bool compute_pivots, bool /*unused*/) {
    TORCH_WARN_ONCE(
     "torch.lu is deprecated in favor of torch.linalg.lu_factor / torch.linalg.lu_factor_ex and will be ",
     "removed in a future PyTorch release.\n",
@@ -2857,69 +2866,30 @@ Tensor& linalg_eigvalsh_out(const Tensor& A, std::string_view uplo, Tensor& L) {
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ linalg_eig ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-// This function returns complex-valued eigenvectors that is obtained from LAPACK GEEV's real-valued output
-// This function is also used for the MAGMA path because intermediate MAGMA's results live on CPU
-template <typename scalar_t>
-static void linalg_eig_make_complex_eigenvectors_impl(Tensor& result, const Tensor& complex_values, const Tensor& real_vectors) {
-  // From GEEV documentation:
-  // Complex conjugate pairs of eigenvalues appear consecutively with the eigenvalue having the positive imaginary part first
-  // If the j-th eigenvalue is real, then v(j) = VR(:,j), the j-th column of VR.
-  // If the j-th and (j+1)-st eigenvalues form a complex conjugate pair, then v(j) = VR(:,j) + i*VR(:,j+1) and v(j+1) = VR(:,j) - i*VR(:,j+1).
+DEFINE_DISPATCH(linalg_eig_make_complex_eigenvectors_stub);
 
-  auto batch_size = batchCount(real_vectors);
-  auto n = real_vectors.size(-1);
-  auto matrix_stride = matrixStride(real_vectors);
+// Converts LAPACK's real-valued eigenvector encoding to complex eigenvectors.
+// This function dispatches to device-specific implementations (CPU or CUDA) based
+// on the device type of the input tensors.
+void linalg_eig_make_complex_eigenvectors(const Tensor& complex_vectors, const Tensor& complex_values, const Tensor& real_vectors) {
+  // Device consistency checks
+  TORCH_CHECK(
+      complex_vectors.device() == complex_values.device() &&
+      complex_vectors.device() == real_vectors.device(),
+      "linalg_eig_make_complex_eigenvectors: all tensors must be on the same device");
 
-  auto result_data = result.data_ptr<c10::complex<scalar_t>>();
-  auto real_vectors_data = real_vectors.const_data_ptr<scalar_t>();
-  auto values_data = complex_values.const_data_ptr<c10::complex<scalar_t>>();
-
-  for (auto b = decltype(batch_size){0}; b < batch_size; b++) {
-    const scalar_t* vecs = &real_vectors_data[b * matrix_stride];
-    c10::complex<scalar_t>* res = &result_data[b * matrix_stride];
-    const c10::complex<scalar_t>* vals = &values_data[b * n];
-    for (auto j = decltype(n){0}; j < n; j++) {
-      if (vals[j].imag() == 0.0) {  // eigenvalue is real, then v(j) = VR(:,j)
-        for (auto i = decltype(n){0}; i < n; i++) {
-          res[j * n + i] = c10::complex<scalar_t>(vecs[j * n + i], 0);
-        }
-      } else {
-        for (auto i = decltype(n){0}; i < n; i++) {
-          res[j * n + i] = c10::complex<scalar_t>(vecs[j * n + i],  vecs[(j+1) * n + i]);      // v(j)   = VR(:,j) + i*VR(:,j+1)
-          res[(j+1) * n + i] = c10::complex<scalar_t>(vecs[j * n + i], -vecs[(j+1) * n + i]);  // v(j+1) = VR(:,j) - i*VR(:,j+1)
-        }
-        j++;
-      }
-    }
-  }
-}
-
-static Tensor& linalg_eig_make_complex_eigenvectors(Tensor& complex_vectors, const Tensor& complex_values, const Tensor& real_vectors) {
-  // These asserts make explicit the requirements on tensors for 'linalg_eig_make_complex_eigenvectors_impl'
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_vectors.device() == at::kCPU);
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_values.device() == at::kCPU);
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(real_vectors.device() == at::kCPU);
-
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_vectors.is_complex());
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_values.is_complex());
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(real_vectors.is_floating_point());
-
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_vectors.mT().is_contiguous());
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(complex_values.is_contiguous());
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(real_vectors.mT().is_contiguous());
-
-  AT_DISPATCH_FLOATING_TYPES(real_vectors.scalar_type(), "linalg_eig_make_complex_vector", [&]{
-    linalg_eig_make_complex_eigenvectors_impl<scalar_t>(complex_vectors, complex_values, real_vectors);
-  });
-  return complex_vectors;
+  // Dispatch to device-specific implementation
+  linalg_eig_make_complex_eigenvectors_stub(
+      complex_vectors.device().type(),
+      complex_vectors,
+      complex_values,
+      real_vectors);
 }
 
 DEFINE_DISPATCH(linalg_eig_stub);
 
 static std::tuple<Tensor&, Tensor&> linalg_eig_out_info(const Tensor& input, Tensor& values, Tensor& vectors, Tensor& infos, bool compute_eigenvectors) {
-  // MAGMA doesn't have GPU interface for GEEV routine, it requires inputs to be on CPU
-  // therefore we create all intermediate tensors on CPU
-  auto options = input.options().device(at::kCPU);
+  auto options = input.options();
 
   // These internal asserts make explicit the assumptions in the implementation
   // Error check with the actual error messages are done on the higher level of the hierarchy of calls
@@ -2928,16 +2898,13 @@ static std::tuple<Tensor&, Tensor&> linalg_eig_out_info(const Tensor& input, Ten
 
   // for real-valued 'input', eigenvalues can be real-valued or complex-valued
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY((toComplexType(input.scalar_type()) == values.scalar_type()) || (input.scalar_type() == values.scalar_type()));
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(values.device() == at::kCPU);
 
   // for real-valued 'input', eigenvectors can be real-valued or complex-valued
   if (compute_eigenvectors) {
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY((toComplexType(input.scalar_type()) == vectors.scalar_type()) || (input.scalar_type() == vectors.scalar_type()));
-    TORCH_INTERNAL_ASSERT_DEBUG_ONLY(vectors.device() == at::kCPU);
   }
 
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(infos.scalar_type() == at::kInt);
-  TORCH_INTERNAL_ASSERT_DEBUG_ONLY(infos.device() == at::kCPU);
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(infos.numel() == std::max<int64_t>(1, batchCount(input)));
   TORCH_INTERNAL_ASSERT_DEBUG_ONLY(infos.is_contiguous());
 
@@ -2986,15 +2953,7 @@ static std::tuple<Tensor&, Tensor&> linalg_eig_out_info(const Tensor& input, Ten
     }
   }
 
-  // MAGMA uses a hybrid CPU-GPU algorithm that performs well only for large matrices
-  // See: https://github.com/pytorch/pytorch/pull/52491#issuecomment-795685687
-  // Here we call CPU path for matrices smaller than 2048x2048
-  // that should be in general significantly faster than calling MAGMA
-  if (input.size(-1) <= 2048) {
-    linalg_eig_stub(at::kCPU, real_imag_values, maybe_complex_vectors, infos, input.to(kCPU), compute_eigenvectors);
-  } else {
-    linalg_eig_stub(input.device().type(), real_imag_values, maybe_complex_vectors, infos, input, compute_eigenvectors);
-  }
+  linalg_eig_stub(input.device().type(), real_imag_values, maybe_complex_vectors, infos, input, compute_eigenvectors);
 
   // if input is not complex we need to do some post-processing
   if (!input.is_complex()) {
@@ -3019,7 +2978,9 @@ static std::tuple<Tensor&, Tensor&> linalg_eig_out_info(const Tensor& input, Ten
     }
     if (compute_eigenvectors) {
       if (vectors.is_complex()) {
-          vectors = linalg_eig_make_complex_eigenvectors(vectors, values, maybe_complex_vectors);
+        // Decode LAPACK's real eigenvector format into complex eigenvectors
+        // This now dispatches to device-specific implementations (CPU/CUDA)
+        linalg_eig_make_complex_eigenvectors(vectors, values, maybe_complex_vectors);
       } else {
         TORCH_CHECK(false, "torch.linalg.eig: imaginary part of eigenvectors is non-zero, can't safely cast eigenvectors to non-complex dtype.")
       }
@@ -3039,8 +3000,7 @@ std::tuple<Tensor&, Tensor&> linalg_eig_out(const Tensor& input, Tensor& values,
   checkSameDevice("torch.linalg.eig", values, input, "eigenvalues");
   checkSameDevice("torch.linalg.eig", vectors, input, "eigenvectors");
 
-  // MAGMA doesn't have GPU interface for GEEV routine, it requires inputs to be on CPU
-  auto options = input.options().device(at::kCPU);
+  auto options = input.options();
   auto infos = at::zeros({std::max<int64_t>(1, batchCount(input))}, options.dtype(kInt));
 
   // if result is not empty and not in batched column major format we have to allocate a temporary tensor
@@ -3119,7 +3079,7 @@ std::tuple<Tensor, Tensor> linalg_eig(const Tensor& input) {
 
   at::linalg_eig_outf(input, values, vectors);
 
-  return std::tuple<Tensor, Tensor>(values, vectors);
+  return std::tuple<Tensor, Tensor>(std::move(values), std::move(vectors));
 }
 
 Tensor& linalg_eigvals_out(const Tensor& input, Tensor& values) {
@@ -3129,8 +3089,7 @@ Tensor& linalg_eigvals_out(const Tensor& input, Tensor& values) {
   checkLinalgCompatibleDtype("torch.linalg.eigvals", values.scalar_type(), toComplexType(input.scalar_type()), "eigenvalues");
   checkSameDevice("torch.linalg.eigvals", values, input, "eigenvalues");
 
-  // MAGMA doesn't have GPU interface for GEEV routine, it requires inputs to be on CPU
-  auto options = input.options().device(at::kCPU);
+  auto options = input.options();
   auto infos = at::zeros({std::max<int64_t>(1, batchCount(input))}, options.dtype(kInt));
 
   bool values_expected_type = (values.scalar_type() == toComplexType(input.scalar_type()));
@@ -3159,6 +3118,7 @@ Tensor& linalg_eigvals_out(const Tensor& input, Tensor& values) {
   }
 
   Tensor vectors;
+  vectors = at::empty({0}, input.options());
   if (values_tmp_needed) {
     Tensor values_tmp = at::empty({0}, options.dtype(values_type));
     std::tie(values_tmp, std::ignore) = linalg_eig_out_info(input, values_tmp, vectors, infos, /*compute_eigenvectors=*/false);

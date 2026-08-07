@@ -4,7 +4,7 @@ import operator
 from collections import defaultdict
 from dataclasses import dataclass, field
 from math import prod
-from typing import Any, cast, Optional
+from typing import Any, cast
 
 import torch
 from torch.utils._ordered_set import OrderedSet
@@ -25,6 +25,10 @@ from ..pattern_matcher import (
 log = logging.getLogger(__name__)
 aten = torch.ops.aten
 patterns = PatternMatcherPass()
+
+
+def _is_last_dim(t: torch.Tensor, dim: int) -> bool:
+    return dim == t.ndim - 1 or dim == -1
 
 
 def _is_backward(graph: torch.fx.Graph) -> bool:
@@ -67,24 +71,31 @@ def _get_tensor(node: torch.fx.Node) -> torch.Tensor:
 
 @dataclass
 class _AllGatherMatch:
-    match: Match
+    match: Match | list[torch.fx.Node]
     shard_node: torch.fx.Node
     ag_node: torch.fx.Node
     res_node: torch.fx.Node
     gather_dim: int
-    group_name: str
+    group_name: "torch.distributed.distributed_c10d.GroupName"
 
     def replace_with(self, new_node: torch.fx.Node) -> None:
         self.res_node.replace_all_uses_with(new_node)
 
     def erase(self) -> None:
-        for node in reversed(self.match.nodes):
+        nodes = self.match.nodes if isinstance(self.match, Match) else self.match
+        for node in reversed(nodes):
             if len(node.users) == 0:
                 node.graph.erase_node(node)
 
 
 def find_all_gather_patterns(graph: torch.fx.Graph):
+    """Find all-gather outputs that can fuse with downstream matmul users.
+
+    This recognizes both the direct all-gather form and slice/cat reassembly
+    forms that preserve the same tensor-parallel communication contract.
+    """
     c10d = torch.ops._c10d_functional
+    split_targets = [aten.split.Tensor, aten.split.sizes, aten.split_with_sizes.default]
 
     def make_zero_dim_all_gather_pattern(shard):
         return CallFunction(
@@ -97,14 +108,14 @@ def find_all_gather_patterns(graph: torch.fx.Graph):
             ),
         )
 
-    # Matches funcol.all_gather_tensor with gather_dim == 0
+    # Matches funcol.all_gather_single with gather_dim == 0
     zero_dim_all_gather_pattern = make_zero_dim_all_gather_pattern(KeywordArg("shard"))
 
     def make_all_gather_split_pattern(shard):
         return CallFunction(
             operator.getitem,
             CallFunction(
-                aten.split.Tensor,
+                split_targets,
                 make_zero_dim_all_gather_pattern(shard),
                 Ignored(),
                 _users=MULTIPLE,
@@ -119,7 +130,7 @@ def find_all_gather_patterns(graph: torch.fx.Graph):
             KeywordArg("gather_dim"),
         )
 
-    # Matches funcol.all_gather_tensor with gather_dim > 0
+    # Matches funcol.all_gather_single with gather_dim > 0
     non_zero_dim_all_gather_pattern = make_cat_pattern(
         make_all_gather_split_pattern(KeywordArg("shard")),
     )
@@ -170,7 +181,90 @@ def find_all_gather_patterns(graph: torch.fx.Graph):
     # Match in reverse to ensure longer patterns is prioritized
     all_gathers = []
     visited_ag_nodes = OrderedSet[torch.fx.Node]()
+
+    def _match_slice_cat_all_gather(
+        node: torch.fx.Node,
+    ) -> _AllGatherMatch | None:
+        res_node = node
+        trim_node = None
+        if node.target is aten.slice.Tensor:
+            if len(node.args) < 4 or not isinstance(node.args[0], torch.fx.Node):
+                return None
+            trim_node = node
+            node = node.args[0]
+
+        if node.target is not aten.cat.default:
+            return None
+        cat_inputs = node.args[0]
+        if not isinstance(cat_inputs, (list, tuple)) or len(cat_inputs) == 0:
+            return None
+        gather_dim = node.args[1] if len(node.args) > 1 else node.kwargs.get("dim", 0)
+        if not isinstance(gather_dim, int):
+            return None
+        if trim_node is not None and (
+            len(trim_node.args) < 4
+            or trim_node.args[1] != gather_dim
+            or trim_node.args[2] != 0
+        ):
+            return None
+
+        slice_nodes: list[torch.fx.Node] = []
+        wait_node = None
+        for inp in cat_inputs:
+            if not (
+                isinstance(inp, torch.fx.Node)
+                and inp.target is aten.slice.Tensor
+                and len(inp.args) >= 2
+                and inp.args[1] == 0
+            ):
+                return None
+            cur_wait = inp.args[0]
+            if not (
+                isinstance(cur_wait, torch.fx.Node)
+                and cur_wait.target is c10d.wait_tensor.default
+            ):
+                return None
+            if wait_node is None:
+                wait_node = cur_wait
+            elif wait_node is not cur_wait:
+                return None
+            slice_nodes.append(inp)
+
+        if wait_node is None:
+            return None
+        ag_node = wait_node.args[0]
+        if not (
+            isinstance(ag_node, torch.fx.Node)
+            and ag_node.target is c10d.all_gather_into_tensor.default
+        ):
+            return None
+        group_name = ag_node.kwargs.get("group_name")
+        if group_name is None and len(ag_node.args) >= 3:
+            group_name = ag_node.args[2]
+        if group_name is None:
+            return None
+
+        return _AllGatherMatch(
+            match=[
+                ag_node,
+                wait_node,
+                *slice_nodes,
+                node,
+                *((trim_node,) if trim_node is not None else ()),
+            ],
+            shard_node=cast("torch.fx.Node", ag_node.args[0]),
+            ag_node=ag_node,
+            res_node=res_node,
+            gather_dim=gather_dim,
+            group_name=cast("torch.distributed.distributed_c10d.GroupName", group_name),
+        )
+
     for node in reversed(graph.nodes):
+        if ag_match := _match_slice_cat_all_gather(node):
+            if ag_match.ag_node not in visited_ag_nodes:
+                visited_ag_nodes.add(ag_match.ag_node)
+                all_gathers.append(ag_match)
+            continue
         for target, patterns in res_node_target_to_patterns.items():
             if node.target != target:
                 continue
@@ -202,13 +296,13 @@ def find_all_gather_patterns(graph: torch.fx.Graph):
 
 @dataclass
 class _ReduceScatterMatch:
-    match: Match
+    match: Match | list[torch.fx.Node]
     input_node: torch.fx.Node
     reduce_scatter_node: torch.fx.Node
     wait_tensor_node: torch.fx.Node
     reduce_op: str
     scatter_dim: int
-    group_name: str
+    group_name: "torch.distributed.distributed_c10d.GroupName"
 
     def replace_with(self, new_node: torch.fx.Node) -> None:
         # Replace all uses of the result node (wait_tensor) with the fused node.
@@ -237,13 +331,20 @@ class _ReduceScatterMatch:
             )
 
     def erase(self) -> None:
-        for node in reversed(self.match.nodes):
+        nodes = self.match.nodes if isinstance(self.match, Match) else self.match
+        for node in reversed(nodes):
             if len(node.users) == 0:
                 node.graph.erase_node(node)
 
 
 def find_reduce_scatter_patterns(graph: torch.fx.Graph):
+    """Find matmul outputs that can fuse with downstream reduce-scatter users.
+
+    This recognizes both the direct reduce-scatter form and slice/cat forms
+    that reassemble the same tensor-parallel communication payload.
+    """
     c10d = torch.ops._c10d_functional
+    split_targets = [aten.split.Tensor, aten.split.sizes, aten.split_with_sizes.default]
 
     def reduce_scatter_template(inp: PatternExpr, users: int):
         return CallFunction(
@@ -258,7 +359,7 @@ def find_reduce_scatter_patterns(graph: torch.fx.Graph):
             ),
         )
 
-    # Matches funcol.reduce_scatter_tensor with scatter_dim == 0
+    # Matches funcol.reduce_scatter_single with scatter_dim == 0
     zero_dim_reduce_scatter_pattern_single_user = reduce_scatter_template(
         KeywordArg("input"), users=1
     )
@@ -268,7 +369,7 @@ def find_reduce_scatter_patterns(graph: torch.fx.Graph):
         KeywordArg("input"), users=2
     )
 
-    # Matches funcol.reduce_scatter_tensor with scatter_dim > 0
+    # Matches funcol.reduce_scatter_single with scatter_dim > 0
     non_zero_dim_reduce_scatter_pattern_single_user = reduce_scatter_template(
         CallFunction(
             aten.cat.default,
@@ -276,7 +377,7 @@ def find_reduce_scatter_patterns(graph: torch.fx.Graph):
                 CallFunction(
                     operator.getitem,
                     CallFunction(
-                        aten.split.Tensor,
+                        split_targets,
                         KeywordArg("input"),
                         Ignored(),
                         KeywordArg("scatter_dim"),
@@ -297,7 +398,7 @@ def find_reduce_scatter_patterns(graph: torch.fx.Graph):
                 CallFunction(
                     operator.getitem,
                     CallFunction(
-                        aten.split.Tensor,
+                        split_targets,
                         KeywordArg("input"),
                         Ignored(),
                         KeywordArg("scatter_dim"),
@@ -311,9 +412,81 @@ def find_reduce_scatter_patterns(graph: torch.fx.Graph):
     )
 
     reduce_scatters = []
+
+    def _match_slice_cat_reduce_scatter(
+        wait_node: torch.fx.Node,
+    ) -> _ReduceScatterMatch | None:
+        if wait_node.target is not c10d.wait_tensor.default:
+            return None
+        reduce_scatter_node = wait_node.args[0]
+        if not (
+            isinstance(reduce_scatter_node, torch.fx.Node)
+            and reduce_scatter_node.target is c10d.reduce_scatter_tensor.default
+        ):
+            return None
+        cat_node = reduce_scatter_node.args[0]
+        if not (
+            isinstance(cat_node, torch.fx.Node) and cat_node.target is aten.cat.default
+        ):
+            return None
+        cat_dim = (
+            cat_node.args[1]
+            if len(cat_node.args) > 1
+            else cat_node.kwargs.get("dim", 0)
+        )
+        if cat_dim != 0:
+            return None
+        cat_inputs = cat_node.args[0]
+        if not isinstance(cat_inputs, (list, tuple)) or len(cat_inputs) == 0:
+            return None
+
+        slice_nodes: list[torch.fx.Node] = []
+        input_node = None
+        scatter_dim = None
+        for inp in cat_inputs:
+            if not (
+                isinstance(inp, torch.fx.Node)
+                and inp.target is aten.slice.Tensor
+                and len(inp.args) >= 2
+            ):
+                return None
+            cur_input = inp.args[0]
+            cur_dim = inp.args[1]
+            if not isinstance(cur_input, torch.fx.Node) or not isinstance(cur_dim, int):
+                return None
+            if input_node is None:
+                input_node = cur_input
+                scatter_dim = cur_dim
+            elif input_node is not cur_input or scatter_dim != cur_dim:
+                return None
+            slice_nodes.append(inp)
+
+        if input_node is None or scatter_dim is None:
+            return None
+        group_name = reduce_scatter_node.kwargs.get("group_name")
+        if group_name is None and len(reduce_scatter_node.args) >= 4:
+            group_name = reduce_scatter_node.args[3]
+        reduce_op = reduce_scatter_node.kwargs.get("reduce_op")
+        if reduce_op is None and len(reduce_scatter_node.args) >= 2:
+            reduce_op = reduce_scatter_node.args[1]
+        if group_name is None or reduce_op is None:
+            return None
+
+        return _ReduceScatterMatch(
+            match=[*slice_nodes, cat_node, reduce_scatter_node, wait_node],
+            input_node=input_node,
+            reduce_scatter_node=reduce_scatter_node,
+            wait_tensor_node=wait_node,
+            reduce_op=cast(str, reduce_op),
+            scatter_dim=scatter_dim,
+            group_name=cast("torch.distributed.distributed_c10d.GroupName", group_name),
+        )
+
     for node in reversed(graph.nodes):
         if node.target == c10d.wait_tensor.default:
-            if match := non_zero_dim_reduce_scatter_pattern_single_user.match(node):
+            if rs_match := _match_slice_cat_reduce_scatter(node):
+                reduce_scatters.append(rs_match)
+            elif match := non_zero_dim_reduce_scatter_pattern_single_user.match(node):
                 assert isinstance(match, Match)
                 reduce_scatters.append(
                     _ReduceScatterMatch(
@@ -374,17 +547,17 @@ class _Matmul:
     arg_ancestor_nodes: OrderedSet[torch.fx.Node] = field(init=False)
     A_node: torch.fx.Node
     B_node: torch.fx.Node
-    pre_mm_reshape: Optional[torch.fx.Node]
-    post_mm_reshape: Optional[torch.fx.Node]
+    pre_mm_reshape: torch.fx.Node | None
+    post_mm_reshape: torch.fx.Node | None
 
     def __post_init__(self):
         assert len(self.nodes) in (1, 3)
         if len(self.nodes) == 1:
             assert self.nodes[0].target in (aten.mm.default, aten._scaled_mm.default)
         else:
-            assert self.nodes[0].target == aten.reshape.default
+            assert self.nodes[0].target is aten.reshape.default
             assert self.nodes[1].target in (aten.mm.default, aten._scaled_mm.default)
-            assert self.nodes[2].target == aten.reshape.default
+            assert self.nodes[2].target is aten.reshape.default
         self.arg_ancestor_nodes = _find_ancestors(self.B_node)
 
     def replace_with(self, new_node: torch.fx.Node) -> None:
@@ -398,7 +571,6 @@ class _Matmul:
             mm_node = self.nodes[0]
             assert mm_node.target in (aten.mm.default, aten._scaled_mm.default)
             mm_node.replace_all_uses_with(new_node)
-            graph.erase_node(mm_node)
             return
 
         # An ND-matmul is reshape -> mm -> reshape sequence. We first replace
@@ -411,7 +583,7 @@ class _Matmul:
         output_reshape_node = self.nodes[2]
 
         assert mm_node.target in (aten.mm.default, aten._scaled_mm.default)
-        assert output_reshape_node.target == aten.reshape.default
+        assert output_reshape_node.target is aten.reshape.default
 
         output_reshape_node.replace_all_uses_with(new_node)
         if len(mm_node.users) > 1:
@@ -450,12 +622,12 @@ class _Matmul:
 class _ScaledMatmul(_Matmul):
     A_scale_node: torch.fx.Node
     B_scale_node: torch.fx.Node
-    bias_node: Optional[torch.fx.Node]
-    result_scale_node: Optional[torch.fx.Node]
-    out_dtype: Optional[torch.dtype]
+    bias_node: torch.fx.Node | None
+    result_scale_node: torch.fx.Node | None
+    out_dtype: torch.dtype | None
     use_fast_accum: bool
-    pre_mm_reshape: Optional[torch.fx.Node]
-    post_mm_reshape: Optional[torch.fx.Node]
+    pre_mm_reshape: torch.fx.Node | None
+    post_mm_reshape: torch.fx.Node | None
 
     def __post_init__(self):
         super().__post_init__()
@@ -478,7 +650,7 @@ class _ScaledMatmul(_Matmul):
         # Use mm_node with 2D args for both A and B, even if this is a "reshape -> mm -> reshape" pattern.
         # We will store the reshapes in pre_mm_reshape and post_mm_reshape, to be referenced later to
         # produce the correct output shapes, reduce-scatter along the correct dimensions, etc.
-        is_reshape_mm_reshape_pattern = match[0].target == aten.reshape.default
+        is_reshape_mm_reshape_pattern = match[0].target is aten.reshape.default
         mm_node = match[1] if is_reshape_mm_reshape_pattern else match[0]
         pre_mm_reshape = match[0] if is_reshape_mm_reshape_pattern else None
         post_mm_reshape = match[-1] if is_reshape_mm_reshape_pattern else None
@@ -536,10 +708,10 @@ def _find_reshape_mm_reshape(node: torch.fx.Node) -> list[_Matmul]:
     matmuls = []
     for match in matches:
         mm_node = match[1]
-        if mm_node.target == aten.mm.default:
+        if mm_node.target is aten.mm.default:
             matmul = _Matmul.from_match(match)
             matmuls.append(matmul)
-        elif mm_node.target == aten._scaled_mm.default:
+        elif mm_node.target is aten._scaled_mm.default:
             matmul = _ScaledMatmul.from_match(match)
             matmuls.append(matmul)
         else:
@@ -557,13 +729,13 @@ def _find_consumer_matmuls(node: torch.fx.Node) -> list[_Matmul]:
     matmuls = []
     for user in node.users:
         # ND matmuls
-        if user.target == aten.reshape.default:
+        if user.target is aten.reshape.default:
             matmuls.extend(_find_reshape_mm_reshape(user))
         # 2D matmuls
-        elif user.target == aten.mm.default:
+        elif user.target is aten.mm.default:
             matmul = _Matmul.from_match(match=[user])
             matmuls.append(matmul)
-        elif user.target == aten._scaled_mm.default:
+        elif user.target is aten._scaled_mm.default:
             matmul = _ScaledMatmul.from_match([user])
             matmuls.append(matmul)
     return matmuls
@@ -574,7 +746,7 @@ def _insert_fused_all_gather_matmul(
     matmuls: list[_Matmul],
     shard_node: torch.fx.Node,
     gather_dim: int,
-    group_name: str,
+    group_name: "torch.distributed.distributed_c10d.GroupName",
 ) -> torch.fx.Node:
     mm_types = OrderedSet(map(type, matmuls))
     assert len(mm_types) == 1
@@ -611,7 +783,7 @@ def fuse_all_gather_matmul(all_gather: _AllGatherMatch) -> None:
     """
     Fused the pattern
 
-        A = all_gather_tensor(A_shard, gather_dim, group_name)
+        A = all_gather_single(A_shard, gather_dim, group_name)
         C_0 = torch.matmul(A, B_0)
         C_1 = torch.matmul(A, B_1)
         C_2 = torch.matmul(A, B_2)
@@ -645,9 +817,17 @@ def fuse_all_gather_matmul(all_gather: _AllGatherMatch) -> None:
     if not is_symm_mem_enabled_for_group(group_name):
         return
 
-    if gather_dim >= len(_get_tensor(shard_node).shape) - 1:
-        # Decomposing the matmul on the K dimension is not supported
-        return
+    filter_matmul = None
+    if _is_last_dim(_get_tensor(shard_node), gather_dim):
+        # Decomposed mms should not be too small
+        if _get_tensor(shard_node).shape[-1] < 1024:
+            return
+
+        # scaled_mm is not supported yet for last dim
+        def _filter_out_scaled_matmul(matmul: _Matmul):
+            return not isinstance(matmul, _ScaledMatmul)
+
+        filter_matmul = _filter_out_scaled_matmul
 
     # Find consumer matmuls
     matmuls = _find_consumer_matmuls(ag_res_node)
@@ -663,18 +843,29 @@ def fuse_all_gather_matmul(all_gather: _AllGatherMatch) -> None:
     if len(matmuls) == 0 or len(OrderedSet(map(type, matmuls))) != 1:
         return
 
-    # Fuse the all_gather_tensor with the eligible matmuls
+    if _is_last_dim(_get_tensor(shard_node), gather_dim) and len(
+        all_gather.res_node.users
+    ) > len(matmuls):
+        # The result of ag-split-cat is used not only in matmuls.
+        # Then it has to be materialized, which can have overhead.
+        return
+
+    if filter_matmul and not filter_matmul(matmuls[0]):
+        return
+
+    # Fuse the all_gather_single with the eligible matmuls
     graph = ag_node.graph
     with graph.inserting_before(ag_node):
-        if "val" in shard_node.meta:
-            restrided = restride_A_shard_for_fused_all_gather_matmul(
-                _get_tensor(shard_node),
-                gather_dim,
-            )
-            shard_node = graph.call_function(
-                inductor_prims.force_stride_order,
-                args=(shard_node, restrided.stride()),
-            )
+        if not _is_last_dim(_get_tensor(shard_node), gather_dim):
+            if "val" in shard_node.meta:
+                restrided = restride_A_shard_for_fused_all_gather_matmul(
+                    _get_tensor(shard_node),
+                    gather_dim,
+                )
+                shard_node = graph.call_function(
+                    inductor_prims.force_stride_order,
+                    args=(shard_node, restrided.stride()),
+                )
 
         fused_node = _insert_fused_all_gather_matmul(
             graph, matmuls, shard_node, gather_dim, group_name
@@ -763,15 +954,15 @@ def _scatter_dim_after_reshape(
     return 0 if leading_dims_collapsed else 1
 
 
-def _find_producer_matmul(node: torch.fx.Node) -> Optional[_Matmul]:
+def _find_producer_matmul(node: torch.fx.Node) -> _Matmul | None:
     """
     Returns producer matmul node if found, otherwise returns None.
     """
-    if node.target == aten.mm.default:
+    if node.target is aten.mm.default:
         return _Matmul.from_match(match=[node])
-    elif node.target == aten._scaled_mm.default:
+    elif node.target is aten._scaled_mm.default:
         return _ScaledMatmul.from_match(match=[node])
-    elif node.target == aten.reshape.default:
+    elif node.target is aten.reshape.default:
         reshape_node_1 = node
 
         mm_node = reshape_node_1.args[0]
@@ -784,9 +975,9 @@ def _find_producer_matmul(node: torch.fx.Node) -> Optional[_Matmul]:
         if reshape_node_0.target != aten.reshape.default:
             return None
 
-        if mm_node.target == aten.mm.default:
+        if mm_node.target is aten.mm.default:
             return _Matmul.from_match(match=[reshape_node_0, mm_node, reshape_node_1])
-        elif mm_node.target == aten._scaled_mm.default:
+        elif mm_node.target is aten._scaled_mm.default:
             return _ScaledMatmul.from_match(
                 match=[reshape_node_0, mm_node, reshape_node_1]
             )
@@ -798,11 +989,11 @@ def _insert_fused_matmul_reduce_scatter(
     matmul: _Matmul,
     reduce_op: str,
     orig_scatter_dim: int,
-    group_name: str,
+    group_name: "torch.distributed.distributed_c10d.GroupName",
     scatter_dim_after_reshape: int,  # only used for reshape -> scaled_mm -> reshape pattern
     output_shape: list[int],  # only used for reshape -> scaled_mm -> reshape pattern
 ) -> torch.fx.Node:
-    if type(matmul) == _Matmul:
+    if type(matmul) is _Matmul:
         return graph.call_function(
             torch.ops.symm_mem.fused_matmul_reduce_scatter.default,
             args=(
@@ -813,7 +1004,7 @@ def _insert_fused_matmul_reduce_scatter(
                 group_name,
             ),
         )
-    elif type(matmul) == _ScaledMatmul:
+    elif type(matmul) is _ScaledMatmul:
         return graph.call_function(
             torch.ops.symm_mem.fused_scaled_matmul_reduce_scatter.default,
             args=(
@@ -840,7 +1031,7 @@ def fuse_matmul_reduce_scatter(reduce_scatter: _ReduceScatterMatch) -> None:
     """
     Fused the pattern
 
-        reduce_scatter_tensor(A @ B, scatter_dim, group_name)
+        reduce_scatter_single(A @ B, scatter_dim, group_name)
 
     into
 
@@ -880,21 +1071,39 @@ def fuse_matmul_reduce_scatter(reduce_scatter: _ReduceScatterMatch) -> None:
     if not is_symm_mem_enabled_for_group(group_name):
         return
 
+    filter_matmul = None
+    if _is_last_dim(_get_tensor(input_node), orig_scatter_dim):
+        # scaled_mm is not supported yet for last dim mm+rs
+        def _filter_out_scaled_matmul(matmul: _Matmul):
+            return not isinstance(matmul, _ScaledMatmul)
+
+        filter_matmul = _filter_out_scaled_matmul
+
+    matmul = _find_producer_matmul(input_node)
+    if matmul is None:
+        log.debug(
+            "no producer matmul found for reduce scatter, skipping fuse_matmul_reduce_scatter fusion"
+        )
+        return
+
     # Currently fused_matmul_reduce_scatter doesn't return the matmul result,
     # so we can't apply the fusion if the matmul result is used by multiple
     # users. This is not a fundamental limitation of the fused op and can be
     # addressed if needed.
-    if len(input_node.users) != 1:
+    match_nodes = (
+        reduce_scatter.match.nodes
+        if isinstance(reduce_scatter.match, Match)
+        else reduce_scatter.match
+    )
+    if len(input_node.users) != 1 and not all(
+        user in match_nodes for user in input_node.users
+    ):
         log.warning(
             "matmul result has more than one user, skipping fused_matmul_reduce_scatter fusion."
         )
         return
 
-    matmul = _find_producer_matmul(input_node)
-    if matmul is None:
-        log.warning(
-            "no producer matmul found for reduce scatter, skipping fuse_matmul_reduce_scatter fusion"
-        )
+    if filter_matmul and not filter_matmul(matmul):
         return
 
     if rs_wait_tensor_node in matmul.arg_ancestor_nodes:
@@ -1025,7 +1234,7 @@ def _get_unexposed_collectives(graph: torch.fx.Graph) -> list[torch.fx.Node]:
     """
 
     def _is_compute_intensive(node: torch.fx.Node) -> bool:
-        return node.target in [torch.ops.aten.mm.default]
+        return node.target is torch.ops.aten.mm.default
 
     collective_to_overlapping_candidates = defaultdict(list)
     available_nodes = OrderedSet[torch.fx.Node]()

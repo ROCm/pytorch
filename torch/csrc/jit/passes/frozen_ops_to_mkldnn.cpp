@@ -272,8 +272,7 @@ Operation createUnaryOp(
     TORCH_INTERNAL_ASSERT(
         a_it.get_desc().get_size() % elementSize(a.scalar_type()) == 0);
 
-    auto out_aten = at::from_blob(
-        out_raw_data, {static_cast<int64_t>(nelem)}, a_options_with_strided);
+    auto out_aten = at::from_blob(out_raw_data, nelem, a_options_with_strided);
     aten_op(out_aten, in_aten);
     push(stack, out);
   };
@@ -894,7 +893,7 @@ class MKLDNNSubgraphSlicer {
     // subgraphs and then unmerge them into the graph
     buildupSubgraphs();
     computeSubgraphsInMKLDNN();
-    // Run CSE globally onceto eliminate duplicates that may have occurred
+    // Run CSE globally once to eliminate duplicates that may have occurred
     // while inlining subgraphs.
     EliminateCommonSubexpression(graph_);
   }

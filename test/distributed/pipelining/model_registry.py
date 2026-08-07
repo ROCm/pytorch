@@ -4,11 +4,13 @@
 import torch
 from torch.autograd import Function
 from torch.distributed.pipelining import pipe_split, SplitPoint
+from torch.distributed.tensor import DTensor
 
 
 class ExampleCode(torch.nn.Module):
     def __init__(self, d_hid, splits=2):
-        assert splits <= 4
+        if not (splits <= 8):
+            raise AssertionError(f"Expected splits <= 8, got {splits}")
         super().__init__()
         self.splits = splits
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
@@ -17,6 +19,10 @@ class ExampleCode(torch.nn.Module):
         self.lin0 = torch.nn.Linear(d_hid, d_hid)
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
         self.lin2 = torch.nn.Linear(d_hid, d_hid)
+        self.lin3 = torch.nn.Linear(d_hid, d_hid)
+        self.lin4 = torch.nn.Linear(d_hid, d_hid)
+        self.lin5 = torch.nn.Linear(d_hid, d_hid)
+        self.lin6 = torch.nn.Linear(d_hid, d_hid)
 
     def forward(self, x):
         x = torch.mm(x, self.mm_param0)
@@ -35,6 +41,22 @@ class ExampleCode(torch.nn.Module):
             pipe_split()
             x = self.lin2(x)
             x = torch.relu(x)
+        if self.splits > 4:
+            pipe_split()
+            x = self.lin3(x)
+            x = torch.relu(x)
+        if self.splits > 5:
+            pipe_split()
+            x = self.lin4(x)
+            x = torch.relu(x)
+        if self.splits > 6:
+            pipe_split()
+            x = self.lin5(x)
+            x = torch.relu(x)
+        if self.splits > 7:
+            pipe_split()
+            x = self.lin6(x)
+            x = torch.relu(x)
         return x
 
 
@@ -43,7 +65,8 @@ class ModelWithKwargs(torch.nn.Module):
     DEFAULT_BATCH_SIZE = 256
 
     def __init__(self, d_hid: int = DEFAULT_DHID, splits=2):
-        assert splits <= 4
+        if not (splits <= 8):
+            raise AssertionError(f"Expected splits <= 8, got {splits}")
         super().__init__()
         self.splits = splits
         self.mm_param0 = torch.nn.Parameter(torch.randn(d_hid, d_hid))
@@ -52,6 +75,10 @@ class ModelWithKwargs(torch.nn.Module):
         self.lin1 = torch.nn.Linear(d_hid, d_hid)
         self.lin2 = torch.nn.Linear(d_hid, d_hid)
         self.lin3 = torch.nn.Linear(d_hid, d_hid)
+        self.lin4 = torch.nn.Linear(d_hid, d_hid)
+        self.lin5 = torch.nn.Linear(d_hid, d_hid)
+        self.lin6 = torch.nn.Linear(d_hid, d_hid)
+        self.lin7 = torch.nn.Linear(d_hid, d_hid)
 
     def forward(self, x, y=torch.zeros(DEFAULT_BATCH_SIZE, DEFAULT_DHID)):
         x = torch.mm(x, self.mm_param0)
@@ -69,6 +96,22 @@ class ModelWithKwargs(torch.nn.Module):
         if self.splits > 3:
             pipe_split()
             x = self.lin3(x)
+            x = torch.relu(x)
+        if self.splits > 4:
+            pipe_split()
+            x = self.lin4(x)
+            x = torch.relu(x)
+        if self.splits > 5:
+            pipe_split()
+            x = self.lin5(x)
+            x = torch.relu(x)
+        if self.splits > 6:
+            pipe_split()
+            x = self.lin6(x)
+            x = torch.relu(x)
+        if self.splits > 7:
+            pipe_split()
+            x = self.lin7(x)
             x = torch.relu(x)
         return x
 
@@ -144,6 +187,30 @@ class MultiMLP(torch.nn.Module):
         for layer in self.layers:
             x = layer(x)
         return x
+
+
+class TwoInputOutputOp(torch.autograd.Function):
+    @staticmethod
+    def forward(ctx, input: torch.Tensor, weight: torch.Tensor):
+        return input, weight
+
+    @staticmethod
+    def backward(ctx, grad_input, grad_weight):
+        return grad_input, grad_weight
+
+
+# Model with multi-output intermediates
+class MultiInterMediateModel(torch.nn.Module):
+    def __init__(self, weight_shape: list[int]):
+        super().__init__()
+        self.shape = weight_shape
+        self.w = torch.nn.Parameter(torch.randn(*weight_shape))
+
+    def forward(self, x):
+        a, b = torch.split(x, self.shape, dim=1)
+        a, w = TwoInputOutputOp.apply(a, self.w)
+        a = torch.matmul(a, w)
+        return a * b
 
 
 # Multi-MLP with kwargs model
@@ -296,3 +363,34 @@ class MultiMLPWithDw(torch.nn.Module):
 
         for i in reversed(range(len(self.layers))):
             self.layers[i].compute_dW()
+
+
+class ConditionalGradBlock(torch.nn.Module):
+    def __init__(self, d_hid, conditional=True):
+        super().__init__()
+        self.conditional = conditional
+        self.lin = torch.nn.Linear(d_hid, d_hid)
+
+    def forward(self, x, flag):
+        local_flag = flag.to_local() if isinstance(flag, DTensor) else flag
+        if self.conditional and not bool(local_flag.flatten()[0].item()):
+            y = x.detach().requires_grad_(True)
+        else:
+            y = self.lin(x)
+        return y, flag
+
+
+class ConditionalGradStack(torch.nn.Module):
+    def __init__(self, d_hid, n_layers):
+        super().__init__()
+        self.layers = torch.nn.ModuleList(
+            [
+                ConditionalGradBlock(d_hid, conditional=i < n_layers - 1)
+                for i in range(n_layers)
+            ]
+        )
+
+    def forward(self, x, flag):
+        for layer in self.layers:
+            x, flag = layer(x, flag)
+        return x, flag

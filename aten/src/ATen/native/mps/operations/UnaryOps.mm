@@ -1,10 +1,10 @@
 //  Copyright © 2022 Apple Inc.
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
+#include <ATen/native/Resize.h>
 #include <ATen/native/UnaryOps.h>
 #include <ATen/native/mps/Copy.h>
-#include <ATen/native/mps/MPSGraphSonomaOps.h>
-#include <ATen/native/mps/MPSGraphVenturaOps.h>
 #include <ATen/native/mps/OperationUtils.h>
+#include <ATen/native/mps/operations/ScanKernel.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -14,7 +14,6 @@
 #include <ATen/ops/_copy_from_and_resize.h>
 #include <ATen/ops/acos_native.h>
 #include <ATen/ops/acosh_native.h>
-#include <ATen/ops/angle_native.h>
 #include <ATen/ops/asin_native.h>
 #include <ATen/ops/asinh_native.h>
 #include <ATen/ops/atan_native.h>
@@ -34,7 +33,6 @@
 #include <ATen/ops/neg.h>
 #include <ATen/ops/neg_native.h>
 #include <ATen/ops/real.h>
-#include <ATen/ops/reciprocal_native.h>
 #include <ATen/ops/reshape.h>
 #include <ATen/ops/rsqrt_native.h>
 #include <ATen/ops/sgn_native.h>
@@ -119,9 +117,7 @@ static void unary_op(const Tensor& self,
                      std::string op_name,
                      UnaryOpBlock unaryBlock,
                      is_noop_p is_noop = is_empty_tensor) {
-  if (!output_.is_same_size(self)) {
-    output_.resize_(self.sizes());
-  }
+  at::native::resize_output(output_, self.sizes());
 
   if (is_noop(self)) {
     output_.copy_(self);
@@ -184,7 +180,6 @@ TORCH_IMPL_FUNC(sign_out_mps)(const Tensor& self, const Tensor& output) {
 
 REGISTER_MPS_UNARY_STUB(ceil, ceil);
 REGISTER_MPS_UNARY_STUB(floor, floor);
-REGISTER_MPS_UNARY_STUB(round, round);
 REGISTER_MPS_UNARY_STUB(trunc, truncate);
 
 #define CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(func_out, func_stub)                                         \
@@ -194,7 +189,6 @@ REGISTER_MPS_UNARY_STUB(trunc, truncate);
     });                                                                                                          \
   }
 
-CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(reciprocal_out_mps, reciprocal)
 CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(asinh_out_mps, asinh)
 CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(acosh_out_mps, acosh)
 CREATE_MPS_STRUCTURED_UNARY_TORCH_IMPL_FUNC(atanh_out_mps, atanh)
@@ -205,23 +199,6 @@ Tensor& logical_not_out_mps(const Tensor& self, Tensor& output) {
     return [mpsGraph notWithTensor:inputTensor name:nil];
   });
   return output;
-}
-
-Tensor& angle_out_mps(const Tensor& self, Tensor& output) {
-  mps::unary_op(self, output, "angle_out_mps", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
-    auto realPart = [mpsGraph realPartOfTensor:inputTensor name:nil];
-    auto imagPart = [mpsGraph imaginaryPartOfTensor:inputTensor name:nil];
-    return [mpsGraph atan2WithPrimaryTensor:imagPart secondaryTensor:realPart name:nil];
-  });
-  return output;
-}
-
-Tensor angle_mps(const Tensor& self) {
-  const auto float_type = c10::isIntegralType(self.scalar_type(), /*includeBool=*/true)
-      ? c10::typeMetaToScalarType(c10::get_default_dtype())
-      : c10::toRealValueType(self.scalar_type());
-  Tensor result = at::empty({0}, self.options().dtype(float_type));
-  return angle_out_mps(self, result);
 }
 
 TORCH_IMPL_FUNC(frac_out_mps)(const Tensor& self, const Tensor& output) {
@@ -344,8 +321,7 @@ static void cumulative_op_impl(const Tensor& self,
                                int64_t dim,
                                std::optional<ScalarType> dtype,
                                const Tensor& result,
-                               MPSCumulativeOpType cumulativeOpType,
-                               const std::string& op_name) {
+                               MPSCumulativeOpType cumulativeOpType) {
   auto nDims = self.dim();
   auto wrapped_dim = maybe_wrap_dim(dim, nDims);
   TORCH_CHECK(wrapped_dim >= 0 && wrapped_dim < std::max(1LL, self.ndimension()),
@@ -356,40 +332,59 @@ static void cumulative_op_impl(const Tensor& self,
               "(original dim is ",
               dim,
               ")");
-  TORCH_CHECK(!self.is_complex(), "cumulative ops are not yet supported for complex");
   auto input = dtype.has_value() ? self.to(dtype.value()) : self;
+  const std::string scan_op_name = cumulativeOpType == MPSCumulativeOpType::CUMSUM ? "cumsum" : "cumprod";
 
-  // issue #103810551: cumsum / cumprod are broken for int8, int16 and as chances for overflow are pretty high, cast to
-  // int32 fixed in macOS 13.3
-  bool castInputData = (isIntegralType(input.scalar_type(), true) && input.scalar_type() != ScalarType::Int &&
-                        input.scalar_type() != ScalarType::Long);
+  if (input.is_complex()) {
+    if (cumulativeOpType == MPSCumulativeOpType::CUMSUM) {
+      auto input_real = at::view_as_real(input.dim() == 0 ? input.view({1}) : input);
+      auto result_real = at::view_as_real(result.dim() == 0 ? result.view({1}) : result);
+      return cumulative_op_impl(input_real, wrapped_dim, std::nullopt, result_real, MPSCumulativeOpType::CUMSUM);
+    }
+    auto input_view = input.dim() == 0 ? input.view({1}) : input;
+    auto result_view = result.dim() == 0 ? result.view({1}) : result;
+    return mps::scan_simple_mps_impl(input_view, result_view, wrapped_dim, scan_op_name);
+  }
 
-  mps::unary_op(
-      input, result, op_name + std::to_string(dim), ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
-        if (castInputData) {
-          inputTensor = mps::castMPSTensor(mpsGraph, inputTensor, ScalarType::Int);
-        }
-        MPSGraphTensor* rc;
-        if (cumulativeOpType == MPSCumulativeOpType::CUMSUM) {
-          rc = [mpsGraph cumulativeSumWithTensor:inputTensor axis:dim name:nil];
-        } else if (cumulativeOpType == MPSCumulativeOpType::CUMPROD) {
-          rc = [mpsGraph cumulativeProductWithTensor:inputTensor axis:dim name:nil];
-        }
-        if ((mps::getMPSDataType(result) != [rc dataType]) || castInputData) {
-          return mps::castMPSTensor(mpsGraph, rc, result.scalar_type());
-        }
-        return rc;
-      });
+  // cumsum/cumprod of a 0-dim tensor is the identity.
+  if (input.dim() == 0) {
+    result.copy_(input);
+    return;
+  }
+
+  const bool castInputData = isIntegralType(input.scalar_type(), /*includeBool=*/true) &&
+      input.scalar_type() != ScalarType::Int && input.scalar_type() != ScalarType::Long;
+  if (castInputData) {
+    auto input_i32 = input.to(ScalarType::Int);
+    if (result.scalar_type() == ScalarType::Long) {
+      mps::scan_simple_mps_impl(input_i32, result, wrapped_dim, scan_op_name);
+    } else {
+      auto result_i32 = at::empty(result.sizes(), result.options().dtype(ScalarType::Int));
+      mps::scan_simple_mps_impl(input_i32, result_i32, wrapped_dim, scan_op_name);
+      result.copy_(result_i32);
+    }
+    return;
+  }
+  // int32 -> int64 result: scan int32 directly; the kernel widens (no upcast).
+  if (input.scalar_type() == ScalarType::Int && result.scalar_type() == ScalarType::Long) {
+    mps::scan_simple_mps_impl(input, result, wrapped_dim, scan_op_name);
+    return;
+  }
+
+  // int64 input, or a dtype= override: match the scan input dtype to the result.
+  auto scan_input = input.scalar_type() == result.scalar_type() ? input : input.to(result.scalar_type());
+
+  mps::scan_simple_mps_impl(scan_input, result, wrapped_dim, scan_op_name);
 }
 
 TORCH_IMPL_FUNC(cumsum_out_mps)
 (const Tensor& self, int64_t dim, std::optional<ScalarType> dtype, const Tensor& result) {
-  return cumulative_op_impl(self, dim, dtype, result, MPSCumulativeOpType::CUMSUM, "cumsum_out_mps");
+  return cumulative_op_impl(self, dim, dtype, result, MPSCumulativeOpType::CUMSUM);
 }
 
 TORCH_IMPL_FUNC(cumprod_out_mps)
 (const Tensor& self, int64_t dim, std::optional<ScalarType> dtype, const Tensor& result) {
-  return cumulative_op_impl(self, dim, dtype, result, MPSCumulativeOpType::CUMPROD, "cumprod_out_mps");
+  return cumulative_op_impl(self, dim, dtype, result, MPSCumulativeOpType::CUMPROD);
 }
 
 TORCH_IMPL_FUNC(sgn_out_mps)(const Tensor& self, const Tensor& output) {
@@ -418,6 +413,7 @@ TORCH_IMPL_FUNC(sgn_out_mps)(const Tensor& self, const Tensor& output) {
 
 Tensor& conj_physical_out_mps(const Tensor& self, Tensor& result) {
   TORCH_CHECK(self.is_complex());
+  TORCH_CHECK(self.dtype() != at::kComplexDouble);
   mps::unary_op(self, result, "conj", ^MPSGraphTensor*(MPSGraph* mpsGraph, MPSGraphTensor* inputTensor) {
     return [mpsGraph conjugateWithTensor:inputTensor name:nil];
   });

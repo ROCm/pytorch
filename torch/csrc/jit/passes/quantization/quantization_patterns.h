@@ -16,7 +16,7 @@ struct QuantFusionInfo {
   std::string quantized_op_name;
   std::string pattern;
   std::string replacement;
-  std::vector<MatchFilter> filters = {};
+  std::vector<MatchFilter> filters;
 };
 
 namespace {
@@ -79,7 +79,7 @@ std::string getQuantizeForScalar(const std::string& value) {
   for ([[maybe_unused]] const auto i : c10::irange(3)) {
     quantize_pattern += ", " + value + "_none";
   }
-  quantize_pattern += ")";
+  quantize_pattern += ')';
   quantize_pattern +=
       R"(
           )" +

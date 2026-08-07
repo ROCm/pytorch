@@ -70,7 +70,7 @@ struct ContiguousLayoutBuffer {
   size_t size_{0};
 
   // the dataptr returned by the allocator
-  at::DataPtr data_ptr_{};
+  at::DataPtr data_ptr_;
 };
 
 struct ContiguousStorageImplBuffer {
@@ -162,7 +162,7 @@ class LayoutManager {
       torch::nativert::LayoutManagerSettings settings = {});
   ~LayoutManager() = default;
 
-// this is a debugging function. it will slow thing down SIGNIFICANTLY
+// this is a debugging function. it will slow things down SIGNIFICANTLY
 // so please ensure this isn't called unless you really need it
 //
 // it checks a few things in between node executions...
@@ -198,7 +198,7 @@ class LayoutManager {
 #else
     auto alignment = c10::gAlignment;
 #endif
-    return ((nbytes) + alignment - 1) & (~(alignment - 1));
+    return (nbytes + alignment - 1) & (~(alignment - 1));
   }
 
   void allocate_plan(const LayoutPlan& plan);

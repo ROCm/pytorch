@@ -5,8 +5,8 @@ project(TORCH_OPENREG CXX C)
 include(GNUInstallDirs)
 include(CheckCXXCompilerFlag)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_C_STANDARD 17)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
@@ -14,6 +14,8 @@ set(CMAKE_SKIP_BUILD_RPATH  FALSE)
 set(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+
+set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type" FORCE)
 
 if(APPLE)
   set(CMAKE_INSTALL_RPATH "@loader_path/lib;@loader_path")
@@ -34,7 +36,10 @@ else()
   message(FATAL_ERROR "Cannot find Python directory")
 endif()
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 include(${PROJECT_SOURCE_DIR}/cmake/TorchPythonTargets.cmake)
+
+option(USE_TEST "Build unit tests" ON)
 
 add_subdirectory(${PROJECT_SOURCE_DIR}/third_party/openreg)
 add_subdirectory(${PROJECT_SOURCE_DIR}/csrc)

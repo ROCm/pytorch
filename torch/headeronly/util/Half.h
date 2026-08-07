@@ -80,7 +80,8 @@ struct alignas(2) Half {
   Half() = default;
 #endif
 
-  constexpr C10_HOST_DEVICE Half(unsigned short bits, from_bits_t) : x(bits) {}
+  constexpr C10_HOST_DEVICE Half(unsigned short bits, from_bits_t /*unused*/)
+      : x(bits) {}
 #if defined(__aarch64__) && !defined(__CUDACC__)
   inline Half(float16_t value);
   inline operator float16_t() const;
@@ -235,7 +236,7 @@ C10_HOST_DEVICE inline float fp16_ieee_to_fp32_value(uint16_t h) {
   /*
    * - Choose either results of conversion of input as a normalized number, or
    * as a denormalized number, depending on the input exponent. The variable
-   * two_w contains input exponent in bits 27-31, therefore if its smaller than
+   * two_w contains input exponent in bits 27-31, therefore if it's smaller than
    * 2**27, the input is either a denormal number, or zero.
    * - Combine the result of conversion of exponent and mantissa with the sign
    * of the input number.
@@ -697,7 +698,7 @@ C10_CLANG_DIAGNOSTIC_POP()
 
 } // namespace c10
 
-namespace torch::headeronly {
+HIDDEN_NAMESPACE_BEGIN(torch, headeronly)
 
 using c10::Half;
 using c10::operator+;
@@ -723,7 +724,7 @@ using c10::detail::fp16_ieee_to_fp32_bits;
 using c10::detail::fp16_ieee_to_fp32_value;
 } // namespace detail
 
-} // namespace torch::headeronly
+HIDDEN_NAMESPACE_END(torch, headeronly)
 
 namespace std {
 

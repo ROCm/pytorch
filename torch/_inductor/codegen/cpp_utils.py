@@ -5,8 +5,8 @@ import functools
 import math
 import sys
 from collections import namedtuple
-from collections.abc import Sequence
-from typing import Any, Callable, Optional
+from collections.abc import Callable, Sequence
+from typing import Any
 from unittest.mock import patch
 
 import sympy
@@ -101,8 +101,10 @@ GemmBlocking = namedtuple("GemmBlocking", ["block_m", "block_n", "block_k"])
 
 def get_promote_dtype(args):
     return (
+        # pyrefly: ignore [no-matching-overload]
         functools.reduce(
             torch.promote_types,  # type: ignore[arg-type]
+            # pyrefly: ignore [bad-argument-type]
             [n.dtype for n in args if isinstance(n, CppCSEVariable)],
         )
         if all(n.dtype is not None for n in args if isinstance(n, CppCSEVariable))
@@ -145,7 +147,7 @@ class CppCSEVariable(CSEVariable):
         self,
         name,
         bounds: ValueRanges[Any],
-        dtype: Optional[torch.dtype] = None,
+        dtype: torch.dtype | None = None,
         shape: BlockShapeType = None,
     ) -> None:
         super().__init__(name, bounds, dtype, shape=shape)
@@ -171,7 +173,7 @@ class CppCSEVariable(CSEVariable):
                     if isinstance(arg, CppCSEVariable)
                 ]
             )
-            if name == "index_expr":
+            if name in ("index_expr", "value_expr"):
                 self._set_dependent_itervars(args[0])
             if any(arg.is_vec for arg in args if isinstance(arg, CppCSEVariable)):
                 self.is_vec = True
@@ -200,6 +202,15 @@ class CppPrinter(_CppPrinter):
         if simplify and isinstance(expr, sympy.Expr) and hasattr(V.graph, "sizevars"):
             expr = V.graph.sizevars.simplify(expr)
         return super().doprint(expr)
+
+    def parenthesize(self, item: sympy.Expr, level: int, strict: bool = False) -> str:
+        if isinstance(item, sympy.Mod):
+            # use parenthesis to enforce precedence.
+            # in sympy 1.13.3, -2*Mod(x,y) becomes -2*x%y, which is wrong.
+            # pyrefly: ignore [missing-attribute]
+            return f"({self._print(item)})"
+        else:
+            return super().parenthesize(item, level, strict)
 
 
 # A function to print, useful for printing sympy symbols.
@@ -303,6 +314,7 @@ class LocalizeBufferHandler(V.WrapperHandler):  # type: ignore[name-defined]
         return res
 
     def store_reduction(self, name, index, value):
+        # pyrefly: ignore [bad-argument-count]
         return self._inner.store_reduction(*self.localize(name, index), value)
 
 
@@ -367,7 +379,7 @@ class LocalBufferContext:
         self.exit_stack.__exit__(exc_type, exc_val, exc_tb)
 
     def add_local_buffer(
-        self, local_buffer: ir.Buffer, global_buffers: Optional[list[ir.Buffer]] = None
+        self, local_buffer: ir.Buffer, global_buffers: list[ir.Buffer] | None = None
     ):
         assert local_buffer.get_name() not in self.local_buffers
         self.local_buffers[local_buffer.get_name()] = local_buffer
@@ -382,7 +394,7 @@ class LocalBufferContext:
                 self.global_to_local[global_buffer_name] = local_buffer
                 if global_buffer_name not in V.graph.removed_buffers:
                     # Record the global buffers that are removed by this LocalBufferContext
-                    # since which may need to restore. Refer to issue:
+                    # since they may need to be restored. Refer to issue:
                     # https://github.com/pytorch/pytorch/issues/144186
                     self.removed_buffers.add(global_buffer_name)
                     V.graph.removed_buffers.add(global_buffer_name)
@@ -421,7 +433,7 @@ class LocalBufferContext:
         `local_buf`. This helps the fused loops to work on smaller-sized local buffers
         for better data locality.
 
-        The the data access of `local_buf` is assumed to be contiguous with the
+        The data access of `local_buf` is assumed to be contiguous with the
         same order as the `global_buf`.
         """
         assert len(nodes) > 0

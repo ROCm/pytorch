@@ -2,7 +2,6 @@
 #include <ATen/core/Tensor.h>
 #include <ATen/native/Resize.h>
 #include <ATen/native/ResizeCommon.h>
-#include <ATen/NamedTensorUtils.h>
 #include <ATen/TensorSubclassLikeUtils.h>
 
 #ifndef AT_PER_OPERATOR_HEADERS
@@ -107,11 +106,6 @@ void resize_bytes_cpu(StorageImpl* storage, size_t size_bytes) {
   storage->set_nbytes(size_bytes);
 }
 
-// Call the sparse implementation in SparseTensor.cpp directly.
-// A dynamic dispatch here is NOT necessary, so I didn't put
-// this function in native_functions.yaml
-const Tensor& resize_as_sparse_(const Tensor& self, const Tensor& src);
-
 // TODO(VitalyFedyunin): Move it to HTML docs.
 //
 // Strides of the output tensor of `resize_as_` operator is defined by input
@@ -155,7 +149,6 @@ const Tensor& resize_as_(
     }
     self.unsafeGetTensorImpl()->empty_tensor_restride(memory_format);
   }
-  namedinference::propagate_names(result, the_template);
   return result;
 }
 
@@ -262,9 +255,6 @@ const Tensor& resize_(
     const Tensor& self,
     IntArrayRef size,
     std::optional<MemoryFormat> optional_memory_format) {
-  if (self.has_names()) {
-    return resize_named_tensor_(self, size, optional_memory_format);
-  }
   return _resize_(self, size, optional_memory_format);
 }
 
@@ -272,7 +262,6 @@ const Tensor& resize__symint(
     const Tensor& self,
     c10::SymIntArrayRef size,
     std::optional<MemoryFormat> optional_memory_format) {
-  TORCH_INTERNAL_ASSERT(!self.has_names())
   return _resize_(self, size, optional_memory_format);
 }
 

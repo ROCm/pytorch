@@ -21,9 +21,15 @@ namespace {
 struct offset_t {
   int stride;
   int begin;
-  __device__ int operator[](int i) {
+  __host__ __device__ int operator[](int i) const {
     return stride * (begin + i);
   }
+#if CCCL_VERSION >= 3001000
+  __host__ __device__ offset_t& operator+=(int i) {
+    begin += i;
+    return *this;
+  }
+#endif
 };
 // Segmented sort by full sort algorithm:.
 // Say we are sorting a (2, 3) tensor. We have in flattened form:
@@ -118,7 +124,7 @@ inline void segmented_sort_large_segments(
       indices.get(), nsort, nsort_divider);
   const int64_t* initial_indices = indices.get();
 
-  for (auto i : c10::irange(nsegments)) {
+  for ([[maybe_unused]] auto i : c10::irange(nsegments)) {
     at::cuda::cub::radix_sort_pairs<scalar_t, int64_t>(
         self_ptr, values_ptr, initial_indices, indices_ptr, nsort, descending);
     indices_ptr += nsort;

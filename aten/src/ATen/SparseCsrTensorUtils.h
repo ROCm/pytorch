@@ -148,7 +148,7 @@ namespace at::sparse_csr {
 
 // Implements RAII object to manage checking sparse tensor invariants:
 class CheckSparseTensorInvariants {
-  bool old_state;
+  std::optional<bool> old_state;
 
  public:
   CheckSparseTensorInvariants(bool state)
@@ -441,7 +441,7 @@ inline std::tuple<Tensor, Tensor> create_acc_buffer(
     return std::make_tuple(
         new_values.resize_(nnz), new_values_acc.resize_(nnz));
   } else {
-    return std::make_tuple(new_values, new_values_acc);
+    return std::make_tuple(std::move(new_values), std::move(new_values_acc));
   }
 }
 

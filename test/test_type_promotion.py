@@ -22,7 +22,7 @@ import operator
 
 # load_tests from torch.testing._internal.common_utils is used to automatically filter tests for
 # sharding on sandcastle. This line silences flake warnings
-load_tests = load_tests
+load_tests = load_tests  # noqa: PLW0127
 
 # Not thread-safe decorator that runs the decorated test once with
 # the default dtype being torch.float and again with the default dtype
@@ -358,9 +358,7 @@ class TestTypePromotion(TestCase):
         if dtype == torch.bool:
             tensor = torch.randint(int(remove_zeros), 2, shape, device=device, dtype=dtype)
         elif dtype.is_floating_point or dtype.is_complex:
-            # "_th_normal_ not supported on CPUType for Half" so simpler create and convert
-            tensor = torch.randn(shape, device=device)
-            tensor = tensor.to(dtype)
+            tensor = torch.randn(shape, dtype=dtype, device=device)
             if remove_zeros:
                 tensor[torch.abs(tensor) < 0.05] = 5
         else:
@@ -373,16 +371,12 @@ class TestTypePromotion(TestCase):
     # torch.<op>(first.to(common_dtype), second.to(common_dtype)) in cases where that should hold.
     @float_double_default_dtype
     def test_many_promotions(self, device):
-        # Can also include half on CPU in cases where it will be promoted to a
-        # supported dtype
         dtypes1 = get_all_math_dtypes('cuda')
         dtypes2 = get_all_math_dtypes(device)
         ops = [torch.add, torch.sub, torch.mul, torch.div, torch.rsub]
         for dt1, dt2 in itertools.product(dtypes1, dtypes2):
             for op, non_contiguous in itertools.product(ops, [True, False]):
                 common_dtype = torch.promote_types(dt1, dt2)
-                if common_dtype == torch.half and self.device_type == 'cpu':
-                    continue
                 if op == torch.sub and common_dtype != torch.bool:
                     # Subtraction, the `-` operator, with a bool tensor is not supported.
                     continue
@@ -968,7 +962,7 @@ class TestTypePromotion(TestCase):
                 except Exception as e:
                     expected = e
 
-                same_result = (type(expected) == type(actual)) and expected == actual
+                same_result = (type(expected) is type(actual)) and expected == actual
 
                 # Note: An "undesired failure," as opposed to an "expected failure"
                 # is both expected (we know the test will fail) and
@@ -1128,7 +1122,7 @@ class TestTypePromotion(TestCase):
         maxs = (max_t, max_t[0], max_t[0].item())
         inp = make_tensor((S,), dtype0)
         for min_v, max_v in itertools.product(mins, maxs):
-            if type(max_v) != type(min_v):
+            if type(max_v) is not type(min_v):
                 continue
             if isinstance(min_v, torch.Tensor) and min_v.ndim == 0 and max_v.ndim == 0:
                 continue  # 0d tensors go to scalar overload, and it's tested separately

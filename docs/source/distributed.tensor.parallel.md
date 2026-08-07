@@ -5,7 +5,7 @@
 # Tensor Parallelism - torch.distributed.tensor.parallel
 
 Tensor Parallelism(TP) is built on top of the PyTorch DistributedTensor
-(DTensor)[https://github.com/pytorch/pytorch/blob/main/torch/distributed/tensor/README.md]
+([DTensor](https://github.com/pytorch/pytorch/blob/main/torch/distributed/tensor/README.md))
 and provides different parallelism styles: Colwise, Rowwise, and Sequence Parallelism.
 
 :::{warning}
@@ -24,6 +24,11 @@ The entrypoint to parallelize your `nn.Module` using Tensor Parallelism is:
 
 ```{eval-rst}
 .. autofunction::  parallelize_module
+```
+
+```{eval-rst}
+.. currentmodule:: torch.distributed.tensor.parallel.api
+.. autofunction:: parallelize_module
 ```
 
 Tensor Parallelism supports the following parallel styles:
@@ -90,3 +95,13 @@ Parallelized cross-entropy loss computation (loss parallelism), is supported via
 :::{warning}
     The loss_parallel API is experimental and subject to change.
 :::
+
+```{eval-rst}
+.. currentmodule:: torch.distributed.tensor.parallel.loss
+.. autofunction:: loss_parallel
+```
+
+```{eval-rst}
+.. currentmodule:: torch.distributed.tensor.parallel.input_reshard
+.. autofunction:: input_reshard
+```

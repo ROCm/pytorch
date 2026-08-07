@@ -2,8 +2,18 @@
 
 #ifdef USE_ROCM
 
+// Expect to be included after headers of at::zeros_like and at::empty_like
+
 #include <aotriton/dtypes.h>
 #include <aotriton/util.h>
+#include <aotriton/config.h>
+#include <ATen/native/transformers/hip/aotriton_versions.h>
+#include <tuple>
+#include <optional>
+
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 12)
+#define AOTRITON_V2_API_FLASH_ATTN_H  // Suppress the include of deprecated flash/v2.h
+#endif
 
 ////////////////////////////////////////////////////////////////////////////////
 // Common macros copied from cuda/mem_eff_attention/gemm_kernel_utils.h
@@ -110,6 +120,87 @@ inline aotriton::TensorView<0> mk_atomictensor(const int32_t* ptr)
   return aotriton::TensorView<0>(reinterpret_cast<intptr_t>(ptr),
                                  aotriton::DType::kInt32);
 }
+
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 11)
+
+struct LazyTensorContext {
+  at::Tensor like_tensor;
+  std::string_view tensor_name;
+  at::Tensor tensor;
+};
+
+template<int kRank, bool kRequireZeros>
+struct LazyTensorFunctions : public LazyTensorContext {
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 12)
+  using HolderType = aotriton::LazyTensor<kRank>;
+#else
+  using HolderType = void;
+#endif
+  static aotriton::TensorView<kRank> acquire(HolderType* self) {
+#if AOTRITON_VERSION_CURRENT >= AOTRITON_VERSION_INT(0, 12)
+    auto ctx = (LazyTensorContext*)self->cookie;
+#else
+    auto ctx = (LazyTensorContext*)cookie;
+#endif
+    if (!ctx->tensor.defined()) {
+      auto q = ctx->like_tensor;
+      if constexpr (kRequireZeros) {
+        ctx->tensor = at::zeros(q.sizes(),
+                                q.options().dtype(at::kFloat));
+      } else {
+        ctx->tensor = at::empty_like(q);
+      }
+    }
+    return mk_aotensor<kRank>(ctx->tensor, ctx->tensor_name);
+  }
+
+  static void dispose(HolderType* cookie) {
+  }
+};
+
+template<int kRank, bool kRequireZeros>
+aotriton::LazyTensor<kRank> mklazy_common(LazyTensorContext* cookie)
+{
+  using LTF = LazyTensorFunctions<kRank, kRequireZeros>;
+  return aotriton::LazyTensor<kRank> {
+    .cookie = cookie,
+    .acquire = &LTF::acquire,
+    .dispose = &LTF::dispose
+  };
+}
+
+template<int kRank>
+auto mklazy_empty_like(LazyTensorContext* cookie)
+{
+  return mklazy_common<kRank, false>(cookie);
+}
+
+
+// Note: this will not keep the original strides
+template<int kRank>
+auto mklazy_fp32zeros(LazyTensorContext* cookie)
+{
+  return mklazy_common<kRank, true>(cookie);
+}
+
+inline auto parse_window_size(std::optional<int64_t> window_size_left,
+                              std::optional<int64_t> window_size_right)
+{
+  const int fa_left = window_size_left.value_or(-1);
+  const int fa_right = window_size_right.value_or(-1);
+  auto get_window_value = [](const int window) -> std::optional<int64_t> {
+    if (window < 0) {
+      return std::nullopt;
+    }
+    return window;
+  };
+  const auto window_left = get_window_value(fa_left);
+  const auto window_right = get_window_value(fa_right);
+  return std::make_tuple(window_left, window_right);
+}
+
+
+#endif  // >= 0.11
 
 } // namespace aotriton_adapter
 

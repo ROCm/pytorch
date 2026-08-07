@@ -27,6 +27,14 @@
     torch::headeronly::detail::throw_exception(#call, __FILE__, __LINE__); \
   }
 
+#define AOTI_RUNTIME_CHECK(EXPR, MSG) \
+  do {                                \
+    bool ok = EXPR;                   \
+    if (!ok) {                        \
+      throw std::runtime_error(MSG);  \
+    }                                 \
+  } while (0)
+
 using AOTIRuntimeError = int32_t;
 #define AOTI_RUNTIME_SUCCESS 0
 #define AOTI_RUNTIME_FAILURE 1
@@ -40,7 +48,7 @@ namespace torch::aot_inductor {
 
 using DeleterFnPtr = void (*)(void*);
 
-inline void noop_deleter(void*) {}
+inline void noop_deleter(void* /*unused*/) {}
 
 inline void delete_record_function_object(void* ptr) {
   AOTI_TORCH_ERROR_CODE_CHECK(aoti_record_function_end(
@@ -50,6 +58,11 @@ inline void delete_record_function_object(void* ptr) {
 inline void delete_tensor_object(void* ptr) {
   AOTI_TORCH_ERROR_CODE_CHECK(
       aoti_torch_delete_tensor_object(reinterpret_cast<AtenTensorHandle>(ptr)));
+}
+
+inline void delete_c10_value_object(void* ptr) {
+  AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_delete_c10_value_object(
+      reinterpret_cast<C10IValueHandle>(ptr)));
 }
 
 class RAIIAtenRecordFunctionHandle {
@@ -196,9 +209,50 @@ class RAIIAtenTensorHandle {
   std::unique_ptr<AtenTensorOpaque, DeleterFnPtr> handle_;
 };
 
+// RAIIC10IValueHandle steals the IValue objects created by the libtorch C ABI
+class RAIIC10IValueHandle {
+ public:
+  RAIIC10IValueHandle() : handle_(nullptr, noop_deleter) {}
+  RAIIC10IValueHandle(const RAIIC10IValueHandle& other) = delete;
+  RAIIC10IValueHandle& operator=(const RAIIC10IValueHandle& other) = delete;
+
+  // Steal the ownership from another RAIIC10IValueHandle using std::move
+  RAIIC10IValueHandle(RAIIC10IValueHandle&& other) = default;
+  RAIIC10IValueHandle& operator=(RAIIC10IValueHandle&& other) = default;
+
+  // Steal the ownership from raw C10IValueHandle
+  RAIIC10IValueHandle(C10IValueHandle handle)
+      : handle_(handle, delete_c10_value_object) {}
+
+  ~RAIIC10IValueHandle() {
+    handle_.reset();
+  }
+
+  // Return a raw C10IValueHandle to be used by aoti_torch functions
+  // Note: this function does NOT transfer the ownership of the handle
+  operator C10IValueHandle() const {
+    return handle_.get();
+  }
+
+  C10IValueHandle release() {
+    return handle_.release();
+  }
+
+  C10IValueHandle get() const {
+    return handle_.get();
+  }
+
+  void reset() {
+    handle_.reset();
+  }
+
+ private:
+  std::unique_ptr<C10IValueOpaque, DeleterFnPtr> handle_;
+};
+
 class MaybeOwningAtenTensorHandle {
  public:
-  MaybeOwningAtenTensorHandle() : handle_(nullptr), raii_handle_() {}
+  MaybeOwningAtenTensorHandle() : handle_(nullptr) {}
   // We skip copy constructor as MaybeOwningAtenTensorHandle might be RAII which
   // makes it undefined.
   MaybeOwningAtenTensorHandle(const MaybeOwningAtenTensorHandle& other) =
@@ -353,6 +407,32 @@ inline RAIIAtenTensorHandle wrap_with_raii_handle_if_needed(
   return RAIIAtenTensorHandle(handle);
 }
 
+template <typename DevicePtr>
+inline DevicePtr allocate_scratch_tensor(
+    int64_t numel,
+    int32_t dtype,
+    int32_t device_type,
+    int32_t device_index,
+    RAIIAtenTensorHandle& scratch_tensor) {
+  DevicePtr scratch_ptr = 0;
+  if (numel > 0) {
+    int64_t scratch_size[] = {numel};
+    int64_t scratch_stride[] = {1};
+    AtenTensorHandle scratch_handle;
+    AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_empty_strided(
+        1,
+        scratch_size,
+        scratch_stride,
+        dtype,
+        device_type,
+        device_index,
+        &scratch_handle));
+    scratch_tensor = RAIIAtenTensorHandle(scratch_handle);
+    scratch_ptr = reinterpret_cast<DevicePtr>(scratch_tensor.data_ptr());
+  }
+  return scratch_ptr;
+}
+
 class ConstantHandle {
  public:
   ConstantHandle() = default;
@@ -393,6 +473,59 @@ class ConstantHandle {
   AtenTensorHandle handle_{};
   void* data_ = nullptr;
 };
+
+inline void assert_size_stride(
+    AtenTensorHandle tensor,
+    std::initializer_list<int64_t> expected_sizes,
+    std::initializer_list<int64_t> expected_strides,
+    const char* op_name = nullptr) {
+  int64_t ndim;
+  AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_dim(tensor, &ndim));
+  int64_t expected_ndim = static_cast<int64_t>(expected_sizes.size());
+  std::string op_msg = op_name ? std::string("\nError in op: ") + op_name : "";
+  AOTI_RUNTIME_CHECK(
+      ndim == expected_ndim,
+      "expected ndim " + std::to_string(expected_ndim) + " but got " +
+          std::to_string(ndim) + op_msg);
+
+  int64_t numel;
+  AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_numel(tensor, &numel));
+  if (numel == 0) {
+    return;
+  }
+
+  int64_t* sizes;
+  int64_t* strides;
+  AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_sizes(tensor, &sizes));
+  AOTI_TORCH_ERROR_CODE_CHECK(aoti_torch_get_strides(tensor, &strides));
+
+  std::stringstream msg;
+  int num_errors = 0;
+  auto it_size = expected_sizes.begin();
+  auto it_stride = expected_strides.begin();
+  for (int64_t i = 0; i < ndim; ++i, ++it_size, ++it_stride) {
+    int64_t want_size = *it_size;
+    int64_t want_stride = *it_stride;
+    if (want_size != sizes[i] || (want_stride != strides[i] && sizes[i] > 1)) {
+      if (num_errors > 0) {
+        msg << "; ";
+      }
+      msg << "expected size " << sizes[i] << "==" << want_size << ", stride "
+          << strides[i] << "==" << want_stride << " at dim=" << i;
+      num_errors++;
+    }
+  }
+
+  if (num_errors) {
+    AOTI_RUNTIME_CHECK(
+        false,
+        std::move(msg).str() + op_msg +
+            "\nThis error most often comes from a incorrect fake (aka meta) "
+            "kernel for a custom op."
+            "\nUse torch.library.opcheck to test your custom op."
+            "\nSee https://pytorch.org/docs/stable/library.html#torch.library.opcheck");
+  }
+}
 
 inline void* get_data_ptr_wrapper(const ConstantHandle& constant) {
   return constant.data_ptr();

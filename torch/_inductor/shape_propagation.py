@@ -1,6 +1,6 @@
 import functools
-from collections.abc import Sequence
-from typing import Callable, Optional, Protocol, Union
+from collections.abc import Callable, Sequence
+from typing import Protocol
 
 import sympy
 
@@ -9,7 +9,7 @@ import torch
 from .virtualized import OpsValue, V
 
 
-BlockShapeType = Optional[Sequence[Union[int, str]]]
+BlockShapeType = Sequence[int | str] | None
 
 
 class ShapeVar(Protocol):
@@ -17,26 +17,30 @@ class ShapeVar(Protocol):
     def shape(self) -> BlockShapeType: ...
 
 
-ShapeArg = Union[ShapeVar, torch.types.Number, str, OpsValue, torch.dtype]
+ShapeArg = ShapeVar | torch.types.Number | str | OpsValue | torch.dtype
 
 # Inputs need to be cacheable (e.g., not a CSEVar) in order for the cache to be effective
 # So first decompose CSEVars -> tuple before calling this
 
 
-@functools.lru_cache(None)
 def get_broadcasted_shape(a: BlockShapeType, b: BlockShapeType) -> BlockShapeType:
     assert isinstance(a, Sequence)
     assert isinstance(b, Sequence)
+    return _get_broadcasted_shape(tuple(a), tuple(b))
+
+
+@functools.lru_cache(None)
+def _get_broadcasted_shape(
+    a: tuple[int | str, ...], b: tuple[int | str, ...]
+) -> BlockShapeType:
     if len(a) > len(b):
-        return get_broadcasted_shape(a, (*[1] * (len(a) - len(b)), *b))
+        return _get_broadcasted_shape(a, (*[1] * (len(a) - len(b)), *b))
     elif len(a) < len(b):
         b, a = a, b
-        return get_broadcasted_shape(a, (*[1] * (len(a) - len(b)), *b))
+        return _get_broadcasted_shape(a, (*[1] * (len(a) - len(b)), *b))
     else:
 
-        def _get_broadcasted_dim(
-            d1: Union[int, str], d2: Union[int, str]
-        ) -> Union[int, str]:
+        def _get_broadcasted_dim(d1: int | str, d2: int | str) -> int | str:
             if str(d1) == "1":
                 return d2
             elif str(d2) == "1":
@@ -82,7 +86,7 @@ class ShapePropagationOpsHandler:
 
     @staticmethod
     def constant(value: torch.types.Number, dtype: torch.dtype) -> BlockShapeType:
-        # See implementation of constant for triton for the reason
+        # TritonKernelOverrides.constant uses tl.full with shape=[1]*ndim for all types
         from torch._inductor.codegen.triton import TritonKernel
 
         if isinstance(V.kernel, TritonKernel):
@@ -100,27 +104,37 @@ class ShapePropagationOpsHandler:
         dtype: torch.dtype,
         src_dtype: torch.dtype,
         reduction_type: str,
-        value: Union[ShapeArg, tuple[ShapeArg, ...]],
-    ) -> Union[BlockShapeType, tuple[BlockShapeType, ...]]:
+        value: ShapeArg | tuple[ShapeArg, ...],
+    ) -> BlockShapeType | tuple[BlockShapeType, ...]:
         raise NotImplementedError
 
     @staticmethod
-    def store(
-        name: str, index: int, value: ShapeArg, mode: Optional[str] = None
-    ) -> None:
+    def store(name: str, index: int, value: ShapeArg, mode: str | None = None) -> None:
         return None
 
     @staticmethod
     def to_dtype(
         value: ShapeVar,
         dtype: torch.dtype,
-        src_dtype: Optional[torch.dtype] = None,
+        src_dtype: torch.dtype | None = None,
         use_compute_types: bool = True,
     ) -> BlockShapeType:
         return value.shape
 
     @staticmethod
+    def dot(a: sympy.Expr, b: sympy.Expr) -> BlockShapeType:
+        from torch._inductor.codegen.triton import TritonKernel
+
+        assert isinstance(V.kernel, TritonKernel), "dot supports Triton only"
+        return ("YBLOCK", "XBLOCK")
+
+    @staticmethod
     def index_expr(expr: sympy.Expr, dtype: torch.dtype) -> BlockShapeType:
+        # shape is implicitly embedded in expr.
+        return None
+
+    @staticmethod
+    def value_expr(expr: sympy.Expr, dtype: torch.dtype) -> BlockShapeType:
         # shape is implicitly embedded in expr.
         return None
 
@@ -131,7 +145,7 @@ class ShapePropagationOpsHandler:
     @staticmethod
     def indirect_indexing(
         var: ShapeArg,
-        size: Union[sympy.Expr, int],
+        size: sympy.Expr | int,
         check: bool = True,
         wrap_neg: bool = True,
     ) -> None:

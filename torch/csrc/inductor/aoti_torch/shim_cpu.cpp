@@ -19,16 +19,6 @@ using namespace torch::aot_inductor;
 
 #if AT_MKLDNN_ENABLED()
 
-template <typename T>
-static c10::List<T> convert_to_c10_List(const T* scalars, const int64_t len) {
-  c10::List<T> scalars_list;
-  scalars_list.reserve(len);
-  for (int64_t i = 0; i < len; i++) {
-    scalars_list.emplace_back(scalars[i]);
-  }
-  return scalars_list;
-}
-
 AOTITorchError aoti_torch_cpu_mkldnn__convolution_pointwise_binary(
     AtenTensorHandle X,
     AtenTensorHandle other,
@@ -51,7 +41,7 @@ AOTITorchError aoti_torch_cpu_mkldnn__convolution_pointwise_binary(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> unary_scalars_list;
     unary_scalars_list.reserve(unary_scalars_len_);
-    for (int64_t i = 0; i < unary_scalars_len_; i++) {
+    for (const auto i : c10::irange(unary_scalars_len_)) {
       unary_scalars_list.emplace_back(pointer_to_optional(unary_scalars[i]));
     }
     auto tmp_result = at::native::mkldnn_convolution_pointwise_binary(
@@ -94,7 +84,7 @@ AOTITorchError aoti_torch_cpu_mkldnn__convolution_pointwise_binary_(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> unary_scalars_list;
     unary_scalars_list.reserve(unary_scalars_len_);
-    for (int64_t i = 0; i < unary_scalars_len_; i++) {
+    for (const auto i : c10::irange(unary_scalars_len_)) {
       unary_scalars_list.emplace_back(pointer_to_optional(unary_scalars[i]));
     }
     auto tmp_result = at::native::mkldnn_convolution_pointwise_binary_(
@@ -134,7 +124,7 @@ AOTITorchError aoti_torch_cpu_mkldnn__convolution_pointwise(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(scalars_len_);
-    for (int64_t i = 0; i < scalars_len_; i++) {
+    for (const auto i : c10::irange(scalars_len_)) {
       scalars_list.emplace_back(pointer_to_optional(scalars[i]));
     }
     auto tmp_result = at::native::mkldnn_convolution_pointwise(
@@ -173,7 +163,7 @@ AOTITorchError aoti_torch_cpu_mkldnn__convolution_transpose_pointwise(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(scalars_len_);
-    for (int64_t i = 0; i < scalars_len_; i++) {
+    for (const auto i : c10::irange(scalars_len_)) {
       scalars_list.emplace_back(pointer_to_optional(scalars[i]));
     }
     auto tmp_result = at::native::mkldnn_convolution_transpose_pointwise(
@@ -251,7 +241,7 @@ AOTITorchError aoti_torch_cpu__linear_pointwise(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(scalars_len_);
-    for (int64_t i = 0; i < scalars_len_; i++) {
+    for (const auto i : c10::irange(scalars_len_)) {
       scalars_list.emplace_back(pointer_to_optional(scalars[i]));
     }
     auto tmp_result = at::native::mkldnn_linear_pointwise(
@@ -302,7 +292,7 @@ AOTITorchError aoti_torch_cpu__qlinear_pointwise_tensor(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(post_op_args_len_);
-    for (int64_t i = 0; i < post_op_args_len_; i++) {
+    for (const auto i : c10::irange(post_op_args_len_)) {
       scalars_list.emplace_back(pointer_to_optional(post_op_args[i]));
     }
 
@@ -348,7 +338,7 @@ AOTITorchError aoti_torch_cpu__qlinear_pointwise_binary_tensor(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(unary_post_op_args_len_);
-    for (int64_t i = 0; i < unary_post_op_args_len_; i++) {
+    for (const auto i : c10::irange(unary_post_op_args_len_)) {
       scalars_list.emplace_back(pointer_to_optional(unary_post_op_args[i]));
     }
 
@@ -401,7 +391,7 @@ AOTITorchError aoti_torch_cpu__qconv_pointwise_tensor(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> scalars_list;
     scalars_list.reserve(post_op_args_len_);
-    for (int64_t i = 0; i < post_op_args_len_; i++) {
+    for (const auto i : c10::irange(post_op_args_len_)) {
       scalars_list.emplace_back(pointer_to_optional(post_op_args[i]));
     }
 
@@ -465,7 +455,7 @@ AOTITorchError aoti_torch_cpu__qconv2d_pointwise_binary_tensor(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     c10::List<std::optional<c10::Scalar>> unary_scalars_list;
     unary_scalars_list.reserve(unary_scalars_len_);
-    for (int64_t i = 0; i < unary_scalars_len_; i++) {
+    for (const auto i : c10::irange(unary_scalars_len_)) {
       unary_scalars_list.emplace_back(pointer_to_optional(unary_scalars[i]));
     }
 

@@ -200,14 +200,15 @@ def assert_equal(actual, desired, err_msg="", verbose=True):
             return True
 
     if isinstance(desired, str) and isinstance(actual, str):
-        assert actual == desired
+        if actual != desired:
+            raise AssertionError(f"Strings not equal: {actual!r} != {desired!r}")
         return
 
     if isinstance(desired, dict):
         if not isinstance(actual, dict):
             raise AssertionError(repr(type(actual)))
         assert_equal(len(actual), len(desired), err_msg, verbose)
-        for k in desired.keys():
+        for k in desired:
             if k not in actual:
                 raise AssertionError(repr(k))
             assert_equal(actual[k], desired[k], f"key={k!r}\n{err_msg}", verbose)
@@ -317,7 +318,7 @@ def print_assert_equal(test_string, actual, desired):
     __tracebackhide__ = True  # Hide traceback for py.test
     import pprint
 
-    if not (actual == desired):
+    if actual != desired:
         msg = StringIO()
         msg.write(test_string)
         msg.write(" failed\nACTUAL: \n")
@@ -1305,7 +1306,8 @@ def assert_allclose(
     header = f"Not equal to tolerance rtol={rtol:g}, atol={atol:g}"
 
     if check_dtype:
-        assert actual.dtype == desired.dtype
+        if actual.dtype != desired.dtype:
+            raise AssertionError(f"dtype mismatch: {actual.dtype} != {desired.dtype}")
 
     assert_array_compare(
         compare,
@@ -1501,11 +1503,11 @@ def nulp_diff(x, y, dtype=None):
 
 def _integer_repr(x, vdt, comp):
     # Reinterpret binary representation of the float as sign-magnitude:
-    # take into account two-complement representation
+    # take into account two's-complement representation
     # See also
     # https://randomascii.wordpress.com/2012/02/25/comparing-floating-point-numbers-2012-edition/
     rx = x.view(vdt)
-    if not (rx.size == 1):
+    if rx.size != 1:
         rx[rx < 0] = comp - rx[rx < 0]
     else:
         if rx < 0:
@@ -1653,7 +1655,7 @@ def _gen_alignment_data(dtype=float32, type="binary", max_size=24):
     type : string
         'unary': create data for unary operations, creates one input
                  and output array
-        'binary': create data for unary operations, creates two input
+        'binary': create data for binary operations, creates two input
                  and output array
     max_size : integer
         maximum size of data to produce
@@ -1934,7 +1936,7 @@ class suppress_warnings:
         noise mostly on the outmost level. Unsuppressed and unrecorded
         warnings will be forwarded based on this rule. Defaults to "always".
         "location" is equivalent to the warnings "default", match by exact
-        location the warning warning originated from.
+        location the warning originated from.
 
     Notes
     -----

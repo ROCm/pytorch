@@ -39,10 +39,10 @@ std::string BaseInfo::buildTensorString(const Tensor& tensor, bool includeBuffer
     // see comments for INCLUDE_BUFFER_ID
     if (includeBufferId && deviceType == at::kMPS) {
       id<MTLBuffer> buffer = __builtin_bit_cast(id<MTLBuffer>, tensor.storage().data());
-      tensorStr << "(buf#" << (getIMPSAllocator()->getBufferId(buffer)) << ":" << buffer.retainCount << ")";
+      tensorStr << "(buf#" << (getIMPSAllocator()->getBufferId(buffer)) << ':' << buffer.retainCount << ')';
     }
-    tensorStr << ":" << tensor.scalar_type() << tensor.sizes();
-    return tensorStr.str();
+    tensorStr << ':' << tensor.scalar_type() << tensor.sizes();
+    return std::move(tensorStr).str();
   } else {
     return "undefined";
   }

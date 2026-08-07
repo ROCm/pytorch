@@ -67,7 +67,7 @@ jobs:
       matrix: ${{ fromJSON(inputs.test-matrix) }}
       fail-fast: false
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: ${{ matrix.mem_leak_check == 'mem_leak_check' && 600 || inputs.timeout-minutes }}
+    timeout-minutes: ${{ inputs.timeout-minutes }}
     env:
       GIT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       BUILD_ENVIRONMENT: ${{ inputs.build-environment }}
@@ -105,11 +105,11 @@ jobs:
           done
 
       - name: Clean up disk space before running MacOS workflow
-        uses: pytorch/test-infra/.github/actions/check-disk-space@main
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.13
 
       # [see note: pytorch repo ref]
       - name: Checkout PyTorch
-        uses: pytorch/pytorch/.github/actions/checkout-pytorch@main
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
 
       - name: Get workflow job id
         id: get-job-id
@@ -119,10 +119,10 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup Python
-        uses: pytorch/test-infra/.github/actions/setup-python@main
+        uses: pytorch/test-infra/.github/actions/setup-python@release/2.13
         with:
           python-version: ${{ inputs.python-version }}
-          pip-requirements-file: .github/requirements/pip-requirements-macOS.txt
+          pip-requirements-file: .ci/docker/requirements-ci.txt
 
       - name: Start monitoring script
         id: monitor-script
@@ -171,7 +171,7 @@ jobs:
         id: test-timeout
         shell: bash
         env:
-          JOB_TIMEOUT: ${{ matrix.mem_leak_check == 'mem_leak_check' && 600 || inputs.timeout-minutes }}
+          JOB_TIMEOUT: ${{ inputs.timeout-minutes }}
         run: |
           echo "timeout=$((JOB_TIMEOUT-30))" >> "${GITHUB_OUTPUT}"
 
@@ -179,7 +179,6 @@ jobs:
         id: test
         timeout-minutes: ${{ fromJson(steps.test-timeout.outputs.timeout) }}
         env:
-          PYTORCH_TEST_CUDA_MEM_LEAK_CHECK: ${{ matrix.mem_leak_check && '1' || '0' }}
           PYTORCH_TEST_RERUN_DISABLED_TESTS: ${{ matrix.rerun_disabled_tests && '1' || '0' }}
           CONTINUE_THROUGH_ERROR: ${{ steps.keep-going.outputs.keep-going }}
           VERBOSE_TEST_LOGS: ${{ steps.keep-going.outputs.ci-verbose-test-logs }}
@@ -257,7 +256,7 @@ jobs:
           file-suffix: ${{ github.job }}-${{ matrix.config }}-${{ matrix.shard }}-${{ matrix.num_shards }}-${{ matrix.runner }}_${{ steps.get-job-id.outputs.job-id }}
 
       - name: Upload the benchmark results
-        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@main
+        uses: pytorch/test-infra/.github/actions/upload-benchmark-results@release/2.13
         with:
           benchmark-results-dir: test/test-reports
           dry-run: false
@@ -287,4 +286,4 @@ jobs:
       - name: Clean up disk space
         if: always()
         continue-on-error: true
-        uses: pytorch/test-infra/.github/actions/check-disk-space@main
+        uses: pytorch/test-infra/.github/actions/check-disk-space@release/2.13

@@ -5,13 +5,12 @@ import collections
 import dataclasses
 import itertools
 import pprint
-from typing import Any, Optional, Protocol, TYPE_CHECKING
-
-import sympy
+from typing import Any, Protocol, TYPE_CHECKING
 
 import torch
 from torch.fx.experimental.symbolic_shapes import free_unbacked_symbols
 from torch.utils._ordered_set import OrderedSet
+from torch.utils._sympy.functions import Max
 
 from .. import config
 from ..utils import _align, align, cache_on_self, CachedMethod, IndentedBuffer
@@ -28,6 +27,8 @@ from .wrapper import (
 
 if TYPE_CHECKING:
     from collections.abc import Iterable
+
+    import sympy
 
 
 @dataclasses.dataclass
@@ -141,9 +142,9 @@ class Allocation(AllocationTreeNode):
     size_hint: int
     symbolic_size: sympy.Expr
     allocated: bool = False
-    pool: Optional[AllocationPool] = None
-    offset: Optional[sympy.Expr] = None
-    earliest_available: Optional[float] = None
+    pool: AllocationPool | None = None
+    offset: sympy.Expr | None = None
+    earliest_available: float | None = None
 
     def __post_init__(self) -> None:
         has_unbacked_sym = False
@@ -318,7 +319,7 @@ class TemporalSplit(ClearCacheOnAllocateMixin, AllocationTreeNode):
     def get_symbolic_size(self) -> sympy.Expr:
         if not self.allocations:
             return 0  # type: ignore[return-value]
-        return sympy.Max(*[x.get_symbolic_size() for x in self.allocations])
+        return Max(*[x.get_symbolic_size() for x in self.allocations])
 
     def is_empty(self):
         return len(self.allocations) == 1 and self.allocations[0].is_empty()
@@ -387,8 +388,8 @@ class AllocationPool:
     device: torch.device
     root: TemporalSplit
     can_expand: bool = True
-    restrict_live_range: Optional[LiveRange] = None
-    name: Optional[str] = None
+    restrict_live_range: LiveRange | None = None
+    name: str | None = None
     names_to_del: list[str] = dataclasses.field(default_factory=list)
     creation_cache: dict[str, str] = dataclasses.field(default_factory=dict)
 
@@ -553,7 +554,7 @@ class BufferGroup:
         self.node = node
         self.names = [node.get_name()]
         self.is_output = False
-        self.allocation: Optional[Allocation] = None
+        self.allocation: Allocation | None = None
         self.live_range = LiveRange(float("inf"), -float("inf"))
 
     def update_usage(self, timestep: int):
@@ -572,7 +573,7 @@ class BufferGroup:
         nbytes = self.sym_nbytes()
         # For now, fallback value will be used if we encounter an unbacked SymInt. The longer-term plan is to have
         # size_hint() use better heuristics for unbackeds, at which point the fallback value will be ignored.
-        size_hint = V.graph.sizevars.size_hint(nbytes, fallback=64)
+        size_hint = V.graph.sizevars.optimization_hint(nbytes, fallback=64)
         self.allocation = Allocation(
             self.node,
             self.live_range,
@@ -592,7 +593,7 @@ class PoolMemoryPlanningLine(MemoryPlanningLine):
     """Abstract base class for {Alloc,Dealloc}FromPoolLine"""
 
     group: BufferGroup
-    timestep: Optional[int] = None
+    timestep: int | None = None
 
     @property
     def node(self):
@@ -653,7 +654,7 @@ class MemoryPlanner:
 
     wrapper: Any
     pools: AllocationPools = dataclasses.field(default_factory=AllocationPools)
-    buffer_groups: Optional[list[BufferGroup]] = None
+    buffer_groups: list[BufferGroup] | None = None
 
     def plan(self, lines: list[Any]) -> list[Any]:
         """Call all the memory planning passes in sequence"""

@@ -153,10 +153,10 @@ class TORCH_API C10dLogger {
   virtual ~C10dLogger() = default;
   virtual void log(const C10dLoggingData& data);
   static C10dLogger* getLogger();
-  static void registerLogger(std::unique_ptr<C10dLogger>);
+  static void registerLogger(std::unique_ptr<C10dLogger> /*logger*/);
 
  protected:
-  // singletion, hide constructor from the public
+  // singleton, hide constructor from the public
   C10dLogger(std::string logDestination)
       : logDestination_(std::move(logDestination)) {}
 

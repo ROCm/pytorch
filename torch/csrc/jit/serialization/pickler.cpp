@@ -110,7 +110,7 @@ void Pickler::pushIValueImpl(const IValue& ivalue) {
     pushGlobal(type_name.prefix(), type_name.name());
     push<PickleOpCode>(PickleOpCode::EMPTY_TUPLE);
     push<PickleOpCode>(PickleOpCode::NEWOBJ);
-    if (checkHasValidSetGetState(type)) {
+    if (checkHasValidSetGetState(*type)) {
       Function& getstate = type->getMethod("__getstate__");
       pushIValue(getstate({obj}));
     } else {
@@ -130,12 +130,12 @@ void Pickler::pushIValueImpl(const IValue& ivalue) {
     err << "Cannot serialize custom bound C++ class";
     if (memoized_class_types_ && !memoized_class_types_->empty()) {
       if (auto qualname = memoized_class_types_->back()->name()) {
-        err << " " << qualname->qualifiedName();
+        err << ' ' << qualname->qualifiedName();
       }
     }
     err << ". Please define serialization methods via def_pickle() for "
            "this class.";
-    TORCH_CHECK(false, err.str());
+    TORCH_CHECK(false, std::move(err).str());
   } else if (ivalue.isRRef()) {
 #ifdef USE_RPC
     TORCH_CHECK(

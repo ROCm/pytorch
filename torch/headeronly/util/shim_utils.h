@@ -8,16 +8,16 @@
 #define TORCH_SUCCESS 0
 #define TORCH_FAILURE 1
 
-namespace torch::headeronly::detail {
+HIDDEN_NAMESPACE_BEGIN(torch, headeronly, detail)
 [[maybe_unused]] C10_NOINLINE static void throw_exception(
     const char* call,
     const char* file,
     int64_t line) {
   std::stringstream ss;
   ss << call << " API call failed at " << file << ", line " << line;
-  throw std::runtime_error(ss.str());
+  throw std::runtime_error(std::move(ss).str());
 }
-} // namespace torch::headeronly::detail
+HIDDEN_NAMESPACE_END(torch, headeronly, detail)
 
 // This API is 100% inspired by AOTI_TORCH_ERROR_CODE_CHECK defined in
 // pytorch/torch/csrc/inductor/aoti_runtime/utils.h to handle the returns

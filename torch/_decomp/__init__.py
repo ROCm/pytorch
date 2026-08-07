@@ -1,10 +1,11 @@
 # mypy: allow-untyped-defs
 import inspect
+import typing
 from collections import defaultdict
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from functools import lru_cache, partial, wraps
 from itertools import chain
-from typing import Callable, Optional, TYPE_CHECKING, TypeVar, Union
+from typing import Optional, TYPE_CHECKING, TypeVar, Union
 from typing_extensions import ParamSpec
 
 
@@ -58,7 +59,7 @@ def _should_decompose_because_unsafe_op(op: torch._ops.OperatorBase) -> bool:
         return False
     if torch.Tag.maybe_aliasing_or_mutating in op.tags:
         return True
-    return op == torch.ops.aten.native_batch_norm.default
+    return op is torch.ops.aten.native_batch_norm.default
 
 
 def _add_op_to_registry(registry, op, fn):
@@ -66,9 +67,9 @@ def _add_op_to_registry(registry, op, fn):
     This is an internal API for adding an op to the decomposition table.
 
     If op is OpOverload, it will be added to the registry directly.
-    If op is OpOverloadPacket, all the valid op_overloads in the packet will be added to the registry.
+    If op is OpOverloadPacket, all the valid overload_ops in the packet will be added to the registry.
     """
-    overloads: list[Union[torch._ops.OperatorBase]] = []
+    overloads: list[torch._ops.OperatorBase] = []
     if isinstance(op, HigherOrderOperator):
         # There's no concept of overloads for HigherOrderOperator
         registry[op] = fn
@@ -76,9 +77,9 @@ def _add_op_to_registry(registry, op, fn):
     elif isinstance(op, OpOverload):
         overloads.append(op)
     else:
-        assert isinstance(op, OpOverloadPacket)
-        for ol in op.overloads():
-            overloads.append(getattr(op, ol))
+        if not isinstance(op, OpOverloadPacket):
+            raise AssertionError(f"expected OpOverloadPacket, got {type(op)}")
+        overloads.extend(op.op_overloads())
 
     for op_overload in overloads:
         if op_overload in registry:
@@ -109,7 +110,10 @@ def _convert_out_params(f):
             out_kwargs = tuple(kwargs.pop(o, None) for o in out_names)
             # Either all of the out kwargs are set or none of them
             is_none = out_kwargs[0] is None
-            assert all((o is None) == is_none for o in out_kwargs)
+            if not all((o is None) == is_none for o in out_kwargs):
+                raise AssertionError(
+                    f"all out kwargs must be set or none of them, got {out_kwargs}"
+                )
             return f(*args, **kwargs, out=None if is_none else out_kwargs)
 
         out_params = [
@@ -119,7 +123,7 @@ def _convert_out_params(f):
                 default=None,
                 annotation=t,
             )
-            for o, t in zip(out_names, out_annotation.__args__)
+            for o, t in zip(out_names, typing.get_args(out_annotation))
         ]
         # Drop the out parameter and concatenate the new kwargs in the signature
         params = chain((v for k, v in sig.parameters.items() if k != "out"), out_params)
@@ -200,7 +204,10 @@ def register_decomposition(
     things
     """
 
-    assert type in {"post_autograd", "pre_autograd", "meta"}
+    if type not in {"post_autograd", "pre_autograd", "meta"}:
+        raise AssertionError(
+            f"type must be one of post_autograd, pre_autograd, or meta, got {type}"
+        )
 
     def decomposition_decorator(fn: Callable[_P, _T]) -> Callable[_P, _T]:
         orig_fn = fn
@@ -222,7 +229,7 @@ def register_decomposition(
 
 
 def get_decompositions(
-    aten_ops: Sequence[Union[torch._ops.OperatorBase, OpOverloadPacket]],
+    aten_ops: Sequence[torch._ops.OperatorBase | OpOverloadPacket],
     type: str = "post_autograd",
 ) -> dict[torch._ops.OperatorBase, Callable]:
     """
@@ -236,10 +243,14 @@ def get_decompositions(
     they know how to implement, and we provide decompositions for everything
     not in this set.
     """
-    assert type in {"post_autograd", "pre_autograd", "meta"}
+    if type not in {"post_autograd", "pre_autograd", "meta"}:
+        raise AssertionError(
+            f"type must be one of post_autograd, pre_autograd, or meta, got {type}"
+        )
 
     registry = global_decomposition_table[type]
     packets_to_overloads = defaultdict(list)
+
     for opo in registry:
         if isinstance(opo, (OpOverload, OpOverloadPacket)):
             packets_to_overloads[opo.overloadpacket].append(opo)
@@ -255,7 +266,7 @@ def get_decompositions(
 
 def remove_decompositions(
     decompositions: dict[torch._ops.OperatorBase, Callable],
-    aten_ops: Sequence[Union[OpOverload, OpOverloadPacket]],
+    aten_ops: Sequence[OpOverload | OpOverloadPacket],
 ) -> None:
     """
     Given a dictionary of decompositions obtained from get_decompositions(), removes
@@ -265,8 +276,7 @@ def remove_decompositions(
     """
     for op in aten_ops:
         if isinstance(op, OpOverloadPacket):
-            for overload_name in op.overloads():
-                opo = getattr(op, overload_name)
+            for opo in op.op_overloads():
                 decompositions.pop(opo, None)
         elif isinstance(op, OpOverload):
             decompositions.pop(op, None)
@@ -360,6 +370,7 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.hardswish_backward,
             aten.hardtanh_,
             aten.hardtanh_backward,
+            aten.hann_window,
             aten.heaviside,
             aten.heaviside_,
             aten.huber_loss,
@@ -403,6 +414,7 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.max_unpool3d,
             aten.mish,
             aten.mish_,
+            aten.mish_backward,
             aten.mse_loss,
             aten.mse_loss_backward,
             aten.multi_margin_loss,
@@ -418,6 +430,7 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.native_dropout_backward,
             aten.native_group_norm_backward,
             aten.native_layer_norm_backward,
+            aten._fused_rms_norm,
             aten._fused_rms_norm_backward,
             aten.new_empty,
             aten.new_full,
@@ -433,8 +446,6 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.norm.ScalarOpt_dim,
             aten.norm.dtype_out,
             aten.norm.out,
-            aten.norm.names_dtype_out,
-            aten.norm.names_out,
             aten.norm.ScalarOpt_dtype_out,
             aten.norm.Scalar_out,
             aten.ones,
@@ -474,6 +485,7 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.silu,
             aten.silu_,
             aten.silu_backward.grad_input,
+            aten.silu_backward,
             aten.sinc,
             aten.sinc_,
             aten.slice_backward,
@@ -496,8 +508,6 @@ def _core_aten_decompositions_post_autograd() -> dict[
             aten.std.correction,
             aten.std.out,
             aten.std.correction_out,
-            aten.std.names_out,
-            aten.std.correction_names_out,
             aten.std_mean.correction,
             aten.std_mean.correction_out,
             aten.stack,

@@ -6,6 +6,7 @@
 #include <ATen/native/ConvUtils.h>
 #include <ATen/native/CPUBlas.h>
 #include <ATen/native/vol2col.h>
+#include <utility>
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/Functions.h>
@@ -22,7 +23,7 @@ namespace at::native {
 
 namespace {
 
-static inline void slow_conv_transpose3d_shape_check(
+inline void slow_conv_transpose3d_shape_check(
     const Tensor& input,
     const Tensor& grad_output,
     const Tensor& weight,
@@ -248,8 +249,8 @@ void slow_conv_transpose3d_out_cpu_template(
   Tensor weight = weight_.contiguous();
   Tensor bias = bias_.defined() ? bias_.contiguous() : bias_;
 
-  const int n_input_plane = (int)weight.size(0);
-  const int n_output_plane = (int)weight.size(1);
+  const auto n_input_plane = weight.size(0);
+  const auto n_output_plane = weight.size(1);
 
   bool is_batch = false;
   if (input.dim() == 4) {
@@ -936,7 +937,8 @@ static std::tuple<Tensor, Tensor, Tensor> slow_conv_transpose3d_backward_cpu(
         1);
   }
 
-  return std::tuple<Tensor, Tensor, Tensor>(grad_input, grad_weight, grad_bias);
+  return std::tuple<Tensor, Tensor, Tensor>(
+      std::move(grad_input), std::move(grad_weight), std::move(grad_bias));
 }
 
 REGISTER_ALL_CPU_DISPATCH(slow_conv_transpose3d_backward_stub, &slow_conv_transpose3d_backward_cpu)

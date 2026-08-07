@@ -11,6 +11,7 @@
 #include <ATen/ExpandUtils.h>
 #include <ATen/MemoryOverlap.h>
 #include <ATen/TensorOperators.h>
+#include <ATen/WrapDimUtils.h>
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/cuda/Loops.cuh>
 #include <ATen/native/Resize.h>
@@ -23,6 +24,7 @@
 #include <ATen/NativeFunctions.h>
 #else
 #include <ATen/ops/_assert_async.h>
+#include <ATen/ops/aminmax.h>
 #include <ATen/ops/arange.h>
 #include <ATen/ops/empty.h>
 #include <ATen/ops/zeros_like.h>
@@ -59,7 +61,7 @@ constexpr uint64_t getDefaultMaxThreadsPerBlock() {
 #ifdef USE_ROCM
 #define SKIP_SORTED_INDICES 32
 template <typename scalar_t, int SZ>
-__global__ void indexing_backward_kernel(
+__global__ void indexing_backward_kernel_many_indices(
   const int64_t* sorted_indices, const int64_t* indices, const scalar_t* grad_output, scalar_t* grad_weight,
   int64_t numel, int64_t stride, int64_t stride_before, int64_t outer_dim, bool accumulate) {
   using opmath_t = at::opmath_type<scalar_t>;
@@ -254,7 +256,8 @@ __global__ void indexing_backward_kernel_stride_1(
     }
   }
 }
-#else
+#endif
+
 template <typename scalar_t, int SZ>
 __global__ void indexing_backward_kernel(
   const int64_t* sorted_indices, const int64_t* indices, const scalar_t* grad_output, scalar_t* grad_weight,
@@ -333,6 +336,7 @@ __global__ void indexing_backward_kernel(
   }
 }
 
+#ifndef USE_ROCM
 template <typename scalar_t>
 __global__ void indexing_backward_kernel_stride_1(
   const int64_t* sorted_indices, const int64_t* indices, const scalar_t* grad_output, scalar_t* grad_weight,
@@ -512,11 +516,17 @@ public:
 static ReduceMultiply reduce_multiply;
 
 class ReduceAdd {
-public:
+ public:
   template <typename scalar_t>
   constexpr C10_DEVICE void operator() (scalar_t* self_data_start, int64_t index, int64_t numel, const scalar_t * src_data) const {
-#if (defined(__gfx940__) || defined(__gfx941__) || defined(__gfx942__) || defined(__gfx950__))
-    opportunistic_fastAtomicAdd(self_data_start, index, numel, *src_data);
+#if defined(USE_ROCM)
+    // TODO: this check is too coarse, revisit, we should only be checking for
+    //       the availability of the builtins required by the implementation, at
+    //       most.
+    if(__builtin_amdgcn_processor_is("gfx942") ||
+       __builtin_amdgcn_processor_is("gfx950"))
+      return opportunistic_fastAtomicAdd(self_data_start, index, numel, *src_data);
+    fastAtomicAdd(self_data_start, index, numel, *src_data, true);
 #else
     fastAtomicAdd(self_data_start, index, numel, *src_data, true);
 #endif
@@ -549,8 +559,9 @@ static ReduceMaximum reduce_maximum;
 static Tensor wrapIndexOnce(const Tensor & index, int64_t dim, int64_t dim_size, bool check_range=true) {
 //we don't need to check range in backward - if there were out of bounds indices forward should already have errored out
   if (index.numel() != 0 && check_range) {
-    at::_assert_async(index.max() < dim_size);
-    at::_assert_async(index.min() >= -dim_size);
+    auto [index_min, index_max] = at::aminmax(index);
+    at::_assert_async(index_max < dim_size);
+    at::_assert_async(index_min >= -dim_size);
   }
   return index.remainder(dim_size);
 }
@@ -629,7 +640,7 @@ makeLinearIndex(Tensor self, IOptTensorListRef orig, bool check_range) {
   }
   auto [linearIndex, nElemBefore, strideBefore, nElemAfter, dims_before, dims_indexed] =
     computeLinearIndex(self, indices, check_range);
-  return std::make_tuple(linearIndex, self, nElemBefore, strideBefore, nElemAfter, inversePerm,
+  return std::make_tuple(std::move(linearIndex), std::move(self), nElemBefore, strideBefore, nElemAfter, std::move(inversePerm),
                          dims_before, dims_indexed);
 }
 namespace {
@@ -708,6 +719,9 @@ void index_put_with_sort_kernel(Tensor & self, const c10::List<std::optional<Ten
       dim3 block(warp_size, indices_per_block);
 
 #ifdef USE_ROCM
+      dim3 new_grid_many_indices(ceil_div(num_indices, (int64_t) (indices_per_block * warp_size)),
+      grid.y == 1 ? std::min<int>(at::cuda::getCurrentDeviceProperties()->maxGridSize[1], ceil_div(sliceSize, (int64_t) (warp_size))) : grid.y,
+      grid.z);
       dim3 new_grid(ceil_div(num_indices, (int64_t) (indices_per_block * warp_size)), grid.y, grid.z);
       size_t smem_dups_size = indices_per_block * warp_size * sizeof(int64_t);
 #define KERNEL_GRID new_grid
@@ -780,11 +794,43 @@ void index_put_with_sort_kernel(Tensor & self, const c10::List<std::optional<Ten
             kBool,
             kBFloat16);
         } else {
+#ifdef USE_ROCM
+          if (num_indices >= 200000)
+            AT_DISPATCH_V2(
+              expandedValue.scalar_type(),
+              "indexing_backward_many_indices",
+              AT_WRAP([&] {
+                indexing_backward_kernel_many_indices<scalar_t, UNROLL><<<new_grid_many_indices, block, smem_dups_size, stream>>>(
+                  sorted_indices.const_data_ptr<int64_t>(),
+                  orig_indices.const_data_ptr<int64_t>(),
+                  expandedValue.const_data_ptr<scalar_t>(),
+                  src_.mutable_data_ptr<scalar_t>(),
+                  num_indices,
+                  sliceSize,
+                  strideBefore,
+                  nElemBefore,
+                  accumulate);
+                C10_CUDA_KERNEL_LAUNCH_CHECK();
+              }),
+              AT_EXPAND(AT_ALL_TYPES_AND_COMPLEX),
+              // AT_EXPAND(AT_FLOAT8_TYPES),
+              // TODO(#113663): clean up accumulation behavior in float8 dtypes, accumulate=True
+              // should not be supported here, then reenable AT_FLOAT8_DTYPES
+              kFloat8_e4m3fn,
+              kFloat8_e5m2,
+              kFloat8_e4m3fnuz,
+              kFloat8_e5m2fnuz,
+              kComplexHalf,
+              kHalf,
+              kBool,
+              kBFloat16);
+          else
+#endif
           AT_DISPATCH_V2(
             expandedValue.scalar_type(),
             "indexing_backward",
             AT_WRAP([&] {
-              indexing_backward_kernel<scalar_t, UNROLL><<<KERNEL_GRID, block, KERNEL_SMEM, stream>>>(
+              indexing_backward_kernel<scalar_t, UNROLL><<<grid, block, 0, stream>>>(
                 sorted_indices.const_data_ptr<int64_t>(),
                 orig_indices.const_data_ptr<int64_t>(),
                 expandedValue.const_data_ptr<scalar_t>(),
@@ -1106,7 +1152,7 @@ void index_add_cuda_impl(const Tensor& self, int64_t dim, const Tensor& index, c
   if (globalContext().deterministicAlgorithms()){
     torch::List<std::optional<Tensor>> indices;
     indices.reserve(dim + 1);
-    for (const auto i: c10::irange(dim)) {
+    for ([[maybe_unused]] const auto i : c10::irange(dim)) {
       indices.emplace_back();
     }
     indices.emplace_back(index.to(at::kLong));
@@ -1574,7 +1620,7 @@ void index_select_out_cuda_impl(
 
   // SmallIndexKernel is more performant when the number of indices is small, and pre-loading
   // the index reduces memory accesses. When the number of indices is large, we avoid that
-  // and increase parallellism by calling gather_out which is a generalization of index_select
+  // and increase parallelism by calling gather_out which is a generalization of index_select
   if (cuda::detail::canUse32BitIndexMath(out) &&
       cuda::detail::canUse32BitIndexMath(self) &&
       cuda::detail::canUse32BitIndexMath(index) &&
@@ -1722,7 +1768,6 @@ Tensor & masked_fill__cuda(Tensor& self, const Tensor & mask, const Scalar& valu
     mask.device(), " and self on ", self.device());
   TORCH_CHECK(mask.scalar_type() == kBool,
     "masked_fill only supports boolean masks, but got dtype ", mask.scalar_type());
-  auto maybe_outnames = namedinference::broadcast_to_outnames(self, mask, "masked_fill_");
   if (at::has_internal_overlap(self) == MemOverlap::Yes) {
     TORCH_WARN(
       "Use of masked_fill_ on expanded tensors is deprecated. "
@@ -1743,7 +1788,6 @@ Tensor & masked_fill__cuda(Tensor& self, const Tensor & mask, const Scalar& valu
       .build();
 
   masked_fill_kernel(iter, value);
-  namedinference::propagate_names_if_nonempty(self, maybe_outnames);
   return self;
 }
 
@@ -1758,36 +1802,6 @@ Tensor & masked_fill__cuda(Tensor& self, const Tensor & mask, const Tensor & val
   return masked_fill__cuda(self, mask, value.item());
 }
 
-namespace {
-
-// ForwardIt: only legacy random access iterator is supported.
-template<class ForwardIt, class T, bool is_lower = true>
-static __host__ __device__ __forceinline__
-ForwardIt find_bound(ForwardIt first, ForwardIt last, const T& value) {
-    ForwardIt it;
-    typename std::iterator_traits<ForwardIt>::difference_type count, step;
-    // NOTE: std::distance(first, last) compiles but produces wrong results here,
-    // so only legacy random access iterators are safe in this code.
-    count = last - first;
-
-    while (count > 0) {
-      it = first;
-      step = count / 2;
-      // avoiding std::advance(it, step),
-      // although it does work unlike std::distance
-      it += step;
-      if (is_lower ? *it < value : value >= *it) {
-        first = ++it;
-        count -= step + 1;
-      }
-      else {
-        count = step;
-      }
-    }
-    return first;
-}
-
-}
 
 Tensor index_select_sparse_cuda(const Tensor& self, int64_t dim, const Tensor& index) {
   const auto ndim = self.dim();
@@ -1847,12 +1861,12 @@ Tensor index_select_sparse_cuda(const Tensor& self, int64_t dim, const Tensor& i
 
     const auto dim_indices = indices[dim].contiguous();
     const auto idx_nneg_index = at::arange(index_len, nneg_index.options());
-    const auto idx_dim_indices = at::arange(nnz, dim_indices.options());
+    auto idx_dim_indices = at::arange(nnz, dim_indices.options());
 
     Tensor sorted_dim_indices, argsort_dim_indices;
     std::tie(sorted_dim_indices, argsort_dim_indices) = [&]() -> std::tuple<Tensor, Tensor> {
       if (dim == 0 && self.is_coalesced()) {
-        return std::make_tuple(dim_indices, idx_dim_indices);
+        return std::make_tuple(dim_indices, std::move(idx_dim_indices));
       }
       else {
         return dim_indices.sort();
@@ -1879,12 +1893,12 @@ Tensor index_select_sparse_cuda(const Tensor& self, int64_t dim, const Tensor& i
               [ptr_intrsc_counts_nneg_index, ptr_sorted_dim_indices, nnz] GPU_LAMBDA (
                 index_t idx_val, index_t idx_idx
               ) -> index_t {
-                auto* lb = find_bound<const index_t*, index_t, true>(
+                auto* lb = at::cuda::detail::find_bound<const index_t*, index_t, true>(
                   ptr_sorted_dim_indices,
                   ptr_sorted_dim_indices + nnz,
                   idx_val
                 );
-                auto* ub = find_bound<const index_t*, index_t, false>(
+                auto* ub = at::cuda::detail::find_bound<const index_t*, index_t, false>(
                   ptr_sorted_dim_indices,
                   ptr_sorted_dim_indices + nnz,
                   idx_val
@@ -1897,7 +1911,9 @@ Tensor index_select_sparse_cuda(const Tensor& self, int64_t dim, const Tensor& i
           );
       });
 
-      return std::make_tuple(intrsc_counts_nneg_index, intrsc_first_match_nneg_index);
+      return std::make_tuple(
+          std::move(intrsc_counts_nneg_index),
+          std::move(intrsc_first_match_nneg_index));
     }();
 
     // Unavoidable sync since the shape of the result is not known in advance
@@ -1950,7 +1966,8 @@ Tensor index_select_sparse_cuda(const Tensor& self, int64_t dim, const Tensor& i
           );
       });
 
-      return std::make_tuple(selected_dim_indices, res_dim_indices);
+      return std::make_tuple(
+          std::move(selected_dim_indices), std::move(res_dim_indices));
     }();
 
     return make_output(selected_dim_indices, res_dim_indices);
