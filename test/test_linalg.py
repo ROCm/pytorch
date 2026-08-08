@@ -10837,6 +10837,7 @@ class TestLinalgCudaOnly(TestCase):
         # We use the torch profiler to get the call counts on the kernels
 
         # Supported only for: MM, batch MM, and GEMM with bias (linear)
+        from torch.autograd.profiler import DeviceType
         from torch.profiler import profile, ProfilerActivity
 
         with self._tunableop_ctx():
@@ -10866,12 +10867,13 @@ class TestLinalgCudaOnly(TestCase):
                 batch_C = torch.bmm(batch_A, batch_A)
 
             # Check that after tuning, there was only one kernel
-            # launched per PyTorch API. The kernels have string
-            # that always starts with `Cijk*`
-            mm_key = 'Cijk' if TEST_WITH_ROCM else 'kernel'
+            # launched per PyTorch API. ROCm hipBLASLt CK kernels contain
+            # "Cijk"; CUDA cuBLASLt kernels contain "gemm" (see
+            # test/profiler/test_profiler.py::test_kineto_multigpu).
+            mm_key = 'cijk' if TEST_WITH_ROCM else 'gemm'
             events = prof.events()
             for evt in events:
-                if mm_key in evt.name:
+                if evt.device_type == DeviceType.CUDA and mm_key in evt.name.lower():
                     self.assertEqual(evt.count, 1)
                     kernel_count = kernel_count + 1
 

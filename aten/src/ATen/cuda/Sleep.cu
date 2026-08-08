@@ -36,30 +36,34 @@ void sleep(int64_t cycles) {
 #ifdef USE_ROCM
 __global__ void flush_icache_kernel()
 {
-    asm __volatile__("s_icache_inv \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t"
-                     "s_nop 0 \n\t" ::
-                         :);
+  // s_icache_inv is a CU-scoped scalar op; one thread per CU is sufficient.
+  if (threadIdx.x != 0) {
+    return;
+  }
+  asm __volatile__("s_icache_inv \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t"
+                   "s_nop 0 \n\t" ::
+                       :);
 }
 #endif
 
 void flush_icache() {
 #ifdef USE_ROCM
-  dim3 grid(at::cuda::getCurrentDeviceProperties()->multiProcessorCount * 60);
+  dim3 grid(at::cuda::getCurrentDeviceProperties()->multiProcessorCount);
   dim3 block(64);
   flush_icache_kernel<<<grid, block, 0, c10::cuda::getCurrentCUDAStream()>>>();
   C10_CUDA_KERNEL_LAUNCH_CHECK();
