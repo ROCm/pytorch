@@ -574,10 +574,6 @@ void findAlgorithm(const ConvolutionArgs& args, bool benchmark, algo_t* algo) {
 
   if (args.params.deterministic) {
     *algo = search::DEFAULT_ALGO;
-    size_t workspace_size = getWorkspaceSize(args, *algo);
-    cache.insert(args.params, *algo);
-    wsscache.insert(args.params, workspace_size);
-    return;
   }
 
   if (cache.find(args.params, algo)) {
