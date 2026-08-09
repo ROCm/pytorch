@@ -13,7 +13,39 @@ set(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 set(CMAKE_INSTALL_RPATH "${_rpath_portable_origin}")
 # Automatically add all linked folders that are NOT in the build directory to
 # the rpath (per library?)
-set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+if(THEROCK_PYTORCH_PORTABLE_RPATH)
+  if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    message(FATAL_ERROR
+      "THEROCK_PYTORCH_PORTABLE_RPATH requires a Clang C++ compiler")
+  endif()
+
+  execute_process(
+    COMMAND "${CMAKE_CXX_COMPILER}" -print-resource-dir
+    RESULT_VARIABLE _therock_clang_resource_result
+    OUTPUT_VARIABLE _therock_clang_resource_dir
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT _therock_clang_resource_result EQUAL 0 OR
+      NOT _therock_clang_resource_dir)
+    message(FATAL_ERROR "Could not determine the Clang resource directory")
+  endif()
+  get_filename_component(
+    _therock_clang_resource_version
+    "${_therock_clang_resource_dir}"
+    NAME)
+
+  # torch/lib is two levels below the site-packages directory containing the
+  # separately installed TheRock runtime wheels.
+  set(CMAKE_INSTALL_RPATH
+    "${_rpath_portable_origin}"
+    "${_rpath_portable_origin}/../../_rocm_sdk_core/lib"
+    "${_rpath_portable_origin}/../../_rocm_sdk_core/lib/host-math/lib"
+    "${_rpath_portable_origin}/../../_rocm_sdk_core/lib/llvm/lib"
+    "${_rpath_portable_origin}/../../_rocm_sdk_core/lib/llvm/lib/clang/${_therock_clang_resource_version}/lib/linux"
+    "${_rpath_portable_origin}/../../_rocm_sdk_libraries/lib")
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
+else()
+  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+endif()
 
  # UBSAN triggers when compiling protobuf, so we need to disable it.
 set(UBSAN_FLAG "-fsanitize=undefined")
