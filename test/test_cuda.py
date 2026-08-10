@@ -66,6 +66,7 @@ from torch.testing._internal.common_utils import (
     freeze_rng_state,
     gcIfJetson,
     get_cycles_per_ms,
+    getRocmVersion,
     instantiate_parametrized_tests,
     IS_ARM64,
     IS_FBCODE,
@@ -485,6 +486,15 @@ print(t.is_pinned())
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_out_of_memory(self):
+        if (
+            TEST_WITH_ROCM
+            and getRocmVersion() >= (7, 14)
+            and EXPANDABLE_SEGMENTS
+        ):
+            self.skipTest(
+                "TestCuda.test_out_of_memory: OOM tensor flag is False on ROCm "
+                "expandable segments (7.14+)"
+            )
         tensor = torch.zeros(1024, device="cuda")
 
         oom_regex = (
