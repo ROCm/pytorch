@@ -4,7 +4,7 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 # Every 10 min, dispatch parity.yml once per upstream SHA whose parity inputs
 # have all finished. Candidate SHAs come from two sources: completed trunk.yml
 # pushes (mi350 rides along there) and the scheduled per-arch workflows for
-# mi300/mi200/navi31 (which run on their own SHAs at their own cadence). A SHA
+# mi300/mi200/navi31/preview (which run on their own SHAs at their own cadence). A SHA
 # that carries several arches yields ONE combined parity report (parity.yml's
 # matrix emits a per-arch artifact plus a merged summary).
 #
@@ -82,11 +82,11 @@ jobs:
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31 run in
+          # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31/preview run in
           # their own scheduled workflows on their own SHAs. We scan both sources
           # (see fetch_candidate_commits) so a SHA that carries several arches
           # yields one combined parity report once every arch's run has finished.
-          ARCHS_IN: mi350 mi300 mi200 navi31
+          ARCHS_IN: mi350 mi300 mi200 navi31 preview
           # Optional manual overrides; blank means "derive from parity_job_config.json".
           ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
           ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}
@@ -126,12 +126,12 @@ jobs:
               )')}
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
             # Upstream workflow file names for the non-trunk arches (mi350 rides
-            # trunk; nightly is not auto-scanned). Their scheduled runs land on
+            # trunk). Their scheduled runs land on
             # their own SHAs, so fetch_scheduled_commits mines those SHAs as
             # extra candidates on top of the trunk pushes.
             SCHEDULED_WORKFLOWS=$(echo "$config_json" | jq -r '
               [ .rocm | to_entries[]
-                | select(.key != "mi350" and .key != "nightly")
+                | select(.key != "mi350")
                 | (.value.default[]?, .value.distributed[]?, .value.inductor[]?).workflow ]
               | unique | .[]')
           }
@@ -185,7 +185,7 @@ jobs:
           }
 
           # Echo "<sha> <created_at>" lines for recent completed runs of the
-          # non-trunk arch workflows (mi300/mi200/navi31). These arches run on a
+          # non-trunk arch workflows (mi300/mi200/navi31/preview). These arches run on a
           # schedule against whatever main HEAD was current then, so their runs
           # surface SHAs that the trunk-push scan alone would rank too low to
           # reach. 404/stale workflows simply yield nothing.
