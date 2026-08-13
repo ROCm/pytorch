@@ -1493,13 +1493,20 @@ def CUDAExtension(name, sources, *args, **kwargs):
         )
 
         hipified_sources = set()
+        # Resolve build_dir through realpath so that a Windows subst/virtual
+        # drive (e.g. a B: that aliases a directory on C:) matches the
+        # canonicalized source paths returned by hipify. Without this,
+        # os.path.relpath() below can raise "path is on mount 'C:', start on
+        # mount 'B:'" when os.getcwd() reports the alias but the hipified
+        # source resolves to the underlying drive.
+        build_dir_real = os.path.realpath(build_dir)
         for source in sources:
             s_abs = os.path.abspath(source)
             hipified_s_abs = (hipify_result[s_abs].hipified_path if (s_abs in hipify_result and
                               hipify_result[s_abs].hipified_path is not None) else s_abs)
             # setup() arguments must *always* be /-separated paths relative to the setup.py directory,
             # *never* absolute paths
-            hipified_sources.add(os.path.relpath(hipified_s_abs, build_dir))
+            hipified_sources.add(os.path.relpath(os.path.realpath(hipified_s_abs), build_dir_real))
 
         sources = list(hipified_sources)
 
