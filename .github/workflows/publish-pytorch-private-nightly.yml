@@ -71,8 +71,6 @@ jobs:
                 python3-venv \
               && rm -rf /var/lib/apt/lists/*
 
-          RUN python3 -m pip install --break-system-packages --upgrade pip
-
           # Install the nightly PyTorch wheel plus the ROCm multi-arch runtime/devel/device packages.
           # device-all pulls kernels for every supported gfx target from the whl-multi-arch index.
           RUN python3 -m pip install --break-system-packages \
