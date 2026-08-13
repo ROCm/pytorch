@@ -58,6 +58,7 @@ jobs:
           ARG PYTORCH_SHA
 
           ENV DEBIAN_FRONTEND=noninteractive
+          ENV PIP_NO_CACHE_DIR=1
 
           RUN apt-get update && apt-get install -y --no-install-recommends \
                 ca-certificates \
@@ -73,7 +74,7 @@ jobs:
 
           # Install the nightly PyTorch wheel plus the ROCm multi-arch runtime/devel/device packages.
           # device-all pulls kernels for every supported gfx target from the whl-multi-arch index.
-          RUN python3 -m pip install --break-system-packages \
+          RUN python3 -m pip install --break-system-packages --no-cache-dir \
                 --index-url "${PACKAGE_INDEX_URL}" \
                 "rocm[libraries,devel,device-all]" \
                 torch torchvision torchaudio
@@ -110,7 +111,7 @@ jobs:
         run: |
           primary="${REGISTRY}/${IMAGE_NAME}:${{ steps.tags.outputs.primary }}"
           dated="${REGISTRY}/${IMAGE_NAME}:${{ steps.tags.outputs.dated }}"
-          docker build \
+          docker build --progress=plain \
             --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
             --build-arg "PACKAGE_INDEX_URL=${PACKAGE_INDEX_URL}" \
             --build-arg "PYTORCH_REPO=${PYTORCH_REPO}" \
