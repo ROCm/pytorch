@@ -52,17 +52,11 @@ PIP_UPLOAD_FOLDER='nightly/'
 export DATE="$(date -u +%Y%m%d)"
 BASE_BUILD_VERSION="$(cat ${PYTORCH_ROOT}/version.txt|cut -da -f1).dev${DATE}"
 
-# Change BASE_BUILD_VERSION to git tag when on a git tag
-# Use 'git -C' to make doubly sure we're in the correct directory for checking
-# the git tag
-if tagged_version >/dev/null; then
-  # Switch upload folder to 'test/' if we are on a tag
-  PIP_UPLOAD_FOLDER='test/'
-  # Grab git tag, remove prefixed v and remove everything after -
-  # Used to clean up tags that are for release candidates like v1.6.0-rc1
-  # Turns tag v1.6.0-rc1 -> v1.6.0
-  BASE_BUILD_VERSION="$(tagged_version | sed -e 's/^v//' -e 's/-.*$//')"
-fi
+# Force this validation branch to produce a release wheel.
+# if tagged_version >/dev/null; then
+PIP_UPLOAD_FOLDER='test/'
+BASE_BUILD_VERSION="$(cat "${PYTORCH_ROOT}/version.txt" | cut -da -f1)"
+# fi
 if [[ "$(uname)" == 'Darwin' ]]; then
   export PYTORCH_BUILD_VERSION="${BASE_BUILD_VERSION}"
 else
