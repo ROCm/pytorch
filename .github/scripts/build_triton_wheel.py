@@ -118,7 +118,15 @@ def build_triton(
             )
         else:
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
-            check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
+            if device == "rocm":
+                # A release branch suppresses Triton's extra git suffix so its
+                # wheel version matches the dependency pinned into torch.
+                check_call(
+                    ["git", "checkout", "-B", "release/pinned-commit", commit_hash],
+                    cwd=triton_basedir,
+                )
+            else:
+                check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
