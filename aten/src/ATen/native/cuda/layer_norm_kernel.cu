@@ -959,11 +959,6 @@ void LaunchGammaBetaBackwardCUDAKernel(
     Tensor* dgamma,
     Tensor* dbeta,
     cudaStream_t cuda_stream) {
-#ifdef USE_ROCM
-  constexpr int block_dim_x = 64;
-#else
-  constexpr int block_dim_x = 32;
-#endif
   const int sm_count = at::cuda::getCurrentDeviceProperties()->multiProcessorCount;
   if (ShouldUseHugeMGammaBetaBackwardKernel(M, N, block_dim_x, sm_count)) {
     // We have a situation where M >> N and N is small.
@@ -1740,7 +1735,7 @@ void LayerNormBackwardKernelImplInternal(
       }
     }
 #else
-    LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, rms_norm>(
+    LaunchGammaBetaBackwardCUDAKernel<T, T_ACC, 32, rms_norm>(
       dY_data, X_data, mean_data, rstd_data, M, N, dgamma, dbeta, cuda_stream);
 #endif
   }
