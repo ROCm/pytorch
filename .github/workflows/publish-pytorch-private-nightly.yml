@@ -66,6 +66,7 @@ jobs:
                 ca-certificates \
                 git \
                 kmod \
+                libgomp1 \
                 libnuma-dev \
                 libc++1 \
                 libc++abi1 \
