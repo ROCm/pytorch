@@ -59,6 +59,8 @@ jobs:
 
           ENV DEBIAN_FRONTEND=noninteractive
           ENV PIP_NO_CACHE_DIR=1
+          # install_rocm.sh uses bash printf %q; Docker's default /bin/sh (dash) rejects it.
+          SHELL ["/bin/bash", "-c"]
 
           RUN apt-get update && apt-get install -y --no-install-recommends \
                 ca-certificates \
@@ -89,7 +91,8 @@ jobs:
                 printf 'export CMAKE_PREFIX_PATH=%q:${CMAKE_PREFIX_PATH:-}\n' "${ROCM_HOME}"; \
                 printf 'export LD_LIBRARY_PATH=%q:${LD_LIBRARY_PATH:-}\n' "${ROCM_HOME}/lib"; \
               } > /etc/rocm_env.sh \
-              && echo "source /etc/rocm_env.sh" >> /etc/bash.bashrc
+              && echo "source /etc/rocm_env.sh" >> /etc/bash.bashrc \
+              && if [[ -e /etc/bashrc ]]; then echo "source /etc/rocm_env.sh" >> /etc/bashrc; fi
 
           RUN mkdir -p /var/lib/jenkins \
               && git clone --filter=blob:none --branch "${PYTORCH_BRANCH}" \
