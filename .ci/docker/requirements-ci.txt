@@ -106,11 +106,11 @@ mypy==1.17.1 ; platform_system == "Linux" and python_version >= "3.14"
 #Pinned versions: 1.16.0, 1.17.1
 #test that import: test_typing.py, test_type_hints.py
 
-networkx==2.8.8 ; python_version < "3.14"
-networkx==3.0.0 ; python_version >= "3.14"
+networkx==2.8.8 ; python_version < "3.13"
+networkx==3.0.0 ; python_version >= "3.13"
 #Description: creation, manipulation, and study of
 #the structure, dynamics, and functions of complex networks
-#Pinned versions: 2.8.8
+#Pinned versions: 2.8.8, 3.0.0
 #test that import: functorch
 
 ninja==1.11.1.4
@@ -247,8 +247,8 @@ pygments==2.15.0
 #Pinned versions: 14.1.0
 #test that import:
 
-scikit-image==0.22.0 ; python_version < "3.14"
-scikit-image==0.26.0 ; python_version >= "3.14"
+scikit-image==0.22.0 ; python_version < "3.13"
+scikit-image==0.26.0 ; python_version >= "3.13"
 #Description: image processing routines
 #Pinned versions: 0.22.0, 0.26.0
 #test that import: test_nn.py
