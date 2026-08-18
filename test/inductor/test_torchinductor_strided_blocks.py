@@ -36,6 +36,7 @@ from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
     HAS_CUDA_AND_TRITON,
     HAS_GPU,
+    requires_block_ptr,
     requires_gpu,
     skip_windows_ci,
     TRITON_HAS_CPU,
@@ -1587,6 +1588,7 @@ test_torchinductor.copy_tests(
 
 
 @unittest.skipIf(not HAS_GPU, "requires triton GPU backend")
+@requires_block_ptr
 @config.patch("triton.use_block_ptr", True)
 class TritonBlockPointerTestGPU(BlockDescriptorTestBase):
     device = GPU_TYPE
