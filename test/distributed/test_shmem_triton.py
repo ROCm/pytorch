@@ -6,7 +6,6 @@ import sys
 
 import torch
 import torch.distributed._symmetric_memory as symm_mem
-from torch.testing._internal.common_cuda import ROCM_VERSION
 from torch.testing._internal.common_distributed import (
     MultiProcContinuousTest,
     PLATFORM_SUPPORTS_SYMM_MEM,
@@ -14,11 +13,6 @@ from torch.testing._internal.common_distributed import (
 )
 from torch.testing._internal.common_utils import TEST_WITH_ROCM
 
-
-# Skip the entire module before importing SHMEM-specific modules.
-if TEST_WITH_ROCM and ROCM_VERSION >= (7, 14):
-    print("rocSHMEM Triton tests have known failures on ROCm 7.14 or newer")
-    sys.exit(0)
 
 if (
     not torch.backends.cuda.is_built()
