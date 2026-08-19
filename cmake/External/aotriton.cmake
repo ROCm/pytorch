@@ -259,11 +259,11 @@ if(NOT __AOTRITON_INCLUDED)
     add_dependencies(__caffe2_aotriton aotriton_external)
     message(STATUS "Using AOTriton compiled from source directory ${__AOTRITON_EXTERN_PREFIX}")
   else()
-    set(__AOTRITON_SYSTEM_ROCM "${HIP_VERSION_MAJOR}.${HIP_VERSION_MINOR}")
+    set(__AOTRITON_SYSTEM_ROCM "${ROCM_VERSION_DEV_MAJOR}.${ROCM_VERSION_DEV_MINOR}")
     list(FIND __AOTRITON_ROCM_LIST "rocm${__AOTRITON_SYSTEM_ROCM}" __AOTRITON_RUNTIME_INDEX)
     # Always build aotriton runtime from source on Windows due to lack of pre-built binaries
     if(${__AOTRITON_RUNTIME_INDEX} LESS 0 OR WIN32)
-      message(STATUS "Cannot find AOTriton runtime for ROCM ${__AOTRITON_SYSTEM_ROCM}. \
+      message(STATUS "Cannot find AOTriton runtime for ROCm ${__AOTRITON_SYSTEM_ROCM}. \
       Build runtime from source")
       aotriton_build_from_source(ON aotriton_runtime)
     else()
