@@ -654,17 +654,37 @@ def main():
     token = os.getenv('GITHUB_TOKEN', '...')
     global authentication_headers
     authentication_headers = {'Authorization': f'token {token}'}
-    if (args.pr_id and args.sha1) or (not args.pr_id and not args.sha1):
-        error_msg = "Error: Please provide either pr_id or sha!"
+    status = "success"
+    # An empty --sha1 (or the literal "latest") means "use the latest green
+    # run on main" rather than a specific commit. download_workflow_run()
+    # already resolves that when given no head_sha, so treat these as unset.
+    sha_is_latest = (not args.sha1) or (str(args.sha1).strip().lower() == "latest")
+    if args.pr_id and not sha_is_latest:
+        error_msg = "Error: Please provide either pr_id or sha (not both)!"
         print(error_msg)
         sys.exit(1)
     if args.pr_id:
         pr_id = args.pr_id
-        sha = get_latest_commit_sha(pr_id, token)        
-    else:
+        sha = get_latest_commit_sha(pr_id, token)
+    elif not sha_is_latest:
         sha = args.sha1
         pr_id = None
-    status = "success"
+    else:
+        # No pr_id and no explicit sha: resolve the latest green ROCm run on
+        # main and use its head commit as the target sha.
+        pr_id = None
+        print("No sha or pr_id given; resolving latest green ROCm run on main...")
+        latest_wf = download_workflow_run(
+            created=args.created,
+            max_pages=args.max_pages,
+            workflow=ROCmWorkflowNames["default"],
+            sha=None,
+            ignore_status=args.ignore_status,
+            status=status,
+            error_msg="Error: could not find a latest green ROCm run on main",
+        )
+        sha = latest_wf["head_sha"]
+        print(f"Resolved 'latest' to sha: {sha}")
     print(f"sha: {sha}")
 
     # When comparing two commits, prefix log filenames with short SHAs
