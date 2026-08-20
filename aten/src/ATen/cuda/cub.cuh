@@ -62,7 +62,12 @@
 #define ATEN_CUB_TRANSFORM_ITERATOR(ValueType, ...) ::thrust::transform_iterator<__VA_ARGS__>
 #define ATEN_CUB_COUNTING_ITERATOR(...) ::thrust::counting_iterator<__VA_ARGS__>
 #define ATEN_CUB_CONSTANT_ITERATOR(...) ::thrust::constant_iterator<__VA_ARGS__>
+#ifdef USE_ROCM
+// ::cuda::maximum<>() is not available in libhipcxx; use hipcub::Max() instead.
+#define ATEN_CUB_MAXIMUM() ::hipcub::Max()
+#else
 #define ATEN_CUB_MAXIMUM() ::cuda::maximum<>()
+#endif
 #else
 #define ATEN_CUB_TRANSFORM_ITERATOR(...) NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::TransformInputIterator<__VA_ARGS__>
 #define ATEN_CUB_COUNTING_ITERATOR(...) NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::CountingInputIterator<__VA_ARGS__>
