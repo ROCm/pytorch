@@ -86,6 +86,11 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_FLASH_ATTENTION,
     PLATFORM_SUPPORTS_FP8,
     PLATFORM_SUPPORTS_MEM_EFF_ATTENTION,
+<<<<<<< HEAD
+=======
+    ROCM_VERSION,
+    SM100OrLater,
+>>>>>>> upstream/release/2.13
     SM80OrLater,
     SM90OrLater,
     TEST_CUDNN,
@@ -8094,6 +8099,13 @@ for dtype in (torch.int32, torch.int64):
             reference_in_float=False,
         )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @xfail_if_mps_unimplemented  # aten::linalg_eig not implemented for MPS
     @skipIfNoLapack
     def test_linalg_eig_stride_consistency(self):

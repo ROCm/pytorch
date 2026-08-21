@@ -10,7 +10,10 @@ if(NOT __AOTRITON_INCLUDED)
   # Note packages information may have versions skipped (due to no ABI breaks)
   # But they must be listed from lower version to higher version
   set(__AOTRITON_VER "0.13b")
+<<<<<<< HEAD
   set(__AOTRITON_BUILD_VARIANTS "")
+=======
+>>>>>>> upstream/release/2.13
   set(__AOTRITON_MANYLINUX_LIST
       "manylinux_2_28"  # rocm6.4
       "manylinux_2_28"  # rocm7.0

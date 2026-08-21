@@ -4631,6 +4631,7 @@ if HAS_CUDA_AND_TRITON:
                 _out = f_compiled(x, y)
             self.assertEqual(self.get_manager() is None, True)
 
+<<<<<<< HEAD
         @torch._inductor.config.patch("graph_partition", False)
         def test_view_only_cuda_graph_suppresses_empty_warning(self):
             counters.clear()
@@ -4678,6 +4679,8 @@ if HAS_CUDA_AND_TRITON:
                     any("CUDA Graph is empty" in str(w.message) for w in caught)
                 )
 
+=======
+>>>>>>> upstream/release/2.13
         @torch._inductor.config.patch("graph_partition", True)
         def test_graph_partition_forward_backward(self):
             class Mod(torch.nn.Module):

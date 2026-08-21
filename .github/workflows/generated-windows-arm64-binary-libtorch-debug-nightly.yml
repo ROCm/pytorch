@@ -1,9 +1,8 @@
-# Owner(s): ["oncall: releng", "module: windows"]
 # @generated DO NOT EDIT MANUALLY
 
 # Template is at:    .github/templates/windows_binary_build_workflow.yml.j2
 # Generation script: .github/scripts/generate_ci_workflows.py
-name: windows-arm64-binary-wheel
+name: windows-arm64-binary-libtorch-debug
 
 on:
   push:
@@ -16,14 +15,13 @@ on:
       - v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+
       - 'ciflow/binaries/*'
       - 'ciflow/binaries_libtorch/*'
-      - 'ciflow/binaries_wheel/*'
   workflow_dispatch:
 
 env:
   # Needed for conda builds
   ALPINE_IMAGE: "308535385114.dkr.ecr.us-east-1.amazonaws.com/tool/alpine"
   AWS_DEFAULT_REGION: us-east-1
-  BUILD_ENVIRONMENT: windows-arm64-binary-wheel
+  BUILD_ENVIRONMENT: windows-arm64-binary-libtorch-debug
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   PR_NUMBER: ${{ github.event.pull_request.number }}
   SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
@@ -36,12 +34,10 @@ env:
   ENABLE_OPENBLAS: 0
   MSVC_VERSION : 14.42
 concurrency:
-  group: windows-arm64-binary-wheel-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
+  group: windows-arm64-binary-libtorch-debug-${{ github.event.pull_request.number || github.ref_name }}-${{ github.ref_type == 'branch' && github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true
 
 jobs:
-<<<<<<< HEAD
-=======
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
@@ -51,44 +47,36 @@ jobs:
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
       curr_branch: ${{ github.head_ref || github.ref_name }}
       curr_ref_type: ${{ github.ref_type }}
->>>>>>> upstream/release/2.13
 
   wheel-build:
     name: ${{ matrix.build_name }}-build
     if: ${{ github.repository_owner == 'pytorch' }}
+    needs: get-label-type
     runs-on: "windows-11-arm64-preview"
     timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
         include:
-          - desired_python: "3.11"
+          - desired_python: "3.10"
             desired_cuda: "cpu"
             gpu_arch_version: ""
             gpu_arch_type: "cpu"
-            build_name: "wheel-py3_11-cpu"
+            build_name: "libtorch-cpu-shared-with-deps-debug"
             pytorch_extra_install_requirements: ""
-          - desired_python: "3.12"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_12-cpu"
-            pytorch_extra_install_requirements: ""
-          - desired_python: "3.13"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_13-cpu"
-            pytorch_extra_install_requirements: ""
+            libtorch_config: "debug"
+            libtorch_variant: "shared-with-deps"
     env:
       PYTORCH_ROOT: ${{ github.workspace }}
-      PACKAGE_TYPE: wheel
+      PACKAGE_TYPE: libtorch
       DESIRED_CUDA: ${{ matrix.desired_cuda }}
       GPU_ARCH_VERSION: ${{ matrix.gpu_arch_version }}
       GPU_ARCH_TYPE: ${{ matrix.gpu_arch_type }}
       SKIP_ALL_TESTS: 1
       DESIRED_PYTHON: ${{ matrix.desired_python }}
       PYTORCH_EXTRA_INSTALL_REQUIREMENTS: ${{ matrix.pytorch_extra_install_requirements }}
+      LIBTORCH_CONFIG: ${{ matrix.libtorch_config }}
+      LIBTORCH_VARIANT: ${{ matrix.libtorch_variant }}
     steps:
       - name: Populate binary env
         shell: cmd
@@ -149,39 +137,31 @@ jobs:
   wheel-test:
     name: ${{ matrix.build_name }}-test
     if: ${{ github.repository_owner == 'pytorch' }}
-    needs: [wheel-build]
+    needs: [get-label-type, wheel-build]
     runs-on: "windows-11-arm64-preview"
     timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
         include:
-          - desired_python: "3.11"
+          - desired_python: "3.10"
             desired_cuda: "cpu"
             gpu_arch_version: ""
             gpu_arch_type: "cpu"
-            build_name: "wheel-py3_11-cpu"
+            build_name: "libtorch-cpu-shared-with-deps-debug"
             runs_on: "windows-11-arm64-preview"
-          - desired_python: "3.12"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_12-cpu"
-            runs_on: "windows-11-arm64-preview"
-          - desired_python: "3.13"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_13-cpu"
-            runs_on: "windows-11-arm64-preview"
+            libtorch_config: "debug"
+            libtorch_variant: "shared-with-deps"
     env:
       PYTORCH_ROOT: ${{ github.workspace }}
-      PACKAGE_TYPE: wheel
+      PACKAGE_TYPE: libtorch
       DESIRED_CUDA: ${{ matrix.desired_cuda }}
       GPU_ARCH_VERSION: ${{ matrix.gpu_arch_version }}
       GPU_ARCH_TYPE: ${{ matrix.gpu_arch_type }}
       SKIP_ALL_TESTS: 1
       DESIRED_PYTHON: ${{ matrix.desired_python }}
+      LIBTORCH_CONFIG: ${{ matrix.libtorch_config }}
+      LIBTORCH_VARIANT: ${{ matrix.libtorch_variant }}
     steps:
       - name: Populate binary env
         shell: cmd
@@ -236,97 +216,27 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - desired_python: "3.11"
+          - desired_python: "3.10"
             desired_cuda: "cpu"
             gpu_arch_version: ""
             gpu_arch_type: "cpu"
-            build_name: "wheel-py3_11-cpu"
-          - desired_python: "3.12"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_12-cpu"
-          - desired_python: "3.13"
-            desired_cuda: "cpu"
-            gpu_arch_version: ""
-            gpu_arch_type: "cpu"
-            build_name: "wheel-py3_13-cpu"
+            build_name: "libtorch-cpu-shared-with-deps-debug"
+            libtorch_config: "debug"
+            libtorch_variant: "shared-with-deps"
     with:
       PYTORCH_ROOT: /pytorch
-      PACKAGE_TYPE: wheel
+      PACKAGE_TYPE: libtorch
       DESIRED_CUDA: ${{ matrix.desired_cuda }}
       GPU_ARCH_VERSION: ${{ matrix.gpu_arch_version }}
       GPU_ARCH_TYPE: ${{ matrix.gpu_arch_type }}
-      DOCKER_IMAGE: "manylinux2_28-builder"
-      DOCKER_IMAGE_TAG_PREFIX: "cpu"
+      DOCKER_IMAGE: ""
+      DOCKER_IMAGE_TAG_PREFIX: ""
       DESIRED_PYTHON: ${{ matrix.desired_python }}
+      LIBTORCH_CONFIG: ${{ matrix.libtorch_config }}
+      LIBTORCH_VARIANT: ${{ matrix.libtorch_variant }}
       build_name: ${{ matrix.build_name }}
     secrets:
       github-token: ${{ secrets.GITHUB_TOKEN }}
       R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
       R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
       R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-  libtorch-arm64-cpu-shared-with-deps-release-extract:
-    if: ${{ github.repository_owner == 'pytorch' }}
-    needs:
-      - wheel-build
-    runs-on: "mt-l-x86iavx512-16-128"
-    container:
-      image: python:3.11
-    timeout-minutes: 60
-    env:
-      DESIRED_CUDA: cpu
-      LIBTORCH_VARIANT: shared-with-deps
-    steps:
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      - name: Checkout PyTorch
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
-          sparse-checkout: .ci/libtorch/
-          show-progress: false
-      - uses: actions/download-artifact@v4.1.7
-        name: Download Wheel Artifact
-        with:
-          name: wheel-py3_11-cpu
-          path: "${{ runner.temp }}/wheel_artifact/"
-      - name: Extract libtorch from wheel
-        shell: bash
-        run: |
-          set -eux
-          mkdir -p "${RUNNER_TEMP}/libtorch_output"
-          python3 .ci/libtorch/extract_libtorch_from_wheel.py \
-            --wheel-dir "${RUNNER_TEMP}/wheel_artifact" \
-            --output-dir "${RUNNER_TEMP}/libtorch_output" \
-            --platform windows \
-            --desired-cuda "$DESIRED_CUDA" \
-            --libtorch-variant "$LIBTORCH_VARIANT" \
-            --arch arm64
-      - uses: actions/upload-artifact@v4.4.0
-        if: always()
-        with:
-          name: libtorch-arm64-cpu-shared-with-deps-release
-          retention-days: 14
-          if-no-files-found: error
-          path: "${{ runner.temp }}/libtorch_output/"
-  libtorch-arm64-cpu-shared-with-deps-release-upload:  # Uploading
-    if: ${{ github.repository_owner == 'pytorch' }}
-    permissions:
-      id-token: write
-      contents: read
-    needs: libtorch-arm64-cpu-shared-with-deps-release-extract
-    with:
-      PYTORCH_ROOT: ${{ github.workspace }}
-      PACKAGE_TYPE: libtorch
-      DESIRED_CUDA: cpu
-      GPU_ARCH_TYPE: cpu
-      LIBTORCH_CONFIG: release
-      LIBTORCH_VARIANT: shared-with-deps
-      build_name: libtorch-arm64-cpu-shared-with-deps-release
-    secrets:
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      R2_ACCOUNT_ID: ${{ secrets.R2_ACCOUNT_ID }}
-      R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
-      R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
-    uses: ./.github/workflows/_binary-upload.yml

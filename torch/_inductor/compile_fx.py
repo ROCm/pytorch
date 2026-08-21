@@ -1886,6 +1886,7 @@ class _InProcessFxCompile(FxCompile):
                             )
                         )
 
+<<<<<<< HEAD
                     if (
                         cudagraphs
                         and not V.graph.disable_cudagraphs_reason
@@ -1894,6 +1895,8 @@ class _InProcessFxCompile(FxCompile):
                     ):
                         V.graph.kernel_free_cudagraph = True
 
+=======
+>>>>>>> upstream/release/2.13
                     self._compile_stats[type(self)].codegen_and_compile += 1
 
                     if (

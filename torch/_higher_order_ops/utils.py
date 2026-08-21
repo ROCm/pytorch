@@ -16,11 +16,15 @@ from torch._higher_order_ops.schema import HopSchema
 from torch._library.fake_class_registry import FakeScriptObject
 from torch._library.opaque_object import is_custom_class
 from torch._ops import HigherOrderOperator, OperatorBase, OpOverload
+<<<<<<< HEAD
 from torch._subclasses.fake_tensor import (
     FakeTensor,
     is_fake_tensor,
     maybe_get_fake_mode,
 )
+=======
+from torch._subclasses.fake_tensor import FakeTensor
+>>>>>>> upstream/release/2.13
 from torch._subclasses.functional_tensor import (
     disable_functional_mode,
     FunctionalTensor,
@@ -339,8 +343,13 @@ def _set_compilation_env():
 def _maybe_fake_tracing(fn, inputs: list[Any], pre_dispatch):
     fake_mode_det = None
     for inp in pytree.tree_leaves(inputs):
+<<<<<<< HEAD
         if is_fake_tensor(inp):
             fake_mode_det = maybe_get_fake_mode(inp)
+=======
+        if isinstance(inp, FakeTensor):
+            fake_mode_det = inp.fake_mode
+>>>>>>> upstream/release/2.13
             break
 
     fake_mode: AbstractContextManager = nullcontext()

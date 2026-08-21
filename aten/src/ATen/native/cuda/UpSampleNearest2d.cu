@@ -120,7 +120,11 @@ __global__ void upsample_nearest2d_nhwc_out_frame(
         ? w2
         : nn_compute_source_index_fn(width_scale, w2, width1);
 
+<<<<<<< HEAD
     odata[index] = idata[idx_cl<size_t>(n, h1, w1, c, height1, width1, channels)];
+=======
+    odata[index] = idata[idx_cl(n, h1, w1, c, height1, width1, channels)];
+>>>>>>> upstream/release/2.13
 
     if constexpr (!kGridStride) {
       break;

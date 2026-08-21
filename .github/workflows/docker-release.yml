@@ -38,7 +38,17 @@ permissions: read-all
 jobs:
   select-runner:
     if: github.repository_owner == 'pytorch'
+<<<<<<< HEAD
     uses: ./.github/workflows/_select-release-runner.yml
+=======
+    name: get-label-type
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+    with:
+      triggering_actor: ${{ github.triggering_actor }}
+      issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
+      curr_branch: ${{ github.head_ref || github.ref_name }}
+      curr_ref_type: ${{ github.ref_type }}
+>>>>>>> upstream/release/2.13
 
   generate-matrix:
     if: github.repository_owner == 'pytorch'
@@ -48,7 +58,11 @@ jobs:
       matrix: ${{ steps.generate-matrix.outputs.matrix }}
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.14
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           fetch-depth: 1
           submodules: 'false'
@@ -94,10 +108,20 @@ jobs:
       CUDA_VERSION_SHORT: ${{ matrix.cuda }}
       CUDNN_VERSION: ${{ matrix.cudnn_version }}
     steps:
+<<<<<<< HEAD
       - name: Configure git safe directory
         run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
       - name: Checkout PyTorch
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.14
+=======
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+        with:
+          github-secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Linux
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           submodules: 'false'
       - name: Setup UV
@@ -175,10 +199,21 @@ jobs:
               "${PREFIX}:${PYTORCH_NIGHTLY_COMMIT}${CUDA_SUFFIX}"
           fi
 
+<<<<<<< HEAD
   validate:
     needs: build
     if: ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/nightly' || startsWith(github.event.ref, 'refs/tags/v')) }}
     uses: pytorch/test-infra/.github/workflows/validate-docker-images.yml@release/2.14
+=======
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+
+  validate:
+    needs: build
+    if: ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/nightly' || startsWith(github.event.ref, 'refs/tags/v')) }}
+    uses: pytorch/test-infra/.github/workflows/validate-docker-images.yml@release/2.13
+>>>>>>> upstream/release/2.13
     with:
       channel: nightly
       ref: main

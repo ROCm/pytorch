@@ -516,7 +516,10 @@ print(match1, match0)
                 torch.xpu.utilization,
                 torch.xpu.memory_usage,
                 torch.xpu.device_memory_used,
+<<<<<<< HEAD
                 torch.xpu.list_gpu_processes,
+=======
+>>>>>>> upstream/release/2.13
             ):
                 with self.assertRaisesRegex(RuntimeError, "Failed to import pyzes"):
                     api()

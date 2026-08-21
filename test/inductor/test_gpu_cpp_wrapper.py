@@ -523,7 +523,10 @@ class TestGpuWrapper(InductorTestCase):
         self.assertEqual(actual, expected)
         self.assertIn("needs_vec_isa=False", code)
 
+<<<<<<< HEAD
     # The vec-ISA probe child cannot resolve ROCm SDK libraries in CI.
+=======
+>>>>>>> upstream/release/2.13
     @skipIfRocmVersionAtLeast([7, 14])
     def test_cuda_cpp_wrapper_keeps_vec_isa_for_host_vectorized_code(self):
         if not RUN_GPU:

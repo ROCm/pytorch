@@ -1,9 +1,19 @@
 from __future__ import annotations
 
 import unittest
+<<<<<<< HEAD
 from pathlib import Path
 
 from tools.build_with_debinfo import create_build_plan, debugify
+=======
+
+from tools.build_with_debinfo import (
+    debugify,
+    entry_command,
+    extract_link_command,
+    index_compile_commands,
+)
+>>>>>>> upstream/release/2.13
 
 
 class TestDebugify(unittest.TestCase):
@@ -23,6 +33,7 @@ class TestDebugify(unittest.TestCase):
         self.assertEqual(out, debugify(out))
 
 
+<<<<<<< HEAD
 class TestCreateBuildPlan(unittest.TestCase):
     def test_follows_dependent_links(self) -> None:
         commands = "\n".join(
@@ -68,6 +79,51 @@ class TestCreateBuildPlan(unittest.TestCase):
                 "c++ -o obj/a.o -c /repo/a.cpp",
                 Path("/repo/build"),
             )
+=======
+class TestEntryCommand(unittest.TestCase):
+    def test_command_form(self) -> None:
+        self.assertEqual(entry_command({"command": "cc -c a.cpp"}), "cc -c a.cpp")
+
+    def test_arguments_form_is_quoted(self) -> None:
+        entry = {"arguments": ["cc", "-c", "a b.cpp"]}
+        self.assertEqual(entry_command(entry), "cc -c 'a b.cpp'")
+
+
+class TestIndexCompileCommands(unittest.TestCase):
+    def test_maps_resolved_source_paths(self) -> None:
+        entries = [
+            {"directory": "/repo/build", "file": "../torch/csrc/Module.cpp"},
+            {"directory": "/repo/build", "file": "/repo/torch/csrc/Other.cpp"},
+        ]
+        index = index_compile_commands(entries)
+        self.assertIn("/repo/torch/csrc/Module.cpp", index)
+        self.assertIn("/repo/torch/csrc/Other.cpp", index)
+
+
+class TestExtractLinkCommand(unittest.TestCase):
+    def test_strips_ninja_wrapper(self) -> None:
+        out = ": && clang++ -shared -o lib/libtorch_python.so a.o b.o && :"
+        self.assertEqual(
+            extract_link_command(out, "libtorch_python.so"),
+            "clang++ -shared -o lib/libtorch_python.so a.o b.o",
+        )
+
+    def test_picks_link_among_compiles(self) -> None:
+        out = "\n".join(
+            [
+                "clang++ -c torch_python.dir/Module.cpp.o",
+                ": && clang++ -shared -o lib/libtorch_python.so a.o && :",
+            ]
+        )
+        self.assertEqual(
+            extract_link_command(out, "libtorch_python.so"),
+            "clang++ -shared -o lib/libtorch_python.so a.o",
+        )
+
+    def test_raises_when_absent(self) -> None:
+        with self.assertRaises(RuntimeError):
+            extract_link_command("clang++ -c a.o", "libtorch_python.so")
+>>>>>>> upstream/release/2.13
 
 
 if __name__ == "__main__":

@@ -28,21 +28,34 @@ from torch.testing._internal.common_utils import \
      make_fullrank_matrices_with_distinct_singular_values,
      freeze_rng_state, IS_ARM64, IS_SANDCASTLE, TEST_OPT_EINSUM, isRocmArchAnyOf, parametrize, skipIfTorchDynamo,
      skipIfRocmArch, skipIfRocmVersionAtLeast, setBlasBackendsToDefaultFinally, setLinalgBackendsToDefaultFinally, serialTest, skipIfRocm,
+<<<<<<< HEAD
      runOnRocmArch, MI200_ARCH, MI300_ARCH, MI350_ARCH, NAVI_ARCH, TEST_CUDA,
      skipIfNoNvmath)
+=======
+     with_ieee_matmul_precision, runOnRocmArch, MI200_ARCH, MI300_ARCH, MI350_ARCH, NAVI_ARCH, TEST_CUDA)
+>>>>>>> upstream/release/2.13
 from torch.testing._internal.common_device_type import \
     (instantiate_device_type_tests, dtypes, has_cusolver, onlyCPU, skipCPUIfNoLapack, precisionOverride,
      skipCUDAIf,
      skipCUDAIfNoCusolver, skipCUDAIfNoMagmaAndNoLinalgsolver, onlyNativeDeviceTypes, dtypesIfCUDA,
+<<<<<<< HEAD
      onlyCUDA, onlyAccelerator, skipMeta, skipCUDAIfNotRocm, skipCUDAIfRocm, dtypesIfMPS, largeTensorTest,
+=======
+     onlyCUDA, onlyAccelerator, skipMeta, skipCUDAIfNotRocm, dtypesIfMPS, largeTensorTest,
+>>>>>>> upstream/release/2.13
      e4m3_type, e5m2_type)
 from torch.testing import make_tensor
 from torch.testing._internal.common_dtype import (
     all_types, all_types_and_complex_and, floating_and_complex_types, integral_types,
     floating_and_complex_types_and, floating_types_and, complex_types,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_cuda import CDNA2OrLater, CDNA5OrLater, SM80OrLater, SM90OrLater, tf32_enabled, tf32_on_and_off, _get_magma_version, \
     _get_torch_cuda_version, TEST_MULTIGPU, PLATFORM_SUPPORTS_FP8, blas_library_context
+=======
+from torch.testing._internal.common_cuda import CDNA2OrLater, CDNA5OrLater, SM80OrLater, SM90OrLater, tf32_on_and_off, _get_magma_version, \
+    _get_torch_cuda_version, TEST_MULTIGPU, PLATFORM_SUPPORTS_FP8, blas_library_context, ROCM_VERSION
+>>>>>>> upstream/release/2.13
 from torch.testing._internal.common_quantization import _group_quantize_tensor, _dynamically_quantize_per_channel, \
     _group_quantize_tensor_symmetric
 from torch.testing._internal.common_mkldnn import reduced_f32_on_and_off
@@ -700,6 +713,111 @@ class TestLinalg(TestCase):
             with self.assertRaisesRegex(RuntimeError, "Expected all tensors to be on the same device"):
                 torch.linalg.cholesky(A, out=out)
 
+<<<<<<< HEAD
+=======
+    # NOTE: old_cholesky* tests were moved here from test_torch.py and test_autograd.py
+    @slowTest
+    @skipCUDAIfNoMagmaAndNoLinalgsolver
+    @skipCPUIfNoLapack
+    @dtypes(torch.double)
+    def test_old_cholesky_batched_many_batches(self, device, dtype):
+        from torch.testing._internal.common_utils import random_symmetric_pd_matrix
+
+        def cholesky_test_helper(n, batchsize, device, upper):
+            A = random_symmetric_pd_matrix(n, batchsize, dtype=dtype, device=device)
+            chol_fact = torch.cholesky(A, upper=upper)
+            if upper:
+                # Correctness check
+                self.assertEqual(A, chol_fact.mT.matmul(chol_fact))
+                # Upper triangular check
+                self.assertEqual(chol_fact, chol_fact.triu())
+            else:
+                # Correctness check
+                self.assertEqual(A, chol_fact.matmul(chol_fact.mT))
+                # Lower triangular check
+                self.assertEqual(chol_fact, chol_fact.tril())
+
+        for upper, batchsize in itertools.product([True, False], [262144, 524288]):
+            cholesky_test_helper(2, batchsize, device, upper)
+
+    @precisionOverride({torch.float32: 1e-4, torch.complex64: 1e-4})
+    @skipCUDAIfNoMagmaAndNoLinalgsolver
+    @skipCPUIfNoLapack
+    @dtypes(*floating_and_complex_types())
+    def test_old_cholesky_batched(self, device, dtype):
+        from torch.testing._internal.common_utils import random_hermitian_pd_matrix
+
+        def cholesky_test_helper(n, batch_dims, upper):
+            A = random_hermitian_pd_matrix(n, *batch_dims, dtype=dtype, device=device)
+            cholesky_exp = torch.stack([m.cholesky(upper=upper) for m in A.reshape(-1, n, n)])
+            cholesky_exp = cholesky_exp.reshape_as(A)
+            self.assertEqual(cholesky_exp, torch.cholesky(A, upper=upper))
+
+        for upper, batchsize in itertools.product([True, False], [(3,), (3, 4), (2, 3, 4)]):
+            cholesky_test_helper(3, batchsize, upper)
+
+    @precisionOverride({torch.float32: 1e-4, torch.complex64: 1e-4})
+    @skipCUDAIfNoMagmaAndNoLinalgsolver
+    @skipCPUIfNoLapack
+    @dtypes(*floating_and_complex_types())
+    # Cholesky factorization itself runs in FP32 (no TF32 path). The
+    # assertion `||A - C @ C.T|| < tol` is a factorization-correctness check;
+    # enabling TF32 (or CPU mkldnn reduced-f32) on the reconstruct mm injects
+    # condition-amplified noise unrelated to what's being verified.
+    # See https://github.com/jeffdaily/tf32_analysis.
+    @with_ieee_matmul_precision
+    def test_old_cholesky(self, device, dtype):
+        from torch.testing._internal.common_utils import random_hermitian_pd_matrix
+
+        A = random_hermitian_pd_matrix(10, dtype=dtype, device=device)
+
+        # default Case
+        C = torch.cholesky(A)
+        B = torch.mm(C, C.t().conj())
+        self.assertEqual(A, B, atol=1e-14, rtol=0)
+
+        # test Upper Triangular
+        U = torch.cholesky(A, True)
+        B = torch.mm(U.t().conj(), U)
+        self.assertEqual(A, B, atol=1e-14, rtol=0, msg='cholesky (upper) did not allow rebuilding the original matrix')
+
+        # test Lower Triangular
+        L = torch.cholesky(A, False)
+        B = torch.mm(L, L.t().conj())
+        self.assertEqual(A, B, atol=1e-14, rtol=0, msg='cholesky (lower) did not allow rebuilding the original matrix')
+
+    @skipCUDAIfNoMagmaAndNoLinalgsolver
+    @skipCPUIfNoLapack
+    @dtypes(*floating_and_complex_types())
+    def test_old_cholesky_empty(self, device, dtype):
+        def run_test(upper):
+            A = torch.empty(0, 0, dtype=dtype, device=device)
+            chol = torch.cholesky(A, upper)
+            chol_A = torch.matmul(chol, chol.t().conj())
+            self.assertEqual(A, chol_A)
+        for upper in [True, False]:
+            run_test(upper)
+
+    # Test for issue
+    # https://github.com/pytorch/pytorch/issues/57032
+    # torch.cholesky with upper=True for batched CUDA inputs was wrong
+    # it was using the lower triangular part instead of the upper one
+    @onlyCUDA
+    @skipCUDAIfNoMagmaAndNoLinalgsolver
+    @dtypes(*floating_and_complex_types())
+    def test_old_cholesky_batched_upper(self, device, dtype):
+        from torch.testing._internal.common_utils import random_hermitian_pd_matrix
+
+        batchsize = 2
+        A = random_hermitian_pd_matrix(3, batchsize, dtype=dtype, device=device)
+        A_triu = A.triu()  # fill the lower triangular part with zero
+
+        U = torch.cholesky(A_triu, upper=True)
+
+        reconstruct_A = U.mH @ U
+        self.assertEqual(A, reconstruct_A)
+
+>>>>>>> upstream/release/2.13
     @skipCUDAIfNoMagmaAndNoLinalgsolver
     @skipCPUIfNoLapack
     @dtypes(*floating_and_complex_types())
@@ -2128,6 +2246,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
     @dtypes(torch.float64, torch.complex128)
@@ -2180,6 +2305,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eig_identity(self, device, dtype):
 
@@ -2243,6 +2375,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eigvals_out_variants(self, device, dtype):
         from torch.testing._internal.common_utils import random_symmetric_matrix
@@ -2288,6 +2427,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eig_out_variants(self, device, dtype):
         from torch.testing._internal.common_utils import random_symmetric_matrix
@@ -2344,6 +2490,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(torch.float32, torch.float64)
     def test_eig_cuda_complex_eigenvectors(self, device, dtype):
         """Test CUDA eigenvector decoding with known ground truth, including batching."""
@@ -2433,6 +2586,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eig_errors_and_warnings(self, device, dtype):
         # eig requires the input to be at least 2 dimensional tensor
@@ -2498,6 +2658,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eig_with_nan(self, device, dtype):
         for val in [np.inf, np.nan]:
@@ -2513,6 +2680,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     # NumPy computes only in float64 and complex128 precisions
     # for float32 or complex64 results might be very different from float64 or complex128
     @dtypes(torch.float64, torch.complex128)
@@ -2563,6 +2737,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(*floating_and_complex_types())
     def test_eigvals_errors_and_warnings(self, device, dtype):
         # eig requires the input to be at least 2 dimensional tensor
@@ -2995,6 +3176,13 @@ class TestLinalg(TestCase):
         not TEST_WITH_ROCM and _get_torch_cuda_version() < (12, 8) and not torch.cuda.has_magma,
         "torch.linalg.eig requires MAGMA for CUDA versions < 12.8",
     )
+<<<<<<< HEAD
+=======
+    @skipCUDAIf(
+        TEST_WITH_ROCM and not torch.cuda.has_magma and ROCM_VERSION < (7, 14),
+        "ROCm hipsolver xgeev requires ROCm >= 7.14",
+    )
+>>>>>>> upstream/release/2.13
     @dtypes(torch.complex128)
     def test_invariance_error_spectral_decompositions(self, device, dtype):
         make_arg = partial(make_tensor, device=device, dtype=dtype, requires_grad=True)

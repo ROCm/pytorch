@@ -14,7 +14,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.14
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+>>>>>>> upstream/release/2.13
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -34,9 +38,41 @@ jobs:
       options: "--gpus all"
     steps:
       - name: Setup Linux
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/setup-linux@release/2.14
         with:
           use-arc: true
+=======
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+
+      - name: Login to ECR
+        uses: ./.github/actions/ecr-login
+
+      - name: Calculate docker image
+        id: calculate-docker-image
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.13
+        with:
+          docker-image-name: ci-image:pytorch-linux-jammy-cuda13.0-cudnn9-py3-gcc11
+          working-directory: .
+
+      - name: Use following to pull public copy of the image
+        id: print-ghcr-mirror
+        env:
+          ECR_DOCKER_IMAGE: ${{ steps.calculate-docker-image.outputs.docker-image }}
+        shell: bash
+        run: |
+          tag=${ECR_DOCKER_IMAGE##*:}
+          echo "docker pull ghcr.io/pytorch/ci-image:${tag/:/-}"
+
+      - name: Pull docker image
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.13
+        with:
+          docker-image: ${{ steps.calculate-docker-image.outputs.docker-image }}
+
+      - name: Install nvidia driver, nvidia-docker runtime, set GPU_FLAG
+        id: install-nvidia-driver
+        uses: pytorch/test-infra/.github/actions/setup-nvidia@release/2.13
+>>>>>>> upstream/release/2.13
 
       - name: Clone CodeLlama
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -136,6 +172,13 @@ jobs:
             "${ZIP_NAME}" \
             "s3://target-determinator-assets/indexes/latest/${ZIP_NAME}"
 
+<<<<<<< HEAD
+=======
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+
+>>>>>>> upstream/release/2.13
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' }}
   cancel-in-progress: true

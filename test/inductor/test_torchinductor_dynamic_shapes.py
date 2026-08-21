@@ -27,6 +27,7 @@ from torch.testing._internal.common_device_type import (
     onlyOn,
 )
 from torch.testing._internal.common_utils import (
+    getRocmVersion,
     IS_ARM64,
     IS_FBCODE,
     MI350_ARCH,
@@ -36,6 +37,7 @@ from torch.testing._internal.common_utils import (
     skipIfRocmVersionAtLeast,
     TEST_CUDA_MEM_LEAK_CHECK,
     TEST_WITH_ASAN,
+    TEST_WITH_ROCM,
 )
 from torch.testing._internal.inductor_utils import (
     GPU_TYPE,
@@ -75,16 +77,24 @@ test_failures = {
     "test_index_propagation_abs_dynamic_shapes": TestFailure(("mps",)),
     "test_index_propagation_floordiv_dynamic_shapes": TestFailure(("mps",)),
     "test_index_propagation_remainder_dynamic_shapes": TestFailure(("mps",)),
+<<<<<<< HEAD
     # This fails on periodic CPU shards but passes on other CPU configurations,
     # so skip it instead of producing unexpected successes.
     "test_index_propagation_to_dtype_inf_dynamic_shapes": TestFailure(
         ("cpu",), is_skip=True
     ),
+=======
+>>>>>>> upstream/release/2.13
     "test_roll_dynamic_shapes": TestFailure(("mps",)),
     "test_reflection_pad2d_backward_dynamic_shapes": TestFailure(
         ("mps",), is_skip=True
     ),
 }
+
+if TEST_WITH_ROCM and getRocmVersion() >= (7, 14):
+    test_failures["test_tmp_not_defined_issue3_dynamic_shapes"] = TestFailure(
+        ("cpu",), is_skip=True
+    )
 
 if any(os.getenv("BUILD_ENVIRONMENT", "").endswith(x) for x in ("-debug", "-asan")):
     # Fails with TORCH_INTERNAL_ASSERT(!is_heap_allocated()), see https://github.com/pytorch/pytorch/issues/130073

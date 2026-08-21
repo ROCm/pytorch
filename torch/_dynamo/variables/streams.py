@@ -336,7 +336,11 @@ class StreamContextVariable(FxTracebackAnnotateVariable):
     def __init__(self, stream: Optional["StreamVariable"], **kwargs: Any) -> None:
         self.stream = stream
         super().__init__(
+<<<<<<< HEAD
             annotation={"stream": self.get_stream().user_object_index},
+=======
+            target_values={"stream": self.get_stream().user_object_index},
+>>>>>>> upstream/release/2.13
             initial_values=None,
             **kwargs,
         )

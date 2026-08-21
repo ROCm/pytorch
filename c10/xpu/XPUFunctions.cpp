@@ -1,4 +1,3 @@
-#include <c10/core/impl/GPUTrace.h>
 #include <c10/util/Exception.h>
 #include <c10/xpu/XPUFunctions.h>
 
@@ -291,6 +290,7 @@ c10::DeviceIndex maybe_exchange_device(c10::DeviceIndex to_device) {
   return exchange_device(to_device);
 }
 
+<<<<<<< HEAD
 // TODO: Currently only used by syncStreamsOnDevice. Once a driver supporting
 // `ext_oneapi_device_wait` is widely deployed across all supported platforms,
 // deprecate syncStreamsOnDevice and route callers to device_synchronize.
@@ -314,4 +314,6 @@ void device_synchronize(c10::DeviceIndex device) {
 #endif
 }
 
+=======
+>>>>>>> upstream/release/2.13
 } // namespace c10::xpu

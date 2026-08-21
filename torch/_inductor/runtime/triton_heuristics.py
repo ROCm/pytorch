@@ -839,6 +839,7 @@ class CachingAutotuner(KernelInterface):
         """Whether ``_dynamic_scale_rblock`` should attempt occupancy-
         driven rblock halving for this autotuner.
         """
+<<<<<<< HEAD
         if "strict_sum_rblock" in self.inductor_meta:
             # Strict numerics: don't scale/tune R0_BLOCK for reductions (it shifts the order).
             return False
@@ -847,6 +848,21 @@ class CachingAutotuner(KernelInterface):
             heuristic_type=self.heuristic_type,
             device_prop=self.device_props,
             inductor_meta=self.inductor_meta,
+=======
+        device_prop = self.device_props
+        return (
+            not self.deterministic_mode
+            and self.inductor_meta.get("dynamic_scale_rblock", True)
+            and not self.inductor_meta.get("persistent_reduction")
+            and self.heuristic_type == HeuristicType.REDUCTION
+            and self.size_hints is not None
+            # Disable for Intel as Triton is not ready to return n_regs for a compiled_binary.
+            and device_prop.type in ["cuda", "hip"]
+            and bool(device_prop.major)
+            and (device_prop.major >= 8 or torch.version.hip)
+            and device_prop.regs_per_multiprocessor is not None
+            and device_prop.warp_size is not None
+>>>>>>> upstream/release/2.13
         )
 
     @functools.cached_property
@@ -875,6 +891,7 @@ class CachingAutotuner(KernelInterface):
             raise AssertionError("device_prop.warp_size is not set")
         seen_config_hashes: OrderedSet[Hashable] | None = None
         warp_size = device_prop.warp_size
+<<<<<<< HEAD
         # Combo kernels with per-subkernel blocks pass size_hints=None and carry
         # per-subkernel xnumel_i / XBLOCK_i in combo_grid_meta. Only total_block
         # is derived differently; reduction-block selection and the occupancy
@@ -884,6 +901,8 @@ class CachingAutotuner(KernelInterface):
             if self.size_hints is None
             else None
         )
+=======
+>>>>>>> upstream/release/2.13
         for result in self.compile_results:
             triton_config = result.config
             compiled_binary = result.kernel

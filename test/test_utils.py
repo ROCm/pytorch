@@ -782,7 +782,10 @@ class TestAssert(TestCase):
 
 @unittest.skipIf(IS_SANDCASTLE, "cpp_extension is OSS only")
 class TestStandaloneCPPJIT(TestCase):
+<<<<<<< HEAD
     # The standalone binary cannot resolve librocprofiler-sdk.so.1 in CI.
+=======
+>>>>>>> upstream/release/2.13
     @skipIfRocmVersionAtLeast([7, 14])
     def test_load_standalone(self):
         build_dir = tempfile.mkdtemp()

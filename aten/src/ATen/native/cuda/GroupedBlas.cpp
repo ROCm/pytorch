@@ -78,6 +78,7 @@ namespace at::native {
 
 namespace {
 
+<<<<<<< HEAD
 #if !defined(USE_ROCM) && defined(CUDA_VERSION) && CUDA_VERSION >= 13030
 bool should_use_cublaslt_grouped_gemm(
     const Tensor& mat_a,
@@ -89,6 +90,30 @@ bool should_use_cublaslt_grouped_gemm(
       dprops->major >= 9 && dprops->major <= 11;
   if (!valid_sm) {
     return false;
+=======
+bool _scaled_mm_allowed_device(bool sm90_only=false, bool sm100_only=false) {
+#ifdef USE_ROCM
+  static const std::vector<std::string> archs = {
+    "gfx942",
+#if ROCM_VERSION >= 60300
+    "gfx1200", "gfx1201",
+#endif
+#if ROCM_VERSION >= 60500
+    "gfx950",
+#endif
+#if ROCM_VERSION >= 71400
+        "gfx1250",
+#endif
+};
+  return at::detail::getCUDAHooks().isGPUArch(archs);
+#else
+  auto dprops = at::cuda::getCurrentDeviceProperties();
+
+  if (sm90_only || sm100_only) {
+    return (sm90_only && dprops->major == 9) || (sm100_only && dprops->major == 10);
+  } else {
+    return dprops->major >= 9 || (dprops->major == 8 && dprops->minor == 9);
+>>>>>>> upstream/release/2.13
   }
   const bool fp16_grouped_gemm =
       mat_a.dtype() == at::kHalf && mat_b.dtype() == at::kHalf &&

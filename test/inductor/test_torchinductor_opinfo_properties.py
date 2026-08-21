@@ -55,7 +55,10 @@ from torch.testing._internal.common_methods_invocations import (
 )
 from torch.testing._internal.common_utils import (
     getRocmVersion,
+<<<<<<< HEAD
     IS_FBCODE,
+=======
+>>>>>>> upstream/release/2.13
     IS_WINDOWS,
     parametrize,
     skipIfTorchDynamo,

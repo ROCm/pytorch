@@ -39,9 +39,15 @@ SUPPORTED_PERIODICAL_MODES: dict[
 }
 
 # The link to the published list of disabled jobs
+<<<<<<< HEAD
 DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=vq6F2TxM24uPcoKgczyMBak_clrLU9gz"
 # and unstable jobs
 UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=nbGb8Vg6U_T9VLzeOFbeA_G.j4Bvr6Lh"
+=======
+DISABLED_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/disabled-jobs.json?versionId=Oekxne_7ooz8C5nmynVmrc5UzuZ875Tr"
+# and unstable jobs
+UNSTABLE_JOBS_URL = "https://ossci-metrics.s3.amazonaws.com/unstable-jobs.json?versionId=V37EHozs4nE3_iE8GfJ8sctdQzmU9zPH"
+>>>>>>> upstream/release/2.13
 
 # Some constants used to handle disabled and unstable jobs
 JOB_NAME_SEP = "/"

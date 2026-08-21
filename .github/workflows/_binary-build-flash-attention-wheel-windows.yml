@@ -20,6 +20,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+<<<<<<< HEAD
+=======
+  get-label-type:
+    if: github.repository_owner == 'pytorch'
+    name: get-label-type
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+    with:
+      triggering_actor: ${{ github.triggering_actor }}
+      issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
+      curr_branch: ${{ github.head_ref || github.ref_name }}
+      curr_ref_type: ${{ github.ref_type }}
+
+>>>>>>> upstream/release/2.13
   build-wheel:
     if: github.repository_owner == 'pytorch'
     name: "Build FA3 Windows ${{ matrix.cuda_version }}"
@@ -62,12 +75,20 @@ jobs:
           git config --global core.ignorecase false
           git config --global core.fsmonitor false
       - name: Setup SSH (Click me for login details)
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.14
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.14
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           no-sudo: true
           submodules: true

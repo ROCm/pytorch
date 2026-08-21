@@ -4,7 +4,11 @@ name: Build Triton wheels
 on:
   push:
     branches:
+<<<<<<< HEAD
       - release/2.14
+=======
+      - release/2.13
+>>>>>>> upstream/release/2.13
     tags:
       # NOTE: Binary build pipelines should only get triggered on release candidate builds
       # Release candidate tags look like: v1.11.0-rc1
@@ -37,7 +41,11 @@ jobs:
   get-label-type:
     if: github.repository_owner == 'pytorch'
     name: get-label-type
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.14
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+>>>>>>> upstream/release/2.13
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -82,6 +90,7 @@ jobs:
       BUILD_DEVICE: ${{ matrix.device }}
       PLATFORM: 'manylinux_2_28_x86_64'
     steps:
+<<<<<<< HEAD
       - name: Add sudo shim
         shell: bash
         # We run as root in the manylinux builder. It ships a gcc-toolset `sudo`
@@ -107,6 +116,25 @@ jobs:
         with:
           submodules: false
           use-arc: true
+=======
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+        with:
+          github-secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Linux
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+        with:
+          submodules: false
+
+      - name: Login to ECR
+        uses: ./.github/actions/ecr-login
+
+      - name: Pull Docker image
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.13
+        with:
+          docker-image: ${{ env.DOCKER_IMAGE }}
+>>>>>>> upstream/release/2.13
 
       - name: Build Triton wheel
         env:
@@ -186,6 +214,13 @@ jobs:
           if-no-files-found: error
           path: ${{ runner.temp }}/artifacts/wheelhouse/*
 
+<<<<<<< HEAD
+=======
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+
+>>>>>>> upstream/release/2.13
   build-wheel-win:
     if: github.repository_owner == 'pytorch'
     name: "Build Triton Windows Wheel"
@@ -216,7 +251,11 @@ jobs:
           echo "instance-type: $(get_ec2_metadata instance-type)"
           echo "system info $(uname -a)"
       - name: "[FB EMPLOYEES] Enable SSH (Click me for login details)"
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.14
+=======
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+>>>>>>> upstream/release/2.13
         continue-on-error: true
         with:
           github-secret: ${{ secrets.GITHUB_TOKEN }}

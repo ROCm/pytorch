@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <c10/util/StringUtil.h>
+<<<<<<< HEAD
 
 #ifndef AT_PER_OPERATOR_HEADERS
 #include <ATen/NativeFunctions.h>
@@ -14,6 +15,8 @@
 #include <ATen/ops/_cslt_sparse_mm_search_native.h>
 #endif
 
+=======
+>>>>>>> upstream/release/2.13
 #if AT_CUSPARSELT_ENABLED()
 
 namespace at::native {
@@ -82,7 +85,11 @@ static void initHipSparseLtSupport() {
     // If an exception occurs during device property check, we assume
     // hipSparseLt is not supported This could happen due to driver issues,
     // device access problems, or other runtime errors
+<<<<<<< HEAD
     g_hipSparseLtSupported = false;
+=======
+     g_hipSparseLtSupported = false;
+>>>>>>> upstream/release/2.13
     TORCH_WARN(
         "Exception occurred while checking hipSparseLt support. Assuming not supported.");
   }

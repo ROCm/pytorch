@@ -1485,12 +1485,18 @@ kernel void value_reduction_outer(
     uint3 tg_pos [[threadgroup_position_in_grid]]) {
   using TA = TO;
   using Op = OpFn<TA>;
+<<<<<<< HEAD
   const uint dim_size = sizes.x;
   const uint inner_size = sizes.y;
   const uint num_segs = max(sizes.w, 1u);
   const uint dim_stride = strides.x;
   const uint inner_stride = strides.y;
   const uint outer_offset = tg_pos.z * strides.z;
+=======
+  const uint M = sizes.x;
+  const uint N = sizes.y;
+  const uint out_stride = sizes.z;
+>>>>>>> upstream/release/2.13
 
   uint col = tg_pos.x * TG_X + tid_tg.x;
   if (col >= inner_size) {
@@ -1975,17 +1981,21 @@ kernel void arg_reduction(
   }
 }
 
+<<<<<<< HEAD
 // Role of the inner arg kernel: one pass over a whole row, split-K pass 1
 // (one simdgroup per segment, writes a (value, index) partial), or pass 2
 // (indices come from idx_in, so ties break on the lowest source index).
 enum ArgMode : uint { ARG_PLAIN = 0, ARG_SPLIT_P1 = 1, ARG_COMBINE = 2 };
 
+=======
+>>>>>>> upstream/release/2.13
 // Inner-dim arg-reduction: input is logically [M, N] contiguous, reduce N
 // (innermost). One SIMD group (32 lanes) per row, multiple SIMD groups per
 // TG for occupancy. Lane L scans positions {L, L+32, L+64, ...} of its row
 // with strict-improvement updates (so the lane's stored idx is the lowest
 // of its scanned positions matching the winning value). The cross-lane
 // collapse uses simd_arg_reduce which ties on lowest IDX, not lowest LANE.
+<<<<<<< HEAD
 template <template <typename> class OpFn, typename TI, ArgMode MODE = ARG_PLAIN>
 kernel void arg_reduction_inner(
     constant TI* input [[buffer(0)]],
@@ -1995,12 +2005,20 @@ kernel void arg_reduction_inner(
     constant int* idx_in [[buffer(3)]],
     device TI* val_out [[buffer(4)]],
     device int* idx_out [[buffer(5)]],
+=======
+template <template <typename> class OpFn, typename TI>
+kernel void arg_reduction_inner(
+    constant TI* input [[buffer(0)]],
+    device long* output [[buffer(1)]],
+    constant uint2& sizes [[buffer(2)]], // [M, N]
+>>>>>>> upstream/release/2.13
     uint tptg [[threads_per_threadgroup]],
     uint tgid [[threadgroup_position_in_grid]],
     uint simd_lane_id [[thread_index_in_simdgroup]],
     uint simdgroup_id [[simdgroup_index_in_threadgroup]]) {
   using TA = opmath_t<TI>;
   using Op = OpFn<TA>;
+<<<<<<< HEAD
   const uint num_simd_groups = tptg / simdgroup_size;
 
   const uint row = tgid * num_simd_groups + simdgroup_id;
@@ -2027,6 +2045,24 @@ kernel void arg_reduction_inner(
         best_idx = idx;
       }
     } else if (Op::replace(val, best_val)) {
+=======
+  const uint M = sizes.x;
+  const uint N = sizes.y;
+  const uint num_simd_groups = tptg / simdgroup_size;
+
+  const uint row = tgid * num_simd_groups + simdgroup_id;
+  if (row >= M) {
+    return;
+  }
+
+  constant TI* row_ptr = input + row * N;
+
+  TA best_val = Op::identity();
+  uint32_t best_idx = 0;
+  for (uint i = simd_lane_id; i < N; i += simdgroup_size) {
+    const TA val = static_cast<TA>(row_ptr[i]);
+    if (Op::replace(val, best_val)) {
+>>>>>>> upstream/release/2.13
       best_val = val;
       best_idx = i;
     }
@@ -2034,6 +2070,7 @@ kernel void arg_reduction_inner(
 
   auto rc = simd_arg_reduce<OpFn>(best_val, best_idx);
   if (simd_lane_id == 0) {
+<<<<<<< HEAD
     if IF_CONSTEXPR (split) {
       val_out[row] = static_cast<TI>(rc.first);
       idx_out[row] = static_cast<int>(seg_off + rc.second);
@@ -2060,10 +2097,27 @@ template <
     uint TG_X = OUTER_TG_WIDTH,
     uint TG_Y = OUTER_TG_HEIGHT,
     bool SPLIT = false>
+=======
+    output[row] = static_cast<long>(rc.second);
+  }
+}
+
+// Outer-dim arg-reduction: input is logically [M, N] contiguous, reduce M
+// down so output is [N]. TG_X threads cover adjacent output columns
+// (coalesced reads), TG_Y threads split the M rows. Per-thread scan keeps
+// the lowest row with the winning value; cross-worker tree reduction uses
+// arg_replace (strictly-better OR equal-with-lower-idx).
+template <
+    template <typename> class OpFn,
+    typename TI,
+    uint TG_X = 32,
+    uint TG_Y = 32>
+>>>>>>> upstream/release/2.13
 [[max_total_threads_per_threadgroup(TG_X * TG_Y)]]
 kernel void arg_reduction_outer(
     constant TI* input [[buffer(0)]],
     device long* output [[buffer(1)]],
+<<<<<<< HEAD
     // [dim_size, inner_size, num_segs, unused]
     constant uint4& sizes [[buffer(2)]],
     // [dim_stride, inner_stride, outer_stride, unused]
@@ -2102,6 +2156,30 @@ kernel void arg_reduction_outer(
   uint32_t best_idx = row_start;
   for (uint row = row_start; row < row_end; row++) {
     const TA val = static_cast<TA>(input[col_off + row * dim_stride]);
+=======
+    constant uint3& sizes [[buffer(2)]], // [M, N, output_stride]
+    uint2 tid_tg [[thread_position_in_threadgroup]],
+    uint2 tg_pos [[threadgroup_position_in_grid]]) {
+  using TA = opmath_t<TI>;
+  using Op = OpFn<TA>;
+  const uint M = sizes.x;
+  const uint N = sizes.y;
+  const uint out_stride = sizes.z;
+
+  const uint col = tg_pos.x * TG_X + tid_tg.x;
+  if (col >= N) {
+    return;
+  }
+
+  const uint rows_per_y = ceil_div(M, TG_Y);
+  const uint row_start = tid_tg.y * rows_per_y;
+  const uint row_end = min(row_start + rows_per_y, M);
+
+  TA best_val = Op::identity();
+  uint32_t best_idx = 0;
+  for (uint row = row_start; row < row_end; row++) {
+    const TA val = static_cast<TA>(input[row * N + col]);
+>>>>>>> upstream/release/2.13
     if (Op::replace(val, best_val)) {
       best_val = val;
       best_idx = row;
@@ -2129,6 +2207,7 @@ kernel void arg_reduction_outer(
   }
 
   if (tid_tg.y == 0) {
+<<<<<<< HEAD
     if IF_CONSTEXPR (SPLIT) {
       val_out[col * num_segs + tg_pos.y] =
           static_cast<TI>(shared_vals[0][tid_tg.x]);
@@ -2237,6 +2316,37 @@ kernel void arg_reduction_narrow_p1(
       true);                                                                 \
   INSTANTIATE_KERNEL(                                                        \
       NAME "_reduction_narrow_p1_" #TI, arg_reduction_narrow_p1, OP, TI);
+=======
+    output[col * out_stride] = static_cast<long>(shared_idxs[0][tid_tg.x]);
+  }
+}
+
+#define REGISTER_ARG_REDUCTION_IMPL(TI, NAME, OP)              \
+  template [[host_name(NAME "_reduction_" #TI "_long")]]       \
+  kernel void arg_reduction<OP, TI>(                           \
+      constant TI * input [[buffer(0)]],                       \
+      device long* output [[buffer(1)]],                       \
+      constant NormParams<>& params [[buffer(2)]],             \
+      uint tid [[thread_position_in_threadgroup]],             \
+      uint tptg [[threads_per_threadgroup]],                   \
+      uint tgid [[threadgroup_position_in_grid]]);             \
+  template [[host_name(NAME "_reduction_inner_" #TI "_long")]] \
+  kernel void arg_reduction_inner<OP, TI>(                     \
+      constant TI * input [[buffer(0)]],                       \
+      device long* output [[buffer(1)]],                       \
+      constant uint2& sizes [[buffer(2)]],                     \
+      uint tptg [[threads_per_threadgroup]],                   \
+      uint tgid [[threadgroup_position_in_grid]],              \
+      uint simd_lane_id [[thread_index_in_simdgroup]],         \
+      uint simdgroup_id [[simdgroup_index_in_threadgroup]]);   \
+  template [[host_name(NAME "_reduction_outer_" #TI "_long")]] \
+  kernel void arg_reduction_outer<OP, TI, 32, 32>(             \
+      constant TI * input [[buffer(0)]],                       \
+      device long* output [[buffer(1)]],                       \
+      constant uint3& sizes [[buffer(2)]],                     \
+      uint2 tid_tg [[thread_position_in_threadgroup]],         \
+      uint2 tg_pos [[threadgroup_position_in_grid]]);
+>>>>>>> upstream/release/2.13
 
 #define REGISTER_ARG_REDUCTIONS_FOR_TYPE(T)       \
   REGISTER_ARG_REDUCTION_IMPL(T, "argmax", MaxOp) \

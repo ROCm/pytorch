@@ -627,7 +627,15 @@ print(t.is_pinned())
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_out_of_memory(self):
+<<<<<<< HEAD
         if TEST_WITH_ROCM and getRocmVersion() >= (7, 14) and EXPANDABLE_SEGMENTS:
+=======
+        if (
+            TEST_WITH_ROCM
+            and getRocmVersion() >= (7, 14)
+            and EXPANDABLE_SEGMENTS
+        ):
+>>>>>>> upstream/release/2.13
             self.skipTest(
                 "TestCuda.test_out_of_memory: OOM tensor flag is False on ROCm "
                 "expandable segments (7.14+)"
@@ -869,6 +877,11 @@ print(t.is_pinned())
                     archs.append("gfx950")
                 if ROCM_VERSION >= (7, 13):
                     archs.extend(["gfx1100", "gfx1101", "gfx1151"])
+<<<<<<< HEAD
+=======
+                if ROCM_VERSION >= (7, 14):
+                    archs.extend(["gfx1250"])
+>>>>>>> upstream/release/2.13
                 gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
                 hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
                 if hipblaslt_preferred:
@@ -1402,6 +1415,38 @@ print(t.is_pinned())
             self.assertEqual(x, y)
             self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
+
+    @skipIfRocm(msg="ROCm cold HIP init causes 15s subprocess timeout on CI; flaky/slow-init, not a confirmed deadlock")
+    def test_lazy_call_reentrant_set_rng_state_does_not_deadlock(self):
+        # Separate process: a regression deadlocks the interpreter (non-reentrant lock).
+        # Happy path is usually a few seconds; allow margin for slow CI / CUDA init.
+        timeout_sec = 15
+        script = (
+            "import torch; "
+            "torch.cuda.init(); "
+            "state = torch.cuda.get_rng_state(); "
+            "torch.cuda._lazy_call(lambda: torch.cuda.set_rng_state(state)); "
+            "print('done')"
+        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", script],
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+            )
+        except subprocess.TimeoutExpired as e:
+            self.fail(
+                f"lazy_call reentrancy subprocess did not finish within {timeout_sec}s "
+                "(likely deadlock in torch.cuda._lazy_call); "
+                f"cmd={e.cmd!r}"
+            )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            msg=f"stdout={proc.stdout!r}\nstderr={proc.stderr!r}",
+        )
+        self.assertIn("done", proc.stdout)
 
     def test_specify_improper_device_name(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -3053,6 +3098,7 @@ torch.cuda.synchronize()
             # Compare the states generated outside and inside the graph
             self.assertEqual(random_values, graphed_random_values)
 
+<<<<<<< HEAD
     def test_philox_state_eager(self):
         g = torch.Generator(device="cuda")
         g.manual_seed(123)
@@ -3187,6 +3233,8 @@ torch.cuda.synchronize()
             seed_t.resize_(64)
         self.assertEqual(seed_t.data_ptr(), data_ptr)
 
+=======
+>>>>>>> upstream/release/2.13
     @skipIfRocmVersionLessThan((7, 14))
     @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
@@ -3232,6 +3280,7 @@ torch.cuda.synchronize()
         torch.cuda.synchronize()
         self.assertFalse(torch.allclose(buf, torch.zeros_like(buf)))
 
+<<<<<<< HEAD
         # Cleanup: verify all allocations are freed
         del graph, new_graph, buf, x, result
         torch.cuda.synchronize()
@@ -3243,6 +3292,10 @@ torch.cuda.synchronize()
         )
 
     @skipIfRocmVersionLessThan((7, 14))
+=======
+    @skipIfRocm(msg="HIPCachingAllocator does not release reserved segments after a failed "
+                "graph capture; memory_reserved() does not recover to baseline")
+>>>>>>> upstream/release/2.13
     @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
@@ -5581,6 +5634,7 @@ with torch.cuda.graph(g):
             )
             self.assertEqual(rc, "3")
 
+    @unittest.skipIf(TEST_WITH_ROCM, "Failed onr ROCm due to rocprofiler-sdk issue AIPROFSDK-840")
     @unittest.skipIf(not TEST_WITH_ROCM, "not relevant for CUDA testing")
     @skipIfRocmVersionAtLeast([7, 14])
     def test_hip_device_count(self):
@@ -5663,6 +5717,7 @@ print(f"{{r1}}, {{r2}}")
     @unittest.skipIf(
         IS_WINDOWS, "test relies on fork; Windows multiprocessing uses spawn"
     )
+    @unittest.skipIf(sys.version_info >= (3, 14), "test fails on Python 3.14+")
     def test_is_pinned_no_context(self):
         test_script = """\
 import torch
@@ -6958,7 +7013,11 @@ class TestCudaAllocator(TestCase):
                 "throw_on_cudamalloc_oom:False,per_process_memory_fraction:1.0"
             )
 
+<<<<<<< HEAD
     @skipIfRocmVersionAtLeast([7, 14])
+=======
+    @skipIfRocm(msg="subprocess spawned with env={} drops LD_LIBRARY_PATH; dynamically-linked venv python cannot find libpython3.12.so.1.0 on CI (exit 127 before test body)")
+>>>>>>> upstream/release/2.13
     def test_allocator_backend(self):
         def subprocess_env():
             if IS_WINDOWS:

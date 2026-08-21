@@ -11,10 +11,9 @@ from torch.testing._internal.common_distributed import (
     PLATFORM_SUPPORTS_SYMM_MEM,
     skip_if_rocm_multiprocess,
 )
+from torch.testing._internal.common_utils import TEST_WITH_ROCM
 
 
-# Skip entire module if CUDA or SHMEM backend is not available before
-# importing SHMEM-specific modules.
 if (
     not torch.backends.cuda.is_built()
     or not symm_mem.is_nvshmem_available()
@@ -35,7 +34,6 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     skip_but_pass_in_sandcastle_if,
-    TEST_WITH_ROCM,
 )
 from torch.testing._internal.inductor_utils import IS_H100, requires_triton
 

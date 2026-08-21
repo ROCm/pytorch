@@ -690,11 +690,14 @@ class ElasticLaunchTest(TestCase):
         TEST_WITH_DEV_DBG_ASAN, "test incompatible with dev/dbg asan"
     )
     @skipIf(not TEST_CUDA, "requires CUDA")
+<<<<<<< HEAD
     # ElasticLaunchTest is a plain TestCase, but this test launches
     # `torchrun --nproc-per-node=2` which needs 2 GPUs. That process spawning
     # happens via torchrun, not MultiProcessTestCase, so the conftest heuristic
     # (see test/conftest.py) can't detect it; mark it multigpu explicitly.
     @pytest.mark.multigpu
+=======
+>>>>>>> upstream/release/2.13
     @skip_if_rocm_ver_atleast_multiprocess([7, 14])
     def test_virtual_local_rank(self):
         """
