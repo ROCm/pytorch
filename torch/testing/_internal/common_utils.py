@@ -114,6 +114,14 @@ class ProfilingMode(Enum):
     SIMPLE = 2
     PROFILING = 3
 
+class HardwareClassification(Enum):
+    GENERIC = "generic"
+    ACCELERATOR = "accelerator"
+    CPU = "cpu"
+    CUDA = "cuda"
+    MPS = "mps"
+    XPU = "xpu"
+
 # Set by parse_cmd_line_args() if called
 DISABLED_TESTS_FILE = ""
 GRAPH_EXECUTOR : ProfilingMode | None = None
