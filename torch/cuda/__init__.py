@@ -378,6 +378,10 @@ PYTORCH_RELEASES_CODE_CC: dict[str, dict[str, set[int]]] = {
         "x86_64": {50, 60, 70, 75, 80, 86, 90},
         "aarch64": {80, 90},
     },
+    "12.9": {
+        "x86_64": {75, 80, 86, 90, 100, 120},
+        "aarch64": {80, 90, 100, 120},
+    },
     "13.0": {
         "x86_64": {75, 80, 86, 90, 100, 120},
         "aarch64": {80, 90, 100, 110, 120},
@@ -517,9 +521,16 @@ def is_initialized():
 
 
 def _lazy_call(callable, **kwargs):
+    # Do not invoke user callbacks while holding _initialization_lock
+    # they may call back into _lazy_call.
+    if is_initialized():
+        callable()
+        return
+
+    run_now = False
     with _initialization_lock:
         if is_initialized():
-            callable()
+            run_now = True
         else:
             # TODO(torch_deploy): this accesses linecache, which attempts to read the
             # file system to get traceback info. Patch linecache or do something
@@ -532,6 +543,9 @@ def _lazy_call(callable, **kwargs):
             else:
                 # Don't store the actual traceback to avoid memory cycle
                 _queued_calls.append((callable, traceback.format_stack()))
+
+    if run_now:
+        callable()
 
 
 _lazy_call(_check_capability)

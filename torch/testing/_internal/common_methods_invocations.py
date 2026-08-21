@@ -12922,6 +12922,30 @@ op_db: list[OpInfo] = [
                    supports_sparse_bsr=True,
                    supports_sparse_bsc=True,
                    assert_autodiffed=True),
+<<<<<<< HEAD
+=======
+    OpInfo('cholesky',
+           dtypes=floating_and_complex_types(),
+           sample_inputs_func=sample_inputs_linalg_cholesky,
+           gradcheck_wrapper=gradcheck_wrapper_hermitian_input,
+           skips=(
+               # linalg.solve.triangular(); Only float is supported!
+               DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_dtypes', device_type='mps'),
+               DecorateInfo(
+                   unittest.expectedFailure, 'TestCommon', 'test_noncontiguous_samples',
+                   device_type='mps', dtypes=(torch.complex64,)
+               ),
+               DecorateInfo(
+                   unittest.expectedFailure, 'TestCommon', 'test_out_requires_grad_error',
+                   device_type='mps', dtypes=(torch.complex64,)
+               ),
+               DecorateInfo(
+                   unittest.expectedFailure, 'TestCommon', 'test_variant_consistency_eager',
+                   device_type='mps', dtypes=(torch.complex64,)
+               ),
+           ),
+           decorators=[skipCUDAIfNoMagmaAndNoLinalgsolver, skipCPUIfNoLapack],),
+>>>>>>> upstream/release/2.13
     OpInfo('cholesky_inverse',
            dtypes=floating_and_complex_types(),
            backward_dtypes=floating_and_complex_types(),

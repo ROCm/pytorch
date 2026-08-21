@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 ubuntu|pytorch|apex|release/1.14.0|e9173a42aa6363325bea8ddc71a0a6196cb01ed3|https://github.com/ROCm/apex
 ubuntu|pytorch|torchvision|release/0.29|0fba2e84fe255a2fcd81bd0b10c74d7fca99a89f|https://github.com/pytorch/vision
 ubuntu|pytorch|torchaudio|release/2.11.0.3|ba6dfeedd354a8d67ce0f299f93b0ff9361c59e1|https://github.com/ROCm/audio
+=======
+ubuntu|pytorch|apex|release/1.13.0|68f9dc9e316c24ab9c974fafd302e8a7a56fdcff|https://github.com/ROCm/apex
+ubuntu|pytorch|torchvision|release/0.28|8fb87713a24951e639c494b0f2a8a81b5f8e33a6|https://github.com/pytorch/vision
+ubuntu|pytorch|torchaudio|release/2.11.0.2|b3ec2afa3ae504ca600d5e08956eb13d6e2aee31|https://github.com/ROCm/audio
+>>>>>>> upstream/release/2.13

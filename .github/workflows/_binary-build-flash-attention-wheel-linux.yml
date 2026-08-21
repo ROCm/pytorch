@@ -21,6 +21,19 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+<<<<<<< HEAD
+=======
+  get-label-type:
+    if: github.repository_owner == 'pytorch'
+    name: get-label-type
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+    with:
+      triggering_actor: ${{ github.triggering_actor }}
+      issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
+      curr_branch: ${{ github.head_ref || github.ref_name }}
+      curr_ref_type: ${{ github.ref_type }}
+
+>>>>>>> upstream/release/2.13
   build-wheel:
     if: github.repository_owner == 'pytorch'
     name: "Build FA3 ${{ matrix.cuda_version }} ${{ matrix.arch }}"
@@ -78,11 +91,29 @@ jobs:
       PYTHON_VERSION: "3.10"
       TORCH_VERSION: "2.10.0"
     steps:
+<<<<<<< HEAD
       - name: Checkout PyTorch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           submodules: true
           show-progress: false
+=======
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+        with:
+          github-secret: ${{ secrets.GITHUB_TOKEN }}
+          fail-silently: false
+
+      - name: Setup Linux
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+        with:
+          submodules: true
+
+      - name: Pull Docker image
+        uses: pytorch/test-infra/.github/actions/pull-docker-image@release/2.13
+        with:
+          docker-image: ${{ env.DOCKER_IMAGE }}
+>>>>>>> upstream/release/2.13
 
       - name: Build Flash Attention 3 wheel
         shell: bash
@@ -107,3 +138,10 @@ jobs:
           name: flash-attn-3-wheel-cu${{ matrix.cuda_short }}-${{ matrix.arch }}
           if-no-files-found: error
           path: ${{ runner.temp }}/artifacts/*.whl
+<<<<<<< HEAD
+=======
+
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+>>>>>>> upstream/release/2.13

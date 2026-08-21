@@ -663,6 +663,7 @@ static void argmax_argmin_out_mps(const Tensor& input_t,
     input = input_t;
     output_view = keepdim ? output_t : output_t.unsqueeze(dim_);
     reduce_dim = dim_;
+<<<<<<< HEAD
     // A permuted view becomes contiguous once the reduced dim is moved
     // innermost or outermost (free for transposes); sliced or padded views
     // stay strided and are handled by the strided outer path below.
@@ -921,6 +922,73 @@ static void argmax_argmin_out_mps(const Tensor& input_t,
     return;
   }
 
+=======
+  } else {
+    input = input_t.contiguous().view(-1);
+    output_view = output_t.view({1});
+  }
+  TORCH_CHECK(static_cast<uint32_t>(input.dim()) <= c10::metal::max_ndim,
+              func_name,
+              ": tensor rank > ",
+              c10::metal::max_ndim,
+              " is not supported");
+
+  // Metal has no simd_min/max for bool; remap to 1-byte char (identical 0/1
+  // layout). Complex types have no ordering, so argmax/argmin is undefined.
+  ScalarType in_kdtype = input.scalar_type();
+  TORCH_CHECK(!c10::isComplexType(in_kdtype), func_name, ": not implemented for ", in_kdtype);
+  if (in_kdtype == kBool) {
+    in_kdtype = kChar;
+  }
+  const auto op_prefix = is_argmax ? "argmax" : "argmin";
+  const auto in_str = scalarToMetalTypeString(in_kdtype);
+  MPSStream* stream = getCurrentMPSStream();
+
+  // Fast paths: when the reduced dim is the outermost or innermost dim of a
+  // contiguous input (and the output is contiguous), dispatch a specialized
+  // kernel with a tuned grid layout, mirroring value_reduction_outer /
+  // value_reduction_inner.
+  if (dim.has_value() && input.is_contiguous() && output_t.is_contiguous() && input.dim() >= 2 &&
+      (reduce_dim == 0 || reduce_dim == input.dim() - 1)) {
+    const bool is_outer = (reduce_dim == 0);
+    const uint32_t M = is_outer ? static_cast<uint32_t>(input.size(0))
+                                : static_cast<uint32_t>(input.numel() / input.size(input.dim() - 1));
+    const uint32_t N = is_outer ? static_cast<uint32_t>(input.numel() / input.size(0))
+                                : static_cast<uint32_t>(input.size(input.dim() - 1));
+    const auto kernel_name = fmt::format("{}_reduction_{}_{}_long", op_prefix, is_outer ? "outer" : "inner", in_str);
+    dispatch_sync_with_rethrow(stream->queue(), ^() {
+      @autoreleasepool {
+        id<MTLComputeCommandEncoder> ce = stream->commandEncoder();
+        auto ps = lib.getPipelineStateForFunc(kernel_name);
+        getMPSProfiler().beginProfileKernel(ps, func_name, {input});
+        [ce setComputePipelineState:ps];
+        if (is_outer) {
+          constexpr uint32_t TG_X = 32, TG_Y = 32;
+          // 4th element is trailing pad so the host-side bind matches the
+          // kernel's `constant uint3&` slot (uint3 has 16-byte alignment in
+          // Metal even though only 12 bytes are read). Without this Metal
+          // API validation flags a buffer-length mismatch.
+          const std::array<uint32_t, 4> sizes_s{M, N, 1, 0};
+          mtl_setArgs(ce, input, output_t, sizes_s);
+          const auto num_tg_x = c10::metal::ceil_div(N, TG_X);
+          [ce dispatchThreads:MTLSizeMake(num_tg_x * TG_X, TG_Y, 1) threadsPerThreadgroup:MTLSizeMake(TG_X, TG_Y, 1)];
+        } else {
+          constexpr uint32_t TG_SIZE = 256;
+          constexpr uint32_t rows_per_tg = TG_SIZE / 32;
+          const auto num_tgs = c10::metal::ceil_div(M, rows_per_tg);
+          struct {
+            uint32_t M, N;
+          } sizes_s = {M, N};
+          mtl_setArgs(ce, input, output_t, sizes_s);
+          [ce dispatchThreads:MTLSizeMake(num_tgs * TG_SIZE, 1, 1) threadsPerThreadgroup:MTLSizeMake(TG_SIZE, 1, 1)];
+        }
+        getMPSProfiler().endProfileKernel(ps);
+      }
+    });
+    return;
+  }
+
+>>>>>>> upstream/release/2.13
   const auto kernel_name = fmt::format("{}_reduction_{}_long", op_prefix, in_str);
 
   NormParams params{};
@@ -1451,6 +1519,7 @@ static void reduction_dispatch_mps(TensorIterator& iter, const ReductionDispatch
       }
       dispatch_sync_with_rethrow(stream->queue(), ^() {
         @autoreleasepool {
+<<<<<<< HEAD
           encode_outer(input_orig,
                        output,
                        dim_size,
@@ -1461,6 +1530,23 @@ static void reduction_dispatch_mps(TensorIterator& iter, const ReductionDispatch
                        opts.input_kernel_dtype,
                        opts.output_kernel_dtype,
                        opts.divisor);
+=======
+          id<MTLComputeCommandEncoder> ce = stream->commandEncoder();
+          auto ps = lib.getPipelineStateForFunc(outer_kernel);
+          getMPSProfiler().beginProfileKernel(ps, opts.prefix + "reduction_outer", {input_orig});
+          // 4th element is trailing pad so the host-side bind matches the
+          // kernel's `constant uint3&` slot (16-byte alignment in Metal even
+          // though only 12 bytes are read).
+          const std::array<uint32_t, 4> sizes_s{M, N, 1, 0};
+          [ce setComputePipelineState:ps];
+          if (opts.divisor.has_value()) {
+            mtl_setArgs(ce, input_orig, output, sizes_s, *opts.divisor);
+          } else {
+            mtl_setArgs(ce, input_orig, output, sizes_s);
+          }
+          [ce dispatchThreads:MTLSizeMake(num_tg_x * TG_X, TG_Y, 1) threadsPerThreadgroup:MTLSizeMake(TG_X, TG_Y, 1)];
+          getMPSProfiler().endProfileKernel(ps);
+>>>>>>> upstream/release/2.13
         }
       });
       return;

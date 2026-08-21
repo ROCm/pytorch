@@ -12,7 +12,11 @@ jobs:
     name: get-label-type
     # Don't run on forked repos
     if: github.repository_owner == 'pytorch'
+<<<<<<< HEAD
     uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.14
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+>>>>>>> upstream/release/2.13
     with:
       triggering_actor: ${{ github.triggering_actor }}
       issue_owner: ${{ github.event.pull_request.user.login || github.event.issue.user.login }}
@@ -30,6 +34,7 @@ jobs:
       image: ghcr.io/actions/actions-runner:latest
     steps:
       - name: Setup Linux
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/setup-linux@release/2.14
         with:
           use-arc: true
@@ -41,6 +46,9 @@ jobs:
           python-version: "3.11"
           activate-environment: true
           enable-cache: true
+=======
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+>>>>>>> upstream/release/2.13
 
       - name: Clone CodeLlama
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -143,4 +151,18 @@ jobs:
           name: llm_results
           retention-days: 1
           if-no-files-found: warn
+<<<<<<< HEAD
           path: ${{ env.TD_WORKSPACE }}/llm-target-determinator/assets/mappings.zip
+=======
+          path: llm-target-determinator/assets/mappings.zip
+        env:
+          AWS_ACCESS_KEY_ID: ""
+          AWS_SECRET_ACCESS_KEY: ""
+          AWS_SESSION_TOKEN: ""
+          AWS_DEFAULT_REGION: ""
+          AWS_REGION: ""
+
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+>>>>>>> upstream/release/2.13

@@ -313,7 +313,11 @@ function install_torchrec_and_fbgemm() {
 
 function clone_pytorch_xla() {
   if [[ ! -d ./xla ]]; then
+<<<<<<< HEAD
     git clone --recursive -b r2.14 https://github.com/pytorch/xla.git
+=======
+    git clone --recursive -b r2.13 https://github.com/pytorch/xla.git
+>>>>>>> upstream/release/2.13
     pushd xla
     # pin the xla hash so that we don't get broken by changes to xla
     git checkout "$(cat ../.github/ci_commit_pins/xla.txt)"

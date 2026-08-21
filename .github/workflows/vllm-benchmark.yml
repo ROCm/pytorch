@@ -58,7 +58,11 @@ jobs:
       torch_cuda_arch_list: '8.0 8.9 9.0 10.0 12.0'
       build_environment: linux-jammy-cuda13.0-py3.12-gcc11
     steps:
+<<<<<<< HEAD
       - uses: pytorch/test-infra/.github/actions/setup-uv@release/2.14
+=======
+      - uses: pytorch/test-infra/.github/actions/setup-uv@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           python-version: "3.12"
           activate-environment: "true"
@@ -96,6 +100,7 @@ jobs:
 
       - name: Compute docker image
         id: calculate-docker-image
+<<<<<<< HEAD
         working-directory: pytorch/pytorch
         shell: bash
         run: |
@@ -103,6 +108,12 @@ jobs:
           DOCKER_TAG=$(git rev-parse HEAD:.ci/docker)
           IMAGE="308535385114.dkr.ecr.us-east-1.amazonaws.com/pytorch/ci-image:pytorch-linux-jammy-cuda13.0-cudnn9-py3.12-gcc11-vllm-${DOCKER_TAG}"
           echo "docker-image=${IMAGE}" >> "${GITHUB_OUTPUT}"
+=======
+        uses: pytorch/test-infra/.github/actions/calculate-docker-image@release/2.13
+        with:
+          working-directory: pytorch/pytorch
+          docker-image-name: ci-image:pytorch-linux-jammy-cuda13.0-cudnn9-py3.12-gcc11-vllm
+>>>>>>> upstream/release/2.13
 
   build:
     name: Build PyTorch and vLLM

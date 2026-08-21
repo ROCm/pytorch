@@ -231,4 +231,8 @@ jobs:
 
       - name: Upload usage metrics
         if: always()
+<<<<<<< HEAD
         uses: pytorch/test-infra/.github/actions/upload-claude-usage@release/2.14
+=======
+        uses: pytorch/test-infra/.github/actions/upload-claude-usage@release/2.13
+>>>>>>> upstream/release/2.13

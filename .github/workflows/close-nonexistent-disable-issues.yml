@@ -14,7 +14,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout PyTorch
+<<<<<<< HEAD
         uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.14
+=======
+        uses: pytorch/pytorch/.github/actions/checkout-pytorch@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           submodules: false
           fetch-depth: 1

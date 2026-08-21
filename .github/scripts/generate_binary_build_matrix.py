@@ -24,18 +24,27 @@ SCRIPT_DIR = Path(__file__).absolute().parent
 REPO_ROOT = SCRIPT_DIR.parent.parent
 
 
+<<<<<<< HEAD
 CUDA_ARCHES = ["12.6", "13.0", "13.2", "13.4"]
+=======
+CUDA_ARCHES = ["12.6", "12.9", "13.0", "13.2"]
+>>>>>>> upstream/release/2.13
 CUDA_STABLE = "13.0"
 # Only consumed by generate_docker_release_matrix.py, whose Dockerfile installs
 # an already-published torch nightly. A CUDA version belongs here only once its
 # wheels are on the download.pytorch.org index, so 13.4 is deliberately absent.
 CUDA_ARCHES_FULL_VERSION = {
     "12.6": "12.6.3",
+<<<<<<< HEAD
+=======
+    "12.9": "12.9.1",
+>>>>>>> upstream/release/2.13
     "13.0": "13.0.3",
     "13.2": "13.2.1",
 }
 CUDA_ARCHES_CUDNN_VERSION = {
     "12.6": "9",
+    "12.9": "9",
     "13.0": "9",
     "13.2": "9",
     "13.4": "9",
@@ -54,6 +63,7 @@ CPU_S390X_ARCH = ["cpu-s390x"]
 
 CUDA_AARCH64_ARCHES = [
     "12.6-aarch64",
+    "12.9-aarch64",
     "13.0-aarch64",
     "13.2-aarch64",
     "13.4-aarch64",
@@ -68,6 +78,14 @@ PYTORCH_EXTRA_INSTALL_REQUIREMENTS = {
         "nvidia-nccl-cu12==2.29.3; platform_system == 'Linux' | "
         "nvidia-nvshmem-cu12==3.4.5; platform_system == 'Linux' | "
         "nvidia-nvjitlink-cu12>=12.6.85,<13; platform_system == 'Linux'"
+    ),
+    "12.9": (
+        "cuda-toolkit[nvrtc,cudart,cupti,cufft,curand,cusolver,cusparse,cublas,cufile,nvjitlink,nvtx]==12.9.1; platform_system == 'Linux' | "
+        "cuda-bindings>=12.9.4,<13; platform_system == 'Linux' and python_version < '3.15' | "
+        "nvidia-cudnn-cu12==9.20.0.48; platform_system == 'Linux' | "
+        "nvidia-cusparselt-cu12==0.8.1; platform_system == 'Linux' | "
+        "nvidia-nccl-cu12==2.29.7; platform_system == 'Linux' | "
+        "nvidia-nvshmem-cu12==3.4.5; platform_system == 'Linux'"
     ),
     "13.0": (
         "cuda-toolkit[nvrtc,cudart,cupti,cufft,curand,cusolver,cusparse,cublas,cufile,nvjitlink,nvtx]==13.0.3; platform_system == 'Linux' | "
@@ -318,6 +336,24 @@ WHEEL_CONTAINER_IMAGES = {
     "cpu-s390x": "manylinuxs390x-builder:cpu-s390x",
 }
 
+# RELEASE-ONLY: pin the manywheel builder images to a fixed build so the release
+# uses a reproducible toolchain instead of main's floating tags. The suffix is
+# the .ci/docker tree hash (`git rev-parse HEAD:.ci/docker`), i.e. the same tag
+# .github/actions/binary-docker-build publishes. Only linux manywheel builds run
+# inside these containers, so only those images are pinned. s390x is excluded:
+# its builder images are built locally on self-hosted runners and never published
+# to docker.io under the pinned tag, so pinning it breaks the image pull.
+DOCKER_IMAGE_PIN = "78e737ad29420ffc4800e677c51e2a852caf8359"
+MANYWHEEL_OSES = ("linux", "linux-aarch64")
+
+
+def wheel_container_image_tag_prefix(arch_version: str, os: str) -> str:
+    tag_prefix = WHEEL_CONTAINER_IMAGES[arch_version].split(":")[1]
+    if os in MANYWHEEL_OSES:
+        return f"{tag_prefix}-{DOCKER_IMAGE_PIN}"
+    return tag_prefix
+
+
 RELEASE = "release"
 DEBUG = "debug"
 
@@ -358,7 +394,13 @@ def generate_libtorch_matrix(
     if arches is None:
         arches = ["cpu"]
         if os == "windows":
+<<<<<<< HEAD
             arches += list_without(CUDA_ARCHES, CUDA_ARCHES_NO_WINDOWS)
+=======
+            # CUDA 12.9 is only built for Linux
+            windows_cuda_arches = list_without(CUDA_ARCHES, ["12.9"])
+            arches += windows_cuda_arches
+>>>>>>> upstream/release/2.13
     if libtorch_variants is None:
         libtorch_variants = [
             "shared-with-deps",
@@ -411,7 +453,13 @@ def generate_wheels_matrix(
         if os == "linux":
             arches += CUDA_ARCHES + ROCM_ARCHES + XPU_ARCHES
         elif os == "windows":
+<<<<<<< HEAD
             arches += list_without(CUDA_ARCHES, CUDA_ARCHES_NO_WINDOWS) + XPU_ARCHES
+=======
+            # CUDA 12.9 is only built for Linux
+            windows_cuda_arches = list_without(CUDA_ARCHES, ["12.9"])
+            arches += windows_cuda_arches + XPU_ARCHES
+>>>>>>> upstream/release/2.13
         elif os == "linux-aarch64":
             # Separate new if as the CPU type is different and
             # uses different build/test scripts
@@ -453,7 +501,11 @@ def generate_wheels_matrix(
             # cuda linux wheels require PYTORCH_EXTRA_INSTALL_REQUIREMENTS to install
 
             if (
+<<<<<<< HEAD
                 arch_version in ["13.4", "13.2", "13.0", "12.6"]
+=======
+                arch_version in ["13.2", "13.0", "12.9", "12.6"]
+>>>>>>> upstream/release/2.13
                 and os == "linux"
                 or arch_version in CUDA_AARCH64_ARCHES
             ):
@@ -467,9 +519,9 @@ def generate_wheels_matrix(
                         "container_image": WHEEL_CONTAINER_IMAGES[arch_version].split(
                             ":"
                         )[0],
-                        "container_image_tag_prefix": WHEEL_CONTAINER_IMAGES[
-                            arch_version
-                        ].split(":")[1],
+                        "container_image_tag_prefix": wheel_container_image_tag_prefix(
+                            arch_version, os
+                        ),
                         "package_type": package_type,
                         "pytorch_extra_install_requirements": (
                             PYTORCH_EXTRA_INSTALL_REQUIREMENTS[
@@ -498,9 +550,9 @@ def generate_wheels_matrix(
                         "container_image": WHEEL_CONTAINER_IMAGES[arch_version].split(
                             ":"
                         )[0],
-                        "container_image_tag_prefix": WHEEL_CONTAINER_IMAGES[
-                            arch_version
-                        ].split(":")[1],
+                        "container_image_tag_prefix": wheel_container_image_tag_prefix(
+                            arch_version, os
+                        ),
                         "package_type": package_type,
                         "build_name": f"{package_type}-py{python_version}-{gpu_arch_type}{gpu_arch_version}".replace(
                             ".", "_"
@@ -558,6 +610,7 @@ def generate_libtorch_extraction_configs(
             ".", "_"
         )
 
+<<<<<<< HEAD
         lt_config: dict[str, str] = {
             "source_wheel_build_name": source_config["build_name"],
             "build_name": build_name,
@@ -575,6 +628,21 @@ def generate_libtorch_extraction_configs(
                 "container_image_tag_prefix"
             ]
         ret.append(lt_config)
+=======
+        ret.append(
+            {
+                "source_wheel_build_name": source_config["build_name"],
+                "build_name": build_name,
+                "package_type": "libtorch",
+                "libtorch_variant": libtorch_variant,
+                "libtorch_config": RELEASE,
+                "desired_cuda": desired_cuda,
+                "gpu_arch_type": gpu_arch_type,
+                "gpu_arch_version": gpu_arch_version,
+                "arch": arch,
+            }
+        )
+>>>>>>> upstream/release/2.13
 
     return ret
 

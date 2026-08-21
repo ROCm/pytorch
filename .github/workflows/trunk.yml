@@ -60,10 +60,14 @@ jobs:
 
   get-label-type:
     name: get-label-type
+<<<<<<< HEAD
     # TEMPORARY (PR validation only): use the PR's own _runner-determinator.yml so
     # the new amd-do-label-type output propagates. Revert to
     # pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.14 before merge.
     uses: ./.github/workflows/_runner-determinator.yml
+=======
+    uses: pytorch/pytorch/.github/workflows/_runner-determinator.yml@release/2.13
+>>>>>>> upstream/release/2.13
     if: ${{ (github.event_name != 'schedule' || github.repository == 'pytorch/pytorch') && github.repository_owner == 'pytorch' }}
     with:
       triggering_actor: ${{ github.triggering_actor }}

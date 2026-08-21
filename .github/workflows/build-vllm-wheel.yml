@@ -63,8 +63,18 @@ jobs:
       # The PyTorch manylinux builder exposes cp312 here.
       PYTHON_EXECUTABLE: /opt/python/cp312-cp312/bin/python
     steps:
+<<<<<<< HEAD
       - name: Checkout PyTorch
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+=======
+      - name: Setup SSH (Click me for login details)
+        uses: pytorch/test-infra/.github/actions/setup-ssh@release/2.13
+        with:
+          github-secret: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Linux
+        uses: pytorch/pytorch/.github/actions/setup-linux@release/2.13
+>>>>>>> upstream/release/2.13
         with:
           submodules: false
           show-progress: false
@@ -162,6 +172,13 @@ jobs:
           if-no-files-found: error
           path: ${{ runner.temp }}/artifacts/externals/vllm/wheels/*.whl
 
+<<<<<<< HEAD
+=======
+      - name: Teardown Linux
+        uses: pytorch/test-infra/.github/actions/teardown-linux@release/2.13
+        if: always()
+
+>>>>>>> upstream/release/2.13
   # Copied from build-triton-wheel workflow (mostly)
   upload-wheel:
     name: "Upload ${{ matrix.device }} vLLM wheel on ${{ matrix.platform }}"

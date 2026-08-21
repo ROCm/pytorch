@@ -6841,6 +6841,10 @@ class AOTInductorTestsTemplate:
         self.check_model(sin_triton, none_inputs)
         self.check_model(sin_triton, not_none_inputs)
 
+<<<<<<< HEAD
+=======
+    @skipIfRocm  # RoCM does not support the config block size in test suite.
+>>>>>>> upstream/release/2.13
     @skipIfXpu(
         msg="SYCL work-item index overflow issue when block sizes are used in this test."
     )

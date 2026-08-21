@@ -35,7 +35,11 @@ from torch.nn import Buffer, Parameter
 from torch.nn.parallel._functions import Broadcast
 from torch.testing._internal.common_dtype import integral_types, get_all_math_dtypes, floating_types
 from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, run_tests, TestCase, \
+<<<<<<< HEAD
     skipIfNoLapack, skipIfRocm, skipIfRocmVersionLessThan, getRocmVersion, TEST_NUMPY, TEST_SCIPY, TEST_WITH_CROSSREF, TEST_WITH_ROCM, TEST_MULTIACCELERATOR, \
+=======
+    skipIfNoLapack, skipIfRocm, skipIfRocmVersionLessThan, getRocmVersion, TEST_NUMPY, TEST_SCIPY, TEST_WITH_CROSSREF, TEST_WITH_ROCM, \
+>>>>>>> upstream/release/2.13
     download_file, get_function_arglist, load_tests, skipIfMPS, MACOS_VERSION, \
     IS_PPC, IS_ARM64, IS_MACOS, IS_WINDOWS, IS_CPU_CAPABILITY_SVE, IS_CPU_EXT_SVE_SUPPORTED, xfailIf, \
     parametrize as parametrize_test, subtest, instantiate_parametrized_tests, \
@@ -46,8 +50,13 @@ from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, Criteri
     module_tests, criterion_tests, loss_reference_fns, _create_basic_net, \
     ctcloss_reference, get_new_module_tests, single_batch_reference_fn, _test_bfloat16_ops, _test_module_empty_input
 from torch.testing._internal.common_device_type import dtypesIfMPS, instantiate_device_type_tests, dtypes, \
+<<<<<<< HEAD
     dtypesIfCUDA, precisionOverride, onlyCUDA, onlyCPU, onlyAccelerator, \
     skipCUDAIf, skipCUDAIfRocm, skipMPSIf, skipMPS, \
+=======
+    dtypesIfCUDA, precisionOverride, onlyCUDA, onlyCPU, \
+    skipCUDAIfRocm, skipCUDAIf, skipMPSIf, skipCUDAIfNotRocm, \
+>>>>>>> upstream/release/2.13
     onlyNativeDeviceTypes, deviceCountAtLeast, largeTensorTest, expectedFailureMeta, expectedFailureMPS, \
     skipMeta, get_all_device_types
 from torch.testing._internal.common_modules import module_inputs_torch_nn_LinearCrossEntropyLoss
@@ -10457,7 +10466,11 @@ class TestNNDeviceType(NNTestCase):
         del x
         self.assertTrue(torch.allclose(out, out_ref))
 
+<<<<<<< HEAD
         # Path 1 (NHWC): output.numel() = 17*256*1024*1024 ~ 4.26e9 > UINT32_MAX.
+=======
+        # Path 1 (NHWC): output.numel() = 17*256*1024*1024 ~ 4.56e9 > UINT32_MAX.
+>>>>>>> upstream/release/2.13
         # Exercises the ROCm grid-stride clamp in the NHWC kernel.
         x = torch.ones((17, 256, 512, 512), dtype=dtype).cuda().to(memory_format=torch.channels_last)
         out = torch.nn.functional.interpolate(x, scale_factor=2, mode='nearest')
@@ -13255,7 +13268,10 @@ if __name__ == '__main__':
                 "order/state-dependent NotImplementedError regex mismatch on "
                 "ROCm 7.14+ (cuda, float32)"
             )
+<<<<<<< HEAD
 
+=======
+>>>>>>> upstream/release/2.13
         class MyModule(nn.Module):
             def __init__(self, in_features, out_features, device=None, dtype=None):
                 super().__init__()
@@ -14362,6 +14378,8 @@ if __name__ == '__main__':
         self.assertLessEqual(maximal_linear_bias_grad_max_ulp_diff, expected_linear_bias_grad_max_ulp_diff,
                              msg=lambda msg: f"{msg}\nworst linear_bias-grad ULP {maximal_linear_bias_grad_max_ulp_diff} from kwargs={worst_linear_bias_grad_kwargs}")
 
+    @skipIfRocm(msg="ROCm fp32 GEMM ULP divergence: input-grad 952 > 854 tolerance bound "
+                "(TheRock math-lib build, rocBLAS/hipBLASLt accumulation)")
     @parametrize_test("bias", [False, True])
     @dtypes(torch.float32)
     def test_linear_cross_entropy_loss_default(self, device, dtype, bias):

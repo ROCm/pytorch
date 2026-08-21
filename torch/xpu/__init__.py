@@ -795,6 +795,7 @@ def _import_pyzes():
     return pyzes
 
 
+<<<<<<< HEAD
 def _get_pyzes_version() -> tuple[int, ...]:
     """
     Return the version of the pyzes package as a tuple of integers (major, minor, patch).
@@ -805,6 +806,8 @@ def _get_pyzes_version() -> tuple[int, ...]:
     return tuple(map(int, version("pyzes").split(".")))
 
 
+=======
+>>>>>>> upstream/release/2.13
 def _zes_check(rc: int, msg: str) -> None:
     """Raise RuntimeError if the Level Zero Sysman call failed (rc != ZE_RESULT_SUCCESS)."""
     import pyzes  # type: ignore[import]

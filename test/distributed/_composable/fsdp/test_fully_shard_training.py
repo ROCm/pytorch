@@ -735,10 +735,14 @@ class TestFullyShard1DTrainingCore(FSDPTest):
             self.assertEqual(losses[0], losses[1])
 
     @skip_if_lt_x_gpu(2)
+<<<<<<< HEAD
     @unittest.skipIf(
         not hasattr(torch.get_device_module(device_type), "_sleep"),
         "Sleep is not supported on this device",
     )
+=======
+    @unittest.skipIf(TEST_HPU or TEST_XPU, "Sleep is not supported on HPU/XPU")
+>>>>>>> upstream/release/2.13
     @skip_if_rocm_ver_atleast_multiprocess([7, 14])
     def test_post_optim_event(self):
         torch.manual_seed(42)

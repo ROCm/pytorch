@@ -112,7 +112,11 @@ def get_disabled_tests(
         return disabled_test_from_issues
 
     try:
+<<<<<<< HEAD
         url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json?versionId=MDvo4X2xLr.WBVkC.xwXNFX4tN01nQvU"
+=======
+        url = "https://ossci-metrics.s3.amazonaws.com/disabled-tests-condensed.json?versionId=dH4hv7NvlRWeivwU7ehmHmNC.naYfATD"
+>>>>>>> upstream/release/2.13
         return fetch_and_cache(dirpath, filename, url, process_disabled_test)
     except Exception:
         print("Couldn't download test skip set, leaving all tests enabled...")
