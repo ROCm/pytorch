@@ -710,10 +710,15 @@ def main():
         error_msg="Error: Periodic workflow not found in scanned workflow runs."
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         periodic_fallback_used = False
-        try:
-            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        except (IndexError, Exception):
-            periodic_wf = None
+        if ROCmWorkflowNames["distributed"] == "trunk" and trunk_full_wf is not None:
+            # Read ROCm distributed from the canonical trunk run, same as the
+            # default path above, so both configs come from one push.
+            periodic_wf = trunk_full_wf
+        else:
+            try:
+                periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            except (IndexError, Exception):
+                periodic_wf = None
         periodic_fallbacks = _fallbacks_for("distributed")
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
