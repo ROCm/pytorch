@@ -9,6 +9,7 @@ try:
     import requests
     import re
     import sys
+    import yaml
     from upload_stats_lib import unzip
     from upload_test_stats import download_gha_artifacts, download_s3_artifacts
 except ImportError:
@@ -185,13 +186,8 @@ def get_workflow_jobs(wf, all_attempts=False):
             jobs += page_json["jobs"]
     return jobs
 
-def get_check_runs_for_commit(sha, prefix):
-    """Get check runs for a commit filtered by name prefix.
-
-    The workflow jobs API does not return jobs from reusable workflows
-    (workflow_call). The check-runs API returns all jobs regardless of
-    workflow nesting, so we use it as a fallback.
-    """
+def get_all_check_runs_for_commit(sha):
+    """Return every check run on a commit (paginated)."""
     check_runs = []
     page = 1
     while True:
@@ -202,11 +198,113 @@ def get_check_runs_for_commit(sha, prefix):
         )
         data = response.json()
         runs = data.get('check_runs', [])
-        check_runs.extend([cr for cr in runs if prefix in cr.get('name', '')])
+        check_runs.extend(runs)
         if len(runs) < 100:
             break
         page += 1
     return check_runs
+
+def get_check_runs_for_commit(sha, prefix):
+    """Get check runs for a commit filtered by name prefix.
+
+    The workflow jobs API does not return jobs from reusable workflows
+    (workflow_call). The check-runs API returns all jobs regardless of
+    workflow nesting, so we use it as a fallback.
+    """
+    return [
+        check_run for check_run in get_all_check_runs_for_commit(sha)
+        if prefix in check_run.get('name', '')
+    ]
+
+def _workflow_runs_for_commit(sha):
+    """Return all workflow runs for a commit, including reusable workflows."""
+    workflow_runs = []
+    page = 1
+    while True:
+        response = requests.get(
+            "https://api.github.com/repos/pytorch/pytorch/actions/runs",
+            headers=authentication_headers,
+            params={'head_sha': sha, 'per_page': 100, 'page': page},
+        )
+        runs = response.json().get('workflow_runs', [])
+        workflow_runs.extend(runs)
+        if len(runs) < 100:
+            break
+        page += 1
+    return workflow_runs
+
+def _collect_scoped_run_ids(wf):
+    """Collect this workflow run and its nested reusable-workflow run IDs."""
+    run_ids = {int(wf['id'])}
+    sha = wf.get('head_sha')
+    if not sha:
+        return run_ids
+
+    runs_by_path = {}
+    for run in _workflow_runs_for_commit(sha):
+        path = (run.get('path') or '').lstrip('/')
+        if path:
+            runs_by_path.setdefault(path, []).append(run)
+
+    pending = [wf]
+    inspected = set()
+    while pending:
+        current = pending.pop()
+        current_id = int(current['id'])
+        if current_id in inspected:
+            continue
+        inspected.add(current_id)
+        response = requests.get(
+            f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{current_id}",
+            headers=authentication_headers,
+        )
+        if response.status_code != 200:
+            continue
+        for referenced in response.json().get('referenced_workflows') or []:
+            referenced_path = (referenced.get('path') or '').lstrip('/')
+            if not referenced_path:
+                continue
+            for path, runs in runs_by_path.items():
+                if path == referenced_path or path.endswith(referenced_path):
+                    for run in runs:
+                        run_id = int(run['id'])
+                        if run_id not in run_ids:
+                            run_ids.add(run_id)
+                            pending.append(run)
+    return run_ids
+
+def get_check_runs_for_workflow_runs(sha, run_ids):
+    """Return check runs whose details URL belongs to a scoped run ID."""
+    run_markers = tuple(f"/runs/{run_id}/" for run_id in run_ids)
+    return [
+        check_run for check_run in get_all_check_runs_for_commit(sha)
+        if any(marker in (check_run.get('details_url') or '')
+               for marker in run_markers)
+    ]
+
+_ARCH_PREFIX_TOKENS = {
+    'mi200': ('mi200', 'mi210'),
+    'mi300': ('mi300',),
+    'mi350': ('mi350',),
+    'navi31': ('navi31',),
+    'preview': ('rocm-preview',),
+}
+
+def _is_rocm_job_prefix(prefix):
+    prefix_lower = prefix.lower()
+    return 'rocm' in prefix_lower and 'cuda' not in prefix_lower
+
+def _prefix_matches_arch(arch, prefix, configured_prefix):
+    prefix_lower = prefix.lower()
+    tokens = _ARCH_PREFIX_TOKENS.get(arch, ())
+    if any(token in prefix_lower for token in tokens):
+        return True
+    if prefix == configured_prefix:
+        return True
+    configured_lower = configured_prefix.lower()
+    if not any(token in configured_lower for token in tokens):
+        return _is_rocm_job_prefix(prefix)
+    return False
 
 def get_job_ids_by_prefix(wf, prefix):
     """Get job IDs (as strings) for jobs whose name contains the given prefix."""
@@ -216,6 +314,231 @@ def get_job_ids_by_prefix(wf, prefix):
 def matches_job_prefix(job_name, prefix):
     """Match the exact CUDA job family without also matching -debug/-sm86 jobs."""
     return job_name.startswith(f"{prefix} / ")
+
+def _download_workflow_yaml(sha, path):
+    """Download a workflow file from the exact commit used by a workflow run."""
+    path = path.removeprefix("./").lstrip("/")
+    url = f"https://raw.githubusercontent.com/pytorch/pytorch/{sha}/{path}"
+    response = requests.get(url, timeout=30)
+    response.raise_for_status()
+    return yaml.safe_load(response.text), path
+
+
+def _literal_test_matrix(jobs, job_key, seen=None):
+    """Resolve a job's literal test matrix, following needs.<job>.outputs."""
+    seen = set() if seen is None else seen
+    if job_key in seen:
+        return None
+    seen.add(job_key)
+    job = jobs.get(job_key, {})
+    matrix = job.get("with", {}).get("test-matrix")
+    if not isinstance(matrix, str):
+        return None
+    if "num_shards" in matrix:
+        return matrix
+    dependency = re.search(r"needs\.([A-Za-z0-9_-]+)\.outputs\.test-matrix", matrix)
+    if dependency:
+        return _literal_test_matrix(jobs, dependency.group(1), seen)
+    return None
+
+
+def _matrix_for_job_prefix(sha, path, job_prefix):
+    """Find the matrix behind a possibly nested reusable-workflow job prefix."""
+    workflow, path = _download_workflow_yaml(sha, path)
+    parts = [part.strip() for part in job_prefix.split(" / ")]
+    for index, part in enumerate(parts):
+        jobs = workflow.get("jobs", {})
+        candidates = [
+            (key, job) for key, job in jobs.items()
+            if job.get("name", key) == part or key == part
+        ]
+        if index < len(parts) - 1:
+            reusable = next(
+                (
+                    job.get("uses") for _, job in candidates
+                    if isinstance(job.get("uses"), str)
+                    and job["uses"].startswith("./.github/workflows/")
+                ),
+                None,
+            )
+            if not reusable:
+                return None
+            workflow, path = _download_workflow_yaml(sha, reusable)
+            continue
+        for key, _ in candidates:
+            matrix = _literal_test_matrix(jobs, key)
+            if matrix:
+                return matrix
+    return None
+
+
+def _shard_total_from_matrix(matrix, test_config):
+    if not matrix:
+        return None
+    match = re.search(
+        r"\{\s*config:\s*[\"']?" + re.escape(test_config)
+        + r"[\"']?\s*,.*?\bnum_shards:\s*(\d+)",
+        matrix,
+        re.DOTALL,
+    )
+    return int(match.group(1)) if match else None
+
+def derive_shard_count(wf, job_prefix, test_config, fallback):
+    """Read the shard total from the workflow YAML at the run's exact commit.
+
+    pytorch/pytorch reshards its matrices without notice (CUDA default 5 -> 14,
+    distributed 3 -> 10; mi300 default 6 -> 8, inductor 2 -> 4). A stale
+    hardcoded count makes the constructed "(default, i, 6)" keys and
+    "test-reports-...-6" prefixes miss the real jobs, so nothing downloads and
+    the run fails / is flagged incomplete.
+
+    Downloading the source YAML avoids inferring totals from incomplete jobs or
+    check-run API results. Nested reusable workflows (for example
+    inductor.yml -> inductor-unittest.yml) and test matrices exposed through a
+    build job's outputs are followed. The configured count remains a fallback
+    for unavailable or unparseable workflow source.
+    """
+    try:
+        sha = wf["head_sha"]
+        path = wf.get("path") or f".github/workflows/{wf['name']}.yml"
+        total = _shard_total_from_matrix(
+            _matrix_for_job_prefix(sha, path, job_prefix), test_config
+        )
+        if total is not None:
+            print(f"Read {test_config} shard count {total} from {path}@{sha}")
+            return total
+    except Exception as error:
+        print(f"WARNING: could not read shard count from workflow YAML: {error}")
+    return fallback
+
+def _candidate_job_prefixes(names, test_config):
+    """Map each distinct '<prefix>' -> count from names shaped like
+    '<prefix> / <kind> (<test_config>, <idx>, <total>, ...)'."""
+    pat = re.compile(r"^(.+?) / \S+ \(" + re.escape(test_config) + r", \d+, \d+")
+    out = {}
+    for name in names:
+        m = pat.match(name)
+        if m:
+            out[m.group(1)] = out.get(m.group(1), 0) + 1
+    return out
+
+def resolve_job_prefix(wf, test_config, configured_prefix, arch=None):
+    """Return the '<prefix>' upstream actually uses for this arch's
+    <test_config> test jobs, so a drifted configured prefix self-heals instead
+    of silently matching nothing.
+
+    The job-name prefix in parity_job_config.json drifts whenever upstream
+    bumps the OS/python/compiler or renames a runner tag (e.g. the Preview
+    'gfx942' -> 'mi350' rename, or py3.10 -> py3.12), which used to require a
+    manual config edit each time. Candidates are gathered from the run's jobs
+    API and check-runs scoped to that run and its nested reusable workflows.
+    Only ROCm prefixes for the requested architecture are eligible, so another
+    workflow on the same commit cannot be selected accidentally. If the
+    configured prefix is present we keep it unchanged; otherwise we pick the
+    eligible candidate most similar to it. If nothing matches we return the
+    configured value untouched.
+    """
+    names = []
+    try:
+        names += [j.get("name", "") for j in get_workflow_jobs(wf)]
+    except Exception:
+        pass
+    sha = wf.get("head_sha") if isinstance(wf, dict) else None
+    if sha:
+        try:
+            run_ids = _collect_scoped_run_ids(wf)
+            names += [
+                check_run.get("name", "")
+                for check_run in get_check_runs_for_workflow_runs(sha, run_ids)
+            ]
+        except Exception:
+            pass
+    candidates = _candidate_job_prefixes(names, test_config)
+    candidates = {
+        prefix: count for prefix, count in candidates.items()
+        if _is_rocm_job_prefix(prefix)
+        and (arch is None or _prefix_matches_arch(
+            arch, prefix, configured_prefix
+        ))
+    }
+    if not candidates or configured_prefix in candidates:
+        return configured_prefix
+    import difflib
+    best = max(
+        candidates,
+        key=lambda p: (
+            difflib.SequenceMatcher(None, p, configured_prefix).ratio(),
+            candidates[p],
+        ),
+    )
+    print(f"NOTE: configured job prefix '{configured_prefix}' not found for "
+          f"'{test_config}'; using detected prefix '{best}'")
+    return best
+
+def get_run_by_id(run_id):
+    """Fetch a single workflow-run object by id (for its run_attempt/name)."""
+    try:
+        r = requests.get(
+            f"https://api.github.com/repos/pytorch/pytorch/actions/runs/{run_id}",
+            headers=authentication_headers,
+        )
+        if r.status_code == 200:
+            return r.json()
+    except Exception:
+        pass
+    return None
+
+def resolve_artifact_download(wf, job_prefix, test_config, default_substrings):
+    """Redirect artifact download to the run that ACTUALLY ran this config's
+    shards, when it differs from the resolved caller run.
+
+    The standalone ROCm arch workflows (rocm-mi300, rocm-mi200, periodic-rocm-*,
+    inductor-rocm-*) are thin callers: on scheduled commits their sharded test
+    jobs execute under a DIFFERENT run (e.g. trunk-rocm-sandbox), and the
+    test-report artifacts live there - so downloading from the caller run finds
+    nothing and the job is flagged an incomplete download. The check-run's
+    details_url points at the run (and job) that really ran each shard, so we
+    read the hosting run id from there.
+
+    Returns (download_wf, allowed_substrings). When the shards ran in the
+    resolved run already, returns (wf, default_substrings) unchanged. When
+    redirecting, filters by the exact job ids so arches that share a
+    trunk-rocm-sandbox run don't pull each other's shards.
+    """
+    sha = wf.get("head_sha") if isinstance(wf, dict) else None
+    if not sha:
+        return wf, default_substrings
+    try:
+        check_runs = get_check_runs_for_commit(sha, job_prefix)
+    except Exception:
+        return wf, default_substrings
+    pat = re.compile(
+        re.escape(job_prefix) + r" / \S+ \(" + re.escape(test_config) + r","
+    )
+    runs = {}
+    jobs_by_run = {}
+    for cr in check_runs:
+        if not pat.search(cr.get("name", "")):
+            continue
+        m = re.search(r"/runs/(\d+)/job/(\d+)", cr.get("details_url", "") or "")
+        if not m:
+            continue
+        run_id, job_id = m.group(1), m.group(2)
+        runs[run_id] = runs.get(run_id, 0) + 1
+        jobs_by_run.setdefault(run_id, []).append(job_id)
+    if not runs:
+        return wf, default_substrings
+    best = sorted(runs.items(), key=lambda kv: -kv[1])[0][0]
+    if str(best) == str(wf.get("id")):
+        return wf, default_substrings
+    host = get_run_by_id(best)
+    if not host:
+        return wf, default_substrings
+    substrings = [f"_{jid}" for jid in jobs_by_run[best]]
+    print(f"NOTE: {test_config} shards for '{job_prefix}' ran in run {best} "
+          f"({host.get('name')}), not the resolved caller run {wf.get('id')}; "
+          f"downloading artifacts from there ({len(substrings)} jobs)")
+    return host, substrings
 
 # CUDA test jobs are named "test-osdc" on main but plain "test" on PRs, so we
 # probe both spellings (in priority order) from the shared config.
@@ -332,6 +655,7 @@ def _shorten_unzipped_dirs():
     failing job from the parity summary.
     """
     from pathlib import Path
+    job_ids = []
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
@@ -346,11 +670,39 @@ def _shorten_unzipped_dirs():
             job_id_match = re.search(r'_(\d{6,})(?:\.zip)?$', d.name)
             if job_id_match:
                 short_name += f"_{job_id_match.group(1)}"
+                job_ids.append(job_id_match.group(1))
             if not Path(short_name).exists():
                 d.rename(short_name)
                 print(f"  Renamed {d.name} -> {short_name}")
             else:
                 print(f"  WARNING: {short_name} already exists, keeping {d.name}")
+    return job_ids
+
+def _record_shard_run_ids(job_ids, workflow_run_id):
+    """Persist a job_id -> upstream run_id map ("_wf_run_ids.json") next to the
+    shard dirs so summarize_xml_testreports.py can build a correct job URL for
+    each shard.
+
+    The default/distributed/inductor configs resolve to DIFFERENT upstream runs
+    (e.g. mi350 default+inductor come from a trunk push while distributed comes
+    from periodic / a trunk fallback), yet they all unzip into the same rocm_xml
+    folder. The legacy single "_wf_run_id" (last write wins) therefore mislabels
+    shards from the other runs, producing "busted" job URLs that point at a run
+    the job never belonged to. Recording the run id per job id fixes that.
+    """
+    if not job_ids:
+        return
+    mapping = {}
+    if os.path.isfile("_wf_run_ids.json"):
+        try:
+            with open("_wf_run_ids.json") as f:
+                mapping = json.load(f)
+        except Exception:
+            mapping = {}
+    for jid in job_ids:
+        mapping[str(jid)] = str(workflow_run_id)
+    with open("_wf_run_ids.json", "w") as f:
+        json.dump(mapping, f)
 
 def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
     # Get from S3 artifacts.
@@ -410,8 +762,12 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
     for path in artifact_paths:
             unzip(path)
 
-    _shorten_unzipped_dirs()
+    job_ids = _shorten_unzipped_dirs()
+    # Record which upstream run each shard's job id came from so job URLs are
+    # built per-shard (different configs come from different runs).
+    _record_shard_run_ids(job_ids, workflow_run_id)
 
+    # Kept for backward compatibility with older summarize layouts.
     with open("_wf_run_id", "w") as f:
         f.write(str(workflow_run_id))
 
@@ -734,6 +1090,9 @@ def main():
             dist_job_prefix = periodic_fallbacks[arch][1]
         else:
             dist_job_prefix = rocm_job_prefix['distributed']
+        dist_job_prefix = resolve_job_prefix(
+            periodic_wf, "distributed", dist_job_prefix, arch=arch
+        )
 
         folder_list = get_or_create_test_folder(periodic_wf)
 
@@ -742,10 +1101,9 @@ def main():
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
         # Make sure "Hide unstable jobs" is unselected, in case ROCm jobs are marked as unstable
     
-        if arch == "mi350":
-            dist_shards = 3 if not periodic_fallback_used else rocm_shards["distributed"]
-        else:
-            dist_shards = rocm_shards["distributed"]
+        dist_shards = derive_shard_count(
+            periodic_wf, dist_job_prefix, "distributed", rocm_shards["distributed"]
+        )
         print(f"Using final ROCm shard count {dist_shards} for distributed")
 
         if not args.artifacts_only:
@@ -760,11 +1118,14 @@ def main():
             f"test-reports-test-distributed-{i}-{dist_shards}"
             for i in range(1, dist_shards + 1)
         ]
+        dist_dl_wf, dist_dl_subs = resolve_artifact_download(
+            periodic_wf, dist_job_prefix, "distributed", rocm_artifact_substrings
+        )
         download_artifacts(
-            periodic_wf,
+            dist_dl_wf,
             test_artifacts_list_rocm_distributed,
             folder_list[2],
-            allowed_substrings=rocm_artifact_substrings,
+            allowed_substrings=dist_dl_subs,
         )
         os.chdir("..")
 
@@ -805,10 +1166,12 @@ def main():
         # Download logs
         # If logs aren't found you might want to check the HUD for the correct tags
         # HUD link: https://hud.pytorch.org/hud/pytorch/pytorch/main/1?per_page=50&name_filter=rocm
-        if arch == "mi350":
-            default_shards = 6 if default_fallback_used else rocm_shards["default"]
-        else:
-            default_shards = rocm_shards["default"]
+        rocm_job_prefix['default'] = resolve_job_prefix(
+            rocm_wf, "default", rocm_job_prefix['default'], arch=arch
+        )
+        default_shards = derive_shard_count(
+            rocm_wf, rocm_job_prefix['default'], "default", rocm_shards["default"]
+        )
         print(f"Using final ROCm shard count {default_shards} for default")
 
         if not args.artifacts_only:
@@ -824,11 +1187,14 @@ def main():
           for i in range(1, default_shards + 1)
         ]
         if not args.exclude_default:
+            default_dl_wf, default_dl_subs = resolve_artifact_download(
+                rocm_wf, rocm_job_prefix['default'], "default", rocm_artifact_substrings
+            )
             download_artifacts(
-                rocm_wf,
+                default_dl_wf,
                 test_artifacts_list_rocm_default,
                 test_folder=folder_list[2],
-                allowed_substrings=rocm_artifact_substrings,
+                allowed_substrings=default_dl_subs,
             )
         os.chdir("..")
 
@@ -871,12 +1237,18 @@ def main():
 
             folder_list = get_or_create_test_folder(inductor_wf_rocm)
 
-            inductor_shards = rocm_shards["inductor"]
-            print(f"Using final ROCm shard count {inductor_shards} for inductor")
             if inductor_fallback_used and arch in inductor_fallbacks:
                 inductor_job_prefix = inductor_fallbacks[arch][1]
             else:
                 inductor_job_prefix = rocm_job_prefix['inductor']
+            inductor_job_prefix = resolve_job_prefix(
+                inductor_wf_rocm, "inductor", inductor_job_prefix, arch=arch
+            )
+            inductor_shards = derive_shard_count(
+                inductor_wf_rocm, inductor_job_prefix, "inductor",
+                rocm_shards["inductor"]
+            )
+            print(f"Using final ROCm shard count {inductor_shards} for inductor")
     
             # Download logs
             if not args.artifacts_only:
@@ -891,11 +1263,14 @@ def main():
               f"test-reports-test-inductor-{i}-{inductor_shards}"
               for i in range(1, inductor_shards + 1)
             ]
+            inductor_dl_wf, inductor_dl_subs = resolve_artifact_download(
+                inductor_wf_rocm, inductor_job_prefix, "inductor", rocm_artifact_substrings
+            )
             download_artifacts(
-                inductor_wf_rocm,
+                inductor_dl_wf,
                 test_artifacts_list_rocm_inductor,
                 test_folder=folder_list[2],
-                allowed_substrings=rocm_artifact_substrings,
+                allowed_substrings=inductor_dl_subs,
             )
             os.chdir("..")
 
@@ -933,8 +1308,17 @@ def main():
 
         folder_list = get_or_create_test_folder(trunk_wf)
 
-        cuda_default_shards = cuda_shards["default"]
-        cuda_dist_shards = cuda_shards["distributed"]
+        # Read the shard totals upstream actually used from the resolved run
+        # instead of trusting the hardcoded config, which drifts whenever
+        # pytorch/pytorch reshards its matrix (see derive_shard_count).
+        cuda_default_shards = derive_shard_count(
+            trunk_wf, cuda_job_prefix, "default", cuda_shards["default"]
+        )
+        cuda_dist_shards = derive_shard_count(
+            trunk_wf, cuda_job_prefix, "distributed", cuda_shards["distributed"]
+        )
+        print(f"Using final CUDA shard counts: default={cuda_default_shards}, "
+              f"distributed={cuda_dist_shards}")
 
         # Download logs
         if not args.artifacts_only:
@@ -1003,7 +1387,11 @@ def main():
             folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
             cuda_inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
-            cuda_inductor_shards = cuda_shards["inductor"]
+            cuda_inductor_shards = derive_shard_count(
+                inductor_wf_cuda, cuda_inductor_prefix, "inductor",
+                cuda_shards["inductor"],
+            )
+            print(f"Using final CUDA inductor shard count {cuda_inductor_shards}")
 
             # Download logs
             if not args.artifacts_only:
@@ -1051,11 +1439,18 @@ def main():
                     error_msg=f"Baseline default workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline default workflow '{ROCmWorkflowNames['default']}' id: {baseline_default_wf['id']}")
-                default_shards = rocm_shards["default"]
+                baseline_default_prefix = resolve_job_prefix(
+                    baseline_default_wf, "default", rocm_job_prefix['default'],
+                    arch=arch
+                )
+                default_shards = derive_shard_count(
+                    baseline_default_wf, baseline_default_prefix, "default",
+                    rocm_shards["default"]
+                )
 
                 if not args.artifacts_only:
                     baseline_default_logs = [
-                        [f"{baseline_prefix}rocm{i}.txt", f"{rocm_job_prefix['default']} / test (default, {i}, {default_shards}"]
+                        [f"{baseline_prefix}rocm{i}.txt", f"{baseline_default_prefix} / test (default, {i}, {default_shards}"]
                         for i in range(1, default_shards + 1)
                     ]
                     download_logs(baseline_default_wf, baseline_default_logs, test_folder)
@@ -1083,11 +1478,18 @@ def main():
                     error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline distributed workflow '{ROCmWorkflowNames['distributed']}' id: {baseline_dist_wf['id']}")
-                dist_shards = rocm_shards["distributed"]
+                baseline_dist_prefix = resolve_job_prefix(
+                    baseline_dist_wf, "distributed",
+                    rocm_job_prefix['distributed'], arch=arch
+                )
+                dist_shards = derive_shard_count(
+                    baseline_dist_wf, baseline_dist_prefix, "distributed",
+                    rocm_shards["distributed"]
+                )
 
                 if not args.artifacts_only:
                     baseline_dist_logs = [
-                        [f"{baseline_prefix}rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
+                        [f"{baseline_prefix}rocm_dist{i}.txt", f"{baseline_dist_prefix} / test (distributed, {i}, {dist_shards}"]
                         for i in range(1, dist_shards + 1)
                     ]
                     download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
@@ -1115,11 +1517,18 @@ def main():
                     error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
                 )
                 print(f"Baseline inductor workflow '{ROCmWorkflowNames['inductor']}' id: {baseline_inductor_wf['id']}")
-                inductor_shards = rocm_shards["inductor"]
+                baseline_inductor_prefix = resolve_job_prefix(
+                    baseline_inductor_wf, "inductor",
+                    rocm_job_prefix['inductor'], arch=arch
+                )
+                inductor_shards = derive_shard_count(
+                    baseline_inductor_wf, baseline_inductor_prefix, "inductor",
+                    rocm_shards["inductor"]
+                )
 
                 if not args.artifacts_only:
                     baseline_inductor_logs = [
-                        [f"{baseline_prefix}rocm_inductor{i}.txt", f"{rocm_job_prefix['inductor']} / test (inductor, {i}, {inductor_shards}"]
+                        [f"{baseline_prefix}rocm_inductor{i}.txt", f"{baseline_inductor_prefix} / test (inductor, {i}, {inductor_shards}"]
                         for i in range(1, inductor_shards + 1)
                     ]
                     download_logs(baseline_inductor_wf, baseline_inductor_logs, test_folder)
