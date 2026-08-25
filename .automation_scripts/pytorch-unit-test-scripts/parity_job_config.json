@@ -15,7 +15,7 @@
     "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.0-py3.10-gcc11" }],
     "inductor": [{ "workflow": "inductor", "job_prefix": "unit-test / inductor-test" }],
     "test_kinds": ["test-osdc", "test"],
-    "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
+    "shard_counts": { "default": 5, "distributed": 3, "inductor": 2 },
     "checkrun_regex": "(linux-jammy-cuda13[.]0-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
   },
   "rocm": {
@@ -31,14 +31,14 @@
       "inductor": [
         { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
       ],
-      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
+      "shard_counts": { "default": 8, "distributed": 5, "inductor": 2 },
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
     },
     "mi300": {
       "default": [{ "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "distributed": [{ "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "inductor": [{ "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
-      "shard_counts": { "default": 6, "distributed": 3, "inductor": 2 },
+      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
     "mi200": {
@@ -69,7 +69,7 @@
       "distributed": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "inductor": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
-      "checkrun_regex": "linux-noble-rocm-preview-py3[.]12-mi350 / test [(](default|distributed|inductor),"
+      "checkrun_regex": "rocm-preview.*/ test [(](default|distributed|inductor),"
     }
   }
 }
