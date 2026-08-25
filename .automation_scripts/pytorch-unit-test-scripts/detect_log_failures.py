@@ -39,10 +39,19 @@ RE_STEPCURRENT = re.compile(
 RE_INDIVIDUAL_TEST = re.compile(
     r"(?P<test_path>\S+\.py::(?P<cls>\w+)::(?P<method>\w+))"
 )
-RE_INDIV_PASSED = re.compile(
-    r"(?:test/)?(?P<file>\S+\.py)::(?P<cls>\w+)::(?P<method>\S+?)\s+PASSED"
+# PyTorch's run_test.py prints an authoritative summary at the end of a shard
+# listing the exact tests that failed and then passed on rerun-in-new-process,
+# e.g.
+#   The following tests failed and then succeeded when run in a new process
+#   ['test/inductor/test_compiled_autograd.py::Cls::test_jacfwd', ...]
+# We parse this directly instead of guessing from nearby PASSED lines, which
+# misattributes flakiness to whatever test happened to pass most recently.
+RE_FLAKY_SUMMARY = re.compile(
+    r"The following tests failed and then succeeded when run in a new process\s*\[(?P<tests>[^\]]*)\]"
 )
-RE_NEW_PROCESS_SUCCESS = re.compile(r"Test succeeded in new process")
+RE_FLAKY_ENTRY = re.compile(
+    r"['\"](?:test/)?(?P<file>\S+?\.py)::(?P<cls>\w+)::(?P<method>[^'\"]+?)['\"]"
+)
 
 CRASH_PATTERNS = [
     (re.compile(r"Segmentation fault", re.IGNORECASE), "SEGFAULT"),
@@ -111,16 +120,16 @@ def parse_log_file(filepath):
     and flaky tests.
 
     A flaky test is one that failed in its normal-process run but PASSED when the
-    CI harness re-ran it alone in a new subprocess (indicated by a PASSED line
-    for the specific test::class::method, followed by 'Test succeeded in new
-    process, continuing with the rest of the tests').
+    CI harness re-ran it alone in a new subprocess. These are read from the
+    authoritative summary run_test.py prints for each shard ('The following
+    tests failed and then succeeded when run in a new process[...]'), which
+    names the exact tests.
     """
     results = {}
     current_test = None
     last_failed_test = None
     consistent_failures = []
     flaky_tests = []
-    last_passed_individual = None
     first_ts = None
     last_ts = None
 
@@ -254,34 +263,27 @@ def parse_log_file(filepath):
                     shard_str = f"{info['shard']}/{info['total']}"
                 consistent_failures.append((m.group("test_path"), shard_str))
 
-            # Detect individual PASSED lines for flaky-rerun tracking.
-            m = RE_INDIV_PASSED.search(stripped)
+            # A test is flaky when it failed in its normal-process run but
+            # PASSED on rerun-in-a-new-process. run_test.py prints an
+            # authoritative summary naming exactly those tests; parse it
+            # directly rather than guessing from the most recent PASSED line
+            # (which misattributes flakiness to an unrelated test that merely
+            # happened to pass just before the rerun marker).
+            m = RE_FLAKY_SUMMARY.search(stripped)
             if m:
-                last_passed_individual = {
-                    "file": m.group("file"),
-                    "cls": m.group("cls"),
-                    "method": m.group("method"),
-                    "active": active,
-                }
-
-            # When we see 'Test succeeded in new process' after a PASSED
-            # individual test, that test was originally failing in the main
-            # process (CI only falls back to rerun-in-new-process for tests
-            # that crashed or failed) but passed on retry -> flaky.
-            if RE_NEW_PROCESS_SUCCESS.search(stripped) and last_passed_individual:
-                lp = last_passed_individual
-                lp_active = lp.get("active")
-                test_shard = ""
-                if lp_active and lp_active in results:
-                    info = results[lp_active]
-                    test_shard = f"{info['shard']}/{info['total']}"
-                flaky_tests.append({
-                    "file": lp["file"],
-                    "cls": lp["cls"],
-                    "method": lp["method"],
-                    "test_shard": test_shard,
-                })
-                last_passed_individual = None
+                for em in RE_FLAKY_ENTRY.finditer(m.group("tests")):
+                    f_file = em.group("file")
+                    test_shard = ""
+                    for info in results.values():
+                        if info["test_file"] and f_file == info["test_file"] + ".py":
+                            test_shard = f"{info['shard']}/{info['total']}"
+                            break
+                    flaky_tests.append({
+                        "file": f_file,
+                        "cls": em.group("cls"),
+                        "method": em.group("method"),
+                        "test_shard": test_shard,
+                    })
 
             if active and active in results:
                 for pattern, label in CRASH_PATTERNS:
