@@ -107,7 +107,7 @@ jobs:
           # Read parity_job_config.json over the API at GITHUB_SHA (this job never
           # checks out the fork) and build the regex maps used for matching.
           # Manual override inputs win when set. Sets ARCH_JOBNAME_REGEX_MAP,
-          # ARCH_WORKFLOW_REGEX_MAP, and CUDA_JOBNAME_REGEX.
+          # ARCH_WORKFLOW_REGEX_MAP, ARCH_TEST_CONFIGS_MAP, and CUDA_JOBNAME_REGEX.
           load_matching_config() {
             local config_json
             config_json=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
@@ -124,6 +124,8 @@ jobs:
                 [ (.default[]?, .distributed[]?, .inductor[]?).workflow ] | unique
                 | "(^|/)(" + join("|") + ")[.]yml$"
               )')}
+            ARCH_TEST_CONFIGS_MAP=$(echo "$config_json" | jq -c '
+              .rocm | map_values(.test_configs // ["default", "distributed", "inductor"])')
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
             # Upstream workflow file names for the non-trunk arches (mi350 rides
             # trunk). Their scheduled runs land on
@@ -148,6 +150,7 @@ jobs:
               "Dry run:         $DRY_RUN" \
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
               "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP" \
+              "Arch->configs:   $ARCH_TEST_CONFIGS_MAP" \
               "CUDA jobs:       $CUDA_JOBNAME_REGEX" \
               ""
           }
@@ -268,23 +271,39 @@ jobs:
           }
 
           # Determine which archs from $1 have at least one ROCm test check-run
-          # present in ROCM_CHECK_RUNS. Sets READY (space separated) and
-          # NOT_READY_NOTES (per-arch reasons for the ones still missing shards).
-          # Sets globals for the same subshell reason as archs_that_ran.
+          # for every required, non-excluded config. A default-only scheduled run
+          # must not make mi200/mi300 ready when distributed or inductor never ran.
+          # Sets READY (space separated) and NOT_READY_NOTES (per-arch/config
+          # reasons for missing shards). Sets globals for the same subshell reason
+          # as archs_that_ran.
           archs_with_shards() {
-            local run_archs="$1" arch regex total ready="" notes=""
+            local run_archs="$1" excluded_configs="${2:-}"
+            local arch regex cfg total required_configs missing ready="" notes=""
             for arch in $run_archs; do
               regex=$(echo "$ARCH_JOBNAME_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
               if [ -z "$regex" ]; then
                 notes="$notes $arch:no-regex"
                 continue
               fi
-              total=$(echo "$ROCM_CHECK_RUNS" | jq --arg rx "$regex" \
-                'map(select(.name | test($rx))) | length')
-              if [ "$total" -eq 0 ]; then
-                notes="$notes $arch:workflow-run-no-shards-yet"
-              else
+
+              required_configs=$(echo "$ARCH_TEST_CONFIGS_MAP" | jq -r \
+                --arg a "$arch" '.[$a] // [] | .[]')
+              missing=""
+              for cfg in $required_configs; do
+                if [[ " $excluded_configs " == *" $cfg "* ]]; then
+                  continue
+                fi
+                total=$(echo "$ROCM_CHECK_RUNS" | jq --arg rx "$regex" --arg cfg "$cfg" \
+                  '[.[] | select((.name | test($rx)) and (.name | test("[(]" + $cfg + ",")))] | length')
+                if [ "$total" -eq 0 ]; then
+                  missing="${missing:+$missing,}$cfg"
+                fi
+              done
+
+              if [ -z "$missing" ]; then
                 ready="$ready $arch"
+              else
+                notes="$notes $arch:missing-$missing"
               fi
             done
             READY=$(echo "$ready" | xargs)
@@ -399,7 +418,7 @@ jobs:
             # Gate 2: every arch workflow that ran must actually have its test
             # shards present before we author the SHA's one report.
             # Sets READY and NOT_READY_NOTES.
-            archs_with_shards "$RUN_ARCHS"
+            archs_with_shards "$RUN_ARCHS" "$cuda_missing"
             if [ -n "$NOT_READY_NOTES" ]; then
               echo "[$short] $date  ROCm workflows ran ($RUN_ARCHS) but some test shards are missing - skip (${NOT_READY_NOTES})"
               return 0

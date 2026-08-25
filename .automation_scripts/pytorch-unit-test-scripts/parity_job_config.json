@@ -4,7 +4,8 @@
     "default/distributed/inductor": "Ordered list of {workflow, job_prefix} sources for that test config. The first entry is the primary upstream workflow + check-run/job-name prefix; any later entries are fallbacks tried (in order) when the primary workflow run is missing for a SHA.",
     "shard_counts": "Number of shards per test config.",
     "test_kinds": "CUDA only: upstream test-job kinds to match (e.g. test-osdc, test).",
-    "checkrun_regex": "PCRE matching this arch's ROCm test check-run names (parity-auto gating). CUDA uses it for the trunk CUDA test jobs."
+    "checkrun_regex": "PCRE matching this arch's ROCm test check-run names (parity-auto gating). CUDA uses it for the trunk CUDA test jobs.",
+    "test_configs": "ROCm test configs that must have check-runs before parity-auto dispatches this architecture."
   },
   "_notes": {
     "artifact_substrings": "The S3 artifact downloader always filters on the ROCm-GPU runner tag (rocm.gpu), since every ROCm runner label follows that convention; no per-arch config is needed.",
@@ -20,6 +21,7 @@
   },
   "rocm": {
     "mi350": {
+      "test_configs": ["default", "distributed", "inductor"],
       "default": [
         { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
         { "workflow": "rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" }
@@ -35,6 +37,7 @@
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
     },
     "mi300": {
+      "test_configs": ["default", "distributed", "inductor"],
       "default": [{ "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "distributed": [{ "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "inductor": [{ "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
@@ -42,6 +45,7 @@
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
     "mi200": {
+      "test_configs": ["default", "distributed", "inductor"],
       "default": [
         { "workflow": "rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" },
         { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" }
@@ -58,6 +62,7 @@
       "checkrun_regex": "(rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),|linux-jammy-rocm-py3[.]10 / test [(](default|distributed|inductor),)"
     },
     "navi31": {
+      "test_configs": ["default"],
       "default": [{ "workflow": "rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
       "distributed": [{ "workflow": "periodic-rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
       "inductor": [{ "workflow": "inductor-rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
@@ -65,6 +70,7 @@
       "checkrun_regex": "rocm.*navi31.*/ test [(]default,"
     },
     "preview": {
+      "test_configs": ["default", "distributed", "inductor"],
       "default": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "distributed": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "inductor": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
