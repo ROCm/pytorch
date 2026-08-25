@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import json
 import os
 import re
 import pandas as pd
@@ -73,11 +74,27 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
     test_config = ""
     test_cases = {}
 
-    # download_testlogs writes the upstream pytorch CI workflow run id
-    # into "_wf_run_id" alongside the shard dirs. We combine it with each
-    # shard dir's trailing "_<job_id>" to form the URL
-    # https://github.com/pytorch/pytorch/actions/runs/<wf>/job/<job_id>
+    # download_testlogs records the upstream pytorch CI run id for each shard's
+    # job id in "_wf_run_ids.json" (job_id -> run_id) alongside the shard dirs,
+    # so we can build the URL
+    # https://github.com/pytorch/pytorch/actions/runs/<run_id>/job/<job_id>
     # surfaced as the "Job ID" column in the FAILED TESTS table.
+    #
+    # A single run id is NOT enough: the default/distributed/inductor configs
+    # resolve to DIFFERENT upstream runs (e.g. mi350 default+inductor come from
+    # a trunk push while distributed comes from periodic/a trunk fallback), so
+    # pairing every shard's job id with one run id produced links to a run the
+    # job never belonged to (a "busted" URL that 404s). We look each job id up
+    # in the per-job map and fall back to the legacy single "_wf_run_id" file
+    # only when the map has no entry (older downloads / backward compat).
+    run_id_by_job = {}
+    run_ids_file = os.path.join(path, "_wf_run_ids.json")
+    if os.path.isfile(run_ids_file):
+        try:
+            with open(run_ids_file) as f:
+                run_id_by_job = {str(k): str(v) for k, v in json.load(f).items()}
+        except Exception:
+            run_id_by_job = {}
     wf_run_id = ""
     wf_id_file = os.path.join(path, "_wf_run_id")
     if os.path.isfile(wf_id_file):
@@ -96,9 +113,13 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 test_config = TestConfigName.inductor.name
             shard = _extract_shard(dir)
             jid = re.search(r'_(\d+)$', dir)
+            job_id = jid.group(1) if jid else ""
+            # Prefer the run id recorded for this specific job; fall back to the
+            # single legacy run id so we never regress older download layouts.
+            shard_run_id = run_id_by_job.get(job_id, wf_run_id)
             job_url = (
-                f"https://github.com/pytorch/pytorch/actions/runs/{wf_run_id}/job/{jid.group(1)}"
-                if wf_run_id and jid else ""
+                f"https://github.com/pytorch/pytorch/actions/runs/{shard_run_id}/job/{job_id}"
+                if shard_run_id and job_id else ""
             )
             for xml_report in Path(new_dir).glob("**/*.xml"):
                 try:
