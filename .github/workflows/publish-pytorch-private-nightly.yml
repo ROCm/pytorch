@@ -16,7 +16,7 @@ on:
       push_tag:
         description: "Primary Docker Hub tag"
         type: string
-        default: "nightly"
+        default: "latest"
 
 permissions:
   contents: read
@@ -27,7 +27,7 @@ env:
   PYTORCH_REPO: pytorch/pytorch
   PYTORCH_BRANCH: ${{ inputs.pytorch_branch || 'nightly' }}
   PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://rocm.nightlies.amd.com/whl-multi-arch/' }}
-  PUSH_TAG: ${{ inputs.push_tag || 'nightly' }}
+  PUSH_TAG: ${{ inputs.push_tag || 'latest' }}
   BASE_IMAGE: ubuntu:24.04
 
 jobs:
@@ -59,6 +59,9 @@ jobs:
 
           ENV DEBIAN_FRONTEND=noninteractive
           ENV PIP_NO_CACHE_DIR=1
+          ENV VIRTUAL_ENV=/opt/venv
+          ENV PATH="/opt/venv/bin:${PATH}"
+          ENV PYTORCH_SRC_DIR=/root/pytorch
           # install_rocm.sh uses bash printf %q; Docker's default /bin/sh (dash) rejects it.
           SHELL ["/bin/bash", "-c"]
 
@@ -77,7 +80,8 @@ jobs:
 
           # Install the nightly PyTorch wheel plus the ROCm multi-arch runtime/devel/device packages.
           # device-all pulls kernels for every supported gfx target from the whl-multi-arch index.
-          RUN python3 -m pip install --break-system-packages --no-cache-dir \
+          RUN python3 -m venv "${VIRTUAL_ENV}" \
+              && python -m pip install --no-cache-dir \
                 --index-url "${PACKAGE_INDEX_URL}" \
                 "rocm[libraries,devel,device-all]" \
                 torch torchvision torchaudio
@@ -95,13 +99,14 @@ jobs:
               && echo "source /etc/rocm_env.sh" >> /etc/bash.bashrc \
               && if [[ -e /etc/bashrc ]]; then echo "source /etc/rocm_env.sh" >> /etc/bashrc; fi
 
-          RUN mkdir -p /var/lib/jenkins \
+          # Use the expanded form of ~/pytorch inside the image.
+          RUN mkdir -p "$(dirname "${PYTORCH_SRC_DIR}")" \
               && git clone --filter=blob:none --branch "${PYTORCH_BRANCH}" \
-                   "https://github.com/${PYTORCH_REPO}.git" /var/lib/jenkins/pytorch \
-              && cd /var/lib/jenkins/pytorch \
+                   "https://github.com/${PYTORCH_REPO}.git" "${PYTORCH_SRC_DIR}" \
+              && cd "${PYTORCH_SRC_DIR}" \
               && git checkout --detach "${PYTORCH_SHA}"
 
-          WORKDIR /var/lib/jenkins/pytorch
+          WORKDIR /root/pytorch
           EOF
 
       - name: Generate tags
@@ -109,7 +114,7 @@ jobs:
         run: |
           date="$(date -u +%Y%m%d)"
           echo "primary=${PUSH_TAG}" >> "$GITHUB_OUTPUT"
-          echo "dated=nightly-${date}-${{ steps.resolve.outputs.short_sha }}" >> "$GITHUB_OUTPUT"
+          echo "dated=${date}-${{ steps.resolve.outputs.short_sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Build Docker image
         run: |
@@ -141,14 +146,14 @@ jobs:
           print("torch", torch.__version__)
           print("hip", torch.version.hip)
           PY
-            test "$(git -C /var/lib/jenkins/pytorch rev-parse HEAD)" = "${{ steps.resolve.outputs.sha }}"
+            test "$(git -C /root/pytorch rev-parse HEAD)" = "${{ steps.resolve.outputs.sha }}"
           '
 
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
-          username: ${{ secrets.DOCKERUSERNAME }}
-          password: ${{ secrets.DOCKERTOKEN || secrets.DCKRPAT }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
 
       - name: Push Docker image
         run: |
