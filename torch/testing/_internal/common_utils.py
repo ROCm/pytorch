@@ -2147,6 +2147,52 @@ def skipIfRocmVersionLessThan(version=None):
         return wrap_fn
     return dec_fn
 
+def lazy_skip_if(condition_fn, reason):
+    """Skip a test (function or class) when ``condition_fn()`` is true.
+
+    For function targets the condition is evaluated each time the test
+    runs, matching the historical PyTorch convention of checking skip
+    flags inside a wrapper. For class targets the condition is evaluated
+    once at class-decoration time and the standard ``__unittest_skip__``
+    attributes are set, since unittest's TestLoader makes class-level
+    skip decisions before instantiation.
+
+    Prefer this helper over hand-rolled ``@wraps + raise SkipTest``
+    wrappers, which silently drop classes from discovery when applied at
+    class scope.
+    """
+
+    def decorator(fn):
+        if isinstance(fn, type):
+            if condition_fn():
+                fn.__unittest_skip__ = True  # type: ignore[attr-defined]
+                fn.__unittest_skip_why__ = reason  # type: ignore[attr-defined]
+            return fn
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if condition_fn():
+                raise unittest.SkipTest(reason)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# Skips a test on ROCm if the version is at least the given major.minor tuple.
+# Use for failures introduced in a ROCm release that pass on older versions,
+# e.g. skipIfRocmVersionAtLeast([7, 14]) skips on 7.14+ but runs on 7.2.x.
+# Built on lazy_skip_if so it works on both test methods and test classes.
+def skipIfRocmVersionAtLeast(version=None):
+    def _should_skip():
+        if not TEST_WITH_ROCM:
+            return False
+        rocm_version_tuple = getRocmVersion()
+        return (
+            rocm_version_tuple is not None
+            and version is not None
+            and rocm_version_tuple >= tuple(version)
+        )
+    return lazy_skip_if(_should_skip, f"ROCm version at least {version}: known failure")
+
 def skipIfNotMiopenSuggestNHWC(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
