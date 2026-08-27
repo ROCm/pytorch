@@ -12,7 +12,7 @@ on:
       package_index_url:
         description: "Python wheel index for torch + ROCm multi-arch packages"
         type: string
-        default: "https://rocm.nightlies.amd.com/whl-multi-arch/"
+        default: "https://download.pytorch.org/whl/nightly/rocm7.14/"
       push_tag:
         description: "Primary Docker Hub tag"
         type: string
@@ -26,7 +26,7 @@ env:
   IMAGE_NAME: rocm/pytorch-nightly
   PYTORCH_REPO: pytorch/pytorch
   PYTORCH_BRANCH: ${{ inputs.pytorch_branch || 'nightly' }}
-  PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://rocm.nightlies.amd.com/whl-multi-arch/' }}
+  PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://download.pytorch.org/whl/nightly/rocm7.14/' }}
   PUSH_TAG: ${{ inputs.push_tag || 'latest' }}
   BASE_IMAGE: ubuntu:24.04
 
@@ -78,12 +78,12 @@ jobs:
                 python3-venv \
               && rm -rf /var/lib/apt/lists/*
 
-          # Install the nightly PyTorch wheel plus the ROCm multi-arch runtime/devel/device packages.
+          # Install the nightly PyTorch wheel plus ROCm multi-arch runtime/device packages.
           # device-all pulls kernels for every supported gfx target from the whl-multi-arch index.
           RUN python3 -m venv "${VIRTUAL_ENV}" \
               && python -m pip install --no-cache-dir \
                 --index-url "${PACKAGE_INDEX_URL}" \
-                "rocm[libraries,devel,device-all]" \
+                "rocm[libraries,device-all]" \
                 torch torchvision torchaudio
 
           RUN ROCM_HOME="$(rocm-sdk path --root)" \
