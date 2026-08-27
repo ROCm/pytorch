@@ -86,8 +86,18 @@ jobs:
                 "rocm[libraries,device-all]" \
                 torch torchvision torchaudio
 
-          RUN ROCM_HOME="$(rocm-sdk path --root)" \
-              && ROCM_BIN="$(rocm-sdk path --bin)" \
+          RUN ROCM_HOME="$(python - <<'PY'
+          import pathlib
+          import site
+          roots = []
+          for site_dir in site.getsitepackages():
+              roots.extend(sorted(pathlib.Path(site_dir).glob("_rocm_sdk_*")))
+          if not roots:
+              raise SystemExit("Could not locate _rocm_sdk_* under site-packages")
+          print(roots[0])
+          PY
+          )" \
+              && ROCM_BIN="${ROCM_HOME}/bin" \
               && { \
                 echo '# ROCm paths discovered from rocm-sdk.'; \
                 printf 'export ROCM_PATH=%q\n' "${ROCM_HOME}"; \
