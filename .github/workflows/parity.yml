@@ -142,10 +142,10 @@ jobs:
         arch: ${{ fromJson(needs.setup-matrix.outputs.arch-matrix) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.10'
 
@@ -302,7 +302,7 @@ jobs:
           echo "EOF" >> "$GITHUB_OUTPUT"
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: ${{ needs.setup-matrix.outputs.prefix }}-results-${{ matrix.arch }}
           path: ${{ steps.upload-paths.outputs.paths }}
@@ -313,15 +313,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.10'
 
       - name: Download all per-arch CSV artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: ${{ needs.setup-matrix.outputs.prefix }}-results-*
           path: artifacts
@@ -403,7 +403,7 @@ jobs:
           cat "${OUTPUT}.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload parity summary markdown
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: parity-summary-md
           path: .automation_scripts/pytorch-unit-test-scripts/*_summary.md
