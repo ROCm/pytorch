@@ -8,6 +8,7 @@ on:
     paths:
       - '.github/workflows/parity.yml'
       - '.github/workflows/build_portable_linux_pytorch_dockers.yml'
+      - '.github/workflows/pytorch_ifu.yml'
       - '.github/workflows/pin-actions-ratchet.yml'
   push:
     branches:
@@ -15,6 +16,7 @@ on:
     paths:
       - '.github/workflows/parity.yml'
       - '.github/workflows/build_portable_linux_pytorch_dockers.yml'
+      - '.github/workflows/pytorch_ifu.yml'
       - '.github/workflows/pin-actions-ratchet.yml'
 
 permissions:
@@ -35,6 +37,7 @@ jobs:
           FILES=(
             .github/workflows/parity.yml
             .github/workflows/build_portable_linux_pytorch_dockers.yml
+            .github/workflows/pytorch_ifu.yml
           )
 
           FAIL=0
