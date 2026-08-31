@@ -945,7 +945,15 @@ if(USE_ROCM)
   # HIP device code is compiled with -fno-gpu-rdc so no device link step needed.
   set_target_properties(torch_hip PROPERTIES LINKER_LANGUAGE CXX)
   if(USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION)
-    target_link_libraries(torch_hip PRIVATE __caffe2_aotriton)
+    if(TARGET __caffe2_aotriton)
+      target_link_libraries(torch_hip PRIVATE __caffe2_aotriton)
+    else()
+      # AOTriton is unavailable for this build (USE_AOTRITON=OFF, or no package
+      # for this ROCm version). The SDPA sources then only expose the backends
+      # that do not need it, instead of failing on the missing AOTriton headers.
+      message(STATUS "AOTriton is not available; building ROCm SDPA without it")
+      target_compile_definitions(torch_hip PRIVATE DISABLE_AOTRITON)
+    endif()
   endif()
   set(CUDA_LINK_LIBRARIES_KEYWORD)
   torch_compile_options(torch_hip)  # see cmake/public/utils.cmake

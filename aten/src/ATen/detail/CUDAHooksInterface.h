@@ -126,6 +126,10 @@ struct TORCH_API CUDAHooksInterface : AcceleratorHooksInterface {
     return false;
   }
 
+  virtual bool hasAOTriton() const {
+    return false;
+  }
+
   virtual const at::cuda::NVRTC& nvrtc() const {
     TORCH_CHECK(false, "NVRTC requires CUDA. ", CUDA_HELP);
   }

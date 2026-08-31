@@ -29,6 +29,7 @@
 
 namespace pytorch_flash {
 
+#ifndef DISABLE_AOTRITON
 // AOTriton Implementation
 TORCH_API
 std::tuple<
@@ -146,6 +147,7 @@ std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd_aot(
     const bool deterministic,
     const at::Tensor& philox_seed,
     const at::Tensor& philox_offset);
+#endif // DISABLE_AOTRITON
 
 #if defined(USE_ROCM_CK_SDPA)
 // CK implementation
@@ -360,6 +362,7 @@ mha_varlen_fwd(
         dummy_attn_bias); // Not used in flash attention
   }
 #endif
+#ifndef DISABLE_AOTRITON
   return mha_varlen_fwd_aot(
       q,
       k,
@@ -380,6 +383,9 @@ mha_varlen_fwd(
       window_size_right,
       return_softmax,
       gen_);
+#else
+  TORCH_CHECK(false, "Attempting to use aotriton varlen flash forward backend in a build that has not built AOTriton");
+#endif
 }
 
 inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
@@ -442,6 +448,7 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue), std::move(dSoftmax));
   }
 #endif
+#ifndef DISABLE_AOTRITON
   return mha_bwd_aot(
       dout,
       q,
@@ -461,6 +468,9 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_bwd(
       deterministic,
       philox_seed,
       philox_offset);
+#else
+  TORCH_CHECK(false, "Attempting to use aotriton flash backward backend in a build that has not built AOTriton");
+#endif
 }
 
 inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd(
@@ -534,6 +544,7 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
     return std::make_tuple(std::move(dQuery), std::move(dKey), std::move(dValue), std::move(dSoftmax));
   }
 #endif
+#ifndef DISABLE_AOTRITON
   return mha_varlen_bwd_aot(
       dout,
       q,
@@ -558,6 +569,9 @@ inline std::tuple<at::Tensor, at::Tensor, at::Tensor, at::Tensor> mha_varlen_bwd
       deterministic,
       philox_seed,
       philox_offset);
+#else
+  TORCH_CHECK(false, "Attempting to use aotriton varlen flash backward backend in a build that has not built AOTriton");
+#endif
 }
 
 } // namespace pytorch_flash

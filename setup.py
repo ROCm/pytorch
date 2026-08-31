@@ -113,6 +113,10 @@
 #   USE_MEM_EFF_ATTENTION=0
 #    disables building memory efficient attention for scaled dot product attention
 #
+#   USE_AOTRITON=0
+#     ROCm only: builds scaled dot product attention without AOTriton, leaving
+#     only the backends that do not need it (CK and math)
+#
 #   BUILD_BINARY
 #     enables the additional binaries/ build
 #

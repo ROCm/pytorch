@@ -146,6 +146,7 @@ mha_fwd(
         dummy_attn_bias); // Not used in flash attention
   }
 #endif
+#ifndef DISABLE_AOTRITON
   return mha_fwd_aot(
       q,
       k,
@@ -159,6 +160,9 @@ mha_fwd(
       window_size_right,
       return_softmax,
       gen_);
+#else
+  TORCH_CHECK(false, "Attempting to use aotriton flash forward backend in a build that has not built AOTriton");
+#endif
 }
 }
 #endif

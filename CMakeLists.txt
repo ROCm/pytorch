@@ -980,11 +980,17 @@ cmake_dependent_option(
   Will be disabled if not supported by the platform" ON
   "USE_CUDA OR USE_ROCM" OFF)
 
+cmake_dependent_option(
+  USE_AOTRITON
+  "Use AOTriton kernels for scaled dot product attention on ROCm.\
+  When disabled, SDPA only keeps the backends that do not need it (CK and math)" ON
+  "USE_ROCM" OFF)
+
 #
 # Cannot be put into Dependencies.cmake due circular dependency:
 # USE_FLASH_ATTENTION -> USE_ROCM -> Dependencies.cmake -> aotriton.cmake
 #
-if(USE_ROCM)
+if(USE_ROCM AND USE_AOTRITON)
   if(USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION)
     include(cmake/External/aotriton.cmake)
   endif()

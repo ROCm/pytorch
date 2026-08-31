@@ -337,7 +337,13 @@ if(USE_FLASH_ATTENTION)
                                )
 
   endif()
-  file(GLOB flash_attention_hip_aot_hip CONFIGURE_DEPENDS "native/transformers/hip/flash_attn/aot/*.hip")
+  # The aot/ sources are the AOTriton bindings and cannot be compiled without it.
+  if(TARGET __caffe2_aotriton)
+    file(GLOB flash_attention_hip_aot_hip CONFIGURE_DEPENDS "native/transformers/hip/flash_attn/aot/*.hip")
+  elseif(TARGET ck_sdpa)
+    # Keep flash_api.h in sync with torch_hip, see caffe2/CMakeLists.txt
+    target_compile_definitions(ck_sdpa PUBLIC DISABLE_AOTRITON)
+  endif()
   file(GLOB flash_attention_src_hip_hip CONFIGURE_DEPENDS "native/transformers/hip/flash_attn/src/*.hip")
 endif()
 

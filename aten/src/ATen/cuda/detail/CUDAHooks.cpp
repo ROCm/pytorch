@@ -198,6 +198,14 @@ bool CUDAHooks::hasCKGEMM() const {
 #endif
 }
 
+bool CUDAHooks::hasAOTriton() const {
+#if defined(USE_ROCM) && !defined(DISABLE_AOTRITON)
+    return true;
+#else
+    return false;
+#endif
+}
+
 bool CUDAHooks::hasROCM() const {
   // Currently, this is same as `compiledWithMIOpen`.
   // But in future if there are ROCm builds without MIOpen,

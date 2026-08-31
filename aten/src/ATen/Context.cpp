@@ -607,9 +607,14 @@ void Context::setBlasPreferredBackend(at::BlasBackend b) {
 at::ROCmFABackend Context::getROCmFAPreferredBackend() {
 #ifdef USE_ROCM
   // Set potential "Default" value so we don't have to interpret at call sites.
-  // We use aotriton backend as the default, for now.
+  // We use aotriton backend as the default, for now. Builds without AOTriton
+  // (USE_AOTRITON=0) only have CK to offer.
   if(rocm_fa_preferred_backend == at::ROCmFABackend::Default) {
-    rocm_fa_preferred_backend = at::ROCmFABackend::AOTriton;
+    if (!hasAOTriton() && hasCKSDPA() && ckSupported()) {
+      rocm_fa_preferred_backend = at::ROCmFABackend::Ck;
+    } else {
+      rocm_fa_preferred_backend = at::ROCmFABackend::AOTriton;
+    }
   } else if (rocm_fa_preferred_backend == at::ROCmFABackend::Ck) {
     // This logic sits in the getter because it needs to validate
     // values set via env vars such as TORCH_ROCM_FA_PREFER_CK

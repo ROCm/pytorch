@@ -27,10 +27,14 @@
 #include <cstdint>
 
 #if USE_ROCM
-#if defined(USE_FLASH_ATTENTION) || defined(USE_MEM_EFF_ATTENTION)
+// DISABLE_AOTRITON is set by the build when AOTriton is not part of it, in which
+// case its headers are not available and only the CK backend can be dispatched to.
+#if (defined(USE_FLASH_ATTENTION) || defined(USE_MEM_EFF_ATTENTION)) && !defined(DISABLE_AOTRITON)
 #include <ATen/native/transformers/hip/aotriton_versions.h>
 #include <aotriton/flash.h>
 #define USE_ROCM_ATTENTION 1
+#else
+#define USE_ROCM_ATTENTION 0
 #endif
 #else
 #define USE_ROCM_ATTENTION 0
@@ -401,12 +405,13 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
   using sm80 = SMVersion<8, 0>;
   using sm121 = SMVersion<12, 1>;
 #if USE_ROCM
-#if USE_ROCM_ATTENTION
   if(at::globalContext().getROCmFAPreferredBackend() == at::ROCmFABackend::Ck) {
     // User explicitly set CK as the flash attention backend. Return true for now
     // TODO: Flesh out sanity checks
     return true;
-  } else {
+  }
+#if USE_ROCM_ATTENTION
+  {
     auto stream = at::cuda::getCurrentCUDAStream().stream();
     if (hipSuccess != aotriton::v2::flash::check_gpu(stream)) {
         auto dprops = at::cuda::getCurrentDeviceProperties();
@@ -428,6 +433,9 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
 #endif
   }
 #else
+  if (debug) {
+    TORCH_WARN("Flash attention was not compiled with AOTriton support.");
+  }
   return false;
 #endif
 #else
@@ -458,7 +466,6 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
   using sm50 = SMVersion<5, 0>;
   using sm121 = SMVersion<12, 1>;
 #if USE_ROCM
-#if USE_ROCM_ATTENTION
   if (at::cuda::device_count() == 0) {
     return false;
   }
@@ -466,7 +473,9 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
     // User explicitly set CK as the flash attention backend. Return true for now
     // TODO: Flesh out sanity checks
     return true;
-  } else {
+  }
+#if USE_ROCM_ATTENTION
+  {
     auto stream = at::cuda::getCurrentCUDAStream().stream();
     if (hipSuccess != aotriton::v2::flash::check_gpu(stream)) {
         auto dprops = at::cuda::getCurrentDeviceProperties();
@@ -488,6 +497,9 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
 #endif
   }
 #else
+  if (debug) {
+    TORCH_WARN("Mem Efficient attention was not compiled with AOTriton support.");
+  }
   return false;
 #endif
 #else

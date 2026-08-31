@@ -202,6 +202,9 @@ class TORCH_API Context {
   static bool hasCKGEMM() {
     return detail::getCUDAHooks().hasCKGEMM();
   }
+  static bool hasAOTriton() {
+    return detail::getCUDAHooks().hasAOTriton();
+  }
   static bool hasHIP() {
     return detail::getHIPHooks().hasHIP();
   }
