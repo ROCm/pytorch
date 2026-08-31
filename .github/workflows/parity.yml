@@ -101,6 +101,10 @@ on:
         default: true
         type: boolean
 
+permissions:
+  contents: read
+  actions: read
+
 jobs:
   setup-matrix:
     runs-on: ubuntu-latest
