@@ -1,4 +1,7 @@
 #pragma once
+#include <chrono>
+#include <functional>
+
 #include <torch/csrc/distributed/c10d/symm_mem/SymmetricMemory.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
 
@@ -8,6 +11,30 @@ namespace c10d {
 namespace symmetric_memory {
 
 class NCCLPeerAllocInfo;
+
+// Host-side enqueue lease for NCCL/RCCL operations that may read
+// peer-allocation device tables. The guard must stay alive until the
+// launch/enqueue API returns. It does not wait for device execution to finish;
+// teardown still needs to close admission, drain these host leases, synchronize
+// the device, and only then reclaim device-side PAI tables.
+class TORCH_API NCCLSymmetricMemoryLaunchGuard {
+ public:
+  NCCLSymmetricMemoryLaunchGuard() = default;
+  explicit NCCLSymmetricMemoryLaunchGuard(std::function<void()> release);
+  NCCLSymmetricMemoryLaunchGuard(const NCCLSymmetricMemoryLaunchGuard&) =
+      delete;
+  NCCLSymmetricMemoryLaunchGuard& operator=(
+      const NCCLSymmetricMemoryLaunchGuard&) = delete;
+  NCCLSymmetricMemoryLaunchGuard(
+      NCCLSymmetricMemoryLaunchGuard&& other) noexcept;
+  NCCLSymmetricMemoryLaunchGuard& operator=(
+      NCCLSymmetricMemoryLaunchGuard&& other) noexcept;
+  ~NCCLSymmetricMemoryLaunchGuard();
+
+ private:
+  void releaseNoexcept() noexcept;
+  std::function<void()> release_;
+};
 
 // Host-side CFT (Compute Fabric Transport) logical-endpoint coordinates.
 // `(le_id, le_offset)` is exactly the pair that the device-side `ncclCft`
@@ -31,6 +58,13 @@ class TORCH_API NCCLSymmetricMemory : public SymmetricMemory {
   NCCLSymmetricMemory(c10::intrusive_ptr<NCCLPeerAllocInfo> pai, size_t offset);
 
   ~NCCLSymmetricMemory() override = default;
+
+  // Internal identity check used by the allocator before returning a cached
+  // handle while communicator teardown may be in progress.
+  bool is_live_for(ncclComm_t comm) const;
+
+  // Acquires a host-side launch lease for this handle's communicator.
+  NCCLSymmetricMemoryLaunchGuard acquire_launch_guard() const;
 
   std::vector<void*> get_buffer_ptrs() override;
 

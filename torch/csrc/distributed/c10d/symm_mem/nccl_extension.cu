@@ -168,6 +168,11 @@ void nccl_put(at::Tensor& tensor, const int64_t peer) {
       "put op currently supports contiguous tensors only");
   // TODO: rendezvous should remember the group name
   auto symm_mem = c10d::symmetric_memory::rendezvous(tensor, "0");
+#ifdef USE_ROCM
+  auto* nccl_symm_mem = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get());
+  TORCH_CHECK(nccl_symm_mem != nullptr, "nccl_put requires NCCL symmetric memory");
+  auto launch_guard = nccl_symm_mem->acquire_launch_guard();
+#endif
   int threads = THREADS_PER_BLOCK;
   int blocks  = (tensor.numel() + threads - 1) / threads;
   c10::cuda::CUDAGuard guard(tensor.device());
@@ -190,6 +195,13 @@ void nccl_wait_for_signal(at::Tensor& sigpad, int64_t signal) {
   c10::cuda::CUDAGuard guard(sigpad.device());
   auto stream = at::cuda::getCurrentCUDAStream();
   auto symm_mem = c10d::symmetric_memory::rendezvous(sigpad, "0");
+#ifdef USE_ROCM
+  auto* nccl_symm_mem = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get());
+  TORCH_CHECK(
+      nccl_symm_mem != nullptr,
+      "nccl_wait_for_signal requires NCCL symmetric memory");
+  auto launch_guard = nccl_symm_mem->acquire_launch_guard();
+#endif
 
   // Always use device-side kernel because this function waits for a SPECIFIC signal value.
   // ncclWaitSignal only synchronizes on a channel without checking values, so it's not
@@ -212,6 +224,13 @@ void nccl_put_with_signal(at::Tensor& tensor, int64_t signal, int64_t peer) {
       "put op currently supports contiguous tensors only");
   // TODO: rendezvous should remember the group name
   auto symm_mem = c10d::symmetric_memory::rendezvous(tensor, "0");
+#ifdef USE_ROCM
+  auto* nccl_symm_mem = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get());
+  TORCH_CHECK(
+      nccl_symm_mem != nullptr,
+      "nccl_put_with_signal requires NCCL symmetric memory");
+  auto launch_guard = nccl_symm_mem->acquire_launch_guard();
+#endif
   c10::cuda::CUDAGuard guard(tensor.device());
   auto stream = at::cuda::getCurrentCUDAStream();
 
@@ -268,6 +287,11 @@ void nccl_get(at::Tensor& tensor, const int64_t peer) {
       "get op currently supports contiguous tensors only");
   // TODO: rendezvous should remember the group name
   auto symm_mem = c10d::symmetric_memory::rendezvous(tensor, "0");
+#ifdef USE_ROCM
+  auto* nccl_symm_mem = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get());
+  TORCH_CHECK(nccl_symm_mem != nullptr, "nccl_get requires NCCL symmetric memory");
+  auto launch_guard = nccl_symm_mem->acquire_launch_guard();
+#endif
   c10::cuda::CUDAGuard guard(tensor.device());
   int threads = THREADS_PER_BLOCK;
   int blocks  = (tensor.numel() + threads - 1) / threads;
@@ -327,6 +351,11 @@ void nccl_get_out(
     return;
   }
 
+#ifdef USE_ROCM
+  auto* nccl_hdl = dynamic_cast<NCCLSymmetricMemory*>(hdl.get());
+  TORCH_CHECK(nccl_hdl != nullptr, "symm_mem.get requires NCCL symmetric memory");
+  auto launch_guard = nccl_hdl->acquire_launch_guard();
+#endif
   c10::cuda::CUDAGuard guard(dst.device());
   int threads = THREADS_PER_BLOCK;
   int blocks = (nbytes + threads - 1) / threads;
@@ -387,7 +416,16 @@ void nccl_put_signal(at::Tensor& tensor, const c10::intrusive_ptr<SymmetricMemor
           comm, stream),
       c10::str("ncclPutSignal failed"));
 #else
-  TORCH_CHECK(false, "NCCL one-sided API is not supported. Requires NCCL >= 2.29.0");
+#ifdef USE_ROCM
+  TORCH_CHECK(
+      false,
+      "Host-side one-sided signal API (ncclPutSignal/ncclWaitSignal) is not "
+      "available on ROCm/RCCL; use the signal-pad-based APIs instead.");
+#else
+  TORCH_CHECK(
+      false,
+      "NCCL one-sided API is not supported. Requires NCCL >= 2.29.0");
+#endif
 #endif // NCCL_HAS_ONE_SIDED_API
 }
 
@@ -417,7 +455,16 @@ void nccl_wait_signal(const c10::intrusive_ptr<SymmetricMemory>& hdl, int64_t pe
       ncclWaitSignal(1, &signalDesc, comm, stream),
       c10::str("ncclWaitSignal failed"));
 #else
-  TORCH_CHECK(false, "NCCL one-sided API is not supported. Requires NCCL >= 2.29.0");
+#ifdef USE_ROCM
+  TORCH_CHECK(
+      false,
+      "Host-side one-sided signal API (ncclPutSignal/ncclWaitSignal) is not "
+      "available on ROCm/RCCL; use the signal-pad-based APIs instead.");
+#else
+  TORCH_CHECK(
+      false,
+      "NCCL one-sided API is not supported. Requires NCCL >= 2.29.0");
+#endif
 #endif // NCCL_HAS_ONE_SIDED_API
 }
 

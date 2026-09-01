@@ -24,6 +24,17 @@ void setNCCLCommRegistrationHooks(NCCLCommRegistrationHooks h) {
   hooks() = std::move(h);
 }
 
+void noteNCCLCommInitialized(void* comm) {
+  std::function<void(void*)> cb;
+  {
+    std::lock_guard<std::mutex> lock(hooksMutex());
+    cb = hooks().on_initialize;
+  }
+  if (cb) {
+    cb(comm);
+  }
+}
+
 void publishNCCLComm(
     const std::string& group_name,
     void* comm,
@@ -43,14 +54,23 @@ void publishNCCLComm(
 void retireNCCLComm(
     const std::string& group_name,
     void* comm,
-    c10::Device device) {
-  std::function<void(const std::string&, void*, c10::Device)> cb;
+    c10::Device device,
+    NCCLCommRetirementMode mode,
+    std::chrono::milliseconds timeout) {
+  std::function<
+      void(
+          const std::string&,
+          void*,
+          c10::Device,
+          NCCLCommRetirementMode,
+          std::chrono::milliseconds)>
+      cb;
   {
     std::lock_guard<std::mutex> lock(hooksMutex());
     cb = hooks().on_unregister;
   }
   if (cb) {
-    cb(group_name, comm, device);
+    cb(group_name, comm, device, mode, timeout);
   }
 }
 

@@ -31,6 +31,7 @@
 #include <torch/csrc/distributed/c10d/TraceUtils.h>
 #include <torch/csrc/distributed/c10d/Utils.hpp>
 #include <torch/csrc/distributed/c10d/cuda/utils.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_manager.hpp>
 #include <torch/torch.h>
 #include <optional>
@@ -913,6 +914,28 @@ void ProcessGroupNCCL::WorkNCCL::abort() {
   printNcclCommProxyTrace("WorkNCCL::abort", dumpMap);
 #endif // USE_ROCM && NCCL_COMM_DUMP
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  // ROCm: the wait/timeout error path (synchronizeInternal -> abort()) aborts
+  // this comm but keeps the process group alive, so unregister + release the
+  // symm-mem device communicators here, before ncclCommAbort frees the handle.
+  // Otherwise get_comm() keeps returning the dead handle and a same-name reuse
+  // recycles a window bound to it. The snapshot is forgotten inside
+  // NCCLComm::abort(). Empty means the comm was never published.
+  if (ncclComm_ && !ncclComm_->isAborted()) {
+    const std::string name = pgUID_;
+    auto* raw = ncclComm_->getNcclComm();
+    c10d::symmetric_memory::close_symm_mem_for_comm(raw);
+    if (!name.empty()) {
+      c10d::symmetric_memory::NCCLDevCommManager::get(device_).unregister_comm(
+          name, raw);
+      c10d::symmetric_memory::invalidate_symm_mem_for_comm(
+          device_, name, raw, /*reclaim_device_tables=*/false);
+      c10d::symmetric_memory::release_nccl_devcomms_for_group(
+          device_, name, raw);
+    }
+  }
+#endif
+
   // Abort all communicators of this work
   ncclComm_->abort();
 
@@ -1078,6 +1101,30 @@ ProcessGroupNCCL::ProcessGroupNCCL(
     attachAllocatorHooks();
   }
 }
+
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+void ProcessGroupNCCL::setGroupUid(const std::string& pg_uid) {
+  std::lock_guard<std::mutex> lock(mutex_);
+  const std::string oldGroupName = getGroupUid();
+  TORCH_CHECK(
+      oldGroupName.empty() || oldGroupName == pg_uid || devNCCLCommMap_.empty(),
+      "ProcessGroupNCCL does not support changing a non-empty group name after "
+      "NCCL communicators have been initialized; create a new process group "
+      "instead.");
+  Backend::setGroupUid(pg_uid);
+  options_->group_name = pg_uid;
+
+  if (oldGroupName.empty() && !pg_uid.empty()) {
+    for (auto& [_, ncclComm] : devNCCLCommMap_) {
+      if (!ncclComm || ncclComm->isAborted()) {
+        continue;
+      }
+      c10::Device device(at::kCUDA, ncclComm->getDeviceIndex());
+      publishSymmMemComm(device, ncclComm);
+    }
+  }
+}
+#endif
 
 void ProcessGroupNCCL::eagerConnectSingleDevice(at::Device device) {
   const auto key = getKeyFromDevice(device);
@@ -1489,6 +1536,18 @@ bool ProcessGroupNCCL::abortComms(
   }
 
   std::lock_guard<std::mutex> lock(mutex_);
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  // ROCm: unregister + release the symm-mem device communicators before
+  // ncclCommAbort frees them (same reused-ncclComm_t reason as shutdown()).
+  // The snapshot is forgotten inside NCCLComm::abort().
+  for (auto& [_, ncclComm] : devNCCLCommMap_) {
+    if (!ncclComm || ncclComm->isAborted()) {
+      continue;
+    }
+    c10d::symmetric_memory::close_symm_mem_for_comm(ncclComm->getNcclComm());
+    releaseSymmMemForComm(ncclComm, /*reclaimDeviceTables=*/false);
+  }
+#endif
   abortCommsFromMap(devNCCLCommMap_, abortReason);
   abortCommsFromMap(inInitializationCommMap_, abortReason);
   return true;
@@ -1587,26 +1646,156 @@ void ProcessGroupNCCL::shutdown() {
   if (onCompletionHookThread_.joinable()) {
     onCompletionHookThread_.join();
   }
-  // Watchdog thread exiting, retire heartbeat monitoring thread now to avoid
-  // false alarm
+  // The watchdog thread has exited, so the heartbeat counter is no longer
+  // expected to advance during communicator teardown.
   heartbeatMonitor_->stop();
-  // Destroy the communicator, reclaim resources
+
+  // Destroy the communicator, reclaim resources.
   LOG(INFO) << logPrefix() << "Watchdog joined, destroying NCCL communicators.";
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  struct SymmMemTeardownComm {
+    int deviceIndex;
+    void* rawComm;
+    std::shared_ptr<NCCLComm> ncclComm;
+  };
+  std::vector<SymmMemTeardownComm> symmMemCommsToTeardown;
+  std::vector<int> symmMemDevicesToDrain;
+  std::vector<int> synchronizedSymmMemDevices;
+  std::vector<int> undrainedSymmMemDevices;
+  auto addDeviceIfMissing = [](std::vector<int>& devices, int deviceIndex) {
+    if (std::find(devices.begin(), devices.end(), deviceIndex) ==
+        devices.end()) {
+      devices.push_back(deviceIndex);
+    }
+  };
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto& [_, ncclComm] : devNCCLCommMap_) {
+      if (!ncclComm) {
+        continue;
+      }
+      if (ncclComm->isAborted()) {
+        continue;
+      }
+      if (symmMemGroupName().empty()) {
+        continue;
+      }
+      symmMemCommsToTeardown.push_back(
+          {ncclComm->getDeviceIndex(), ncclComm->getNcclComm(), ncclComm});
+    }
+  }
+
+  const auto symmMemDrainTimeout =
+      std::min(options_->timeout, std::chrono::milliseconds(5000));
+  for (const auto& entry : symmMemCommsToTeardown) {
+    bool drained = false;
+    const bool usedSymmMem =
+        c10d::symmetric_memory::begin_symm_mem_teardown_for_comm(
+            entry.rawComm, symmMemDrainTimeout, &drained);
+    if (!usedSymmMem) {
+      continue;
+    }
+    if (drained) {
+      addDeviceIfMissing(symmMemDevicesToDrain, entry.deviceIndex);
+    } else {
+      LOG(WARNING) << logPrefix()
+                   << "Timed out waiting for symmetric-memory launches to "
+                      "finish before communicator teardown; retiring PAIs "
+                      "instead of reclaiming them for device "
+                   << entry.deviceIndex;
+      addDeviceIfMissing(undrainedSymmMemDevices, entry.deviceIndex);
+    }
+  }
+
+  for (int deviceIndex : symmMemDevicesToDrain) {
+    if (std::find(
+            undrainedSymmMemDevices.begin(),
+            undrainedSymmMemDevices.end(),
+            deviceIndex) != undrainedSymmMemDevices.end()) {
+      continue;
+    }
+    try {
+      c10::cuda::CUDAGuard guard(deviceIndex);
+      C10_CUDA_CHECK(cudaDeviceSynchronize());
+      c10d::symmetric_memory::reclaim_retired_symm_mem_for_device(
+          c10::Device(at::kCUDA, deviceIndex));
+      addDeviceIfMissing(synchronizedSymmMemDevices, deviceIndex);
+    } catch (const std::exception& e) {
+      LOG(WARNING) << logPrefix()
+                   << "Failed to synchronize device before symmetric-memory "
+                      "teardown; retiring PAIs instead of reclaiming them: "
+                   << e.what();
+      addDeviceIfMissing(undrainedSymmMemDevices, deviceIndex);
+    } catch (...) {
+      LOG(WARNING) << logPrefix()
+                   << "Failed to synchronize device before symmetric-memory "
+                      "teardown; retiring PAIs instead of reclaiming them";
+      addDeviceIfMissing(undrainedSymmMemDevices, deviceIndex);
+    }
+  }
+#endif
   {
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto& it : devNCCLCommMap_) {
       auto& ncclComm = it.second;
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+      const bool deviceDrained = ncclComm &&
+          std::find(
+              synchronizedSymmMemDevices.begin(),
+              synchronizedSymmMemDevices.end(),
+              ncclComm->getDeviceIndex()) != synchronizedSymmMemDevices.end();
+      releaseSymmMemForComm(ncclComm, /*reclaimDeviceTables=*/deviceDrained);
+#endif
       ncclComm->destroy();
     }
   }
   LOG(INFO) << logPrefix() << "Destroy complete.";
 }
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+void ProcessGroupNCCL::releaseSymmMemForComm(
+    const std::shared_ptr<NCCLComm>& ncclComm,
+    bool reclaimDeviceTables) {
+  if (!ncclComm || ncclComm->isAborted()) {
+    return;
+  }
+  c10::Device device(at::kCUDA, ncclComm->getDeviceIndex());
+  const std::string name = symmMemGroupName();
+  if (name.empty()) {
+    return;
+  }
+  auto* raw = ncclComm->getNcclComm();
+  c10d::symmetric_memory::NCCLDevCommManager::get(device).unregister_comm(
+      name, raw);
+  c10d::symmetric_memory::invalidate_symm_mem_for_comm(
+      device, name, raw, reclaimDeviceTables);
+  c10d::symmetric_memory::release_nccl_devcomms_for_group(device, name, raw);
+}
+#endif
+
 // NOLINTNEXTLINE(bugprone-exception-escape)
 ProcessGroupNCCL::~ProcessGroupNCCL() {
   LOG(INFO) << logPrefix() << "ProcessGroupNCCL destructor entered.";
 
-#ifdef NCCL_HAS_SYMMEM_SUPPORT
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  // Drop our entry from each per-device NCCLDevCommManager. Skip aborted
+  // comms -- a successor PG may have already re-registered under the same
+  // group_uid (e.g. restart-after-error), and unconditionally clearing
+  // would silently wipe the successor's entry.
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    for (auto& [_, ncclComm] : devNCCLCommMap_) {
+      if (!ncclComm || ncclComm->isAborted()) {
+        continue;
+      }
+      // ROCm, destructor-only path (shutdown()/abort() never ran, so the comms
+      // are still alive): identity-safe unregister + release. The snapshot is
+      // forgotten inside NCCLComm::destroy()/abort().
+      c10d::symmetric_memory::close_symm_mem_for_comm(ncclComm->getNcclComm());
+      releaseSymmMemForComm(ncclComm, /*reclaimDeviceTables=*/false);
+    }
+  }
+#elif defined(NCCL_HAS_SYMMEM_DEVICE_SUPPORT)
   // Drop our entry from each per-device NCCLDevCommManager. Skip aborted
   // comms -- a successor PG may have already re-registered under the same
   // group_uid (e.g. restart-after-error), and unconditionally clearing
@@ -3300,7 +3489,16 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
       ncclCommMemPoolMap.emplace(ncclComm, MemPoolSet{});
     }
 
-#ifdef NCCL_HAS_SYMMEM_SUPPORT
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+    // RCCL samples NCCL_CUMEM_ENABLE / NCCL_WIN_ENABLE inside comm init.
+    // Snapshot that value immediately against the comm identity; publication by
+    // group name may happen later for shrink-created comms.
+    c10d::symmetric_memory::note_rccl_symm_precondition(
+        ncclComm->getNcclComm(),
+        c10::utils::check_env("NCCL_CUMEM_ENABLE") == true &&
+            c10::utils::check_env("NCCL_WIN_ENABLE") == true);
+    publishSymmMemComm(device, ncclComm);
+#elif defined(NCCL_HAS_SYMMEM_SUPPORT)
     // Publish the host ncclComm so NCCLSymmetricMemory can find it by
     // group name, avoiding dynamic_cast back to ProcessGroupNCCL.
     // Other producers (e.g. torchcomms' TorchCommNCCLX) populate the same
@@ -3320,6 +3518,27 @@ std::shared_ptr<NCCLComm> ProcessGroupNCCL::initNCCLComm(
       it != devNCCLCommMap_.end(), "Communicators not populated in cache!");
   return it->second;
 }
+
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+void ProcessGroupNCCL::publishSymmMemComm(
+    const at::Device& device,
+    const std::shared_ptr<NCCLComm>& ncclComm) {
+  if (!ncclComm || ncclComm->isAborted()) {
+    return;
+  }
+  const std::string name = symmMemGroupName();
+  if (name.empty()) {
+    return;
+  }
+
+  // Publish the host ncclComm so NCCLSymmetricMemory can find it by group name.
+  // Shrink-created comms may exist before Python assigns the final group name,
+  // so callers re-run this helper from setGroupUid().
+  auto* raw = ncclComm->getNcclComm();
+  c10d::symmetric_memory::NCCLDevCommManager::get(device).register_comm(
+      name, raw);
+}
+#endif
 
 int64_t ProcessGroupNCCL::getCommPtr() {
   // Get the collective communicator on the current CUDA device.
@@ -6137,6 +6356,11 @@ c10::intrusive_ptr<Backend> ProcessGroupNCCL::shrink(
       (config != nullptr ? config : &options_->config),
       shrink_flags);
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  c10d::symmetric_memory::inherit_rccl_symm_precondition(
+      primary_comm->getNcclComm(), shrunk_comm->getNcclComm());
+#endif
+
   // Calculate new size and get NCCL-assigned rank
   int new_size = size_ - static_cast<int>(ranks_to_exclude.size());
   int new_rank = shrunk_comm->rank_;
@@ -6191,6 +6415,10 @@ void ProcessGroupNCCL::initializeDeviceStateForComm(
   ncclStreams_.emplace(key, stream);
   ncclEvents_.emplace(key, at::cuda::CUDAEvent(cudaEventDisableTiming));
   usedDeviceIdxs_.insert(device.index());
+
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  publishSymmMemComm(device, comm);
+#endif
 
   if (shouldAllCommunicatorsRegisterAllTensors()) {
     std::lock_guard<std::mutex> map_lock(ncclCommMemPoolMapMutex);

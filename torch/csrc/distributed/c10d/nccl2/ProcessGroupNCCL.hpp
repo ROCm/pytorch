@@ -16,6 +16,7 @@
 #include <atomic>
 #include <chrono>
 #include <condition_variable>
+#include <functional>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -70,7 +71,8 @@ TORCH_API void waitForNcclChildComm(
     ncclResult_t status,
     bool expect_child,
     std::chrono::milliseconds timeout,
-    std::string_view operation);
+    std::string_view operation,
+    std::function<void()> before_parent_abort = {});
 
 // Custom exception class for better error handling
 class NCCLException : public std::exception {
@@ -249,6 +251,7 @@ class TORCH_API ProcessGroupNCCL : public ::c10d::Backend {
     return false;
 #endif
   }
+  void setGroupUid(const std::string& pg_uid) override;
   void startCoalescing() override;
   c10::intrusive_ptr<::c10d::Work> endCoalescing() override;
   void startTimeEstimate() override;
@@ -615,7 +618,7 @@ class TORCH_API ProcessGroupNCCL : public ::c10d::Backend {
   // not depend on the symm_mem DevCommManager header. Fired from
   // initNcclResources() and the comm-teardown paths, respectively.
   void publishComm();
-  void retireComm();
+  void retireComm(bool graceful);
 
   // Member variables (port of TorchCommNCCL).
   ncclComm_t nccl_comm_{};

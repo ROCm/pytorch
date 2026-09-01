@@ -10,8 +10,9 @@
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/macros.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
-#include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_manager.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.hpp>
 
 #if defined(NCCL_DEVICE_HAS_REDUCE_COPY) && defined(USE_ROCM)
@@ -123,7 +124,6 @@ __global__ void reduce_scatter_offset_kernel(
   bar.sync(coop, cuda::memory_order_release);
 }
 
-
 #endif // NCCL_DEVICE_HAS_REDUCE_COPY
 
 // Host entry point.  Validates arguments, resolves defaults, and launches one
@@ -165,23 +165,44 @@ void nccl_reduce_scatter_offset(
   TORCH_CHECK(
       nccl_hdl != nullptr,
       "nccl_reduce_scatter_offset: requires NCCL symmetric memory backend");
+#ifdef USE_ROCM
+  auto launch_guard = nccl_hdl->acquire_launch_guard();
+#endif
 
   c10::cuda::CUDAGuard guard(input.device());
   auto stream = at::cuda::getCurrentCUDAStream();
   auto device = input.device();
 
-  auto& manager = c10d::symmetric_memory::NCCLDevCommManager::get(device);
-  // Get the host-side communicator.
-  ncclComm_t comm = manager.get_comm(group_name);
-
   const bool use_multimem = nccl_hdl->has_multicast_support();
 
-  // The devcomm is cached per group and created on first use.
   // lsaBarrierCount must cover the maximum number of concurrent CTAs.
-  // lsaMultimem is set when the allocation has multicast support, so that
-  // devComm.lsaMultimem is valid for ncclMultimemReduceSum in the kernel.
-  static constexpr char const kDevcommKey[] = "nccl_reduce_scatter_offset";
-  auto devcomm_opt = manager.get_devcomm(group_name, kDevcommKey);
+  // lsaMultimem is set when the allocation has multicast support.
+#ifdef USE_ROCM
+  // RCCL device communicators are owned by the identity-aware cache so a
+  // same-name successor process group cannot reuse its predecessor's state.
+  static constexpr char const kDevcommKeyMultimem[] =
+      "nccl_reduce_scatter_offset_multimem";
+  static constexpr char const kDevcommKeyLsa[] =
+      "nccl_reduce_scatter_offset_lsa";
+  const char* devcomm_key =
+      use_multimem ? kDevcommKeyMultimem : kDevcommKeyLsa;
+  ncclDevComm devcomm;
+  c10d::symmetric_memory::get_or_create_nccl_devcomm(
+      device,
+      group_name,
+      devcomm_key,
+      RS_MAX_CTA_COUNT,
+      use_multimem,
+      &devcomm,
+      sizeof(devcomm));
+#else
+  // CUDA keeps device communicators in NCCLDevCommManager.
+  auto& manager = c10d::symmetric_memory::NCCLDevCommManager::get(device);
+  ncclComm_t comm = manager.get_comm(group_name);
+  const char* devcomm_key = use_multimem
+      ? "nccl_reduce_scatter_offset_multimem"
+      : "nccl_reduce_scatter_offset_lsa";
+  auto devcomm_opt = manager.get_devcomm(group_name, devcomm_key);
   if (!devcomm_opt) {
     ncclDevCommRequirements reqs = NCCL_DEV_COMM_REQUIREMENTS_INITIALIZER;
     reqs.lsaBarrierCount = RS_MAX_CTA_COUNT;
@@ -190,10 +211,10 @@ void nccl_reduce_scatter_offset(
     C10D_NCCL_CHECK(
         ncclDevCommCreate(comm, &reqs, &devcomm),
         "ncclDevCommCreate failed in nccl_reduce_scatter_offset");
-    // Cache the device communicator.
-    devcomm_opt = manager.register_devcomm(group_name, devcomm, kDevcommKey);
+    devcomm_opt = manager.register_devcomm(group_name, devcomm, devcomm_key);
   }
   ncclDevComm& devcomm = devcomm_opt->get();
+#endif
 
   const int my_rank = devcomm.rank;
   const int group_size = devcomm.nRanks;

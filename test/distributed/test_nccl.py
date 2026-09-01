@@ -1,7 +1,9 @@
 # Owner(s): ["oncall: distributed"]
 
+import gc
 import os
 import sys
+import threading
 from collections.abc import Callable
 from functools import wraps
 from typing import ParamSpec, TypeVar
@@ -27,10 +29,12 @@ from torch.testing._internal.common_distributed import (
     MultiProcessTestCase,
     PLATFORM_SUPPORTS_SYMM_MEM,
     requires_nccl,
+    requires_nccl_shrink,
     requires_nccl_version,
     skip_if_lt_x_gpu,
 )
 from torch.testing._internal.common_utils import (
+    getRocmVersion,
     instantiate_parametrized_tests,
     IS_WINDOWS,
     load_tests,
@@ -255,6 +259,10 @@ class TestNCCL(TestCase):
     TEST_WITH_ROCM and nccl.version() < (2, 30, 4),
     "RCCL host device APIs require RCCL 2.30.4 or newer",
 )
+@skip_but_pass_in_sandcastle_if(
+    TEST_WITH_ROCM and getRocmVersion() == (7, 14),
+    "RCCL CUMEM/P2P communicator init fails on ROCm 7.14 (p2p_tmp.cc:358)",
+)
 class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
     @property
     def device(self) -> torch.device:
@@ -268,8 +276,13 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
             raise AssertionError("Expected rdvz_file to not be None")
         os.environ["LOCAL_RANK"] = str(rank)
         if TEST_WITH_ROCM:
-            os.environ["NCCL_CUMEM_ENABLE"] = "1"
-            os.environ["NCCL_WIN_ENABLE"] = "1"
+            # RCCL symmetric-memory windows require VMM (cuMem) and window
+            # registration. setdefault so an explicit override (e.g.
+            # NCCL_CUMEM_ENABLE=0 to exercise the fail-fast path in the NCCL
+            # symmetric-memory backend) is respected; the backend raises an
+            # actionable error at rendezvous if either is disabled.
+            os.environ.setdefault("NCCL_CUMEM_ENABLE", "1")
+            os.environ.setdefault("NCCL_WIN_ENABLE", "1")
         device = torch.device("cuda", rank)
         torch.cuda.set_device(device)
         store = c10d.FileStore(rdvz_file, world_size)
@@ -284,7 +297,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         cls.pg = c10d.distributed_c10d._get_default_group()
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 27), "NCCL Symmetric Memory support from nccl 2.27")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_alloc(self):
         symm_mem.set_backend("NCCL")
@@ -308,7 +324,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         symm_mem.rendezvous(out, group=group_name)
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 27), "NCCL Symmetric Memory support from nccl 2.27")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_rendezvous_many_allocations(self):
         symm_mem.set_backend("NCCL")
@@ -338,6 +357,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         )
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_rendezvous_world(self):
         symm_mem.set_backend("NCCL")
@@ -357,7 +380,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         self.assertTrue(buf.eq(peer_rank).all())
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 27), "NCCL Symmetric Memory support from nccl 2.27")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_barrier(self):
         symm_mem.set_backend("NCCL")
@@ -381,7 +407,8 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory support device API from nccl 2.28"
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_barrier_channel_out_of_bounds(self):
@@ -421,8 +448,11 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
             with self.assertRaisesRegex(RuntimeError, r"must be in \[0"):
                 handle.wait_signal(src_rank=bad_rank)
 
-    @skip_but_pass_in_sandcastle_if(TEST_WITH_ROCM, "Skip NCCL tests for ROCm")
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_rendezvous_subgroup(self):
         symm_mem.set_backend("NCCL")
@@ -444,7 +474,8 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory support device API from nccl 2.28"
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_collective(self):
@@ -474,7 +505,8 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory support device API from nccl 2.28"
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_collective_cuda_graph(self):
@@ -520,13 +552,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
             self.assertEqual(out, torch.full_like(out, expected_sum))
             self.assertEqual(res, out)
 
-    @skip_but_pass_in_sandcastle_if(
-        TEST_WITH_ROCM,
-        "ROCm symmetric tensors must be allocated before graph capture",
-    )
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory support device API from nccl 2.28"
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_tensor_creation_and_collective_cuda_graph(self):
@@ -586,9 +615,251 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
             )
             self.assertEqual(out, torch.full_like(out, expected_sum))
 
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-specific HIP graph allocation behavior"
+    )
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory support device API from nccl 2.28"
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_cuda_graph_allocation_requires_warmup(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+
+        graph = torch.cuda.CUDAGraph()
+        with self.assertRaisesRegex(RuntimeError, "without a clean cached block"):
+            with torch.cuda.graph(graph):
+                # This exact byte size is intentionally not warmed up.
+                symm_mem.empty(123457, dtype=torch.float32, device=self.device)
+
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-specific HIP graph allocation behavior"
+    )
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_cached_alloc_on_other_thread_during_capture(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+        numel, dtype = 1024, torch.float
+
+        # Seed an exact-size cached block whose zero-completion event can be
+        # queried by an allocation on another thread.
+        warm = symm_mem.empty(numel, dtype=dtype, device=self.device)
+        warm_handle = symm_mem.rendezvous(warm, group=group_name)
+        warm_ptr = warm.data_ptr()
+        del warm_handle, warm
+        gc.collect()
+        torch.cuda.synchronize(self.device)
+
+        release = threading.Event()
+        done = threading.Event()
+        reused_tensors = []
+        reused_ptrs = []
+        errors = []
+
+        def worker():
+            torch.cuda.set_device(self.rank)
+            release.wait()
+            try:
+                reused = symm_mem.empty(numel, dtype=dtype, device=self.device)
+                reused_ptrs.append(reused.data_ptr())
+                # Keep the allocation alive until the main-thread capture ends;
+                # freeing it here would test a different event-record path.
+                reused_tensors.append(reused)
+            except BaseException as exc:
+                errors.append(exc)
+            finally:
+                done.set()
+
+        thread = threading.Thread(target=worker, daemon=True)
+        thread.start()
+
+        graph = torch.cuda.CUDAGraph()
+        capture_stream = torch.cuda.Stream(device=self.device)
+        worker_completed_during_capture = False
+        try:
+            with torch.cuda.graph(graph, stream=capture_stream):
+                # Keep a real node in the graph while the worker reuses the
+                # cached block and queries its pre-capture completion event.
+                torch.cuda._sleep(1)
+                release.set()
+                worker_completed_during_capture = done.wait(timeout=30)
+        finally:
+            release.set()
+            thread.join(timeout=30)
+
+        self.assertTrue(
+            worker_completed_during_capture,
+            "worker allocation did not complete during graph capture",
+        )
+        self.assertFalse(thread.is_alive(), "worker allocation thread did not exit")
+        if errors:
+            raise errors[0]
+        self.assertEqual(reused_ptrs, [warm_ptr])
+
+        graph.replay()
+        capture_stream.synchronize()
+        reused_tensors.clear()
+
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-specific HIP graph allocation behavior"
+    )
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_cuda_graph_cache_keys_exact_size(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        # Both payloads fit in the same 4096-byte-aligned NCCL window size.
+        # Warming them independently verifies that cache identity uses the exact
+        # user size instead of only the rounded allocation size.
+        for numel in (100, 101):
+            tensor = symm_mem.empty(numel, dtype=torch.float32, device=self.device)
+            handle = symm_mem.rendezvous(tensor, group=group_name)
+            tensor.fill_(self.rank)
+            del handle, tensor
+        torch.cuda.synchronize(self.device)
+
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            tensor_a = symm_mem.empty(100, dtype=torch.float32, device=self.device)
+            handle_a = symm_mem.rendezvous(tensor_a, group=group_name)
+            tensor_a.fill_(self.rank + 1)
+            tensor_b = symm_mem.empty(101, dtype=torch.float32, device=self.device)
+            handle_b = symm_mem.rendezvous(tensor_b, group=group_name)
+            tensor_b.fill_(self.rank + 2)
+
+        graph.replay()
+        self.assertEqual(tensor_a, torch.full_like(tensor_a, self.rank + 1))
+        self.assertEqual(tensor_b, torch.full_like(tensor_b, self.rank + 2))
+        del handle_a, handle_b
+
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-specific free-block reuse behavior"
+    )
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_free_then_reuse_rendezvous(self):
+        # Freeing a symmetric tensor must erase its cached rendezvous handle
+        # from the allocator's symm_mems_ map, while keeping the block's window
+        # registration reusable: the freed block comes back from the free cache
+        # with the same pointer, and a fresh rendezvous on it builds a new
+        # handle without re-registering.
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        tensor = symm_mem.empty(4096, dtype=torch.float32, device=self.device)
+        handle = symm_mem.rendezvous(tensor, group=group_name)
+        handle.barrier()
+        ptr = tensor.data_ptr()
+
+        # Free the tensor but keep the old handle alive. free() must drop the
+        # cached entry even though this Python handle still references the
+        # SymmetricMemory object.
+        del tensor
+        torch.cuda.synchronize(self.device)
+
+        reused = symm_mem.empty(4096, dtype=torch.float32, device=self.device)
+        # The same block returns from the free cache.
+        self.assertEqual(reused.data_ptr(), ptr)
+        new_handle = symm_mem.rendezvous(reused, group=group_name)
+        # Because free() erased symm_mems_ for this pointer, rendezvous rebuilt
+        # a distinct handle rather than returning the stale cached object. The
+        # binding preserves Python identity for a live handle, so a cache hit on
+        # the reused pointer would have returned `handle` itself.
+        self.assertIsNot(new_handle, handle)
+
+        # The recycled block still works end to end across peers.
+        reused.fill_(self.rank)
+        torch.cuda.synchronize(self.device)
+        new_handle.barrier()
+        peer_rank = (self.rank + 1) % self.world_size
+        buf = new_handle.get_buffer(peer_rank, (4096,), torch.float32)
+        self.assertTrue(buf.eq(peer_rank).all())
+        new_handle.barrier()
+        del handle, new_handle
+
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-only: targets the symm-mem owned devcomm cache"
+    )
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "nccl_reduce_scatter_offset requires nccl 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_devcomm_group_destroy_recreate(self):
+        # Lifetime smoke test for the ROCm owned devcomm cache: repeatedly
+        # create a group, build+use a device communicator via
+        # reduce_scatter_offset, then destroy the group. Exercises the
+        # get_or_create (fresh create) and release(comm) (owner-matched erase)
+        # paths across create/destroy cycles with real communicators. (On CUDA
+        # the device communicators live in NCCLDevCommManager, so this is ROCm
+        # only.)
+        #
+        # It does NOT pin the same-group-name restart path (stale-owner rebuild
+        # in get_or_create when owner != comm, or the leave-successor release):
+        # new_group cannot reuse a group name because _hash_ranks_to_str salts
+        # the name with the monotonic _world.group_count. That branch is a
+        # pointer-identity mirror of the reviewed NCCLDevCommManager
+        # unregister_comm(name, comm) pattern; reproducing it would require
+        # default-group abort/re-init, which is not worth the fragility here.
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+
+        ranks = list(range(self.world_size))
+        rows, cols = 64, 32
+        n_experts = self.world_size  # experts_per_rank = 1: each rank owns one
+        rank_sum = float(sum(r + 1 for r in range(self.world_size)))
+
+        for _ in range(3):
+            pg = c10d.new_group(ranks)
+            group_name = pg.group_name
+
+            buf = symm_mem.empty(
+                n_experts * rows, cols, dtype=torch.float, device=self.device
+            )
+            for i in range(n_experts):
+                buf[i * rows : (i + 1) * rows, :] = float((self.rank + 1) * (i + 1))
+            symm_mem.rendezvous(buf, group=group_name)
+
+            dst_ranks = [i % self.world_size for i in range(n_experts)]
+            out = [torch.zeros(rows, cols, dtype=torch.float, device=self.device)]
+            offsets = [i * rows for i in range(1, n_experts + 1)]
+            symm_mem.reduce_scatter_offset(
+                buf, out, group_name, dim=0, offsets=offsets, dst_ranks=dst_ranks
+            )
+            torch.cuda.synchronize()
+
+            # We own expert `self.rank` (j = 0): (expert_idx + 1) * rank_sum.
+            expected = float(self.rank + 1) * rank_sum
+            self.assertEqual(out[0], torch.full_like(out[0], expected))
+
+            c10d.destroy_process_group(pg)
+            del pg, buf, out
+            gc.collect()
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_put(self):
@@ -668,6 +939,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         c10d.barrier()
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_get(self):
         symm_mem.set_backend("NCCL")
@@ -699,7 +974,8 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
     @requires_nccl_version(
-        (2, 28), "NCCL Symmetric Memory device API support from nccl 2.28"
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28),
+        "NCCL/RCCL symmetric-memory API version requirement",
     )
     @skip_if_lt_x_gpu(2)
     def test_get(self):
@@ -924,7 +1200,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
             )
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 28, 0), "nccl_all_to_all_nd requires nccl 2.28")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 28, 0),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     @parametrize(
         "scatter_gather,out_2d,input_3d",
@@ -1127,6 +1406,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         c10d.barrier()
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_mempool_tensor_factory(self):
         symm_mem.set_backend("NCCL")
@@ -1154,6 +1437,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         self.assertEqual(tensor, expected)
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_mempool_compute_ops(self):
         symm_mem.set_backend("NCCL")
@@ -1180,7 +1467,10 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         self.assertEqual(y, expected)
 
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 27), "NCCL Symmetric Memory support from nccl 2.27")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_mempool_recycled_barrier(self):
         # Regression test for the signal-pad pollution bug: ncclMemAlloc does
@@ -1216,15 +1506,57 @@ class NCCLSymmetricMemoryTest(MultiProcContinuousTest):
         t2, hdl2 = barrier_roundtrip()
         del hdl2, t2
 
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-only: RCCL free-cache cleanup ordering"
+    )
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_reuse_waits_for_free_stream_zero(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+        numel, dtype = 1024, torch.float
+
+        t = symm_mem.empty(numel, dtype=dtype, device=self.device)
+        hdl = symm_mem.rendezvous(t, group=group_name)
+        ptr = t.data_ptr()
+        dirty_pad = hdl.get_signal_pad(self.rank, (1,), dtype=torch.uint32)
+        dirty_pad.fill_(123)
+        torch.cuda.synchronize()
+
+        free_stream = torch.cuda.Stream(device=self.device)
+        reuse_stream = torch.cuda.Stream(device=self.device)
+
+        with torch.cuda.stream(free_stream):
+            torch.cuda._sleep(100_000_000)
+            del dirty_pad, hdl, t
+            gc.collect()
+
+        with torch.cuda.stream(reuse_stream):
+            reused = symm_mem.empty(numel, dtype=dtype, device=self.device)
+            self.assertEqual(reused.data_ptr(), ptr)
+            reused_hdl = symm_mem.rendezvous(reused, group=group_name)
+            reused_pad = reused_hdl.get_signal_pad(self.rank, (1,), dtype=torch.uint32)
+            reused_pad_value = reused_pad.clone()
+
+        reuse_stream.synchronize()
+        self.assertEqual(reused_pad_value.item(), 0)
+        del reused_pad, reused_hdl, reused
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 29),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_but_pass_in_sandcastle_if(
         os.environ.get("NCCL_NVLS_ENABLE", "1") == "0",
         "NCCL_NVLS_ENABLE=0",
     )
     @skip_if_lt_x_gpu(2)
-    @requires_nccl_version(
-        (2, 29), "NCCL Symmetric Memory multicast support from nccl 2.29"
-    )
     def test_multicast_ptr(self) -> None:
         """
         Get the multicast pointer
@@ -1269,6 +1601,9 @@ class NCCLSymmetricMemoryNccl2Test(MultiProcContinuousTest):
         if rdvz_file is None:
             raise AssertionError("Expected rdvz_file to not be None")
         os.environ["LOCAL_RANK"] = str(rank)
+        if TEST_WITH_ROCM:
+            os.environ.setdefault("NCCL_CUMEM_ENABLE", "1")
+            os.environ.setdefault("NCCL_WIN_ENABLE", "1")
         device = torch.device("cuda", rank)
         torch.cuda.set_device(device)
         store = c10d.FileStore(rdvz_file, world_size)
@@ -1282,9 +1617,11 @@ class NCCLSymmetricMemoryNccl2Test(MultiProcContinuousTest):
         )
         cls.pg = c10d.distributed_c10d._get_default_group()
 
-    @skip_but_pass_in_sandcastle_if(TEST_WITH_ROCM, "Skip NCCL tests for ROCm")
     @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
-    @requires_nccl_version((2, 27), "NCCL Symmetric Memory support from nccl 2.27")
+    @requires_nccl_version(
+        (2, 30, 4) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
     @skip_if_lt_x_gpu(2)
     def test_nccl_symmem_rendezvous(self):
         symm_mem.set_backend("NCCL")
@@ -1310,6 +1647,431 @@ class NCCLSymmetricMemoryNccl2Test(MultiProcContinuousTest):
 
 class NCCLSymmetricMemoryNcclLazyTest(NCCLSymmetricMemoryNccl2Test):
     backend_name = "nccl-lazy"
+
+
+@requires_cuda_p2p_access()
+@skip_but_pass_in_sandcastle_if(
+    TEST_WITH_ROCM and getRocmVersion() == (7, 14),
+    "RCCL CUMEM/P2P communicator init fails on ROCm 7.14 (p2p_tmp.cc:358)",
+)
+class NCCLSymmetricMemoryWinDisabledTest(MultiProcContinuousTest):
+    """RCCL symmetric-memory precondition fail-fast.
+
+    The process group is created with NCCL_WIN_ENABLE=0, so RCCL builds the comm
+    without window support. Rendezvous must fail fast with the documented error,
+    driven by the snapshot recorded at comm init -- not a re-read of the (since
+    restored) environment.
+    """
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device("cuda", self.rank)
+
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file):
+        if rdvz_file is None:
+            raise AssertionError("Expected rdvz_file to not be None")
+        os.environ["LOCAL_RANK"] = str(rank)
+        # Force NCCL_WIN_ENABLE=0 only across this comm's creation -- RCCL samples
+        # it inside init_process_group. Afterwards set it back to "1" so the live
+        # environment is healthy at rendezvous: the fail-fast then can only come
+        # from the init-time snapshot (a regression to reading the current env
+        # would pass). Leaving it "1" also avoids polluting sibling classes.
+        if TEST_WITH_ROCM:
+            os.environ["NCCL_CUMEM_ENABLE"] = "1"
+            os.environ["NCCL_WIN_ENABLE"] = "0"
+        device = torch.device("cuda", rank)
+        torch.cuda.set_device(device)
+        store = c10d.FileStore(rdvz_file, world_size)
+        try:
+            c10d.init_process_group(
+                backend="nccl",
+                world_size=world_size,
+                rank=rank,
+                store=store,
+                timeout=cls.timeout,
+                device_id=device,
+            )
+        finally:
+            if TEST_WITH_ROCM:
+                os.environ["NCCL_WIN_ENABLE"] = "1"
+        cls.pg = c10d.distributed_c10d._get_default_group()
+
+    @skip_but_pass_in_sandcastle_if(
+        not TEST_WITH_ROCM, "ROCm-only: RCCL window precondition"
+    )
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_nccl_symmem_precondition_fail_fast(self):
+        # _init_pg created the comm with NCCL_WIN_ENABLE=0 then set it back to
+        # "1", so the live environment is healthy here. Rendezvous must still
+        # raise from the init-time snapshot -- proving the check reflects what
+        # RCCL saw at comm creation, not the current environment.
+        self.assertEqual(os.environ.get("NCCL_WIN_ENABLE"), "1")
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        tensor = symm_mem.empty(64, dtype=torch.float32, device=self.device)
+        with self.assertRaisesRegex(
+            RuntimeError, r"NCCL_CUMEM_ENABLE=1 and NCCL_WIN_ENABLE=1"
+        ):
+            symm_mem.rendezvous(tensor, group=group_name)
+
+
+@requires_cuda_p2p_access()
+@skip_but_pass_in_sandcastle_if(
+    not TEST_WITH_ROCM, "NCCL symmetric-memory shrink test is ROCm-only"
+)
+@skip_but_pass_in_sandcastle_if(
+    nGPUs < 3, "NCCL symmetric-memory shrink test requires 3+ GPUs"
+)
+@skip_but_pass_in_sandcastle_if(
+    TEST_WITH_ROCM and getRocmVersion() == (7, 14),
+    "RCCL CUMEM/P2P communicator init fails on ROCm 7.14 (p2p_tmp.cc:358)",
+)
+class NCCLSymmetricMemoryShrinkTest(MultiProcContinuousTest):
+    @property
+    def world_size(self):
+        return 3
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device("cuda", self.rank)
+
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file):
+        if rdvz_file is None:
+            raise AssertionError("Expected rdvz_file to not be None")
+        os.environ["LOCAL_RANK"] = str(rank)
+        if TEST_WITH_ROCM:
+            os.environ.setdefault("NCCL_CUMEM_ENABLE", "1")
+            os.environ.setdefault("NCCL_WIN_ENABLE", "1")
+        device = torch.device("cuda", rank)
+        torch.cuda.set_device(device)
+        store = c10d.FileStore(rdvz_file, world_size)
+        c10d.init_process_group(
+            backend="nccl",
+            world_size=world_size,
+            rank=rank,
+            store=store,
+            timeout=cls.timeout,
+            device_id=device,
+        )
+        cls.pg = c10d.distributed_c10d._get_default_group()
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_shrink()
+    @requires_nccl_version(
+        (2, 29, 7) if TEST_WITH_ROCM else (2, 27),
+        "NCCL/RCCL symmetric-memory API version requirement",
+    )
+    @skip_if_lt_x_gpu(3)
+    @skip_but_pass_in_sandcastle_if(
+        not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this platform"
+    )
+    def test_shrink_group_symm_mem_registry(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        default_name = c10d.group.WORLD.group_name
+
+        default_tensor = symm_mem.empty(
+            64, dtype=torch.float32, device=self.device
+        ).fill_(self.rank)
+        default_handle = symm_mem.rendezvous(default_tensor, group=default_name)
+        default_handle.barrier()
+
+        subgroup = c10d.new_group(list(range(self.world_size)))
+        c10d.all_reduce(torch.ones(1, device=self.device), group=subgroup)
+        # shrink_flags=0 requires the parent communicator to have no pending
+        # work. Ensure the nccl2 work queue observes this warm-up as complete.
+        torch.cuda.synchronize(self.device)
+        ranks_to_exclude = [self.world_size - 1]
+        shrunk_pg = None
+
+        if self.rank in ranks_to_exclude:
+            c10d.destroy_process_group(subgroup)
+        else:
+            shrunk_pg = c10d.shrink_group(ranks_to_exclude, group=subgroup)
+            shrunk_tensor = symm_mem.empty(
+                64, dtype=torch.float32, device=self.device
+            ).fill_(self.rank)
+            shrunk_handle = symm_mem.rendezvous(
+                shrunk_tensor, group=shrunk_pg.group_name
+            )
+            shrunk_handle.barrier()
+            for peer in range(shrunk_pg.size()):
+                buf = shrunk_handle.get_buffer(peer, (64,), torch.float32)
+                self.assertTrue(buf.eq(peer).all())
+
+        c10d.barrier()
+        live_default = symm_mem.empty(
+            64, dtype=torch.float32, device=self.device
+        ).fill_(self.rank)
+        live_default_handle = symm_mem.rendezvous(live_default, group=default_name)
+        live_default_handle.barrier()
+        for peer in range(self.world_size):
+            buf = live_default_handle.get_buffer(peer, (64,), torch.float32)
+            self.assertTrue(buf.eq(peer).all())
+
+        if shrunk_pg is not None:
+            c10d.destroy_process_group(shrunk_pg)
+
+        c10d.barrier()
+        final_default = symm_mem.empty(
+            64, dtype=torch.float32, device=self.device
+        ).fill_(self.rank + 10)
+        final_default_handle = symm_mem.rendezvous(final_default, group=default_name)
+        final_default_handle.barrier()
+        for peer in range(self.world_size):
+            buf = final_default_handle.get_buffer(peer, (64,), torch.float32)
+            self.assertTrue(buf.eq(peer + 10).all())
+
+
+@requires_cuda_p2p_access()
+@skip_but_pass_in_sandcastle_if(
+    not TEST_WITH_ROCM,
+    "ROCm-only: the free-block cache that retains peer alloc infos is USE_ROCM",
+)
+@skip_but_pass_in_sandcastle_if(
+    TEST_WITH_ROCM and getRocmVersion() == (7, 14),
+    "RCCL CUMEM/P2P communicator init fails on ROCm 7.14 (p2p_tmp.cc:358)",
+)
+@skip_but_pass_in_sandcastle_if(
+    TEST_WITH_ROCM and nccl.version() < (2, 30, 4),
+    "RCCL host device APIs require RCCL 2.30.4 or newer",
+)
+class NCCLSymmetricMemoryRestartTest(MultiProcContinuousTest):
+    """ROCm cached allocations must not retain PAIs for dead communicators.
+
+    The ncclMemAlloc block itself is communicator-independent and may be
+    recycled, but its old window and peer tables must be invalidated whether
+    the tensor is freed before or after communicator teardown. A same-name
+    successor must build a fresh PAI. Isolated in its own class because it
+    tears down and re-inits the default PG.
+    """
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device("cuda", self.rank)
+
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file):
+        if rdvz_file is None:
+            raise AssertionError("Expected rdvz_file to not be None")
+        # Remember the rendezvous file so the test can derive a second,
+        # rank-agreed store for the mid-test re-init.
+        cls.rdvz_file = rdvz_file
+        os.environ["LOCAL_RANK"] = str(rank)
+        if TEST_WITH_ROCM:
+            os.environ.setdefault("NCCL_CUMEM_ENABLE", "1")
+            os.environ.setdefault("NCCL_WIN_ENABLE", "1")
+        device = torch.device("cuda", rank)
+        torch.cuda.set_device(device)
+        store = c10d.FileStore(rdvz_file, world_size)
+        c10d.init_process_group(
+            backend="nccl",
+            world_size=world_size,
+            rank=rank,
+            store=store,
+            timeout=cls.timeout,
+            device_id=device,
+        )
+        cls.pg = c10d.distributed_c10d._get_default_group()
+
+    def _run_restart(self, free_before_destroy):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        numel = 4096
+        tensor = symm_mem.empty(numel, dtype=torch.float32, device=self.device)
+        old_handle = symm_mem.rendezvous(tensor, group=group_name)
+        old_handle.barrier()
+        unretained_tensor = None
+        if free_before_destroy:
+            # The block is already in the free cache when teardown invalidates
+            # and removes its communicator-scoped PAI.
+            del tensor
+            torch.cuda.synchronize(self.device)
+        else:
+            # Exercise teardown with an enqueued kernel whose PAI has no
+            # externally retained handle. Invalidation may destroy its device
+            # pointer tables, so shutdown must synchronize first.
+            unretained_tensor = symm_mem.empty(
+                numel + 1, dtype=torch.float32, device=self.device
+            )
+            unretained_handle = symm_mem.rendezvous(unretained_tensor, group=group_name)
+            unretained_handle.barrier()
+            del unretained_handle
+
+        c10d.destroy_process_group()
+        with self.assertRaisesRegex(RuntimeError, "destroyed communicator"):
+            old_handle.barrier()
+        if not free_before_destroy:
+            # Teardown invalidates only the live block's old PAI. The allocation
+            # itself remains safe to cache after free.
+            del unretained_tensor
+            del tensor
+            torch.cuda.synchronize(self.device)
+
+        # Re-init the default group under a fresh store with the same rank
+        # layout and the same finalized process-group name.
+        order = "free_first" if free_before_destroy else "destroy_first"
+        restart_file = type(self).rdvz_file + f"_symmem_restart_{order}"
+        store = c10d.FileStore(restart_file, self.world_size)
+        c10d.init_process_group(
+            backend="nccl",
+            world_size=self.world_size,
+            rank=self.rank,
+            store=store,
+            timeout=type(self).timeout,
+            device_id=self.device,
+        )
+        type(self).pg = c10d.distributed_c10d._get_default_group()
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        new_group_name = c10d.group.WORLD.group_name
+
+        # The allocation may be recycled, but rendezvous must create peer
+        # metadata for the successor communicator.
+        fresh = symm_mem.empty(numel, dtype=torch.float32, device=self.device)
+        handle = symm_mem.rendezvous(fresh, group=new_group_name)
+        # A same-name successor must not make the predecessor handle usable.
+        with self.assertRaisesRegex(RuntimeError, "destroyed communicator"):
+            old_handle.barrier()
+        fresh.fill_(self.rank)
+        torch.cuda.synchronize(self.device)
+        handle.barrier()
+        peer_rank = (self.rank + 1) % self.world_size
+        buf = handle.get_buffer(peer_rank, (numel,), torch.float32)
+        self.assertTrue(buf.eq(peer_rank).all())
+        del handle
+        del old_handle
+
+    def _run_reduce_scatter_offset(self, group_name):
+        rows, cols = 64, 32
+        n_experts = self.world_size
+        rank_sum = float(sum(r + 1 for r in range(self.world_size)))
+
+        buf = symm_mem.empty(
+            n_experts * rows, cols, dtype=torch.float, device=self.device
+        )
+        for i in range(n_experts):
+            buf[i * rows : (i + 1) * rows, :] = float((self.rank + 1) * (i + 1))
+        handle = symm_mem.rendezvous(buf, group=group_name)
+
+        dst_ranks = [i % self.world_size for i in range(n_experts)]
+        out = [torch.zeros(rows, cols, dtype=torch.float, device=self.device)]
+        offsets = [i * rows for i in range(1, n_experts + 1)]
+        symm_mem.reduce_scatter_offset(
+            buf, out, group_name, dim=0, offsets=offsets, dst_ranks=dst_ranks
+        )
+        torch.cuda.synchronize(self.device)
+
+        expected = float(self.rank + 1) * rank_sum
+        self.assertEqual(out[0], torch.full_like(out[0], expected))
+        return buf, handle
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_free_cache_pai_refreshed_on_pg_restart(self):
+        self._run_restart(free_before_destroy=True)
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_live_allocation_pai_refreshed_on_pg_restart(self):
+        self._run_restart(free_before_destroy=False)
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_abort_restart_rebuilds_reduce_scatter_offset_devcomm(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        old_buf, old_handle = self._run_reduce_scatter_offset(group_name)
+        backend = type(self).pg._get_backend(self.device)
+        backend.abort()
+        c10d.destroy_process_group()
+
+        with self.assertRaisesRegex(RuntimeError, "destroyed communicator"):
+            old_handle.barrier()
+        del old_buf
+        torch.cuda.synchronize(self.device)
+
+        restart_file = type(self).rdvz_file + "_symmem_abort_restart"
+        store = c10d.FileStore(restart_file, self.world_size)
+        c10d.init_process_group(
+            backend="nccl",
+            world_size=self.world_size,
+            rank=self.rank,
+            store=store,
+            timeout=type(self).timeout,
+            device_id=self.device,
+        )
+        type(self).pg = c10d.distributed_c10d._get_default_group()
+        c10d.all_reduce(torch.ones(1, device=self.device))
+
+        new_group_name = c10d.group.WORLD.group_name
+        self.assertEqual(new_group_name, group_name)
+        fresh_buf, fresh_handle = self._run_reduce_scatter_offset(new_group_name)
+        with self.assertRaisesRegex(RuntimeError, "destroyed communicator"):
+            old_handle.barrier()
+        del fresh_handle
+        del fresh_buf
+        del old_handle
+
+    @skip_but_pass_in_sandcastle_if(IS_WINDOWS, "NCCL doesn't support Windows")
+    @requires_nccl_version(
+        (2, 29, 7), "ROCm LSA symmetric-memory support from RCCL 2.29.7"
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_retained_handle_invalidated_on_cache_eviction(self):
+        symm_mem.set_backend("NCCL")
+        torch.cuda.set_device(self.rank)
+        c10d.all_reduce(torch.ones(1, device=self.device))
+        group_name = c10d.group.WORLD.group_name
+
+        # Four distinct cache keys total 134 MiB, exceeding the 128 MiB
+        # per-device budget and evicting the oldest allocation.
+        sizes_mib = (32, 33, 34, 35)
+        tensor = symm_mem.empty(
+            sizes_mib[0] * 1024 * 1024 // 4,
+            dtype=torch.float32,
+            device=self.device,
+        )
+        old_handle = symm_mem.rendezvous(tensor, group=group_name)
+        old_handle.barrier()
+        torch.cuda.synchronize(self.device)
+        del tensor
+
+        for size_mib in sizes_mib[1:]:
+            tensor = symm_mem.empty(
+                size_mib * 1024 * 1024 // 4,
+                dtype=torch.float32,
+                device=self.device,
+            )
+            del tensor
+        torch.cuda.synchronize(self.device)
+
+        with self.assertRaisesRegex(RuntimeError, "freed backing allocation"):
+            old_handle.barrier()
 
 
 def _host_cft_unsupported_reason() -> str | None:
@@ -1564,72 +2326,6 @@ class NCCLSymmMemWatchdogTest(MultiProcContinuousTest):
                 symm_mem.rendezvous(non_symm_tensor, group=c10d.group.WORLD.group_name)
         finally:
             symm_mem.set_watchdog_timeout(None)
-
-
-@requires_cuda_p2p_access()
-@skip_but_pass_in_sandcastle_if(
-    not TEST_WITH_ROCM, "ROCm-specific symmetric-memory process-group restart test"
-)
-@skip_but_pass_in_sandcastle_if(
-    TEST_WITH_ROCM and nccl.version() < (2, 30, 4),
-    "RCCL host device APIs require RCCL 2.30.4 or newer",
-)
-class NCCLSymmetricMemoryRestartTest(MultiProcContinuousTest):
-    @property
-    def device(self) -> torch.device:
-        return torch.device("cuda", self.rank)
-
-    @classmethod
-    def _init_pg(cls, rank, world_size, rdvz_file):
-        if rdvz_file is None:
-            raise AssertionError("Expected rdvz_file to not be None")
-        cls.rdvz_file = rdvz_file
-        os.environ["LOCAL_RANK"] = str(rank)
-        os.environ["NCCL_CUMEM_ENABLE"] = "1"
-        os.environ["NCCL_WIN_ENABLE"] = "1"
-        device = torch.device("cuda", rank)
-        torch.cuda.set_device(device)
-        store = c10d.FileStore(rdvz_file, world_size)
-        c10d.init_process_group(
-            backend="nccl",
-            world_size=world_size,
-            rank=rank,
-            store=store,
-            timeout=cls.timeout,
-            device_id=device,
-        )
-        cls.pg = c10d.distributed_c10d._get_default_group()
-
-    @skip_if_lt_x_gpu(2)
-    def test_allocation_after_default_pg_restart(self):
-        symm_mem.set_backend("NCCL")
-        c10d.all_reduce(torch.ones(1, device=self.device))
-        tensor = symm_mem.empty(4096, dtype=torch.float32, device=self.device)
-        symm_mem.rendezvous(tensor, group=c10d.group.WORLD.group_name).barrier()
-        del tensor
-        torch.cuda.synchronize(self.device)
-
-        c10d.destroy_process_group()
-        store = c10d.FileStore(type(self).rdvz_file + "_restart", self.world_size)
-        c10d.init_process_group(
-            backend="nccl",
-            world_size=self.world_size,
-            rank=self.rank,
-            store=store,
-            timeout=type(self).timeout,
-            device_id=self.device,
-        )
-        type(self).pg = c10d.distributed_c10d._get_default_group()
-        c10d.all_reduce(torch.ones(1, device=self.device))
-
-        tensor = symm_mem.empty(4096, dtype=torch.float32, device=self.device)
-        handle = symm_mem.rendezvous(tensor, group=c10d.group.WORLD.group_name)
-        tensor.fill_(self.rank)
-        torch.cuda.synchronize(self.device)
-        handle.barrier()
-        peer = (self.rank + 1) % self.world_size
-        peer_buffer = handle.get_buffer(peer, (4096,), torch.float32)
-        self.assertTrue(peer_buffer.eq(peer).all())
 
 
 instantiate_device_type_tests(TestNCCL, globals(), only_for="cuda")

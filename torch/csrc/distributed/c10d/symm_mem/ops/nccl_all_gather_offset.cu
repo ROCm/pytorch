@@ -1,12 +1,29 @@
+#ifdef USE_ROCM
+#ifndef __CUDACC_EXTENDED_LAMBDA__
+#define __CUDACC_EXTENDED_LAMBDA__ 1
+#endif
+#endif
+
 #include <c10/cuda/CUDAGuard.h>
 #include <ATen/cuda/CUDAContext.h>
 #include <ATen/native/cuda/MemoryAccess.cuh>
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_manager.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.hpp>
 #include <cstdint>
+
+#if defined(NCCL_DEVICE_HAS_REDUCE_COPY) && defined(USE_ROCM) && \
+    defined(__HIP_NO_HALF_OPERATORS__)
+// ATen disables HIP's half operators, but RCCL instantiates OpSum<__half>.
+__device__ __forceinline__ __half operator+(
+    const __half& a,
+    const __half& b) {
+  return __float2half(__half2float(a) + __half2float(b));
+}
+#endif
 
 // All-gather a rank-local bucket of parameter shards into a "parameter-
 // contiguous" output, fusing the gather with the copy-out reorder that FSDP2
@@ -114,7 +131,8 @@ __global__ void all_gather_offset_push_kernel(
 
 #endif // NCCL_HAS_SYMMEM_DEVICE_SUPPORT
 
-#ifdef NCCL_DEVICE_HAS_REDUCE_COPY
+#if defined(NCCL_HAS_SYMMEM_DEVICE_SUPPORT) && \
+    defined(NCCL_DEVICE_HAS_REDUCE_COPY)
 
 // Multimem broadcast kernel.  Each CTA grid-strides over this rank's parameters
 // and broadcasts the rank's own shard into the output's multicast mapping via
@@ -155,7 +173,7 @@ __global__ void all_gather_offset_mm_kernel(
   bar.sync(coop, cuda::memory_order_acq_rel);
 }
 
-#endif // NCCL_DEVICE_HAS_REDUCE_COPY
+#endif // NCCL_HAS_SYMMEM_DEVICE_SUPPORT && NCCL_DEVICE_HAS_REDUCE_COPY
 
 // Host entry point.  Validates arguments, resolves the default offsets, picks
 // the multimem or LSA-push path, fills the schedule, and launches.
@@ -204,6 +222,9 @@ void nccl_all_gather_offset(
   TORCH_CHECK(
       out_hdl != nullptr,
       "nccl_all_gather_offset: requires NCCL symmetric memory backend");
+#ifdef USE_ROCM
+  auto launch_guard = out_hdl->acquire_launch_guard();
+#endif
 
   // Use multimem broadcast when the output supports multicast (NVLink SHARP)
   // and the device reduce-copy API is available; otherwise push over LSA.
@@ -212,13 +233,23 @@ void nccl_all_gather_offset(
   use_multimem = out_hdl->has_multicast_support();
 #endif
 
-  auto& manager = c10d::symmetric_memory::NCCLDevCommManager::get(device);
-  ncclComm_t comm = manager.get_comm(group_name);
-
   // Distinct devcomm per path so each is created with the right lsaMultimem
   // requirement; both reuse a cached instance after the first call.
   const char* devcomm_key =
       use_multimem ? "nccl_all_gather_offset_mm" : "nccl_all_gather_offset_lsa";
+#ifdef USE_ROCM
+  ncclDevComm devcomm;
+  c10d::symmetric_memory::get_or_create_nccl_devcomm(
+      device,
+      group_name,
+      devcomm_key,
+      AG_MAX_CTAS,
+      use_multimem,
+      &devcomm,
+      sizeof(devcomm));
+#else
+  auto& manager = c10d::symmetric_memory::NCCLDevCommManager::get(device);
+  ncclComm_t comm = manager.get_comm(group_name);
   auto devcomm_opt = manager.get_devcomm(group_name, devcomm_key);
   if (!devcomm_opt) {
     ncclDevCommRequirements reqs = NCCL_DEV_COMM_REQUIREMENTS_INITIALIZER;
@@ -231,6 +262,7 @@ void nccl_all_gather_offset(
     devcomm_opt = manager.register_devcomm(group_name, devcomm, devcomm_key);
   }
   ncclDevComm& devcomm = devcomm_opt->get();
+#endif
 
   const int world_size = devcomm.nRanks;
   const int my_rank = devcomm.rank;
@@ -276,7 +308,7 @@ void nccl_all_gather_offset(
   auto out_window = out_hdl->get_window();
   TORCH_CHECK(
       out_window != nullptr, "nccl_all_gather_offset: out window is null");
-  const size_t out_window_base_offset = out_hdl->get_offset();
+  const size_t out_window_base_offset = out_hdl->get_window_offset();
   TORCH_CHECK(
       reinterpret_cast<uintptr_t>(input.data_ptr()) % AG_ALIGN == 0,
       "nccl_all_gather_offset: input must be 16-byte aligned");

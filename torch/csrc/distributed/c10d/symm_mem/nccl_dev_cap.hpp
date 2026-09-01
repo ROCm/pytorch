@@ -41,7 +41,7 @@
 // put/get/red family consumes, so a custom kernel can drive CFT without
 // building a ncclDevComm. The LEs only exist if the communicator was created
 // with `ncclConfig_t::hostCftMode` enabled (see NCCL_HAS_HOST_CFT_MODE).
-#if defined(NCCL_HAS_SYMMEM_DEVICE_SUPPORT) && \
+#if !defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_DEVICE_SUPPORT) && \
     NCCL_VERSION_CODE >= NCCL_VERSION(2, 31, 2)
 #define NCCL_HAS_HOST_CFT
 #endif

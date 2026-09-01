@@ -4,8 +4,9 @@
 #include <ATen/cuda/CUDAContext.h>
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
-#include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_manager.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.hpp>
 
 // Permute-free all-to-all for Ulysses-style sequence parallelism.
@@ -135,7 +136,6 @@ __global__ void all_to_all_lsa_kernel(
   bar.sync(coop, cuda::memory_order_release);
 }
 
-
 #endif // NCCL_A2A_ENABLED
 
 // Host entry point.  Validates arguments, builds the devcomm (cached), and
@@ -167,15 +167,30 @@ void nccl_all_to_all_nd(
 
   auto* nccl_hdl = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get());
   TORCH_CHECK(nccl_hdl != nullptr, "nccl_all_to_all_nd: requires NCCL symmetric memory backend");
+#ifdef USE_ROCM
+  auto launch_guard = nccl_hdl->acquire_launch_guard();
+#endif
 
   c10::cuda::CUDAGuard guard(input.device());
   auto stream = at::cuda::getCurrentCUDAStream();
   auto device = input.device();
 
+  // NCCLDevCommManager owns the device communicator. Cached per (group, key);
+  // created on first use.
+  static constexpr char const kDevcommKey[] = "nccl_all_to_all_nd";
+#ifdef USE_ROCM
+  ncclDevComm devcomm;
+  c10d::symmetric_memory::get_or_create_nccl_devcomm(
+      device,
+      group_name,
+      kDevcommKey,
+      A2A_MAX_CTA_COUNT,
+      /*lsa_multimem=*/false,
+      &devcomm,
+      sizeof(devcomm));
+#else
   auto& manager = c10d::symmetric_memory::NCCLDevCommManager::get(device);
   ncclComm_t comm = manager.get_comm(group_name);
-
-  static constexpr char const kDevcommKey[] = "nccl_all_to_all_nd";
   auto devcomm_opt = manager.get_devcomm(group_name, kDevcommKey);
   if (!devcomm_opt) {
     ncclDevCommRequirements reqs = NCCL_DEV_COMM_REQUIREMENTS_INITIALIZER;
@@ -187,6 +202,7 @@ void nccl_all_to_all_nd(
     devcomm_opt = manager.register_devcomm(group_name, devcomm, kDevcommKey);
   }
   ncclDevComm& devcomm = devcomm_opt->get();
+#endif
 
   const int my_rank = devcomm.rank;
   const int p = devcomm.nRanks;

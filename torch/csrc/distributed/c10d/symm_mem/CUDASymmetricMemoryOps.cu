@@ -20,6 +20,11 @@
 #include <torch/csrc/distributed/c10d/ParamCommsUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/CUDASymmetricMemory-inl.cuh>
 #include <torch/csrc/distributed/c10d/symm_mem/CUDASymmetricMemory.hpp>
+#ifdef USE_ROCM
+// This include brings in nccl_dev_cap.hpp, so it must appear before testing
+// NCCL_HAS_SYMMEM_SUPPORT below.
+#include <torch/csrc/distributed/c10d/symm_mem/NCCLSymmetricMemory.hpp>
+#endif
 
 #if defined(USE_ROCM) || (defined(CUDART_VERSION) && CUDART_VERSION >= 12030)
 
@@ -69,6 +74,22 @@
 namespace {
 
 using namespace c10d::symmetric_memory;
+
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+NCCLSymmetricMemoryLaunchGuard acquire_nccl_launch_guard(
+    const c10::intrusive_ptr<SymmetricMemory>& symm_mem) {
+  if (auto* nccl_hdl = dynamic_cast<NCCLSymmetricMemory*>(symm_mem.get())) {
+    return nccl_hdl->acquire_launch_guard();
+  }
+  return NCCLSymmetricMemoryLaunchGuard();
+}
+#else
+struct NoopSymmMemLaunchGuard {};
+NoopSymmMemLaunchGuard acquire_nccl_launch_guard(
+    const c10::intrusive_ptr<SymmetricMemory>&) {
+  return {};
+}
+#endif
 
 // Warns once if the current CUDA stream differs from the stream that last
 // issued a symm_mem collective for the same group. The all-reduce kernels
@@ -217,6 +238,7 @@ at::Tensor multimem_all_reduce_(
   TORCH_CHECK(
       symm_mem != nullptr,
       "multimem_all_reduce_: input must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   TORCH_CHECK(
       symm_mem->has_multicast_support(),
       "multimem_all_reduce_: multicast support is required.");
@@ -317,6 +339,7 @@ at::Tensor multimem_one_shot_reduce_out(
   TORCH_CHECK(
       symm_mem != nullptr,
       "multimem_one_shot_reduce: input must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   TORCH_CHECK(
       symm_mem->has_multicast_support(),
       "multimem_one_shot_reduce: requires multicast support.");
@@ -438,6 +461,7 @@ at::Tensor multimem_all_gather_out(
   TORCH_CHECK(
       symm_mem != nullptr,
       "multimem_all_gather_out: output must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   TORCH_CHECK(
       symm_mem->has_multicast_support(),
       "multimem_all_gather_out: output must have multicast support.");
@@ -532,6 +556,7 @@ at::Tensor memcpy_to_multicast_(
       symm_mem != nullptr,
       "symm_mem::memcpy_to_multicast_: dst must be allocated with "
       "empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   TORCH_CHECK(
       symm_mem->has_multicast_support(),
       "symm_mem::memcpy_to_multicast_: dst must have multicast support.");
@@ -652,6 +677,7 @@ at::Tensor one_shot_all_reduce_out_impl(
   TORCH_CHECK(
       symm_mem != nullptr,
       "one_shot_all_reduce: input must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   warn_if_multi_stream(group_name, "one_shot_all_reduce");
 
   const size_t alignment =
@@ -905,6 +931,7 @@ at::Tensor two_shot_all_reduce_impl(
   TORCH_CHECK(
       symm_mem != nullptr,
       "two_shot_all_reduce: input must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   warn_if_multi_stream(group_name, "two_shot_all_reduce_");
 
   const size_t alignment =
@@ -1043,6 +1070,7 @@ at::Tensor reduce_scatter_out(
   TORCH_CHECK(
       symm_mem != nullptr,
       "reduce_scatter: input must be allocated with empty_strided_p2p().");
+  [[maybe_unused]] auto launch_guard = acquire_nccl_launch_guard(symm_mem);
   warn_if_multi_stream(group_name, "reduce_scatter_out");
 
   const size_t alignment = get_and_verify_alignment(input, "reduce_scatter");

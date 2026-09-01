@@ -24,6 +24,9 @@
 #include <torch/csrc/distributed/c10d/nccl2/Logging.hpp>
 #include <torch/csrc/distributed/c10d/nccl2/NCCLBootstrap.hpp>
 #include <torch/csrc/distributed/c10d/nccl2/TracingGuard.hpp>
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
+#endif
 
 namespace c10d::nccl2 {
 
@@ -90,7 +93,8 @@ void waitForNcclChildComm(
     ncclResult_t status,
     bool expect_child,
     std::chrono::milliseconds timeout,
-    std::string_view operation) {
+    std::string_view operation,
+    std::function<void()> before_parent_abort) {
   const auto deadline = std::chrono::steady_clock::now() + timeout;
   const auto remaining = [&] {
     const auto now = std::chrono::steady_clock::now();
@@ -136,6 +140,12 @@ void waitForNcclChildComm(
         LOG(ERROR) << error.what();
       }
     };
+    // The callers mark the parent unusable and drop its handle on every
+    // failure path. Retire its external registrations before any abort can
+    // invalidate the opaque ncclComm_t identity.
+    if (before_parent_abort) {
+      before_parent_abort();
+    }
     if (status == ncclSuccess || status == ncclInProgress) {
       abortComm(parent_comm, "Failed to abort parent NCCL communicator");
     }
@@ -177,7 +187,7 @@ ProcessGroupNCCL::~ProcessGroupNCCL() {
     if (nccl_comm_) {
       // Drop our symmetric-memory registration while nccl_comm_ is still valid
       // (it is nulled below, before detachMemoryHook runs).
-      retireComm();
+      retireComm(/*graceful=*/false);
       // Best effort to abort the communicator - ignore errors since we're
       // in the destructor
       if (nccl_api_) {
@@ -281,12 +291,21 @@ void ProcessGroupNCCL::initNcclResources() {
       nccl_api_->commCount(nccl_comm_, &comm_size_),
       "NCCL Count failed");
 
+  // Record initialization-time state independently of publication. Eager
+  // communicators may not receive their final group UID until setGroupUid().
+  ::c10d::noteNCCLCommInitialized(reinterpret_cast<void*>(nccl_comm_));
+
   if (!blocking_wait_ && !shutdown_) {
     timeout_thread_ = std::thread(&ProcessGroupNCCL::timeoutWatchdog, this);
   }
 
   attachMemoryHook();
-  publishComm();
+  // Eager initialization can run before ProcessGroup assigns the finalized
+  // group UID. Publishing under the empty UID would make rendezvous for the
+  // eventual name miss this communicator; setGroupUid() publishes it later.
+  if (!getGroupUid().empty()) {
+    publishComm();
+  }
 }
 
 void ProcessGroupNCCL::initFromComm(
@@ -380,7 +399,8 @@ c10::intrusive_ptr<::c10d::Backend> ProcessGroupNCCL::split(
         splitStatus,
         newRank != -1,
         ncclOpts->timeout,
-        "NCCL split failed");
+        "NCCL split failed",
+        [this]() { retireComm(/*graceful=*/false); });
   } catch (...) {
     comm_state_ = CommState::ERROR;
     nccl_comm_ = nullptr;
@@ -426,6 +446,10 @@ c10::intrusive_ptr<::c10d::Backend> ProcessGroupNCCL::split(
   auto child = c10::make_intrusive<ProcessGroupNCCL>(
       store, newRank, static_cast<int>(ranks.size()), childOpts);
   child->initFromComm(new_comm, device_, nccl_api_);
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  c10d::symmetric_memory::inherit_rccl_symm_precondition(
+      nccl_comm_, new_comm);
+#endif
   return c10::static_intrusive_pointer_cast<::c10d::Backend>(child);
 }
 
@@ -569,7 +593,7 @@ void ProcessGroupNCCL::finalize() {
   // is skipped. We must not call commDestroy after commAbort per NCCL docs.
   if (nccl_comm_) {
     detachMemoryHook();
-    retireComm();
+    retireComm(/*graceful=*/true);
     // Deregister comm from the CachingAllocator
     waitForNcclCompletion(
         *nccl_api_,
@@ -583,7 +607,7 @@ void ProcessGroupNCCL::finalize() {
 
 void ProcessGroupNCCL::abortNcclComm() {
   detachMemoryHook();
-  retireComm();
+  retireComm(/*graceful=*/false);
   if (nccl_comm_) {
     waitForNcclCompletion(
         *nccl_api_,
@@ -678,7 +702,7 @@ void ProcessGroupNCCL::revokeNcclComm() {
   TC_LOG(INFO, this) << "Calling abort hooks before commRevoke.";
   runAbortHooks();
   detachMemoryHook();
-  retireComm();
+  retireComm(/*graceful=*/false);
   if (nccl_comm_) {
     // Best-effort: this may run on the timeout watchdog thread, so log instead
     // of throwing on failure (the communicator is already being torn down).
@@ -691,14 +715,31 @@ int64_t ProcessGroupNCCL::getCommPtr() const {
   return reinterpret_cast<int64_t>(nccl_comm_);
 }
 
+void ProcessGroupNCCL::setGroupUid(const std::string& pg_uid) {
+  const std::string oldGroupUid = getGroupUid();
+  TORCH_CHECK(
+      oldGroupUid.empty() || oldGroupUid == pg_uid || nccl_comm_ == nullptr,
+      "ProcessGroupNCCL does not support changing a non-empty group UID while "
+      "its NCCL communicator is initialized");
+  Backend::setGroupUid(pg_uid);
+  if (oldGroupUid.empty() && !pg_uid.empty() && nccl_comm_ != nullptr) {
+    publishComm();
+  }
+}
+
 void ProcessGroupNCCL::publishComm() {
   ::c10d::publishNCCLComm(
       getGroupUid(), reinterpret_cast<void*>(nccl_comm_), device_);
 }
 
-void ProcessGroupNCCL::retireComm() {
+void ProcessGroupNCCL::retireComm(bool graceful) {
   ::c10d::retireNCCLComm(
-      getGroupUid(), reinterpret_cast<void*>(nccl_comm_), device_);
+      getGroupUid(),
+      reinterpret_cast<void*>(nccl_comm_),
+      device_,
+      graceful ? ::c10d::NCCLCommRetirementMode::Graceful
+               : ::c10d::NCCLCommRetirementMode::Abort,
+      std::min(options_c10d_->timeout, std::chrono::milliseconds(5000)));
 }
 
 // Point-to-Point Operations

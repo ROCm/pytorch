@@ -9,6 +9,10 @@
 
 #include <c10/cuda/CUDAGuard.h>
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_devcomm_cache.hpp>
+#endif
+
 namespace c10d::nccl2 {
 
 namespace {
@@ -92,7 +96,8 @@ c10::intrusive_ptr<::c10d::Backend> ProcessGroupNCCL::shrink(
         shrinkStatus,
         true,
         childOptions->timeout,
-        "NCCL commShrink failed");
+        "NCCL commShrink failed",
+        [this]() { retireComm(/*graceful=*/false); });
   } catch (...) {
     comm_state_ = CommState::ERROR;
     nccl_comm_ = nullptr;
@@ -107,6 +112,12 @@ c10::intrusive_ptr<::c10d::Backend> ProcessGroupNCCL::shrink(
       getSize() - static_cast<int>(excluded.size()),
       childOptions);
   child->initFromComm(childComm, device_, nccl_api_);
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  // RCCL child communicators inherit their parent's window configuration;
+  // do not replace that init-time state with a later environment value.
+  c10d::symmetric_memory::inherit_rccl_symm_precondition(
+      nccl_comm_, childComm);
+#endif
   return c10::static_intrusive_pointer_cast<::c10d::Backend>(child);
 }
 

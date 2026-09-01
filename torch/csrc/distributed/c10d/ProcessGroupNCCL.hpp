@@ -30,6 +30,7 @@
 #include <torch/csrc/distributed/c10d/cuda/CUDAEventCache.hpp>
 #include <torch/csrc/distributed/c10d/logger.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/intra_node_comm.hpp>
+#include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
 
 #include <ATen/DynamicLibrary.h>
 #include <ATen/cuda/CUDAContext.h>
@@ -815,6 +816,10 @@ class TORCH_API ProcessGroupNCCL : public Backend {
     return std::string(NCCL_BACKEND_NAME);
   }
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  void setGroupUid(const std::string& pg_uid) override;
+#endif
+
   bool supportsSplitting() const override {
     return true;
   }
@@ -1097,6 +1102,15 @@ class TORCH_API ProcessGroupNCCL : public Backend {
       const at::Device& device,
       std::shared_ptr<NCCLComm> comm);
 
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  // Publish an initialized RCCL host communicator under this backend's
+  // finalized group uid. Shrink creates the communicator before Python assigns
+  // the final group name, so publication must also happen from setGroupUid().
+  void publishSymmMemComm(
+      const at::Device& device,
+      const std::shared_ptr<NCCLComm>& comm);
+#endif
+
   // Wrapper method which can be overridden for tests.
   virtual std::exception_ptr checkForNCCLErrors(
       std::shared_ptr<NCCLComm>& ncclComm);
@@ -1229,6 +1243,25 @@ class TORCH_API ProcessGroupNCCL : public Backend {
   // key. Throws if there are no communicators to destroy. Also removes
   // communicators from the cache and clears used device indices.
   void destroyNCCLComms(const std::string& devNCCLCommMapKey);
+
+  // The finalized process group name used by symmetric-memory registries.
+  // Empty means the Python ProcessGroup wrapper has not assigned the final
+  // group name yet; callers must skip publication/teardown in that state.
+  std::string symmMemGroupName() const {
+    return getGroupUid();
+  }
+
+  // ROCm: unregister a host comm from NCCLDevCommManager and release its owned
+  // device communicators. Must be called with mutex_ held while the comm is
+  // still alive (before ncclCommDestroy/Abort), so a later same-name PG sees
+  // get_comm() throw (rather than a dead handle) and symm-mem allocations bound
+  // to the comm become non-cacheable. Defined and called only when RCCL exposes
+  // LSA peer pointers, so it is never ODR-used off that path.
+#if defined(USE_ROCM) && defined(NCCL_HAS_SYMMEM_SUPPORT)
+  void releaseSymmMemForComm(
+      const std::shared_ptr<NCCLComm>& ncclComm,
+      bool reclaimDeviceTables);
+#endif
 
   void runHookLoop();
 
