@@ -556,6 +556,9 @@ def run_test(
         unittest_args.extend(test_module.get_pytest_args())
         replacement = {"-f": "-x", "-dist=loadfile": "--dist=loadfile"}
         unittest_args = [replacement.get(arg, arg) for arg in unittest_args]
+        # test_cuda.py prints [cuda_mem] to stderr; pytest capture would hide it.
+        if test_file == "test_cuda" and "-s" not in unittest_args:
+            unittest_args.append("-s")
 
     if options.showlocals:
         if options.pytest:

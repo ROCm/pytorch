@@ -191,9 +191,68 @@ def get_wait_for_cpu_kernel():
     return _wait_for_cpu_kernel
 
 
+def _fmt_bytes(nbytes):
+    return f"{nbytes / (1024**3):.3f}GiB"
+
+
+def _log_cuda_memory(phase, name=None):
+    bits = [f"[cuda_mem] {phase}"]
+    if name:
+        bits.append(name)
+    try:
+        bits.append(f"rss={_fmt_bytes(psutil.Process().memory_info().rss)}")
+    except Exception:
+        pass
+    if torch.cuda.is_available():
+        try:
+            bits.append(f"current_device={torch.cuda.current_device()}")
+            for i in range(torch.cuda.device_count()):
+                free, total = torch.cuda.mem_get_info(i)
+                allocated = torch.cuda.memory_allocated(i)
+                reserved = torch.cuda.memory_reserved(i)
+                max_alloc = torch.cuda.max_memory_allocated(i)
+                max_res = torch.cuda.max_memory_reserved(i)
+                frac = torch.cuda.get_per_process_memory_fraction(i)
+                bits.append(
+                    f"gpu{i}(free={_fmt_bytes(free)}/{_fmt_bytes(total)} "
+                    f"alloc={_fmt_bytes(allocated)} reserved={_fmt_bytes(reserved)} "
+                    f"max_alloc={_fmt_bytes(max_alloc)} max_reserved={_fmt_bytes(max_res)} "
+                    f"frac={frac:.4f})"
+                )
+        except Exception as e:
+            bits.append(f"cuda_error={type(e).__name__}:{e}")
+        try:
+            host = torch.cuda.host_memory_stats()
+            bits.append(
+                f"host(active={_fmt_bytes(host['active_bytes.current'])} "
+                f"alloc={_fmt_bytes(host['allocated_bytes.current'])})"
+            )
+        except Exception:
+            pass
+    print(" ".join(bits), file=sys.stderr, flush=True)
+
+
+class _CudaMemoryLoggingMixin:
+    def setUp(self):
+        super().setUp()
+        _log_cuda_memory("before_test", self.id())
+
+    def tearDown(self):
+        _log_cuda_memory("after_test", self.id())
+        super().tearDown()
+
+
+def setUpModule():
+    _log_cuda_memory("module_start")
+
+
+def tearDownModule():
+    _log_cuda_memory("module_end")
+
+
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
 @torch.testing._internal.common_utils.markDynamoStrictTest
-class TestCuda(TestCase):
+class TestCuda(_CudaMemoryLoggingMixin, TestCase):
     _do_cuda_memory_leak_check = True
     _do_cuda_non_default_stream = True
     FIFTY_MIL_CYCLES = 50000000
@@ -600,11 +659,7 @@ print(t.is_pinned())
         IS_JETSON, "oom reporting has issues on jetson igx due to partial nvml support"
     )
     def test_out_of_memory(self):
-        if (
-            TEST_WITH_ROCM
-            and getRocmVersion() >= (7, 14)
-            and EXPANDABLE_SEGMENTS
-        ):
+        if TEST_WITH_ROCM and getRocmVersion() >= (7, 14) and EXPANDABLE_SEGMENTS:
             self.skipTest(
                 "TestCuda.test_out_of_memory: OOM tensor flag is False on ROCm "
                 "expandable segments (7.14+)"
@@ -1367,7 +1422,9 @@ print(t.is_pinned())
             self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
 
-    @skipIfRocm(msg="ROCm cold HIP init causes 15s subprocess timeout on CI; flaky/slow-init, not a confirmed deadlock")
+    @skipIfRocm(
+        msg="ROCm cold HIP init causes 15s subprocess timeout on CI; flaky/slow-init, not a confirmed deadlock"
+    )
     def test_lazy_call_reentrant_set_rng_state_does_not_deadlock(self):
         # Separate process: a regression deadlocks the interpreter (non-reentrant lock).
         # Happy path is usually a few seconds; allow margin for slow CI / CUDA init.
@@ -2848,8 +2905,10 @@ torch.cuda.synchronize()
         torch.cuda.synchronize()
         self.assertFalse(torch.allclose(buf, torch.zeros_like(buf)))
 
-    @skipIfRocm(msg="HIPCachingAllocator does not release reserved segments after a failed "
-                "graph capture; memory_reserved() does not recover to baseline")
+    @skipIfRocm(
+        msg="HIPCachingAllocator does not release reserved segments after a failed "
+        "graph capture; memory_reserved() does not recover to baseline"
+    )
     @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
@@ -4773,7 +4832,9 @@ with torch.cuda.graph(g):
             )
             self.assertEqual(rc, "3")
 
-    @unittest.skipIf(TEST_WITH_ROCM, "Failed onr ROCm due to rocprofiler-sdk issue AIPROFSDK-840")
+    @unittest.skipIf(
+        TEST_WITH_ROCM, "Failed onr ROCm due to rocprofiler-sdk issue AIPROFSDK-840"
+    )
     @unittest.skipIf(not TEST_WITH_ROCM, "not relevant for CUDA testing")
     def test_hip_device_count(self):
         """Validate device_count works with both CUDA/HIP visible devices"""
@@ -4905,7 +4966,7 @@ print(ret)
     TEST_WITH_ROCM and EXPANDABLE_SEGMENTS,
     "expandable_segments mode is not supported on ROCm",
 )
-class TestResizeStorageWithAddr(TestCase):
+class TestResizeStorageWithAddr(_CudaMemoryLoggingMixin, TestCase):
     _do_cuda_memory_leak_check = True
     _do_cuda_non_default_stream = True
 
@@ -5154,7 +5215,7 @@ class TestResizeStorageWithAddr(TestCase):
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
 @torch.testing._internal.common_utils.markDynamoStrictTest
-class TestCudaAllocator(TestCase):
+class TestCudaAllocator(_CudaMemoryLoggingMixin, TestCase):
     def tearDown(self):
         super().tearDown()
         # Regression check: no test in this class should leave the runtime
@@ -5942,7 +6003,9 @@ class TestCudaAllocator(TestCase):
                 "throw_on_cudamalloc_oom:False,per_process_memory_fraction:1.0"
             )
 
-    @skipIfRocm(msg="subprocess spawned with env={} drops LD_LIBRARY_PATH; dynamically-linked venv python cannot find libpython3.12.so.1.0 on CI (exit 127 before test body)")
+    @skipIfRocm(
+        msg="subprocess spawned with env={} drops LD_LIBRARY_PATH; dynamically-linked venv python cannot find libpython3.12.so.1.0 on CI (exit 127 before test body)"
+    )
     def test_allocator_backend(self):
         def check_output(script: str) -> str:
             return subprocess.check_output(
@@ -6382,7 +6445,7 @@ def reconstruct_from_tensor_metadata(metadata):
     "CUDA required, not supported with CUDAMallocAsync",
 )
 @torch.testing._internal.common_utils.markDynamoStrictTest
-class TestBlockStateAbsorption(TestCase):
+class TestBlockStateAbsorption(_CudaMemoryLoggingMixin, TestCase):
     @property
     def expandable_segments(self):
         return EXPANDABLE_SEGMENTS
@@ -6874,7 +6937,7 @@ def caching_host_allocator_max_round_threshold_and_max_cached_size(
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestCachingHostAllocatorConfig(TestCase):
+class TestCachingHostAllocatorConfig(_CudaMemoryLoggingMixin, TestCase):
     def setUp(self):
         super().setUp()
         gc.collect()
@@ -6953,7 +7016,7 @@ class TestCachingHostAllocatorConfig(TestCase):
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestCachingHostAllocatorCudaGraph(TestCase):
+class TestCachingHostAllocatorCudaGraph(_CudaMemoryLoggingMixin, TestCase):
     # As soon as pinned host memory allocated by a private pool is
     # used (by copy_ in this case) during stream capture, it can never
     # be recycled.
@@ -7081,7 +7144,7 @@ class TestCachingHostAllocatorCudaGraph(TestCase):
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestMemPool(TestCase):
+class TestMemPool(_CudaMemoryLoggingMixin, TestCase):
     def _setup_mempool_limited_memory_test(self, additional_allowed_memory_in_mb):
         device = torch.device("cuda:0")
 
@@ -8621,7 +8684,7 @@ class TestMemPool(TestCase):
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
 @torch.testing._internal.common_utils.markDynamoStrictTest
-class TestCudaOptims(TestCase):
+class TestCudaOptims(_CudaMemoryLoggingMixin, TestCase):
     # These tests will be instantiate with instantiate_device_type_tests
     # to apply the new OptimizerInfo structure.
 
@@ -8983,7 +9046,7 @@ class TestCudaOptims(TestCase):
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestGDS(TestCase):
+class TestGDS(_CudaMemoryLoggingMixin, TestCase):
     def _get_tmp_dir_fs_type(self):
         my_path = os.path.realpath(tempfile.gettempdir())
         root_type = ""
@@ -9018,7 +9081,7 @@ class TestGDS(TestCase):
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestCudaAutocast(TestAutocast):
+class TestCudaAutocast(_CudaMemoryLoggingMixin, TestAutocast):
     def setUp(self):
         super().setUp()
         self.autocast_lists = AutocastTestLists(torch.device("cuda:0"))
@@ -9564,7 +9627,7 @@ class TestCudaAutocast(TestAutocast):
                 _ = torch.ones(10)
 
 
-class TestCompileKernel(TestCase):
+class TestCompileKernel(_CudaMemoryLoggingMixin, TestCase):
     @unittest.skipIf(not TEST_CUDA, "No CUDA")
     def test_compile_kernel(self):
         # Simple vector addition kernel
@@ -10094,7 +10157,7 @@ class TestCompileKernel(TestCase):
 
 
 @unittest.skipIf(not TEST_CUDA, "CUDA not available, skipping tests")
-class TestCudaDeviceParametrized(TestCase):
+class TestCudaDeviceParametrized(_CudaMemoryLoggingMixin, TestCase):
     @skipIfRocmVersionLessThan((7, 0))
     @skipCUDAIf(
         not SM70OrLater, "Compute capability >= SM70 required for relaxed ptx flag"
@@ -10188,7 +10251,7 @@ class TestCudaDeviceParametrized(TestCase):
         )
 
 
-class TestFXMemoryProfiler(TestCase):
+class TestFXMemoryProfiler(_CudaMemoryLoggingMixin, TestCase):
     """Tests for memory profiler augmentation with original stack traces."""
 
     class MLPModule(nn.Module):
@@ -10317,7 +10380,7 @@ class TestFXMemoryProfiler(TestCase):
 @unittest.skipIf(
     not PLATFORM_SUPPORTS_GREEN_CONTEXT, "Green contexts are not supported"
 )
-class TestCudaGreenContexts(TestCase):
+class TestCudaGreenContexts(_CudaMemoryLoggingMixin, TestCase):
     def setUp(self):
         super().setUp()
 
@@ -10466,7 +10529,7 @@ class TestCudaGreenContexts(TestCase):
         self.assertGreater(limited_time, baseline_time)
 
 
-class TestCudaArchList(TestCase):
+class TestCudaArchList(_CudaMemoryLoggingMixin, TestCase):
     def test_get_arch_list_empty_when_cuda_not_compiled(self):
         if torch.cuda._is_compiled():
             self.skipTest("CUDA is compiled")
@@ -10491,7 +10554,7 @@ instantiate_device_type_tests(TestCudaGreenContexts, globals(), except_for="cpu"
 
 # Tests for fp32_precision flag propagation that don't require an actual CUDA
 # device — they only exercise C++ context state management.
-class TestFP32PrecisionFlags(TestCase):
+class TestFP32PrecisionFlags(_CudaMemoryLoggingMixin, TestCase):
     @unittest.skipIf(
         IS_LINUX or TEST_WITH_SLOW, "https://github.com/pytorch/pytorch/issues/182021"
     )
@@ -10509,7 +10572,7 @@ class TestFP32PrecisionFlags(TestCase):
             self.assertEqual(torch.backends.cuda.matmul.fp32_precision, "ieee")
 
 
-class TestMemoryViz(TestCase):
+class TestMemoryViz(_CudaMemoryLoggingMixin, TestCase):
     def test_format_flamegraph_download_moves_temp_file(self):
         # Regression test: format_flamegraph downloads flamegraph.pl into a temp
         # file and moves it into place. Previously the temp file was created by a
