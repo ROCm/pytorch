@@ -2227,6 +2227,25 @@ def skipIfRocmVersionLessThan(version=None):
         return wrap_fn
     return dec_fn
 
+# Skips a test on ROCm if the version is at least the given major.minor tuple.
+def skipIfRocmVersionAtLeast(version=None):
+    def dec_fn(fn):
+        @wraps(fn)
+        def wrap_fn(self, *args, **kwargs):
+            if TEST_WITH_ROCM:
+                rocm_version_tuple = getRocmVersion()
+                if (
+                    rocm_version_tuple is not None
+                    and version is not None
+                    and rocm_version_tuple >= tuple(version)
+                ):
+                    raise unittest.SkipTest(
+                        f"ROCm version at least {version}: known failure"
+                    )
+            return fn(self, *args, **kwargs)
+        return wrap_fn
+    return dec_fn
+
 def skipIfNotMiopenSuggestNHWC(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
