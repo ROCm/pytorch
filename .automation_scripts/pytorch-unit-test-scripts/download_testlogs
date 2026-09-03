@@ -1043,7 +1043,7 @@ def main():
             try:
                 baseline_default_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["default"], sha=baseline_sha,
+                    workflow="trunk", sha=baseline_sha,
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline default workflow not found for {baseline_sha}",
                 )
@@ -1075,7 +1075,7 @@ def main():
             try:
                 baseline_dist_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["distributed"], sha=baseline_sha,
+                    workflow="trunk", sha=baseline_sha,
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
                 )
@@ -1107,7 +1107,7 @@ def main():
             try:
                 baseline_inductor_wf = download_workflow_run(
                     created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["inductor"], sha=baseline_sha,
+                    workflow="trunk", sha=baseline_sha,
                     ignore_status=args.ignore_status, status=status,
                     error_msg=f"Baseline inductor workflow not found for {baseline_sha}",
                 )
