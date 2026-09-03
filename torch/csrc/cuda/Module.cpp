@@ -2304,6 +2304,16 @@ void initModule(PyObject* module) {
   registerCudaDeviceProperties(module);
   registerCudaPluggableAllocator(module);
   initCudaMethodBindings(module);
+#if defined(USE_ROCM)
+  // ROCm 7.x: drain the current device before C++ static destructors run.
+  // C++ std::atexit is too late; Python atexit matches torch.cuda.synchronize().
+  auto atexit_mod = py::module_::import("atexit");
+  atexit_mod.attr("register")(py::cpp_function([]() {
+    if (c10::cuda::device_count() > 0) {
+      c10::cuda::device_synchronize();
+    }
+  }));
+#endif
 }
 
 } // namespace torch::cuda
