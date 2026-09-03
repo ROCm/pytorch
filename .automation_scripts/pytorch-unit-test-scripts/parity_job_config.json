@@ -21,15 +21,15 @@
   "rocm": {
     "mi350": {
       "default": [
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
+        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
         { "workflow": "rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" }
       ],
       "distributed": [
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
+        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
         { "workflow": "periodic-rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" }
       ],
       "inductor": [
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
+        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
       ],
       "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
