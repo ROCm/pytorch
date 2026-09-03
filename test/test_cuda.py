@@ -4735,6 +4735,7 @@ class TestCudaAllocator(TestCase):
                 return x
 
         try:
+            torch._dynamo.reset()
             torch.cuda.memory.empty_cache()
             # Region ids come from Dynamo's process-global frame counter, which
             # reset() zeroes; do it before compiling so the region strings are
