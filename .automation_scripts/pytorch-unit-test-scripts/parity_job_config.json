@@ -15,7 +15,7 @@
     "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.0-py3.10-gcc11" }],
     "inductor": [{ "workflow": "inductor", "job_prefix": "unit-test / inductor-test" }],
     "test_kinds": ["test-osdc", "test"],
-    "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
+    "shard_counts": { "default": 5, "distributed": 3, "inductor": 2 },
     "checkrun_regex": "(linux-jammy-cuda13[.]0-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
   },
   "rocm": {
@@ -31,7 +31,7 @@
       "inductor": [
         { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
       ],
-      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
+      "shard_counts": { "default": 8, "distributed": 5, "inductor": 2 },
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
     },
     "mi300": {
