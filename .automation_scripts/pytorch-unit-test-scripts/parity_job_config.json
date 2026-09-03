@@ -38,7 +38,7 @@
       "default": [{ "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "distributed": [{ "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "inductor": [{ "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
-      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
+      "shard_counts": { "default": 8, "distributed": 5, "inductor": 2 },
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
     "mi200": {
