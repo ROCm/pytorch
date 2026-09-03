@@ -248,6 +248,10 @@ option(USE_COLORIZE_OUTPUT "Colorize output during compilation" ON)
 option(USE_ASAN "Use Address+Undefined Sanitizers" OFF)
 option(USE_LSAN "Use Leak Sanitizer" OFF)
 option(USE_TSAN "Use Thread Sanitizer" OFF)
+option(
+  THEROCK_PYTORCH_PORTABLE_RPATH
+  "Use TheRock wheel-relative ROCm runtime search paths"
+  OFF)
 
 # Track whether USE_CUDA was explicitly set by the user (before option() is called)
 # If USE_CUDA is already defined in cache, it means user explicitly set it
