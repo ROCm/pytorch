@@ -16,7 +16,10 @@
 #if ROCM_VERSION < 60400
 __device__ inline __hip_bfloat162 preview_unsafeAtomicAdd(__hip_bfloat162* address, __hip_bfloat162 value) {
   if (__builtin_amdgcn_is_invocable(__builtin_amdgcn_flat_atomic_fadd_v2bf16)) {
-    typedef unsigned short __attribute__((ext_vector_type(2))) vec_short2;
+    // The api expects an ext_vector_type of signed short; an unsigned element
+    // type only compiles on toolchains where the builtin is declared with a
+    // GCC-style vector, which permits a lax vector conversion.
+    typedef short __attribute__((ext_vector_type(2))) vec_short2;
     static_assert(sizeof(vec_short2) == sizeof(__hip_bfloat162_raw));
     union {
       __hip_bfloat162_raw bf162_raw;
@@ -289,7 +292,7 @@ __device__ __forceinline__ void opportunistic_fastAtomicAdd(
   //pack coalesced bf16 and fp16
   if constexpr (std::is_same<scalar_t, c10::BFloat16>::value || std::is_same<scalar_t, c10::Half>::value)
   {
-      typedef unsigned short __attribute__((ext_vector_type(2))) vec_short2;
+      typedef short __attribute__((ext_vector_type(2))) vec_short2;
       union ill { unsigned int i[2]; int64_t il; };
       ill iil_, ill_oneUpDst = {};
       iil_.il = (int64_t)dst;
