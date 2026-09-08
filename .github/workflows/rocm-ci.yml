@@ -1,0 +1,254 @@
+name: ROCm CI
+
+on:
+  pull_request:
+    branches:
+      - release/2.11
+      - release/2.12
+      - release/2.13
+      - release/2.14
+  push:
+    branches:
+      - release/2.11
+      - release/2.12
+      - release/2.13
+      - release/2.14
+  workflow_dispatch:
+
+concurrency:
+  group: rocm-gfx942-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  BUILD_ENVIRONMENT: linux-noble-rocm-py3.12-gfx942
+  CI: "1"
+  PYTORCH_ROCM_ARCH: gfx942
+  SCCACHE_CACHE_SIZE: 10G
+  SCCACHE_GHA_ENABLED: "true"
+  SKIP_SCCACHE_INITIALIZATION: "1"
+
+jobs:
+  build:
+    name: build
+    if: >-
+      github.repository == 'ROCm/pytorch' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: build-only-pytorch
+    timeout-minutes: 120
+    container:
+      image: >-
+        rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
+    steps:
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          show-progress: false
+          submodules: recursive
+
+      - name: Build PyTorch
+        run: .ci/pytorch/build.sh
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: rocm-gfx942-build-${{ github.run_attempt }}
+          path: |
+            dist/
+            build/custom_test_artifacts/
+            build/lib/
+            build/bin/
+            .additional_ci_files/
+          compression-level: 0
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+
+  test:
+    name: test / ${{ matrix.config }} / ${{ matrix.shard }} of ${{ matrix.num_shards }}
+    needs: build
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - config: default
+            shard: 1
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 2
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 3
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 4
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 5
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 6
+            num_shards: 6
+            runner: linux-pytorch-mi325-1
+          - config: distributed
+            shard: 1
+            num_shards: 3
+            runner: linux-pytorch-mi325-4
+          - config: distributed
+            shard: 2
+            num_shards: 3
+            runner: linux-pytorch-mi325-4
+          - config: distributed
+            shard: 3
+            num_shards: 3
+            runner: linux-pytorch-mi325-4
+          - config: inductor
+            shard: 1
+            num_shards: 2
+            runner: linux-pytorch-mi325-1
+          - config: inductor
+            shard: 2
+            num_shards: 2
+            runner: linux-pytorch-mi325-1
+    container:
+      image: >-
+        rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
+      options: >-
+        --env-file /etc/podinfo/gha-gpu-isolation-settings
+        --device=/dev/mem
+        --device=/dev/kfd
+        --device=/dev/dri
+        --group-add video
+        --group-add daemon
+        --group-add bin
+        --cap-add=SYS_PTRACE
+        --security-opt seccomp=unconfined
+        --shm-size=8g
+        --ulimit stack=10485760:83886080
+        --ulimit core=0
+    env:
+      BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+      BRANCH: ${{ github.head_ref || github.ref_name }}
+      GIT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      MAX_JOBS: 6
+      NUM_TEST_SHARDS: ${{ matrix.num_shards }}
+      PR_NUMBER: ${{ github.event.pull_request.number }}
+      REQUIRED_GPU_COUNT: ${{ matrix.config == 'distributed' && '4' || '1' }}
+      SHARD_NUMBER: ${{ matrix.shard }}
+      SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
+      TEST_CONFIG: ${{ matrix.config }}
+      USE_ARC: "1"
+    steps:
+      - name: Checkout PyTorch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          show-progress: false
+          submodules: recursive
+
+      - name: Download build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: rocm-gfx942-build-${{ github.run_attempt }}
+          path: .
+
+      - name: Restore executable permissions
+        run: |
+          for directory in build/bin build/custom_test_artifacts; do
+            if [[ -d "$directory" ]]; then
+              find "$directory" -type f -exec chmod a+x {} +
+            fi
+          done
+
+      - name: Verify gfx942 runner
+        run: |
+          for variable in ROCR_VISIBLE_DEVICES HIP_VISIBLE_DEVICES; do
+            value=${!variable:-}
+            if [[ ! "$value" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
+              echo "$variable is missing or malformed: '$value'"
+              exit 1
+            fi
+            IFS=',' read -ra devices <<< "$value"
+            if (( ${#devices[@]} != REQUIRED_GPU_COUNT )); then
+              echo "Expected ${REQUIRED_GPU_COUNT} devices in $variable, found ${#devices[@]}: $value"
+              exit 1
+            fi
+          done
+
+          rocminfo_output=$(rocminfo)
+          printf '%s\n' "$rocminfo_output"
+          gpu_count=$(grep -c -E 'Name:.*\sgfx942' <<< "$rocminfo_output" || true)
+          if (( gpu_count != REQUIRED_GPU_COUNT )); then
+            echo "Expected ${REQUIRED_GPU_COUNT} gfx942 GPUs, found ${gpu_count}"
+            exit 1
+          fi
+
+      - name: Install PyTorch wheel
+        run: python -m pip install dist/*.whl
+
+      - name: Verify PyTorch GPU visibility
+        run: |
+          python - <<'PY'
+          import os
+
+          import torch
+
+          expected = int(os.environ["REQUIRED_GPU_COUNT"])
+          actual = torch.cuda.device_count()
+          if torch.version.hip is None:
+              raise RuntimeError("The installed PyTorch wheel has no ROCm support")
+          if actual != expected:
+              raise RuntimeError(f"Expected {expected} visible GPUs, found {actual}")
+          PY
+
+      - name: Run tests
+        run: .ci/pytorch/test.sh
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rocm-gfx942-reports-${{ github.run_attempt }}-${{ matrix.config }}-${{ matrix.shard }}
+          path: test/test-reports/**/*.xml
+          if-no-files-found: warn
+          retention-days: 14
+
+  required:
+    name: ROCm CI
+    if: >-
+      always() && github.repository == 'ROCm/pytorch' &&
+      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs:
+      - build
+      - test
+    runs-on: build-only-pytorch
+    timeout-minutes: 5
+    steps:
+      - name: Check job results
+        env:
+          BUILD_RESULT: ${{ needs.build.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          if [[ "$BUILD_RESULT" != success || "$TEST_RESULT" != success ]]; then
+            echo "build=${BUILD_RESULT} test=${TEST_RESULT}"
+            exit 1
+          fi
