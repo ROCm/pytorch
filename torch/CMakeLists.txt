@@ -324,7 +324,9 @@ endif()
 if(CAFFE2_USE_MKL AND BUILD_LIBTORCHLESS)
 
   # Use the RPATH of the linked libraries
-  set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  if(NOT THEROCK_PYTORCH_PORTABLE_RPATH)
+    set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+  endif()
   # we need to explicitly link caffe2::mkl in order to have the
   # correct RPATH in torch_python for the split build
   target_link_libraries(torch_python PRIVATE caffe2::mkl)
