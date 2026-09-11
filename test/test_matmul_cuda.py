@@ -41,6 +41,8 @@ from torch.testing._internal.common_utils import (
     IS_JETSON,
     IS_WINDOWS,
     MI200_ARCH,
+    MI300_ARCH,
+    MI350_ARCH,
     NAVI_ARCH,
     getRocmVersion,
     isRocmArchAnyOf,
@@ -838,6 +840,9 @@ class TestMatmulCuda(InductorTestCase):
             self.assertEqual(C, C_ref)
 
     @skipCUDAIfNotRocm
+    # ROCM_ALLOW_GROUP_GEMM_CK only routes to CK on the archs composable_kernel
+    # supports; elsewhere (e.g. gfx1250, Navi) grouped_mm stays on hipBLASLt.
+    @runOnRocmArch(MI200_ARCH + MI300_ARCH + MI350_ARCH)
     # Fails with triton 3.7
     def test_grouped_gemm_rocm_ck_flag(self):
         CK_EQUAL_K_HINT = "kernel_grouped_gemm_xdl_splitk"

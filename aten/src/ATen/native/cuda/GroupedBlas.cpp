@@ -718,7 +718,11 @@ std::optional<c10::ScalarType> out_dtype) {
 #if defined(USE_ROCM_CK_GEMM)
   // ifdef USE_ROCM_CK_GEMM is required since ROCm systems w/o CK should not call ck path.
   // To enable CK path, use env variable ROCM_ALLOW_GROUP_GEMM_CK=1.
-  if (at::globalContext().rocmAllowGroupGemmCk() && at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx1250", "gfx90a"})) {
+  // gfx1250 is intentionally absent: the pinned composable_kernel has no gfx1250
+  // support, so aten/src/ATen/CMakeLists.txt filters that arch out of the ck_gemm
+  // target and a gfx1250 device has no CK code object to launch. Keep this list in
+  // sync with that filtering when the CK submodule gains gfx1250 support.
+  if (at::globalContext().rocmAllowGroupGemmCk() && at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx90a"})) {
     at::hip::detail::group_gemm_ck(mat_a, mat_b, offs, bias, out);
   } else {
     _grouped_mm_fallback(mat_a, mat_b, offs, bias, out_dtype, out);
