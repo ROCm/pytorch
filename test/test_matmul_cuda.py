@@ -41,6 +41,8 @@ from torch.testing._internal.common_utils import (
     IS_JETSON,
     IS_WINDOWS,
     MI200_ARCH,
+    MI300_ARCH,
+    MI350_ARCH,
     NAVI_ARCH,
     getRocmVersion,
     isRocmArchAnyOf,
@@ -838,14 +840,17 @@ class TestMatmulCuda(InductorTestCase):
             self.assertEqual(C, C_ref)
 
     @skipCUDAIfNotRocm
-    # Fails with triton 3.7
+    # _grouped_mm only routes to CK on the archs gated in GroupedBlas.cpp; everywhere
+    # else ROCM_ALLOW_GROUP_GEMM_CK=1 still falls back to hipBLASLt.
+    @runOnRocmArch(MI200_ARCH + MI300_ARCH + MI350_ARCH)
     def test_grouped_gemm_rocm_ck_flag(self):
-        CK_EQUAL_K_HINT = "kernel_grouped_gemm_xdl_splitk"
-        CK_UNEQUAL_K_HINT = "kernel_grouped_gemm_xdl_splitk"
+        # Both CK grouped GEMM instances, the equal-K split-K one and the two-stage
+        # unequal-K one, launch the same kernel symbol.
+        CK_HINT = "kernel_grouped_gemm_xdl_splitk"
         HIPBLASLT_HINT = "Cijk_Alik_Bljk_BBS_BH_Bias_HA_S_SAV_UserArgs"
 
-        def has_ck_kernel(kernels: set[str], hint: str) -> bool:
-            return any(hint in k for k in kernels)
+        def has_ck_kernel(kernels: set[str]) -> bool:
+            return any(CK_HINT in k for k in kernels)
 
         def uses_hipblaslt(kernels: set[str]) -> bool:
             return any(HIPBLASLT_HINT in k for k in kernels)
@@ -883,11 +888,8 @@ class TestMatmulCuda(InductorTestCase):
         with rocm_group_gemm_ck_env(None):
             self.assertTrue(uses_hipblaslt(collect_kernel_names(equal_k=True)))
         with rocm_group_gemm_ck_env("1"):
-            ck_equal_kernels = collect_kernel_names(equal_k=True)
-            self.assertTrue(has_ck_kernel(ck_equal_kernels, CK_EQUAL_K_HINT))
-
-            ck_unequal_kernels = collect_kernel_names(equal_k=False)
-            self.assertTrue(has_ck_kernel(ck_unequal_kernels, CK_UNEQUAL_K_HINT))
+            self.assertTrue(has_ck_kernel(collect_kernel_names(equal_k=True)))
+            self.assertTrue(has_ck_kernel(collect_kernel_names(equal_k=False)))
 
     @onlyCUDA
     @parametrize("input_dtype", [torch.float32, torch.float16, torch.bfloat16])
