@@ -17871,9 +17871,9 @@ op_db: list[OpInfo] = [
                DecorateInfo(unittest.skip("Skipped!"), 'TestCommon', 'test_dtypes', device_type='cuda', active_if=not SM53OrLater),
                DecorateInfo(unittest.skip("Skipped!"), 'TestNNCOpInfo', 'test_nnc_correctness', dtypes=(torch.bfloat16,)),
                # https://github.com/pytorch/pytorch/issues/159150
-               DecorateInfo(unittest.skip, "TestCommon", "test_fake_crossref_backward_amp", device_type="cuda", dtypes=(torch.float32,), active_if=IS_LINUX or TEST_WITH_ROCM or TEST_WITH_TORCHINDUCTOR),
+               DecorateInfo(unittest.skip, "TestFakeTensor", "test_fake_crossref_backward_amp", device_type="cuda", dtypes=(torch.float32,), active_if=IS_LINUX or TEST_WITH_ROCM or TEST_WITH_TORCHINDUCTOR),
                # https://github.com/pytorch/pytorch/issues/159151
-               DecorateInfo(unittest.skip, "TestCommon", "test_fake_crossref_backward_no_amp", device_type="cuda", dtypes=(torch.float32,), active_if=IS_LINUX or TEST_WITH_ROCM),
+               DecorateInfo(unittest.skip, "TestFakeTensor", "test_fake_crossref_backward_no_amp", device_type="cuda", dtypes=(torch.float32,), active_if=IS_LINUX or TEST_WITH_ROCM),
            ),
            # Runs very slowly on slow gradcheck - alternatively reduce input sizes
            gradcheck_fast_mode=True,
