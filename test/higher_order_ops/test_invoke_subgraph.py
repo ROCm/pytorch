@@ -2,7 +2,9 @@
 # flake8: noqa: E731
 
 import contextlib
+import os
 import re
+import sys
 import unittest
 import unittest.mock as mock
 import warnings
@@ -41,6 +43,10 @@ from torch.testing._internal.common_utils import (
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
 from torch.testing._internal.triton_utils import requires_cuda_and_triton, requires_gpu
 
+
+# Some tests import helpers that live directly under test/ (e.g. test_opaque_obj_v2)
+pytorch_test_dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.append(pytorch_test_dir)
 
 nested_compile_region = torch.compiler.nested_compile_region
 
