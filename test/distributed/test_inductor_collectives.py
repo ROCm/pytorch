@@ -237,7 +237,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             example = functools.partial(
                 example,
                 **self.get_world_trs(),
@@ -275,7 +277,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             matmul_cat_col = functools.partial(
                 matmul_cat_col,
                 **self.get_world_trs(),
@@ -314,7 +318,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             "triton.cudagraph_trees": True,
         }
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             compiled_func = torch.compile(
                 func, backend="inductor", fullgraph=True, options=options, dynamic=None
             )
@@ -355,7 +361,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             eager_func = functools.partial(
                 eager_func,
                 **self.get_world_trs(),
@@ -394,7 +402,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             inductor_func = functools.partial(
                 inductor_func,
                 **self.get_world_trs(),
@@ -436,7 +446,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             # will not match eager.
             return y * y
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             x = torch.ones(12800, 12800, device=self.device) + self.rank
             self.assertEqual(torch._C._distributed_c10d._get_work_registry_size(), 0)
 
@@ -507,7 +519,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             e = d + ar
             return (e,)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             inputs = torch.ones(4, 4, device=self.device) + self.rank
             compiled = torch.compile(func)
             out = compiled(inputs, **self.get_world_trs())
@@ -522,7 +536,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 tensor, src_dst_pairs, ranks, tag
             )
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             inputs = (
                 # rank0: [0., 1.], rank1: [2., 3.]
                 torch.arange(2, dtype=torch.float32, device=self.device)
@@ -557,7 +573,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 out = torch.cat(torch.chunk(res, world_size, dim=0), dim=last_dim)
                 return out
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             model = Model().to(self.device)
             model_compiled = torch.compile(model)
             inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device=self.device)
@@ -573,7 +591,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             torch.distributed.all_gather(tensor_list, tensor)
             return tensor_list
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             func_compiled = torch.compile(func)
             inp = torch.tensor(self.rank, dtype=torch.long, device=self.device)
             out = func_compiled(inp, self.world_size)
@@ -596,7 +616,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
                 out = y.transpose_(0, last_dim).contiguous()
                 return out
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             model = Model().to(self.device)
             model_compiled = torch.compile(model)
             inp = torch.tensor([[2, 1, 3, 0]], dtype=torch.long, device=self.device)
@@ -623,7 +645,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             example = functools.partial(
                 example,
                 **self.get_world_trs(),
@@ -650,7 +674,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             graph = make_fx(func)(*example_inputs)
             return inductor_compile_fx(graph, example_inputs)
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             example = functools.partial(
                 example,
                 **self.get_world_trs(),
@@ -690,7 +716,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             return out
 
         with (
-            _dynamo_dist_per_rank_init(self.rank, self.world_size),
+            _dynamo_dist_per_rank_init(
+                self.rank, self.world_size, rdvz_file=self.file_name
+            ),
             torch._dynamo.config.patch(
                 dynamic_shapes=True,
                 capture_dynamic_output_shape_ops=True,
@@ -850,7 +878,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             return torch.ops.custom_ns.foo(a2a)
 
         with (
-            _dynamo_dist_per_rank_init(self.rank, self.world_size),
+            _dynamo_dist_per_rank_init(
+                self.rank, self.world_size, rdvz_file=self.file_name
+            ),
             torch._dynamo.config.patch(
                 dynamic_shapes=True,
                 capture_dynamic_output_shape_ops=True,
@@ -935,7 +965,9 @@ class TestCollectivesMultiProc(DynamoDistributedMultiProcTestCase):
             out = a2a / a2a.sum(dim=0)
             return out
 
-        with _dynamo_dist_per_rank_init(self.rank, self.world_size):
+        with _dynamo_dist_per_rank_init(
+            self.rank, self.world_size, rdvz_file=self.file_name
+        ):
             inputs = (
                 torch.ones(self.world_size, self.world_size, device=self.device)
                 * (self.rank + 1),
