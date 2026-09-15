@@ -64,6 +64,10 @@ self-hosted-runner:
     # gfx942 runners
     - linux.rocm.gpu.gfx942.1
     - linux.rocm.gpu.gfx942.4
+    # ROCm/pytorch internal runners
+    - build-only-pytorch
+    - linux-pytorch-mi325-1
+    - linux-pytorch-mi325-4
     # gfx950 runners
     - linux.rocm.gpu.gfx950.1
     - linux.rocm.gpu.gfx950.4
