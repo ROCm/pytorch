@@ -9,10 +9,10 @@ on:
         description: "pytorch/pytorch branch to clone into the image"
         type: string
         default: "nightly"
-      package_index_url:
-        description: "Python wheel index for torch + ROCm multi-arch packages"
+      rocm_version:
+        description: "ROCm version used for PyTorch nightly wheels and ROCm devel packages"
         type: string
-        default: "https://download.pytorch.org/whl/nightly/rocm10.0/"
+        default: "10.0"
       push_tag:
         description: "Primary Docker Hub tag"
         type: string
@@ -26,7 +26,9 @@ env:
   IMAGE_NAME: rocm/pytorch-nightly
   PYTORCH_REPO: pytorch/pytorch
   PYTORCH_BRANCH: ${{ inputs.pytorch_branch || 'nightly' }}
-  PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://download.pytorch.org/whl/nightly/rocm10.0/' }}
+  ROCM_VERSION: ${{ inputs.rocm_version || '10.0' }}
+  PACKAGE_INDEX_URL: https://download.pytorch.org/whl/nightly/rocm${{ inputs.rocm_version || '10.0' }}/
+  ROCM_DEVEL_INDEX_URL: https://stable.repo.amd.com/rocm/whl-next/
   PUSH_TAG: ${{ inputs.push_tag || 'latest' }}
   BASE_IMAGE: ubuntu:24.04
 
@@ -53,6 +55,8 @@ jobs:
           FROM ${BASE_IMAGE}
 
           ARG PACKAGE_INDEX_URL
+          ARG ROCM_DEVEL_INDEX_URL
+          ARG ROCM_VERSION
           ARG PYTORCH_REPO
           ARG PYTORCH_BRANCH
           ARG PYTORCH_SHA
@@ -86,6 +90,11 @@ jobs:
                 --index-url "${PACKAGE_INDEX_URL}" \
                 "rocm[libraries,device-all]" \
                 torch torchvision torchaudio
+
+          # Install ROCm development files separately so devel failures are easy to identify.
+          RUN python -m pip install --no-cache-dir \
+                --index-url "${ROCM_DEVEL_INDEX_URL}" \
+                "rocm[devel]==${ROCM_VERSION}.*"
 
           RUN ROCM_HOME="$(python -c 'import pathlib, site; roots=[]; [roots.extend(sorted(pathlib.Path(d).glob("_rocm_sdk_*"))) for d in site.getsitepackages()]; print(roots[0] if roots else "")')" \
               && test -n "${ROCM_HOME}" \
@@ -125,6 +134,8 @@ jobs:
           docker build --progress=plain \
             --build-arg "BASE_IMAGE=${BASE_IMAGE}" \
             --build-arg "PACKAGE_INDEX_URL=${PACKAGE_INDEX_URL}" \
+            --build-arg "ROCM_DEVEL_INDEX_URL=${ROCM_DEVEL_INDEX_URL}" \
+            --build-arg "ROCM_VERSION=${ROCM_VERSION}" \
             --build-arg "PYTORCH_REPO=${PYTORCH_REPO}" \
             --build-arg "PYTORCH_BRANCH=${PYTORCH_BRANCH}" \
             --build-arg "PYTORCH_SHA=${{ steps.resolve.outputs.sha }}" \
@@ -174,7 +185,9 @@ jobs:
             echo "|---|---|"
             echo "| pytorch source | \`${PYTORCH_REPO}:${PYTORCH_BRANCH}\` |"
             echo "| source commit | \`${{ steps.resolve.outputs.sha }}\` |"
+            echo "| ROCm version | \`${ROCM_VERSION}\` |"
             echo "| package index | \`${PACKAGE_INDEX_URL}\` |"
+            echo "| ROCm devel index | \`${ROCM_DEVEL_INDEX_URL}\` |"
             if [[ "${{ github.event_name }}" == "schedule" ]]; then
               echo "| pushed tags | \`${{ steps.tags.outputs.primary }}\`, \`${{ steps.tags.outputs.dated }}\` |"
             else
