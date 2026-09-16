@@ -58,11 +58,13 @@ namespace at::native {
 #include <ATen/TensorUtils.h>
 
 #include <c10/hip/HIPCachingAllocator.h>
+#include <ATen/hip/HIPGeneratorImpl.h>
 
 #include <rocrand/rocrand_xorwow.h>
 
 #include <functional>
 #include <iterator>
+#include <optional>
 #include <sstream>
 #include <algorithm>
 #include <memory>
@@ -91,6 +93,27 @@ namespace {
         void* data;
     };
 
+    // MIOpen initializes the dropout PRNG states from the seed of the dropout
+    // descriptor and never updates them afterwards (the state_evo flag of the
+    // descriptor is a documented placeholder), so a forward has to reseed them
+    // to sample a mask that differs from the previous call. Taking the seed
+    // from the CUDA generator keeps RNN dropout reproducible under manual_seed.
+    uint64_t next_dropout_seed() {
+        auto* gen = at::cuda::detail::getDefaultCUDAGenerator().get<at::CUDAGeneratorImpl>();
+        at::PhiloxCudaState rng_state;
+        {
+            std::lock_guard<std::mutex> lock(gen->mutex_);
+            rng_state = gen->philox_cuda_state(1);
+        }
+        if (rng_state.captured_) {
+            // While capturing, the seed is only readable on the device, so the
+            // graph replays whatever mask the seed below produced at capture.
+            return rng_state.offset_intragraph_;
+        }
+        at::Philox4_32 engine(rng_state.seed_.val, 0, rng_state.offset_.val);
+        return (static_cast<uint64_t>(engine()) << 32) | engine();
+    }
+
 } // anonymous
 
 //RNNDescriptor.
@@ -98,7 +121,10 @@ struct RNNDescriptorParams {
     int64_t hidden_size;
     int64_t num_layers;
     double dropout_rate;
-    uint64_t dropout_seed;
+    // Seed to reinitialize the MIOpen PRNG states with. Unset reuses the states
+    // of the previous forward, which is what backward needs: it reads the mask
+    // that forward saved in the reserve space.
+    std::optional<uint64_t> dropout_seed;
     miopenRNNDirectionMode_t direction;
     miopenRNNMode_t rnn_mode;
     miopenDataType_t datatype;
@@ -141,9 +167,8 @@ struct RNNDescriptorParams {
         }
     }
 
-    void set_dropout(double dropout_rate, uint64_t dropout_seed = 0) {
+    void set_dropout(double dropout_rate, std::optional<uint64_t> dropout_seed) {
         this->dropout_rate = dropout_rate;
-        // TODO: Implement seed setting for RNN dropout
         this->dropout_seed = dropout_seed;
     }
 
@@ -255,32 +280,41 @@ struct RNNDescriptors {
         if (fn.rnn.dropout_rate == 0.0) {
             rnn_desc = fn.rnn.descriptor();
         } else {
+            bool seed_states = fn.rnn.dropout_seed.has_value();
             if (!dropout_states) {
                 size_t states_size_in_bytes = 0;
                 MIOPEN_CHECK(miopenDropoutGetStatesSize(handle, &states_size_in_bytes));
                 size_t states_size = states_size_in_bytes / sizeof(rocrand_state_xorwow);
 
                 dropout_states = std::make_unique<DropoutState>(states_size * sizeof(rocrand_state_xorwow));
+                seed_states = true;
+            }
 
+            if (seed_states) {
+                // Runs MIOpen's PRNG state initialization kernel over the states buffer.
                 dropout_desc.set(handle,
                                  fn.rnn.dropout_rate,
                                  dropout_states->data,
                                  dropout_states->size,
-                                 fn.rnn.dropout_seed,
+                                 fn.rnn.dropout_seed.value_or(0),
                                  false,
                                  false,
                                  miopenRNGType_t::MIOPEN_RNG_PSEUDO_XORWOW);
-            } else {
-                dropout_desc.restore(handle,
-                                    fn.rnn.dropout_rate,
-                                    dropout_states->data,
-                                    dropout_states->size,
-                                    fn.rnn.dropout_seed,
-                                    // use_mask flag must be true in order to continue from a saved RNG state
-                                    true,
-                                    false,
-                                    miopenRNGType_t::MIOPEN_RNG_PSEUDO_XORWOW);
             }
+
+            // MIOpen keys its in-memory kernel cache on the seed of the dropout
+            // descriptor, so a per-call seed would grow that cache without bound.
+            // Restoring only rewrites the fields of the descriptor, leaving the
+            // states seeded above in place, and the mask depends on the states
+            // rather than on the seed advertised here.
+            dropout_desc.restore(handle,
+                                 fn.rnn.dropout_rate,
+                                 dropout_states->data,
+                                 dropout_states->size,
+                                 0,
+                                 false,
+                                 false,
+                                 miopenRNGType_t::MIOPEN_RNG_PSEUDO_XORWOW);
 
             rnn_desc = fn.rnn.descriptorWithDropout(dropout_desc);
         }
@@ -575,7 +609,12 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, Tensor> miopen_rnn(
     auto handle = getMiopenHandle();
     miopenRNNAlgo_t algo = miopenRNNdefault;
     fn.rnn.set_algo(algo);
-    fn.rnn.set_dropout(fn_dropout);
+    // MIOpen applies dropout in the training path only.
+    std::optional<uint64_t> dropout_seed;
+    if (fn_train && fn_dropout != 0.0) {
+        dropout_seed = next_dropout_seed();
+    }
+    fn.rnn.set_dropout(fn_dropout, dropout_seed);
     RNNDescriptors descs(fn, handle, x, y, hx, cx);
 
     FilterDescriptor w_desc;
@@ -713,7 +752,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor> miopen_rnn_backward_input(
 
     miopenRNNAlgo_t algo = miopenRNNdefault;
     fn.rnn.set_algo(algo);
-    fn.rnn.set_dropout(fn_dropout);
+    fn.rnn.set_dropout(fn_dropout, std::nullopt);
     RNNDescriptors descs(fn, handle, x, y, hx, cx);
 
     FilterDescriptor w_desc;
@@ -808,7 +847,7 @@ std::vector<Tensor> miopen_rnn_backward_weight(
 
     miopenRNNAlgo_t algo = miopenRNNdefault;
     fn.rnn.set_algo(algo);
-    fn.rnn.set_dropout(fn_dropout);
+    fn.rnn.set_dropout(fn_dropout, std::nullopt);
     RNNDescriptors descs(fn, handle, x, y, hx, cx);
 
     FilterDescriptor w_desc;
