@@ -51,6 +51,7 @@ jobs:
       image: >-
         rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
       options: >-
+        --user=0
         --cpus=58
         --memory=192g
         --memory-swap=192g
@@ -147,6 +148,7 @@ jobs:
       image: >-
         rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
       options: >-
+        --user=0
         --cpus=19
         --memory=96g
         --memory-swap=96g
