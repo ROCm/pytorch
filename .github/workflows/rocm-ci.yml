@@ -95,7 +95,7 @@ jobs:
     name: test / ${{ matrix.config }} / ${{ matrix.shard }} of ${{ matrix.num_shards }}
     needs: build
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 120
+    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
@@ -251,6 +251,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Run tests
+        timeout-minutes: 210
         run: .ci/pytorch/test.sh
 
       - name: Upload test reports
