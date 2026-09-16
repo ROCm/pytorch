@@ -11,25 +11,25 @@
     "workflow_regex": "parity-auto derives the per-arch upstream-workflow-path regex from the union of the workflow values across this arch's configs, so it is not stored here."
   },
   "cuda": {
-    "default": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.0-py3.10-gcc11" }],
-    "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.0-py3.10-gcc11" }],
+    "default": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.10-gcc11" }],
+    "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.10-gcc11" }],
     "inductor": [{ "workflow": "inductor", "job_prefix": "unit-test / inductor-test" }],
     "test_kinds": ["test-osdc", "test"],
     "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
-    "checkrun_regex": "(linux-jammy-cuda13[.]0-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
+    "checkrun_regex": "(linux-jammy-cuda13[.]2-py3[.]10-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
   },
   "rocm": {
     "mi350": {
       "default": [
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" },
+        { "workflow": "trunk", "job_prefix": "linux-noble-rocm-py3.11-mi350" },
         { "workflow": "rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" }
       ],
       "distributed": [
         { "workflow": "periodic-rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" },
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
+        { "workflow": "trunk", "job_prefix": "linux-noble-rocm-py3.11-mi350" }
       ],
       "inductor": [
-        { "workflow": "trunk", "job_prefix": "linux-jammy-rocm-py3.10-mi350" }
+        { "workflow": "trunk", "job_prefix": "linux-noble-rocm-py3.11-mi350" }
       ],
       "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
