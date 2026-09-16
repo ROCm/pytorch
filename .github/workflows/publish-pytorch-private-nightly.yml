@@ -12,7 +12,7 @@ on:
       package_index_url:
         description: "Python wheel index for torch + ROCm multi-arch packages"
         type: string
-        default: "https://download.pytorch.org/whl/nightly/rocm7.14/"
+        default: "https://download.pytorch.org/whl/nightly/rocm10.0/"
       push_tag:
         description: "Primary Docker Hub tag"
         type: string
@@ -26,7 +26,7 @@ env:
   IMAGE_NAME: rocm/pytorch-nightly
   PYTORCH_REPO: pytorch/pytorch
   PYTORCH_BRANCH: ${{ inputs.pytorch_branch || 'nightly' }}
-  PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://download.pytorch.org/whl/nightly/rocm7.14/' }}
+  PACKAGE_INDEX_URL: ${{ inputs.package_index_url || 'https://download.pytorch.org/whl/nightly/rocm10.0/' }}
   PUSH_TAG: ${{ inputs.push_tag || 'latest' }}
   BASE_IMAGE: ubuntu:24.04
 
