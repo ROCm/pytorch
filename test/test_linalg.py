@@ -66,7 +66,7 @@ def blaslt_supported_device():
             if ROCM_VERSION >= (6, 5):
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
-                archs.append('gfx1250')
+                archs.extend(['gfx1250', 'gfx1250-strict'])
             for arch in archs:
                 if arch in torch.cuda.get_device_properties(0).gcnArchName:
                     return True
@@ -8080,7 +8080,7 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest("int4 mm not yet implemented for gfx1250/gfx1250-strict (needs WMMA)")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda is supported only for CDNA2 or later")
@@ -8152,7 +8152,7 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest("int4 mm not yet implemented for gfx1250/gfx1250-strict (needs WMMA)")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda supported only for CDNA2 or later")
