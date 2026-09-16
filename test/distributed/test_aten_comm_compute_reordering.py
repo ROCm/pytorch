@@ -135,6 +135,7 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
 
@@ -168,6 +169,7 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
             compiled = torch.compile(func)
@@ -207,6 +209,7 @@ class TestComputeCommReorderingMultiProc(DynamoDistributedMultiProcTestCase):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(
                 4, 4, dtype=torch.float, device=device_type
@@ -305,6 +308,7 @@ graph():
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
             func_c = functools.partial(func, **self.get_world_trs())
@@ -353,6 +357,7 @@ graph():
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
             compiled = torch.compile(func)
@@ -400,7 +405,11 @@ graph():
             return grad3, grad2, grad1
 
         with _dynamo_dist_per_rank_init(
-            self.rank, self.world_size, self.backend(device_type), fake_pg=True
+            self.rank,
+            self.world_size,
+            self.backend(device_type),
+            fake_pg=True,
+            rdvz_file=self.file_name,
         ):
             # all_reduces remain in order!
             # note: this isn't actually invariant of pass currently..
@@ -434,6 +443,7 @@ graph():
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
 
@@ -450,6 +460,82 @@ graph():
                 self.assertTrue(same(out, correct))
                 self.assertEqual(counters["inductor"]["overlap_scheduling_exposed"], 0)
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    def test_overlap_scheduling_flex_attention_backward(self):
+        def func(q, k, v, bias):
+            ar = _functional_collectives.all_reduce(bias, "sum", "0")
+
+            def score_mod(score, b, h, q_idx, kv_idx):
+                return score + ar[q_idx, kv_idx]
+
+            return flex_attention(q, k, v, score_mod=score_mod).sum()
+
+        patches = {
+            **get_patches(),
+            "aten_distributed_optimizations.enable_overlap_scheduling": True,
+            "aten_distributed_optimizations.insert_overlap_deps": True,
+            "aten_distributed_optimizations.pre_bucketing_fsdp_collectives": False,
+        }
+        compiled_graphs = []
+
+        def materialize_output(gm):
+            output = gm.graph.output_node().args[0]
+            fake_output = pytree.tree_map(lambda x: get_fake(x, gm), output)
+
+            def materialize(x):
+                if isinstance(x, torch.Tensor):
+                    return torch.zeros(tuple(x.shape), device=x.device, dtype=x.dtype)
+                return x
+
+            return pytree.tree_map(materialize, fake_output)
+
+        def compile_fx_inner(gm, example_inputs, *args, **kwargs):
+            fake_mode = detect_fake_mode(example_inputs)
+            if fake_mode is None:
+                raise AssertionError("expected fake mode from example inputs")
+            with V.set_fake_mode(fake_mode):
+                _recursive_post_grad_passes(
+                    gm, is_inference=kwargs.get("is_inference", False)
+                )
+            compiled_graphs.append(gm)
+            output = materialize_output(gm)
+            return make_boxed_func(lambda *args: output)
+
+        backend = functools.partial(
+            compile_fx.compile_fx, inner_compile=compile_fx_inner
+        )
+
+        with _dynamo_dist_per_rank_init(
+            self.rank,
+            self.world_size,
+            self.backend(device_type),
+            fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
+        ):
+            q = torch.randn(1, 1, 128, 16, device=device_type, requires_grad=True)
+            k = torch.randn(1, 1, 128, 16, device=device_type, requires_grad=True)
+            v = torch.randn(1, 1, 128, 16, device=device_type, requires_grad=True)
+            bias = torch.randn(128, 128, device=device_type, requires_grad=True)
+
+            with torch._inductor.config.patch(patches):
+                loss = torch.compile(func, backend=backend, fullgraph=True)(
+                    q, k, v, bias
+                )
+                loss.backward()
+
+            self.assertEqual(len(compiled_graphs), 2)
+            self.assertTrue(
+                any("flex_attention_backward" in gm.code for gm in compiled_graphs)
+            )
+            self.assertTrue(any("control_deps" in gm.code for gm in compiled_graphs))
+            self.assertIsNotNone(q.grad)
+            self.assertIsNotNone(k.grad)
+            self.assertIsNotNone(v.grad)
+            self.assertIsNotNone(bias.grad)
+
+>>>>>>> 4673a3cb173 ([release/2.13] Fix hardcoded rendezvous ports in distributed tests (#195994) (#3645))
     @torch._inductor.config.patch(get_patches())
     def test_custom_estimator_for_non_compute_nodes(self):
         """Test that non-compute nodes with custom runtime estimates can trigger collective prefetching."""
@@ -485,6 +571,7 @@ graph():
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs_a = (
                 torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
@@ -546,6 +633,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs_a = (
                 torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
@@ -584,6 +672,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs_a = torch.ones(8, 4, dtype=torch.float, device=device_type)
             inputs_b = torch.ones(8, 4, dtype=torch.float, device=device_type) * 2
@@ -625,6 +714,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs_a = torch.ones(4, 4, dtype=torch.float, device=device_type)
             inputs_b = torch.ones(4, 4, dtype=torch.float, device=device_type)
@@ -664,6 +754,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(4, 4, dtype=torch.float, device=device_type)
             ranks = list(range(self.world_size))
@@ -717,6 +808,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -780,6 +872,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -833,6 +926,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -901,6 +995,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
                 self.world_size,
                 self.backend(device_type),
                 fake_pg=not at_least_x_gpu(2),
+                rdvz_file=self.file_name,
             ),
             torch._inductor.config.patch(
                 "aten_distributed_optimizations.insert_overlap_deps", True
@@ -973,6 +1068,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs_a = torch.ones(4, 4, dtype=torch.float, device=device_type)
             inputs_b = torch.ones(4, 4, dtype=torch.float, device=device_type) * 2
@@ -1020,6 +1116,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             inputs = torch.ones(8, 8, dtype=torch.float, device=device_type) + self.rank
 
@@ -1061,6 +1158,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(4, 4, dtype=torch.float32, device=device_type)
             b = torch.ones(4, 4, dtype=torch.float16, device=device_type) * 2
@@ -1098,6 +1196,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(4, 4, dtype=torch.float, device=device_type) + self.rank
             b = torch.ones(4, 4, dtype=torch.float, device=device_type) * 2
@@ -1142,6 +1241,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -1203,6 +1303,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(4, 4, dtype=torch.float32, device=device_type)
             b = torch.ones(4, 4, dtype=torch.float64, device=device_type) * 2
@@ -1261,6 +1362,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             import torch.distributed as dist
             from torch._subclasses.fake_tensor import unset_fake_temporarily
@@ -1323,6 +1425,7 @@ class TestComputeCommReorderingBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             world_size = self.world_size
             full_chunk = (7 + world_size - 1) // world_size
@@ -1502,6 +1605,7 @@ class TestManualOverlapBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -1736,6 +1840,7 @@ class TestManualOverlapBucketing(TestComputeCommReorderingMultiProc):
             self.world_size,
             self.backend(device_type),
             fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
         ):
             a = torch.ones(8, 8, dtype=torch.float, device=device_type)
             b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
@@ -1855,6 +1960,183 @@ class TestManualOverlapBucketing(TestComputeCommReorderingMultiProc):
             ],
         )
 
+<<<<<<< HEAD
+=======
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @torch._inductor.config.patch(
+        {"aten_distributed_optimizations.bucket_mode": "default"}
+    )
+    def test_manual_bucketing_ag_with_intermediate_deps(self):
+        module_path_key = "module_path"
+
+        def module_stack_fn(node):
+            module_stack = node.meta.get("custom", {}).get(module_path_key, "")
+            return [(module_stack, torch.nn.Module)]
+
+        def func(a, b, c, *, ranks):
+            with torch.fx.traceback.annotate({module_path_key: "mod1"}):
+                ag1 = _functional_collectives.all_gather_tensor(a, 0, ranks)
+            b_prepared = b[:4] + 1.0
+            c_prepared = c[:4] * 2.0
+            with torch.fx.traceback.annotate({module_path_key: "mod2"}):
+                ag2 = _functional_collectives.all_gather_tensor(b_prepared, 0, ranks)
+                ag3 = _functional_collectives.all_gather_tensor(c_prepared, 0, ranks)
+            return ag1.sum() + ag2.sum() + ag3.sum()
+
+        with _dynamo_dist_per_rank_init(
+            self.rank,
+            self.world_size,
+            self.backend(device_type),
+            fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
+        ):
+            a = torch.ones(8, 8, dtype=torch.float, device=device_type)
+            b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
+            c = torch.ones(8, 8, dtype=torch.float, device=device_type) * 3
+            ranks = list(range(self.world_size))
+
+            func_c = functools.partial(func, ranks=ranks)
+            compiled = torch.compile(func_c)
+            out, aten_graph = run_and_get_manual_aten_graph(
+                compiled,
+                [["mod1", "mod2"]],
+                a,
+                b,
+                c,
+                custom_module_stack_fn=module_stack_fn,
+            )
+
+            graph_str = str(aten_graph)
+            (
+                FileCheck()
+                .check("all_gather_into_tensor")
+                .check("wait_tensor")
+                .run(graph_str)
+            )
+
+            correct = func(a, b, c, ranks=ranks)
+            self.assertTrue(same(out, correct))
+
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @torch._inductor.config.patch(
+        {"aten_distributed_optimizations.bucket_mode": "default"}
+    )
+    def test_manual_bucketing_rs_with_intermediate_deps(self):
+        module_path_key = "module_path"
+
+        def module_stack_fn(node):
+            module_stack = node.meta.get("custom", {}).get(module_path_key, "")
+            return [(module_stack, torch.nn.Module)]
+
+        def func(a, b, c):
+            with torch.fx.traceback.annotate({module_path_key: "mod1"}):
+                rs1 = _functional_collectives.reduce_scatter_tensor(a, "sum", 0, "0")
+            c_grad = c * 2.0 + 1.0
+            with torch.fx.traceback.annotate({module_path_key: "mod2"}):
+                rs2 = _functional_collectives.reduce_scatter_tensor(b, "sum", 0, "0")
+                rs3 = _functional_collectives.reduce_scatter_tensor(
+                    c_grad, "sum", 0, "0"
+                )
+            return rs1, rs2, rs3
+
+        with _dynamo_dist_per_rank_init(
+            self.rank,
+            self.world_size,
+            self.backend(device_type),
+            fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
+        ):
+            a = torch.ones(8, 8, dtype=torch.float, device=device_type)
+            b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
+            c = torch.ones(8, 8, dtype=torch.float, device=device_type) * 3
+
+            compiled = torch.compile(func)
+            out, aten_graph = run_and_get_manual_aten_graph(
+                compiled,
+                [["mod1", "mod2"]],
+                a,
+                b,
+                c,
+                custom_module_stack_fn=module_stack_fn,
+            )
+
+            graph_str = str(aten_graph)
+            (
+                FileCheck()
+                .check("reduce_scatter_tensor")
+                .check("wait_tensor")
+                .run(graph_str)
+            )
+
+            correct = func(a, b, c)
+            self.assertTrue(same(out, correct))
+
+    @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
+    @torch._inductor.config.patch(
+        {"aten_distributed_optimizations.bucket_mode": "custom_ops"}
+    )
+    def test_manual_bucketing_ag_forward_and_backward(self):
+        """Simulate reshard-after-forward: forward all-gathers and backward
+        all-gathers for the same modules. Verifies graph stays topologically valid after
+        bucketing and overlap reordering with _move_overlap_nodes."""
+        module_path_key = "module_path"
+
+        def module_stack_fn(node):
+            module_stack = node.meta.get("custom", {}).get(module_path_key, "")
+            return [(module_stack, torch.nn.Module)]
+
+        def func(a, b, c, d, *, ranks):
+            # Forward all-gathers (mod1 then mod2)
+            with torch.fx.traceback.annotate({module_path_key: "mod1"}):
+                fwd_ag1 = _functional_collectives.all_gather_tensor(a, 0, ranks)
+            with torch.fx.traceback.annotate({module_path_key: "mod2"}):
+                fwd_ag2 = _functional_collectives.all_gather_tensor(b, 0, ranks)
+
+            # Forward compute
+            mm1 = torch.matmul(fwd_ag1[:8, :8], fwd_ag2[:8, :8])
+
+            # Backward all-gathers (mod2 then mod1, reverse order)
+            with torch.fx.traceback.annotate({module_path_key: "mod2"}):
+                bwd_ag2 = _functional_collectives.all_gather_tensor(c, 0, ranks)
+            with torch.fx.traceback.annotate({module_path_key: "mod1"}):
+                bwd_ag1 = _functional_collectives.all_gather_tensor(d, 0, ranks)
+
+            # Backward compute
+            mm2 = torch.matmul(bwd_ag2[:8, :8], bwd_ag1[:8, :8])
+
+            return mm1.sum() + mm2.sum()
+
+        with _dynamo_dist_per_rank_init(
+            self.rank,
+            self.world_size,
+            self.backend(device_type),
+            fake_pg=not at_least_x_gpu(2),
+            rdvz_file=self.file_name,
+        ):
+            a = torch.ones(8, 8, dtype=torch.float, device=device_type)
+            b = torch.ones(8, 8, dtype=torch.float, device=device_type) * 2
+            c = torch.ones(8, 8, dtype=torch.float, device=device_type) * 3
+            d = torch.ones(8, 8, dtype=torch.float, device=device_type) * 4
+            ranks = list(range(self.world_size))
+
+            func_c = functools.partial(func, ranks=ranks)
+            compiled = torch.compile(func_c)
+            out, aten_graph = run_and_get_manual_aten_graph(
+                compiled,
+                [["mod1", "mod2"]],
+                a,
+                b,
+                c,
+                d,
+                custom_module_stack_fn=module_stack_fn,
+            )
+
+            aten_graph.lint()
+
+            correct = func(a, b, c, d, ranks=ranks)
+            self.assertTrue(same(out, correct))
+
+>>>>>>> 4673a3cb173 ([release/2.13] Fix hardcoded rendezvous ports in distributed tests (#195994) (#3645))
 
 if __name__ == "__main__":
     from torch._dynamo.test_case import run_tests
