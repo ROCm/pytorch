@@ -1068,18 +1068,40 @@ def main():
 
         if not args.exclude_distributed and "distributed" in ROCmWorkflowNames:
             try:
-                baseline_dist_wf = download_workflow_run(
-                    created=args.created, max_pages=args.max_pages,
-                    workflow=ROCmWorkflowNames["distributed"], sha=baseline_sha,
-                    ignore_status=args.ignore_status, status=status,
-                    error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
-                )
-                print(f"Baseline distributed workflow '{ROCmWorkflowNames['distributed']}' id: {baseline_dist_wf['id']}")
+                baseline_dist_workflow = ROCmWorkflowNames["distributed"]
+                baseline_dist_job_prefix = rocm_job_prefix["distributed"]
+                try:
+                    baseline_dist_wf = download_workflow_run(
+                        created=args.created, max_pages=args.max_pages,
+                        workflow=baseline_dist_workflow, sha=baseline_sha,
+                        ignore_status=args.ignore_status, status=status,
+                        error_msg=f"Baseline distributed workflow not found for {baseline_sha}",
+                    )
+                except (IndexError, Exception):
+                    baseline_dist_wf = None
+
+                baseline_dist_fallbacks = _fallbacks_for("distributed")
+                if baseline_dist_wf is None and arch in baseline_dist_fallbacks:
+                    baseline_dist_workflow, baseline_dist_job_prefix = \
+                        baseline_dist_fallbacks[arch]
+                    print(
+                        f"Baseline distributed not found in "
+                        f"{ROCmWorkflowNames['distributed']}, falling back to "
+                        f"{baseline_dist_workflow}"
+                    )
+                    baseline_dist_wf = download_workflow_run(
+                        created=args.created, max_pages=args.max_pages,
+                        workflow=baseline_dist_workflow, sha=baseline_sha,
+                        ignore_status=args.ignore_status, status=status,
+                        error_msg=f"Baseline distributed fallback not found for {baseline_sha}",
+                    )
+
+                print(f"Baseline distributed workflow '{baseline_dist_workflow}' id: {baseline_dist_wf['id']}")
                 dist_shards = rocm_shards["distributed"]
 
                 if not args.artifacts_only:
                     baseline_dist_logs = [
-                        [f"{baseline_prefix}rocm_dist{i}.txt", f"{rocm_job_prefix['distributed']} / test (distributed, {i}, {dist_shards}"]
+                        [f"{baseline_prefix}rocm_dist{i}.txt", f"{baseline_dist_job_prefix} / test (distributed, {i}, {dist_shards}"]
                         for i in range(1, dist_shards + 1)
                     ]
                     download_logs(baseline_dist_wf, baseline_dist_logs, test_folder)
