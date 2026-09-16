@@ -96,11 +96,10 @@ jobs:
                 --index-url "${ROCM_DEVEL_INDEX_URL}" \
                 "rocm[devel]==${ROCM_VERSION}.*"
 
-          RUN ROCM_HOME="$(python -c 'import pathlib, site; roots=[]; [roots.extend(sorted(pathlib.Path(d).glob("_rocm_sdk_*"))) for d in site.getsitepackages()]; print(roots[0] if roots else "")')" \
-              && test -n "${ROCM_HOME}" \
-              && ROCM_BIN="${ROCM_HOME}/bin" \
+          RUN ROCM_HOME="$(rocm-sdk path --root)" \
+              && ROCM_BIN="$(rocm-sdk path --bin)" \
               && { \
-                echo '# ROCm paths discovered from rocm-sdk.'; \
+                echo '# ROCm paths discovered from the rocm[devel] package.'; \
                 printf 'export ROCM_PATH=%q\n' "${ROCM_HOME}"; \
                 printf 'export ROCM_HOME=%q\n' "${ROCM_HOME}"; \
                 printf 'export PATH=%q:${PATH}\n' "${ROCM_BIN}"; \
