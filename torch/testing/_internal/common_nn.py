@@ -17,7 +17,7 @@ import torch.nn.functional as F
 from torch.nn import _reduction as _Reduction
 from torch.testing._internal import common_utils
 from torch.testing._internal.common_utils import TestCase, to_gpu, freeze_rng_state, is_iterable, \
-    gradcheck, gradgradcheck, set_default_dtype, skipIfTorchDynamo, skipIfRocm, TEST_WITH_ROCM
+    gradcheck, gradgradcheck, MI300_ARCH, set_default_dtype, skipIfRocm, skipIfRocmArch, skipIfTorchDynamo, TEST_WITH_ROCM
 from torch.testing._internal.common_cuda import TEST_CUDA, SM90OrLater
 from torch.autograd.gradcheck import _get_numerical_jacobian, _iter_tensors
 from torch.autograd import Variable
@@ -2594,6 +2594,11 @@ def get_new_module_tests():
             desc='multilayer_coder',
             with_tf32=True,
             tf32_precision=0.05 if SM90OrLater else 0.03,
+            # gfx942 runs TF32 on the XF32 hardware path; this K=4 multilayer entry
+            # amplifies the TF32-class per-gemm error to 4e-3..2e-2 relative on every
+            # compare, which no absolute tolerance describes. The _fp32 sibling keeps
+            # the correctness coverage; see https://github.com/pytorch/pytorch/issues/196605.
+            tf32_decorator=skipIfRocmArch(MI300_ARCH),
             default_dtype=torch.double,
         ),
         dict(
