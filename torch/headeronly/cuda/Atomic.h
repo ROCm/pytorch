@@ -1,13 +1,13 @@
 #pragma once
 
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 #include <torch/headeronly/util/BFloat16.h>
 #include <torch/headeronly/util/Half.h>
 #include <torch/headeronly/util/NumericUtils.h>
 #include <torch/headeronly/util/complex.h>
 
 #if !(defined(USE_ROCM) || ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))))
-#include <cuda_bf16.h>
+#include <hip/hip_bf16.h>
 #endif
 
 #if defined(USE_ROCM)
@@ -235,9 +235,9 @@ inline __device__ at::BFloat16 gpuAtomicAdd(
         return bsum + val;
       });
 #else
-  __nv_bfloat16 r = atomicAdd(
-      reinterpret_cast<__nv_bfloat16*>(address),
-      *reinterpret_cast<__nv_bfloat16*>(&val));
+  __hip_bfloat16 r = atomicAdd(
+      reinterpret_cast<__hip_bfloat16*>(address),
+      *reinterpret_cast<__hip_bfloat16*>(&val));
   return *reinterpret_cast<c10::BFloat16*>(&r);
 #endif
 }

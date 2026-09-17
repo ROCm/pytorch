@@ -2,43 +2,43 @@
 #include <wchar.h> // _wgetenv for nvtx
 #endif
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #ifndef ROCM_ON_WINDOWS
 #if CUDART_VERSION >= 13000 || defined(TORCH_CUDA_USE_NVTX3)
-#include <nvtx3/nvtx3.hpp>
+#include <roctracer/roctx.h>
 #else // CUDART_VERSION >= 13000 || defined(TORCH_CUDA_USE_NVTX3)
-#include <nvToolsExt.h>
+#include <roctracer/roctx.h>
 #endif // CUDART_VERSION >= 13000 || defined(TORCH_CUDA_USE_NVTX3)
 #else // ROCM_ON_WINDOWS
 #include <c10/util/Exception.h>
 #endif // ROCM_ON_WINDOWS
-#include <c10/cuda/CUDAException.h>
+#include <c10/hip/HIPException.h>
 #include <torch/csrc/utils/pybind.h>
 
 namespace torch::cuda::shared {
 
 #ifndef ROCM_ON_WINDOWS
 struct RangeHandle {
-  nvtxRangeId_t id;
+  int id;
   const char* msg;
 };
 
 static void device_callback_range_end(void* userData) {
   RangeHandle* handle = ((RangeHandle*)userData);
-  nvtxRangeEnd(handle->id);
+  roctxRangeStop(handle->id);
   free((void*)handle->msg);
   free((void*)handle);
 }
 
 static void device_nvtxRangeEnd(void* handle, std::intptr_t stream) {
-  C10_CUDA_CHECK(cudaLaunchHostFunc(
-      (cudaStream_t)stream, device_callback_range_end, handle));
+  C10_CUDA_CHECK(hipLaunchHostFunc(
+      (hipStream_t)stream, device_callback_range_end, handle));
 }
 
 static void device_callback_range_start(void* userData) {
   RangeHandle* handle = ((RangeHandle*)userData);
-  handle->id = nvtxRangeStartA(handle->msg);
+  handle->id = roctxRangeStartA(handle->msg);
 }
 
 static void* device_nvtxRangeStart(const char* msg, std::intptr_t stream) {
@@ -46,9 +46,9 @@ static void* device_nvtxRangeStart(const char* msg, std::intptr_t stream) {
   handle->msg = strdup(msg);
   handle->id = 0;
   TORCH_CHECK(
-      cudaLaunchHostFunc(
-          (cudaStream_t)stream, device_callback_range_start, (void*)handle) ==
-      cudaSuccess);
+      hipLaunchHostFunc(
+          (hipStream_t)stream, device_callback_range_start, (void*)handle) ==
+      hipSuccess);
   return handle;
 }
 
@@ -60,11 +60,11 @@ void initNvtxBindings(PyObject* module) {
 #else
   auto nvtx = m.def_submodule("_nvtx", "libNvToolsExt.so bindings");
 #endif
-  nvtx.def("rangePushA", nvtxRangePushA);
-  nvtx.def("rangePop", nvtxRangePop);
-  nvtx.def("rangeStartA", nvtxRangeStartA);
-  nvtx.def("rangeEnd", nvtxRangeEnd);
-  nvtx.def("markA", nvtxMarkA);
+  nvtx.def("rangePushA", roctxRangePushA);
+  nvtx.def("rangePop", roctxRangePop);
+  nvtx.def("rangeStartA", roctxRangeStartA);
+  nvtx.def("rangeEnd", roctxRangeStop);
+  nvtx.def("markA", roctxMarkA);
   nvtx.def("deviceRangeStart", device_nvtxRangeStart);
   nvtx.def("deviceRangeEnd", device_nvtxRangeEnd);
 }

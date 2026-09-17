@@ -1,7 +1,7 @@
 #pragma once
 
-#include <c10/cuda/CUDAException.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPException.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/Exception.h>
 #include <c10/util/Logging.h>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
@@ -211,7 +211,7 @@ class TORCH_API NCCLDevCommManager {
       // Make sure all kernels have completed before destroying the device
       // communicator. This is important to ensure no kernels are still using
       // the device communicator when we destroy it.
-      C10_CUDA_CHECK(cudaDeviceSynchronize());
+      C10_CUDA_CHECK(hipDeviceSynchronize());
       // Iterate through all groups and their device communicators
       for (auto& [group_name, group_map] : devcomm_registry_) {
         // Find the host communicator for the group.

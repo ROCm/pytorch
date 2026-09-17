@@ -126,7 +126,7 @@ void CuspyBuffers::on_complete(
     size_t valid_size) {
   // Parse the layout outside the lock (it only reads the CUPTI-owned struct),
   // then enqueue the buffer with its layout attached. The completion callback
-  // delivers neither CUcontext nor streamId (they are selectable record
+  // delivers neither hipCtx_t nor streamId (they are selectable record
   // fields), so ctx/stream are 0.
   std::vector<CuptiRecordLayout> layouts =
       cuspyParseRecordLayouts(complete_info);

@@ -10,7 +10,7 @@
 #if defined(USE_ROCM)
 #include <hip/hip_runtime_api.h>
 #elif defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
-#include <cuda.h>
+#include <hip/hip_runtime.h>
 #endif
 
 namespace c10d::symmetric_memory {
@@ -41,7 +41,7 @@ constexpr size_t default_signal_pad_size =
 constexpr size_t signal_pad_alignment = 128;
 
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
-using HandleType = CUmemGenericAllocationHandle;
+using HandleType = hipMemGenericAllocationHandle_t;
 #elif defined(USE_ROCM)
 using HandleType = hipMemGenericAllocationHandle_t;
 #else

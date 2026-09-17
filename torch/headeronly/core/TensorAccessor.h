@@ -19,7 +19,7 @@ struct DefaultPtrTraits {
   using PtrType = T*;
 };
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
 template <typename T>
 struct RestrictPtrTraits {
   using PtrType = T* __restrict__;

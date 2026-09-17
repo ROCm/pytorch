@@ -1,7 +1,7 @@
 #include <torch/csrc/utils/pybind.h>
 
 #if defined(USE_CUSPARSELT) || defined(USE_HIPSPARSELT)
-#include <ATen/native/sparse/cuda/cuSPARSELtOps.h>
+#include <ATen/native/sparse/hip/cuSPARSELtOps.h>
 #ifdef USE_HIPSPARSELT
 #include <hipsparselt/hipsparselt-version.h>
 #endif

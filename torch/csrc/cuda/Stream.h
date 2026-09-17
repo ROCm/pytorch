@@ -1,7 +1,7 @@
 #ifndef THCP_STREAM_INC
 #define THCP_STREAM_INC
 
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPStream.h>
 #include <torch/csrc/Stream.h>
 #include <torch/csrc/python_headers.h>
 

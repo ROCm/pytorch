@@ -46,14 +46,14 @@
 // technically [[deprecated]] syntax is from c++14 standard, but it works in
 // many compilers.
 #if defined(__has_cpp_attribute)
-#if __has_cpp_attribute(deprecated) && !defined(__CUDACC__)
+#if __has_cpp_attribute(deprecated) && !defined(__HIPCC__)
 #define C10_DEFINE_DEPRECATED_USING(TypeName, TypeThingy) \
   using TypeName [[deprecated]] = TypeThingy;
 #endif
 #endif
 
 #if defined(_MSC_VER)
-#if defined(__CUDACC__)
+#if defined(__HIPCC__)
 // neither [[deprecated]] nor __declspec(deprecated) work on nvcc on Windows;
 // you get the error:
 //
@@ -86,7 +86,7 @@
 // declarations even when the host compiler supports it. We'll only use this gcc
 // attribute when not cuda, and when using a GCC compiler that doesn't support
 // the c++14 syntax we checked for above (available in __GNUC__ >= 5)
-#if !defined(__CUDACC__)
+#if !defined(__HIPCC__)
 #define C10_DEFINE_DEPRECATED_USING(TypeName, TypeThingy) \
   using TypeName __attribute__((deprecated)) = TypeThingy;
 #else

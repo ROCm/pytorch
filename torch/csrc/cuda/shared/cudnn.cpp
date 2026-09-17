@@ -23,9 +23,9 @@ version_tuple getCompileVersion() {
 version_tuple getRuntimeVersion() {
 #ifndef USE_STATIC_CUDNN
   int major = 0, minor = 0, patch = 0;
-  cudnnGetProperty(MAJOR_VERSION, &major);
-  cudnnGetProperty(MINOR_VERSION, &minor);
-  cudnnGetProperty(PATCH_LEVEL, &patch);
+  cudnnGetProperty(hipLibraryMajorVersion, &major);
+  cudnnGetProperty(hipLibraryMinorVersion, &minor);
+  cudnnGetProperty(hipLibraryPatchVersion, &patch);
   return version_tuple((size_t)major, (size_t)minor, (size_t)patch);
 #else
   return getCompileVersion();
@@ -76,11 +76,11 @@ void initCudnnBindings(PyObject* module) {
 
   auto cudnn = m.def_submodule("_cudnn", "libcudnn.so bindings");
 
-  py::enum_<cudnnRNNMode_t>(cudnn, "RNNMode")
-      .value("rnn_relu", CUDNN_RNN_RELU)
-      .value("rnn_tanh", CUDNN_RNN_TANH)
-      .value("lstm", CUDNN_LSTM)
-      .value("gru", CUDNN_GRU);
+  py::enum_<miopenRNNMode_t>(cudnn, "RNNMode")
+      .value("rnn_relu", miopenRNNRELU)
+      .value("rnn_tanh", miopenRNNTANH)
+      .value("lstm", miopenLSTM)
+      .value("gru", miopenGRU);
 
   // The runtime version check in python needs to distinguish cudnn from miopen
 #ifdef USE_CUDNN

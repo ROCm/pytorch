@@ -3,7 +3,7 @@
 #include <torch/csrc/distributed/c10d/gloo/ProcessGroupGlooDetail.hpp>
 #include <utility>
 
-#include <gloo/cuda_allreduce_ring_chunked.h>
+#include <gloo/hip_allreduce_ring_chunked.h>
 
 namespace c10d {
 
@@ -36,7 +36,7 @@ class AsyncAllreduceCUDADeviceWork : public ProcessGroupGloo::AsyncWork {
       ptrs.push_back(static_cast<T*>(tensor.data_ptr()));
     }
     algo = std::make_unique<
-        gloo::CudaAllreduceRingChunked<T, gloo::CudaDeviceWorkspace<T>>>(
+        gloo::HipAllreduceRingChunked<T, gloo::HipDeviceWorkspace<T>>>(
         context_, ptrs, count);
   }
 

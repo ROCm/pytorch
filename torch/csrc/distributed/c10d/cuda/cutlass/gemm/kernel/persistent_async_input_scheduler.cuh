@@ -666,7 +666,7 @@ public:
 
   template <class ProblemShape, class ElementAccumulator>
   static cutlass::Status
-  initialize_workspace(Arguments const&, void*, cudaStream_t, ProblemShape, KernelHardwareInfo const&,
+  initialize_workspace(Arguments const&, void*, hipStream_t, ProblemShape, KernelHardwareInfo const&,
     uint32_t, const uint32_t = 1, uint32_t = 1, CudaHostAdapter* cuda_adapter = nullptr) {
     return Status::kSuccess;
   }

@@ -77,7 +77,7 @@ static PyObject* THCPStream_pynew(
             static_cast<c10::DeviceType>(device_type))
       : stream_ptr_provided ? at::cuda::getStreamFromExternal(
                                   // NOLINTNEXTLINE(performance-no-int-to-ptr)
-                                  reinterpret_cast<cudaStream_t>(stream_ptr),
+                                  reinterpret_cast<hipStream_t>(stream_ptr),
                                   current_device)
                             : at::cuda::getStreamFromPool(priority);
 

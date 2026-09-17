@@ -1,5 +1,5 @@
 #ifdef USE_C10D_NCCL
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #include <fstream>
 

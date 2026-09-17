@@ -6,7 +6,7 @@
 #include <torch/headeronly/util/BFloat16.h>
 #include <torch/headeronly/util/Half.h>
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
 #include <thrust/complex.h>
 #endif
 
@@ -157,7 +157,7 @@ struct alignas(sizeof(T) * 2) complex {
   template <typename U>
   explicit constexpr complex(const std::complex<U>& other)
       : complex(other.real(), other.imag()) {}
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
   template <typename U>
   explicit C10_HOST_DEVICE complex(const thrust::complex<U>& other)
       : real_(other.real()), imag_(other.imag()) {}
@@ -290,7 +290,7 @@ struct alignas(sizeof(T) * 2) complex {
     return *this;
   }
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
   template <typename U>
   C10_HOST_DEVICE complex<T>& operator=(const thrust::complex<U>& rhs) {
     real_ = rhs.real();
@@ -304,7 +304,7 @@ struct alignas(sizeof(T) * 2) complex {
     return std::complex<U>(std::complex<T>(real(), imag()));
   }
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
   template <typename U>
   C10_HOST_DEVICE explicit operator thrust::complex<U>() const {
     return static_cast<thrust::complex<U>>(thrust::complex<T>(real(), imag()));
@@ -531,7 +531,7 @@ std::basic_istream<CharT, Traits>& operator>>(
 
 template <typename T>
 C10_HOST_DEVICE complex<T> polar(const T& r, const T& theta = T()) {
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
   return static_cast<complex<T>>(thrust::polar(r, theta));
 #else
   // std::polar() requires r >= 0, so spell out the explicit implementation to

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPStream.h>
 #include <torch/csrc/utils/python_numbers.h>
 
 #include <vector>

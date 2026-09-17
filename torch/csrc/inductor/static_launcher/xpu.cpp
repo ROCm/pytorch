@@ -501,7 +501,7 @@ PyObject* launch_kernel_slow(
 /**
 *  Main entrypoint function called at runtime; called like this in python land:
     launcher(
-      function, # CUfunction returned by load_kernel()
+      function, # hipFunction_t returned by load_kernel()
       grid_x,
       grid_y,
       grid_z,
@@ -546,7 +546,7 @@ PyObject* launch_kernel(PyObject* self, PyObject* args) {
       PyCapsule_GetPointer(kernel_py, "sycl_kernel")); // NOLINT
   sycl::queue* queuePtr = reinterpret_cast<sycl::queue*>(stream); // NOLINT
   auto num_args = std::strlen(argTypes);
-  // Kernels with no arguments should just pass nullptr to cuLaunchKernel
+  // Kernels with no arguments should just pass nullptr to hipModuleLaunchKernel
   if (num_args == 0) {
     launchKernel(
         func,

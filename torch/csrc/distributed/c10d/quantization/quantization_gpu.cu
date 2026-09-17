@@ -1,4 +1,5 @@
-#include <c10/cuda/CUDAGuard.h>
+#include "hip/hip_runtime.h"
+#include <c10/hip/HIPGuard.h>
 #include <torch/csrc/distributed/c10d/Utils.hpp>
 #include <torch/csrc/distributed/c10d/quantization/quantization_gpu.h>
 #include <torch/csrc/distributed/c10d/quantization/quantization_utils.h>
@@ -75,7 +76,7 @@ at::Tensor _float_to_bfloat16_cuda(const at::Tensor& input) {
   }
 
   constexpr size_t threads_per_block = 256;
-  const auto blockDim_x = std::min(output_columns, threads_per_block);
+  const auto blockDim_x = ::min(output_columns, threads_per_block);
   dim3 blockDim(blockDim_x, threads_per_block / blockDim_x);
   const auto gridDim_x = (output_columns + blockDim.x - 1) / blockDim.x;
   const auto gridDim_y =
@@ -123,7 +124,7 @@ at::Tensor _bfloat16_to_float_cuda(const at::Tensor& input) {
 
   constexpr size_t threads_per_block = 256;
 
-  const auto blockDim_x = std::min(output_columns, threads_per_block);
+  const auto blockDim_x = ::min(output_columns, threads_per_block);
   dim3 blockDim(blockDim_x, threads_per_block / blockDim_x);
   const auto gridDim_x = (output_columns + blockDim.x - 1) / blockDim.x;
   const auto gridDim_y =

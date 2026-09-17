@@ -1,0 +1,79 @@
+{
+  "AOTRITON_GIT_SHA1": "6e00ef3e335b45dfb49065259533b59c68995bfe",
+  "AOTRITON_GIT_TREESHA1": "0a9c220761603465c794bc6522564452d43ebc23",
+  "DB_SHA256": {
+    "primary": {
+      "gfx90a": {
+        "flash": {
+          "attn_fwd": "54c28f0b5e9ee625632e33116660037554bb6d2c244ef518151c06082041884f",
+          "bwd_kernel_dk_dv": "f308b8bcd57b533df949c5ed5db42b8c69e3ec9f73109a680a4b4c437f623e91",
+          "bwd_kernel_dq": "7c21f52ec15ef0f5a61a2ace4d1847d0ff1aaaa1d27b51e315b25fb7ac6277e2",
+          "bwd_kernel_fuse": "3822ddb65e9cfdd72179a4f6355ee41ef4a67c0810ac5f5eaf57264f70f2f1b5"
+        }
+      },
+      "gfx942": {
+        "flash": {
+          "attn_fwd": "30f5c1efff133111f161875817d86aa6ca50f419f6776e1dd08e37c5bb029e8c",
+          "bwd_kernel_dk_dv": "d2a290e57ac2886f8ffc034bfa153eb5fbf7058947e3ce7fda7dd31918261122",
+          "bwd_kernel_dq": "da83488dc3a46c45537af87ad150baf70daaa37b6e0360c7e560020988cbf8b1",
+          "bwd_kernel_fuse": "b3c20f03ae35156956bf1428db6939a871195430b272d13a9e0726cd6c4bf747"
+        }
+      },
+      "gfx950": {
+        "flash": {
+          "attn_fwd": "0b0a72908315efbb582c6e7971d891649c449bf675c4502f37c504b089876423",
+          "bwd_kernel_dk_dv": "625064eeb0784ae2479582321f59bcd76bbf8dacbcf5059cc625cafa6e30006d",
+          "bwd_kernel_dq": "438b5a1cf0659943ca748fb1cb3b590f7cc704cfbcb21cb36c3963462b0c0ff9",
+          "bwd_kernel_fuse": "26186723c2c409d82c82cbed6be8b798c680b82e1a549144793d8f83679485ee"
+        }
+      },
+      "gfx1100": {
+        "flash": {
+          "attn_fwd": "360fc6f5b1af1362c5a8b5d46673f6368f42d9076f73ebef2dc9633bf7cf6bd0",
+          "bwd_kernel_dk_dv": "19d8ec6aa939c2f5978ef9a5aeb770466e4c2391226d0d3bf8aaf19bbf4cc230",
+          "bwd_kernel_dq": "a3b13aaaf4298bc4fac8318ed8918cee84d94c76eaa3748e2c382e3fd974e44d",
+          "bwd_kernel_fuse": "ffa557eb485815f69333f2eb3d0a94dcdc5195c3eb05cc26711b206407bcd081"
+        }
+      },
+      "gfx1101": {
+        "flash": {}
+      },
+      "gfx1102": {
+        "flash": {}
+      },
+      "gfx1103": {
+        "flash": {}
+      },
+      "gfx1150": {
+        "flash": {}
+      },
+      "gfx1151": {
+        "flash": {}
+      },
+      "gfx1152": {
+        "flash": {}
+      },
+      "gfx1153": {
+        "flash": {}
+      },
+      "gfx1201": {
+        "flash": {
+          "attn_fwd": "a11d1435cda69b01eec3e72885d1334396356854216afdeeec5863d244e77dd9",
+          "bwd_kernel_dk_dv": "5ba7c0e10d88feb43f4e7e48b625d96ad1b2fdfb3a3a2411de92dbb12838067f",
+          "bwd_kernel_dq": "94d803f10b94e8ccb85b4beff5dabb083363854ffa895153abdd715b2c18ea4f",
+          "bwd_kernel_fuse": "fd7ec757bb0ec8177f2a70477a510bdbde54f04206fd0f751aef2f33dd6a927a"
+        }
+      },
+      "gfx1200": {
+        "flash": {}
+      },
+      "gfx1250": {
+        "flash": {}
+      }
+    },
+    "secondary": {
+      "op": "23f108bb68d0d4d83faa860181443ef0c4e62c18cc1745efc654d9f5fb6e8d3d"
+    }
+  },
+  "TRITON_VERSION": "3.7.0+gitdb82b800.aotriton0.13"
+}

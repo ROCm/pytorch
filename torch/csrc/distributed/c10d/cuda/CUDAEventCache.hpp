@@ -5,7 +5,7 @@
 #include <memory>
 #include <mutex>
 
-#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/hip/HIPEvent.h>
 #include <c10/macros/Export.h>
 
 namespace c10d {

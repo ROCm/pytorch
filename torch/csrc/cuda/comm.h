@@ -1,8 +1,8 @@
 #pragma once
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/ATenCUDAGeneral.h>
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/hip/ATenHIPGeneral.h>
+#include <ATen/hip/HIPContext.h>
 #include <torch/csrc/Export.h>
 #include <optional>
 

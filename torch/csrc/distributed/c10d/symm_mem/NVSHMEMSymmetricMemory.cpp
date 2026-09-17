@@ -8,9 +8,9 @@
 #include <torch/csrc/distributed/c10d/symm_mem/nvshmem_team_manager.hpp>
 
 #include <ATen/ceil_div.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <ATen/hip/HIPContext.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/error.h>
 #include <c10/util/flat_hash_map.h>
 
@@ -38,7 +38,7 @@ struct NVSHMEMAllocation {
   // Layout (signal pad first):
   //   [0, signal_pad_size)                          - signal pad
   //   [buffer_offset, buffer_offset + buffer_size)  - user data buffer
-  // alloc_base is the nvshmem_malloc base (== signal pad base); alloc() hands
+  // alloc_base is the rocshmem::rocshmem_malloc base (== signal pad base); alloc() hands
   // back `alloc_base + buffer_offset` (the data buffer).
   void* alloc_base;
   size_t buffer_size;
@@ -74,7 +74,7 @@ struct NVSHMEMAllocation {
       return;
     }
     c10::cuda::CUDAGuard guard(device_idx);
-    nvshmem_free(alloc_base); // nvshmem_free has no return value
+    rocshmem::rocshmem_free(alloc_base); // rocshmem::rocshmem_free has no return value
   }
 };
 
@@ -132,11 +132,11 @@ class NVSHMEMPeerAllocInfo : public c10::intrusive_ptr_target {
       auto rank_to_global_rank_dev =
           reinterpret_cast<int*>(c10::cuda::CUDACachingAllocator::raw_alloc(
               sizeof(int) * world_size_));
-      AT_CUDA_CHECK(cudaMemcpy(
+      AT_CUDA_CHECK(hipMemcpy(
           rank_to_global_rank_dev,
           rank_to_global_rank.data(),
           sizeof(int) * world_size_,
-          cudaMemcpyHostToDevice));
+          hipMemcpyHostToDevice));
       rank_to_global_rank_dev_map[group_name] = rank_to_global_rank_dev;
     }
     auto& rank_to_global_rank = it->second;
@@ -146,13 +146,13 @@ class NVSHMEMPeerAllocInfo : public c10::intrusive_ptr_target {
     // buffer_offset. The signal pad is zeroed once in alloc(). This is one pad
     // per allocation, shared across every process group that rendezvouses on
     // it -- the same model as the CUDA backend (previously each group did its
-    // own nvshmem_malloc for an isolated pad). barrier()/put_signal()/
+    // own rocshmem::rocshmem_malloc for an isolated pad). barrier()/put_signal()/
     // wait_signal() consume the pad via the shared kernels, indexing signal
     // slots by (world_size, channel, rank) as the CUDA backend does.
     world_within_cuda_p2p_ = true;
     for (int r = 0; r < world_size_; ++r) {
-      auto peer_base = nvshmem_ptr(base_ptr_, rank_to_global_rank[r]);
-      // If a peer is over network, `nvshmem_ptr` returns null
+      auto peer_base = rocshmem::rocshmem_ptr(base_ptr_, rank_to_global_rank[r]);
+      // If a peer is over network, `rocshmem::rocshmem_ptr` returns null
       if (peer_base == nullptr) {
         world_within_cuda_p2p_ = false;
       }
@@ -168,13 +168,13 @@ class NVSHMEMPeerAllocInfo : public c10::intrusive_ptr_target {
     signal_pads_dev_ = reinterpret_cast<void**>(
         c10::cuda::CUDACachingAllocator::raw_alloc(arr_size));
 
-    AT_CUDA_CHECK(cudaMemcpy(
-        buffers_dev_, buffers_.data(), arr_size, cudaMemcpyHostToDevice));
-    AT_CUDA_CHECK(cudaMemcpy(
+    AT_CUDA_CHECK(hipMemcpy(
+        buffers_dev_, buffers_.data(), arr_size, hipMemcpyHostToDevice));
+    AT_CUDA_CHECK(hipMemcpy(
         signal_pads_dev_,
         signal_pads_.data(),
         arr_size,
-        cudaMemcpyHostToDevice));
+        hipMemcpyHostToDevice));
 
 #if !defined(USE_ROCM) // Multi-cast is not supported on ROCm yet
     // Initialize multicast address
@@ -399,23 +399,23 @@ static void initialize_nvshmem_with_store(
   c10::cuda::CUDAGuard guard(device_idx);
   maybe_initialize_env_vars();
   // Make sure the CUDA runtime is initialized.
-  cudaFree(nullptr);
+  hipFree(nullptr);
 
-  nvshmemx_uniqueid_t unique_id;
+  rocshmem::rocshmem_uniqueid_t unique_id;
   NVSHMEM_CHECK(
-      nvshmemx_get_uniqueid(&unique_id), "nvshmemx_get_uniqueid failed");
+      rocshmem::rocshmem_get_uniqueid(&unique_id), "rocshmem::rocshmem_get_uniqueid failed");
 
   // Using an existing store_all_gather due to laziness.
   // TODO(yifu): should use broadcast
   auto unique_ids =
       storeExchange.all_gather(store, rank, world_size, unique_id);
 
-  nvshmemx_init_attr_t attr;
-  nvshmemx_set_attr_uniqueid_args(rank, world_size, &unique_ids[0], &attr);
+  rocshmem::rocshmem_init_attr_t attr;
+  rocshmem::rocshmem_set_attr_uniqueid_args(rank, world_size, &unique_ids[0], &attr);
 
   NVSHMEM_CHECK(
-      nvshmemx_init_attr(NVSHMEMX_INIT_WITH_UNIQUEID, &attr),
-      "nvshmemx_init_attr failed");
+      rocshmem::rocshmem_init_attr(rocshmem::ROCSHMEM_INIT_WITH_UNIQUEID, &attr),
+      "rocshmem::rocshmem_init_attr failed");
 
   is_initialized = true;
 
@@ -454,20 +454,20 @@ class NVSHMEMSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
     const size_t buffer_offset =
         at::round_up(get_signal_pad_size(), signal_pad_alignment);
     const size_t total_size = buffer_offset + at::round_up(size, 16UL);
-    auto alloc_base = nvshmem_malloc(total_size);
-    TORCH_CHECK(alloc_base != nullptr, "nvshmem_malloc failed");
+    auto alloc_base = rocshmem::rocshmem_malloc(total_size);
+    TORCH_CHECK(alloc_base != nullptr, "rocshmem::rocshmem_malloc failed");
     // Zero the signal pad (at the front, [0, buffer_offset)) for the signaling
-    // protocol. Sync the memset, then barrier: nvshmem_malloc publishes the
+    // protocol. Sync the memset, then barrier: rocshmem::rocshmem_malloc publishes the
     // allocation before any rank has zeroed its pad, so peers must not signal
     // into it until every rank's zeroing has landed.
     auto stream = at::cuda::getCurrentCUDAStream(
         static_cast<c10::DeviceIndex>(device_idx));
-    AT_CUDA_CHECK(cudaMemsetAsync(alloc_base, 0, buffer_offset, stream));
-    AT_CUDA_CHECK(cudaStreamSynchronize(stream));
-    nvshmem_barrier_all();
+    AT_CUDA_CHECK(hipMemsetAsync(alloc_base, 0, buffer_offset, stream));
+    AT_CUDA_CHECK(hipStreamSynchronize(stream));
+    rocshmem::rocshmem_barrier_all();
     // Hand back the data buffer pointer, not alloc_base; the signal pad stays
     // hidden in front. Returning the data ptr is safe for free(): the whole
-    // block is owned by the NVSHMEMAllocation keyed below, which nvshmem_free's
+    // block is owned by the NVSHMEMAllocation keyed below, which rocshmem::rocshmem_free's
     // alloc_base in its destructor, so free() only needs the data ptr to drop
     // the allocation entry.
     void* buffer_ptr = static_cast<char*>(alloc_base) + buffer_offset;

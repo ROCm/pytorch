@@ -259,7 +259,7 @@ c10::intrusive_ptr<JitFuture> RequestCallbackImpl::processRpcWithErrors(
 }
 
 bool RequestCallbackImpl::cudaAvailable() const {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   return true;
 #else
   return false;

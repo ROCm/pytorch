@@ -222,7 +222,7 @@ template <
 inline T abs(T a) {
   return std::abs(float(a));
 }
-#if defined(_MSC_VER) && defined(__CUDACC__)
+#if defined(_MSC_VER) && defined(__HIPCC__)
 template <
     typename T,
     typename std::

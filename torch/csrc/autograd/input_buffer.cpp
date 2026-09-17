@@ -42,7 +42,7 @@ std::optional<c10::Stream> maybe_override_stale_capture_stream(
         node_name,
         "' has a stale reference to the default stream (stream 0) from "
         "warmup. This will invalidate the capture because "
-        "cudaStreamWaitEvent on the default stream pulls a non-capturing "
+        "hipStreamWaitEvent on the default stream pulls a non-capturing "
         "stream into the graph.\n\n"
         "To fix, either:\n"
         "  (a) Run warmup on the same stream that capture will use, or\n"

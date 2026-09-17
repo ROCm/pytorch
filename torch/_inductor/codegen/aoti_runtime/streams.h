@@ -8,9 +8,9 @@
 namespace torch::aot_inductor {
 
 struct AOTIPerThreadEventCache {
-  std::vector<std::vector<cudaEvent_t>> events_by_device;
+  std::vector<std::vector<hipEvent_t>> events_by_device;
 
-  std::vector<cudaEvent_t>& events(int device_idx) {
+  std::vector<hipEvent_t>& events(int device_idx) {
     AOTI_RUNTIME_CHECK(device_idx >= 0, "AOTI event cache device index < 0");
     const auto slot = static_cast<std::size_t>(device_idx);
     if (events_by_device.size() <= slot) {
@@ -19,12 +19,12 @@ struct AOTIPerThreadEventCache {
     return events_by_device[slot];
   }
 
-  void create(std::vector<cudaEvent_t>& events, std::size_t slot) {
+  void create(std::vector<hipEvent_t>& events, std::size_t slot) {
     AOTI_RUNTIME_CUDA_CHECK(
-        cudaEventCreateWithFlags(&events[slot], cudaEventDisableTiming));
+        hipEventCreateWithFlags(&events[slot], hipEventDisableTiming));
   }
 
-  cudaEvent_t get(int event_idx, int device_idx) {
+  hipEvent_t get(int event_idx, int device_idx) {
     AOTI_RUNTIME_CHECK(event_idx >= 0, "AOTI event cache event index < 0");
     auto& device_events = events(device_idx);
     const auto slot = static_cast<std::size_t>(event_idx);
@@ -43,11 +43,11 @@ struct AOTIPerThreadEventCache {
         if (event == nullptr) {
           continue;
         }
-        auto code = cudaEventDestroy(event);
-        if (code != cudaSuccess) {
+        auto code = hipEventDestroy(event);
+        if (code != hipSuccess) {
           std::cerr
               << "Failed to destroy CUDA event in AOTInductor stream cache: "
-              << cudaGetErrorString(code) << '\n';
+              << hipGetErrorString(code) << '\n';
         }
       }
     }
@@ -55,18 +55,18 @@ struct AOTIPerThreadEventCache {
 };
 
 struct AOTIPerThreadStreamCache {
-  std::vector<std::vector<cudaStream_t>> streams_by_device;
+  std::vector<std::vector<hipStream_t>> streams_by_device;
 
-  void check_not_capturing(cudaStream_t caller_stream) {
-    cudaStreamCaptureStatus capture_status;
+  void check_not_capturing(hipStream_t caller_stream) {
+    hipStreamCaptureStatus capture_status;
     AOTI_RUNTIME_CUDA_CHECK(
-        cudaStreamIsCapturing(caller_stream, &capture_status));
+        hipStreamIsCapturing(caller_stream, &capture_status));
     AOTI_RUNTIME_CHECK(
-        capture_status == cudaStreamCaptureStatusNone,
+        capture_status == hipStreamCaptureStatusNone,
         "AOTI user streams are not supported during CUDA graph capture");
   }
 
-  std::vector<cudaStream_t>& streams(int device_idx) {
+  std::vector<hipStream_t>& streams(int device_idx) {
     AOTI_RUNTIME_CHECK(device_idx >= 0, "AOTI stream cache device index < 0");
     const auto slot = static_cast<std::size_t>(device_idx);
     if (streams_by_device.size() <= slot) {
@@ -75,7 +75,7 @@ struct AOTIPerThreadStreamCache {
     return streams_by_device[slot];
   }
 
-  void ensure(std::size_t count, int device_idx, cudaStream_t caller_stream) {
+  void ensure(std::size_t count, int device_idx, hipStream_t caller_stream) {
     check_not_capturing(caller_stream);
     auto& device_streams = streams(device_idx);
     const std::size_t old_size = device_streams.size();
@@ -88,11 +88,11 @@ struct AOTIPerThreadStreamCache {
         continue;
       }
       AOTI_RUNTIME_CUDA_CHECK(
-          cudaStreamCreateWithFlags(&device_streams[i], cudaStreamNonBlocking));
+          hipStreamCreateWithFlags(&device_streams[i], hipStreamNonBlocking));
     }
   }
 
-  cudaStream_t get(int stream_idx, int device_idx, cudaStream_t caller_stream) {
+  hipStream_t get(int stream_idx, int device_idx, hipStream_t caller_stream) {
     AOTI_RUNTIME_CHECK(
         stream_idx > 0,
         "AOTI aux stream cache slot 0 is reserved for the caller stream");
@@ -107,11 +107,11 @@ struct AOTIPerThreadStreamCache {
         if (stream == nullptr) {
           continue;
         }
-        auto code = cudaStreamDestroy(stream);
-        if (code != cudaSuccess) {
+        auto code = hipStreamDestroy(stream);
+        if (code != hipSuccess) {
           std::cerr
               << "Failed to destroy CUDA stream in AOTInductor stream cache: "
-              << cudaGetErrorString(code) << '\n';
+              << hipGetErrorString(code) << '\n';
         }
       }
     }

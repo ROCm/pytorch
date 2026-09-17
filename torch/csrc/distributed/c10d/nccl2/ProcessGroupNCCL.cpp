@@ -14,11 +14,11 @@
 #include <unordered_set>
 
 #include <ATen/Context.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/env.h>
 #include <fmt/core.h>
-#include <nccl.h>
+#include <rccl/rccl.h>
 #include <torch/csrc/cuda/CUDAPluggableAllocator.h>
 #include <torch/csrc/distributed/c10d/NCCLCommRegistrationHook.hpp>
 #include <torch/csrc/distributed/c10d/nccl2/Logging.hpp>
@@ -267,7 +267,7 @@ void ProcessGroupNCCL::initNcclResources() {
   }
 
   if (!dependency_event_) {
-    dependency_event_.emplace(cudaEventDisableTiming);
+    dependency_event_.emplace(hipEventDisableTiming);
   }
 
   NCCL_CHECK(
@@ -723,7 +723,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::sendImpl(
       name_, comm_size_, "send", dst, sequence_number_, tensor, tensor);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, tensor)
                        : createWork(stream, timeout);
 
@@ -782,7 +782,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::recvImpl(
       name_, comm_size_, "recv", src, sequence_number_, tensor, tensor);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = createWork(stream, timeout);
 
   // Record start event before NCCL operation
@@ -860,7 +860,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::batch_op_issue(
       output_tensors);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = createWork(stream, timeout, input_tensors);
 
   // Record start event before NCCL operations
@@ -931,7 +931,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::broadcastImpl(
       name_, comm_size_, "broadcast", root, sequence_number_, tensor, tensor);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
 
   auto work = async_op ? createWork(stream, timeout, tensor)
                        : createWork(stream, timeout);
@@ -973,7 +973,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::all_reduce(
       name_, comm_size_, "all_reduce", rank_, sequence_number_, tensor, tensor);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, tensor)
                        : createWork(stream, timeout);
 
@@ -1017,7 +1017,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::reduceImpl(
       name_, comm_size_, "reduce", root, sequence_number_, tensor, tensor);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, tensor)
                        : createWork(stream, timeout);
 
@@ -1099,7 +1099,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::all_gather(
       {tensor});
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto operation_stream =
       at::cuda::getStreamFromExternal(stream, device_.index());
   for (size_t i = 0; i < local_outputs.size(); ++i) {
@@ -1184,7 +1184,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::allGatherSingleImpl(
       output);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input)
                        : createWork(stream, timeout);
 
@@ -1245,7 +1245,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::reduce_scatter(
       {output});
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input_list)
                        : createWork(stream, timeout);
 
@@ -1333,7 +1333,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::reduceScatterSingleImpl(
       output);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input)
                        : createWork(stream, timeout);
 
@@ -1393,7 +1393,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::allToAllSingleImpl(
       output);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input)
                        : createWork(stream, timeout);
 
@@ -1506,7 +1506,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::all_to_all_v_single(
       output);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input)
                        : createWork(stream, timeout);
 
@@ -1620,7 +1620,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::all_to_all(
       output_tensor_list);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = async_op ? createWork(stream, timeout, input_tensor_list)
                        : createWork(stream, timeout);
 
@@ -1697,7 +1697,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::barrierImpl(
   TracingGuard tracingGuard(
       name_, comm_size_, "barrier", rank_, sequence_number_);
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   auto work = createWork(stream, timeout);
 
   // A synchronous barrier host-blocks the CPU thread in synchronizeInternal(),
@@ -1766,7 +1766,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::scatterImpl(
       {output_tensor});
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   std::vector<at::Tensor> input_tensors;
   if (async_op && rank_ == root) {
     input_tensors = input_tensor_list;
@@ -1885,7 +1885,7 @@ c10::intrusive_ptr<WorkNCCL> ProcessGroupNCCL::gatherImpl(
       output_tensor_list);
 
   c10::cuda::CUDAGuard device_guard(device_);
-  cudaStream_t stream = getOperationStream(async_op);
+  hipStream_t stream = getOperationStream(async_op);
   std::vector<at::Tensor> output_tensors;
   if (rank_ == root) {
     output_tensors = output_tensor_list;

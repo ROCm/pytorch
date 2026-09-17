@@ -1,17 +1,17 @@
 #pragma once
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 // WARNING: Be careful when adding new includes here. This header will be used
 // in model.so, and should not refer to any aten/c10 headers except the stable
 // C ABI defined in torch/csrc/inductor/aoti_torch/c/shim.h. The same rule
 // applies to other files under torch/csrc/inductor/aoti_runtime/.
 #include <torch/csrc/inductor/aoti_runtime/utils.h>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime.h>
 #ifndef USE_ROCM
-#include <cuda_bf16.h>
-#include <cuda_fp16.h>
+#include <hip/hip_bf16.h>
+#include <hip/hip_fp16.h>
 #include <cuda_fp8.h>
 #endif
 
@@ -47,7 +47,7 @@ class AOTICudaGuard {
 
 class AOTICudaStreamGuard {
  public:
-  AOTICudaStreamGuard(cudaStream_t stream, int32_t device_index)
+  AOTICudaStreamGuard(hipStream_t stream, int32_t device_index)
       : guard_(nullptr, delete_cuda_stream_guard) {
     CUDAStreamGuardHandle ptr = nullptr;
     AOTI_TORCH_ERROR_CODE_CHECK(
@@ -60,4 +60,4 @@ class AOTICudaStreamGuard {
 };
 
 } // namespace torch::aot_inductor
-#endif // USE_CUDA
+#endif // USE_ROCM

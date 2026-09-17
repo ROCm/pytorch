@@ -12,8 +12,8 @@
 #include <iosfwd>
 #include <ostream>
 
-#if defined(__CUDACC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
-#include <cuda_bf16.h>
+#if defined(__HIPCC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
+#include <hip/hip_bf16.h>
 #endif
 
 #if defined(CL_SYCL_LANGUAGE_VERSION)
@@ -46,9 +46,9 @@ struct alignas(2) BFloat16 {
   /* implicit */ inline C10_HOST_DEVICE BFloat16(float value);
   inline C10_HOST_DEVICE operator float() const;
 
-#if defined(__CUDACC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
-  inline C10_HOST_DEVICE BFloat16(const __nv_bfloat16& value);
-  explicit inline C10_HOST_DEVICE operator __nv_bfloat16() const;
+#if defined(__HIPCC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
+  inline C10_HOST_DEVICE BFloat16(const __hip_bfloat16& value);
+  explicit inline C10_HOST_DEVICE operator __hip_bfloat16() const;
 #endif
 
 #if defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
@@ -124,7 +124,7 @@ C10_CLANG_DIAGNOSTIC_IGNORE("-Wimplicit-int-float-conversion")
 /// Constructors
 inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
     :
-#if defined(__CUDACC__) &&                                                   \
+#if defined(__HIPCC__) &&                                                   \
     (!defined(USE_ROCM) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800 || \
      defined(USE_ROCM) && (TORCH_HIP_VERSION >= 702))
       x(__bfloat16_as_ushort(__float2bfloat16(value)))
@@ -140,8 +140,8 @@ inline C10_HOST_DEVICE BFloat16::BFloat16(float value)
 
 /// Implicit conversions
 inline C10_HOST_DEVICE BFloat16::operator float() const {
-#if defined(__CUDACC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
-  return __bfloat162float(*reinterpret_cast<const __nv_bfloat16*>(&x));
+#if defined(__HIPCC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
+  return __bfloat162float(*reinterpret_cast<const __hip_bfloat16*>(&x));
 #elif defined(__SYCL_DEVICE_ONLY__) && \
     defined(SYCL_EXT_ONEAPI_BFLOAT16_MATH_FUNCTIONS)
   return float(*reinterpret_cast<const sycl::ext::oneapi::bfloat16*>(&x));
@@ -150,12 +150,12 @@ inline C10_HOST_DEVICE BFloat16::operator float() const {
 #endif
 }
 
-#if defined(__CUDACC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
-inline C10_HOST_DEVICE BFloat16::BFloat16(const __nv_bfloat16& value) {
+#if defined(__HIPCC__) && (!defined(USE_ROCM) || (TORCH_HIP_VERSION >= 702))
+inline C10_HOST_DEVICE BFloat16::BFloat16(const __hip_bfloat16& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
 }
-inline C10_HOST_DEVICE BFloat16::operator __nv_bfloat16() const {
-  return *reinterpret_cast<const __nv_bfloat16*>(&x);
+inline C10_HOST_DEVICE BFloat16::operator __hip_bfloat16() const {
+  return *reinterpret_cast<const __hip_bfloat16*>(&x);
 }
 #endif
 
@@ -171,10 +171,10 @@ inline C10_HOST_DEVICE BFloat16::operator sycl::ext::oneapi::bfloat16() const {
 
 // CUDA intrinsics
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
 inline C10_DEVICE BFloat16 __ldg(const BFloat16* ptr) {
 #if !defined(USE_ROCM) && defined(__CUDA_ARCH__) && __CUDA_ARCH__ >= 800
-  return __ldg(reinterpret_cast<const __nv_bfloat16*>(ptr));
+  return __ldg(reinterpret_cast<const __hip_bfloat16*>(ptr));
 #else
   return *ptr;
 #endif

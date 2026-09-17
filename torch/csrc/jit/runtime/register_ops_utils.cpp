@@ -1,7 +1,7 @@
 #include <ATen/CPUGeneratorImpl.h>
 // TODO(antoniojkim): Add CUDA support for make_generator_for_device
-// #ifdef USE_CUDA
-// #include <ATen/cuda/CUDAGeneratorImpl.h>
+// #ifdef USE_ROCM
+// #include <ATen/hip/HIPGeneratorImpl.h>
 // #endif
 #ifdef USE_MPS
 #include <ATen/mps/MPSGeneratorImpl.h>
@@ -401,7 +401,7 @@ at::Generator make_generator_for_device(
     }
 // TODO(antoniojkim): Enable support for CUDA device
 //                    Implementation below causes issues during rocm build
-// #ifdef USE_CUDA
+// #ifdef USE_ROCM
 //   } else if (device.is_cuda()) {
 //     auto generator = at::cuda::detail::createCUDAGenerator(device.index());
 //     if (seed.has_value()) {

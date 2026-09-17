@@ -6,7 +6,7 @@
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/utils/pybind.h>
 
-#include <ATen/cuda/CUDAGraph.h>
+#include <ATen/hip/HIPGraph.h>
 
 // Cargo culted partially from csrc/distributed/c10d/init.cpp
 // and partially from csrc/cuda/Stream.cpp.
@@ -32,16 +32,16 @@ void THCPGraph_init(PyObject* module) {
           [](::at::cuda::CUDAGraph& self,
              std::optional<c10::cuda::MempoolId_t> pool_opt,
              const std::string& capture_error_mode) {
-            cudaStreamCaptureMode capture_mode{};
+            hipStreamCaptureMode capture_mode{};
             c10::cuda::MempoolId_t pool = pool_opt.has_value()
                 ? pool_opt.value()
                 : c10::cuda::MempoolId_t{0, 0};
             if (capture_error_mode == "global") {
-              capture_mode = cudaStreamCaptureModeGlobal;
+              capture_mode = hipStreamCaptureModeGlobal;
             } else if (capture_error_mode == "thread_local") {
-              capture_mode = cudaStreamCaptureModeThreadLocal;
+              capture_mode = hipStreamCaptureModeThreadLocal;
             } else if (capture_error_mode == "relaxed") {
-              capture_mode = cudaStreamCaptureModeRelaxed;
+              capture_mode = hipStreamCaptureModeRelaxed;
             } else {
               TORCH_CHECK(
                   false,
@@ -98,9 +98,9 @@ void THCPGraph_init(PyObject* module) {
       .def(
           "raw_cuda_graph",
           [](::at::cuda::CUDAGraph& self) {
-            cudaGraph_t graph = self.raw_cuda_graph();
+            hipGraph_t graph = self.raw_cuda_graph();
             // We return a raw int here, since otherwise pybind11 will
-            // try to return the underlying struct of cudaGraph_t
+            // try to return the underlying struct of hipGraph_t
             // points to, which is opaque and therefore causes a
             // compile error.
             return reinterpret_cast<uintptr_t>(graph);
@@ -109,9 +109,9 @@ void THCPGraph_init(PyObject* module) {
       .def(
           "raw_cuda_graph_exec",
           [](::at::cuda::CUDAGraph& self) {
-            cudaGraphExec_t graph_exec = self.raw_cuda_graph_exec();
+            hipGraphExec_t graph_exec = self.raw_cuda_graph_exec();
             // We return a raw int here, since otherwise pybind11 will
-            // try to return the underlying struct of cudaGraphExec_t
+            // try to return the underlying struct of hipGraphExec_t
             // points to, which is opaque and therefore causes a
             // compile error.
             return reinterpret_cast<uintptr_t>(graph_exec);

@@ -3,11 +3,11 @@
 #include <torch/headeronly/cuda/Atomic.h>
 
 #if !(defined(USE_ROCM) || ((defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 800))))
-#include <cuda_bf16.h>
+#include <hip/hip_bf16.h>
 #endif
 
 #if defined(USE_ROCM)
-#include <device_functions.h>
+#include <hip/device_functions.h>
 #include <hip/hip_bf16.h>
 #include <hip/hip_fp16.h>
 
@@ -173,22 +173,22 @@ __device__ __forceinline__ void fastSpecializedAtomicAdd(
 #else
   // Accounts for the chance tensor falls on an odd 16 bit alignment (ie, not 32
   // bit aligned)
-  __nv_bfloat16* target_addr = reinterpret_cast<__nv_bfloat16*>(tensor + index);
+  __hip_bfloat16* target_addr = reinterpret_cast<__hip_bfloat16*>(tensor + index);
   bool low_byte =
-      (reinterpret_cast<std::uintptr_t>(target_addr) % sizeof(__nv_bfloat162) ==
+      (reinterpret_cast<std::uintptr_t>(target_addr) % sizeof(__hip_bfloat162) ==
        0);
 
   if (low_byte && index < (numel - 1)) {
-    __nv_bfloat162 value2;
-    value2.x = *reinterpret_cast<__nv_bfloat16*>(&value);
+    __hip_bfloat162 value2;
+    value2.x = *reinterpret_cast<__hip_bfloat16*>(&value);
     value2.y = NATIVE_ZERO_BF16;
-    ATOMICADD(reinterpret_cast<__nv_bfloat162*>(target_addr), value2);
+    ATOMICADD(reinterpret_cast<__hip_bfloat162*>(target_addr), value2);
 
   } else if (!low_byte && index > 0) {
-    __nv_bfloat162 value2;
+    __hip_bfloat162 value2;
     value2.x = NATIVE_ZERO_BF16;
-    value2.y = *reinterpret_cast<__nv_bfloat16*>(&value);
-    ATOMICADD(reinterpret_cast<__nv_bfloat162*>(target_addr - 1), value2);
+    value2.y = *reinterpret_cast<__hip_bfloat16*>(&value);
+    ATOMICADD(reinterpret_cast<__hip_bfloat162*>(target_addr - 1), value2);
 
   } else {
 #ifdef USE_ROCM
@@ -197,8 +197,8 @@ __device__ __forceinline__ void fastSpecializedAtomicAdd(
         static_cast<at::BFloat16>(value));
 #else
     atomicAdd(
-        reinterpret_cast<__nv_bfloat16*>(tensor) + index,
-        *reinterpret_cast<__nv_bfloat16*>(&value));
+        reinterpret_cast<__hip_bfloat16*>(tensor) + index,
+        *reinterpret_cast<__hip_bfloat16*>(&value));
 #endif
   }
 #endif

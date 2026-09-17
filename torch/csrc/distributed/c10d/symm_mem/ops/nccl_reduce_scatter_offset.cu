@@ -1,6 +1,7 @@
-#include <c10/cuda/CUDAGuard.h>
+#include "hip/hip_runtime.h"
+#include <c10/hip/HIPGuard.h>
 #include <ATen/Dispatch.h>
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/hip/HIPContext.h>
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/macros.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
@@ -338,7 +339,7 @@ void nccl_reduce_scatter_offset(
     info.dst_ptrs[j] = out[j].data_ptr();
     info.dst_block_size[j] = static_cast<uint16_t>(owned_sizes[j]);
     const int numel_j = static_cast<int>(owned_sizes[j]) * fixed_dim_size;
-    const int ctas_j = std::max(1, std::min(
+    const int ctas_j = ::max(1, ::min(
         (numel_j + elems_per_cta - 1) / elems_per_cta, RS_MAX_CTAS_PER_BLOCK));
     info.ctas_offset[j] = static_cast<uint16_t>((j > 0 ? info.ctas_offset[j - 1] : 0) + ctas_j);
     const int slot_start = j > 0 ? info.ctas_offset[j - 1] : 0;

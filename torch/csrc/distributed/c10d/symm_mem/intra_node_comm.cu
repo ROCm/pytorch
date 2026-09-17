@@ -79,7 +79,7 @@ AllReduceAlgo IntraNodeComm::selectAllReduceAlgo(const at::Tensor& input) {
   const size_t ptrAlignment = get_alignment(
       static_cast<size_t>(input.storage_offset() * input.element_size()));
   const size_t sizeAlignment = get_alignment(inputSize);
-  const size_t alignment = std::min(ptrAlignment, sizeAlignment);
+  const size_t alignment = ::min(ptrAlignment, sizeAlignment);
 
   if (topology_ == Topology::FULLY_CONNECTED) {
     // Both symm_mem::one_shot_all_reduce and symm_mem::two_shot_all_reduce_

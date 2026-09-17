@@ -486,7 +486,7 @@ at::Tensor tensor_from_cuda_array_interface(
         // if device_opt is provided with explicit device index, use it
         return device_opt;
       } else {
-        // otherwise infer from cudaPointerGetAttributes later in from_blob
+        // otherwise infer from hipPointerGetAttributes later in from_blob
         return std::nullopt;
       }
     } else {

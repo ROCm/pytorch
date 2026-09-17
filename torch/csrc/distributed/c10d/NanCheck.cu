@@ -1,6 +1,7 @@
+#include "hip/hip_runtime.h"
 #include <ATen/Dispatch.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <ATen/hip/HIPContext.h>
+#include <c10/hip/HIPGuard.h>
 #include <stdint.h>
 #include <torch/library.h>
 #include <algorithm>

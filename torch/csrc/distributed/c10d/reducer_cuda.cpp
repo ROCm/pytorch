@@ -1,6 +1,6 @@
 #include <torch/csrc/distributed/c10d/reducer_timer.hpp>
 
-#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/hip/HIPEvent.h>
 #include <c10/core/DeviceGuard.h>
 
 namespace c10d {
@@ -12,14 +12,14 @@ class CudaTimer : public Timer {
  private:
   c10::Device device;
 
-  at::cuda::CUDAEvent forward_start = at::cuda::CUDAEvent(cudaEventDefault);
+  at::cuda::CUDAEvent forward_start = at::cuda::CUDAEvent(hipEventDefault);
   at::cuda::CUDAEvent backward_compute_start =
-      at::cuda::CUDAEvent(cudaEventDefault);
+      at::cuda::CUDAEvent(hipEventDefault);
   at::cuda::CUDAEvent backward_compute_end =
-      at::cuda::CUDAEvent(cudaEventDefault);
+      at::cuda::CUDAEvent(hipEventDefault);
   at::cuda::CUDAEvent backward_comm_start =
-      at::cuda::CUDAEvent(cudaEventDefault);
-  at::cuda::CUDAEvent backward_comm_end = at::cuda::CUDAEvent(cudaEventDefault);
+      at::cuda::CUDAEvent(hipEventDefault);
+  at::cuda::CUDAEvent backward_comm_end = at::cuda::CUDAEvent(hipEventDefault);
 
   at::cuda::CUDAEvent& getEvent(Event event) {
     switch (event) {

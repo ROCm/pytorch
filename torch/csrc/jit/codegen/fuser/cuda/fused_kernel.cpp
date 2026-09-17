@@ -3,15 +3,15 @@
 #include <torch/csrc/jit/codegen/fuser/compiler.h>
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <ATen/cuda/CUDAGeneratorImpl.h>
-#include <ATen/cuda/nvrtc_stub/ATenNVRTC.h>
-#include <ATen/native/cuda/jit_utils.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <ATen/hip/HIPContext.h>
+#include <ATen/hip/HIPGeneratorImpl.h>
+#include <ATen/hip/nvrtc_stub/ATenNVRTC.h>
+#include <ATen/native/hip/jit_utils.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/Exception.h>
 #include <torch/csrc/jit/resource_guard.h>
 
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #include <algorithm>
 #include <cmath>
@@ -28,18 +28,18 @@ const at::cuda::NVRTC& nvrtc() {
 
 // query codegen output arch and target
 void codegenOutputQuery(
-    const cudaDeviceProp* const prop,
+    const hipDeviceProp_t* const prop,
     int& major,
     int& minor,
     bool& compile_to_sass) {
 #ifdef USE_ROCM
-  AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcVersion(&major, &minor));
+  AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcVersion(&major, &minor));
   compile_to_sass = false;
 #else
   using CudaVersion = std::pair<int, int>;
   CudaVersion nvrtc_version;
   AT_CUDA_NVRTC_CHECK(
-      nvrtc().nvrtcVersion(&nvrtc_version.first, &nvrtc_version.second));
+      nvrtc().hiprtcVersion(&nvrtc_version.first, &nvrtc_version.second));
 
   TORCH_CHECK(
       nvrtc_version.first >= 6,
@@ -117,8 +117,8 @@ FusedKernelCUDA::FusedKernelCUDA(
   codegenOutputQuery(prop_, major, minor, compile_to_sass);
 
   // Creates the NVRTC program
-  nvrtcProgram program{};
-  AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcCreateProgram(
+  hiprtcProgram program{};
+  AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcCreateProgram(
       &program, code_.c_str(), nullptr, 0, nullptr, nullptr));
 
 #if defined(USE_ROCM)
@@ -143,41 +143,41 @@ FusedKernelCUDA::FusedKernelCUDA(
       "--std=c++20", compute.c_str(), "-default-device"};
 #endif
   const auto result =
-      nvrtc().nvrtcCompileProgram(program, args.size(), args.data());
-  if (result != NVRTC_SUCCESS) {
+      nvrtc().hiprtcCompileProgram(program, args.size(), args.data());
+  if (result != HIPRTC_SUCCESS) {
     size_t logsize = 0;
-    AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcGetProgramLogSize(program, &logsize));
+    AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcGetProgramLogSize(program, &logsize));
     std::vector<char> log(logsize);
-    AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcGetProgramLog(program, log.data()));
+    AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcGetProgramLog(program, log.data()));
     TORCH_CHECK(false, std::string(log.data(), log.size()));
   }
   ResourceGuard holdProgram(
-      [&] { AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcDestroyProgram(&program)); });
+      [&] { AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcDestroyProgram(&program)); });
   AT_CUDA_NVRTC_CHECK(result);
   size_t ptx_size = 0;
 #if !defined(USE_ROCM)
   // compile_to_sass determines whether we are generating SASS or PTX, hence
   // the different API.
   const auto getSize = compile_to_sass
-      ? at::globalContext().getNVRTC().nvrtcGetCUBINSize
-      : at::globalContext().getNVRTC().nvrtcGetPTXSize;
+      ? at::globalContext().getNVRTC().hiprtcGetBitcodeSize
+      : at::globalContext().getNVRTC().hiprtcGetCodeSize;
   const auto getFunc = compile_to_sass
-      ? at::globalContext().getNVRTC().nvrtcGetCUBIN
-      : at::globalContext().getNVRTC().nvrtcGetPTX;
+      ? at::globalContext().getNVRTC().hiprtcGetBitcode
+      : at::globalContext().getNVRTC().hiprtcGetCode;
 #else
-  const auto getSize = at::globalContext().getNVRTC().nvrtcGetPTXSize;
-  const auto getFunc = at::globalContext().getNVRTC().nvrtcGetPTX;
+  const auto getSize = at::globalContext().getNVRTC().hiprtcGetCodeSize;
+  const auto getFunc = at::globalContext().getNVRTC().hiprtcGetCode;
 #endif
   AT_CUDA_NVRTC_CHECK(getSize(program, &ptx_size));
   ptx_.resize(ptx_size);
   AT_CUDA_NVRTC_CHECK(getFunc(program, ptx_.data()));
 
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuModuleLoadData(&module_, ptx_.data()));
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleLoadData(&module_, ptx_.data()));
   AT_CUDA_DRIVER_CHECK(
-      nvrtc().cuModuleGetFunction(&function_, module_, name_.c_str()));
+      nvrtc().hipModuleGetFunction(&function_, module_, name_.c_str()));
 
   // Computes max blocks
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuOccupancyMaxActiveBlocksPerMultiprocessor(
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleOccupancyMaxActiveBlocksPerMultiprocessor(
       &maxBlocks_, function_, 128, 0));
   maxBlocks_ *= prop_->multiProcessorCount;
 
@@ -220,7 +220,7 @@ void FusedKernelCUDA::launch_raw(
 
   // Launches kernel on current stream (device was set by executor)
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuLaunchKernel(
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleLaunchKernel(
       function_,
       nBlocks,
       1,
@@ -238,7 +238,7 @@ void FusedKernelCUDA::launch_raw(
 }
 
 FusedKernelCUDA::~FusedKernelCUDA() {
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuModuleUnload(module_));
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleUnload(module_));
 }
 
 static std::shared_ptr<FusedKernel> createFusionKernel(

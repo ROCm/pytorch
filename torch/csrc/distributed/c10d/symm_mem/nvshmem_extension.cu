@@ -1,6 +1,7 @@
+#include "hip/hip_runtime.h"
 #include <dlfcn.h>
 #include <ATen/ceil_div.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 
 #include <torch/csrc/distributed/c10d/symm_mem/env.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/macros.hpp>
@@ -11,8 +12,8 @@
 #include <torch/csrc/distributed/c10d/symm_mem/SymmetricMemory.hpp>
 #include <torch/custom_class.h>
 
-// Use torch's cub wrapper instead of CUDA's <cub/cub.cuh>, see #55292
-#include <ATen/cuda/cub.cuh>
+// Use torch's cub wrapper instead of CUDA's <hipcub/hipcub.hpp>, see #55292
+#include <ATen/hip/cub.cuh>
 
 // NVSHMEM minimum SM arch
 #define _NVSHMEM_MIN_SM_ARCH 700
@@ -74,10 +75,10 @@ bool is_nvshmem_available() {
   return is_available == 1;
 }
 
-// Initializes the device state in CUmodule so that it’s able to perform NVSHMEM
+// Initializes the device state in hipModule_t so that it’s able to perform NVSHMEM
 // operations.
 void nvshmemx_cumodule_init(uintptr_t module) {
-  auto cumodule = reinterpret_cast<CUmodule>(module);
+  auto cumodule = reinterpret_cast<hipModule_t>(module);
   NVSHMEM_CHECK(
     ::nvshmemx_cumodule_init(cumodule),
     "nvshmemx_cumodule_init failed");
@@ -239,7 +240,7 @@ __device__ int64_t prefixSum(int64_t *odata, int64_t *idata, int n) {
   // - `BLOCK_SCAN_WARP_SCANS` is a low-latency scan algorithm (instead of high
   // throughput which we don't need here).
   // - `at_cuda_detail::cub` is torch's cub wrapper, see #55292.
-  using BlockScanT = at_cuda_detail::cub::BlockScan<int64_t, THREADS_PER_BLOCK, at_cuda_detail::cub::BLOCK_SCAN_WARP_SCANS>;
+  using BlockScanT = at_cuda_detail::hipcub::BlockScan<int64_t, THREADS_PER_BLOCK, at_cuda_detail::hipcub::BLOCK_SCAN_WARP_SCANS>;
   // Allocate shared memory for BlockScan
   __shared__ typename BlockScanT::TempStorage temp_storage;
 
@@ -265,11 +266,11 @@ __device__ int64_t prefixSum(int64_t *odata, int64_t *idata, int n) {
 // - input splits (IN)
 // - output splits (OUT) and
 // - source offsets (OUT).
-__global__ void exchangeSplitAndOffset(int64_t* input_splits, int64_t* out_splits_offsets, nvshmem_team_t team) {
+__global__ void exchangeSplitAndOffset(int64_t* input_splits, int64_t* out_splits_offsets, rocshmem::rocshmem_team_t team) {
 #ifndef _NVSHMEM_DEVICELIB_SUPPORTED
   CUDA_KERNEL_ASSERT_MSG(false, "SM arch unsupported for NVSHMEM");
 #else
-  CUDA_KERNEL_ASSERT(team != NVSHMEM_TEAM_INVALID);
+  CUDA_KERNEL_ASSERT(team != rocshmem::ROCSHMEM_TEAM_INVALID);
   int mype = nvshmem_team_my_pe(team);
   int npes = nvshmem_team_n_pes(team);
   auto output_splits = out_splits_offsets;
@@ -286,7 +287,7 @@ __global__ void exchangeSplitAndOffset(int64_t* input_splits, int64_t* out_split
   // Use 1 block to do the exchange
   if (tid < npes) {
     // tid is peer index within team, but put calls require global rank
-    int peer_global = nvshmem_team_translate_pe(team, tid, NVSHMEM_TEAM_WORLD);
+    int peer_global = nvshmem_team_translate_pe(team, tid, rocshmem::ROCSHMEM_TEAM_WORLD);
     nvshmem_int64_p(source_offsets + mype, peer_offsets[tid], peer_global);
     nvshmem_int64_p(output_splits + mype, input_splits[tid], peer_global);
   }
@@ -298,11 +299,11 @@ __global__ void exchangeSplitAndOffset(int64_t* input_splits, int64_t* out_split
 // This kernel is used to do the actual data exchange.
 // `in_out_splits` has the same definition as in `exchangeSplitAndOffset`.
 // `stride` is the stride at dim 0, unit in byte.
-__global__ void allToAllV(void *send_data, void *recv_data, int64_t* out_splits_offsets, size_t stride, nvshmem_team_t team) {
+__global__ void allToAllV(void *send_data, void *recv_data, int64_t* out_splits_offsets, size_t stride, rocshmem::rocshmem_team_t team) {
 #ifndef _NVSHMEM_DEVICELIB_SUPPORTED
   CUDA_KERNEL_ASSERT_MSG(false, "SM arch unsupported for NVSHMEM");
 #else
-  CUDA_KERNEL_ASSERT(team != NVSHMEM_TEAM_INVALID);
+  CUDA_KERNEL_ASSERT(team != rocshmem::ROCSHMEM_TEAM_INVALID);
   int mype = nvshmem_team_my_pe(team);
   int npes = nvshmem_team_n_pes(team);
   auto output_splits = out_splits_offsets;
@@ -320,7 +321,7 @@ __global__ void allToAllV(void *send_data, void *recv_data, int64_t* out_splits_
   // Target a different peer based on bid
   for (int i = bid / blocks_per_peer; i < npes; i += gridDim.x / blocks_per_peer) {
     int peer = (mype + i) % npes;
-    auto peer_global = nvshmem_team_translate_pe(team, peer, NVSHMEM_TEAM_WORLD);
+    auto peer_global = nvshmem_team_translate_pe(team, peer, rocshmem::ROCSHMEM_TEAM_WORLD);
     // Total amount from `peer`
     auto peer_size = output_splits[peer] * stride;
     // Amount to get from `peer` in this block
@@ -358,7 +359,7 @@ static int get_a2a_nblocks(size_t size, int world_size, bool intra_node) {
   // Allow kernel to target even number of blocks per peer
   num_blocks = at::round_up(num_blocks, world_size);
   const int max_blocks = intra_node ? 64 : 16;
-  return std::min(num_blocks, max_blocks);
+  return ::min(num_blocks, max_blocks);
 }
 
 void all_to_all_vdev(
@@ -454,11 +455,11 @@ void all_to_all_vdev(
 */
 
 template <bool HAS_IN_OFFSETS>
-__global__ void exchangeSplitAndOffset_2d(int64_t* in_splits_offsets, int64_t* out_splits_offsets, nvshmem_team_t team, int ne, size_t input_dim0, bool rank_is_row_in) {
+__global__ void exchangeSplitAndOffset_2d(int64_t* in_splits_offsets, int64_t* out_splits_offsets, rocshmem::rocshmem_team_t team, int ne, size_t input_dim0, bool rank_is_row_in) {
 #ifndef _NVSHMEM_DEVICELIB_SUPPORTED
   CUDA_KERNEL_ASSERT_MSG(false, "SM arch unsupported for NVSHMEM");
 #else
-  CUDA_KERNEL_ASSERT(team != NVSHMEM_TEAM_INVALID);
+  CUDA_KERNEL_ASSERT(team != rocshmem::ROCSHMEM_TEAM_INVALID);
   int mype = nvshmem_team_my_pe(team);
   int npes = nvshmem_team_n_pes(team);
   int nsplits = npes * ne;
@@ -499,7 +500,7 @@ __global__ void exchangeSplitAndOffset_2d(int64_t* in_splits_offsets, int64_t* o
     // (or vice versa).
     auto split_val = input_splits[tid];
     CUDA_KERNEL_ASSERT(split_val >= 0 && "split value is negative\n");
-    auto peer_global = nvshmem_team_translate_pe(team, peer, NVSHMEM_TEAM_WORLD);
+    auto peer_global = nvshmem_team_translate_pe(team, peer, rocshmem::ROCSHMEM_TEAM_WORLD);
     nvshmem_int64_p(source_offsets + dst_offset, input_offsets[tid], peer_global);
     nvshmem_int64_p(output_splits + dst_offset, split_val, peer_global);
   }
@@ -557,7 +558,7 @@ __device__ int64_t prefixSum_warp(int64_t *odata, int64_t *idata, int n) {
 // In dispatch case, rank_is_row_out = false, major_size = ne, minor_size = npes.
 // In combine case, rank_is_row_out = true, major_size = npes, minor_size = ne.
 
-__global__ void allToAllV_2d(void *send_data, void *recv_data, int64_t* in_splits, int64_t* out_splits_offsets, size_t stride, int minor_size, int major_size, int64_t major_align, bool rank_is_row_out, nvshmem_team_t team) {
+__global__ void allToAllV_2d(void *send_data, void *recv_data, int64_t* in_splits, int64_t* out_splits_offsets, size_t stride, int minor_size, int major_size, int64_t major_align, bool rank_is_row_out, rocshmem::rocshmem_team_t team) {
 #ifndef _NVSHMEM_DEVICELIB_SUPPORTED
   CUDA_KERNEL_ASSERT_MSG(false, "SM arch unsupported for NVSHMEM");
 #else
@@ -638,7 +639,7 @@ __global__ void allToAllV_2d(void *send_data, void *recv_data, int64_t* in_split
     auto source_offset = source_offsets[eid] * stride;
     auto e_offset = tile_prefix_sums[row][col];
     auto write_offset = e_offset * stride;
-    auto peer_global = nvshmem_team_translate_pe(team, rank_is_row_out ? row : col, NVSHMEM_TEAM_WORLD);
+    auto peer_global = nvshmem_team_translate_pe(team, rank_is_row_out ? row : col, rocshmem::ROCSHMEM_TEAM_WORLD);
     nvshmemx_getmem_nbi_block(
       (char*)recv_data + write_offset,
       (char*)send_data + source_offset,
@@ -830,7 +831,7 @@ void all_to_all_vdev_2d(
   // CTA Tuning
   // Naive for now, use 1 block per expert.
   // Total number of blocks is limited to 64 (intra-node) or 8 (inter-node).
-  int num_blocks = std::min(world_size * ne, world_size > 8 ? 8 : 64);
+  int num_blocks = ::min(world_size * ne, world_size > 8 ? 8 : 64);
 
   // Stride at dim 0
   size_t stride_bytes = input.stride(0) * input.element_size();
@@ -970,7 +971,7 @@ void all_to_all_vdev_2d_offset(
   // CTA Tuning
   // Naive for now, use 1 block per expert.
   // Total number of blocks is limited to 64 (intra-node) or 8 (inter-node).
-  int num_blocks = std::min(world_size * ne, world_size > 8 ? 8 : 64);
+  int num_blocks = ::min(world_size * ne, world_size > 8 ? 8 : 64);
 
   // Stride at dim 0
   size_t stride_bytes = input.stride(0) * input.element_size();
@@ -1009,13 +1010,13 @@ using Stride2D = nvshmemx::stride<int64_t, int64_t>;
 
 template <typename T>
 __global__ void tile_reduce_kernel(
-    T* src_ptr, T* dst_ptr, Shape2D shape, Stride2D strides, int64_t root, nvshmem_team_t* teams) {
+    T* src_ptr, T* dst_ptr, Shape2D shape, Stride2D strides, int64_t root, rocshmem::rocshmem_team_t* teams) {
 #ifndef _NVSHMEM_DEVICELIB_SUPPORTED
   CUDA_KERNEL_ASSERT_MSG(false, "SM arch unsupported for NVSHMEM");
 #else
   int bid = blockIdx.x;
   auto team = teams[bid];
-  CUDA_KERNEL_ASSERT(team != NVSHMEM_TEAM_INVALID && " invalid team\n");
+  CUDA_KERNEL_ASSERT(team != rocshmem::ROCSHMEM_TEAM_INVALID && " invalid team\n");
 
   // Global tile shape
   auto [rows, cols] = shape;
@@ -1024,7 +1025,7 @@ __global__ void tile_reduce_kernel(
   // Divide rows among CUDA blocks
   auto rows_per_block = at::ceil_div(rows, (int64_t)gridDim.x);
   auto block_start_row = rows_per_block * bid;
-  auto block_shape = nvshmemx::make_shape(std::min(rows_per_block, rows - block_start_row), cols);
+  auto block_shape = nvshmemx::make_shape(::min(rows_per_block, rows - block_start_row), cols);
   auto block_layout = nvshmemx::make_layout(block_shape, strides);
 
   // Start pointer of each block's sub-tile
@@ -1078,7 +1079,7 @@ void tile_reduce(
   int nblocks = at::ceil_div(
       in_tile.numel() * in_tile.element_size(),
       (int64_t)THREADS_PER_BLOCK * 16);
-  nblocks = std::min(nblocks, 24);
+  nblocks = ::min(nblocks, 24);
 
   // Need one team per block
   auto& team_manager = TeamManager::get(device);
@@ -1164,7 +1165,7 @@ void multi_root_tile_reduce(
   int nblocks = at::ceil_div(
       out_tile.numel() * out_tile.element_size(),
       (int64_t)THREADS_PER_BLOCK * 16);
-  nblocks = std::min(nblocks, 24);
+  nblocks = ::min(nblocks, 24);
 
   // Need one team per block
   auto& team_manager = TeamManager::get(device);

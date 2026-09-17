@@ -32,14 +32,14 @@
 #include <torch/csrc/distributed/c10d/symm_mem/intra_node_comm.hpp>
 
 #include <ATen/DynamicLibrary.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <ATen/cuda/CUDAEvent.h>
-#include <ATen/cuda/MemPool.h>
+#include <ATen/hip/HIPContext.h>
+#include <ATen/hip/HIPEvent.h>
+#include <ATen/hip/MemPool.h>
 #include <c10/core/Stream.h>
 #include <c10/core/StreamGuard.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
+#include <c10/hip/HIPStream.h>
 
 #include <torch/custom_class.h>
 
@@ -90,7 +90,7 @@ static std::vector<std::string> TORCH_NCCL_DESYNC_DEBUG = {
 // compute accurate collective timing per-collective. (Note: end-events are
 // recorded by default. Turn on this flag can increase chances of a watchdog
 // hang due to performing a CUDA event query which eventually calls
-// cudaEventElapsedTime() API.
+// hipEventElapsedTime() API.
 static std::vector<std::string> TORCH_NCCL_ENABLE_TIMING = {
     "TORCH_NCCL_ENABLE_TIMING",
     "NCCL_ENABLE_TIMING"};

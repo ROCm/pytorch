@@ -1,6 +1,6 @@
 #pragma once
 
-#include <c10/cuda/CUDAMacros.h>
+#include <c10/hip/HIPMacros.h>
 #include <bitset>
 #include <cstddef>
 

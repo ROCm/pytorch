@@ -172,7 +172,7 @@ C10_EXPORT GroupInfo& get_group_info(const std::string& group_name);
 // hood.
 //
 // Whether this is a collective operation is backend-dependent. The NVSHMEM
-// allocator calls nvshmem_malloc and barriers inside alloc(), so with that
+// allocator calls rocshmem::rocshmem_malloc and barriers inside alloc(), so with that
 // backend every rank must call this the same number of times in the same order.
 //
 // NOTE [symmetric memory persistent allocation]

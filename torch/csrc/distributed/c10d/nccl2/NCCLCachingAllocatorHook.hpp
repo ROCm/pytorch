@@ -16,7 +16,7 @@
 #include <set>
 #include <unordered_map>
 
-#include <c10/cuda/CUDACachingAllocator.h>
+#include <c10/hip/HIPCachingAllocator.h>
 
 namespace c10d::nccl2 {
 

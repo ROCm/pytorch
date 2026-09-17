@@ -2,14 +2,14 @@
 
 #ifndef ROCM_ON_WINDOWS
 #if CUDART_VERSION >= 13000 || defined(TORCH_CUDA_USE_NVTX3)
-#include <nvtx3/nvtx3.hpp>
+#include <roctracer/roctx.h>
 #else
-#include <nvToolsExt.h>
+#include <roctracer/roctx.h>
 #endif
 #else // ROCM_ON_WINDOWS
 #include <c10/util/Exception.h>
 #endif // ROCM_ON_WINDOWS
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/ApproximateClock.h>
 #include <c10/util/irange.h>
 #include <torch/csrc/profiler/stubs/base.h>
@@ -18,11 +18,11 @@
 namespace torch::profiler::impl {
 namespace {
 
-static void cudaCheck(cudaError_t result, const char* file, int line) {
-  if (result != cudaSuccess) {
+static void cudaCheck(hipError_t result, const char* file, int line) {
+  if (result != hipSuccess) {
     std::stringstream ss;
     ss << file << ':' << line << ": ";
-    if (result == cudaErrorInitializationError) {
+    if (result == hipErrorInitializationError) {
       // It is common for users to use DataLoader with multiple workers
       // and the autograd profiler. Throw a nice error message here.
       ss << "CUDA initialization error. "
@@ -34,7 +34,7 @@ static void cudaCheck(cudaError_t result, const char* file, int line) {
          << "of your code. https://github.com/pytorch/pytorch/issues/6313 "
          << "tracks profiler support for multi-worker DataLoader.";
     } else {
-      ss << cudaGetErrorString(result);
+      ss << hipGetErrorString(result);
     }
     TORCH_CHECK(false, std::move(ss).str());
   }
@@ -49,16 +49,16 @@ struct CUDAMethods : public ProfilerStubs {
     if (device) {
       TORCH_CUDA_CHECK(c10::cuda::GetDevice(device));
     }
-    CUevent_st* cuda_event_ptr{nullptr};
-    TORCH_CUDA_CHECK(cudaEventCreate(&cuda_event_ptr));
-    *event = std::shared_ptr<CUevent_st>(cuda_event_ptr, [](CUevent_st* ptr) {
-      TORCH_CUDA_CHECK(cudaEventDestroy(ptr));
+    ihipEvent_t* cuda_event_ptr{nullptr};
+    TORCH_CUDA_CHECK(hipEventCreate(&cuda_event_ptr));
+    *event = std::shared_ptr<ihipEvent_t>(cuda_event_ptr, [](ihipEvent_t* ptr) {
+      TORCH_CUDA_CHECK(hipEventDestroy(ptr));
     });
     auto stream = at::cuda::getCurrentCUDAStream();
     if (cpu_ns) {
       *cpu_ns = c10::getTime();
     }
-    TORCH_CUDA_CHECK(cudaEventRecord(cuda_event_ptr, stream));
+    TORCH_CUDA_CHECK(hipEventRecord(cuda_event_ptr, stream));
   }
 
   float elapsed(
@@ -66,25 +66,25 @@ struct CUDAMethods : public ProfilerStubs {
       const ProfilerVoidEventStub* event2_) const override {
     auto event = (const ProfilerEventStub*)event_;
     auto event2 = (const ProfilerEventStub*)event2_;
-    TORCH_CUDA_CHECK(cudaEventSynchronize(event->get()));
-    TORCH_CUDA_CHECK(cudaEventSynchronize(event2->get()));
+    TORCH_CUDA_CHECK(hipEventSynchronize(event->get()));
+    TORCH_CUDA_CHECK(hipEventSynchronize(event2->get()));
     float ms = 0;
-    TORCH_CUDA_CHECK(cudaEventElapsedTime(&ms, event->get(), event2->get()));
+    TORCH_CUDA_CHECK(hipEventElapsedTime(&ms, event->get(), event2->get()));
     // NOLINTNEXTLINE(bugprone-narrowing-conversions,cppcoreguidelines-avoid-magic-numbers,cppcoreguidelines-narrowing-conversions)
     return ms * 1000.0;
   }
 
 #ifndef ROCM_ON_WINDOWS
   void mark(const char* name) const override {
-    ::nvtxMark(name);
+    ::roctxMark(name);
   }
 
   void rangePush(const char* name) const override {
-    ::nvtxRangePushA(name);
+    ::roctxRangePushA(name);
   }
 
   void rangePop() const override {
-    ::nvtxRangePop();
+    ::roctxRangePop();
   }
 #else // ROCM_ON_WINDOWS
   static void printUnavailableWarning() {
@@ -110,7 +110,7 @@ struct CUDAMethods : public ProfilerStubs {
   }
 
   void synchronize() const override {
-    TORCH_CUDA_CHECK(cudaDeviceSynchronize());
+    TORCH_CUDA_CHECK(hipDeviceSynchronize());
   }
 
   bool enabled() const override {

@@ -10,7 +10,7 @@
 
 #include <torch/csrc/distributed/c10d/nccl2/ProcessGroupNCCL.hpp>
 
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/irange.h>
 #include <torch/csrc/cuda/CUDAPluggableAllocator.h>
 #include <torch/csrc/distributed/c10d/Types.hpp>
@@ -337,7 +337,7 @@ std::shared_ptr<c10::Allocator> ProcessGroupNCCL::getMemAllocator() {
   static std::shared_ptr<c10::Allocator> allocator = [] {
     auto nccl_api = std::make_shared<DefaultNcclApi>();
     return torch::cuda::CUDAPluggableAllocator::createCustomAllocator(
-        [nccl_api](size_t size, int device, cudaStream_t stream) {
+        [nccl_api](size_t size, int device, hipStream_t stream) {
           at::cuda::OptionalCUDAGuard gpuGuard(device);
           void* ptr = nullptr;
           ncclResult_t result = nccl_api->memAlloc(&ptr, size);
@@ -350,7 +350,7 @@ std::shared_ptr<c10::Allocator> ProcessGroupNCCL::getMemAllocator() {
 #endif
           return ptr;
         },
-        [nccl_api](void* ptr, size_t size, int device, cudaStream_t stream) {
+        [nccl_api](void* ptr, size_t size, int device, hipStream_t stream) {
           at::cuda::OptionalCUDAGuard gpuGuard(device);
           ncclResult_t result = nccl_api->memFree(ptr);
           TORCH_CHECK(
@@ -419,7 +419,7 @@ at::Tensor ProcessGroupNCCL::allocateTensor(
 
   auto threadId = std::this_thread::get_id();
   c10::cuda::CUDACachingAllocator::beginAllocateToPool(
-      memPool_->device(), memPool_->id(), [threadId](cudaStream_t) {
+      memPool_->device(), memPool_->id(), [threadId](hipStream_t) {
         return std::this_thread::get_id() == threadId;
       });
   auto tensor = at::empty({size}, options);

@@ -4,8 +4,8 @@
 #include <torch/csrc/utils/device_lazy_init.h>
 #include <torch/csrc/utils/pybind.h>
 
-#include <ATen/cuda/MemPool.h>
-#include <c10/cuda/CUDACachingAllocator.h>
+#include <ATen/hip/MemPool.h>
+#include <c10/hip/HIPCachingAllocator.h>
 
 template <typename T>
 using shared_ptr_class_ = py::class_<T, std::shared_ptr<T>>;

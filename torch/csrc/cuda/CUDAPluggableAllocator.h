@@ -1,11 +1,11 @@
 #pragma once
 
 #include <c10/core/Allocator.h>
-#include <c10/cuda/CUDAGraphsC10Utils.h>
-#include <c10/cuda/CUDAMacros.h>
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPGraphsC10Utils.h>
+#include <c10/hip/HIPMacros.h>
+#include <c10/hip/HIPStream.h>
 
-#include <c10/cuda/CUDACachingAllocator.h>
+#include <c10/hip/HIPCachingAllocator.h>
 
 #include <mutex>
 
@@ -17,8 +17,8 @@ getCurrentAllocator();
 TORCH_CUDA_CPP_API std::shared_ptr<
     c10::cuda::CUDACachingAllocator::CUDAAllocator>
 createCustomAllocator(
-    std::function<void*(size_t, int, cudaStream_t)> alloc_fn,
-    std::function<void(void*, size_t, int, cudaStream_t)> free_fn);
+    std::function<void*(size_t, int, hipStream_t)> alloc_fn,
+    std::function<void(void*, size_t, int, hipStream_t)> free_fn);
 TORCH_CUDA_CPP_API void changeCurrentAllocator(
     const std::shared_ptr<c10::cuda::CUDACachingAllocator::CUDAAllocator>&
         allocator);
@@ -28,17 +28,17 @@ struct _AllocationMetadata {
   _AllocationMetadata(
       size_t size,
       c10::DeviceIndex device_idx,
-      cudaStream_t stream);
+      hipStream_t stream);
   size_t size;
   c10::DeviceIndex device_idx;
-  cudaStream_t stream{};
+  hipStream_t stream{};
 };
 
 struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
     : public c10::cuda::CUDACachingAllocator::CUDAAllocator {
   CUDAPluggableAllocator(
-      std::function<void*(size_t, int, cudaStream_t)> alloc_fn,
-      std::function<void(void*, size_t, int, cudaStream_t)> free_fn);
+      std::function<void*(size_t, int, hipStream_t)> alloc_fn,
+      std::function<void(void*, size_t, int, hipStream_t)> free_fn);
 
   CUDAPluggableAllocator(CUDAPluggableAllocator& other);
   CUDAPluggableAllocator(CUDAPluggableAllocator&& other) = delete;
@@ -57,11 +57,11 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
   void set_base_alloc_fn(std::function<void*(void*, size_t*)> base_alloc_fn);
 
   void set_record_stream_fn(
-      std::function<void(void* ptr, cudaStream_t stream)> record_stream_fn);
+      std::function<void(void* ptr, hipStream_t stream)> record_stream_fn);
 
   void set_begin_allocate_to_pool(
       std::function<
-          void(int, c10::cuda::MempoolId_t, std::function<bool(cudaStream_t)>)>
+          void(int, c10::cuda::MempoolId_t, std::function<bool(hipStream_t)>)>
           capture_begin_fn);
 
   void set_end_allocate_to_pool_fn(
@@ -70,13 +70,13 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
   void set_release_pool(
       std::function<void(int, c10::cuda::MempoolId_t)> capture_destroy_fn);
 
-  void* malloc(size_t size, c10::DeviceIndex device, cudaStream_t stream);
+  void* malloc(size_t size, c10::DeviceIndex device, hipStream_t stream);
 
   c10::DataPtr allocate(size_t size) override;
   c10::DeleterFnPtr raw_deleter() const override;
 
   void* raw_alloc(size_t nbytes) override;
-  void* raw_alloc_with_stream(size_t nbytes, cudaStream_t stream) override;
+  void* raw_alloc_with_stream(size_t nbytes, hipStream_t stream) override;
   void raw_delete(void* ptr) override;
   void init(int device_count) override;
   bool initialized() override;
@@ -105,7 +105,7 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
   void beginAllocateToPool(
       c10::DeviceIndex device,
       c10::cuda::MempoolId_t mempool_id,
-      std::function<bool(cudaStream_t)> /*filter*/) override;
+      std::function<bool(hipStream_t)> /*filter*/) override;
   void endAllocateToPool(
       c10::DeviceIndex device,
       c10::cuda::MempoolId_t mempool_id) override;
@@ -136,27 +136,27 @@ struct TORCH_CUDA_CPP_API CUDAPluggableAllocator
       override;
   void enablePeerAccess(c10::DeviceIndex dev, c10::DeviceIndex dev_to_access)
       override;
-  cudaError_t memcpyAsync(
+  hipError_t memcpyAsync(
       void* dst,
       int dstDevice,
       const void* src,
       int srcDevice,
       size_t count,
-      cudaStream_t stream,
+      hipStream_t stream,
       bool p2p_enabled) override;
   std::string name() override;
   void copy_data(void* dest, const void* src, std::size_t count) const final;
 
  protected:
-  std::function<void*(size_t, int, cudaStream_t)> alloc_fn_;
-  std::function<void(void*, size_t, int, cudaStream_t)> free_fn_;
+  std::function<void*(size_t, int, hipStream_t)> alloc_fn_;
+  std::function<void(void*, size_t, int, hipStream_t)> free_fn_;
   std::function<void(int)> init_fn_;
   std::function<void()> reset_fn_;
   std::function<void(double, int)> memory_fraction_fn_;
   std::function<void*(void*, size_t*)> base_alloc_fn_;
-  std::function<void(void* ptr, cudaStream_t stream)> record_stream_fn_;
+  std::function<void(void* ptr, hipStream_t stream)> record_stream_fn_;
   std::function<
-      void(int, c10::cuda::MempoolId_t, std::function<bool(cudaStream_t)>)>
+      void(int, c10::cuda::MempoolId_t, std::function<bool(hipStream_t)>)>
       begin_allocate_to_pool_fn_;
   std::function<void(int, c10::cuda::MempoolId_t)> end_allocate_to_pool_fn_;
   std::function<void(int, c10::cuda::MempoolId_t)> relase_pool_fn_;

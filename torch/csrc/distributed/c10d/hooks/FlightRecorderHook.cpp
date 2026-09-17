@@ -474,7 +474,7 @@ void FlightRecorderHook::onPre(const PreHookArgs& args) {
   // establish that there is none. The collective does not run here, it runs at
   // replay, and its Work cannot be polled: querying a CUDA event recorded on a
   // capturing stream does not merely fail, it invalidates the capture, which
-  // then surfaces from cudaStreamEndCapture nowhere near this code. An entry we
+  // then surfaces from hipStreamEndCapture nowhere near this code. An entry we
   // could never observe would also read as a collective that never finished,
   // i.e. as a hang. Stock ProcessGroupNCCL skips recording under capture too
   // (initWork's record flag follows whether the work can be enqueued for the

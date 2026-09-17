@@ -1,5 +1,5 @@
 #include <torch/csrc/inductor/aoti_runner/model_container_runner_cpu.h>
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #include <torch/csrc/inductor/aoti_runner/model_container_runner_cuda.h>
 #endif
 #ifdef USE_XPU
@@ -68,7 +68,7 @@ void initAOTIRunnerBindings(PyObject* module) {
           &AOTIModelContainerRunnerCpu::update_constant_buffer_from_blob,
           py::arg("weights_path"));
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   py::class_<AOTIModelContainerRunnerCuda>(m, "AOTIModelContainerRunnerCuda")
       .def(py::init<const std::string&, int>())
       .def(py::init<const std::string&, int, const std::string&>())

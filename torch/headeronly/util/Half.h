@@ -27,8 +27,8 @@
 #include <cstring>
 #include <ostream>
 
-#ifdef __CUDACC__
-#include <cuda_fp16.h>
+#ifdef __HIPCC__
+#include <hip/hip_fp16.h>
 #endif
 
 #ifdef __HIPCC__
@@ -46,7 +46,7 @@
 #include <torch/headeronly/cpu/vec/vec_half.h>
 #endif
 
-#if defined(__aarch64__) && !defined(__CUDACC__)
+#if defined(__aarch64__) && !defined(__HIPCC__)
 #include <arm_neon.h>
 #endif
 
@@ -54,11 +54,11 @@
 #if defined(__x86_64__) || defined(_M_X64) || defined(__i386) || \
     defined(_M_IX86)
 #if defined(__F16C__) &&                               \
-    !(defined(__CUDA_ARCH__) || defined(__CUDACC__) || \
+    !(defined(__CUDA_ARCH__) || defined(__HIPCC__) || \
       defined(__HIP_DEVICE_COMPILE__))
 #define C10_X86_F16 1
 #include <immintrin.h> // import conversion ops from f16cintrin.h
-#endif // defined(__F16C__) && !(defined(__CUDA_ARCH__) || defined(__CUDACC__)
+#endif // defined(__F16C__) && !(defined(__CUDA_ARCH__) || defined(__HIPCC__)
        // || defined(__HIP_DEVICE_COMPILE__))
 #endif // __x86_64__ || _M_X64 || __i386 || _M_IX86
 #endif // __GNUC__ || __clang__
@@ -82,7 +82,7 @@ struct alignas(2) Half {
 
   constexpr C10_HOST_DEVICE Half(unsigned short bits, from_bits_t /*unused*/)
       : x(bits) {}
-#if defined(__aarch64__) && !defined(__CUDACC__)
+#if defined(__aarch64__) && !defined(__HIPCC__)
   inline Half(float16_t value);
   inline operator float16_t() const;
 #else
@@ -90,7 +90,7 @@ struct alignas(2) Half {
   inline C10_HOST_DEVICE operator float() const;
 #endif
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
   inline C10_HOST_DEVICE Half(const __half& value);
   inline C10_HOST_DEVICE operator __half() const;
 #endif
@@ -398,7 +398,7 @@ inline uint32_t fp16_ieee_to_fp32_bits(uint16_t h) {
 #undef C10_X86_F16
 #endif // C10_X86_F16
 
-#if defined(__aarch64__) && !defined(__CUDACC__)
+#if defined(__aarch64__) && !defined(__HIPCC__)
 inline float16_t fp16_from_bits(uint16_t h) {
   return c10::bit_cast<float16_t>(h);
 }
@@ -426,7 +426,7 @@ C10_CLANG_DIAGNOSTIC_PUSH()
 C10_CLANG_DIAGNOSTIC_IGNORE("-Wimplicit-int-float-conversion")
 #endif
 
-#if defined(__aarch64__) && !defined(__CUDACC__)
+#if defined(__aarch64__) && !defined(__HIPCC__)
 /// Constructors
 inline Half::Half(float16_t value) : x(detail::fp16_to_bits(value)) {}
 inline Half::operator float16_t() const {
@@ -459,17 +459,17 @@ inline C10_HOST_DEVICE Half::operator float() const {
 #elif (defined(CPU_CAPABILITY_AVX2) || defined(CPU_CAPABILITY_AVX512)) && \
     !defined(__APPLE__)
   return at::vec::half2float_scalar(x);
-#elif defined(__aarch64__) && !defined(__CUDACC__)
+#elif defined(__aarch64__) && !defined(__HIPCC__)
   return detail::native_fp16_to_fp32_value(x);
 #else
   return detail::fp16_ieee_to_fp32_value(x);
 #endif
 }
 
-#endif /* !defined(__aarch64__) || defined(__CUDACC__) \
+#endif /* !defined(__aarch64__) || defined(__HIPCC__) \
         */
 
-#if defined(__CUDACC__) || defined(__HIPCC__)
+#if defined(__HIPCC__) || defined(__HIPCC__)
 inline C10_HOST_DEVICE Half::Half(const __half& value) {
   x = *reinterpret_cast<const unsigned short*>(&value);
 }
@@ -712,7 +712,7 @@ using c10::operator/=;
 using c10::operator<<;
 
 namespace detail {
-#if defined(__aarch64__) && !defined(__CUDACC__)
+#if defined(__aarch64__) && !defined(__HIPCC__)
 using c10::detail::fp16_from_bits;
 using c10::detail::fp16_to_bits;
 using c10::detail::native_fp16_from_fp32_value;

@@ -179,7 +179,7 @@ serialize::InputArchive& operator>>(
 
 // Workaround for CUDA 10.2 and below not allowing attribute unused on
 // using declarations.
-#ifdef __CUDACC__
+#ifdef __HIPCC__
 #define TORCH_UNUSED_EXCEPT_CUDA
 #else
 #define TORCH_UNUSED_EXCEPT_CUDA [[maybe_unused]]

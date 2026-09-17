@@ -3,13 +3,13 @@
 #include <torch/csrc/cuda/nccl.h>
 
 #include <ATen/ATen.h>
-#include <c10/cuda/CUDAException.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPException.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/Exception.h>
 #include <c10/util/hash.h>
 #include <c10/util/irange.h>
 
-#include <nccl.h>
+#include <rccl/rccl.h>
 
 #include <sched.h>
 #include <limits>
@@ -246,7 +246,7 @@ struct NcclCommList {
     if (comms) {
       for (const auto i : c10::irange(ndevices)) {
         int dummy_var = 0;
-        if (C10_CUDA_ERROR_HANDLED(cudaGetDevice(&dummy_var)) != cudaSuccess) {
+        if (C10_CUDA_ERROR_HANDLED(hipGetDevice(&dummy_var)) != hipSuccess) {
           /* there are cases when this destructor is called after the
            CUDA driver is already unloaded from the process.
            In these cases, skip ncclCommDestroy */

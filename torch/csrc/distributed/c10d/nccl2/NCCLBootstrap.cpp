@@ -2,9 +2,9 @@
 
 #ifdef USE_C10D_NCCL
 
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <fmt/core.h>
-#include <nccl.h>
+#include <rccl/rccl.h>
 #include <torch/csrc/distributed/c10d/PrefixStore.hpp>
 #include <torch/csrc/distributed/c10d/Utils.hpp>
 #include <torch/csrc/distributed/c10d/nccl2/Logging.hpp>

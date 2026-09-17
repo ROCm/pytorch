@@ -1,6 +1,6 @@
 #ifdef USE_C10D_UCC
 
-#include <ATen/cuda/nvrtc_stub/ATenNVRTC.h>
+#include <ATen/hip/nvrtc_stub/ATenNVRTC.h>
 #include <c10/util/CallOnce.h>
 #include <c10/util/env.h>
 #include <torch/csrc/distributed/c10d/ProcessGroup.hpp>
@@ -208,7 +208,7 @@ void check_tensor(const std::vector<at::Tensor>& tensors) {
 }
 
 ProcessGroupUCC::WorkUCC::~WorkUCC() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   if (fence && ep) {
     std::lock_guard<std::mutex> lock(ep->event_pool_mutex);
     ep->event_pool.push(std::move(fence));
@@ -252,7 +252,7 @@ bool ProcessGroupUCC::WorkUCC::wait(std::chrono::milliseconds /* unused */) {
   if (torch_ucc_config.enable_comms_logger && logger_) {
     logger_->trace_generator->recordComms("wait", (uintptr_t)this, rank_);
   }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   if (fence && !torch_ucc_config.blocking_wait[(int)opType_]) {
     // block user stream
     setAndThrowException();
@@ -483,7 +483,7 @@ void Comm::enqueue_collective(
   queue_produce_cv.notify_one();
 }
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 void Comm::enqueue_cuda_collective(
     std::unique_ptr<ProcessGroupUCC::WorkData> data,
     c10::intrusive_ptr<ProcessGroupUCC::WorkUCC> work,
@@ -519,7 +519,7 @@ void Comm::enqueue_cuda_collective(
 
 void Comm::progress_loop() {
   std::unique_lock<std::mutex> lock(mutex);
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   bool device_set = false;
 #endif
   while (!stop_progress_loop) {
@@ -531,15 +531,15 @@ void Comm::progress_loop() {
     auto work = progress_queue.front();
     progress_queue.pop_front();
     lock.unlock();
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if ((!device_set) && (cuda_device_index != TORCH_UCC_DEVICE_NOT_SET)) {
       c10::cuda::set_device(cuda_device_index);
-      CUcontext pctx = nullptr;
-      at::globalContext().getNVRTC().cuCtxGetCurrent(&pctx);
+      hipCtx_t pctx = nullptr;
+      at::globalContext().getNVRTC().hipCtxGetCurrent(&pctx);
       if (C10_UNLIKELY(!pctx)) {
-        at::globalContext().getNVRTC().cuDevicePrimaryCtxRetain(
+        at::globalContext().getNVRTC().hipDevicePrimaryCtxRetain(
             &pctx, cuda_device_index);
-        at::globalContext().getNVRTC().cuCtxSetCurrent(pctx);
+        at::globalContext().getNVRTC().hipCtxSetCurrent(pctx);
       }
       device_set = true;
     }
@@ -647,7 +647,7 @@ ProcessGroupUCC::~ProcessGroupUCC() {
   }
 }
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 // Return CUDA device with ordinal given by input rank.
 c10::Device getCUDADeviceForRank(int rank) {
   TORCH_CHECK(rank >= 0, "Invalid rank ", rank);
@@ -674,7 +674,7 @@ void ProcessGroupUCC::runHealthCheck() {
 
   auto t = std::thread([&healthCheckData, this]() {
     std::list<c10::Device> devices{c10::kCPU};
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     c10::cuda::OptionalCUDAGuard gpuGuard;
     if (at::cuda::is_available()) {
       devices.emplace_front(getCUDADeviceForRank(rank_));
@@ -689,7 +689,7 @@ void ProcessGroupUCC::runHealthCheck() {
         oob->store = this->oob->store;
         ucc_team_h team = nullptr;
         uint32_t comm_id;
-#ifdef USE_CUDA
+#ifdef USE_ROCM
         if (device.is_cuda()) {
           gpuGuard.set_index(device.index());
         }
@@ -752,7 +752,7 @@ void ProcessGroupUCC::set_timeout(ucc_coll_args_t& args) {
   args.timeout = timeout_.count();
 }
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 std::unique_ptr<at::cuda::CUDAEvent> ProcessGroupUCC::getPooledEvent() {
   std::unique_ptr<at::cuda::CUDAEvent> ev;
   std::lock_guard<std::mutex> lock(ep.event_pool_mutex);
@@ -808,7 +808,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::collective_post(
       postproc();
       return work;
     }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     case c10::DeviceType::CUDA: {
       auto cuda_ev = getPooledEvent();
       at::cuda::CUDAStream* op_stream;
@@ -849,7 +849,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::collective_post(
       }
       return work;
     }
-#endif // #ifdef USE_CUDA
+#endif // #ifdef USE_ROCM
     default: {
       TORCH_UCC_LOG_ERROR(
           TORCH_UCC_COLL_POST, c10::str("unsupported device type ", dev.str()));
@@ -926,7 +926,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::allgather(
 
     auto copy_from_flat = [&] {
       bool asyncCopy = false;
-#ifdef USE_CUDA
+#ifdef USE_ROCM
       bool isCuda = outputTensors[0][0].device().is_cuda();
       ;
 #endif
@@ -936,7 +936,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::allgather(
           TORCH_CHECK(
               (outputTensors[i][j].numel() == inumel),
               "Tensor operand counts must be same");
-#ifdef USE_CUDA
+#ifdef USE_ROCM
           if (isCuda) {
             c10::cuda::CUDACachingAllocator::recordStream(
                 outputTensors[i][j].storage().data_ptr(), (*stream));
@@ -1185,7 +1185,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::all_to_all_single(
 
 c10::intrusive_ptr<Work> ProcessGroupUCC::barrier(const BarrierOptions& opts) {
   c10::Device device = c10::Device(c10::DeviceType::CPU);
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   auto numGPUs = c10::cuda::device_count();
   if (!opts.device_ids.empty()) {
     device = c10::Device(c10::DeviceType::CUDA, opts.device_ids.front());
@@ -1422,7 +1422,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::reduce_scatter(
   auto copy_to_flat = [&] {
     bool asyncCopy = false;
     auto isize = inputTensors.size();
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     bool isCuda = inputTensors[0][0].device().is_cuda();
 #endif
     for (size_t i = 0; i < isize; i++) {
@@ -1431,7 +1431,7 @@ c10::intrusive_ptr<Work> ProcessGroupUCC::reduce_scatter(
         TORCH_CHECK(
             (inputTensors[i][j].numel() == onumel),
             "Tensor operand counts must be same");
-#ifdef USE_CUDA
+#ifdef USE_ROCM
         if (isCuda) {
           c10::cuda::CUDACachingAllocator::recordStream(
               inputTensors[i][j].storage().data_ptr(), (*stream));
@@ -1660,7 +1660,7 @@ c10::intrusive_ptr<Backend> ProcessGroupUCC::createProcessGroupUCC(
 
 void ProcessGroupUCC::initComm(c10::Device dev) {
   if (!comm) {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if (dev.is_cuda()) {
       c10::cuda::set_device(dev.index());
     }
@@ -1683,7 +1683,7 @@ void ProcessGroupUCC::initComm(c10::Device dev) {
       comm->cuda_device_index = dev.index();
     }
   }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   // Create UCC execution engine.
   if (!cuda_ee && dev.is_cuda()) {
     stream = std::make_unique<at::cuda::CUDAStream>(
@@ -1691,7 +1691,7 @@ void ProcessGroupUCC::initComm(c10::Device dev) {
     ucc_ee_params_t params;
     params.ee_type = UCC_EE_CUDA_STREAM;
     params.ee_context = (void*)stream->stream();
-    params.ee_context_size = sizeof(cudaStream_t);
+    params.ee_context_size = sizeof(hipStream_t);
     TORCH_UCC_CHECK(
         ucc_ee_create(team, &params, &cuda_ee),
         "failed to create UCC execution engine");
@@ -1701,7 +1701,7 @@ void ProcessGroupUCC::initComm(c10::Device dev) {
       ucc_ee_params_t params;
       params.ee_type = UCC_EE_CUDA_STREAM;
       params.ee_context = (void*)stream_p2p[i]->stream();
-      params.ee_context_size = sizeof(cudaStream_t);
+      params.ee_context_size = sizeof(hipStream_t);
       TORCH_UCC_CHECK(
           ucc_ee_create(team, &params, &cuda_ee_p2p[i]),
           "failed to create UCC P2P execution engine");

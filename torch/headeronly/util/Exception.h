@@ -24,7 +24,7 @@ namespace c10 {
 // in nvcc is causing us perf problems, this is not yet implemented, but this
 // might be an interesting piece of C++ code for an intrepid bootcamper to
 // write.
-#if defined(__CUDACC__)
+#if defined(__HIPCC__)
 #define C10_UNLIKELY_OR_CONST(e) e
 #else
 #define C10_UNLIKELY_OR_CONST(e) C10_UNLIKELY(e)

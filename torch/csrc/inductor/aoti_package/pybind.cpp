@@ -1,6 +1,6 @@
 #include <torch/csrc/inductor/aoti_package/model_package_loader.h>
 #include <torch/csrc/inductor/aoti_package/pybind.h>
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #endif
 
 #include <c10/core/Device.h>

@@ -3438,7 +3438,7 @@ class PythonWrapperCodegen(CodeGen):
         and pass through unchanged; a non-current accelerator violates the single-device
         invariant and is refused. Under compile-on-one-rank the current accelerator is read
         once per compilation and cached on the wrapper; once cached, the per-input/buffer
-        harness loops repeat neither the enabled check nor the cudaGetDevice.
+        harness loops repeat neither the enabled check nor the hipGetDevice.
         """
         cur = self._coor_current_accelerator
         if cur is None:

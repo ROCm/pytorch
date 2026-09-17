@@ -3,9 +3,9 @@
 #include <torch/csrc/Export.h>
 #include <torch/csrc/jit/codegen/fuser/fused_kernel.h>
 
-#include <cuda.h>
-#include <cuda_runtime.h>
-#include <nvrtc.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime.h>
+#include <hip/hiprtc.h>
 
 #include <cstdint>
 #include <string>
@@ -15,7 +15,7 @@ namespace torch::jit::fuser::cuda {
 
 // query codegen output arch and target
 TORCH_CUDA_CU_API void codegenOutputQuery(
-    const cudaDeviceProp* const prop,
+    const hipDeviceProp_t* const prop,
     int& major,
     int& minor,
     bool& compile_to_sass);
@@ -50,10 +50,10 @@ struct TORCH_CUDA_CU_API FusedKernelCUDA
   //  Acquiring these values at launch time would be too slow
   at::DeviceIndex device_;
   int maxBlocks_{};
-  cudaDeviceProp* prop_{};
+  hipDeviceProp_t* prop_{};
   std::vector<char> ptx_;
-  CUmodule module_{};
-  CUfunction function_{};
+  hipModule_t module_{};
+  hipFunction_t function_{};
 };
 
 } // namespace torch::jit::fuser::cuda

@@ -3,7 +3,7 @@
 namespace torch::utils {
 
 inline constexpr bool cuda_enabled() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   return true;
 #else
   return false;

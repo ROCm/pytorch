@@ -16,10 +16,10 @@
 
 #if TORCH_FEATURE_VERSION >= TORCH_VERSION_2_10_0
 
-// Users of this macro are expected to include cuda_runtime.h
+// Users of this macro are expected to include hip/hip_runtime.h
 #define STD_CUDA_CHECK(EXPR)                                             \
   do {                                                                   \
-    const cudaError_t __err = EXPR;                                      \
+    const hipError_t __err = EXPR;                                      \
     char* __error_msg = nullptr;                                         \
     torch_c10_cuda_check_msg(                                            \
         static_cast<int32_t>(__err),                                     \
@@ -36,8 +36,8 @@
     }                                                                    \
   } while (0)
 
-// Users of this macro are expected to include cuda_runtime.h
-#define STD_CUDA_KERNEL_LAUNCH_CHECK() STD_CUDA_CHECK(cudaGetLastError())
+// Users of this macro are expected to include hip/hip_runtime.h
+#define STD_CUDA_KERNEL_LAUNCH_CHECK() STD_CUDA_CHECK(hipGetLastError())
 
 #endif // TORCH_FEATURE_VERSION >= TORCH_VERSION_2_10_0
 

@@ -3,10 +3,10 @@
 #include <unordered_set>
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <ATen/cuda/nvrtc_stub/ATenNVRTC.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <ATen/hip/HIPContext.h>
+#include <ATen/hip/nvrtc_stub/ATenNVRTC.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
 #include <torch/csrc/jit/resource_guard.h>
 #include <torch/csrc/jit/tensorexpr/codegen.h>
 #include <torch/csrc/jit/tensorexpr/eval.h>
@@ -267,7 +267,7 @@ class TORCH_CUDA_CU_API CudaCodeGen : public CodeGen {
   std::unique_ptr<GPUMetaVarRewriter> metavar_rewriter_;
   std::unordered_set<std::string> taken_func_names;
   std::mutex eval_lock_;
-  CUfunction function_{nullptr};
+  hipFunction_t function_{nullptr};
   bool has_random_ = false;
   int thread_block_size_ = -1;
 

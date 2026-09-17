@@ -12,7 +12,7 @@
 #endif
 
 #include <ATen/ATen.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <torch/csrc/distributed/c10d/cuda/utils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/CUDASymmetricMemoryUtils.hpp>
 
@@ -323,7 +323,7 @@ void map_block(
     int device_idx) {
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
   auto driver_api = c10::cuda::DriverAPI::get();
-  auto dev_ptr = reinterpret_cast<CUdeviceptr*>(ptr);
+  auto dev_ptr = reinterpret_cast<hipDeviceptr_t*>(ptr);
   // Allocate virtual address space
   C10_CUDA_DRIVER_CHECK(
       driver_api->cuMemAddressReserve_(dev_ptr, size, 0ULL, 0, 0ULL));
@@ -331,11 +331,11 @@ void map_block(
   C10_CUDA_DRIVER_CHECK(driver_api->cuMemMap_(*dev_ptr, size, 0, handle, 0ULL));
 
   // Set access permissions
-  CUmemAccessDesc desc;
-  desc.location.type = CU_MEM_LOCATION_TYPE_DEVICE;
+  hipMemAccessDesc desc;
+  desc.location.type = hipMemLocationTypeDevice;
   // NOLINTNEXTLINE(bugprone-signed-char-misuse)
   desc.location.id = device_idx;
-  desc.flags = CU_MEM_ACCESS_FLAGS_PROT_READWRITE;
+  desc.flags = hipMemAccessFlagsProtReadWrite;
   C10_CUDA_DRIVER_CHECK(driver_api->cuMemSetAccess_(*dev_ptr, size, &desc, 1));
 #elif defined(USE_ROCM)
   C10_CUDA_CHECK(hipMemAddressReserve(ptr, size, 0ULL, 0, 0ULL));

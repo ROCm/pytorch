@@ -7,26 +7,26 @@
 
 #include <torch/csrc/inductor/aoti_runtime/utils.h>
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 
 // FIXME: Currently, CPU and CUDA backend are mutually exclusive.
 // This is a temporary workaround. We need a better way to support
 // multi devices.
 
-#include <cuda.h>
-#include <cuda_runtime_api.h>
+#include <hip/hip_runtime.h>
+#include <hip/hip_runtime_api.h>
 
 #define AOTI_RUNTIME_CUDA_CHECK(EXPR)                            \
   do {                                                           \
-    const cudaError_t code = EXPR;                               \
+    const hipError_t code = EXPR;                               \
     AOTI_RUNTIME_CHECK(                                          \
-        code == cudaSuccess,                                     \
-        std::string("CUDA error: ") + cudaGetErrorString(code)); \
+        code == hipSuccess,                                     \
+        std::string("CUDA error: ") + hipGetErrorString(code)); \
   } while (0)
 
 namespace torch::aot_inductor {
 
-using DeviceStreamType = cudaStream_t;
+using DeviceStreamType = hipStream_t;
 
 } // namespace torch::aot_inductor
 
@@ -61,4 +61,4 @@ using DeviceStreamType = void*;
 
 } // namespace torch::aot_inductor
 
-#endif // USE_CUDA
+#endif // USE_ROCM

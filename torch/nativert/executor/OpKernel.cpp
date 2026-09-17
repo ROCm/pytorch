@@ -71,7 +71,7 @@ std::string readableArgs(
 }
 
 const bool OpKernel::blockingEnabled_ =
-    c10::utils::get_env("CUDA_LAUNCH_BLOCKING").value_or("0") == "1";
+    c10::utils::get_env("AMD_SERIALIZE_KERNEL").value_or("0") == "1";
 
 void OpKernel::compute(ExecutionFrame& executionFrame) const {
   VLOG(2) << "Executing: " << *node_;

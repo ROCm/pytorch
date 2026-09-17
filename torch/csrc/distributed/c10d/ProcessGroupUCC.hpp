@@ -15,16 +15,16 @@
 #include <torch/csrc/distributed/c10d/Store.hpp>
 #include <torch/csrc/distributed/c10d/Types.hpp>
 #include <torch/csrc/distributed/c10d/Utils.hpp>
-#ifdef USE_CUDA
-#include <ATen/cuda/CUDAEvent.h>
-#include <c10/cuda/CUDAStream.h>
+#ifdef USE_ROCM
+#include <ATen/hip/HIPEvent.h>
+#include <c10/hip/HIPStream.h>
 #endif
 
 namespace c10d {
 
 #define TORCH_UCC_DEVICE_NOT_SET -2
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #define SAVE_TENSORS(_TENSORS, _DATA)                       \
   do {                                                      \
     if ((_TENSORS)[0].device().is_cuda()) {                 \
@@ -44,7 +44,7 @@ namespace c10d {
 constexpr const char* UCC_BACKEND_NAME = "ucc";
 
 struct event_pool_t {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   std::queue<std::unique_ptr<at::cuda::CUDAEvent>> event_pool;
 #endif
   std::mutex event_pool_mutex;
@@ -131,7 +131,7 @@ class TORCH_API ProcessGroupUCC : public Backend {
     c10::intrusive_ptr<c10::ivalue::Future> getFuture() override;
     std::vector<at::Tensor> result() override;
     int sourceRank() const override;
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     std::unique_ptr<at::cuda::CUDAEvent> fence = nullptr;
     event_pool_t* ep = nullptr;
 #endif
@@ -163,7 +163,7 @@ class TORCH_API ProcessGroupUCC : public Backend {
     return std::string(UCC_BACKEND_NAME);
   }
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   std::unique_ptr<at::cuda::CUDAEvent> getPooledEvent();
 #endif
 
@@ -282,7 +282,7 @@ class TORCH_API ProcessGroupUCC : public Backend {
   ucc_ee_h cuda_ee{nullptr};
   ucc_ee_h cuda_ee_p2p[2]{nullptr, nullptr};
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   std::unique_ptr<at::cuda::CUDAStream> stream = nullptr;
   std::unique_ptr<at::cuda::CUDAStream> stream_p2p[2] = {nullptr, nullptr};
   event_pool_t ep;
@@ -324,7 +324,7 @@ class Comm {
       ucc_coll_req_h request,
       const char* prof_title);
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   void enqueue_cuda_collective(
       std::unique_ptr<ProcessGroupUCC::WorkData> data,
       c10::intrusive_ptr<ProcessGroupUCC::WorkUCC> work,

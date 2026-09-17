@@ -10,9 +10,9 @@
 #include <mutex>
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/hip/HIPEvent.h>
 #include <c10/util/Exception.h>
-#include <nccl.h>
+#include <rccl/rccl.h>
 #include <torch/csrc/cuda/nccl.h>
 #include <optional>
 

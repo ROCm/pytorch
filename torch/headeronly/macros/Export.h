@@ -137,7 +137,7 @@
 #endif
 
 // Enums only need to be exported on windows for non-CUDA files
-#if defined(_WIN32) && defined(__CUDACC__)
+#if defined(_WIN32) && defined(__HIPCC__)
 #define C10_API_ENUM C10_API
 #else
 #define C10_API_ENUM

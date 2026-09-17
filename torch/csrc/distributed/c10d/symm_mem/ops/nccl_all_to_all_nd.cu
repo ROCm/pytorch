@@ -1,7 +1,8 @@
-#include <c10/cuda/CUDAGuard.h>
+#include "hip/hip_runtime.h"
+#include <c10/hip/HIPGuard.h>
 #include <c10/macros/Macros.h>
-#include <ATen/native/cuda/MemoryAccess.cuh>
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/native/hip/MemoryAccess.cuh>
+#include <ATen/hip/HIPContext.h>
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>
@@ -267,7 +268,7 @@ void nccl_all_to_all_nd(
         "nccl_all_to_all_nd: local column span in bytes (local_cols * element_size) must be "
         "divisible by 16 for vectorized copy");
 
-    ctas_per_slot = std::max(1, std::min(
+    ctas_per_slot = ::max(1, ::min(
         (rows * local_cols + elems_per_cta - 1) / elems_per_cta,
         A2A_MAX_CTAS_PER_SLOT));
 
@@ -342,7 +343,7 @@ void nccl_all_to_all_nd(
         "nccl_all_to_all_nd: full row in bytes (cols * element_size) must be divisible by 16 "
         "for vectorized copy");
 
-    ctas_per_slot = std::max(1, std::min(
+    ctas_per_slot = ::max(1, ::min(
         (local_rows * cols + elems_per_cta - 1) / elems_per_cta,
         A2A_MAX_CTAS_PER_SLOT));
 

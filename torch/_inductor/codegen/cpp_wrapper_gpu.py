@@ -871,7 +871,7 @@ class DeferredTritonCallWrapper:
             wrapper.device_codegen.cpp_kernel_type()
         )
 
-        # JIT-only: static CUfunction and embedded Triton source
+        # JIT-only: static hipFunction_t and embedded Triton source
         prefix.writeline_jit(f"static {kernel_type} {kernel_name} = nullptr;")
         kernel_source_str = self.kernel_name_to_body.get(kernel_name, "")
         kernel_body = f'R"TRITON(\n{kernel_source_str}\n)TRITON"'
@@ -1050,7 +1050,7 @@ class DeferredTritonCallWrapper:
                 ]
 
             # In AOTI mode on CUDA/HIP, pass the loaded_modules_ vector so
-            # CUmodule handles are tracked and can be unloaded on destruction,
+            # hipModule_t handles are tracked and can be unloaded on destruction,
             # preventing GPU code object leaks. XPU is excluded because its
             # loadKernel returns std::unique_ptr<sycl::kernel> and manages
             # cleanup via RAII.
@@ -1291,19 +1291,19 @@ class CppWrapperGpu(CppWrapperCpu):
     def generate_debug_sync(self, buffer):
         if self.device == "cuda":
             # The fbcode JIT cpp_wrapper CUDA build links only the CUDA driver
-            # (libcuda), not libcudart, so the runtime cudaDeviceSynchronize symbol
-            # is undefined at dlopen -> use the driver-API cuCtxSynchronize there.
+            # (libcuda), not libcudart, so the runtime hipDeviceSynchronize symbol
+            # is undefined at dlopen -> use the driver-API hipCtxSynchronize there.
             # On ROCm the driver-context sync hipCtxSynchronize returns
-            # hipErrorNotSupported at runtime, so keep the runtime cudaDeviceSynchronize
+            # hipErrorNotSupported at runtime, so keep the runtime hipDeviceSynchronize
             # (which hipifies to hipDeviceSynchronize and IS linked in the ROCm build).
             if torch.version.hip is not None:
                 buffer.writeline(
                     maybe_hipify_code_wrapper(
-                        "AOTI_RUNTIME_CUDA_CHECK(cudaDeviceSynchronize());"
+                        "AOTI_RUNTIME_CUDA_CHECK(hipDeviceSynchronize());"
                     )
                 )
             else:
-                buffer.writeline("CUDA_DRIVER_CHECK(cuCtxSynchronize());")
+                buffer.writeline("CUDA_DRIVER_CHECK(hipCtxSynchronize());")
             return
 
         raise NotImplementedError(
@@ -1334,7 +1334,7 @@ class CppWrapperGpu(CppWrapperCpu):
             # into the main AOTI source, which has its own kernel driver.
             # super().write_header() early-returns for const graphs before it
             # can call add_device_include, so emit the JIT device include here;
-            # otherwise the kernel driver's CUfunction/CUmodule/uint32_t types
+            # otherwise the kernel driver's hipFunction_t/hipModule_t/uint32_t types
             # have no declaring header and fail to compile under -nostdinc.
             for device in V.graph.device_types:
                 if device != "meta":
@@ -1384,8 +1384,8 @@ class CppWrapperGpu(CppWrapperCpu):
     def _ensure_aoti_stream_helpers_emitted(self) -> None:
         if self._aoti_stream_helpers_emitted:
             return
-        # The stream/event helpers in streams.h are CUDA-specific (cudaEvent_t,
-        # cudaStream_t, cudaEventRecord, ...). Guarding here on the device type
+        # The stream/event helpers in streams.h are CUDA-specific (hipEvent_t,
+        # hipStream_t, hipEventRecord, ...). Guarding here on the device type
         # prevents the CUDA-only symbols from being emitted into XPU generated
         # code, where SYCL in-order queues handle event ordering implicitly.
         if self.device == "xpu":
@@ -1485,7 +1485,7 @@ class CppWrapperGpu(CppWrapperCpu):
             stream_idx = _parse_idx(args[1])
             self.writeline(
                 maybe_hipify_code_wrapper(
-                    "AOTI_RUNTIME_CUDA_CHECK(cudaEventRecord("
+                    "AOTI_RUNTIME_CUDA_CHECK(hipEventRecord("
                     f"_aoti_event_cache.get({event_idx}, this->device_idx_), "
                     f"{self._stream_expr_for_idx(stream_idx)}));"
                 )
@@ -1495,7 +1495,7 @@ class CppWrapperGpu(CppWrapperCpu):
             stream_idx = _parse_idx(args[1])
             self.writeline(
                 maybe_hipify_code_wrapper(
-                    "AOTI_RUNTIME_CUDA_CHECK(cudaStreamWaitEvent("
+                    "AOTI_RUNTIME_CUDA_CHECK(hipStreamWaitEvent("
                     f"{self._stream_expr_for_idx(stream_idx)}, "
                     f"_aoti_event_cache.get({event_idx}, this->device_idx_), 0));"
                 )
@@ -1504,7 +1504,7 @@ class CppWrapperGpu(CppWrapperCpu):
         if op == "synchronize_event":
             self.writeline(
                 maybe_hipify_code_wrapper(
-                    "AOTI_RUNTIME_CUDA_CHECK(cudaEventSynchronize("
+                    "AOTI_RUNTIME_CUDA_CHECK(hipEventSynchronize("
                     f"_aoti_event_cache.get({event_idx}, this->device_idx_)));"
                 )
             )
@@ -1710,7 +1710,7 @@ static inline void ensure_triton_kernel_compiles_started() {{
         self.writeline(f"alignas(64) CUtensorMap {desc_name};")
 
         # `source` is in the form of `&var_x`, where `var_x` is the data pointer
-        # (CUdeviceptr); we dereference `source` and cast to `void*` to pass to
+        # (hipDeviceptr_t); we dereference `source` and cast to `void*` to pass to
         # the data pointer of the source tensor to the helper function
         # `init{1,2}DTMADescriptor`
         ptr = f"reinterpret_cast<void*>(*({source}))"

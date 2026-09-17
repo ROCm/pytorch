@@ -298,7 +298,7 @@ TORCH_API uint64_t cuspyCurrentExternalId(); // top of stack, 0 if empty
 // buffer-callback signatures, registered via cuptiActivityRegisterCallbacks_v2.
 // The trailing info pointers (CUpti_BufferCallbackRequestInfo* /
 // CUpti_BufferCallbackCompleteInfo*) are taken as void* to avoid a CUPTI header
-// dependency. The completion callback does not receive CUcontext/streamId (they
+// dependency. The completion callback does not receive hipCtx_t/streamId (they
 // become selectable record fields), so completed buffers carry ctx and stream
 // of 0; the record-layout descriptor in the complete info is parsed and
 // attached to the completed buffer so the decoder can parse records after the

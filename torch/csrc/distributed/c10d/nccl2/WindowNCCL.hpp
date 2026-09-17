@@ -7,8 +7,8 @@
 #include <optional>
 #include <vector>
 
-#include <cuda_runtime.h>
-#include <nccl.h>
+#include <hip/hip_runtime.h>
+#include <rccl/rccl.h>
 
 #include <torch/csrc/distributed/c10d/Window.hpp>
 #include <torch/csrc/distributed/c10d/nccl2/NcclApi.hpp>

@@ -1,7 +1,8 @@
+#include "hip/hip_runtime.h"
 #include <ATen/ATen.h>
 #include <ATen/ceil_div.h>
-#include <ATen/cuda/CUDAContext.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <ATen/hip/HIPContext.h>
+#include <c10/hip/HIPGuard.h>
 #include <torch/library.h>
 
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
@@ -76,7 +77,7 @@ using namespace c10d::symmetric_memory;
 // so concurrent launches from different streams on the same group will
 // trample each other's barrier slots and deadlock. Callers must serialize
 // all symm_mem collectives for a given group onto a single CUDA stream.
-static std::unordered_map<std::string, cudaStream_t> g_group_stream_map;
+static std::unordered_map<std::string, hipStream_t> g_group_stream_map;
 static std::mutex g_group_stream_mutex;
 
 void warn_if_multi_stream(const std::string& group_name, const char* op_name) {
@@ -100,7 +101,7 @@ void warn_if_multi_stream(const std::string& group_name, const char* op_name) {
 }
 
 size_t get_and_verify_alignment(const at::Tensor& input, const char* op_name) {
-  const size_t min_alignment = std::max(4l, input.element_size());
+  const size_t min_alignment = ::max(4l, input.element_size());
   // Only check the offset since the multicast address is always at least
   // 128-bit aligned
   const size_t ptr_alignment = at::native::memory::get_alignment(
@@ -124,7 +125,7 @@ size_t get_and_verify_alignment(const at::Tensor& input, const char* op_name) {
       ">: input size must be at least ",
       min_alignment,
       "-byte aligned.");
-  return std::min(ptr_alignment, size_alignment);
+  return ::min(ptr_alignment, size_alignment);
 }
 
 void init_elementwise_launch_config(
@@ -150,7 +151,7 @@ void init_elementwise_launch_config(
     num_threads = max(num_threads, world_size);
     num_threads = at::round_up(num_threads, at::cuda::warp_size());
   } else {
-    num_blocks = std::min(
+    num_blocks = ::min(
         at::ceil_div(numel_per_split, max_num_threads * numel_per_thread),
         max_num_blocks);
     num_threads = max_num_threads;
@@ -551,11 +552,11 @@ at::Tensor memcpy_to_multicast_(
   c10::cuda::CUDAGuard guard(symm_mem_out.device());
   auto* dst_ptr =
       reinterpret_cast<char*>(symm_mem->get_multicast_ptr()) + byte_offset;
-  C10_CUDA_CHECK(cudaMemcpyAsync(
+  C10_CUDA_CHECK(hipMemcpyAsync(
       dst_ptr,
       src.data_ptr(),
       bytes,
-      cudaMemcpyDeviceToDevice,
+      hipMemcpyDeviceToDevice,
       at::cuda::getCurrentCUDAStream()));
   return symm_mem_out;
 }
@@ -1334,7 +1335,7 @@ at::Tensor memset32_(
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
   auto driver_api = c10::cuda::DriverAPI::get();
   C10_CUDA_DRIVER_CHECK(driver_api->cuMemsetD32Async_(
-      reinterpret_cast<CUdeviceptr>(addr),
+      reinterpret_cast<hipDeviceptr_t>(addr),
       val,
       count,
       at::cuda::getCurrentCUDAStream()));
@@ -1386,13 +1387,13 @@ at::Tensor stream_write_value32_(
 
 #if !defined(USE_ROCM) && defined(PYTORCH_C10_DRIVER_API_SUPPORTED)
   auto driver_api = c10::cuda::DriverAPI::get();
-  // According to the documentation of CUstreamWriteValue_flags,
-  // cuStreamWriteValue32 will provide a memory fence before the write, which
+  // According to the documentation of hipStreamWriteValueFlags,
+  // hipStreamWriteValue32 will provide a memory fence before the write, which
   // has similar semantics to __threadfence_system() but is scoped to the
   // stream rather than a CUDA thread.
   C10_CUDA_DRIVER_CHECK(driver_api->cuStreamWriteValue32_(
       at::cuda::getCurrentCUDAStream(),
-      reinterpret_cast<CUdeviceptr>(addr),
+      reinterpret_cast<hipDeviceptr_t>(addr),
       val,
       0));
 #elif defined(USE_ROCM)

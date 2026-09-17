@@ -11,14 +11,14 @@
 #include <ATen/ops/zeros.h>
 #endif
 
-#if defined(USE_CUDA) || defined(USE_ROCM)
-#include <ATen/cuda/CUDAGeneratorImpl.h>
+#if defined(USE_ROCM) || defined(USE_ROCM)
+#include <ATen/hip/HIPGeneratorImpl.h>
 #endif
 
 namespace torch::inductor {
 using namespace at;
 
-#if defined(USE_CUDA) || defined(USE_ROCM)
+#if defined(USE_ROCM) || defined(USE_ROCM)
 
 // Reserves RNG state for Inductor with CUDA Graph support.
 //

@@ -1,9 +1,10 @@
+#include "hip/hip_runtime.h"
 #include <torch/csrc/jit/tensorexpr/cuda_codegen.h>
 #include <torch/csrc/jit/tensorexpr/half_support.h>
 
-#include <ATen/cuda/CUDAGeneratorImpl.h>
-#include <ATen/native/cuda/jit_utils.h>
-#include <c10/cuda/CUDAFunctions.h>
+#include <ATen/hip/HIPGeneratorImpl.h>
+#include <ATen/native/hip/jit_utils.h>
+#include <c10/hip/HIPFunctions.h>
 #include <c10/util/irange.h>
 #include <torch/csrc/jit/codegen/fuser/cuda/fused_kernel.h>
 #include <torch/csrc/jit/codegen/fuser/cuda/resource_strings.h>
@@ -1092,7 +1093,7 @@ void CudaCodeGen::call_with_numel(void** args, int64_t numel) {
 
   auto stream = at::cuda::getCurrentCUDAStream();
   at::cuda::jit::initializeCudaContext();
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuLaunchKernel(
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleLaunchKernel(
       function_,
       gpu_block_extents,
       1,
@@ -1212,7 +1213,7 @@ void CudaCodeGen::call_raw(const std::vector<void*>& raw_args) {
   // Launch the kernels
   auto stream = at::cuda::getCurrentCUDAStream();
   at::cuda::jit::initializeCudaContext();
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuLaunchKernel(
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleLaunchKernel(
       function_,
       gpu_block_extents_v[0],
       gpu_block_extents_v[1],
@@ -1269,14 +1270,14 @@ void CudaCodeGen::CompileToNVRTC(
   }
   // Acquires device and NVRTC properties (for compile arch and occupancy
   // calculations)
-  cudaDeviceProp* prop = at::cuda::getCurrentDeviceProperties();
+  hipDeviceProp_t* prop = at::cuda::getCurrentDeviceProperties();
   int major = 0, minor = 0;
   bool compile_to_sass = false;
   fuser::cuda::codegenOutputQuery(prop, major, minor, compile_to_sass);
 
   // Creates the NVRTC program
-  nvrtcProgram program{nullptr};
-  AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcCreateProgram(
+  hiprtcProgram program{nullptr};
+  AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcCreateProgram(
       &program, code.c_str(), nullptr, 0, nullptr, nullptr));
 
 #if defined(USE_ROCM)
@@ -1301,13 +1302,13 @@ void CudaCodeGen::CompileToNVRTC(
       "--std=c++20", compute.c_str(), "-default-device"};
 #endif
 
-  auto result = nvrtc().nvrtcCompileProgram(
+  auto result = nvrtc().hiprtcCompileProgram(
       program, static_cast<int>(args.size()), args.data());
-  if (result != NVRTC_SUCCESS) {
+  if (result != HIPRTC_SUCCESS) {
     size_t logsize = 0;
-    AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcGetProgramLogSize(program, &logsize));
+    AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcGetProgramLogSize(program, &logsize));
     std::vector<char> log(logsize);
-    AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcGetProgramLog(program, log.data()));
+    AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcGetProgramLog(program, log.data()));
     std::stringstream cu;
     cu << log.data() << '\n';
     cu << "nvrtc compilation failed: " << '\n';
@@ -1315,7 +1316,7 @@ void CudaCodeGen::CompileToNVRTC(
     throw std::runtime_error(std::move(cu).str());
   }
   ResourceGuard holdProgram(
-      [&] { AT_CUDA_NVRTC_CHECK(nvrtc().nvrtcDestroyProgram(&program)); });
+      [&] { AT_CUDA_NVRTC_CHECK(nvrtc().hiprtcDestroyProgram(&program)); });
   AT_CUDA_NVRTC_CHECK(result);
   size_t ptx_size = 0;
   std::vector<char> ptx;
@@ -1323,22 +1324,22 @@ void CudaCodeGen::CompileToNVRTC(
   // compile_to_sass determines whether we are generating SASS or PTX, hence
   // the different API.
   auto getSize = compile_to_sass
-      ? at::globalContext().getNVRTC().nvrtcGetCUBINSize
-      : at::globalContext().getNVRTC().nvrtcGetPTXSize;
-  auto getFunc = compile_to_sass ? at::globalContext().getNVRTC().nvrtcGetCUBIN
-                                 : at::globalContext().getNVRTC().nvrtcGetPTX;
+      ? at::globalContext().getNVRTC().hiprtcGetBitcodeSize
+      : at::globalContext().getNVRTC().hiprtcGetCodeSize;
+  auto getFunc = compile_to_sass ? at::globalContext().getNVRTC().hiprtcGetBitcode
+                                 : at::globalContext().getNVRTC().hiprtcGetCode;
 #else
-  auto getSize = at::globalContext().getNVRTC().nvrtcGetPTXSize;
-  auto getFunc = at::globalContext().getNVRTC().nvrtcGetPTX;
+  auto getSize = at::globalContext().getNVRTC().hiprtcGetCodeSize;
+  auto getFunc = at::globalContext().getNVRTC().hiprtcGetCode;
 #endif
   AT_CUDA_NVRTC_CHECK(getSize(program, &ptx_size));
   ptx.resize(ptx_size);
   AT_CUDA_NVRTC_CHECK(getFunc(program, ptx.data()));
 
-  CUmodule module{nullptr};
-  AT_CUDA_DRIVER_CHECK(nvrtc().cuModuleLoadData(&module, ptx.data()));
+  hipModule_t module{nullptr};
+  AT_CUDA_DRIVER_CHECK(nvrtc().hipModuleLoadData(&module, ptx.data()));
   AT_CUDA_DRIVER_CHECK(
-      nvrtc().cuModuleGetFunction(&function_, module, func_name.c_str()));
+      nvrtc().hipModuleGetFunction(&function_, module, func_name.c_str()));
 
   if (prior_device != this->device().index()) {
     at::cuda::set_device(prior_device);

@@ -316,7 +316,7 @@ extern uint8_t _binary_constants_bin_start[];
 // NOLINTNEXTLINE(*array*)
 extern uint8_t _binary_constants_bin_end[];
 
-#if defined(USE_CUDA) || defined(USE_XPU)
+#if defined(USE_ROCM) || defined(USE_XPU)
 // Compute required blob size with 64-alignment if on GPU.
 #define AOTI_CONST_ALIGNMENT 64
 #else
@@ -350,7 +350,7 @@ using RAIIDataPtr = std::unique_ptr<void, std::function<void(void*)>>;
 // anonymous-namespace class body can use it unqualified.
 using torch::aot_inductor::RAIIAtenTensorHandle;
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 
 // Process-wide, per-device H2D stream shared by every PinnedStagingPool.
 //
@@ -374,32 +374,32 @@ using torch::aot_inductor::RAIIAtenTensorHandle;
 // The map is keyed by device rather than a fixed-size array so no device count
 // is baked in. The lock is uncontended in practice -- it is taken once per pool
 // construction (per constant load or update), never on a per-chunk path.
-inline cudaStream_t sharedConstantsH2DStream() {
+inline hipStream_t sharedConstantsH2DStream() {
   static std::mutex mutex;
-  static std::unordered_map<int, cudaStream_t> streams;
+  static std::unordered_map<int, hipStream_t> streams;
 
   int device = 0;
-  if (cudaGetDevice(&device) != cudaSuccess) {
-    (void)cudaGetLastError();
+  if (hipGetDevice(&device) != hipSuccess) {
+    (void)hipGetLastError();
     return nullptr;
   }
 
   std::lock_guard<std::mutex> guard(mutex);
   // Value-initializes to nullptr on first use of this device.
-  cudaStream_t& stream = streams[device];
+  hipStream_t& stream = streams[device];
   if (stream == nullptr) {
-    cudaStream_t created = nullptr;
-    cudaError_t rc = cudaStreamCreateWithFlags(&created, cudaStreamNonBlocking);
-    if (rc == cudaSuccess) {
+    hipStream_t created = nullptr;
+    hipError_t rc = hipStreamCreateWithFlags(&created, hipStreamNonBlocking);
+    if (rc == hipSuccess) {
       stream = created;
       AOTI_LOG_LOADING(
           "PinnedStagingPool: created shared H2D stream for device "
           << device << " (one per device, reused for all constant copies)");
     } else {
-      (void)cudaGetLastError();
+      (void)hipGetLastError();
       AOTI_LOG_LOADING(
           "PinnedStagingPool: stream creation failed for device "
-          << device << " rc=" << rc << " (" << cudaGetErrorString(rc)
+          << device << " rc=" << rc << " (" << hipGetErrorString(rc)
           << "); falling back to sync copy, will retry on next call");
     }
   }
@@ -409,12 +409,12 @@ inline cudaStream_t sharedConstantsH2DStream() {
 // RAII ping-pong pinned staging pool for non-blocking H2D copies of AOTI
 // constants without triggering CUDA/HIP's device-wide implicit sync.
 //
-// Synchronous cudaMemcpy(H2D) from pageable host memory (the .so-embedded
+// Synchronous hipMemcpy(H2D) from pageable host memory (the .so-embedded
 // constants region, mmap'd by dlopen) performs a device-wide implicit
 // synchronize per the CUDA/HIP spec, stalling concurrent inference streams.
 //
 // We avoid that by staging pageable -> pinned (CPU memcpy) and issuing
-// cudaMemcpyAsync(pinned -> device) on the shared per-device non-blocking
+// hipMemcpyAsync(pinned -> device) on the shared per-device non-blocking
 // stream above. Two pinned staging buffers ping-pong via cudaEvents so CPU
 // fill of one buffer overlaps GPU H2D from the other. Pools that overlap in
 // time share the stream, so their copies serialize; that costs little, since
@@ -424,7 +424,7 @@ inline cudaStream_t sharedConstantsH2DStream() {
 // aoti_torch_empty_strided_pinned, which routes through ATen's cached
 // pinned host allocator (at::getPinnedMemoryAllocator). That allocator
 // keeps freed blocks in a process-wide pool, so back-to-back model loads
-// reuse buffers instead of paying cudaHostAlloc/cudaFreeHost per call.
+// reuse buffers instead of paying hipHostMalloc/hipHostFree per call.
 //
 // Host-locked memory is bounded at 2 * AOTI_COPY_STAGE_BUFFER_BYTES per live
 // pool (default 2 * 64 MiB = 128 MiB), independent of model size.
@@ -445,15 +445,15 @@ class PinnedStagingPool {
           "falling back to sync copy");
       return nullptr;
     }
-    cudaError_t rc = cudaSuccess;
+    hipError_t rc = hipSuccess;
     const int64_t sizes = static_cast<int64_t>(buffer_bytes);
     const int64_t strides = 1;
     for (int i = 0; i < 2; ++i) {
-      rc = cudaEventCreateWithFlags(&pool->events_[i], cudaEventDisableTiming);
-      if (rc != cudaSuccess) {
-        (void)cudaGetLastError();
+      rc = hipEventCreateWithFlags(&pool->events_[i], hipEventDisableTiming);
+      if (rc != hipSuccess) {
+        (void)hipGetLastError();
         AOTI_LOG_LOADING(
-            "PinnedStagingPool: cudaEventCreateWithFlags failed rc="
+            "PinnedStagingPool: hipEventCreateWithFlags failed rc="
             << rc << "; falling back to sync copy");
         return nullptr;
       }
@@ -500,26 +500,26 @@ class PinnedStagingPool {
     while (offset < total) {
       const size_t chunk = std::min(buffer_bytes_, total - offset);
       // Wait for GPU to release this staging buffer.
-      AOTI_RUNTIME_CUDA_CHECK(cudaEventSynchronize(events_[buf_]));
+      AOTI_RUNTIME_CUDA_CHECK(hipEventSynchronize(events_[buf_]));
       memcpy(stage_[buf_], src_bytes + offset, chunk);
-      AOTI_RUNTIME_CUDA_CHECK(cudaMemcpyAsync(
+      AOTI_RUNTIME_CUDA_CHECK(hipMemcpyAsync(
           dst_bytes + offset,
           stage_[buf_],
           chunk,
-          cudaMemcpyHostToDevice,
+          hipMemcpyHostToDevice,
           stream_));
-      AOTI_RUNTIME_CUDA_CHECK(cudaEventRecord(events_[buf_], stream_));
+      AOTI_RUNTIME_CUDA_CHECK(hipEventRecord(events_[buf_], stream_));
       buf_ ^= 1;
       offset += chunk;
     }
   }
 
-  cudaStream_t stream() const {
+  hipStream_t stream() const {
     return stream_;
   }
 
   // Wait for this pool's copies and surface any error from a previously issued
-  // async copy (cudaMemcpyAsync failures are reported lazily at the sync).
+  // async copy (hipMemcpyAsync failures are reported lazily at the sync).
   // Call before destroying the pool so a failed load is not silently swallowed
   // by the no-throw destructor and passed downstream as a populated buffer.
   //
@@ -527,12 +527,12 @@ class PinnedStagingPool {
   // stream-wide sync would also block on concurrent pools' copies and would
   // report their errors here. Each event is recorded after the last copy out
   // of its buffer, so waiting on both covers every copy this pool issued.
-  // cudaEventSynchronize on a never-recorded event returns immediately, which
+  // hipEventSynchronize on a never-recorded event returns immediately, which
   // is the correct no-op for a pool that copied nothing.
   void finish() {
-    for (cudaEvent_t event : events_) {
+    for (hipEvent_t event : events_) {
       if (event != nullptr) {
-        AOTI_RUNTIME_CUDA_CHECK(cudaEventSynchronize(event));
+        AOTI_RUNTIME_CUDA_CHECK(hipEventSynchronize(event));
       }
     }
   }
@@ -555,23 +555,23 @@ class PinnedStagingPool {
       if (events_[i] == nullptr) {
         continue;
       }
-      cudaError_t rc = cudaEventSynchronize(events_[i]);
-      if (rc != cudaSuccess) {
+      hipError_t rc = hipEventSynchronize(events_[i]);
+      if (rc != hipSuccess) {
         AOTI_LOG_LOADING(
-            "~PinnedStagingPool: cudaEventSynchronize buf="
-            << i << " failed rc=" << rc << " (" << cudaGetErrorString(rc)
+            "~PinnedStagingPool: hipEventSynchronize buf="
+            << i << " failed rc=" << rc << " (" << hipGetErrorString(rc)
             << ")");
       }
-      rc = cudaEventDestroy(events_[i]);
-      if (rc != cudaSuccess) {
+      rc = hipEventDestroy(events_[i]);
+      if (rc != hipSuccess) {
         AOTI_LOG_LOADING(
-            "~PinnedStagingPool: cudaEventDestroy buf="
-            << i << " failed rc=" << rc << " (" << cudaGetErrorString(rc)
+            "~PinnedStagingPool: hipEventDestroy buf="
+            << i << " failed rc=" << rc << " (" << hipGetErrorString(rc)
             << ")");
       }
     }
     // Clear any error left by best-effort cleanup.
-    (void)cudaGetLastError();
+    (void)hipGetLastError();
   }
 
   PinnedStagingPool(const PinnedStagingPool&) = delete;
@@ -583,8 +583,8 @@ class PinnedStagingPool {
   // Borrowed from sharedConstantsH2DStream(); not owned, never destroyed.
   // Concurrent pools share it, which serializes their copies but keeps the
   // process at one hardware queue per device.
-  cudaStream_t stream_{nullptr};
-  cudaEvent_t events_[2]{nullptr, nullptr};
+  hipStream_t stream_{nullptr};
+  hipEvent_t events_[2]{nullptr, nullptr};
   // Cached borrowed pointers into stage_tensors_[i] to avoid a shim call
   // per chunk in the hot path.
   void* stage_[2]{nullptr, nullptr};
@@ -658,14 +658,14 @@ RAIIDataPtr RAII_gpuMalloc(size_t num_bytes) {
   };
   return RAIIDataPtr(data_ptr, deleter);
 #else
-  // Use cudaMalloc directly for allocating GPU memory
+  // Use hipMalloc directly for allocating GPU memory
   void* data_ptr = nullptr;
-  AOTI_RUNTIME_CUDA_CHECK(cudaMalloc((void**)&data_ptr, num_bytes));
+  AOTI_RUNTIME_CUDA_CHECK(hipMalloc((void**)&data_ptr, num_bytes));
   auto deleter = [](void* ptr) noexcept {
-    auto code = cudaFree(ptr);
-    if (code != cudaSuccess) {
+    auto code = hipFree(ptr);
+    if (code != hipSuccess) {
       std::cerr << "Failed to free GPU memory in AOTInductor model: "
-                << cudaGetErrorString(code) << '\n';
+                << hipGetErrorString(code) << '\n';
     }
   };
   return RAIIDataPtr(data_ptr, deleter);
@@ -692,7 +692,7 @@ RAIIDataPtr RAII_gpuMalloc(size_t num_bytes) {
   return RAIIDataPtr(data_ptr, deleter);
 }
 
-#endif // USE_CUDA
+#endif // USE_ROCM
 
 // NOLINTNEXTLINE(clang-diagnostic-unneeded-internal-declaration)
 RAIIDataPtr RAII_cpuMalloc(size_t num_bytes) {
@@ -723,7 +723,7 @@ inline bool usePinnedAsyncConstantsCopy() {
   if (setting != -1) {
     return setting == 1;
   }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
   static const bool enabled_from_env = [] {
     const char* env = std::getenv("AOTI_COPY_USE_PINNED_ASYNC");
     return envFlagIsEnabled(env);
@@ -786,7 +786,7 @@ inline void parse_device_str(
   }
 }
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 struct AOTICudaMemcpyThrottleConfig {
   size_t chunk_size;
   int sleep_us;
@@ -819,10 +819,10 @@ inline void aoti_cuda_memcpy_throttled(
     void* dst,
     const void* src,
     size_t size,
-    cudaMemcpyKind kind) {
+    hipMemcpyKind kind) {
   const auto& cfg = AOTICudaMemcpyThrottleConfig::get();
   if (cfg.chunk_size == 0 || cfg.chunk_size >= size) {
-    AOTI_RUNTIME_CUDA_CHECK(cudaMemcpy(dst, src, size, kind));
+    AOTI_RUNTIME_CUDA_CHECK(hipMemcpy(dst, src, size, kind));
     return;
   }
   auto* dst_bytes = static_cast<uint8_t*>(dst);
@@ -830,7 +830,7 @@ inline void aoti_cuda_memcpy_throttled(
   for (size_t off = 0; off < size; off += cfg.chunk_size) {
     size_t copy_size = std::min(cfg.chunk_size, size - off);
     AOTI_RUNTIME_CUDA_CHECK(
-        cudaMemcpy(dst_bytes + off, src_bytes + off, copy_size, kind));
+        hipMemcpy(dst_bytes + off, src_bytes + off, copy_size, kind));
     if (cfg.sleep_us > 0) {
       std::this_thread::sleep_for(std::chrono::microseconds(cfg.sleep_us));
     }
@@ -860,14 +860,14 @@ class AOTInductorModelBase {
         include_weights(include_weights) {
     parse_device_str(device_str, device_type_, device_idx_);
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if (device_idx_ == -1) {
-      AOTI_RUNTIME_CUDA_CHECK(cudaGetDevice(&device_idx_));
+      AOTI_RUNTIME_CUDA_CHECK(hipGetDevice(&device_idx_));
     } else {
       // If device_idx_ is passed in, we need to set the current device to it
-      AOTI_RUNTIME_CUDA_CHECK(cudaSetDevice(device_idx_));
+      AOTI_RUNTIME_CUDA_CHECK(hipSetDevice(device_idx_));
     }
-#endif // USE_CUDA
+#endif // USE_ROCM
 #ifdef USE_XPU
     if (device_idx_ == -1) {
       aoti_torch_get_current_xpu_device(&device_idx_);
@@ -884,15 +884,15 @@ class AOTInductorModelBase {
 
   // NOLINTNEXTLINE(modernize-use-equals-default)
   ~AOTInductorModelBase() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if (run_finished_) {
-      auto code = cudaEventDestroy(*run_finished_);
-      if (code != cudaSuccess) {
+      auto code = hipEventDestroy(*run_finished_);
+      if (code != hipSuccess) {
         std::cerr << "Failed to destroy CUDA event in AOTInductor model: "
-                  << cudaGetErrorString(code) << '\n';
+                  << hipGetErrorString(code) << '\n';
       }
     }
-#endif // USE_CUDA
+#endif // USE_ROCM
 #ifdef USE_XPU
     if (run_finished_) {
       (*run_finished_)->wait_and_throw();
@@ -916,10 +916,10 @@ class AOTInductorModelBase {
                           // borrowed
       DeviceStreamType stream,
       AOTIProxyExecutorHandle proxy_executor) {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if (!run_finished_) {
-      cudaEvent_t run_finished = nullptr;
-      AOTI_RUNTIME_CUDA_CHECK(cudaEventCreate(&run_finished));
+      hipEvent_t run_finished = nullptr;
+      AOTI_RUNTIME_CUDA_CHECK(hipEventCreate(&run_finished));
       run_finished_.emplace(run_finished);
     }
 #elif defined(USE_XPU)
@@ -931,21 +931,21 @@ class AOTInductorModelBase {
     if (stream == nullptr) {
       aoti_torch_get_current_xpu_stream(this->device_idx_, (void**)&stream);
     }
-#else // !USE_CUDA && !USE_XPU
+#else // !USE_ROCM && !USE_XPU
     run_finished_ = false;
 #endif
 
     auto* model = static_cast<Model*>(this);
     model->run_impl(input_handles, output_handles, stream, proxy_executor);
 
-#ifdef USE_CUDA
-    AOTI_RUNTIME_CUDA_CHECK(cudaEventRecord(*run_finished_, stream));
+#ifdef USE_ROCM
+    AOTI_RUNTIME_CUDA_CHECK(hipEventRecord(*run_finished_, stream));
 #elif defined(USE_XPU)
     run_finished_ = std::make_optional<sycl::event*>(new sycl::event(
         static_cast<sycl::queue*>(stream)->ext_oneapi_submit_barrier()));
-#else // !USE_CUDA && !USE_XPU
+#else // !USE_ROCM && !USE_XPU
     run_finished_ = true;
-#endif // USE_CUDA
+#endif // USE_ROCM
   }
 
   // Non-thread-aware variant of run(). Obviously unsafe to use in a threaded
@@ -970,10 +970,10 @@ class AOTInductorModelBase {
       DeviceStreamType stream,
       AOTIProxyExecutorHandle proxy_executor,
       bool initialization = false) {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     if (!run_finished_) {
-      cudaEvent_t run_finished = nullptr;
-      AOTI_RUNTIME_CUDA_CHECK(cudaEventCreate(&run_finished));
+      hipEvent_t run_finished = nullptr;
+      AOTI_RUNTIME_CUDA_CHECK(hipEventCreate(&run_finished));
       run_finished_.emplace(run_finished);
     }
 #elif defined(USE_XPU)
@@ -985,7 +985,7 @@ class AOTInductorModelBase {
     if (stream == nullptr) {
       aoti_torch_get_current_xpu_stream(this->device_idx_, (void**)&stream);
     }
-#else // !USE_CUDA && !USE_XPU
+#else // !USE_ROCM && !USE_XPU
     run_finished_ = false;
 #endif
 
@@ -994,7 +994,7 @@ class AOTInductorModelBase {
         model->const_run_impl(stream, proxy_executor, initialization);
 
     // const_run_impl returns owning raw AtenTensorHandles in the map. The
-    // fallible calls below (cudaEventRecord / XPU barrier /
+    // fallible calls below (hipEventRecord / XPU barrier /
     // wait_for_completion) can throw; without cleanup the map's destructor
     // drops those raw handles without freeing the underlying tensors, leaking
     // folded-constant GPU memory (the container catches and keeps serving, so
@@ -1002,15 +1002,15 @@ class AOTInductorModelBase {
     // This header is compiled into model.so, so use only the stable C ABI (no
     // c10 scope-guard).
     try {
-#ifdef USE_CUDA
-      AOTI_RUNTIME_CUDA_CHECK(cudaEventRecord(*run_finished_, stream));
+#ifdef USE_ROCM
+      AOTI_RUNTIME_CUDA_CHECK(hipEventRecord(*run_finished_, stream));
 #elif defined(USE_XPU)
       run_finished_ = std::make_optional<sycl::event*>(new sycl::event(
           static_cast<sycl::queue*>(stream)->ext_oneapi_submit_barrier()));
 
-#else // !USE_CUDA && !USE_XPU
+#else // !USE_ROCM && !USE_XPU
       run_finished_ = true;
-#endif // USE_CUDA
+#endif // USE_ROCM
 
       // Wait for the constant folding kernels to complete. The folded
       // constants may be read by inference on a different stream after
@@ -1062,7 +1062,7 @@ class AOTInductorModelBase {
 
     // Allocate main blob
     if (blob_size > 0) {
-#if defined(USE_CUDA) || defined(USE_XPU) || defined(USE_MPS)
+#if defined(USE_ROCM) || defined(USE_XPU) || defined(USE_MPS)
       constant_blob_ = RAII_gpuMalloc(blob_size);
 #else
       constant_blob_ = RAII_cpuMalloc(blob_size);
@@ -1078,7 +1078,7 @@ class AOTInductorModelBase {
     size_t main_blob_idx = 0;
     size_t aux_cpu_blob_idx = 0;
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     // Opt-in pinned async staging pool for the constant H2D copies below.
     // nullptr (default / on allocation failure) keeps the throttled
     // synchronous path.
@@ -1123,7 +1123,7 @@ class AOTInductorModelBase {
               bytes_read,
               data_size,
               /* skip_copy = */ false
-#ifdef USE_CUDA
+#ifdef USE_ROCM
               ,
               pool_raw
 #endif
@@ -1178,7 +1178,7 @@ class AOTInductorModelBase {
           opaque_metadata_size));
       constants_map_->emplace(std::move(name), tensor_handle);
     }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     // Synchronize the staging stream (surfacing any async copy error) and
     // release the pinned buffers before the loaded constants are observed by
     // callers.
@@ -1232,7 +1232,7 @@ class AOTInductorModelBase {
       size_t bytes_read,
       size_t data_size,
       bool skip_copy
-#ifdef USE_CUDA
+#ifdef USE_ROCM
       ,
       PinnedStagingPool* staging_pool = nullptr
 #endif
@@ -1247,7 +1247,7 @@ class AOTInductorModelBase {
       queue_ptr
           ->memcpy(internal_ptr, _get_constants_start() + bytes_read, data_size)
           .wait();
-#elif USE_CUDA
+#elif USE_ROCM
       // Prefer the pinned async staging path when the caller supplied a pool
       // (AOTI_COPY_USE_PINNED_ASYNC). Otherwise fall back to the throttled
       // synchronous copy (master default).
@@ -1259,7 +1259,7 @@ class AOTInductorModelBase {
             internal_ptr,
             _get_constants_start() + bytes_read,
             data_size,
-            cudaMemcpyHostToDevice);
+            hipMemcpyHostToDevice);
       }
 #elif USE_MPS
       aoti_torch_mps_memcpy(
@@ -1457,38 +1457,38 @@ class AOTInductorModelBase {
 
   /// Returns true if the model is complete.
   bool is_finished() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     AOTI_RUNTIME_CHECK(run_finished_, "Model CUDA event was not initialized");
 
-    auto event_status = cudaEventQuery(*run_finished_);
-    if (event_status == cudaSuccess) {
+    auto event_status = hipEventQuery(*run_finished_);
+    if (event_status == hipSuccess) {
       return true;
-    } else if (event_status == cudaErrorNotReady) {
+    } else if (event_status == hipErrorNotReady) {
       return false;
     }
 
     AOTI_RUNTIME_CHECK(
         false,
         std::string("The model did not finish successfully. Error: ") +
-            cudaGetErrorString(cudaGetLastError()));
+            hipGetErrorString(hipGetLastError()));
 #elif defined(USE_XPU)
     AOTI_RUNTIME_CHECK(run_finished_, "Model XPU event was not initialized");
     using namespace sycl::info;
     return (*run_finished_)->get_info<event::command_execution_status>() ==
         event_command_status::complete;
 
-#else // !USE_CUDA && !USE_XPU
+#else // !USE_ROCM && !USE_XPU
     return run_finished_;
-#endif // USE_CUDA
+#endif // USE_ROCM
   }
 
   /// Synchronizes completion event.
   void wait_for_completion() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     AOTI_RUNTIME_CHECK(run_finished_, "Model event was not initialized");
 
-    AOTI_RUNTIME_CUDA_CHECK(cudaEventSynchronize(*run_finished_));
-#endif // USE_CUDA
+    AOTI_RUNTIME_CUDA_CHECK(hipEventSynchronize(*run_finished_));
+#endif // USE_ROCM
 #ifdef USE_XPU
     AOTI_RUNTIME_CHECK(run_finished_, "Model event was not initialized");
     (*run_finished_)->wait_and_throw();
@@ -1613,11 +1613,11 @@ class AOTInductorModelBase {
 
   // Record if the model finishes an inference run so that its owning
   // AOTModelContainer can reuse this instance.
-#ifdef USE_CUDA
-  std::optional<cudaEvent_t> run_finished_;
+#ifdef USE_ROCM
+  std::optional<hipEvent_t> run_finished_;
 #elif defined(USE_XPU)
   std::optional<sycl::event*> run_finished_;
-#else // !USE_CUDA
+#else // !USE_ROCM
   bool run_finished_{};
 #endif
 
@@ -1631,27 +1631,27 @@ class AOTInductorModelKernelsBase {
  public:
   // NOLINTNEXTLINE(modernize-use-equals-default)
   virtual ~AOTInductorModelKernelsBase() {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     for (auto mod : loaded_modules_) {
       if (mod) {
-        auto err = cuModuleUnload(mod);
-        if (err != CUDA_SUCCESS) {
+        auto err = hipModuleUnload(mod);
+        if (err != hipSuccess) {
           const char* msg = nullptr;
-          cuGetErrorString(err, &msg);
+          hipDrvGetErrorString(err, &msg);
           std::cerr << "Failed to unload CUDA module in AOTInductor model: "
                     << (msg ? msg : "unknown error") << '\n';
         }
       }
     }
-#endif // USE_CUDA
+#endif // USE_ROCM
   }
 
-#ifdef USE_CUDA
-  // Tracks CUmodule handles loaded by loadKernel() so they can be
+#ifdef USE_ROCM
+  // Tracks hipModule_t handles loaded by loadKernel() so they can be
   // properly unloaded when the model is destroyed, preventing GPU
   // code object leaks.
-  std::vector<CUmodule> loaded_modules_;
-#endif // USE_CUDA
+  std::vector<hipModule_t> loaded_modules_;
+#endif // USE_ROCM
 };
 
 } // namespace torch::aot_inductor

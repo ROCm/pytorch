@@ -1,5 +1,5 @@
 #include <ATen/MapAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <torch/csrc/CudaIPCTypes.h>
 #include <atomic>
 #include <map>
@@ -171,11 +171,11 @@ CudaIPCSentData::CudaIPCSentData(
     // because the main thread may have queued extra work on the stream, which
     // this event will consequently wait for (uselessly).
     cuda_ipc_global_entities.sync_events_used_++;
-    C10_CUDA_CHECK(cudaEventCreateWithFlags(
+    C10_CUDA_CHECK(hipEventCreateWithFlags(
         &event_,
-        cudaEventDisableTiming | cudaEventInterprocess |
-            cudaEventBlockingSync));
-    C10_CUDA_CHECK(cudaEventRecord(
+        hipEventDisableTiming | hipEventInterprocess |
+            hipEventBlockingSync));
+    C10_CUDA_CHECK(hipEventRecord(
         event_, c10::cuda::getCurrentCUDAStream(device.index())));
     event_sync_required_ = true;
   } else {
@@ -185,7 +185,7 @@ CudaIPCSentData::CudaIPCSentData(
     event_sync_required_ = false;
   }
 #else
-  // cuIpcGetEventHandle with HIP is not supported, so we have to sync
+  // hipIpcGetEventHandle with HIP is not supported, so we have to sync
   // stream instead of passing event
   auto stream = c10::cuda::getCurrentCUDAStream(device.index());
   at::cuda::stream_synchronize(stream);
@@ -202,7 +202,7 @@ CudaIPCSentData::~CudaIPCSentData() {
   try {
     if (event_sync_required_) {
       at::cuda::CUDAGuard device_guard(device_.index());
-      C10_CUDA_CHECK(cudaEventDestroy(event_));
+      C10_CUDA_CHECK(hipEventDestroy(event_));
       if (!CudaIPCGlobalEntities::alive) {
         return;
       }

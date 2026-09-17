@@ -1,10 +1,10 @@
 #pragma once
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #include <c10/core/Allocator.h>
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAException.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPException.h>
 #include <c10/util/Logging.h>
-#include <cuda_runtime_api.h>
+#include <hip/hip_runtime_api.h>
 #include <torch/csrc/Export.h>
 #include <cstddef>
 namespace torch {
@@ -23,7 +23,7 @@ struct CudaIPCSentData final {
   uint64_t offset_;
   uint64_t* counter_ptr_; // Reference counter shared memory block
   at::DataPtr original_ptr_; // Original mem allocation
-  cudaEvent_t event_; // Sync cuEventDestroy
+  hipEvent_t event_; // Sync hipEventDestroy
   bool event_sync_required_;
   at::Device device_;
 

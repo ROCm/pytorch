@@ -33,7 +33,7 @@ std::shared_ptr<at::cuda::CUDAEvent> CUDAEventCache::create(bool timing) {
       events.pop_front();
     } else {
       event = new at::cuda::CUDAEvent(
-          timing ? cudaEventDefault : cudaEventDisableTiming);
+          timing ? hipEventDefault : hipEventDisableTiming);
     }
   }
   return std::shared_ptr<at::cuda::CUDAEvent>(event, std::move(deleter));

@@ -29,10 +29,10 @@
 #include <vector>
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAEvent.h>
-#include <c10/cuda/CUDAStream.h>
-#include <cuda_runtime.h>
-#include <nccl.h>
+#include <ATen/hip/HIPEvent.h>
+#include <c10/hip/HIPStream.h>
+#include <hip/hip_runtime.h>
+#include <rccl/rccl.h>
 
 #include <torch/csrc/distributed/c10d/Backend.hpp>
 #include <torch/csrc/distributed/c10d/ProcessGroupNCCL.hpp>
@@ -429,11 +429,11 @@ class TORCH_API ProcessGroupNCCL : public ::c10d::Backend {
 
   ncclDataType_t getNcclDataType(const at::Tensor& tensor);
   c10::intrusive_ptr<WorkNCCL> createWork(
-      cudaStream_t stream,
+      hipStream_t stream,
       std::chrono::milliseconds timeout,
       const std::vector<at::Tensor>& inputTensors = {});
   c10::intrusive_ptr<WorkNCCL> createWork(
-      cudaStream_t stream,
+      hipStream_t stream,
       std::chrono::milliseconds timeout,
       const at::Tensor& inputTensor);
 
@@ -603,9 +603,9 @@ class TORCH_API ProcessGroupNCCL : public ::c10d::Backend {
   void releaseEphemeralTimeout(std::chrono::milliseconds timeout);
   void enqueueWork(
       const c10::intrusive_ptr<WorkNCCL>& work,
-      cudaStream_t stream);
+      hipStream_t stream);
   bool getGraphCaptureMode();
-  cudaStream_t getOperationStream(bool async_op);
+  hipStream_t getOperationStream(bool async_op);
   void ensureTensorContiguous(const at::Tensor& tensor);
   void checkTensorDevice(const at::Tensor& tensor) const;
   void checkTensorsDevice(const std::vector<at::Tensor>& tensors) const;

@@ -4,7 +4,7 @@
 #include <ATen/ATen.h>
 
 // Convert ATen floating point types to NV floating point types
-// at::kBFloat16 -> __nv_bfloat16
+// at::kBFloat16 -> __hip_bfloat16
 // at::kHalf -> __half
 // Float is the same.
 
@@ -19,6 +19,6 @@
   AT_DISPATCH_SWITCH(                                                      \
       scalar_type,                                                         \
       name,                                                                \
-      AT_DISPATCH_CASE_CONVERT(at::kBFloat16, __nv_bfloat16, __VA_ARGS__); \
+      AT_DISPATCH_CASE_CONVERT(at::kBFloat16, __hip_bfloat16, __VA_ARGS__); \
       AT_DISPATCH_CASE_CONVERT(at::kHalf, __half, __VA_ARGS__);            \
       AT_DISPATCH_CASE(at::kFloat, __VA_ARGS__));

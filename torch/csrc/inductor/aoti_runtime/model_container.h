@@ -52,7 +52,7 @@ struct ConstantBufferSet {
 
   void* ensure_blob(size_t blob_size) {
     if (!blob) {
-#if defined(USE_CUDA) || defined(USE_XPU) || defined(USE_MPS)
+#if defined(USE_ROCM) || defined(USE_XPU) || defined(USE_MPS)
       blob = RAII_gpuMalloc(blob_size);
 #else
       blob = RAII_cpuMalloc(blob_size);
@@ -246,7 +246,7 @@ class AOTInductorModelContainer {
             checked_out_models_.empty(),
         "Stream affinity can only be reconfigured while the model pool is "
         "quiescent");
-#if defined(USE_CUDA) || defined(USE_XPU)
+#if defined(USE_ROCM) || defined(USE_XPU)
     use_stream_affinity_ = use_stream_affinity;
 #else
     AOTI_RUNTIME_CHECK(
@@ -729,7 +729,7 @@ class AOTInductorModelContainer {
     // constant as we walk.
     size_t main_blob_idx = 0;
     size_t aux_cpu_blob_idx = 0;
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     // Opt-in pinned async staging pool for the delta-update H2D copies below.
     // nullptr (default / on allocation failure) keeps the throttled path.
     auto staging_pool = tryMakeConstantsStagingPool();
@@ -841,7 +841,7 @@ class AOTInductorModelContainer {
         // constants_internal_offset_[this_main_idx]
         offset = constants_internal_offset_[this_main_idx] /
             aoti_torch_dtype_element_size(dtype);
-#elif USE_CUDA
+#elif USE_ROCM
         // Pinned-async staging only helps for pageable host sources (which
         // trigger CUDA/HIP's device-wide implicit sync) and is only safe for
         // them, since copyH2DViaStage CPU-reads the source. Device / pinned
@@ -851,14 +851,14 @@ class AOTInductorModelContainer {
         // device/pinned sources, so the type cannot be cached across the loop.
         bool use_staging = false;
         if (staging_pool != nullptr) {
-          cudaPointerAttributes attrs{};
-          cudaError_t pointer_attrs_result =
-              cudaPointerGetAttributes(&attrs, user_constant_ptr);
-          if (pointer_attrs_result != cudaSuccess) {
-            (void)cudaGetLastError();
+          hipPointerAttribute_t attrs{};
+          hipError_t pointer_attrs_result =
+              hipPointerGetAttributes(&attrs, user_constant_ptr);
+          if (pointer_attrs_result != hipSuccess) {
+            (void)hipGetLastError();
             use_staging = true;
           } else {
-            use_staging = (attrs.type == cudaMemoryTypeUnregistered);
+            use_staging = (attrs.type == hipMemoryTypeUnregistered);
           }
         }
         if (use_staging) {
@@ -871,7 +871,7 @@ class AOTInductorModelContainer {
               internal_constants_ptr,
               user_constant_ptr,
               static_cast<size_t>(constant_size),
-              cudaMemcpyDefault);
+              hipMemcpyDefault);
         }
 #else
         memcpy(internal_constants_ptr, user_constant_ptr, constant_size);
@@ -897,7 +897,7 @@ class AOTInductorModelContainer {
       target.map->insert_or_assign(
           constant_name, RAIIAtenTensorHandle(tensor_handle));
     }
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     // Synchronize the staging stream (surfacing any async copy error) and
     // release the pinned buffers before the updated constants are observed by
     // callers.
@@ -913,16 +913,16 @@ class AOTInductorModelContainer {
         "update_constant_buffer: copy completed in " << _update_ms << " ms");
     target.update_array(models_[0].get());
 
-#ifdef USE_CUDA
+#ifdef USE_ROCM
     // S638065: the GPU constant copies above run on the default stream (raw
-    // cudaMemcpy), while run_const_fold launches the fold on
+    // hipMemcpy), while run_const_fold launches the fold on
     // getCurrentCUDAStream(). On ROCm the default stream is not implicitly
     // ordered with the fold's stream, so without this the fold could read
     // not-yet-copied weights and bake stale values into the folded constants.
     // Wait for the copies to complete before returning, so any subsequent fold
     // (on any stream) sees the updated weights.
-    AOTI_RUNTIME_CUDA_CHECK(cudaStreamSynchronize(0));
-#endif // USE_CUDA
+    AOTI_RUNTIME_CUDA_CHECK(hipStreamSynchronize(0));
+#endif // USE_ROCM
   }
 
   void swap_constant_buffer() {
@@ -1069,7 +1069,7 @@ class AOTInductorModelContainer {
 
   AOTInductorModel* get_available_model(DeviceStreamType stream) {
     std::unique_lock lk(models_mutex_);
-#if defined(USE_CUDA) || defined(USE_XPU)
+#if defined(USE_ROCM) || defined(USE_XPU)
     if (use_stream_affinity_ && stream != nullptr) {
       return get_stream_affine_model(stream, lk);
     }
@@ -1127,7 +1127,7 @@ class AOTInductorModelContainer {
   }
 
   StreamLock acquire_stream_lock(DeviceStreamType stream) {
-#if defined(USE_CUDA) || defined(USE_XPU)
+#if defined(USE_ROCM) || defined(USE_XPU)
     std::shared_ptr<std::mutex> stream_mutex;
     {
       std::lock_guard lk(models_mutex_);

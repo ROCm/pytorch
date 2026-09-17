@@ -1120,14 +1120,14 @@ void passEventsToKineto(
 // dependency information between kineto ops. Consider a call to `torch.add`.
 // Three events will be collected:
 //   `aten::add`          (TorchOp, collected by profiler)
-//   `cudaLaunchKernel`   (CUDA runtime event, collected by Kineto)
+//   `hipLaunchKernel`   (CUDA runtime event, collected by Kineto)
 //   `at::vectorized_...` (GPU kernel, collected by Kineto)
 // If we only relied on correlation IDs we would set both Kineto events as
 // children of the `at::add`, rather than the correct
-//   `at::add -> cudaLaunchKernel -> at::vectorized_...`
+//   `at::add -> hipLaunchKernel -> at::vectorized_...`
 //
 // Kineto surfaces this information through a second concept called a "flow".
-// In this example, the `cudaLaunchKernel` event is the start of a flow and the
+// In this example, the `hipLaunchKernel` event is the start of a flow and the
 // GPU kernel has the same flow id but is not a start event. Thus, when merging
 // the Kineto events into the call tree we first add all events which are flow
 // start nodes. We then merge the rest, trying to pair them with flow starts

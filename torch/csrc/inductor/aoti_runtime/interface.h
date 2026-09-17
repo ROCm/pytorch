@@ -98,7 +98,7 @@ AOTI_API AOTIRuntimeError AOTInductorModelContainerCreate(
 // `device_str` MUST NOT be nullptr. It must be a valid device string, e.g.
 // "cpu", "cuda", "cuda:0", etc. If the device index is not specified for CUDA
 // device, runtime will use the device index returned by
-// "cudaGetDevice(&device_idx)"
+// "hipGetDevice(&device_idx)"
 AOTI_API AOTIRuntimeError AOTInductorModelContainerCreateWithDevice(
     AOTInductorModelContainerHandle* container_handle,
     size_t num_models,

@@ -544,7 +544,7 @@ void populateRemoteProfiledEvents(
 
   if (cudaProfilingEnabled) {
     // Deserialized events don't have the corresponding CUDA events, making it
-    // impossible to use cudaEventElapsedTime the receiving end. To avoid this,
+    // impossible to use hipEventElapsedTime the receiving end. To avoid this,
     // find all push/pop pairs of CUDA events and set the corresponding CUDA
     // time to zero for the push event and to the elapsed time for the pop
     // event, to be used later for the elapsed CUDA time computation.

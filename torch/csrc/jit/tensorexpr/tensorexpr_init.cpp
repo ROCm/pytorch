@@ -2,7 +2,7 @@
 #include <torch/csrc/jit/python/pybind_utils.h>
 #include <torch/csrc/jit/tensorexpr/codegen.h>
 #include <torch/csrc/utils/pybind.h>
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #include <torch/csrc/jit/tensorexpr/cuda_codegen.h>
 #endif
 #include <torch/csrc/jit/tensorexpr/graph_opt.h>
@@ -934,7 +934,7 @@ void initTensorExprBindings(PyObject* module) {
           throw std::runtime_error("PyTorch not compiled with LLVM support!");
 #endif
         } else if (name == "cuda") {
-#ifdef USE_CUDA
+#ifdef USE_ROCM
           cg = new CudaCodeGen(stmt, args);
 #else
           throw std::runtime_error("PyTorch not compiled with CUDA support!");

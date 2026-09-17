@@ -1,6 +1,6 @@
-#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/hip/HIPEvent.h>
 #include <c10/core/Device.h>
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPStream.h>
 #include <torch/custom_class.h>
 
 namespace torch::jit {
@@ -9,7 +9,7 @@ class CUDAEvent;
 // This class is a wrapper around c10::cuda::CUDAStream.
 // It is needed because TorchBind does not support all of the argument types
 // for c10::cuda::CUDAStream. For more details, please refer to
-// c10/cuda/CUDAStream.h.
+// c10/hip/HIPStream.h.
 class CUDAStream final : public CustomClassHolder {
  public:
   CUDAStream(
@@ -71,16 +71,16 @@ class CUDAEvent final : public CustomClassHolder {
       bool enable_timing = false,
       bool blocking = false,
       bool interprocess = false) {
-    int flags = cudaEventDisableTiming;
+    int flags = hipEventDisableTiming;
     if (enable_timing) {
-      flags = cudaEventDefault;
+      flags = hipEventDefault;
     }
     if (blocking) {
-      flags |= cudaEventBlockingSync;
+      flags |= hipEventBlockingSync;
     }
     if (interprocess) {
       TORCH_CHECK(!enable_timing);
-      flags |= cudaEventInterprocess;
+      flags |= hipEventInterprocess;
     }
 
     event_ = std::make_unique<at::cuda::CUDAEvent>(flags);
@@ -91,7 +91,7 @@ class CUDAEvent final : public CustomClassHolder {
   }
 
   std::string ipcHandle() {
-    cudaIpcEventHandle_t handle{};
+    hipIpcEventHandle_t handle{};
     event_->ipc_handle(&handle);
     std::string str_handle((const char*)&handle, sizeof(handle));
     return str_handle;

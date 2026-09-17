@@ -15,10 +15,10 @@
 #include <vector>
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAEvent.h>
+#include <ATen/hip/HIPEvent.h>
 #include <ATen/record_function.h>
-#include <c10/cuda/CUDAStream.h>
-#include <cuda_runtime.h>
+#include <c10/hip/HIPStream.h>
+#include <hip/hip_runtime.h>
 
 #include <torch/csrc/distributed/c10d/Work.hpp>
 
@@ -68,12 +68,12 @@ class WorkNCCL : public c10d::Work {
 
   WorkNCCL(
       ProcessGroupNCCL* comm,
-      cudaStream_t stream,
+      hipStream_t stream,
       std::chrono::milliseconds timeout_ms,
       const std::vector<at::Tensor>& inputTensors);
   WorkNCCL(
       ProcessGroupNCCL* comm,
-      cudaStream_t stream,
+      hipStream_t stream,
       std::chrono::milliseconds timeout_ms,
       at::Tensor inputTensor);
   ~WorkNCCL() override;
@@ -131,7 +131,7 @@ class WorkNCCL : public c10d::Work {
   struct State {
     State(
         ProcessGroupNCCL* comm,
-        cudaStream_t stream,
+        hipStream_t stream,
         std::chrono::milliseconds timeout);
 
     WorkStatus status() const;
@@ -192,14 +192,14 @@ class WorkNCCLQueue {
   WorkNCCL::WorkStatus finalize();
   void enqueueWork(
       const c10::intrusive_ptr<WorkNCCL>& work,
-      cudaStream_t stream);
+      hipStream_t stream);
 
  private:
   // completed collects the states retired as COMPLETED, so the caller can push
   // their completion out after dropping work_queues_mutex_.
   WorkNCCL::WorkStatus garbageCollectLocked(
       std::vector<std::shared_ptr<WorkNCCL::State>>& completed);
-  std::unordered_map<cudaStream_t, std::queue<WorkNCCL::TrackedWork>>
+  std::unordered_map<hipStream_t, std::queue<WorkNCCL::TrackedWork>>
       stream_work_queues_;
   std::queue<std::shared_ptr<WorkNCCL::InputTensorShelf>>
       completedInputTensors_;

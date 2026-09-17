@@ -1,5 +1,6 @@
-#include <c10/cuda/CUDAGuard.h>
-#include <ATen/native/cuda/MemoryAccess.cuh>
+#include "hip/hip_runtime.h"
+#include <c10/hip/HIPGuard.h>
+#include <ATen/native/hip/MemoryAccess.cuh>
 #include <torch/csrc/distributed/c10d/NCCLUtils.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_dev_cap.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/nccl_extension.hpp>

@@ -2,9 +2,9 @@
 #include <torch/csrc/inductor/aoti_torch/c/shim.h>
 #include <torch/csrc/inductor/aoti_torch/utils.h>
 
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
+#include <c10/hip/HIPStream.h>
 
 AOTITorchError aoti_torch_create_cuda_guard(
     int32_t device_index,
@@ -36,7 +36,7 @@ AOTITorchError aoti_torch_create_cuda_stream_guard(
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
     at::cuda::CUDAStreamGuard* guard =
         new at::cuda::CUDAStreamGuard(at::cuda::getStreamFromExternal(
-            static_cast<cudaStream_t>(stream), device_index));
+            static_cast<hipStream_t>(stream), device_index));
     *ret_guard = reinterpret_cast<CUDAStreamGuardHandle>(guard);
   });
 }
@@ -51,7 +51,7 @@ AOTITorchError aoti_torch_get_current_cuda_stream(
     int32_t device_index,
     void** ret_stream) {
   AOTI_TORCH_CONVERT_EXCEPTION_TO_ERROR_CODE({
-    *(cudaStream_t*)(ret_stream) = at::cuda::getCurrentCUDAStream(device_index);
+    *(hipStream_t*)(ret_stream) = at::cuda::getCurrentCUDAStream(device_index);
   });
 }
 

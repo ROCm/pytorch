@@ -6,8 +6,8 @@
 
 #include <ATen/core/ivalue.h>
 #include <c10/core/DeviceGuard.h>
-#include <c10/cuda/CUDAException.h>
-#include <c10/cuda/CUDAGraphsC10Utils.h>
+#include <c10/hip/HIPException.h>
+#include <c10/hip/HIPGraphsC10Utils.h>
 
 #include <iterator>
 #include <thread>
@@ -41,7 +41,7 @@ std::unique_ptr<at::cuda::CUDAEvent> NCCLEventPool::getEvent(
     return event;
   }
   return std::make_unique<at::cuda::CUDAEvent>(
-      timingEnabled ? cudaEventDefault : cudaEventDisableTiming);
+      timingEnabled ? hipEventDefault : hipEventDisableTiming);
 }
 
 void NCCLEventPool::returnEvent(
@@ -115,7 +115,7 @@ void WorkNCCL::InputTensorShelf::clear() {
 
 WorkNCCL::State::State(
     ProcessGroupNCCL* comm,
-    cudaStream_t stream,
+    hipStream_t stream,
     std::chrono::milliseconds timeout)
     : comm(comm),
       reconfigureUuid(comm->reconfigure_uuid_),
@@ -133,7 +133,7 @@ WorkNCCL::State::State(
 
 WorkNCCL::WorkNCCL(
     ProcessGroupNCCL* comm,
-    cudaStream_t stream,
+    hipStream_t stream,
     std::chrono::milliseconds timeout_ms,
     const std::vector<at::Tensor>& inputTensors)
     : state_(std::make_shared<State>(comm, stream, timeout_ms)),
@@ -141,7 +141,7 @@ WorkNCCL::WorkNCCL(
 
 WorkNCCL::WorkNCCL(
     ProcessGroupNCCL* comm,
-    cudaStream_t stream,
+    hipStream_t stream,
     std::chrono::milliseconds timeout_ms,
     at::Tensor inputTensor)
     : state_(std::make_shared<State>(comm, stream, timeout_ms)),
@@ -227,7 +227,7 @@ void WorkNCCL::State::notifyCompletion() {
   std::optional<float> duration;
   if (timingEnabled) {
     try {
-      // cudaEventElapsedTime on two events that have already been observed to
+      // hipEventElapsedTime on two events that have already been observed to
       // complete: no synchronization, and no NCCL call, so it is legal on the
       // watchdog thread. Stock ProcessGroupNCCL's watchdog calls getDuration()
       // from its own completion hook for the same reason.
@@ -392,11 +392,11 @@ void WorkNCCL::synchronizeInternal() {
   // its IPC buffers on the stream, then issues a synchronous barrier before the
   // first all_reduce; a stream-order-only barrier lets the all_reduce race the
   // clear and both ranks spin forever). Skip while the stream is capturing a
-  // CUDA graph: cudaStreamSynchronize is illegal during capture and the
+  // CUDA graph: hipStreamSynchronize is illegal during capture and the
   // captured work is replayed on-device where a host sync is meaningless.
   if (state_->hostBlocking && !state_->blockingWait &&
       !c10::cuda::isStreamCapturingMayInitCtx(current_stream)) {
-    C10_CUDA_CHECK(cudaStreamSynchronize(current_stream));
+    C10_CUDA_CHECK(hipStreamSynchronize(current_stream));
   }
 
   // Release tensor references. The CUDA caching allocator manages stream

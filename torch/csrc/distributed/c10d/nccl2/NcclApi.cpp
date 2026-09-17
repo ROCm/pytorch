@@ -181,7 +181,7 @@ ncclResult_t DefaultNcclApi::send(
     ncclDataType_t datatype,
     int peer,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclSend(sendbuff, count, datatype, peer, comm, stream);
 }
@@ -192,7 +192,7 @@ ncclResult_t DefaultNcclApi::recv(
     ncclDataType_t datatype,
     int peer,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclRecv(recvbuff, count, datatype, peer, comm, stream);
 }
@@ -204,7 +204,7 @@ ncclResult_t DefaultNcclApi::broadcast(
     ncclDataType_t datatype,
     int root,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclBroadcast(sendbuff, recvbuff, count, datatype, root, comm, stream);
 }
@@ -215,7 +215,7 @@ ncclResult_t DefaultNcclApi::bcast(
     ncclDataType_t datatype,
     int root,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclBcast(buff, count, datatype, root, comm, stream);
 }
@@ -227,7 +227,7 @@ ncclResult_t DefaultNcclApi::allReduce(
     ncclDataType_t datatype,
     ncclRedOp_t op,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclAllReduce(sendbuff, recvbuff, count, datatype, op, comm, stream);
 }
@@ -240,7 +240,7 @@ ncclResult_t DefaultNcclApi::reduce(
     ncclRedOp_t op,
     int root,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclReduce(
       sendbuff, recvbuff, count, datatype, op, root, comm, stream);
@@ -252,7 +252,7 @@ ncclResult_t DefaultNcclApi::allGather(
     size_t sendcount,
     ncclDataType_t datatype,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclAllGather(sendbuff, recvbuff, sendcount, datatype, comm, stream);
 }
@@ -264,7 +264,7 @@ ncclResult_t DefaultNcclApi::reduceScatter(
     ncclDataType_t datatype,
     ncclRedOp_t op,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
   return ncclReduceScatter(
       sendbuff, recvbuff, recvcount, datatype, op, comm, stream);
@@ -276,7 +276,7 @@ ncclResult_t DefaultNcclApi::allToAll(
     size_t count,
     ncclDataType_t datatype,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
 #if NCCL_VERSION_CODE >= NCCL_VERSION(2, 28, 0)
   return ncclAlltoAll(sendbuff, recvbuff, count, datatype, comm, stream);
@@ -452,7 +452,7 @@ ncclResult_t DefaultNcclApi::putSignal(
     int ctx,
     unsigned int flags,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
 #if NCCL_VERSION_CODE >= NCCL_VERSION(2, 29, 0)
   return ncclPutSignal(
@@ -492,7 +492,7 @@ ncclResult_t DefaultNcclApi::signal(
     int ctx,
     unsigned int flags,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
 #if NCCL_VERSION_CODE >= NCCL_VERSION(2, 29, 0)
   return ncclSignal(peer, sigIdx, ctx, flags, comm, stream);
@@ -510,7 +510,7 @@ ncclResult_t DefaultNcclApi::waitSignal(
     int ctx,
     int opCnt,
     ncclComm_t comm,
-    cudaStream_t stream) {
+    hipStream_t stream) {
   std::lock_guard<std::mutex> lock(api_mutex_);
 #if NCCL_VERSION_CODE >= NCCL_VERSION(2, 29, 0)
   ncclWaitSignalDesc_t desc;

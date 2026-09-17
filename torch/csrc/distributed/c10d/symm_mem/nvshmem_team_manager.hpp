@@ -1,8 +1,8 @@
 #pragma once
 
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAException.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPException.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/Exception.h>
 #include <string>
 #include <unordered_map>
@@ -26,7 +26,7 @@ namespace c10d::nvshmem_extension {
 constexpr int MAX_N_TEAMS = 128;
 
 // A pool of teams for each group. These are duplicate teams.
-using TeamPool = std::vector<nvshmem_team_t>;
+using TeamPool = std::vector<rocshmem::rocshmem_team_t>;
 
 // Manage all the team business. Singleton.
 class TeamManager {
@@ -44,7 +44,7 @@ class TeamManager {
   }
 
   // Get a team for a group.
-  nvshmem_team_t get_team(
+  rocshmem::rocshmem_team_t get_team(
       const std::string& group_name,
       const std::vector<int>& global_ranks) {
     auto [team_pool, pool_updated] =
@@ -57,7 +57,7 @@ class TeamManager {
   // The first element of the returned pair is the team pool on host side.
   // The second element of the returned pair is the team pool on device side.
   // This API must be called with a device guard.
-  std::pair<const TeamPool&, nvshmem_team_t*> get_n_teams(
+  std::pair<const TeamPool&, rocshmem::rocshmem_team_t*> get_n_teams(
       const std::string& group_name,
       const std::vector<int>& global_ranks,
       const int need_n) {
@@ -67,12 +67,12 @@ class TeamManager {
     auto [team_pool, pool_updated] =
         group_to_team_pool(group_name, global_ranks, need_n);
     // Check if the pool already exists in device memory
-    nvshmem_team_t* team_pool_dev = nullptr;
-    constexpr auto pool_bytes = sizeof(nvshmem_team_t) * MAX_N_TEAMS;
+    rocshmem::rocshmem_team_t* team_pool_dev = nullptr;
+    constexpr auto pool_bytes = sizeof(rocshmem::rocshmem_team_t) * MAX_N_TEAMS;
     auto it = team_pool_devptrs_.find(group_name);
     if (it == team_pool_devptrs_.end()) {
       // If not, allocate a new pool in device memory
-      team_pool_dev = reinterpret_cast<nvshmem_team_t*>(
+      team_pool_dev = reinterpret_cast<rocshmem::rocshmem_team_t*>(
           c10::cuda::CUDACachingAllocator::raw_alloc(pool_bytes));
       team_pool_devptrs_[group_name] = team_pool_dev;
     } else {
@@ -82,11 +82,11 @@ class TeamManager {
     if (pool_updated) {
       TORCH_INTERNAL_ASSERT(team_pool.size() == MAX_N_TEAMS);
       auto stream = at::cuda::getCurrentCUDAStream();
-      C10_CUDA_CHECK(cudaMemcpyAsync(
+      C10_CUDA_CHECK(hipMemcpyAsync(
           team_pool_dev,
           team_pool.data(),
           pool_bytes,
-          cudaMemcpyHostToDevice,
+          hipMemcpyHostToDevice,
           stream));
     }
     return std::make_pair(std::cref(team_pool), team_pool_dev);
@@ -97,9 +97,9 @@ class TeamManager {
     // Note that we do it in a best effort manner because the team pool is
     // managed by a static TeamManager and the destruction order of static
     // objects is undetermined. If the destructor is called after the CUDA
-    // context is destroyed, cudaFree would fail.
+    // context is destroyed, hipFree would fail.
     try {
-      // cudaFree generally implies a device synchronization, meaning it will
+      // hipFree generally implies a device synchronization, meaning it will
       // block until all preceding CUDA operations on the device have completed
       // before freeing the memory. Thus we don't need to worry about freeing
       // the memory before CUDA kernels complete.
@@ -128,14 +128,14 @@ class TeamManager {
 
     // Insert a new team pool if not exists
     auto [it, inserted] = group_name_to_team_pool_.emplace(
-        group_name, TeamPool(MAX_N_TEAMS, NVSHMEM_TEAM_INVALID));
+        group_name, TeamPool(MAX_N_TEAMS, rocshmem::ROCSHMEM_TEAM_INVALID));
     auto& team_pool = it->second;
     bool pool_updated = inserted;
 
     // Create new teams if what's requested is more than what we have
     int stride = 0; // stride in globe, uninitialized
     for (int i = 0; i < need_n; ++i) {
-      if (team_pool[i] != NVSHMEM_TEAM_INVALID) {
+      if (team_pool[i] != rocshmem::ROCSHMEM_TEAM_INVALID) {
         continue;
       }
       // Some checks before we create new teams
@@ -146,16 +146,16 @@ class TeamManager {
           TORCH_CHECK(global_ranks[r] - global_ranks[r - 1] == stride);
         }
       }
-      nvshmem_team_t team = NVSHMEM_TEAM_INVALID;
-      nvshmem_team_split_strided(
-          NVSHMEM_TEAM_WORLD,
+      rocshmem::rocshmem_team_t team = rocshmem::ROCSHMEM_TEAM_INVALID;
+      rocshmem::rocshmem_team_split_strided(
+          rocshmem::ROCSHMEM_TEAM_WORLD,
           global_ranks[0],
           stride,
           global_ranks.size(),
           nullptr,
           0,
           &team);
-      TORCH_CHECK(team != NVSHMEM_TEAM_INVALID, "Failed to create a new team");
+      TORCH_CHECK(team != rocshmem::ROCSHMEM_TEAM_INVALID, "Failed to create a new team");
       team_pool[i] = team;
       pool_updated = true;
     }
@@ -168,7 +168,7 @@ class TeamManager {
   // A map from group name to team pool for that group.
   std::unordered_map<std::string, TeamPool> group_name_to_team_pool_;
   // A map from group name to team pool array in device memory.
-  std::unordered_map<std::string, nvshmem_team_t*> team_pool_devptrs_;
+  std::unordered_map<std::string, rocshmem::rocshmem_team_t*> team_pool_devptrs_;
 };
 
 } // namespace c10d::nvshmem_extension

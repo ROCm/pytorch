@@ -9,7 +9,7 @@
 #include <limits>
 
 #include <ATen/ATen.h>
-#include <c10/cuda/CUDAGuard.h>
+#include <c10/hip/HIPGuard.h>
 #include <c10/util/safe_numerics.h>
 #include <torch/csrc/distributed/c10d/nccl2/ProcessGroupNCCL.hpp>
 
@@ -193,7 +193,7 @@ c10::intrusive_ptr<::c10d::Work> WindowNCCL::put(
       "WindowNCCL: source tensor is not in a registered symmetric window; "
       "register it collectively before calling put");
 
-  cudaStream_t stream = pg_->getOperationStream(asyncOp);
+  hipStream_t stream = pg_->getOperationStream(asyncOp);
   auto timeout = pg_->operationTimeout(opts.timeout);
   auto work = pg_->createWork(stream, timeout, tensor);
   work->recordStart("put");
@@ -234,7 +234,7 @@ c10::intrusive_ptr<::c10d::Work> WindowNCCL::signal(
   checkWindowAndThrow();
   checkPeerRankAndThrow(peerRank);
   c10::cuda::CUDAGuard device_guard(pg_->getDevice());
-  cudaStream_t stream = pg_->getOperationStream(asyncOp);
+  hipStream_t stream = pg_->getOperationStream(asyncOp);
   auto timeout = pg_->operationTimeout(opts.timeout);
   auto work = pg_->createWork(stream, timeout);
   work->recordStart("signal");
@@ -270,7 +270,7 @@ c10::intrusive_ptr<::c10d::Work> WindowNCCL::wait_signal(
   checkWindowAndThrow();
   checkPeerRankAndThrow(peerRank);
   c10::cuda::CUDAGuard device_guard(pg_->getDevice());
-  cudaStream_t stream = pg_->getOperationStream(asyncOp);
+  hipStream_t stream = pg_->getOperationStream(asyncOp);
   auto timeout = pg_->operationTimeout(opts.timeout);
   auto work = pg_->createWork(stream, timeout);
   work->recordStart("wait_signal");

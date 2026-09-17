@@ -2,7 +2,7 @@
 #include <torch/csrc/distributed/c10d/symm_mem/NVSHMEMSymmetricMemoryKernels.hpp>
 #include <torch/csrc/distributed/c10d/symm_mem/SymmetricMemory.hpp>
 
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/hip/HIPContext.h>
 
 #include <algorithm>
 
@@ -17,7 +17,7 @@ void launch_barrier_kernel(
   check_channel(channel, world_size, get_signal_pad_size());
   barrier_kernel<<<
       1,
-      std::max(at::cuda::warp_size(), world_size),
+      ::max(at::cuda::warp_size(), world_size),
       0,
       at::cuda::getCurrentCUDAStream()>>>(
       signal_pads_dev, channel, rank, world_size, timeout_ms);

@@ -2,7 +2,7 @@
 #include <torch/csrc/jit/ir/constants.h>
 #include <torch/csrc/jit/ir/ir.h>
 #include <torch/csrc/jit/passes/frozen_conv_add_relu_fusion.h>
-#ifdef USE_CUDA
+#ifdef USE_ROCM
 #endif
 
 namespace torch::jit {

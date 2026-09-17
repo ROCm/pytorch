@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ATen/ATen.h>
-#include <ATen/cuda/CUDAContext.h>
+#include <ATen/hip/HIPContext.h>
 
 #include <cstddef>
 #include <optional>
@@ -19,7 +19,7 @@
 
 namespace torch::cuda::nccl {
 
-/* The following are copied from <nccl.h> and redefined in torch::cuda::nccl
+/* The following are copied from <rccl/rccl.h> and redefined in torch::cuda::nccl
  * namespace */
 /* pytorch should only use the following definition within pytorch scope */
 

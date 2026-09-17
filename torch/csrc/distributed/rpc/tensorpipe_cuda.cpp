@@ -3,13 +3,13 @@
 
 #if defined(USE_TENSORPIPE) && !defined(USE_ROCM)
 
-#include <c10/cuda/CUDACachingAllocator.h>
-#include <c10/cuda/CUDAGuard.h>
-#include <c10/cuda/CUDAStream.h>
+#include <c10/hip/HIPCachingAllocator.h>
+#include <c10/hip/HIPGuard.h>
+#include <c10/hip/HIPStream.h>
 
 C10_DIAGNOSTIC_PUSH_AND_IGNORED_IF_DEFINED("-Wdeprecated")
 #include <tensorpipe/tensorpipe.h>
-#include <tensorpipe/tensorpipe_cuda.h>
+#include <tensorpipe/tensorpipe_hip.h>
 C10_DIAGNOSTIC_POP()
 
 namespace torch::distributed::rpc {
@@ -23,7 +23,7 @@ std::unique_ptr<ChannelRegistration> makeCudaIpcChannel() {
       ChannelRegistration{std::move(context), kCudaIpcChannelPriority});
 }
 
-// The cuda_ipc channels use cudaMemcpy to transmit CUDA tensor across processes
+// The cuda_ipc channels use hipMemcpy to transmit CUDA tensor across processes
 C10_REGISTER_CREATOR(TensorPipeChannelRegistry, cuda_ipc, makeCudaIpcChannel)
 
 #endif
