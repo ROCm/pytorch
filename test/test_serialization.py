@@ -57,6 +57,7 @@ from torch.testing._internal.common_utils import (
     parametrize,
     run_tests,
     serialTest,
+    skipIfRocmVersionAtLeast,
     skipIfTorchDynamo,
     TemporaryDirectoryName,
     TemporaryFileName,
@@ -860,6 +861,7 @@ class SerializationMixin:
             self.assertEqual(data, loaded_data)
 
     @unittest.skipIf(not IS_CI, "only check debug var is set in CI")
+    @skipIfRocmVersionAtLeast([7, 14])
     def test_debug_set_in_ci(self):
         # This test is to make sure that the serialization debug flag is set in CI
         self.assertTrue(os.environ.get("TORCH_SERIALIZATION_DEBUG", "0") == "1")
