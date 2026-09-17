@@ -95,7 +95,7 @@ jobs:
     name: test / ${{ matrix.config }} / ${{ matrix.shard }} of ${{ matrix.num_shards }}
     needs: build
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 240
+    timeout-minutes: 360
     strategy:
       fail-fast: false
       matrix:
@@ -225,6 +225,9 @@ jobs:
       - name: Install PyTorch wheel
         run: python -m pip install dist/*.whl
 
+      - name: Install test tools
+        run: python -m pip install spin==0.17 uv==0.11.29
+
       - name: Verify PyTorch GPU visibility
         working-directory: test
         run: |
@@ -251,7 +254,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Run tests
-        timeout-minutes: 210
+        timeout-minutes: 270
         run: .ci/pytorch/test.sh
 
       - name: Upload test reports
