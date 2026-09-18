@@ -4,7 +4,7 @@ ubuntu|pytorch|torchvision|release/0.26|3d50b2155c02d26e78b9c09baf99f5c707d70215
 centos|pytorch|torchvision|release/0.26|3d50b2155c02d26e78b9c09baf99f5c707d70215|https://github.com/ROCm/vision
 ubuntu|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|https://github.com/pytorch/data
 centos|pytorch|torchdata|release/0.11|377e64c1be69a9be6649d14c9e3664070323e464|https://github.com/pytorch/data
-ubuntu|pytorch|torchaudio|release/2.11|34c52a67e8941bbd8e6adaca0eb0b9eabec11d78|https://github.com/pytorch/audio
-centos|pytorch|torchaudio|release/2.11|34c52a67e8941bbd8e6adaca0eb0b9eabec11d78|https://github.com/pytorch/audio
+ubuntu|pytorch|torchaudio|ew/aipytorch-1031-release-torchaudio-2.11|143129b5e180324bd1a3afbee5bc20bbd9b96e7b|https://github.com/ethanwee1/audio
+centos|pytorch|torchaudio|ew/aipytorch-1031-release-torchaudio-2.11|143129b5e180324bd1a3afbee5bc20bbd9b96e7b|https://github.com/ethanwee1/audio
 ubuntu|pytorch|ao|release/0.17.0|afb2844be99514f0d5ff42badd9c3ed0d1811d73|https://github.com/pytorch/ao
 centos|pytorch|ao|release/0.17.0|afb2844be99514f0d5ff42badd9c3ed0d1811d73|https://github.com/pytorch/ao
