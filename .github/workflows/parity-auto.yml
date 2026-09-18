@@ -134,7 +134,7 @@ jobs:
               ""
           }
 
-          # Echo "<sha> <created_at>" lines for the most recent completed
+          # Echo "<run_id> <sha> <created_at>" lines for recent completed
           # trunk.yml pushes, deduped and newest-first, up to MAX_COMMITS.
           # Candidate SHAs come from completed trunk pushes (not raw main
           # commits): the report consumes trunk's jobs, so a completed trunk run
@@ -144,7 +144,7 @@ jobs:
             while [ "$(echo "$commits_json" | jq 'length')" -lt "$MAX_COMMITS" ]; do
               page_runs=$(gh api \
                 "repos/$UPSTREAM/actions/workflows/trunk.yml/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page" \
-                --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+                --jq '.workflow_runs | map({id, head_sha, created_at})' 2>/dev/null)
               # On a gh api failure (rate limit / transient 5xx) page_runs is
               # empty or non-JSON; stop paginating and use what we have so far.
               if ! echo "$page_runs" | jq -e . >/dev/null 2>&1; then
@@ -163,7 +163,7 @@ jobs:
               ' <(echo "$commits_json") <(echo "$page_runs"))
               page=$((page + 1))
             done
-            echo "$commits_json" | jq -r '.[] | "\(.head_sha) \(.created_at)"'
+            echo "$commits_json" | jq -r '.[] | "\(.id) \(.head_sha) \(.created_at)"'
           }
 
           # Echo a JSON array of recent auto-parity workflow_dispatch runs in our
@@ -250,7 +250,7 @@ jobs:
           # not already processed. Returns 0 to keep scanning, 1 to stop the scan
           # (commit too old, or per-scan dispatch cap reached).
           process_commit() {
-            local sha="$1" date="$2"
+            local run_id="$1" sha="$2" date="$3"
             local short commit_epoch all_check_runs cuda_check_runs
             local total_cr pending_cr pending_sample arch_dispatch
             short=$(echo "$sha" | cut -c1-8)
@@ -273,11 +273,11 @@ jobs:
               return 0
             fi
 
-            # Per-shard check-run state for this SHA (workflow_run conclusion can
-            # flip to failure before sibling shards finish, so we look per shard).
+            # Inspect only this trunk push. Commit-wide checks can include a
+            # periodic CUDA family with the same SHA and a different version.
             all_check_runs=$(gh api --paginate \
-              "repos/$UPSTREAM/commits/$sha/check-runs?per_page=100" \
-              --jq '.check_runs[] | {name,status,conclusion}' \
+              "repos/$UPSTREAM/actions/runs/$run_id/jobs?filter=all&per_page=100" \
+              --jq '.jobs[] | {name,status,conclusion}' \
               2>/dev/null | jq -s '.' || echo '[]')
 
             ROCM_CHECK_RUNS='[]'
@@ -399,11 +399,11 @@ jobs:
 
             DISPATCHED_COUNT=0
             DISPATCHED_SUMMARY=""
-            local sha date
-            while IFS=' ' read -r sha date; do
+            local run_id sha date
+            while IFS=' ' read -r run_id sha date; do
               [ -z "$sha" ] && continue
               # process_commit returns non-zero to stop the scan (too old / cap).
-              process_commit "$sha" "$date" || break
+              process_commit "$run_id" "$sha" "$date" || break
             done <<< "$commits"
 
             write_step_summary
