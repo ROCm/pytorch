@@ -346,10 +346,21 @@ def _get_torch_cuda_version():
     cuda_version = str(torch.version.cuda)
     return tuple(int(x) for x in cuda_version.split("."))
 
+def _rocm_version_str():
+    """ROCm release version string, or None when this is not a ROCm build.
+
+    torch.version.hip is the HIP runtime version. It tracks the ROCm release
+    version on shipped ROCm but not on preview builds, so prefer
+    torch.version.rocm and fall back only for builds that never recorded it.
+    """
+    if torch.version.hip is None:
+        return None
+    return getattr(torch.version, 'rocm', None) or torch.version.hip
+
 def _get_torch_rocm_version():
-    if not TEST_WITH_ROCM or torch.version.hip is None:
+    rocm_version = _rocm_version_str()
+    if not TEST_WITH_ROCM or rocm_version is None:
         return (0, 0)
-    rocm_version = str(torch.version.hip)
     rocm_version = rocm_version.split("-", maxsplit=1)[0]    # ignore git sha
     return tuple(int(x) for x in rocm_version.split("."))
 

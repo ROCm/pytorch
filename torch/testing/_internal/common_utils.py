@@ -2177,22 +2177,6 @@ def lazy_skip_if(condition_fn, reason):
         return wrapper
     return decorator
 
-# Skips a test on ROCm if the version is at least the given major.minor tuple.
-# Use for failures introduced in a ROCm release that pass on older versions,
-# e.g. skipIfRocmVersionAtLeast([7, 14]) skips on 7.14+ but runs on 7.2.x.
-# Built on lazy_skip_if so it works on both test methods and test classes.
-def skipIfRocmVersionAtLeast(version=None):
-    def _should_skip():
-        if not TEST_WITH_ROCM:
-            return False
-        rocm_version_tuple = getRocmVersion()
-        return (
-            rocm_version_tuple is not None
-            and version is not None
-            and rocm_version_tuple >= tuple(version)
-        )
-    return lazy_skip_if(_should_skip, f"ROCm version at least {version}: known failure")
-
 # Skips a test on ROCm when the version is in [first_bad, first_good), for a
 # regression introduced in one release and fixed in a later one. The window
 # lives only here, so the skip reason cannot drift from the version check.
