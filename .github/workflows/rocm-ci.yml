@@ -76,6 +76,8 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Build PyTorch
+        env:
+          SCCACHE_LOG: sccache::server=debug
         run: .ci/pytorch/build.sh
 
       - name: Archive build artifact
@@ -102,27 +104,35 @@ jobs:
         include:
           - config: default
             shard: 1
-            num_shards: 6
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: default
             shard: 2
-            num_shards: 6
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: default
             shard: 3
-            num_shards: 6
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: default
             shard: 4
-            num_shards: 6
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: default
             shard: 5
-            num_shards: 6
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: default
             shard: 6
-            num_shards: 6
+            num_shards: 8
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 7
+            num_shards: 8
+            runner: linux-pytorch-mi325-1
+          - config: default
+            shard: 8
+            num_shards: 8
             runner: linux-pytorch-mi325-1
           - config: distributed
             shard: 1
@@ -150,8 +160,8 @@ jobs:
       options: >-
         --user=0
         --cpus=19
-        --memory=96g
-        --memory-swap=96g
+        --memory=160g
+        --memory-swap=160g
         --env-file /etc/podinfo/gha-gpu-isolation-settings
         --device=/dev/mem
         --device=/dev/kfd
@@ -226,6 +236,9 @@ jobs:
         run: python -m pip install dist/*.whl
 
       - name: Install test tools
+        timeout-minutes: 5
+        env:
+          PIP_DEFAULT_TIMEOUT: "60"
         run: python -m pip install spin==0.17 uv==0.11.29
 
       - name: Verify PyTorch GPU visibility
