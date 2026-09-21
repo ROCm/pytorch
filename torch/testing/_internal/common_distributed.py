@@ -39,6 +39,7 @@ from torch.testing._internal import common_utils
 from torch.testing._internal.common_utils import (
     FILE_SCHEMA,
     find_free_port,
+    getRocmVersion,
     IS_SANDCASTLE,
     LazyVal,
     retry_on_connect_failures,
@@ -565,6 +566,22 @@ def skip_if_rocm_ver_atleast_multiprocess(version=None):
         return unittest.skipIf(reason is not None, reason)(func)
 
     return decorator
+
+
+def skip_if_rocm_ver_inrange_multiprocess(first_bad, first_good, reason):
+    """Skip multiprocess UTs on ROCm in [first_bad, first_good)."""
+    skip = False
+    message = ""
+    if TEST_WITH_ROCM:
+        rocm_version_tuple = getRocmVersion()
+        if tuple(first_bad) <= rocm_version_tuple < tuple(first_good):
+            window = (
+                f"ROCm >= {'.'.join(map(str, first_bad))}, "
+                f"< {'.'.join(map(str, first_good))}"
+            )
+            skip = True
+            message = f"{reason} ({window})"
+    return unittest.skipIf(skip, message)
 
 
 def skip_if_win32():

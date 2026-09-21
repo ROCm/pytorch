@@ -25,7 +25,7 @@ from torch.testing._internal.common_utils import (
     IS_WINDOWS,
     run_tests,
     skipIfRocm,
-    skipIfRocmVersionAtLeast,
+    skipIfRocmVersionInRange,
     TestCase,
 )
 from torch.utils import _pytree as pytree
@@ -149,7 +149,11 @@ selected_ops = {
 selected_op_db = [op for op in op_db if op.name in selected_ops]
 
 
-@skipIfRocmVersionAtLeast([7, 14])
+@skipIfRocmVersionInRange(
+    [7, 14],
+    [10, 0],
+    "export on fake CUDA failure",
+)
 class TestExportOnFakeCuda(TestCase):
     # In CI, this test runs on a CUDA machine with cuda build
     # We set CUDA_VISIBLE_DEVICES="" to simulate a CPU machine with cuda build

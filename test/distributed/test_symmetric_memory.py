@@ -40,7 +40,7 @@ from torch.testing._internal.common_distributed import (
     requires_multicast_support,
     skip_if_lt_x_gpu,
     skip_if_rocm_multiprocess,
-    skip_if_rocm_ver_atleast_multiprocess,
+    skip_if_rocm_ver_inrange_multiprocess,
     skip_if_rocm_ver_lessthan_multiprocess,
 )
 from torch.testing._internal.common_utils import (
@@ -310,7 +310,11 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @skip_if_lt_x_gpu(4)
-    @skip_if_rocm_ver_atleast_multiprocess([7, 14])
+    @skip_if_rocm_ver_inrange_multiprocess(
+        [7, 14],
+        [10, 0],
+        "symm_mem rendezvous failure",
+    )
     def test_subgroup(self) -> None:
         self._init_process()
 
@@ -1053,7 +1057,11 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @skip_if_lt_x_gpu(4)
-    @skip_if_rocm_ver_atleast_multiprocess([7, 14])
+    @skip_if_rocm_ver_inrange_multiprocess(
+        [7, 14],
+        [10, 0],
+        "symm_mem rendezvous failure",
+    )
     def test_one_shot_all_reduce(self) -> None:
         self._init_process()
         group_name = dist.group.WORLD.group_name
@@ -1087,7 +1095,11 @@ class SymmMemCollectiveTest(MultiProcContinuousTest):
         not PLATFORM_SUPPORTS_SYMM_MEM, "SymmMem is not supported on this ROCm arch"
     )
     @skip_if_lt_x_gpu(4)
-    @skip_if_rocm_ver_atleast_multiprocess([7, 14])
+    @skip_if_rocm_ver_inrange_multiprocess(
+        [7, 14],
+        [10, 0],
+        "symm_mem rendezvous failure",
+    )
     def test_two_shot_all_reduce(self) -> None:
         self._init_process()
         group_name = dist.group.WORLD.group_name
