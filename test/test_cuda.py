@@ -383,22 +383,29 @@ class TestCuda(TestCase):
         torch.cuda.reset_accumulated_host_memory_stats()
 
         for _ in range(2):
+            # Compare against the state right before the cycle rather than
+            # against zero: pinned blocks that were used during cuda graph
+            # capture are never recycled, so a process that already ran
+            # TestCachingHostAllocatorCudaGraph keeps a permanent active
+            # residue that empty_cache cannot reclaim. The counters may also
+            # legitimately shrink, since allocate() drains stale events.
+            before = torch.cuda.host_memory_stats()
             t = torch.empty(1024 * 1024, dtype=torch.float32, pin_memory=True)
             self.assertTrue(t.is_pinned())
             del t
             gc.collect()
-            stats = torch.cuda.host_memory_stats()
-            self.assertEqual(
-                stats["active_bytes.current"],
-                0,
-                "active_bytes.current should be 0 after a pin-and-drop cycle "
+            after = torch.cuda.host_memory_stats()
+            self.assertLessEqual(
+                after["active_bytes.current"],
+                before["active_bytes.current"],
+                "active_bytes.current must not grow over a pin-and-drop cycle "
                 "with no async copy: the block is returned to the cache, so "
-                "the active counter must drop back to zero.",
+                "the active counter must drop back to where it started.",
             )
-            self.assertEqual(
-                stats["active_requests.current"],
-                0,
-                "active_requests.current should be 0 after a pin-and-drop cycle.",
+            self.assertLessEqual(
+                after["active_requests.current"],
+                before["active_requests.current"],
+                "active_requests.current must not grow over a pin-and-drop cycle.",
             )
 
     @serialTest()
@@ -421,6 +428,9 @@ class TestCuda(TestCase):
         torch.cuda.reset_accumulated_host_memory_stats()
 
         for _ in range(2):
+            # See test_host_memory_stats_active_after_free_no_events for why
+            # this is a per-cycle comparison instead of a comparison to zero.
+            before = torch.cuda.host_memory_stats()
             t = torch.empty(1024 * 1024, dtype=torch.float32, pin_memory=True)
             t.cuda(non_blocking=True)
             torch.cuda.synchronize()
@@ -430,16 +440,16 @@ class TestCuda(TestCase):
             torch._C._host_emptyCache()
 
             stats = torch.cuda.host_memory_stats()
-            self.assertEqual(
+            self.assertLessEqual(
                 stats["active_bytes.current"],
-                0,
-                "active_bytes.current should be 0 after empty_cache drains "
-                "the events queue.",
+                before["active_bytes.current"],
+                "active_bytes.current must not grow once empty_cache has "
+                "drained the events queue.",
             )
-            self.assertEqual(
+            self.assertLessEqual(
                 stats["active_requests.current"],
-                0,
-                "active_requests.current should be 0 after drain.",
+                before["active_requests.current"],
+                "active_requests.current must not grow after drain.",
             )
             self.assertGreaterEqual(
                 stats["active_bytes.freed"],
