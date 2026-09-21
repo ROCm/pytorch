@@ -118,7 +118,14 @@ def build_triton(
             )
         else:
             check_call(["git", "fetch", "origin", commit_hash], cwd=triton_basedir)
-            check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
+            if device == "rocm":
+                ver, rev, _ = version.split(".", maxsplit=2)
+                check_call(
+                    ["git", "checkout", "-B", f"release/{ver}.{rev}.x", commit_hash],
+                    cwd=triton_basedir,
+                )
+            else:
+                check_call(["git", "checkout", commit_hash], cwd=triton_basedir)
 
         # change built wheel name and version
         env["TRITON_WHEEL_NAME"] = triton_pkg_name
