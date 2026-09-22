@@ -281,11 +281,21 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
     accelerator, is refused (it could not run SPMD).
     """
 
+    @property
+    def cur_cuda(self):
+        """The current cuda device, indexed: what CooR classifies device operands against.
+
+        Tests that want a device matching the current one ask for it here rather than
+        hardcoding cuda:0, which is the current device only by convention -- the class
+        also runs tests on cuda:1, and a process can start out on any device.
+        """
+        return f"cuda:{torch.cuda.current_device()}"
+
     @unittest.skipIf(not torch.cuda.is_available(), "requires CUDA")
     @compiler_config.patch(compile_on_one_rank=True)
     def test_factory_device_replaced_with_current_device(self):
         gm = make_fx(_factory_from_input_device, tracing_mode="fake")(
-            torch.randn(2, 8, device="cuda:0")
+            torch.randn(2, 8, device=self.cur_cuda)
         )
         ca = _current_device_nodes(gm)
         self.assertEqual(
@@ -304,10 +314,10 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
     def test_runtime_follows_current_device_not_input(self):
         # The runtime device follows the process's current device, not the input's.
         # The input is kept on cuda:0 in both runs; only the current device changes.
-        gm = make_fx(_factory_from_input_device, tracing_mode="fake")(
-            torch.randn(2, 8, device="cuda:0")
-        )
         with torch.cuda.device(0):
+            gm = make_fx(_factory_from_input_device, tracing_mode="fake")(
+                torch.randn(2, 8, device="cuda:0")
+            )
             self.assertEqual(
                 gm(torch.randn(2, 8, device="cuda:0")).device, torch.device("cuda:0")
             )
@@ -332,10 +342,12 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
         # An explicit-device dtype cast (the SimpleFSDP mixed-precision pattern,
         # aten._to_copy with a device= kwarg) also gets its baked device rewired to
         # the current_device() node, alongside the factory-op path.
-        def f(x):
-            return x.to(device="cuda:0", dtype=torch.bfloat16)
+        cur = self.cur_cuda
 
-        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device="cuda:0"))
+        def f(x):
+            return x.to(device=cur, dtype=torch.bfloat16)
+
+        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device=cur))
         self.assertEqual(len(_current_device_nodes(gm)), 1)
         self.assertEqual(_indexed_cuda_device_nodes(gm), [])
 
@@ -347,7 +359,7 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
         def f(x):
             return torch.zeros(4, x.shape[1], device="cuda", dtype=x.dtype)
 
-        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device="cuda:0"))
+        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device=self.cur_cuda))
         self.assertEqual(len(_current_device_nodes(gm)), 1)
 
     @unittest.skipIf(not torch.cuda.is_available(), "requires CUDA")
@@ -357,7 +369,7 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
         def f(x):
             return torch.zeros(4, x.shape[1], device="cpu")
 
-        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device="cuda:0"))
+        gm = make_fx(f, tracing_mode="fake")(torch.randn(2, 8, device=self.cur_cuda))
         self.assertEqual(_current_device_nodes(gm), [])
         cpu_ops = [
             n
@@ -425,8 +437,10 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
         # Unlike provenance-following, matching the current accelerator needs no input
         # on that device: a cuda factory in a cpu-input graph is now rewritten, not
         # rejected.
+        cur = self.cur_cuda
+
         def f(x):
-            return torch.zeros(x.shape[0], device="cuda:0")
+            return torch.zeros(x.shape[0], device=cur)
 
         gm = make_fx(f, tracing_mode="fake")(torch.randn(2, device="cpu"))
         self.assertEqual(len(_current_device_nodes(gm)), 1)
