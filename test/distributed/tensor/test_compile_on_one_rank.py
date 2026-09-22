@@ -281,6 +281,21 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
     accelerator, is refused (it could not run SPMD).
     """
 
+    def setUp(self):
+        super().setUp()
+        # Tests in this class treat cuda:0 as the current accelerator. When this
+        # file is launched under torchrun / MultiProc, DTensorTestBase.with_comms
+        # earlier in the module leaves the current device at the process rank.
+        self._prev_device = None
+        if torch.cuda.is_available():
+            self._prev_device = torch.cuda.current_device()
+            torch.cuda.set_device(0)
+
+    def tearDown(self):
+        if self._prev_device is not None:
+            torch.cuda.set_device(self._prev_device)
+        super().tearDown()
+
     @unittest.skipIf(not torch.cuda.is_available(), "requires CUDA")
     @compiler_config.patch(compile_on_one_rank=True)
     def test_factory_device_replaced_with_current_device(self):
