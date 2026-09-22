@@ -31,6 +31,7 @@ from torch.testing._internal.common_utils import (
     IS_LINUX,
     MI200_ARCH,
     run_tests,
+    skipIfRocmVersionAtLeast,
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
@@ -483,6 +484,9 @@ class TestFullyShardPerParamMeshOverlap(FSDPTest):
             dist.barrier()
             _pg_mod.foreach_reduce = orig
 
+    # ROCm 10.1 removes high priority queue, which reduces the total number of queues
+    # from 8 (4 high + 4 normal) to 4 (4 normal), causing some streams can't overlap
+    @skipIfRocmVersionAtLeast((10, 1))
     # Hangs on MI200: RCCL deadlocks when three communicators make
     # progress concurrently (https://github.com/ROCm/rccl/issues/2191).
     @skip_if_rocm_arch_multiprocess(MI200_ARCH)
@@ -494,6 +498,9 @@ class TestFullyShardPerParamMeshOverlap(FSDPTest):
     def test_fully_shard_per_param_mesh_training_overlap(self):
         self._test_per_param_mesh_overlap(simulate_no_grad_input=False)
 
+    # ROCm 10.1 removes high priority queue, which reduces the total number of queues
+    # from 8 (4 high + 4 normal) to 4 (4 normal), causing some streams can't overlap
+    @skipIfRocmVersionAtLeast((10, 1))
     # Hangs on MI200: RCCL deadlocks when three communicators make
     # progress concurrently (https://github.com/ROCm/rccl/issues/2191).
     @skip_if_rocm_arch_multiprocess(MI200_ARCH)
