@@ -6328,6 +6328,7 @@ class TestMemPool(TestCase):
         finally:
             self._teardown_mempool_limited_memory_test()
 
+    @unittest.skipIf(IS_LINUX, "https://github.com/pytorch/pytorch/issues/180325")
     @serialTest()
     def test_mempool_no_split(self):
         torch.cuda.empty_cache()
@@ -6471,6 +6472,7 @@ class TestMemPool(TestCase):
             s = p.snapshot()
             self.assertEqual(len(s), 1, "Expected to have a single segment")
 
+    @unittest.skipIf(IS_LINUX, "https://github.com/pytorch/pytorch/issues/180367")
     @serialTest()
     def test_nested_mempool(self):
         torch.cuda.empty_cache()

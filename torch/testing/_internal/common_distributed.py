@@ -529,15 +529,25 @@ def skip_if_rocm_arch_multiprocess(arch: tuple[str, ...]):
     return decorator
 
 
+def _rocm_version_tuple():
+    """ROCm release version as an int tuple.
+
+    torch.version.hip is the HIP runtime version, which tracks the ROCm release
+    version on shipped ROCm but not on preview builds, so it is only a fallback
+    for builds whose torch/version.py never recorded torch.version.rocm.
+    """
+    rocm_version = str(getattr(torch.version, "rocm", None) or torch.version.hip)
+    rocm_version = rocm_version.split("-", maxsplit=1)[0]  # ignore git sha
+    return tuple(int(x) for x in rocm_version.split("."))
+
+
 def skip_if_rocm_ver_lessthan_multiprocess(version=None):
     """Skips a test for ROCm based on ROCm ver - multiprocess UTs"""
 
     def decorator(func):
         reason = None
         if TEST_WITH_ROCM:
-            rocm_version = str(torch.version.hip)
-            rocm_version = rocm_version.split("-", maxsplit=1)[0]  # ignore git sha
-            rocm_version_tuple = tuple(int(x) for x in rocm_version.split("."))
+            rocm_version_tuple = _rocm_version_tuple()
             if (
                 rocm_version_tuple is None
                 or version is None
@@ -548,6 +558,22 @@ def skip_if_rocm_ver_lessthan_multiprocess(version=None):
         return unittest.skipIf(reason is not None, reason)(func)
 
     return decorator
+
+
+def skip_if_rocm_ver_inrange_multiprocess(first_bad, first_good, reason):
+    """Skip multiprocess UTs on ROCm in [first_bad, first_good)."""
+    skip = False
+    message = ""
+    if TEST_WITH_ROCM:
+        rocm_version_tuple = _rocm_version_tuple()
+        if tuple(first_bad) <= rocm_version_tuple < tuple(first_good):
+            window = (
+                f"ROCm >= {'.'.join(map(str, first_bad))}, "
+                f"< {'.'.join(map(str, first_good))}"
+            )
+            skip = True
+            message = f"{reason} ({window})"
+    return unittest.skipIf(skip, message)
 
 
 def skip_if_win32():

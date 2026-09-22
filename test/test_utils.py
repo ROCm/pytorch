@@ -33,6 +33,7 @@ from torch.testing._internal.common_utils import (  # type: ignore[attr-defined]
     IS_SANDCASTLE,
     IS_WINDOWS,
     load_tests,
+    skipIfRocmVersionInRange,
 )
 from torch.utils._device import set_device
 from torch.utils._pytree import tree_all_only, tree_any
@@ -780,6 +781,11 @@ class TestAssert(TestCase):
 
 @unittest.skipIf(IS_SANDCASTLE, "cpp_extension is OSS only")
 class TestStandaloneCPPJIT(TestCase):
+    @skipIfRocmVersionInRange(
+        [7, 14],
+        [10, 1],
+        "cpp_extension standalone link missing ROCm libs",
+    )
     def test_load_standalone(self):
         build_dir = tempfile.mkdtemp()
         try:

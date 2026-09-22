@@ -2147,6 +2147,45 @@ def skipIfRocmVersionLessThan(version=None):
         return wrap_fn
     return dec_fn
 
+def lazy_skip_if(condition_fn, reason):
+    """Skip a test (function or class) when ``condition_fn()`` is true.
+
+    For function targets the condition is evaluated each time the test
+    runs, matching the historical PyTorch convention of checking skip
+    flags inside a wrapper. For class targets the condition is evaluated
+    once at class-decoration time and the standard ``__unittest_skip__``
+    attributes are set, since unittest's TestLoader makes class-level
+    skip decisions before instantiation.
+
+    Prefer this helper over hand-rolled ``@wraps + raise SkipTest``
+    wrappers, which silently drop classes from discovery when applied at
+    class scope.
+    """
+
+    def decorator(fn):
+        if isinstance(fn, type):
+            if condition_fn():
+                fn.__unittest_skip__ = True  # type: ignore[attr-defined]
+                fn.__unittest_skip_why__ = reason  # type: ignore[attr-defined]
+            return fn
+
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if condition_fn():
+                raise unittest.SkipTest(reason)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+# Skips a test on ROCm when the version is in [first_bad, first_good), for a
+# regression introduced in one release and fixed in a later one. The window
+# lives only here, so the skip reason cannot drift from the version check.
+def skipIfRocmVersionInRange(first_bad, first_good, reason):
+    def _should_skip():
+        return TEST_WITH_ROCM and tuple(first_bad) <= getRocmVersion() < tuple(first_good)
+    window = f"ROCm >= {'.'.join(map(str, first_bad))}, < {'.'.join(map(str, first_good))}"
+    return lazy_skip_if(_should_skip, f"{reason} ({window})")
+
 def skipIfNotMiopenSuggestNHWC(fn):
     @wraps(fn)
     def wrapper(*args, **kwargs):
