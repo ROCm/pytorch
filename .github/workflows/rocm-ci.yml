@@ -58,6 +58,20 @@ jobs:
         --shm-size=32g
     steps:
       - name: Checkout PyTorch
+        id: checkout
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          show-progress: false
+          submodules: recursive
+
+      - name: Retry checkout PyTorch
+        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        timeout-minutes: 15
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -88,7 +102,7 @@ jobs:
         with:
           name: rocm-gfx942-build-${{ github.run_attempt }}
           path: artifacts.tar
-          compression-level: 0
+          compression-level: 1
           if-no-files-found: error
           include-hidden-files: true
           retention-days: 14
@@ -190,6 +204,20 @@ jobs:
       USE_ARC: "1"
     steps:
       - name: Checkout PyTorch
+        id: checkout
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          show-progress: false
+          submodules: recursive
+
+      - name: Retry checkout PyTorch
+        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        timeout-minutes: 15
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -199,12 +227,24 @@ jobs:
           submodules: recursive
 
       - name: Download build artifact
+        id: download
+        continue-on-error: true
+        timeout-minutes: 15
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ needs.build.outputs.artifact-name }}
+          path: .
+
+      - name: Retry download build artifact
+        if: ${{ !cancelled() && steps.download.outcome == 'failure' }}
+        timeout-minutes: 15
         uses: actions/download-artifact@v4
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: .
 
       - name: Extract build artifact
+        timeout-minutes: 5
         run: |
           tar -xf artifacts.tar
           rm artifacts.tar
@@ -233,6 +273,7 @@ jobs:
           fi
 
       - name: Install PyTorch wheel
+        timeout-minutes: 5
         run: python -m pip install dist/*.whl
 
       - name: Install test tools
