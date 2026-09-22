@@ -329,9 +329,9 @@ class TestCollectivesWithBaseClass(MultiThreadedTestCase):
                 device_sleep(device_type, delay_cycles)
             inp = torch.full((8,), float(self.rank + 1), device=device_type)
             all_gather_out = torch.empty((8 * self.world_size,), device=device_type)
-            dist.all_gather_single(all_gather_out, inp)
+            dist.all_gather_into_tensor(all_gather_out, inp)
             reduce_scatter_out = torch.empty((8,), device=device_type)
-            dist.reduce_scatter_single(reduce_scatter_out, all_gather_out)
+            dist.reduce_scatter_tensor(reduce_scatter_out, all_gather_out)
         device_module.current_stream().wait_stream(side_stream)
 
         expected_all_gather = torch.cat(
