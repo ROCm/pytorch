@@ -31,6 +31,7 @@ from torch.testing._internal.common_utils import (
     IS_LINUX,
     MI200_ARCH,
     run_tests,
+    TEST_HPU,
     skipIfRocm,
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
