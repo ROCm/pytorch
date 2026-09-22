@@ -31,11 +31,8 @@ from torch.testing._internal.common_utils import (
     IS_LINUX,
     MI200_ARCH,
     run_tests,
-<<<<<<< HEAD
     TEST_HPU,
-=======
     skipIfRocmVersionAtLeast,
->>>>>>> 151661a6992 ([release/2.14] Skip FSDP overlap tests (#3671))
 )
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     ModelArgs,
