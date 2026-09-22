@@ -2771,6 +2771,26 @@ torch.cuda.synchronize()
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
+    @unittest.skipIf(not TEST_MULTIGPU, "only one GPU detected")
+    def test_graph_destruction_preserves_current_device(self):
+        # A graph captured on another device is collected at whatever point its owner is
+        # released, so a destructor that leaves the capture device current would retarget
+        # unrelated later work in the process. On ROCm the destructor has to make the
+        # capture device current to synchronize it, which is where this can leak.
+        prev_device = torch.cuda.current_device()
+        with torch.cuda.device((prev_device + 1) % torch.cuda.device_count()):
+            a = torch.full((8,), 1, device="cuda")
+            g = torch.cuda.CUDAGraph()
+            with torch.cuda.graph(g):
+                a += 1
+
+        del g, a
+        gc.collect()
+        self.assertEqual(torch.cuda.current_device(), prev_device)
+
+    @unittest.skipIf(
+        not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
+    )
     @unittest.skipIf(
         not torch.cuda.get_arch_list(),
         "torch was built without CUDA kernels (GPU sections stripped)",
