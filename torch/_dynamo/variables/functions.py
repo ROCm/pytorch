@@ -2683,6 +2683,7 @@ class CollectiveFunctionRewriteVariable(UserFunctionVariable):
 
         if self.fn in (
             dist.all_reduce,
+            dist.reduce_scatter_single,
             dist.reduce_scatter_tensor,
             # pyrefly: ignore [deprecated]
             dist._reduce_scatter_base,

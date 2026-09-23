@@ -500,6 +500,8 @@ coverage_ignore_functions = [
     "recv",
     "reduce",
     "reduce_scatter",
+    # aliases of all_gather_single / reduce_scatter_single
+    "all_gather_into_tensor",
     "reduce_scatter_tensor",
     "scatter",
     "scatter_object_list",
