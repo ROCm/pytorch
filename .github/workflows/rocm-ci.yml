@@ -57,6 +57,12 @@ jobs:
         --memory-swap=192g
         --shm-size=32g
     steps:
+      - name: Configure Git transfers
+        run: |
+          git config --global http.lowSpeedLimit 1024
+          git config --global http.lowSpeedTime 60
+          git config --global submodule.fetchJobs 4
+
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
@@ -68,6 +74,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           show-progress: false
           submodules: recursive
+
+      - name: Discard interrupted checkout
+        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        timeout-minutes: 2
+        run: |
+          # A timed-out submodule fetch can leave locks that checkout's clean does not remove.
+          rm -rf -- .git
 
       - name: Retry checkout PyTorch
         if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
@@ -203,6 +216,12 @@ jobs:
       TEST_CONFIG: ${{ matrix.config }}
       USE_ARC: "1"
     steps:
+      - name: Configure Git transfers
+        run: |
+          git config --global http.lowSpeedLimit 1024
+          git config --global http.lowSpeedTime 60
+          git config --global submodule.fetchJobs 4
+
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
@@ -214,6 +233,13 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           show-progress: false
           submodules: recursive
+
+      - name: Discard interrupted checkout
+        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        timeout-minutes: 2
+        run: |
+          # A timed-out submodule fetch can leave locks that checkout's clean does not remove.
+          rm -rf -- .git
 
       - name: Retry checkout PyTorch
         if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
