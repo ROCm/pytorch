@@ -9,6 +9,7 @@ import multiprocessing
 import operator
 import os
 import queue
+import signal
 import subprocess
 import sys
 import tempfile
@@ -887,6 +888,10 @@ else:
 # subprocesses to join.
 
 
+def _faulthandler_dump_path(pid: int) -> str:
+    return os.path.join(tempfile.gettempdir(), f"pytorch_gil_traceback_{pid}.txt")
+
+
 class MultiProcessTestCase(TestCase):
     MAIN_PROCESS_RANK = -1
     # This exit code is used to indicate that the test code had an error and
@@ -934,6 +939,9 @@ class MultiProcessTestCase(TestCase):
         if methodName != "runTest":
             method_name = methodName
         super().__init__(method_name)
+        # Held open for the lifetime of the subprocess so faulthandler's
+        # registered SIGUSR1 handler always has a valid fd to write to.
+        self._gil_traceback_file: Any = None
         try:
             fn = getattr(self, method_name)
             setattr(self, method_name, self.join_or_run(fn))
@@ -1064,6 +1072,19 @@ class MultiProcessTestCase(TestCase):
             # Register signal handler to dump stack traces on FATALs.
             # Windows and MacOS do not support the signal handlers.
             torch._C._set_print_stack_traces_on_fatal_signal(True)
+            # The event listener above can only answer GET_TRACEBACK once it is
+            # scheduled, which never happens if this process is stuck holding
+            # the GIL inside a native call. faulthandler's handler runs in C and
+            # writes straight to the fd, so SIGUSR1 still yields a traceback.
+            try:
+                self._gil_traceback_file = open(
+                    _faulthandler_dump_path(os.getpid()), "w"
+                )
+                faulthandler.register(
+                    signal.SIGUSR1, file=self._gil_traceback_file, all_threads=True
+                )
+            except (OSError, ValueError):
+                logger.exception("Could not register SIGUSR1 traceback handler")
         # Show full C++ stacktraces when a Python error originating from C++ is raised.
         os.environ["TORCH_SHOW_CPP_STACKTRACES"] = "1"
         common_utils.set_rng_seed()
@@ -1108,6 +1129,97 @@ class MultiProcessTestCase(TestCase):
             except (AssertionError, ValueError):
                 pass
 
+    def _dump_gil_independent_traceback(self, rank: int, pid: int) -> None:
+        """
+        Get a Python traceback out of a rank that did not answer GET_TRACEBACK.
+        faulthandler's SIGUSR1 handler runs in C without taking the GIL, so it
+        still reports which Python frame a wedged rank is parked in even when
+        the event listener thread can never be scheduled to reply on the pipe.
+        """
+        path = _faulthandler_dump_path(pid)
+        try:
+            os.kill(pid, signal.SIGUSR1)
+        except OSError:
+            logger.exception("Could not signal process %s for a traceback", rank)
+            return
+
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            if os.path.exists(path) and os.path.getsize(path) > 0:
+                break
+            time.sleep(0.1)
+
+        try:
+            with open(path) as f:
+                dump = f.read()
+        except OSError:
+            dump = ""
+
+        if dump:
+            logger.error("Process %s GIL-independent traceback:\n\n%s", rank, dump)
+        else:
+            logger.error("Process %s did not respond to SIGUSR1 either", rank)
+
+    def _dump_native_stack(self, pid: int) -> None:
+        """
+        Best-effort native (C/C++) stack dump for a rank that is completely
+        unresponsive at the Python level (e.g. stuck holding the GIL inside a
+        native call that never yields it back, so the in-process
+        GET_TRACEBACK event listener thread never gets scheduled to respond).
+
+        Runs every dumper that is present rather than stopping at the first.
+        They fail differently and disagree usefully: py-spy interleaves Python
+        and native frames but stops at the innermost frame of a deep C++ stack,
+        while gdb unwinds the whole stack but knows nothing about Python. A rank
+        only wedges once per run, so there is no second chance to go back and
+        ask the other tool.
+        """
+        import shutil
+        import subprocess
+
+        cmds = []
+        if shutil.which("gdb"):
+            cmds.append(
+                [
+                    "gdb",
+                    "-p",
+                    str(pid),
+                    "-batch",
+                    "-ex",
+                    "thread apply all bt",
+                    "-ex",
+                    "detach",
+                ]
+            )
+        if shutil.which("py-spy"):
+            cmds.append(["py-spy", "dump", "--native", "--pid", str(pid)])
+        if not cmds:
+            logger.error(
+                "Neither gdb nor py-spy is available; cannot get native stack for pid %s",
+                pid,
+            )
+            return
+
+        for cmd in cmds:
+            try:
+                # Generous next to the ~5s a healthy attach takes. The process is
+                # already hung, and losing the dump to a timeout costs a whole run.
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=120
+                )
+                logger.error(
+                    "Native stack dump for pid %s via %s (rc=%s):\n%s\n%s",
+                    pid,
+                    cmd[0],
+                    result.returncode,
+                    result.stdout,
+                    result.stderr,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to get native stack dump for pid %s via %s", pid, cmd[0]
+                )
+
     def _get_timedout_process_traceback(self) -> None:
         pipes = []
         for i, process in enumerate(self.processes):
@@ -1142,6 +1254,8 @@ class MultiProcessTestCase(TestCase):
                     logger.error(
                         "Could not retrieve traceback for timed out process: %s", rank
                     )
+                    self._dump_gil_independent_traceback(rank, self.processes[rank].pid)
+                    self._dump_native_stack(self.processes[rank].pid)
             except ConnectionError:
                 logger.exception(
                     "Encountered error while trying to get traceback for process %s",
