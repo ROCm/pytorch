@@ -138,26 +138,34 @@ def _fetch_jobs_page(jobs_url, params, max_retries=5):
 
     When many parity runs fire at once they hammer the jobs API and GitHub
     responds with 403 (secondary rate limit) or 5xx. Those bodies have no
-    'jobs' key, which previously surfaced as a bare KeyError. Retry with
-    exponential backoff (honouring Retry-After when present) and only give
-    up with a clear error after exhausting retries.
+    'jobs' key, which previously surfaced as a bare KeyError. GitHub also
+    drops connections mid-body under the same load, which raises out of
+    requests rather than returning a status. Retry both with exponential
+    backoff (honouring Retry-After when present) and only give up with a
+    clear error after exhausting retries.
     """
+    last_failure = None
     for attempt in range(max_retries):
-        response = requests.get(jobs_url, headers=authentication_headers, params=params)
-        if response.status_code == 200:
-            response_json = response.json()
-            if "jobs" in response_json:
-                return response_json
+        retry_after = None
+        try:
+            response = requests.get(jobs_url, headers=authentication_headers, params=params)
+            if response.status_code == 200:
+                response_json = response.json()
+                if "jobs" in response_json:
+                    return response_json
+            last_failure = f"HTTP {response.status_code}"
+            retry_after = response.headers.get("Retry-After")
+        except requests.exceptions.RequestException as e:
+            last_failure = type(e).__name__
         if attempt == max_retries - 1:
             break
-        retry_after = response.headers.get("Retry-After")
         delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
-        print(f"  WARNING: jobs API returned HTTP {response.status_code} for {jobs_url} "
+        print(f"  WARNING: jobs API request failed ({last_failure}) for {jobs_url} "
               f"(attempt {attempt + 1}/{max_retries}); retrying in {delay}s")
         time.sleep(delay)
     raise Exception(
         f"jobs API did not return a 'jobs' payload after {max_retries} attempts "
-        f"(last HTTP {response.status_code}) for {jobs_url}"
+        f"(last {last_failure}) for {jobs_url}"
     )
 
 def get_workflow_jobs(wf, all_attempts=False):
