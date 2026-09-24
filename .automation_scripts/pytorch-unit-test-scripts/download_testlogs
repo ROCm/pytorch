@@ -233,6 +233,34 @@ def get_cuda_test_jobs(jobs, cuda_job_prefix):
             return test_kind, test_jobs
     return CUDA_TEST_KINDS[0], []
 
+_CUDA_TEST_JOB_RE = re.compile(
+    r'^(?P<prefix>.*cuda.*?) / (?:' + '|'.join(re.escape(k) for k in CUDA_TEST_KINDS) +
+    r') \((?:default|distributed), ')
+
+def detect_cuda_job_prefix(jobs, configured_prefix):
+    """Find the CUDA test-job prefix actually present in a run, or None.
+
+    Upstream renames this job family whenever it bumps CUDA, python or the
+    compiler (13.0 -> 13.2, py3.10 -> py3.11). The old name then matches
+    nothing and the CUDA half of every report silently empties out until the
+    config is hand-edited. Pick the candidate most similar to the configured
+    prefix so the rename is tracked automatically.
+    """
+    candidates = {}
+    for job in jobs:
+        match = _CUDA_TEST_JOB_RE.match(job.get('name', ''))
+        if match:
+            prefix = match.group('prefix')
+            candidates[prefix] = candidates.get(prefix, 0) + 1
+    if not candidates or configured_prefix in candidates:
+        return None
+    import difflib
+    return max(
+        candidates,
+        key=lambda p: (difflib.SequenceMatcher(None, p, configured_prefix).ratio(),
+                       candidates[p]),
+    )
+
 def get_cuda_inductor_test_jobs(jobs):
     """Return the CUDA inductor test kind and jobs for either main or PR CI layouts."""
     inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
@@ -578,6 +606,28 @@ def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status
             cuda_test_kind = kind
             print(f"Found CUDA test jobs in trunk run {run['id']}")
             break
+
+    if not cuda_test_jobs:
+        # Nothing matched the configured name, so it is probably stale. Retry
+        # each run against the prefix actually present before giving up.
+        for run in trunk_runs:
+            jobs = get_workflow_jobs(run)
+            detected = detect_cuda_job_prefix(jobs, cuda_job_prefix)
+            if not detected:
+                continue
+            kind, test_jobs = get_cuda_test_jobs(jobs, detected)
+            if test_jobs:
+                print(f"NOTE: configured CUDA job prefix '{cuda_job_prefix}' not found; "
+                      f"using detected prefix '{detected}'")
+                # Propagate so log and artifact matching use the real name too.
+                CUDA_JOB_PREFIXES["default"] = detected
+                cuda_job_prefix = detected
+                trunk_wf = run
+                all_cuda_jobs = jobs
+                cuda_test_jobs = test_jobs
+                cuda_test_kind = kind
+                print(f"Found CUDA test jobs in trunk run {run['id']}")
+                break
 
     if not cuda_test_jobs and trunk_runs:
         # CUDA jobs may live in a run the jobs API does not surface (e.g. a

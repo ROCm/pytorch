@@ -16,7 +16,7 @@
     "inductor": [{ "workflow": "inductor", "job_prefix": "unit-test / inductor-test" }],
     "test_kinds": ["test-osdc", "test"],
     "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
-    "checkrun_regex": "(linux-jammy-cuda13[.]2-py3[.]11-gcc11 / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
+    "checkrun_regex": "(linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+ / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test / (test-osdc|test) [(]inductor,)"
   },
   "rocm": {
     "mi350": {
