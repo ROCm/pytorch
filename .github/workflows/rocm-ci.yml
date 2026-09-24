@@ -68,6 +68,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 15
         uses: actions/checkout@v4
+        env:
+          PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -76,14 +78,67 @@ jobs:
           submodules: recursive
 
       - name: Discard interrupted checkout
+        id: checkout_cleanup
         if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
         timeout-minutes: 2
         run: |
-          # A timed-out submodule fetch can leave locks that checkout's clean does not remove.
+          # Cancelling docker exec can leave checkout and Git running inside the container.
+          python3 - <<'PY'
+          import os
+          import signal
+          import time
+          from pathlib import Path
+
+          workspace = os.fsencode(f"GITHUB_WORKSPACE={os.environ['GITHUB_WORKSPACE']}")
+
+          def checkout_processes():
+              found = []
+              for entry in Path("/proc").iterdir():
+                  if not entry.name.isdigit() or int(entry.name) == os.getpid():
+                      continue
+                  try:
+                      environment = (entry / "environ").read_bytes().split(b"\0")
+                      fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
+                      if (
+                          workspace in environment
+                          and b"PYTORCH_CHECKOUT_ATTEMPT=initial" in environment
+                          and fields[0] != "Z"
+                      ):
+                          found.append((int(entry.name), fields[19]))
+                  except (FileNotFoundError, PermissionError, ProcessLookupError):
+                      continue
+              return found
+
+          def send(processes, signum):
+              for pid, start in processes:
+                  try:
+                      fields = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
+                      if fields[19] == start:
+                          os.kill(pid, signum)
+                  except (FileNotFoundError, ProcessLookupError):
+                      pass
+
+          deadline = time.monotonic() + 3
+          while time.monotonic() < deadline:
+              processes = checkout_processes()
+              if not processes:
+                  break
+              send(processes, signal.SIGTERM)
+              send(processes, signal.SIGCONT)
+              time.sleep(0.1)
+          send(checkout_processes(), signal.SIGKILL)
+          deadline = time.monotonic() + 3
+          while checkout_processes() and time.monotonic() < deadline:
+              time.sleep(0.05)
+          if checkout_processes():
+              raise SystemExit("Interrupted checkout processes survived cleanup")
+          PY
           rm -rf -- .git
 
       - name: Retry checkout PyTorch
-        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        if: >-
+          ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
+              steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 15
         uses: actions/checkout@v4
         with:
@@ -227,6 +282,8 @@ jobs:
         continue-on-error: true
         timeout-minutes: 15
         uses: actions/checkout@v4
+        env:
+          PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -235,14 +292,67 @@ jobs:
           submodules: recursive
 
       - name: Discard interrupted checkout
+        id: checkout_cleanup
         if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
         timeout-minutes: 2
         run: |
-          # A timed-out submodule fetch can leave locks that checkout's clean does not remove.
+          # Cancelling docker exec can leave checkout and Git running inside the container.
+          python3 - <<'PY'
+          import os
+          import signal
+          import time
+          from pathlib import Path
+
+          workspace = os.fsencode(f"GITHUB_WORKSPACE={os.environ['GITHUB_WORKSPACE']}")
+
+          def checkout_processes():
+              found = []
+              for entry in Path("/proc").iterdir():
+                  if not entry.name.isdigit() or int(entry.name) == os.getpid():
+                      continue
+                  try:
+                      environment = (entry / "environ").read_bytes().split(b"\0")
+                      fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
+                      if (
+                          workspace in environment
+                          and b"PYTORCH_CHECKOUT_ATTEMPT=initial" in environment
+                          and fields[0] != "Z"
+                      ):
+                          found.append((int(entry.name), fields[19]))
+                  except (FileNotFoundError, PermissionError, ProcessLookupError):
+                      continue
+              return found
+
+          def send(processes, signum):
+              for pid, start in processes:
+                  try:
+                      fields = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
+                      if fields[19] == start:
+                          os.kill(pid, signum)
+                  except (FileNotFoundError, ProcessLookupError):
+                      pass
+
+          deadline = time.monotonic() + 3
+          while time.monotonic() < deadline:
+              processes = checkout_processes()
+              if not processes:
+                  break
+              send(processes, signal.SIGTERM)
+              send(processes, signal.SIGCONT)
+              time.sleep(0.1)
+          send(checkout_processes(), signal.SIGKILL)
+          deadline = time.monotonic() + 3
+          while checkout_processes() and time.monotonic() < deadline:
+              time.sleep(0.05)
+          if checkout_processes():
+              raise SystemExit("Interrupted checkout processes survived cleanup")
+          PY
           rm -rf -- .git
 
       - name: Retry checkout PyTorch
-        if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
+        if: >-
+          ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
+              steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 15
         uses: actions/checkout@v4
         with:
