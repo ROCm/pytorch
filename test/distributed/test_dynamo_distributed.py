@@ -52,7 +52,17 @@ from torch.testing._internal.common_distributed import (
     requires_accelerator_dist_backend,
     skip_if_lt_x_gpu,
 )
+<<<<<<< HEAD
 from torch.testing._internal.common_utils import skipIfTorchInductor, skipIfXpu
+=======
+from torch.testing._internal.common_utils import (
+    MI350_ARCH,
+    skipIfRocm,
+    skipIfRocmArch,
+    skipIfTorchInductor,
+    skipIfXpu,
+)
+>>>>>>> 5e01501876d ([release/2.14] Skip test_ddp_optimizer_cudagraph on ROCm (#3708))
 from torch.testing._internal.inductor_utils import HAS_GPU
 from torch.testing._internal.triton_utils import requires_cuda_and_triton
 
@@ -1011,6 +1021,7 @@ class TestMultiProc(DynamoDistributedMultiProcTestCase):
             outputs = fsdp_m(inputs)
             self.assertTrue(same(correct_outputs, outputs))
 
+    @skipIfRocm
     @skip_if_lt_x_gpu(2)
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @requires_cuda_and_triton
