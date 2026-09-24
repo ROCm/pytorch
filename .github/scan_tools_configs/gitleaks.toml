@@ -67,3 +67,30 @@ regexes = [
   '''[A-Z][A-Z0-9_]*SHA512\s*[=:]''',
   '''[A-Z][A-Z0-9_]*MD5\s*[=:]''',
 ]
+
+# ---------------------------------------------------------------------------
+# `generic-api-key` fires on any high-entropy value sitting near a word like
+# "key" or "token". Across this tree those words are almost always part of a
+# tensor or kernel parameter name, so the entries below anchor on the shape of
+# the value rather than on file paths -- a real credential in the same files is
+# still reported.
+# ---------------------------------------------------------------------------
+
+[[allowlists]]
+description = "Python keyword arguments"
+# `src_key_padding_mask=src_key_padding_mask` and
+# `lower_symint=_lower_symint_divisor`: a call site forwarding a name, where
+# the `key` in the parameter name is what draws the rule.
+regexes = [
+  '''^[a-z_][a-z0-9_]*=[a-z_][a-z0-9_]*$''',
+]
+
+[[allowlists]]
+description = "snake_case scheme and variant identifiers"
+# `classifier_key="nvgemm_efc_partition_v1"` names a partitioning scheme.
+# Each underscore-separated segment is a short word, and at least one
+# separator is required, so an unbroken lowercase token (hex digests, a
+# lowercased API key) does not qualify.
+regexes = [
+  '''^[a-z][a-z0-9]{0,11}(?:_[a-z0-9]{1,12}){1,5}$''',
+]
