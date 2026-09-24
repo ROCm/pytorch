@@ -17516,10 +17516,13 @@ op_db: list[OpInfo] = [
         assert_autodiffed=False,
         supports_gradgrad=True,
         supports_out=False,
-        sample_kwargs=lambda device, dtype, input: ({'threshold': float.fromhex('0x1.3ap-3'),
-                                                    'value': -9},
-                                                    {'threshold': float.fromhex('0x1.3ap-3'),
-                                                    'value': -9}),
+        # NumPy >= 2.5 rejects -9 in np.where for uint8. Use its old wrapped
+        # value 247 to preserve coverage and stay outside make_tensor's [0, 9].
+        sample_kwargs=lambda device, dtype, input: (
+            {'threshold': float.fromhex('0x1.3ap-3'),
+             'value': 247 if dtype == torch.uint8 else -9},
+            {'threshold': float.fromhex('0x1.3ap-3'),
+             'value': 247 if dtype == torch.uint8 else -9}),
         # TODO(whc) should not need sample_inputs_func, but without it
         # kwargs aren't being hooked up properly
         sample_inputs_func=sample_inputs_threshold,
