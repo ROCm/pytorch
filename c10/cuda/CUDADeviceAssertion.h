@@ -91,8 +91,41 @@ C10_CLANG_DIAGNOSTIC_POP()
       return;                                                            \
     }                                                                    \
   } while (false)
+
+// Variant of CUDA_KERNEL_ASSERT2 for use inside non-void-returning device
+// functions. On assertion failure, records the failure into the DSA registry
+// and returns `ret_expr` from the enclosing function. As with
+// CUDA_KERNEL_ASSERT2, the kernel as a whole continues running; the host
+// detects the failure via UVM and any data produced after the failure should
+// be treated as garbage.
+//
+// NOTE: This assumes that `assertions_data` and `assertion_caller_id` are
+//       accessible at the call site (either as kernel parameters or via
+//       implicit member access in a member function).
+#define CUDA_KERNEL_ASSERT2_RET(condition, ret_expr)                     \
+  do {                                                                   \
+    if (C10_UNLIKELY(!(condition))) {                                    \
+      c10::cuda::dsa_add_new_assertion_failure(                          \
+          assertions_data,                                               \
+          C10_STRINGIZE(condition),                                      \
+          __FILE__,                                                      \
+          __FUNCTION__,                                                  \
+          __LINE__,                                                      \
+          assertion_caller_id,                                           \
+          blockIdx,                                                      \
+          threadIdx);                                                    \
+      return (ret_expr);                                                 \
+    }                                                                    \
+  } while (false)
 #else
 #define CUDA_KERNEL_ASSERT2(condition) assert(condition)
+#define CUDA_KERNEL_ASSERT2_RET(condition, ret_expr)                     \
+  do {                                                                   \
+    if (C10_UNLIKELY(!(condition))) {                                    \
+      assert(condition);                                                 \
+      return (ret_expr);                                                 \
+    }                                                                    \
+  } while (false)
 #endif
 
 } // namespace c10::cuda
