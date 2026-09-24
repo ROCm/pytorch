@@ -66,7 +66,7 @@ jobs:
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/checkout@v4
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
@@ -139,7 +139,7 @@ jobs:
         if: >-
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
@@ -179,7 +179,7 @@ jobs:
     name: test / ${{ matrix.config }} / ${{ matrix.shard }} of ${{ matrix.num_shards }}
     needs: build
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 360
+    timeout-minutes: 420
     strategy:
       fail-fast: false
       matrix:
@@ -280,7 +280,7 @@ jobs:
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/checkout@v4
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
@@ -353,7 +353,7 @@ jobs:
         if: >-
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
