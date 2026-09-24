@@ -54,6 +54,7 @@ from torch.testing._internal.common_distributed import (
 )
 from torch.testing._internal.common_utils import (
     MI350_ARCH,
+    skipIfRocm,
     skipIfRocmArch,
     skipIfTorchInductor,
     skipIfXpu,
@@ -1012,6 +1013,7 @@ class TestMultiProc(DynamoDistributedMultiProcTestCase):
             outputs = fsdp_m(inputs)
             self.assertTrue(same(correct_outputs, outputs))
 
+    @skipIfRocm
     @skip_if_lt_x_gpu(2)
     @unittest.skipIf(not HAS_GPU, "Inductor+gpu needs triton and recent GPU arch")
     @requires_cuda_and_triton
