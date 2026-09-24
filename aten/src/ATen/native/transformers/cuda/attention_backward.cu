@@ -580,7 +580,6 @@ _efficient_attention_backward(
     at::Tensor dv_t = grad_v.permute({0,2,1,3});
     at::Tensor dout_t = grad_out.permute({0,2,1,3});
     at::Tensor softmax_lse = logsumexp.view({B * nH, max_seqlen_q});
-    hipError_t err;
     using sdp::aotriton_adapter::mk_aotensor;
     using sdp::aotriton_adapter::mk_aoscalartensor;
     using sdp::aotriton_adapter::cast_dtype;
@@ -631,10 +630,11 @@ _efficient_attention_backward(
     }
     aotriton::v3::flash::attn_options opts;
     opts.deterministic = deterministic;
-    err = aotriton::v3::flash::attn_bwd(params,
-                                        aotriton::v3::flash::attn_bwd_params::kVersion,
-                                        stream,
-                                        &opts);
+    AT_CUDA_CHECK(aotriton::v3::flash::attn_bwd(
+        params,
+        aotriton::v3::flash::attn_bwd_params::kVersion,
+        stream,
+        &opts));
 #else  // DISABLE_AOTRITON
     TORCH_CHECK(false, "Attempting to use aotriton mem_eff_backward backend in a build that has not built AOTriton");
 #endif
