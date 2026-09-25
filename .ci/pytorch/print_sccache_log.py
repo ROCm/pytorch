@@ -1,3 +1,4 @@
+import re
 import sys
 
 
@@ -15,4 +16,5 @@ for line in lines:
         "test_compilation_error_formatting",
     ]
     if all(keyword not in line for keyword in ignored_keywords):
-        print(line)
+        # Cache backend errors can include signed upload and download URLs.
+        print(re.sub(r"(https?://[^\s?\"'<>]+)\?[^\s\"'<>]+", r"\1?<redacted>", line))
