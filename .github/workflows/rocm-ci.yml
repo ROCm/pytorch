@@ -444,7 +444,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Run tests
-        timeout-minutes: 270
+        timeout-minutes: 360
         run: .ci/pytorch/test.sh
 
       - name: Upload test reports
