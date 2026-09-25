@@ -67,7 +67,7 @@ jobs:
         id: checkout
         continue-on-error: true
         timeout-minutes: 80
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
@@ -140,7 +140,7 @@ jobs:
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 80
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -149,7 +149,7 @@ jobs:
           submodules: recursive
 
       - name: Configure sccache
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.setSecret(process.env.ACTIONS_RUNTIME_TOKEN);
@@ -166,7 +166,7 @@ jobs:
         run: tar -cf artifacts.tar dist/ build/custom_test_artifacts build/lib build/bin .additional_ci_files
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rocm-gfx942-build-${{ github.run_attempt }}
           path: artifacts.tar
@@ -281,7 +281,7 @@ jobs:
         id: checkout
         continue-on-error: true
         timeout-minutes: 80
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
@@ -354,7 +354,7 @@ jobs:
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 80
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -366,15 +366,30 @@ jobs:
         id: download
         continue-on-error: true
         timeout-minutes: 15
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: .
 
+      - name: Validate build artifact
+        id: validate_artifact
+        if: ${{ steps.download.outcome == 'success' }}
+        continue-on-error: true
+        timeout-minutes: 5
+        run: tar -tf artifacts.tar > /dev/null
+
+      - name: Discard invalid build artifact
+        id: artifact_cleanup
+        if: >-
+          ${{ !cancelled() && (steps.download.outcome == 'failure' ||
+              steps.validate_artifact.outcome == 'failure') }}
+        timeout-minutes: 1
+        run: rm -f -- artifacts.tar
+
       - name: Retry download build artifact
-        if: ${{ !cancelled() && steps.download.outcome == 'failure' }}
+        if: ${{ !cancelled() && steps.artifact_cleanup.outcome == 'success' }}
         timeout-minutes: 15
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: .
@@ -435,7 +450,7 @@ jobs:
           PY
 
       - name: Configure sccache
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             core.setSecret(process.env.ACTIONS_RUNTIME_TOKEN);
@@ -449,7 +464,7 @@ jobs:
 
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: rocm-gfx942-reports-${{ github.run_attempt }}-${{ matrix.config }}-${{ matrix.shard }}
           path: test/test-reports/**/*.xml
