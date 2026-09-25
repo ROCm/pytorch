@@ -6,6 +6,7 @@ import contextlib
 import copy
 import ctypes
 import hashlib
+import importlib.util
 import io
 import itertools
 import logging
@@ -145,7 +146,17 @@ _GLOO_AVAILABLE = True
 _UCC_AVAILABLE = True
 _XCCL_AVAILABLE = True
 
-try:
+# find_spec does not import the package. A module-level import of torchcomms
+# would dlopen the native extension whenever the wheel is installed, including
+# CPU doctests that share a venv with install_torchcomms.
+_TORCHCOMM_AVAILABLE = importlib.util.find_spec("torchcomms") is not None
+_torchcomms_syms: tuple[Any, Any, Any] | None = None
+
+
+def _import_torchcomms() -> tuple[Any, Any, Any]:
+    global _torchcomms_syms
+    if _torchcomms_syms is not None:
+        return _torchcomms_syms
     try:
         # pyrefly: ignore [missing-import]
         from torchcomms._comms import _BackendWrapper
@@ -159,9 +170,8 @@ try:
     # pyrefly: ignore [missing-import]
     from torchcomms.hooks import FlightRecorderHook
 
-    _TORCHCOMM_AVAILABLE = True
-except ImportError:
-    _TORCHCOMM_AVAILABLE = False
+    _torchcomms_syms = (_BackendWrapper, new_comm, FlightRecorderHook)
+    return _torchcomms_syms
 
 
 def _use_torchcomms_enabled() -> bool:
@@ -1651,8 +1661,10 @@ def _set_pg_timeout(timeout: timedelta, group: ProcessGroup | None = None) -> No
             backends.add(backend)  # type: ignore[arg-type]
         elif is_gloo_available() and isinstance(backend, ProcessGroupGloo):
             backends.add(backend)  # type: ignore[arg-type]
-        elif _use_torchcomms_enabled() and isinstance(backend, _BackendWrapper):
-            backends.add(backend)  # type: ignore[arg-type]
+        elif _use_torchcomms_enabled():
+            _BackendWrapper, _, _ = _import_torchcomms()
+            if isinstance(backend, _BackendWrapper):
+                backends.add(backend)  # type: ignore[arg-type]
     if len(backends) == 0:
         warnings.warn(
             "Set timeout is now only supported for either nccl or gloo.", stacklevel=2
@@ -2101,6 +2113,7 @@ def _new_process_group_helper(
         backend_prefix_store = PrefixStore(f"{device}/", prefix_store)
 
         if _use_torchcomms_enabled() and backend_str not in [Backend.FAKE]:
+            _BackendWrapper, new_comm, FlightRecorderHook = _import_torchcomms()
             torch_device = torch.device(device)
             logger.warning(
                 "Using TorchComms backend (enabled via %s) for device %s with backend %s",
@@ -2426,7 +2439,8 @@ def destroy_process_group(group: ProcessGroup | None = None):
         # process group is in good state, we aren't dealing with failures.
         _world.group_count = 0
     else:
-        if _TORCHCOMM_AVAILABLE:
+        if _world.comms:
+            _BackendWrapper, _, _ = _import_torchcomms()
             for device_type in pg._device_types:
                 backend = pg._get_backend(device_type)
                 if isinstance(backend, _BackendWrapper):
