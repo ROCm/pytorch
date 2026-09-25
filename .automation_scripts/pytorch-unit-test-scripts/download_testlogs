@@ -160,6 +160,32 @@ def _fetch_jobs_page(jobs_url, params, max_retries=5):
         f"(last HTTP {response.status_code}) for {jobs_url}"
     )
 
+def _fetch_workflow_runs(workflow, params, max_retries=5):
+    """List one workflow's runs, retrying transient failures.
+
+    Same 403/5xx-under-load problem as _fetch_jobs_page, except a bad body
+    here has no 'workflow_runs' key and so reads as "this SHA has no run at
+    all". Retry, then fail loudly rather than return a misleading empty list.
+    """
+    runs_url = f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{workflow}.yml/runs"
+    for attempt in range(max_retries):
+        response = requests.get(runs_url, headers=authentication_headers, params=params)
+        if response.status_code == 200:
+            response_json = response.json()
+            if "workflow_runs" in response_json:
+                return response_json["workflow_runs"]
+        if attempt == max_retries - 1:
+            break
+        retry_after = response.headers.get("Retry-After")
+        delay = int(retry_after) if retry_after and retry_after.isdigit() else 2 ** attempt
+        print(f"  WARNING: workflow-runs API returned HTTP {response.status_code} for {workflow}.yml "
+              f"(attempt {attempt + 1}/{max_retries}); retrying in {delay}s")
+        time.sleep(delay)
+    raise Exception(
+        f"workflow-runs API did not return a 'workflow_runs' payload after {max_retries} "
+        f"attempts (last HTTP {response.status_code}) for {workflow}.yml"
+    )
+
 def get_workflow_jobs(wf, all_attempts=False):
     """Get all jobs for a workflow run.
 
@@ -453,14 +479,7 @@ def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, i
         # Uncomment below for additional debug info
         # print(f"authentication_headers: {authentication_headers}")
         # print(f"params: {params}")
-        # print("https://api.github.com/repos/pytorch/pytorch/actions/workflows/{}.yml/runs".format(workflow))
-        response = requests.get("https://api.github.com/repos/pytorch/pytorch/actions/workflows/{}.yml/runs".format(workflow), headers=authentication_headers, params=params)
-        #print(response.json())
-        workflow_runs = None
-        try:
-            workflow_runs = response.json()['workflow_runs']
-        except:
-            raise Exception(response.text)
+        workflow_runs = _fetch_workflow_runs(workflow, params)
         if not workflow_runs:
             continue
         # Prefer completed runs over in-progress ones. When multiple
@@ -551,11 +570,7 @@ def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status
     params = {'per_page': 10, 'head_sha': sha}
     if not ignore_status and status:
         params['status'] = status
-    resp = requests.get(
-        f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{CUDAWorkflowNames['default']}.yml/runs",
-        headers=authentication_headers, params=params,
-    )
-    trunk_runs = resp.json().get('workflow_runs', [])
+    trunk_runs = _fetch_workflow_runs(CUDAWorkflowNames['default'], params)
     # Prefer the normal push trunk run over scheduled trunk runs. The scheduled
     # trunk.yml runs are the periodic rerun_disabled_tests / mem_leak_check
     # variants: their test jobs share the same names but run in a degenerate
