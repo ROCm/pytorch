@@ -1,7 +1,10 @@
 # mypy: ignore-errors
 
+import collections
 import faulthandler
 import functools
+import glob
+import gzip
 import inspect
 import itertools
 import logging
@@ -9,6 +12,9 @@ import multiprocessing
 import operator
 import os
 import queue
+import re
+import shutil
+import signal
 import subprocess
 import sys
 import tempfile
@@ -25,6 +31,7 @@ from enum import Enum
 from functools import partial, reduce, wraps
 from io import StringIO
 from typing import Any, NamedTuple
+from unittest import mock
 
 import torch
 import torch._dynamo.test_case
@@ -715,6 +722,12 @@ else:
 TIMEOUT_OVERRIDE = {
     "test_ddp_uneven_inputs": 400,
     "test_DistributedDataParallel": 500,
+    # These pass in ~20s but wedge on ROCm after test_distributed_spawn. A short
+    # timeout leaves room for the hang experiments within pytest's 900s limit.
+    "test_ddp_activation_checkpointing": 120,
+    "test_fsdp_activation_checkpointing": 120,
+    "test_fsdp_inductor": 120,
+    "test_compiler_collectives_automatic_dynamic_tensor": 120,
 }
 
 
@@ -887,6 +900,190 @@ else:
 # subprocesses to join.
 
 
+def _faulthandler_dump_path(pid: int) -> str:
+    return os.path.join(tempfile.gettempdir(), f"pytorch_gil_traceback_{pid}.txt")
+
+
+# The helpers below chase a ROCm hang where DDP/FSDP + Inductor tests in
+# test_dynamo_distributed wedge in a 4-byte H2D copy that never retires, but
+# only when the file runs after test_distributed_spawn in the same job. The
+# trigger is state that outlives the spawn processes, so they record machine
+# state (process tree, GPU fd holders, KFD queues, caches, IPC, driver) at class
+# setup and at a hang, then rerun the hung test under controlled changes to
+# isolate which state matters. Everything is tagged [hangdiag] in the log and
+# also written to test-reports/hangdiag, which CI uploads as an artifact.
+_HANGDIAG = "[hangdiag]"
+_HANGDIAG_TRIAL_TIMEOUT = 120
+_hangdiag_seq = itertools.count()
+_hangdiag_last_leftovers: dict[int, tuple[bool, str]] = {}
+
+
+def _hangdiag_dir() -> str:
+    # run_test.py runs test files from test/, whose test-reports/ CI uploads.
+    base = "test-reports" if os.path.exists("run_test.py") else tempfile.gettempdir()
+    path = os.path.abspath(os.path.join(base, "hangdiag"))
+    os.makedirs(path, exist_ok=True)
+    return path
+
+
+def _sh(cmd: str, timeout: float = 60) -> str:
+    try:
+        r = subprocess.run(
+            cmd, shell=True, capture_output=True, text=True, timeout=timeout
+        )
+        out = r.stdout + r.stderr
+    except Exception as e:
+        out = repr(e)
+    return f"$ {cmd}\n{out.rstrip()}\n"
+
+
+def _proc_cmdline(pid: int) -> str:
+    try:
+        with open(f"/proc/{pid}/cmdline", "rb") as f:
+            return f.read().replace(b"\0", b" ").decode(errors="replace").strip()
+    except OSError:
+        return "?"
+
+
+def _scan_processes() -> dict[int, tuple[str, bool]]:
+    """
+    pid -> (relation to this process, whether it has /dev/kfd or /dev/dri open).
+    Relation is self, ancestor, descendant or foreign; foreign processes in a
+    CI container are leftovers of earlier tests.
+    """
+    ppid = {}
+    for stat in glob.glob("/proc/[0-9]*/stat"):
+        try:
+            with open(stat) as f:
+                ppid[int(stat.split("/")[2])] = int(
+                    f.read().rsplit(")", 1)[1].split()[1]
+                )
+        except (OSError, ValueError, IndexError):
+            pass
+
+    def lineage(pid: int) -> list[int]:
+        chain = []
+        while pid in ppid and pid not in chain:
+            chain.append(pid)
+            pid = ppid[pid]
+        return chain
+
+    me = os.getpid()
+    my_ancestors = set(lineage(me)[1:])
+    result = {}
+    for pid in ppid:
+        if pid == me:
+            rel = "self"
+        elif pid in my_ancestors:
+            rel = "ancestor"
+        elif me in lineage(pid):
+            rel = "descendant"
+        else:
+            rel = "foreign"
+        gpu = False
+        try:
+            for fd in os.listdir(f"/proc/{pid}/fd"):
+                target = os.readlink(f"/proc/{pid}/fd/{fd}")
+                if target == "/dev/kfd" or target.startswith("/dev/dri/"):
+                    gpu = True
+                    break
+        except OSError:
+            pass
+        result[pid] = (rel, gpu)
+    return result
+
+
+def _leftover_processes() -> dict[int, tuple[bool, str]]:
+    """Foreign processes that hold the GPU or run python, pid -> (gpu, cmdline)."""
+    leftovers = {}
+    for pid, (rel, gpu) in _scan_processes().items():
+        cmd = _proc_cmdline(pid)
+        if rel == "foreign" and (gpu or "python" in cmd):
+            leftovers[pid] = (gpu, cmd)
+    return leftovers
+
+
+def _snapshot_system_state(
+    tag: str, full: bool = False, pids: tuple[int, ...] = ()
+) -> None:
+    procs = _scan_processes()
+    tmp = tempfile.gettempdir()
+    caches = f"{tmp}/torchinductor_* ~/.triton ~/.cache"
+    holders = "\n".join(
+        f"  {pid} {rel} {_proc_cmdline(pid)[:300]}"
+        for pid, (rel, gpu) in sorted(procs.items())
+        if gpu
+    )
+    parts = [
+        f"{_HANGDIAG} snapshot {tag} pid={os.getpid()} at {time.strftime('%Y-%m-%dT%H:%M:%S')}",
+        f"GPU fd holders:\n{holders}\n",
+        _sh("ps -eww -o pid,ppid,pgid,etimes,stat,wchan:32,rss,args --forest"),
+        _sh("grep -r . /sys/class/kfd/kfd/proc/ 2>&1 | head -3000"),
+        _sh("ls -la --time-style=full-iso /dev/shm; df -h /dev/shm /tmp"),
+        _sh("ipcs -a"),
+        _sh(f"du -sh {caches} 2>&1; ls -la --time-style=full-iso {tmp}"),
+    ]
+    if full:
+        foreign = [pid for pid, (rel, gpu) in procs.items() if rel == "foreign" and gpu]
+        parts += [
+            _sh("amd-smi process 2>&1 | head -1000"),
+            _sh("amd-smi metric 2>&1 | head -4000"),
+            _sh("rocm-smi --showpids --showmeminfo vram --showuse 2>&1"),
+            _sh("free -m; cat /proc/loadavg; ulimit -a"),
+            _sh("dmesg -T 2>&1 | tail -300"),
+            _sh(
+                "for f in hqds mqds rls; do echo == $f; head -c 1000000 /sys/kernel/debug/kfd/$f; done 2>&1"
+            ),
+            _sh(
+                "env | grep -E '^(HIP|HSA|AMD|GPU_|ROC|NCCL|RCCL|TORCH|PYTORCH|TRITON|OMP|LD_|PYTHON|TMPDIR|HOME|XDG)' | sort"
+            ),
+        ]
+        for pid in [*pids, *foreign]:
+            parts.append(
+                _sh(
+                    f"cat /proc/{pid}/status; cat /proc/{pid}/stack; "
+                    f'for t in /proc/{pid}/task/*; do echo "$t $(cat $t/comm) $(cat $t/wchan)"; done'
+                )
+            )
+    text = "\n".join(parts)
+    path = os.path.join(
+        _hangdiag_dir(), f"{os.getpid()}_{next(_hangdiag_seq):03d}_{tag}.txt"
+    )
+    with open(path, "w") as f:
+        f.write(text)
+        # File-level cache listing only goes to the artifact; it is too long for the log.
+        f.write(
+            _sh(
+                f"find {caches} -type f -printf '%TY-%Tm-%Td %TH:%TM:%TS %s %p\\n' 2>/dev/null | sort | tail -20000",
+                timeout=120,
+            )
+        )
+    logger.error("%s", text)
+
+
+def _summarize_hip_log(path: str) -> str:
+    """Last dispatch/queue records of an AMD_LOG_LEVEL=5 log, plus its raw tail."""
+    keep = re.compile(
+        r"Header =|ShaderName|Created SWq|hipMemcpy|LaunchKernel|hipStreamCreate|hipStreamWaitEvent|hipEventRecord|[Ee]rror"
+    )
+    matched: collections.deque[str] = collections.deque(maxlen=150)
+    tail: collections.deque[str] = collections.deque(maxlen=40)
+    n = 0
+    try:
+        with open(path, errors="replace") as f:
+            for line in f:
+                n += 1
+                tail.append(line)
+                if keep.search(line):
+                    matched.append(line)
+    except OSError as e:
+        return f"{path}: {e!r}\n"
+    return (
+        f"{path}: {n} lines\n-- last queue/dispatch records --\n{''.join(matched)}"
+        f"-- raw tail --\n{''.join(tail)}"
+    )
+
+
 class MultiProcessTestCase(TestCase):
     MAIN_PROCESS_RANK = -1
     # This exit code is used to indicate that the test code had an error and
@@ -894,6 +1091,8 @@ class MultiProcessTestCase(TestCase):
     # simulate failures and in those cases, we can't have an exit code of 0,
     # but we still want to ensure we didn't run into any other errors.
     TEST_ERROR_EXIT_CODE = 10
+    # Whether a timed-out test reruns under the _hang_experiments trials.
+    _run_hang_experiments = False
 
     # do not early terminate for distributed tests.
     def _should_stop_test_suite(self) -> bool:
@@ -934,6 +1133,10 @@ class MultiProcessTestCase(TestCase):
         if methodName != "runTest":
             method_name = methodName
         super().__init__(method_name)
+        self._leftovers_at_start: dict[int, tuple[bool, str]] = {}
+        # Held open for the lifetime of the subprocess so faulthandler's
+        # registered SIGUSR1 handler always has a valid fd to write to.
+        self._gil_traceback_file: Any = None
         try:
             fn = getattr(self, method_name)
             setattr(self, method_name, self.join_or_run(fn))
@@ -963,6 +1166,27 @@ class MultiProcessTestCase(TestCase):
         # pid to pipe consisting of error message from process.
         self.pid_to_pipe = {}  # type: ignore[var-annotated]
 
+        global _hangdiag_last_leftovers
+        self._leftovers_at_start = _leftover_processes()
+        if self._leftovers_at_start != _hangdiag_last_leftovers:
+            logger.error(
+                "%s %s starts with leftover processes:\n%s",
+                _HANGDIAG,
+                self.id(),
+                "\n".join(
+                    f"  {pid} gpu={gpu} {cmd[:300]}"
+                    for pid, (gpu, cmd) in self._leftovers_at_start.items()
+                ),
+            )
+            _hangdiag_last_leftovers = self._leftovers_at_start
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        super().setUpClass()
+        _snapshot_system_state(
+            f"setUpClass_{cls.__name__}", full=cls._run_hang_experiments
+        )
+
     def tearDown(self) -> None:
         super().tearDown()
         for p in self.processes:
@@ -977,7 +1201,9 @@ class MultiProcessTestCase(TestCase):
         # self.id() == e.g. '__main__.TestDistributed.TestAdditive.test_get_rank'
         return self.id().split(".")[-1]
 
-    def _start_processes(self, proc) -> None:
+    def _start_processes(
+        self, proc, rank_env: Callable[[int], dict[str, str]] | None = None
+    ) -> None:
         self.processes = []
         for rank in range(int(self.world_size)):
             parent_conn, child_conn = torch.multiprocessing.Pipe()
@@ -994,7 +1220,8 @@ class MultiProcessTestCase(TestCase):
                     "fake_pg": getattr(self, "fake_pg", False),
                 },
             )
-            process.start()
+            with mock.patch.dict(os.environ, rank_env(rank) if rank_env else {}):
+                process.start()
             logger.info("Started process %s with pid %s", rank, process.pid)
             self.pid_to_pipe[process.pid] = parent_conn
             self.processes.append(process)
@@ -1064,6 +1291,19 @@ class MultiProcessTestCase(TestCase):
             # Register signal handler to dump stack traces on FATALs.
             # Windows and MacOS do not support the signal handlers.
             torch._C._set_print_stack_traces_on_fatal_signal(True)
+            # The event listener above can only answer GET_TRACEBACK once it is
+            # scheduled, which never happens if this process is stuck holding
+            # the GIL inside a native call. faulthandler's handler runs in C and
+            # writes straight to the fd, so SIGUSR1 still yields a traceback.
+            try:
+                self._gil_traceback_file = open(  # noqa: SIM115
+                    _faulthandler_dump_path(os.getpid()), "w"
+                )
+                faulthandler.register(
+                    signal.SIGUSR1, file=self._gil_traceback_file, all_threads=True
+                )
+            except (OSError, ValueError):
+                logger.exception("Could not register SIGUSR1 traceback handler")
         # Show full C++ stacktraces when a Python error originating from C++ is raised.
         os.environ["TORCH_SHOW_CPP_STACKTRACES"] = "1"
         common_utils.set_rng_seed()
@@ -1108,6 +1348,97 @@ class MultiProcessTestCase(TestCase):
             except (AssertionError, ValueError):
                 pass
 
+    def _dump_gil_independent_traceback(self, rank: int, pid: int) -> None:
+        """
+        Get a Python traceback out of a rank that did not answer GET_TRACEBACK.
+        faulthandler's SIGUSR1 handler runs in C without taking the GIL, so it
+        still reports which Python frame a wedged rank is parked in even when
+        the event listener thread can never be scheduled to reply on the pipe.
+        """
+        path = _faulthandler_dump_path(pid)
+        try:
+            os.kill(pid, signal.SIGUSR1)
+        except OSError:
+            logger.exception("Could not signal process %s for a traceback", rank)
+            return
+
+        deadline = time.time() + 5
+        while time.time() < deadline:
+            if os.path.exists(path) and os.path.getsize(path) > 0:
+                break
+            time.sleep(0.1)
+
+        try:
+            with open(path) as f:
+                dump = f.read()
+        except OSError:
+            dump = ""
+
+        if dump:
+            logger.error("Process %s GIL-independent traceback:\n\n%s", rank, dump)
+        else:
+            logger.error("Process %s did not respond to SIGUSR1 either", rank)
+
+    def _dump_native_stack(self, pid: int) -> None:
+        """
+        Best-effort native (C/C++) stack dump for a rank that is completely
+        unresponsive at the Python level (e.g. stuck holding the GIL inside a
+        native call that never yields it back, so the in-process
+        GET_TRACEBACK event listener thread never gets scheduled to respond).
+
+        Runs every dumper that is present rather than stopping at the first.
+        They fail differently and disagree usefully: py-spy interleaves Python
+        and native frames but stops at the innermost frame of a deep C++ stack,
+        while gdb unwinds the whole stack but knows nothing about Python. A rank
+        only wedges once per run, so there is no second chance to go back and
+        ask the other tool.
+        """
+        import shutil
+        import subprocess
+
+        cmds = []
+        if shutil.which("gdb"):
+            cmds.append(
+                [
+                    "gdb",
+                    "-p",
+                    str(pid),
+                    "-batch",
+                    "-ex",
+                    "thread apply all bt",
+                    "-ex",
+                    "detach",
+                ]
+            )
+        if shutil.which("py-spy"):
+            cmds.append(["py-spy", "dump", "--native", "--pid", str(pid)])
+        if not cmds:
+            logger.error(
+                "Neither gdb nor py-spy is available; cannot get native stack for pid %s",
+                pid,
+            )
+            return
+
+        for cmd in cmds:
+            try:
+                # Generous next to the ~5s a healthy attach takes. The process is
+                # already hung, and losing the dump to a timeout costs a whole run.
+                result = subprocess.run(
+                    cmd, capture_output=True, text=True, timeout=120
+                )
+                logger.error(
+                    "Native stack dump for pid %s via %s (rc=%s):\n%s\n%s",
+                    pid,
+                    cmd[0],
+                    result.returncode,
+                    result.stdout,
+                    result.stderr,
+                )
+            except Exception:
+                logger.exception(
+                    "Failed to get native stack dump for pid %s via %s", pid, cmd[0]
+                )
+
     def _get_timedout_process_traceback(self) -> None:
         pipes = []
         for i, process in enumerate(self.processes):
@@ -1142,11 +1473,156 @@ class MultiProcessTestCase(TestCase):
                     logger.error(
                         "Could not retrieve traceback for timed out process: %s", rank
                     )
+                    self._dump_gil_independent_traceback(rank, self.processes[rank].pid)
+                    self._dump_native_stack(self.processes[rank].pid)
             except ConnectionError:
                 logger.exception(
                     "Encountered error while trying to get traceback for process %s",
                     rank,
                 )
+
+    def _run_hang_trial(
+        self,
+        env: dict[str, str],
+        rank_env: Callable[[int], dict[str, str]] | None = None,
+    ) -> str:
+        """Reruns the current test's ranks under `env`; returns the outcome."""
+        saved = (self.processes, self.pid_to_pipe, self.file_name)
+        self.pid_to_pipe = {}
+        with tempfile.NamedTemporaryFile(delete=False) as f:
+            self.file_name = f.name
+        start = time.time()
+        try:
+            with mock.patch.dict(os.environ, env):
+                self._start_processes(
+                    torch.multiprocessing.get_context("spawn").Process, rank_env
+                )
+            while time.time() - start < _HANGDIAG_TRIAL_TIMEOUT and any(
+                p.exitcode is None for p in self.processes
+            ):
+                time.sleep(0.5)
+            elapsed = time.time() - start
+            hung = [i for i, p in enumerate(self.processes) if p.exitcode is None]
+            if hung:
+                for i in hung:
+                    self._dump_gil_independent_traceback(i, self.processes[i].pid)
+                return f"HANG ranks {hung} after {elapsed:.0f}s"
+            codes = [p.exitcode for p in self.processes]
+            if all(c == 0 for c in codes):
+                return f"PASS in {elapsed:.0f}s"
+            for i, p in enumerate(self.processes):
+                pipe = self.pid_to_pipe[p.pid]
+                if p.exitcode == self.TEST_ERROR_EXIT_CODE and pipe.poll(1):
+                    logger.error("%s rank %s error:\n%s", _HANGDIAG, i, pipe.recv())
+            return f"EXIT {codes} in {elapsed:.0f}s"
+        finally:
+            for p in self.processes:
+                p.terminate()
+            for p in self.processes:
+                p.join(30)
+                if p.exitcode is None:
+                    p.kill()
+                    p.join(10)
+            for pipe in self.pid_to_pipe.values():
+                pipe.close()
+            try:
+                os.remove(self.file_name)
+            except OSError:
+                pass
+            self.processes, self.pid_to_pipe, self.file_name = saved
+
+    def _hang_experiments(self) -> None:
+        """
+        On the first hang of a test in this job, reruns it under one change at a
+        time: a HIP trace of the queues, fresh on-disk caches, no HW queue
+        sharing, and with processes left over from earlier tests killed. The
+        last trial is an unchanged control.
+        """
+        test = self._current_test_name()
+        record = os.path.join(_hangdiag_dir(), f"experiments_{test}.txt")
+        if os.path.exists(record):
+            return
+        open(record, "w").close()
+        for p in self.processes:
+            p.join(30)
+            if p.exitcode is None:
+                p.kill()
+                p.join(10)
+        # CI passes --timeout 900 to pytest, whose SIGALRM would cut the trials
+        # short. Each trial is bounded by _HANGDIAG_TRIAL_TIMEOUT instead.
+        signal.setitimer(signal.ITIMER_REAL, 0)
+
+        hip_logs = tempfile.mkdtemp(prefix="hangdiag_hiplog_")
+        caches = tempfile.mkdtemp(prefix="hangdiag_caches_")
+        files = tempfile.mkdtemp(prefix="hangdiag_files_")
+        trials: list[tuple[str, dict[str, str]]] = [
+            ("hip_log_level_5", {"AMD_LOG_LEVEL": "5"}),
+            (
+                "fresh_inductor_triton_cache",
+                {
+                    "TORCHINDUCTOR_CACHE_DIR": os.path.join(caches, "inductor"),
+                    "TRITON_CACHE_DIR": os.path.join(caches, "triton"),
+                },
+            ),
+            (
+                "fresh_tmpdir_and_all_caches",
+                {
+                    "TMPDIR": files,
+                    "XDG_CACHE_HOME": os.path.join(files, "xdg"),
+                    "TORCHINDUCTOR_CACHE_DIR": os.path.join(files, "inductor"),
+                    "TRITON_CACHE_DIR": os.path.join(files, "triton"),
+                },
+            ),
+            ("gpu_max_hw_queues_16", {"GPU_MAX_HW_QUEUES": "16"}),
+            ("kill_leftover_processes", {}),
+            ("control", {}),
+        ]
+
+        def hip_log_env(rank: int) -> dict[str, str]:
+            return {"AMD_LOG_LEVEL_FILE": os.path.join(hip_logs, f"rank{rank}.log")}
+
+        results = []
+        for name, env in trials:
+            rank_env = hip_log_env if name == "hip_log_level_5" else None
+            if name == "kill_leftover_processes":
+                alive = _leftover_processes()
+                targets = {
+                    pid: cmd
+                    for pid, (_, cmd) in self._leftovers_at_start.items()
+                    if pid in alive and alive[pid][1] == cmd
+                }
+                if not targets:
+                    results.append(
+                        f"{name}: SKIPPED, no leftovers from before this test"
+                    )
+                    continue
+                for pid, cmd in targets.items():
+                    logger.error("%s killing leftover %s %s", _HANGDIAG, pid, cmd)
+                    try:
+                        os.kill(pid, signal.SIGKILL)
+                    except OSError:
+                        logger.exception("%s could not kill %s", _HANGDIAG, pid)
+                time.sleep(10)
+                still = set(targets) & set(_leftover_processes())
+                name += f" (killed {sorted(targets)}, still alive {sorted(still)})"
+            logger.error("%s %s trial %s starting", _HANGDIAG, test, name)
+            outcome = self._run_hang_trial(env, rank_env)
+            results.append(f"{name}: {outcome}")
+            logger.error("%s %s trial %s: %s", _HANGDIAG, test, name, outcome)
+            if rank_env is not None:
+                for log in sorted(glob.glob(os.path.join(hip_logs, "rank*.log*"))):
+                    logger.error("%s %s", _HANGDIAG, _summarize_hip_log(log))
+                    dest = os.path.join(
+                        _hangdiag_dir(), f"{test}_hiplog_{os.path.basename(log)}.gz"
+                    )
+                    with open(log, "rb") as src, gzip.open(dest, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+        summary = "\n".join(results)
+        with open(record, "w") as f:
+            f.write(summary + "\n")
+        logger.error("%s %s experiment results:\n%s", _HANGDIAG, test, summary)
+        for d in (hip_logs, caches, files):
+            shutil.rmtree(d, ignore_errors=True)
 
     def _join_processes(self, fn) -> None:
         timeout = get_timeout(self.id())
@@ -1175,12 +1651,32 @@ class MultiProcessTestCase(TestCase):
                 # Check if we should time out the test. If so, we terminate each process.
                 elapsed = time.time() - start_time
                 if elapsed > timeout:
+                    test = self._current_test_name()
+                    _snapshot_system_state(
+                        f"hang_{test}",
+                        full=True,
+                        pids=tuple(p.pid for p in self.processes),
+                    )
                     self._get_timedout_process_traceback()
+                    for pid, (rel, gpu) in _scan_processes().items():
+                        if rel == "foreign" and gpu:
+                            self._dump_native_stack(pid)
                     print(
                         f"Timing out after {timeout} seconds and killing subprocesses."
                     )
                     for p in self.processes:
                         p.terminate()
+                    if self._run_hang_experiments:
+                        elapsed_time = time.time() - start_time
+                        try:
+                            self._hang_experiments()
+                        except Exception:
+                            logger.exception("%s hang experiments failed", _HANGDIAG)
+                        # The ranks have exited by now, so _check_return_codes
+                        # would no longer see the timeout.
+                        raise RuntimeError(
+                            f"Process 0 terminated or timed out after {elapsed_time} seconds"
+                        )
                     break
                 # Sleep to avoid excessive busy polling.
                 time.sleep(0.1)
@@ -1822,6 +2318,8 @@ class DynamoDistributedMultiProcTestCase(DistributedTestBase):
     Prefer MultiThreadedTestCase for most tests. Perhaps use this one
     sparingly for integration tests.
     """
+
+    _run_hang_experiments = True
 
     @property
     def world_size(self) -> int:
