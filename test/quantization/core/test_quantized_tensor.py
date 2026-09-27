@@ -1473,6 +1473,38 @@ class TestQuantizedTensor(TestCase):
             model_loaded = torch.jit.load(buffer)
             self.assertEqual(model_loaded(), model())
 
+    def test_jit_serialization_sub_byte(self):
+        # Packed dtypes store more than one logical element per byte.
+        # JIT load must accept that storage (Unpickler::rebuildTensor).
+        class SimpleQTensor(torch.jit.ScriptModule):
+            def __init__(self, x_q):
+                super().__init__()
+                self.x = torch.nn.Buffer(x_q)
+
+            @torch.jit.script_method
+            def forward(self):
+                return self.x
+
+        def _roundtrip(x_q):
+            model = SimpleQTensor(x_q)
+            buffer = io.BytesIO()
+            torch.jit.save(model, buffer)
+            buffer.seek(0)
+            loaded = torch.jit.load(buffer)
+            self.assertEqual(loaded(), model())
+
+        for dtype in (torch.quint4x2, torch.quint2x4):
+            for shape in ((10, 8), (10, 7), (1, 1)):
+                x = torch.rand(*shape)
+                _roundtrip(torch.quantize_per_tensor(x, 0.2, 0, dtype))
+            rows = 10
+            x = torch.rand(rows, 8)
+            scales = torch.full((rows,), 0.1)
+            zero_points = torch.zeros(rows)
+            _roundtrip(
+                torch.quantize_per_channel(x, scales, zero_points, 0, dtype)
+            )
+
     def test_bfp16_quantize(self):
         X = torch.randn(5 , 10)
         quantized_X = X.to(torch.bfloat16)

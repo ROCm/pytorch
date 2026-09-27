@@ -1,5 +1,6 @@
 #include <ATen/ATen.h>
 #include <ATen/EmptyTensor.h>
+#include <ATen/native/Resize.h>
 #include <ATen/core/Dict.h>
 #ifdef USE_RPC
 #include <torch/csrc/distributed/rpc/rref_context.h>
@@ -1022,8 +1023,19 @@ void Unpickler::rebuildTensor(bool quantized) {
         " bytes (itemsize ",
         itemsize,
         ")");
-    const size_t required_nbytes = at::detail::computeStorageNbytes(
+    size_t required_nbytes = at::detail::computeStorageNbytes(
         size, stride, itemsize, static_cast<size_t>(storage_offset));
+    // quint4x2 / quint2x4 pack multiple logical elements into one storage
+    // byte, but itemsize() is still 1, so the formula above over-counts.
+    // Tensor.set_() applies the same adjustment in checkInBoundsForStorage.
+    // The offset bound above stays in raw bytes: data() advances by
+    // itemsize * storage_offset, not by the packed element count.
+    const int64_t element_per_byte =
+        at::native::subByteElementPerByte(storage_tensor.dtype());
+    if (element_per_byte > 1) {
+      const size_t packed = static_cast<size_t>(element_per_byte);
+      required_nbytes = (required_nbytes + packed - 1) / packed;
+    }
     TORCH_CHECK(
         required_nbytes == 0 || required_nbytes <= storage_nbytes,
         "Tensor: sizes ",
