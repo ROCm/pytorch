@@ -123,6 +123,14 @@ TEST_PIN_MEMORY = torch.accelerator.is_available() and not (
 #
 # Get a multiprocessing context because some test / third party library will
 # set start_method when imported, and setting again triggers `RuntimeError`.
+#
+# forkserver preloads __main__ and then os.fork()s workers (this preload
+# actually runs on Python 3.14; see CPython gh-126631). Importing this module
+# calls torch.cuda.is_available(), which registers the CUDA atfork handler, so
+# those workers cannot initialize CUDA. Leave __main__ out of the preload so
+# forkserver CUDA workers still start from a clean interpreter.
+if "forkserver" in mp.get_all_start_methods():
+    mp.set_forkserver_preload([])
 mp = mp.get_context(method="spawn")
 
 
