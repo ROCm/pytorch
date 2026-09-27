@@ -392,6 +392,15 @@ class TestCuda(TestCase):
         torch._C._host_emptyCache()
         torch.cuda.reset_peak_host_memory_stats()
         torch.cuda.reset_accumulated_host_memory_stats()
+        # active_*.current is process-global and is not cleared by the resets
+        # above. unittest loads classes alphabetically, so
+        # TestCachingHostAllocatorCudaGraph runs first and intentionally
+        # retains every pinned block that was used during capture (32 bytes
+        # each; 18 blocks, 576 bytes). empty_cache cannot reclaim those.
+        # Compare against the post-cleanup baseline, same as
+        # test_host_memory_stats. A missing decrement still shows up as a
+        # delta.
+        baseline = torch.cuda.host_memory_stats()
 
         for _ in range(2):
             t = torch.empty(1024 * 1024, dtype=torch.float32, pin_memory=True)
@@ -401,15 +410,16 @@ class TestCuda(TestCase):
             stats = torch.cuda.host_memory_stats()
             self.assertEqual(
                 stats["active_bytes.current"],
-                0,
-                "active_bytes.current should be 0 after a pin-and-drop cycle "
-                "with no async copy: the block is returned to the cache, so "
-                "the active counter must drop back to zero.",
+                baseline["active_bytes.current"],
+                "active_bytes.current should return to the pre-test baseline "
+                "after a pin-and-drop cycle with no async copy: the block is "
+                "returned to the cache, so the active counter must drop back.",
             )
             self.assertEqual(
                 stats["active_requests.current"],
-                0,
-                "active_requests.current should be 0 after a pin-and-drop cycle.",
+                baseline["active_requests.current"],
+                "active_requests.current should return to the pre-test baseline "
+                "after a pin-and-drop cycle.",
             )
 
     @serialTest()
@@ -430,6 +440,12 @@ class TestCuda(TestCase):
         torch._C._host_emptyCache()
         torch.cuda.reset_peak_host_memory_stats()
         torch.cuda.reset_accumulated_host_memory_stats()
+        # See test_host_memory_stats_active_after_free_no_events: capture
+        # tests that already ran leave 576 active bytes that empty_cache
+        # cannot drain. The bug under test moves the counter (by 1 byte per
+        # drained event, or by leaving this block active), so a delta from
+        # the baseline still catches it. Standalone, the baseline is 0.
+        baseline = torch.cuda.host_memory_stats()
 
         for _ in range(2):
             t = torch.empty(1024 * 1024, dtype=torch.float32, pin_memory=True)
@@ -443,14 +459,15 @@ class TestCuda(TestCase):
             stats = torch.cuda.host_memory_stats()
             self.assertEqual(
                 stats["active_bytes.current"],
-                0,
-                "active_bytes.current should be 0 after empty_cache drains "
-                "the events queue.",
+                baseline["active_bytes.current"],
+                "active_bytes.current should return to the pre-test baseline "
+                "after empty_cache drains the events queue.",
             )
             self.assertEqual(
                 stats["active_requests.current"],
-                0,
-                "active_requests.current should be 0 after drain.",
+                baseline["active_requests.current"],
+                "active_requests.current should return to the pre-test baseline "
+                "after drain.",
             )
             self.assertGreaterEqual(
                 stats["active_bytes.freed"],
