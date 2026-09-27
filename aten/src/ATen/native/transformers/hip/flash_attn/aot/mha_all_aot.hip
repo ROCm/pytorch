@@ -276,8 +276,8 @@ mha_fwd_aot(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x 
   params.K = mk_aotensor(k_t, "k");
   params.V = mk_aotensor(v_t, "v");
   params.Sm_scale = softmax_scale;
-  params.L = mk_aotensor<2>(M, "M");
-  params.Out = mk_aotensor(output_t, "Out");
+  params.L = mk_aotensor<2>(M, "M", true);
+  params.Out = mk_aotensor(output_t, "Out", true);
   params.Max_seqlen_q = seqlen_q;    // Unused if cu_seqlens_q is empty
   params.Max_seqlen_k = seqlen_k;    // Unused if cu_seqlens_k is empty
   params.dropout_p = p_dropout;
@@ -286,7 +286,7 @@ mha_fwd_aot(const at::Tensor &q,         // batch_size x seqlen_q x num_heads x 
   params.philox_offset2 = offset2;
   params.philox_seed_output = seed_output;
   params.philox_offset_output = offset_output;
-  params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax");
+  params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax", true);
   params.persistent_atomic_counter = persistent_counter;
   params.causal_type = is_causal ? CausalType::WindowedAttention : CausalType::None;
   params.varlen_type = VarlenType::None;
@@ -471,8 +471,8 @@ mha_varlen_fwd_aot(const at::Tensor &q,  // total_q x num_heads x head_size, tot
     params.K = mk_aotensor(k_padded, "k");
     params.V = mk_aotensor(v_padded, "v");
     params.Sm_scale = softmax_scale;
-    params.L = mk_aotensor<2>(M, "logsumexp");
-    params.Out = mk_aotensor(out_padded, "Out");
+    params.L = mk_aotensor<2>(M, "logsumexp", true);
+    params.Out = mk_aotensor(out_padded, "Out", true);
     params.Max_seqlen_q = max_seqlen_q;    // Unused if cu_seqlens_q is empty
     params.Max_seqlen_k = max_seqlen_k;    // Unused if cu_seqlens_k is empty
     params.dropout_p = p_dropout;
@@ -481,7 +481,7 @@ mha_varlen_fwd_aot(const at::Tensor &q,  // total_q x num_heads x head_size, tot
     params.philox_offset2 = offset2;
     params.philox_seed_output = seed_output;
     params.philox_offset_output = offset_output;
-    params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax");
+    params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax", true);
     params.persistent_atomic_counter = persistent_counter;
     params.causal_type = is_causal ? CausalType::WindowedAttention : CausalType::None;
     params.varlen_type = strided_varlen ? VarlenType::StridedVarlen : VarlenType::CompactVarlen;
@@ -656,9 +656,9 @@ mha_bwd_aot(const at::Tensor &dout,  // batch_size x seqlen_q x num_heads, x hea
   params.Sm_scale = softmax_scale;
   params.Out = mk_aotensor(out_t, "out");
   params.DO = mk_aotensor(dout_t, "dout");
-  params.DQ = mk_aotensor(dq_t, "dq");
-  params.DK = mk_aotensor(dk_t, "dk");
-  params.DV = mk_aotensor(dv_t, "dv");
+  params.DQ = mk_aotensor(dq_t, "dq", true);
+  params.DK = mk_aotensor(dk_t, "dk", true);
+  params.DV = mk_aotensor(dv_t, "dv", true);
   params.L = mk_aotensor<2>(softmax_lse_cont, "L");
   params.Max_seqlen_q = seqlen_q;        // Unused if cu_seqlens_q is empty
   params.Max_seqlen_k = seqlen_k;        // Unused if cu_seqlens_k is empty
@@ -859,9 +859,9 @@ mha_varlen_bwd_aot(const at::Tensor &dout,  // total_q x num_heads, x head_size
     params.Sm_scale = softmax_scale;
     params.Out = mk_aotensor(out_t, "out");
     params.DO = mk_aotensor(dout_t, "dout");
-    params.DK = mk_aotensor(dk_padded, "dk");
-    params.DV = mk_aotensor(dv_padded, "dv");
-    params.DQ = mk_aotensor(dq_padded, "dq");
+    params.DK = mk_aotensor(dk_padded, "dk", true);
+    params.DV = mk_aotensor(dv_padded, "dv", true);
+    params.DQ = mk_aotensor(dq_padded, "dq", true);
     params.L = mk_aotensor<2>(softmax_lse_cont, "L");
     params.cu_seqlens_q = mk_aotensor<1>(cu_seqlens_q, "cu_seqlens_q");
     params.cu_seqlens_k = mk_aotensor<1>(cu_seqlens_k, "cu_seqlens_k");

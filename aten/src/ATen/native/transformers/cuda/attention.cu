@@ -1768,8 +1768,8 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
     params.K = mk_aotensor(k_t, "k");
     params.V = mk_aotensor(v_t, "v");
     params.Sm_scale = softmax_scale;
-    params.L = compute_logsumexp ? mk_aotensor<2>(softmax_lse, "M") : empty_t2;
-    params.Out = mk_aotensor(output_t, "Out");
+    params.L = compute_logsumexp ? mk_aotensor<2>(softmax_lse, "M", true) : empty_t2;
+    params.Out = mk_aotensor(output_t, "Out", true);
     params.Max_seqlen_q = max_seqlen_q;    // Unused if cu_seqlens_q is empty
     params.Max_seqlen_k = max_seqlen_k;    // Unused if cu_seqlens_k is empty
     params.dropout_p = dropout_p;
@@ -1778,7 +1778,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
     params.philox_offset2 = offset2;
     params.philox_seed_output = seed_output;
     params.philox_offset_output = offset_output;
-    params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax");
+    params.encoded_softmax = mk_aotensor(softmax_fa_t, "encoded_softmax", true);
     params.persistent_atomic_counter = persistent_counter;
     params.causal_type = is_causal ? CausalType::WindowedAttention : CausalType::None;
     if (static_cast<int64_t>(sdp::CustomMaskType::CausalFromTopLeft) == custom_mask_type) {
@@ -2096,7 +2096,7 @@ at::Tensor& _fill_mem_eff_dropout_mask_(
   offset_t = at::scalar_tensor(at::Scalar(offset), options);
   hipError_t err; // TODO: Error handling
 
-  err = debug_simulate_encoded_softmax(mk_aotensor(self, "r"),
+  err = debug_simulate_encoded_softmax(mk_aotensor(self, "r", true),
                                        dropout_p,
                                        mk_aoscalartensor(seed_t),
                                        mk_aoscalartensor(offset_t),

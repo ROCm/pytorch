@@ -17234,12 +17234,7 @@ op_db: list[OpInfo] = [
             DecorateInfo(unittest.skip('This is '), 'TestInductorOpInfo', 'test_comprehensive'),
             # skip for sm < 80
             DecorateInfo(unittest.skip("Skipped!"), 'TestSchemaCheckModeOpInfo', 'test_schema_correctness',
-                         device_type='cuda', dtypes=(torch.bfloat16,), active_if=not SM80OrLater),
-            # FIXME
-            DecorateInfo(unittest.skip('test_cow_input does not work with efficient attention on ROCM'),
-                         'TestCompositeCompliance', 'test_cow_input',
-                         device_type='cuda', dtypes=(torch.bfloat16, torch.float16, torch.float32),
-                         active_if=TEST_WITH_ROCM and PLATFORM_SUPPORTS_MEM_EFF_ATTENTION),),
+                         device_type='cuda', dtypes=(torch.bfloat16,), active_if=not SM80OrLater),),
     ),
     OpInfo(
         'torch.ops.aten._flash_attention_forward',

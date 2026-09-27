@@ -661,10 +661,10 @@ _efficient_attention_backward(
     params.Sm_scale = softmax_scale;
     params.Out = mk_aotensor(out_t, "out");
     params.DO = mk_aotensor(dout_t, "dout");
-    params.DK = mk_aotensor(dk_t, "dk");
-    params.DV = mk_aotensor(dv_t, "dv");
-    params.DQ = mk_aotensor(dq_t, "dq");
-    params.DB = bias_requires_grad ? mk_aotensor(grad_bias, "db") : empty_t4;
+    params.DK = mk_aotensor(dk_t, "dk", true);
+    params.DV = mk_aotensor(dv_t, "dv", true);
+    params.DQ = mk_aotensor(dq_t, "dq", true);
+    params.DB = bias_requires_grad ? mk_aotensor(grad_bias, "db", true) : empty_t4;
     params.L = mk_aotensor<2>(softmax_lse, "L");
     params.Max_seqlen_q = max_seqlen_q;        // Unused if cu_seqlens_q is empty
     params.Max_seqlen_k = max_seqlen_k;        // Unused if cu_seqlens_k is empty

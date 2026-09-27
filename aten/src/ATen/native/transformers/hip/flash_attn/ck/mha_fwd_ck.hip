@@ -183,15 +183,15 @@ fmha_fwd_args get_ck_fmha_fwd_args(bool has_lse,
         auto a_b = attn_bias_.value();
         CHECK_DEVICE(a_b);
         TORCH_CHECK(a_b.stride(-1) == 1, "attention bias tensor must have contiguous last dimension");
-        attn_bias_ptr = a_b.data_ptr();
+        attn_bias_ptr = const_cast<void*>(a_b.const_data_ptr());
         stride_attn_bias = a_b.stride(2);
         nhead_stride_bias = a_b.stride(1);
         batch_stride_bias = a_b.stride(0);
     }
     fmha_fwd_args args{};
-    args.q_ptr = q.data_ptr();
-    args.k_ptr = k.data_ptr();
-    args.v_ptr = v.data_ptr();
+    args.q_ptr = const_cast<void*>(q.const_data_ptr());
+    args.k_ptr = const_cast<void*>(k.const_data_ptr());
+    args.v_ptr = const_cast<void*>(v.const_data_ptr());
     args.bias_ptr = attn_bias_ptr;
     args.q_descale_ptr = nullptr;
     args.k_descale_ptr = nullptr;

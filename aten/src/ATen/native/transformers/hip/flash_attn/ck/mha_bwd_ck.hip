@@ -197,7 +197,7 @@ aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
         auto a_b = attn_bias_.value();
         CHECK_DEVICE(a_b);
         TORCH_CHECK(a_b.stride(-1) == 1, "Attention bias tensor must have contiguous last dimension");
-        attn_bias_ptr = a_b.data_ptr();
+        attn_bias_ptr = const_cast<void*>(a_b.const_data_ptr());
         stride_attn_bias = a_b.stride(2);
         nhead_stride_bias = a_b.stride(1);
         batch_stride_bias = a_b.stride(0);
@@ -240,13 +240,13 @@ aiter::mha_bwd_args get_ck_fmha_bwd_args(const mask_info &mask,
     args.is_store_randval    = false;
     args.is_deterministic    = deterministic;
 
-    args.q_ptr        = q.data_ptr();
-    args.k_ptr        = k.data_ptr();
-    args.v_ptr        = v.data_ptr();
+    args.q_ptr        = const_cast<void*>(q.const_data_ptr());
+    args.k_ptr        = const_cast<void*>(k.const_data_ptr());
+    args.v_ptr        = const_cast<void*>(v.const_data_ptr());
     args.bias_ptr     = attn_bias_ptr;
-    args.o_ptr        = out.data_ptr();
-    args.lse_ptr      = softmax_lse.data_ptr();
-    args.do_ptr       = dout.data_ptr();
+    args.o_ptr        = const_cast<void*>(out.const_data_ptr());
+    args.lse_ptr      = const_cast<void*>(softmax_lse.const_data_ptr());
+    args.do_ptr       = const_cast<void*>(dout.const_data_ptr());
     args.d_ptr        = d.data_ptr();
     args.rand_val_ptr = nullptr;
     args.dq_ptr       = dq.data_ptr();

@@ -87,8 +87,14 @@ struct IntArrayRefCaster<TargetType, 4> {
 };
 
 
+// Tensor::data_ptr() is mutable_data_ptr() and materializes copy-on-write
+// storage. Reads must use const_data_ptr(); pass writable=true only for
+// tensors the kernel stores into.
 template<int Rank = 4>
-aotriton::TensorView<Rank> mk_aotensor(const at::Tensor& q, std::string_view tensor_name)
+aotriton::TensorView<Rank> mk_aotensor(
+    const at::Tensor& q,
+    std::string_view tensor_name,
+    bool writable = false)
 {
   const auto strides = q.strides();
   int real_rank = strides.size();
@@ -97,7 +103,9 @@ aotriton::TensorView<Rank> mk_aotensor(const at::Tensor& q, std::string_view ten
                 std::string(tensor_name) + "'s rank should be " + std::to_string(Rank)
                 + " but is " + std::to_string(real_rank));
   }
-  return aotriton::TensorView<Rank>(reinterpret_cast<intptr_t>(q.data_ptr()),
+  const void* ptr = writable ? static_cast<const void*>(q.data_ptr())
+                             : q.const_data_ptr();
+  return aotriton::TensorView<Rank>(reinterpret_cast<intptr_t>(ptr),
                                     IntArrayRefCaster<uint64_t, Rank>::cast(q.sizes()),
                                     IntArrayRefCaster<uint64_t, Rank>::cast(strides),
                                     cast_dtype(q.dtype()));
@@ -105,7 +113,7 @@ aotriton::TensorView<Rank> mk_aotensor(const at::Tensor& q, std::string_view ten
 
 inline aotriton::TensorView<0> mk_aoscalartensor(const at::Tensor& q)
 {
-  return aotriton::TensorView<0>(reinterpret_cast<intptr_t>(q.data_ptr()),
+  return aotriton::TensorView<0>(reinterpret_cast<intptr_t>(q.const_data_ptr()),
                                  cast_dtype(q.dtype()));
 }
 
@@ -151,7 +159,7 @@ struct LazyTensorFunctions : public LazyTensorContext {
         ctx->tensor = at::empty_like(q);
       }
     }
-    return mk_aotensor<kRank>(ctx->tensor, ctx->tensor_name);
+    return mk_aotensor<kRank>(ctx->tensor, ctx->tensor_name, /*writable=*/true);
   }
 
   static void dispose(HolderType* cookie) {

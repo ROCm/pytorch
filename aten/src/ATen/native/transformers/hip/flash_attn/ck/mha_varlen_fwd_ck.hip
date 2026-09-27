@@ -118,15 +118,15 @@ fmha_fwd_args get_ck_fmha_varlen_fwd_args(bool has_lse,
         CHECK_DEVICE(a_b);
         TORCH_CHECK(a_b.stride(-1) == 1, "ALiBi slopes tensor must have contiguous last dimension");
         //TORCH_CHECK(alibi_slopes.sizes() == at::IntArrayRef({h}) || alibi_slopes.sizes() == at::IntArrayRef({b, h}));
-        attn_bias_ptr = a_b.data_ptr();
+        attn_bias_ptr = const_cast<void*>(a_b.const_data_ptr());
         //stride_attn_bias = alibi_slopes.dim() == 2 ? alibi_slopes.stride(0) : 0;
         stride_attn_bias = a_b.stride(0);
     }
 
     fmha_fwd_args args{};
-    args.q_ptr = q.data_ptr();
-    args.k_ptr = k.data_ptr();
-    args.v_ptr = v.data_ptr();
+    args.q_ptr = const_cast<void*>(q.const_data_ptr());
+    args.k_ptr = const_cast<void*>(k.const_data_ptr());
+    args.v_ptr = const_cast<void*>(v.const_data_ptr());
     args.bias_ptr = attn_bias_ptr;
     args.q_descale_ptr = nullptr;
     args.k_descale_ptr = nullptr;
@@ -134,8 +134,8 @@ fmha_fwd_args get_ck_fmha_varlen_fwd_args(bool has_lse,
     args.rand_val_ptr = has_dropout_randval ? dropout_randval.data_ptr() : nullptr;
     args.lse_ptr = has_lse ? softmax_lse.data_ptr() : nullptr;
     args.o_ptr = out.data_ptr();
-    args.seqstart_q_ptr = seqlens_q.data_ptr();
-    args.seqstart_k_ptr = seqlens_k.data_ptr();
+    args.seqstart_q_ptr = const_cast<void*>(seqlens_q.const_data_ptr());
+    args.seqstart_k_ptr = const_cast<void*>(seqlens_k.const_data_ptr());
     args.sink_ptr = nullptr;
     args.seqlen_q = total_q;
     args.seqlen_k = total_k;
