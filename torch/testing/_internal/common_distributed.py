@@ -1062,7 +1062,7 @@ def _snapshot_system_state(
 
 
 def _summarize_hip_log(path: str) -> str:
-    """Last dispatch/queue records of an AMD_LOG_LEVEL=4 log, plus its raw tail."""
+    """Last dispatch/queue records of an AMD_LOG_LEVEL=5 log, plus its raw tail."""
     keep = re.compile(
         r"Header =|ShaderName|Created SWq|hipMemcpy|LaunchKernel|hipStreamCreate|hipStreamWaitEvent|hipEventRecord|[Ee]rror"
     )
@@ -1556,7 +1556,7 @@ class MultiProcessTestCase(TestCase):
         caches = tempfile.mkdtemp(prefix="hangdiag_caches_")
         files = tempfile.mkdtemp(prefix="hangdiag_files_")
         trials: list[tuple[str, dict[str, str]]] = [
-            ("hip_log_level_4", {"AMD_LOG_LEVEL": "4"}),
+            ("hip_log_level_5", {"AMD_LOG_LEVEL": "5"}),
             (
                 "fresh_inductor_triton_cache",
                 {
@@ -1583,7 +1583,7 @@ class MultiProcessTestCase(TestCase):
 
         results = []
         for name, env in trials:
-            rank_env = hip_log_env if name == "hip_log_level_4" else None
+            rank_env = hip_log_env if name == "hip_log_level_5" else None
             if name == "kill_leftover_processes":
                 alive = _leftover_processes()
                 targets = {
@@ -1610,7 +1610,7 @@ class MultiProcessTestCase(TestCase):
             results.append(f"{name}: {outcome}")
             logger.error("%s %s trial %s: %s", _HANGDIAG, test, name, outcome)
             if rank_env is not None:
-                for log in sorted(glob.glob(os.path.join(hip_logs, "rank*.log"))):
+                for log in sorted(glob.glob(os.path.join(hip_logs, "rank*.log*"))):
                     logger.error("%s %s", _HANGDIAG, _summarize_hip_log(log))
                     dest = os.path.join(
                         _hangdiag_dir(), f"{test}_hiplog_{os.path.basename(log)}.gz"
@@ -1667,10 +1667,16 @@ class MultiProcessTestCase(TestCase):
                     for p in self.processes:
                         p.terminate()
                     if self._run_hang_experiments:
+                        elapsed_time = time.time() - start_time
                         try:
                             self._hang_experiments()
                         except Exception:
                             logger.exception("%s hang experiments failed", _HANGDIAG)
+                        # The ranks have exited by now, so _check_return_codes
+                        # would no longer see the timeout.
+                        raise RuntimeError(
+                            f"Process 0 terminated or timed out after {elapsed_time} seconds"
+                        )
                     break
                 # Sleep to avoid excessive busy polling.
                 time.sleep(0.1)
