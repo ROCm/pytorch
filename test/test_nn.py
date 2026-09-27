@@ -11278,7 +11278,11 @@ class TestNNDeviceType(NNTestCase):
         out1, _ = rnn(x)
         out2, _ = rnn(x)
         if dropout_p > 0 and training:
+            # A process-lifetime dropout cache can make the first forward differ
+            # from the second while every later forward repeats one frozen mask.
+            out3, _ = rnn(x)
             self.assertNotEqual(out1, out2)
+            self.assertNotEqual(out2, out3)
         else:
             self.assertEqual(out1, out2)
 
