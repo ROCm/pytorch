@@ -394,6 +394,7 @@ cmake_dependent_option(USE_ROCM_CK_SDPA "Use ROCm Composable Kernel for SDPA" ON
 # Off by default because enabling gfx12 adds CK SDPA code generation and compile
 # cost to ROCm builds that already target gfx1200/gfx1201.
 cmake_dependent_option(USE_ROCM_CK_SDPA_GFX12 "Also build ROCm Composable Kernel SDPA for gfx12 (RDNA4)" OFF "USE_ROCM_CK_SDPA" OFF)
+cmake_dependent_option(USE_ROCM_AOTRITON_SDPA "Use AOTriton for SDPA on ROCm" ON "USE_ROCM;NOT WIN32" OFF)
 option(CAFFE2_STATIC_LINK_CUDA "Statically link CUDA libraries" OFF)
 cmake_dependent_option(USE_CUDNN "Use cuDNN" ON "USE_CUDA" OFF)
 cmake_dependent_option(USE_STATIC_CUDNN "Use cuDNN static libraries" OFF
@@ -1163,11 +1164,22 @@ cmake_dependent_option(
   Will be disabled if not supported by the platform" ON
   "USE_CUDA OR USE_ROCM" OFF)
 
+# On ROCm, both kernels always compile AOTriton in as the fallback, and CK SDPA
+# is only an alternative picked at runtime, so neither can be built without
+# AOTriton. SDPA then uses the math backend.
+if(USE_ROCM AND NOT USE_ROCM_AOTRITON_SDPA AND (USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION))
+  message(STATUS
+    "Disabling USE_FLASH_ATTENTION and USE_MEM_EFF_ATTENTION: "
+    "on ROCm they require USE_ROCM_AOTRITON_SDPA")
+  set(USE_FLASH_ATTENTION OFF)
+  set(USE_MEM_EFF_ATTENTION OFF)
+endif()
+
 #
 # Cannot be put into Dependencies.cmake due circular dependency:
 # USE_FLASH_ATTENTION -> USE_ROCM -> Dependencies.cmake -> aotriton.cmake
 #
-if(USE_ROCM)
+if(USE_ROCM AND USE_ROCM_AOTRITON_SDPA)
   if(USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION)
     include(cmake/External/aotriton.cmake)
   endif()
