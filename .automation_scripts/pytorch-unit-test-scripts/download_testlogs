@@ -9,6 +9,7 @@ try:
     import requests
     import re
     import sys
+    import zipfile
     from upload_stats_lib import unzip
     from upload_test_stats import download_gha_artifacts, download_s3_artifacts
 except ImportError:
@@ -408,7 +409,21 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
         return
 
     for path in artifact_paths:
-            unzip(path)
+        if not zipfile.is_zipfile(path):
+            # Upstream's artifact copy sometimes stores the storage backend's
+            # error document under the .zip key (e.g. Azure "Egress is over the
+            # account limit"). Drop that shard rather than abort the whole run.
+            with open(path, "rb") as f:
+                head = f.read(512).decode("utf-8", "replace").strip()
+            error_msg = (
+                f"ERROR: artifact {path.name} is not a zip file "
+                f"({path.stat().st_size} bytes), skipping this shard. "
+                f"Stored content begins: {head!r}"
+            )
+            print(error_msg)
+            error_msgs.append(error_msg)
+            continue
+        unzip(path)
 
     _shorten_unzipped_dirs()
 
