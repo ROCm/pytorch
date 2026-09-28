@@ -365,7 +365,7 @@ jobs:
       - name: Download build artifact
         id: download
         continue-on-error: true
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact-name }}
@@ -388,7 +388,7 @@ jobs:
 
       - name: Retry download build artifact
         if: ${{ !cancelled() && steps.artifact_cleanup.outcome == 'success' }}
-        timeout-minutes: 15
+        timeout-minutes: 80
         uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact-name }}
