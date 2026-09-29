@@ -142,6 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
+      max-parallel: 1
       matrix:
         arch: ${{ fromJson(needs.setup-matrix.outputs.arch-matrix) }}
     steps:
@@ -202,6 +203,12 @@ jobs:
           if [ -n "${{ inputs.baseline_sha }}" ]; then
             ARGS="$ARGS --baseline_sha ${{ inputs.baseline_sha }}"
           fi
+
+          DIAG_SHA="${{ inputs.sha }}"
+          if ! [[ "$DIAG_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            DIAG_SHA=$(printf '%040d' "$GITHUB_RUN_ID")
+          fi
+          mkdir -p "$(date -u +%Y%m%d)_${DIAG_SHA}"
 
           echo "Running: python3 ./download_testlogs $ARGS"
           python3 ./download_testlogs $ARGS 2>&1 | tee download_${{ matrix.arch }}.log

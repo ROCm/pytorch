@@ -133,7 +133,7 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
         with open(filename + ".job_url", "w", encoding="utf-8") as f:
             f.write(job_url)
 
-def _fetch_jobs_page(jobs_url, params, max_retries=5):
+def _fetch_jobs_page(jobs_url, params, max_retries=7):
     """GET one page of the jobs API, retrying transient failures.
 
     When many parity runs fire at once they hammer the jobs API and GitHub
