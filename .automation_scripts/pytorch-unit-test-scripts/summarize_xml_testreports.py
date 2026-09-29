@@ -69,6 +69,15 @@ def _extract_shard(dirname):
         return f"{m.group(1)}/{m.group(2)}"
     return ""
 
+def _is_junit_fixture_xml(path):
+    """Return whether path is pytest's checked-in golden JUnit fixture."""
+    fixture_parts = ("junit_xml_testdata", "expected")
+    parts = path.parts
+    return any(
+        tuple(parts[index:index + len(fixture_parts)]) == fixture_parts
+        for index in range(len(parts) - len(fixture_parts) + 1)
+    )
+
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
     test_config = ""
     test_cases = {}
@@ -101,6 +110,8 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 if wf_run_id and jid else ""
             )
             for xml_report in Path(new_dir).glob("**/*.xml"):
+                if _is_junit_fixture_xml(xml_report):
+                    continue
                 try:
                     new_cases = parse_xml_report(
                         tag,
