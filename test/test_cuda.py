@@ -16,11 +16,11 @@ import threading
 import time
 import unittest
 import warnings
-from unittest.mock import patch
 from collections import defaultdict
 from copy import deepcopy
 from itertools import product
 from random import randint
+from unittest.mock import patch
 
 import psutil
 
@@ -46,7 +46,6 @@ from torch.testing._internal.common_cuda import (
     TEST_CUDNN,
     TEST_MULTIGPU,
     tf32_on_and_off,
-    xfailCUDAIfSM89OrLaterOnWindows,
 )
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
@@ -1072,6 +1071,37 @@ print(t.is_pinned())
             self.assertEqual(x, y)
             self.assertEqual(a, b)
             self.assertEqual(torch.cuda.initial_seed(), 2)
+
+    def test_lazy_call_reentrant_set_rng_state_does_not_deadlock(self):
+        # Separate process: a regression deadlocks the interpreter (non-reentrant lock).
+        # Happy path is usually a few seconds; allow margin for slow CI / CUDA init.
+        timeout_sec = 15
+        script = (
+            "import torch; "
+            "torch.cuda.init(); "
+            "state = torch.cuda.get_rng_state(); "
+            "torch.cuda._lazy_call(lambda: torch.cuda.set_rng_state(state)); "
+            "print('done')"
+        )
+        try:
+            proc = subprocess.run(
+                [sys.executable, "-c", script],
+                capture_output=True,
+                text=True,
+                timeout=timeout_sec,
+            )
+        except subprocess.TimeoutExpired as e:
+            self.fail(
+                f"lazy_call reentrancy subprocess did not finish within {timeout_sec}s "
+                "(likely deadlock in torch.cuda._lazy_call); "
+                f"cmd={e.cmd!r}"
+            )
+        self.assertEqual(
+            proc.returncode,
+            0,
+            msg=f"stdout={proc.stdout!r}\nstderr={proc.stderr!r}",
+        )
+        self.assertIn("done", proc.stdout)
 
     def test_specify_improper_device_name(self):
         with tempfile.TemporaryDirectory() as tmpdir:
@@ -2374,7 +2404,6 @@ torch.cuda.synchronize()
         self.assertFalse(torch.allclose(buf, torch.zeros_like(buf)))
 
     @skipIfRocmVersionLessThan((7, 14))
-    @xfailCUDAIfSM89OrLaterOnWindows
     @unittest.skipIf(
         not TEST_CUDA_GRAPH, "CUDA >= 11.0 or ROCM >= 5.3 required for graphs"
     )
@@ -4257,6 +4286,7 @@ with torch.cuda.graph(g):
             )
             self.assertEqual(rc, "3")
 
+    @unittest.skipIf(TEST_WITH_ROCM, "Failed onr ROCm due to rocprofiler-sdk issue AIPROFSDK-840")
     @unittest.skipIf(not TEST_WITH_ROCM, "not relevant for CUDA testing")
     def test_hip_device_count(self):
         """Validate device_count works with both CUDA/HIP visible devices"""
@@ -4705,6 +4735,7 @@ class TestCudaAllocator(TestCase):
                 return x
 
         try:
+            torch._dynamo.reset()
             torch.cuda.memory.empty_cache()
             # Region ids come from Dynamo's process-global frame counter, which
             # reset() zeroes; do it before compiling so the region strings are

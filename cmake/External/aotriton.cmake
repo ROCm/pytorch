@@ -9,7 +9,7 @@ if(NOT __AOTRITON_INCLUDED)
   # Replaces .ci/docker/aotriton_version.txt
   # Note packages information may have versions skipped (due to no ABI breaks)
   # But they must be listed from lower version to higher version
-  set(__AOTRITON_VER "0.13b")
+  set(__AOTRITON_VER "0.13.50tp")
   set(__AOTRITON_MANYLINUX_LIST
       "manylinux_2_28"  # rocm6.4
       "manylinux_2_28"  # rocm7.0
@@ -29,15 +29,15 @@ if(NOT __AOTRITON_INCLUDED)
   if(DEFINED ENV{PYTORCH_AOTRITON_COMMIT})
     set(__AOTRITON_CI_COMMIT "$ENV{PYTORCH_AOTRITON_COMMIT}")
   else()
-    set(__AOTRITON_CI_COMMIT "6e00ef3e335b45dfb49065259533b59c68995bfe")
+    set(__AOTRITON_CI_COMMIT "c073da80c4bcb814f562bb62e1b2ff821fa2cdd1")
   endif()
   set(__AOTRITON_SHA256_LIST
-      "2fafa80953d9a49bd20e794bb8c0e1646e8aa815be2fb161deaa849a47547b17"  # rocm6.4
-      "7409f7c974cc79be731a419818bdb2ed6b8a3640fd40665baa76ec3c2a537204"  # rocm7.0
-      "f061a997679d8529a7b196b0ffb39912145ede217e515e1ee9ef5673b56d9e41"  # rocm7.1
-      "1cdeebb7ef61ab691fba1d81da919b9db5d8bef28269c892a30bd13a0495b7a0"  # rocm7.2
-      "7a139797c16b002fd5d9bcd706d36dc9819bb108877150f8186da21d0590eaa6"  # rocm7.14
-      "f024225d8b6063f7d95974e5957cb20893a1579a9a73b22b60426441331bc021"  # rocm7.15
+      "7708bd2ff58e68a6b77f1605507733012d035deb36867d7d400220c7897ff438"  # rocm6.4
+      "e8923752f687687d2ad0343ca7b444f2cedc553b72711daf81b90a58ba9d3365"  # rocm7.0
+      "1fec784443d6958ad01da76a70ed99ffe107c98951490a754a8c4c0444fcd3e9"  # rocm7.1
+      "8ce1a1a0eea7b6e01ddd9d702f56a145c034f0da2b3187418d48d7ae40223fea"  # rocm7.2
+      "b978982154cbb825c4c65b54c0bc64b106c497ce8bb6a38e3f70b6a69b86b9ae"  # rocm7.14
+      "a698fda2edf84759c8b9f19e27c9bc302679e205bac3f684cb8f3e4f2878bb07"  # rocm7.15
       )
   set(__AOTRITON_IMAGE_LIST
       "amd-gfx90a"
@@ -55,7 +55,7 @@ if(NOT __AOTRITON_INCLUDED)
      "efe773e7a2c8adc995d90ecd0daca2db801285445ee10432df2b29c67d5b11d2" # amd-gfx110x
      "1bc50e8aa8b6bda3410e92886ccca8fd45df3e60a6cbda9ffc58b2c541efd5c2" # amd-gfx115x
      "6a465dbc03148bba8a2d78c4c2a3cb83155eca00f4f7f749e676402d7660968c" # amd-gfx120x
-     "4aaf71d6e510549d593757e5f88598df1e4a29cbcd91f70750ee8a76f65c027f" # amd-gfx1250
+     "74fe9073ec11136a3d779af1eccd63d721f85ee08b0e2665175c3e0fe4d12c55" # amd-gfx1250
      )
   set(__AOTRITON_BASE_URL "$ENV{PYTORCH_AOTRITON_BASE_URL}")
   if(NOT __AOTRITON_BASE_URL)

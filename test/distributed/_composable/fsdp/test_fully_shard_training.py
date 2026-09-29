@@ -59,6 +59,7 @@ from torch.testing._internal.common_utils import (
     get_cycles_per_ms,
     MI200_ARCH,
     run_tests,
+    skipIfRocm,
     TEST_CUDA_GRAPH,
     TEST_HPU,
     TEST_XPU,
@@ -662,6 +663,7 @@ class TestFullyShard1DTrainingCore(FSDPTest):
             self.assertEqual(losses[0], losses[1])
 
     @skip_if_lt_x_gpu(2)
+    @skipIfRocm(msg="Skipped to stabilize release/2.11 on TheRock CI")
     @unittest.skipIf(TEST_HPU or TEST_XPU, "Sleep is not supported on HPU/XPU")
     def test_post_optim_event(self):
         torch.manual_seed(42)
@@ -1475,7 +1477,6 @@ class TestFullyShardNDTraining(FSDPTest):
         mlp_dim: int,
         foreach: bool,
     ):
-        global_mesh = self.init_global_mesh()
         _, dp_mesh, tp_mesh = (
             global_mesh["pp"],
             global_mesh["dp"],
@@ -1520,6 +1521,10 @@ class TestFullyShardNDTraining(FSDPTest):
 
     @skip_if_lt_x_gpu(8)
     def test_shard_placement_fn_tp_ep(self):
+        # Every new mesh adds NCCL communicators that hold /dev/shm until the
+        # processes exit, and the meshes depend only on tp_degree and
+        # dp_replicate, so build them once rather than once per subtest.
+        self._parallel_meshes = {}
         self.run_subtests(
             {
                 "tp_degree": [1, 2],
@@ -1613,7 +1618,10 @@ class TestFullyShardNDTraining(FSDPTest):
         self, tp_degree, dp_replicate, reshard_non_layer_modules
     ):
         ep_degree = 2
-        result = self._init_parallel_meshes(tp_degree, dp_replicate, ep_degree)
+        key = (tp_degree, dp_replicate, ep_degree)
+        if key not in self._parallel_meshes:
+            self._parallel_meshes[key] = self._init_parallel_meshes(*key)
+        result = self._parallel_meshes[key]
         if result is None:
             return
         (
@@ -1771,7 +1779,6 @@ class TestFullyShardHSDP3DTraining(FSDPTest):
         mlp_dim: int,
         foreach: bool,
     ):
-        global_mesh = self.init_global_mesh()
         dp_mesh, tp_mesh = global_mesh["dp_replicate", "dp_shard"], global_mesh["tp"]
         dp_pg = dp_mesh._flatten().get_group()  # used for `replicate()`
 
@@ -1987,6 +1994,7 @@ class TestFullyShardShareCommContext(FSDPTest):
             fully_shard(layer)
             layer._get_fsdp_state()._lazy_init()
         share_comm_ctx(list(model))
+        shared_comm_ctx = model[0]._get_fsdp_state()._comm_ctx
 
         torch.manual_seed(42 + self.rank + 1)
         inp = torch.randn(4, 3, lin_dim, device=device_type.type)
@@ -2076,6 +2084,7 @@ class TestFullyShardShareCommContext(FSDPTest):
                 dist.all_reduce(param.grad, op=dist.ReduceOp.AVG)
         self.assertEqual(len(all_gather_streams), 1)
         self.assertEqual(len(reduce_scatter_streams), 1)
+        self.assertEqual(len(shared_comm_ctx._last_post_reduce_events), 0)
         check_sharded_parity(self, ref_model, model)
 
 

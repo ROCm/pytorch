@@ -53,6 +53,7 @@ from torch._inductor.runtime.triton_heuristics import (
     triton_config,
 )
 from torch._inductor.test_case import run_tests, TestCase
+from torch._inductor.utils import fresh_cache
 
 
 @triton.jit
@@ -306,6 +307,43 @@ class TestTritonHeuristics(TestCase):
                 config_heuristic.get_mm_configs()(3, 3, 3, dtype_size=4, op_name="mm")
             )
             self.assertEqual(len(configs), expected_count)
+
+    @skipUnless(HAS_GPU_AND_TRITON, "requires gpu and triton")
+    def test_compile_time_autotune_not_repeated_at_runtime(self):
+        def fn(x):
+            return (x + 1).sum(dim=1)
+
+        x = torch.randn(2048, 2048, device=GPU_TYPE)
+        benchmark_calls = []
+
+        def fake_benchmark_all_configs(autotuner, *args, **kwargs):
+            benchmark_calls.append(autotuner.inductor_meta.get("kernel_name"))
+            return {
+                launcher: float(idx) for idx, launcher in enumerate(autotuner.launchers)
+            }
+
+        torch._dynamo.reset()
+        with (
+            fresh_cache(),
+            config.patch(
+                {
+                    "triton.autotune_at_compile_time": True,
+                    "max_autotune_pointwise": True,
+                    "compile_threads": 1,
+                }
+            ),
+            patch.object(
+                CachingAutotuner,
+                "benchmark_all_configs",
+                fake_benchmark_all_configs,
+            ),
+        ):
+            compiled = torch.compile(fn, backend="inductor")
+            self.assertEqual(compiled(x), fn(x))
+            self.assertEqual(len(benchmark_calls), 1)
+
+            self.assertEqual(compiled(x), fn(x))
+            self.assertEqual(len(benchmark_calls), 1)
 
 
 class TestArgumentCloneAndRestore(TestCase):
@@ -835,6 +873,61 @@ class TestWarpSizeUnification(TestCase):
             size_hints, 128, num_warps=1, min_elem_per_thread=4, warp_size=64
         )
         self.assertEqual(cfg64.kwargs["XBLOCK"], 2 * cfg32.kwargs["XBLOCK"])
+
+
+class TestMakeLaunchersMemory(TestCase):
+    def test_failed_config_exception_not_retained(self):
+        """A failed launcher build must not retain its traceback frame chain."""
+        import contextlib
+        import gc
+        import types
+        import weakref
+
+        class _Result:
+            config = types.SimpleNamespace(num_stages=1, kwargs={})
+
+            def __init__(self, succeeds):
+                self.succeeds = succeeds
+
+            def make_launcher(self):
+                if self.succeeds:
+                    return object()
+                raise torch.cuda.OutOfMemoryError("out of resource (test)")
+
+        results = [_Result(True), _Result(False)]
+        fake_self = types.SimpleNamespace(
+            launchers=[],
+            compile_results=results,
+            triton_meta={"device": 0},
+            inductor_meta={},
+            get_device_interface=lambda: None,
+        )
+
+        class _Sentinel:
+            pass
+
+        def run():
+            l2_buffer = _Sentinel()
+            ref = weakref.ref(l2_buffer)
+            with patch(
+                "torch._dynamo.device_interface.DeviceGuard",
+                lambda *args, **kwargs: contextlib.nullcontext(),
+            ):
+                CachingAutotuner._make_launchers(fake_self)
+            return ref
+
+        gc.disable()
+        try:
+            ref = run()
+            self.assertIsNone(
+                ref(),
+                "_make_launchers retained the failed-config exception; its "
+                "traceback pins caller frames until cyclic GC.",
+            )
+        finally:
+            gc.enable()
+
+        self.assertEqual(len(fake_self.launchers), 1)
 
 
 

@@ -27,7 +27,7 @@ from torch.distributed.tensor.parallel import (
     SequenceParallel,
 )
 from torch.testing._internal.common_distributed import skip_if_lt_x_gpu
-from torch.testing._internal.common_utils import run_tests
+from torch.testing._internal.common_utils import run_tests, TEST_WITH_ROCM
 from torch.testing._internal.distributed._tensor.common_dtensor import (
     create_local_tensor_test_class,
     DTensorTestBase,
@@ -1601,11 +1601,12 @@ class DistMathOpsTest(DTensorTestBase):
         self.assertEqual(res_LU.full_tensor(), exp_LU)
         self.assertTrue(res_LU.placements[0].is_shard(0))
 
-        # eig
-        expected_vals, expected_vecs = torch.linalg.eig(B)
-        result_vals, result_vecs = torch.linalg.eig(dt_B)
-        self.assertEqual(result_vals.full_tensor(), expected_vals)
-        self.assertTrue(result_vals.placements[0].is_shard(0))
+        # eig requires MAGMA on ROCm (no hipSOLVER fallback); skip if unavailable
+        if not TEST_WITH_ROCM or torch.cuda.has_magma:
+            expected_vals, expected_vecs = torch.linalg.eig(B)
+            result_vals, result_vecs = torch.linalg.eig(dt_B)
+            self.assertEqual(result_vals.full_tensor(), expected_vals)
+            self.assertTrue(result_vals.placements[0].is_shard(0))
 
         # solve
         rhs = torch.randn(8, 4, 2, device=self.device_type)

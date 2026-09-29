@@ -232,6 +232,18 @@ class FSDPState(_State):
                 fsdp_param_group.comm_ctx = self._comm_ctx
                 fsdp_param_group._param_group_index = i
                 fsdp_param_group._num_param_groups = num_groups
+        # The reduce-scatter input-buffer cap governs the single shared
+        # reduce_scatter_states list, so resolve the per-group caps into one
+        # effective value (the most aggressive); a lower-cap group must not
+        # silently undo a higher-cap group's retention.
+        self._comm_ctx.reduce_scatter_max_input_buffers = max(
+            (
+                fsdp_param_group.reduce_scatter_max_input_buffers
+                for state in self._state_ctx.all_states
+                for fsdp_param_group in state._fsdp_param_groups
+            ),
+            default=1,
+        )
 
     def _init_fqns(self) -> None:
         """Sets module and parameter FQN attributes for debugging."""
@@ -364,8 +376,11 @@ class FSDPState(_State):
                     state._finalize_backward()
             if self._state_ctx.is_last_backward:
                 self._comm_ctx.post_forward_order.clear()
-                # Catch the last module's RS states that no subsequent
-                # module's group N-1 wait will clear.
+                # Wait on and release any retained reduce-scatter input buffers:
+                # the last module's (which no later module's rs_wait clears) and,
+                # when set_reduce_scatter_max_input_buffers retains more than
+                # one in flight, the rest. The compute stream (which reuses the
+                # memory) is ordered past each reduce-scatter first.
                 for rs_state in self._comm_ctx.reduce_scatter_states:
                     if rs_state.event is not None:
                         self._device_handle.current_stream().wait_event(rs_state.event)
@@ -406,6 +421,37 @@ class FSDPState(_State):
             self._root_post_backward_final_callback
         )
 
+    def _reset_iter_state(self) -> None:
+        # Iteration-wide recovery after a mid-forward or mid-backward
+        # exception. Waits on in-flight collectives, reshards every param
+        # group, and clears per-iteration trackers so the next forward can
+        # start from a clean state. Any in-flight gradients (reduce-scatter
+        # results, HSDP partial reduce outputs, grad-accum state) are
+        # discarded: the failed iteration is treated as lost.
+        if self._is_root is False:
+            raise RuntimeError(
+                "reset_iter_state must be called on the root FSDP module"
+            )
+        current_stream = self._device_handle.current_stream()
+        if ag_state := self._comm_ctx.all_gather_state:
+            if ag_state.event is not None:
+                current_stream.wait_event(ag_state.event)
+            self._comm_ctx.all_gather_state = None
+        for rs_state in self._comm_ctx.reduce_scatter_states:
+            if rs_state.event is not None:
+                current_stream.wait_event(rs_state.event)
+        self._comm_ctx.reduce_scatter_states.clear()
+        for event in self._comm_ctx._last_post_reduce_events.values():
+            current_stream.wait_event(event)
+        self._comm_ctx._last_post_reduce_events.clear()
+        self._comm_ctx.post_forward_order.clear()
+        for state in self._state_ctx.all_states:
+            state._modules_to_run_forward.clear()
+            state._training_state = TrainingState.IDLE
+            for fsdp_param_group in state._fsdp_param_groups:
+                fsdp_param_group._reset_iter_state()
+        self._state_ctx.iter_forward_root = None
+        self._state_ctx.post_backward_final_callback_queued = False
 
 def _get_module_fsdp_state(module: nn.Module) -> FSDPState | None:
     state = _get_module_state(module)
