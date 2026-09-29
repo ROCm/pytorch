@@ -8,8 +8,6 @@ on:
       - "release/**"
     types:
       - labeled
-      - reopened
-      - synchronize
   workflow_dispatch:
     inputs:
       pr_number:
@@ -19,7 +17,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
   statuses: write
 
 concurrency:
@@ -30,10 +28,7 @@ jobs:
   dispatch:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      (
-        contains(github.event.pull_request.labels.*.name, 'ci:therock') &&
-        (github.event.action != 'labeled' || github.event.label.name == 'ci:therock')
-      )
+      github.event.label.name == 'ci:therock'
     name: Dispatch and monitor TheRock
     runs-on: ubuntu-24.04
     timeout-minutes: 360
@@ -60,6 +55,13 @@ jobs:
             exit 1
           fi
 
+          event_sha="${{ github.event.pull_request.head.sha }}"
+          current_sha="$(jq -r '.head.sha' <<< "${pr_json}")"
+          if [[ -n "${event_sha}" && "${event_sha}" != "${current_sha}" ]]; then
+            echo "::error::The PR changed after ci:therock was applied; review and reapply the label."
+            exit 1
+          fi
+
           base_ref="$(jq -r '.base.ref' <<< "${pr_json}")"
           if [[ "${base_ref}" != "develop" && "${base_ref}" != release/* ]]; then
             echo "::error::Unsupported base branch: ${base_ref}"
@@ -67,8 +69,12 @@ jobs:
           fi
 
           echo "number=${PR_NUMBER}" >> "${GITHUB_OUTPUT}"
-          echo "sha=$(jq -r '.head.sha' <<< "${pr_json}")" >> "${GITHUB_OUTPUT}"
+          echo "sha=${current_sha}" >> "${GITHUB_OUTPUT}"
           echo "base_sha=$(jq -r '.base.sha' <<< "${pr_json}")" >> "${GITHUB_OUTPUT}"
+
+          # Consume approval so each new PR SHA requires a fresh label.
+          gh api --method DELETE \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels/ci%3Atherock"
 
       - name: Validate package configuration
         env:
@@ -96,11 +102,14 @@ jobs:
           owner: ROCm
           repositories: TheRock
           permission-actions: write
+          skip-token-revoke: true
 
       - name: Dispatch and monitor wheel builds
         env:
           GITHUB_TOKEN: ${{ github.token }}
           THEROCK_TOKEN: ${{ steps.app-token.outputs.token }}
+          THEROCK_APP_ID: ${{ secrets.APP_ID }}
+          THEROCK_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
         run: |
           python .github/scripts/dispatch_therock_ci.py \
             --sha "${{ steps.pr.outputs.sha }}" \

@@ -48,7 +48,7 @@ class DispatchTheRockCITest(unittest.TestCase):
             },
         )
 
-    def test_select_dispatched_run_uses_sha_and_time(self):
+    def test_select_dispatched_run_rejects_ambiguous_matches(self):
         dispatched_at = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
         runs = [
             {
@@ -77,7 +77,42 @@ class DispatchTheRockCITest(unittest.TestCase):
             runs, sha="abc123", dispatched_at=dispatched_at
         )
 
-        self.assertEqual(selected["id"], 3)
+        self.assertIsNone(selected)
+
+    def test_select_dispatched_run_excludes_preexisting_run(self):
+        dispatched_at = datetime(2026, 9, 29, 12, 0, tzinfo=timezone.utc)
+        runs = [
+            {
+                "id": 3,
+                "display_title": "Build pyabc123",
+                "created_at": "2026-09-29T12:00:02Z",
+            },
+            {
+                "id": 4,
+                "display_title": "Build pyabc123 retry",
+                "created_at": "2026-09-29T12:00:03Z",
+            },
+        ]
+
+        selected = dispatch.select_dispatched_run(
+            runs,
+            sha="abc123",
+            dispatched_at=dispatched_at,
+            excluded_ids={3},
+        )
+
+        self.assertEqual(selected["id"], 4)
+
+    def test_app_token_provider_refreshes_before_expiry(self):
+        clock = [0.0]
+        provider = dispatch.AppTokenProvider(
+            "123", "key", "ROCm/TheRock", "initial", monotonic=lambda: clock[0]
+        )
+        provider._create_token = lambda: "refreshed"
+
+        self.assertEqual(provider(), "initial")
+        clock[0] = 2_700
+        self.assertEqual(provider(), "refreshed")
 
     def test_status_state(self):
         self.assertEqual(dispatch.status_state("success"), "success")
