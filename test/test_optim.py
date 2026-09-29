@@ -784,7 +784,13 @@ class TestOptimRenewed(TestCase):
         self.assertTrue(new_optim.param_groups[0]["decoupled_weight_decay"])
 
     def _compare_between(
-        self, inputs, models, optimizers, assert_eq_kwargs=None, assert_step_dtype=None
+        self,
+        inputs,
+        models,
+        optimizers,
+        assert_eq_kwargs=None,
+        assert_step_dtype=None,
+        sync_grads_from_first=False,
     ):
         # why 7? iteration 7 is where we start to see differences for RAdam
         # params interacting with the small eps value, because that's right
@@ -797,7 +803,8 @@ class TestOptimRenewed(TestCase):
             state, updated_params = [], []
             if not isinstance(inputs, list):
                 inputs = [inputs, inputs]
-            for input, model, optimizer in zip(inputs, models, optimizers):
+            pairs = list(zip(inputs, models, optimizers))
+            for input, model, optimizer in pairs:
                 optimizer.zero_grad()
 
                 if i == 3:
@@ -814,6 +821,23 @@ class TestOptimRenewed(TestCase):
                     loss = output.sum()
                     loss.backward()
 
+            # Low-precision Linear is not bitwise identical across devices.
+            # Adagrad's sum is grad^2, so a 1 ulp matmul gap fails the
+            # accumulator while the param step (about lr * sign(grad)) still
+            # matches. Copy the reference grads and compare the fused kernels.
+            if sync_grads_from_first:
+                ref_model = pairs[0][1]
+                for _, model, _ in pairs[1:]:
+                    for ref_p, p in zip(ref_model.parameters(), model.parameters()):
+                        if ref_p.grad is None:
+                            p.grad = None
+                        elif p.grad is None:
+                            copied = ref_p.grad.detach().to(p.device, p.dtype)
+                            p.grad = copied
+                        else:
+                            p.grad.copy_(ref_p.grad)
+
+            for _, model, optimizer in pairs:
                 optimizer.step()
                 state.append(optimizer.state)
                 updated_params.append(model.parameters())
@@ -2382,7 +2406,7 @@ class TestOptimRenewed(TestCase):
         for optim_input in optim_inputs:
             inpts, models, optimizers = [], [], []
             for dev in ("cpu", _get_device_type(device)):
-                kwargs = optim_input.kwargs
+                kwargs = deepcopy(optim_input.kwargs)
                 kwargs["fused"] = True
                 inpt = torch.tensor(
                     [0.1, 0.2, 0.3, 0.4, 0.5, 0.6], dtype=dtype, device=dev
@@ -2410,7 +2434,9 @@ class TestOptimRenewed(TestCase):
                 inpts.append(inpt)
                 models.append(model)
                 optimizers.append(optimizer)
-        self._compare_between(inpts, models, optimizers)
+            self._compare_between(
+                inpts, models, optimizers, sync_grads_from_first=True
+            )
 
     @onlyCUDA
     @optims(
