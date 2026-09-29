@@ -606,11 +606,14 @@ std::vector<int64_t> _check_gesvdj_convergence(const Tensor& infos, int64_t non_
     // which means pytorch implementation of cusolver is wrong.
     TORCH_INTERNAL_ASSERT_DEBUG_ONLY(info_for_batch_i >= 0);
 
-    // In our use case, gesvdj, gesvdjBatched, and gesvdaStridedBatched have the same notations for `info`.
+    // cuSOLVER: gesvdj, gesvdjBatched, and gesvdaStridedBatched all report
+    // non-convergence as info == min(m, n) + 1.
+    // rocSOLVER gesvdj (what hipSOLVER calls on ROCm) reports it as info == 1.
+    // The caller passes the code that matches the backend.
     if (info_for_batch_i == non_converging_info) res.push_back(i);
 
-    // However, it is not the same for gesvd, though we don't use this function to check gesvd convergence either.
-    // If it's implemented some day in the future, this needs to be handled carefully.
+    // gesvd uses a different info convention (number of unconverged
+    // superdiagonals). This helper is not used to check gesvd.
   }
 
   return res;
@@ -652,7 +655,6 @@ void svd_cusolver(const Tensor& A,
   // Here U and V are F-contig whenever they are defined (i.e. whenever compute_uv=true)
   const auto m = A.size(-2);
   const auto n = A.size(-1);
-  const auto k = std::min(m, n);
 
   static constexpr const char* check_svd_doc = "Check doc at https://pytorch.org/docs/stable/generated/torch.linalg.svd.html";
 
@@ -687,7 +689,18 @@ void svd_cusolver(const Tensor& A,
   if (driver_v != "gesvd") {
     // A device-host sync will be performed.
     // Todo: implement the svd_ex variant to not check result convergence, thus removing the device-host sync
-    const auto svd_non_converging_batches = _check_gesvdj_convergence(info, k + 1);
+    // cuSOLVER sets info = min(m, n) + 1 when gesvdj does not converge.
+    // rocSOLVER's Jacobi eigensolver (used by gesvdj) sets info = 1 when it
+    // hits max_sweeps, and hipSOLVER forwards that value unchanged. Checking
+    // only for min(m, n) + 1 misses the failure, skips the gesvd fallback,
+    // and _linalg_check_errors then raises error code 1.
+#ifdef USE_ROCM
+    const int64_t gesvdj_no_convergence = 1;
+#else
+    const int64_t gesvdj_no_convergence = std::min(m, n) + 1;
+#endif
+    const auto svd_non_converging_batches = _check_gesvdj_convergence(
+        info, gesvdj_no_convergence);
 
     if (!svd_non_converging_batches.empty()) {
       TORCH_WARN_ONCE("torch.linalg.svd: During SVD computation with the selected cusolver driver, ",
