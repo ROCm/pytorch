@@ -28,7 +28,7 @@ on:
       max_dispatches:
         description: 'Maximum number of ready upstream commits to dispatch in one scan.'
         required: false
-        default: '1'
+        default: '3'
         type: string
       max_age_hours:
         description: 'Skip commits older than this (avoid back-filling ancient SHAs).'
@@ -74,7 +74,8 @@ jobs:
           UPSTREAM: pytorch/pytorch
           BRANCH: main
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
-          MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '1' }}
+          MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '3' }}
+          DISPATCH_STAGGER_SECONDS: '120'
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
           # Auto-parity is trunk-scoped: mi350 is the only ROCm arch that rides
           # along in trunk.yml. Other arches have their own periodic workflows.
@@ -126,6 +127,7 @@ jobs:
               "Scope archs:     $ARCHS" \
               "Max trunk runs:  $MAX_COMMITS" \
               "Max dispatches:  $MAX_DISPATCHES" \
+              "Dispatch stagger: ${DISPATCH_STAGGER_SECONDS}s" \
               "Max age:         ${MAX_AGE_HOURS}h" \
               "Dry run:         $DRY_RUN" \
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
@@ -447,6 +449,10 @@ jobs:
             if [ "$DISPATCHED_COUNT" -ge "$MAX_DISPATCHES" ]; then
               echo "Reached max dispatches for this scan ($MAX_DISPATCHES); stopping"
               return 1
+            fi
+            if [ "$DRY_RUN" != "true" ]; then
+              echo "Staggering the next dispatch by ${DISPATCH_STAGGER_SECONDS}s"
+              sleep "$DISPATCH_STAGGER_SECONDS"
             fi
             return 0
           }
