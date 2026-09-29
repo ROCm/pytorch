@@ -135,24 +135,37 @@ jobs:
           }
 
           fetch_paginated_array() {
-            local endpoint="$1" filter="$2" label="$3"
-            local attempt=1 raw result separator="?"
+            local endpoint="$1" filter="$2" label="$3" samples="${4:-2}"
+            local attempt=1 raw result rc separator="?"
+            local aggregate='[]' successes=0
             [[ "$endpoint" == *"?"* ]] && separator="&"
-            while [ "$attempt" -le 5 ]; do
+            while [ "$attempt" -le "$samples" ]; do
               raw=$(gh api -H "Cache-Control: no-cache" --paginate \
                 "${endpoint}${separator}cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
                 --jq "$filter" 2>/dev/null)
-              if [ "$?" -eq 0 ]; then
+              rc=$?
+              if [ "$rc" -eq 0 ]; then
                 result=$(printf '%s\n' "$raw" | jq -s '.' 2>/dev/null)
                 if echo "$result" | jq -e 'type == "array"' >/dev/null 2>&1; then
-                  echo "$result"
-                  return 0
+                  aggregate=$(jq -s '
+                    add
+                    | reduce .[] as $item ({};
+                        .[($item.id | tostring)] = $item)
+                    | [.[]]
+                  ' <(echo "$aggregate") <(echo "$result"))
+                  successes=$((successes + 1))
+                  attempt=$((attempt + 1))
+                  continue
                 fi
               fi
               echo "::warning::$label API request failed; retrying" >&2
               sleep "$attempt"
               attempt=$((attempt + 1))
             done
+            if [ "$successes" -gt 0 ]; then
+              echo "$aggregate"
+              return 0
+            fi
             echo "::error::$label API request failed after retries" >&2
             return 1
           }
@@ -166,7 +179,7 @@ jobs:
             workflows=$(fetch_paginated_array \
               "repos/$UPSTREAM/actions/workflows?per_page=100" \
               '.workflows[] | {id,path,state,updated_at}' \
-              "workflow list") || return 2
+              "workflow list" 3) || return 2
             workflow_id=$(echo "$workflows" | jq -r --arg path "$path" '
               [ .[] | select(.path == $path and .state == "active") ]
               | sort_by(.updated_at) | last | .id // empty')
@@ -177,13 +190,14 @@ jobs:
           }
 
           fetch_trunk_runs_page() {
-            local workflow_id="$1" page="$2" attempt=1 page_runs newest_epoch
+            local workflow_id="$1" page="$2" attempt=1 page_runs newest_epoch rc
             local best_runs='[]' best_epoch=0
             while [ "$attempt" -le 5 ]; do
               page_runs=$(gh api -H "Cache-Control: no-cache" \
                 "repos/$UPSTREAM/actions/workflows/$workflow_id/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page&cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
                 --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
-              if echo "$page_runs" | jq -e 'type == "array"' >/dev/null 2>&1; then
+              rc=$?
+              if [ "$rc" -eq 0 ] && echo "$page_runs" | jq -e 'type == "array"' >/dev/null 2>&1; then
                 if [ "$page" -ne 1 ]; then
                   echo "$page_runs"
                   return 0
@@ -254,8 +268,8 @@ jobs:
           fetch_existing_dispatches() {
             fetch_paginated_array \
               "repos/$GITHUB_REPOSITORY/actions/workflows/parity.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u -d "@$MAX_AGE_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')&per_page=100" \
-              '.workflow_runs[] | {display_title, actor: .actor.login}' \
-              "existing parity dispatches"
+              '.workflow_runs[] | {id,display_title,actor: .actor.login}' \
+              "existing parity dispatches" 5
           }
 
           # True if EXISTING already has an auto-parity run for this SHA.
@@ -283,7 +297,7 @@ jobs:
             local sha="$1" all_runs arch wf_regex wf_total run_archs="" notes=""
             all_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/actions/runs?head_sha=$sha&per_page=100" \
-              '.workflow_runs[] | {name,path,status,conclusion}' \
+              '.workflow_runs[] | {id,name,path,status,conclusion}' \
               "workflow runs for $sha") || return 2
             for arch in $ARCHS; do
               wf_regex=$(echo "$ARCH_WORKFLOW_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
@@ -358,7 +372,7 @@ jobs:
             # flip to failure before sibling shards finish, so we look per shard).
             all_check_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/commits/$sha/check-runs?per_page=100" \
-              '.check_runs[] | {name,status,conclusion}' \
+              '.check_runs[] | {id,name,status,conclusion}' \
               "check-runs for $sha") || return 2
 
             ROCM_CHECK_RUNS='[]'
