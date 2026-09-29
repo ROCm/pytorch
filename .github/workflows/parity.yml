@@ -226,9 +226,26 @@ jobs:
       - name: Generate CSV
         working-directory: .automation_scripts/pytorch-unit-test-scripts
         run: |
+          set -o pipefail
           FOLDER="${{ steps.folder.outputs.folder }}"
           DATE="${{ steps.folder.outputs.date }}"
           ARCH="${{ matrix.arch }}"
+
+          require_xml() {
+            local directory="$1" label="$2"
+            if ! find "$directory" -name "*.xml" -print -quit 2>/dev/null | grep -q .; then
+              echo "::error::No $label XML reports were downloaded"
+              exit 1
+            fi
+          }
+          if [ "${{ inputs.skip_rocm }}" != "true" ]; then
+            require_xml "$FOLDER/rocm_xml" "ROCm"
+          fi
+          if [ -n "${{ inputs.baseline_sha }}" ]; then
+            require_xml "$FOLDER/baseline_xml" "baseline"
+          elif [ "${{ inputs.skip_cuda }}" != "true" ]; then
+            require_xml "$FOLDER/cuda_xml" "CUDA"
+          fi
 
           if [ -n "${{ inputs.csv_name }}" ]; then
             CSV_NAME="${{ inputs.csv_name }}_${ARCH}"
@@ -261,6 +278,14 @@ jobs:
 
           echo "Running: python3 -u summarize_xml_testreports.py $ARGS"
           python3 -u summarize_xml_testreports.py $ARGS 2>&1 | tee "$FOLDER/xml_processing_${DATE}.log"
+          test "$(wc -l < "$FOLDER/${CSV_NAME}.csv")" -gt 1 || {
+            echo "::error::Parity CSV has no data rows"
+            exit 1
+          }
+          test "$(wc -l < "$FOLDER/${RT_NAME}.csv")" -gt 1 || {
+            echo "::error::Running-time CSV has no data rows"
+            exit 1
+          }
 
       - name: Auto-classify skip reasons
         if: ${{ inputs.auto_classify }}
@@ -354,8 +379,8 @@ jobs:
             ARTIFACT_DIR="../../artifacts/${PREFIX}-results-${ARCH}"
             CSV=$(find "$ARTIFACT_DIR"/ -maxdepth 2 -name "*.csv" ! -name "*_running_time*" ! -name "*_summary*" ! -name "log_failures_*" ! -name "log_shards_*" ! -name "flaky_tests_*" 2>/dev/null | head -1)
             if [ -z "$CSV" ]; then
-              echo "WARNING: No CSV found for $ARCH, skipping"
-              continue
+              echo "::error::No parity CSV found for $ARCH"
+              exit 1
             fi
             echo "Found CSV for $ARCH: $CSV"
             CSV_ARGS+=("$CSV")
@@ -363,10 +388,8 @@ jobs:
           done
 
           if [ ${#CSV_ARGS[@]} -eq 0 ]; then
-            echo "::warning::No CSVs found for any architecture — some or all generate-parity jobs may have failed"
-            echo "## ⚠ No CSVs produced" >> "$GITHUB_STEP_SUMMARY"
-            echo "No parity CSVs were found. Check the generate-parity job logs for errors." >> "$GITHUB_STEP_SUMMARY"
-            exit 0
+            echo "::error::No parity CSVs found for any architecture"
+            exit 1
           fi
 
           ARGS=(--csv "${CSV_ARGS[@]}" --arch "${ARCH_ARGS[@]}")
@@ -404,6 +427,10 @@ jobs:
           echo "Running: python3 generate_summary.py ${ARGS[*]}"
           python3 generate_summary.py "${ARGS[@]}"
 
+          test -s "${OUTPUT}.md" || {
+            echo "::error::Parity summary markdown was not created"
+            exit 1
+          }
           cat "${OUTPUT}.md" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload parity summary markdown
@@ -411,7 +438,7 @@ jobs:
         with:
           name: parity-summary-md
           path: .automation_scripts/pytorch-unit-test-scripts/*_summary.md
-          if-no-files-found: ignore
+          if-no-files-found: error
           retention-days: 120
 
       - name: Add artifact links to summary

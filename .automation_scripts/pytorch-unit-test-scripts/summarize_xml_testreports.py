@@ -115,9 +115,21 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 for key, case in new_cases.items():
                     case["shard"] = shard
                     case["job_url"] = job_url
-                    existing = test_cases.get(key)
-                    if existing is None or _status_priority(case) > _status_priority(existing):
-                        test_cases[key] = case
+                    if tag == "testcase":
+                        existing = test_cases.get(key)
+                        if existing is None or _status_priority(case) > _status_priority(existing):
+                            test_cases[key] = case
+                    else:
+                        storage_key = (*key, shard) if shard else key
+                        existing = test_cases.get(storage_key)
+                        if existing is None:
+                            test_cases[storage_key] = case
+                        elif existing["running_time_xml"] != case["running_time_xml"]:
+                            raise ValueError(
+                                "Conflicting duplicate testsuite "
+                                f"{key} in shard {shard}: "
+                                f"{existing['running_time_xml']} != {case['running_time_xml']}"
+                            )
     return test_cases
 
 def get_test_status(test_case):
