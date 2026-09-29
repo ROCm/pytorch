@@ -1780,7 +1780,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
     auto seed_output = mk_philoxtensor(use_philox_state ? seed_t.data_ptr<int64_t>() : nullptr);
     auto offset_output = mk_philoxtensor(use_philox_state ? offset_t.data_ptr<int64_t>() : nullptr);
     auto persistent_counter = mk_atomictensor(is_causal ? atomic_counter.data_ptr<int32_t>() : nullptr);
-    hipError_t err; // TODO: Error handling
+    hipError_t err;
     using aotriton::v3::flash::CausalType;
     using aotriton::v3::flash::WindowValue;
 #if AOTRITON_VARLEN_BITS_API
@@ -1834,6 +1834,7 @@ std::tuple<Tensor, Tensor, Tensor, Tensor, c10::SymInt, c10::SymInt> _efficient_
     err = aotriton::v3::flash::attn_fwd(params,
                                         aotriton::v3::flash::attn_fwd_params::kVersion,
                                         stream);
+    AT_CUDA_CHECK(err);
 #else
     TORCH_CHECK(false, "Attempting to use AOTriton mem_eff_forward backend in a build that has not built AOTriton");
 #endif

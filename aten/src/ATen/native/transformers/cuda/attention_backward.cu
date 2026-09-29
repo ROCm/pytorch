@@ -724,6 +724,7 @@ _efficient_attention_backward(
                                         aotriton::v3::flash::attn_bwd_params::kVersion,
                                         stream,
                                         &opts);
+    AT_CUDA_CHECK(err);
 #else  // DISABLE_AOTRITON
     TORCH_CHECK(false, "Attempting to use aotriton mem_eff_backward backend in a build that has not built AOTriton");
 #endif
