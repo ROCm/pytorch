@@ -75,6 +75,9 @@ class TestFullyShardOverlap(FSDPTest):
     def world_size(self) -> int:
         return min(2, torch.get_device_module(device_type).device_count())
 
+    # ROCm 10.1 removes high priority queue, which reduces the total number of queues
+    # from 8 (4 high + 4 normal) to 4 (4 normal), causing some streams can't overlap
+    @skipIfRocm
     @skip_if_rocm_arch_multiprocess(MI200_ARCH)
     @skip_if_lt_x_gpu(2)
     @unittest.skipIf(TEST_HPU, "Sleep is not supported on HPU")
