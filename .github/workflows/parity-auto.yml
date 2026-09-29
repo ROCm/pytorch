@@ -136,11 +136,13 @@ jobs:
 
           fetch_paginated_array() {
             local endpoint="$1" filter="$2" label="$3" samples="${4:-2}"
+            local paginate="${5:-true}" pagination=()
             local attempt=1 raw result rc separator="?"
             local aggregate='[]' successes=0
             [[ "$endpoint" == *"?"* ]] && separator="&"
+            [ "$paginate" = "true" ] && pagination+=(--paginate)
             while [ "$attempt" -le "$samples" ]; do
-              raw=$(gh api -H "Cache-Control: no-cache" --paginate \
+              raw=$(gh api -H "Cache-Control: no-cache" "${pagination[@]}" \
                 "${endpoint}${separator}cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
                 --jq "$filter" 2>/dev/null)
               rc=$?
