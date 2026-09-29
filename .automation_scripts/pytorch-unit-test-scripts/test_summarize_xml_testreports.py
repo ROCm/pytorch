@@ -85,7 +85,7 @@ class TestXmlReportMerging(unittest.TestCase):
             self._write(
                 root,
                 shard,
-                "test/junit_xml_testdata/expected",
+                "junit_xml_testdata/expected",
                 "pytest.xml",
                 SUITE.format(time=10, testcase=fixture),
             )
