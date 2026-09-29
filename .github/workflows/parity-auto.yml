@@ -134,19 +134,44 @@ jobs:
               ""
           }
 
+          fetch_paginated_array() {
+            local endpoint="$1" filter="$2" label="$3"
+            local attempt=1 raw result separator="?"
+            [[ "$endpoint" == *"?"* ]] && separator="&"
+            while [ "$attempt" -le 5 ]; do
+              raw=$(gh api -H "Cache-Control: no-cache" --paginate \
+                "${endpoint}${separator}cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
+                --jq "$filter" 2>/dev/null)
+              if [ "$?" -eq 0 ]; then
+                result=$(printf '%s\n' "$raw" | jq -s '.' 2>/dev/null)
+                if echo "$result" | jq -e 'type == "array"' >/dev/null 2>&1; then
+                  echo "$result"
+                  return 0
+                fi
+              fi
+              echo "::warning::$label API request failed; retrying" >&2
+              sleep "$attempt"
+              attempt=$((attempt + 1))
+            done
+            echo "::error::$label API request failed after retries" >&2
+            return 1
+          }
+
           # Resolve the active workflow registration by exact path. GitHub's
           # filename endpoint can resolve a stale registration after a workflow
           # is recreated, returning old runs even while the active workflow runs.
           resolve_workflow_id() {
-            local workflow="$1" path=".github/workflows/$1.yml" workflow_id
-            workflow_id=$(gh api --paginate --slurp \
-              "repos/$UPSTREAM/actions/workflows?per_page=100" 2>/dev/null \
-              | jq -r --arg path "$path" '
-                  [ .[].workflows[]
-                    | select(.path == $path and .state == "active") ]
-                  | sort_by(.updated_at) | last | .id // empty')
+            local workflow="$1" path=".github/workflows/$1.yml"
+            local workflows workflow_id
+            workflows=$(fetch_paginated_array \
+              "repos/$UPSTREAM/actions/workflows?per_page=100" \
+              '.workflows[] | {id,path,state,updated_at}' \
+              "workflow list") || return 1
+            workflow_id=$(echo "$workflows" | jq -r --arg path "$path" '
+              [ .[] | select(.path == $path and .state == "active") ]
+              | sort_by(.updated_at) | last | .id // empty')
             if ! [[ "$workflow_id" =~ ^[0-9]+$ ]]; then
-              echo "::warning::Could not resolve active workflow id for $path" >&2
+              echo "::error::Could not resolve active workflow id for $path" >&2
               return 1
             fi
             echo "$workflow_id"
@@ -154,25 +179,33 @@ jobs:
 
           fetch_trunk_runs_page() {
             local workflow_id="$1" page="$2" attempt=1 page_runs newest_epoch
+            local best_runs='[]' best_epoch=0
             while [ "$attempt" -le 5 ]; do
               page_runs=$(gh api -H "Cache-Control: no-cache" \
                 "repos/$UPSTREAM/actions/workflows/$workflow_id/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page&cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
                 --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
-              if echo "$page_runs" | jq -e . >/dev/null 2>&1; then
-                if [ "$page" -ne 1 ] || [ "$(echo "$page_runs" | jq 'length')" -eq 0 ]; then
+              if echo "$page_runs" | jq -e 'type == "array"' >/dev/null 2>&1; then
+                if [ "$page" -ne 1 ]; then
                   echo "$page_runs"
                   return 0
                 fi
-                newest_epoch=$(date -u -d "$(echo "$page_runs" | jq -r '.[0].created_at')" +%s 2>/dev/null || echo 0)
-                if [ "$newest_epoch" -ge "$MAX_AGE_EPOCH" ]; then
-                  echo "$page_runs"
-                  return 0
+                if [ "$(echo "$page_runs" | jq 'length')" -gt 0 ]; then
+                  newest_epoch=$(date -u -d "$(echo "$page_runs" | jq -r '.[0].created_at')" +%s 2>/dev/null || echo 0)
+                  if [ "$newest_epoch" -gt "$best_epoch" ]; then
+                    best_epoch="$newest_epoch"
+                    best_runs="$page_runs"
+                  fi
                 fi
-                echo "::warning::trunk runs API returned a stale first page; retrying" >&2
+              else
+                echo "::warning::trunk runs API request failed; retrying" >&2
+                sleep "$attempt"
               fi
-              sleep "$attempt"
               attempt=$((attempt + 1))
             done
+            if [ "$best_epoch" -ge "$MAX_AGE_EPOCH" ]; then
+              echo "$best_runs"
+              return 0
+            fi
             echo "::error::Could not fetch a current first page of trunk runs" >&2
             return 1
           }
@@ -215,10 +248,10 @@ jobs:
           # github-actions[bot] and carry an "autoparity-" run-name prefix; we
           # match either signal so manual parity.yml runs don't suppress us.
           fetch_existing_dispatches() {
-            gh api --paginate \
+            fetch_paginated_array \
               "repos/$GITHUB_REPOSITORY/actions/workflows/parity.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u -d "@$MAX_AGE_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')&per_page=100" \
-              --jq '.workflow_runs[] | {display_title, actor: .actor.login}' |
-              jq -s '.'
+              '.workflow_runs[] | {display_title, actor: .actor.login}' \
+              "existing parity dispatches"
           }
 
           # True if EXISTING already has an auto-parity run for this SHA.
@@ -244,10 +277,10 @@ jobs:
           # in a subshell and drop NOT_RUN_NOTES.
           archs_that_ran() {
             local sha="$1" all_runs arch wf_regex wf_total run_archs="" notes=""
-            all_runs=$(gh api --paginate \
+            all_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/actions/runs?head_sha=$sha&per_page=100" \
-              --jq '.workflow_runs[] | {name,path,status,conclusion}' \
-              2>/dev/null | jq -s '.' || echo '[]')
+              '.workflow_runs[] | {name,path,status,conclusion}' \
+              "workflow runs for $sha") || return 2
             for arch in $ARCHS; do
               wf_regex=$(echo "$ARCH_WORKFLOW_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
               if [ -z "$wf_regex" ]; then
@@ -311,7 +344,7 @@ jobs:
             fi
 
             # Sets RUN_ARCHS and NOT_RUN_NOTES.
-            archs_that_ran "$sha"
+            archs_that_ran "$sha" || return $?
             if [ -z "$RUN_ARCHS" ]; then
               echo "[$short] $date  no in-scope ROCm workflows ran on upstream (${NOT_RUN_NOTES:-none}) - skip"
               return 0
@@ -319,10 +352,10 @@ jobs:
 
             # Per-shard check-run state for this SHA (workflow_run conclusion can
             # flip to failure before sibling shards finish, so we look per shard).
-            all_check_runs=$(gh api --paginate \
+            all_check_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/commits/$sha/check-runs?per_page=100" \
-              --jq '.check_runs[] | {name,status,conclusion}' \
-              2>/dev/null | jq -s '.' || echo '[]')
+              '.check_runs[] | {name,status,conclusion}' \
+              "check-runs for $sha") || return 2
 
             ROCM_CHECK_RUNS='[]'
             local arch regex arch_check_runs
@@ -378,12 +411,15 @@ jobs:
             if [ "$DRY_RUN" = "true" ]; then
               echo "[$short] DRY_RUN=true - not dispatching"
             else
-              gh workflow run parity.yml \
+              if ! gh workflow run parity.yml \
                 --repo "$GITHUB_REPOSITORY" \
                 --ref  "$TARGET_REF" \
                 -f sha="$sha" \
                 -f arch="$arch_dispatch" \
-                -f auto_triggered=true
+                -f auto_triggered=true; then
+                echo "::error::Failed to dispatch parity.yml for $sha" >&2
+                return 2
+              fi
             fi
 
             DISPATCHED_COUNT=$((DISPATCHED_COUNT + 1))
@@ -437,19 +473,23 @@ jobs:
               exit 1
             fi
             if [ -z "$commits" ]; then
-              echo "::warning::No completed trunk.yml push runs returned from $UPSTREAM@$BRANCH"
-              exit 0
+              echo "::error::No completed trunk.yml push runs returned from $UPSTREAM@$BRANCH"
+              exit 1
             fi
 
-            EXISTING=$(fetch_existing_dispatches)
+            if ! EXISTING=$(fetch_existing_dispatches); then
+              exit 1
+            fi
 
             DISPATCHED_COUNT=0
             DISPATCHED_SUMMARY=""
             local sha date
             while IFS=' ' read -r sha date; do
               [ -z "$sha" ] && continue
-              # process_commit returns non-zero to stop the scan (too old / cap).
-              process_commit "$sha" "$date" || break
+              process_commit "$sha" "$date"
+              rc=$?
+              [ "$rc" -eq 1 ] && break
+              [ "$rc" -gt 1 ] && exit "$rc"
             done <<< "$commits"
 
             write_step_summary
