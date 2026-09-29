@@ -76,6 +76,7 @@ jobs:
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '3' }}
           DISPATCH_STAGGER_SECONDS: '120'
+          MAX_FAILURE_RETRIES: '3'
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
           # Auto-parity is trunk-scoped: mi350 is the only ROCm arch that rides
           # along in trunk.yml. Other arches have their own periodic workflows.
@@ -128,6 +129,7 @@ jobs:
               "Max trunk runs:  $MAX_COMMITS" \
               "Max dispatches:  $MAX_DISPATCHES" \
               "Dispatch stagger: ${DISPATCH_STAGGER_SECONDS}s" \
+              "Failure retries: $MAX_FAILURE_RETRIES" \
               "Max age:         ${MAX_AGE_HOURS}h" \
               "Dry run:         $DRY_RUN" \
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
@@ -272,15 +274,25 @@ jobs:
           fetch_existing_dispatches() {
             fetch_paginated_array \
               "repos/$GITHUB_REPOSITORY/actions/workflows/parity.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u -d "@$MAX_AGE_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')&per_page=100" \
-              '.workflow_runs[] | {id,display_title,actor: .actor.login}' \
+              '.workflow_runs[] | {id,display_title,status,conclusion,actor: .actor.login}' \
               "existing parity dispatches" 5
           }
 
           # True if EXISTING already has an auto-parity run for this SHA.
           sha_already_dispatched() {
             local sha="$1"
-            echo "$EXISTING" | jq -e --arg sha "$sha" \
-              'any(.[]; ((.display_title // "") | contains($sha)) and (((.display_title // "") | startswith("autoparity-")) or (.actor == "github-actions[bot]")))' >/dev/null
+            echo "$EXISTING" | jq -e --arg sha "$sha" --argjson retries "$MAX_FAILURE_RETRIES" '
+              [ .[]
+                | select(((.display_title // "") | contains($sha))
+                    and (((.display_title // "") | startswith("autoparity-"))
+                        or .actor == "github-actions[bot]")) ] as $runs
+              | any($runs[]; .status != "completed" or .conclusion == "success")
+                or ([ $runs[]
+                      | select(.conclusion == "failure"
+                          or .conclusion == "timed_out"
+                          or .conclusion == "startup_failure") ]
+                    | length) >= $retries
+            ' >/dev/null
           }
 
           # Filter a check-run JSON array down to the parity test shards whose
