@@ -134,17 +134,61 @@ jobs:
               ""
           }
 
+          # Resolve the active workflow registration by exact path. GitHub's
+          # filename endpoint can resolve a stale registration after a workflow
+          # is recreated, returning old runs even while the active workflow runs.
+          resolve_workflow_id() {
+            local workflow="$1" path=".github/workflows/$1.yml" workflow_id
+            workflow_id=$(gh api --paginate --slurp \
+              "repos/$UPSTREAM/actions/workflows?per_page=100" 2>/dev/null \
+              | jq -r --arg path "$path" '
+                  [ .[].workflows[]
+                    | select(.path == $path and .state == "active") ]
+                  | sort_by(.updated_at) | last | .id // empty')
+            if ! [[ "$workflow_id" =~ ^[0-9]+$ ]]; then
+              echo "::warning::Could not resolve active workflow id for $path" >&2
+              return 1
+            fi
+            echo "$workflow_id"
+          }
+
+          fetch_trunk_runs_page() {
+            local workflow_id="$1" page="$2" attempt=1 page_runs newest_epoch
+            while [ "$attempt" -le 5 ]; do
+              page_runs=$(gh api -H "Cache-Control: no-cache" \
+                "repos/$UPSTREAM/actions/workflows/$workflow_id/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page&cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
+                --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+              if echo "$page_runs" | jq -e . >/dev/null 2>&1; then
+                if [ "$page" -ne 1 ] || [ "$(echo "$page_runs" | jq 'length')" -eq 0 ]; then
+                  echo "$page_runs"
+                  return 0
+                fi
+                newest_epoch=$(date -u -d "$(echo "$page_runs" | jq -r '.[0].created_at')" +%s 2>/dev/null || echo 0)
+                if [ "$newest_epoch" -ge "$MAX_AGE_EPOCH" ]; then
+                  echo "$page_runs"
+                  return 0
+                fi
+                echo "::warning::trunk runs API returned a stale first page; retrying" >&2
+              fi
+              sleep "$attempt"
+              attempt=$((attempt + 1))
+            done
+            echo "::error::Could not fetch a current first page of trunk runs" >&2
+            return 1
+          }
+
           # Echo "<sha> <created_at>" lines for the most recent completed
           # trunk.yml pushes, deduped and newest-first, up to MAX_COMMITS.
           # Candidate SHAs come from completed trunk pushes (not raw main
           # commits): the report consumes trunk's jobs, so a completed trunk run
           # is the earliest a SHA can be ready.
           fetch_trunk_commits() {
-            local commits_json='[]' page=1 page_runs
+            local commits_json='[]' page=1 page_runs workflow_id
+            workflow_id=$(resolve_workflow_id trunk) || return 1
             while [ "$(echo "$commits_json" | jq 'length')" -lt "$MAX_COMMITS" ]; do
-              page_runs=$(gh api \
-                "repos/$UPSTREAM/actions/workflows/trunk.yml/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page" \
-                --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+              if ! page_runs=$(fetch_trunk_runs_page "$workflow_id" "$page"); then
+                return 1
+              fi
               # On a gh api failure (rate limit / transient 5xx) page_runs is
               # empty or non-JSON; stop paginating and use what we have so far.
               if ! echo "$page_runs" | jq -e . >/dev/null 2>&1; then
@@ -389,7 +433,9 @@ jobs:
             print_run_config
 
             local commits
-            commits=$(fetch_trunk_commits)
+            if ! commits=$(fetch_trunk_commits); then
+              exit 1
+            fi
             if [ -z "$commits" ]; then
               echo "::warning::No completed trunk.yml push runs returned from $UPSTREAM@$BRANCH"
               exit 0
