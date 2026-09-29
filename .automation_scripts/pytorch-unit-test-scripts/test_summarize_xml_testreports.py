@@ -73,6 +73,38 @@ class TestXmlReportMerging(unittest.TestCase):
             self.assertEqual(len(cases), 1)
             self.assertEqual(get_test_status(next(iter(cases.values()))), "PASSED")
 
+    def test_checked_in_junit_fixtures_are_excluded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shard = "test-default-1-1_1001"
+            fixture = (
+                '<testcase classname="TestJunitOutcomes" '
+                'name="test_phantom" time="1"><failure /></testcase>'
+            )
+            real = '<testcase classname="TestReal" name="test_real" time="1" />'
+            self._write(
+                root,
+                shard,
+                "test/junit_xml_testdata/expected",
+                "pytest.xml",
+                SUITE.format(time=10, testcase=fixture),
+            )
+            self._write(
+                root,
+                shard,
+                "test/test-reports",
+                "real.xml",
+                SUITE.format(time=20, testcase=real),
+            )
+
+            cases = parse_xml_reports_as_dict(-1, -1, "testcase", str(root))
+            suites = parse_xml_reports_as_dict(-1, -1, "testsuite", str(root))
+
+            self.assertEqual(len(cases), 1)
+            self.assertEqual(next(iter(cases.values()))["name"], "test_real")
+            self.assertEqual(len(suites), 1)
+            self.assertEqual(next(iter(suites.values()))["running_time_xml"], 20)
+
     def test_duplicate_testsuite_in_same_shard_is_not_double_counted(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
