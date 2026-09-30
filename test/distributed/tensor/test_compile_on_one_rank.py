@@ -12,6 +12,7 @@ import torch
 import torch.compiler.config as compiler_config
 import torch.distributed as dist
 import torch.nn as nn
+from torch.testing._internal.common_utils import skipIfRocm
 from torch.distributed.device_mesh import init_device_mesh
 from torch.distributed.tensor import DTensor, Replicate, Shard
 from torch.distributed.tensor.parallel import parallelize_module, RowwiseParallel
@@ -282,6 +283,7 @@ class TestCompileOnOneRankDeviceAsParameter(TestCase):
     """
 
     @unittest.skipIf(not torch.cuda.is_available(), "requires CUDA")
+    @skipIfRocm
     @compiler_config.patch(compile_on_one_rank=True)
     def test_factory_device_replaced_with_current_device(self):
         gm = make_fx(_factory_from_input_device, tracing_mode="fake")(
