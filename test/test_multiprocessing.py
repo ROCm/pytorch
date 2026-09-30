@@ -849,11 +849,13 @@ class TestMultiprocessing(_MultiprocessingTestMixin, TestCase):
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_cuda_bad_call(self):
-        # Initialize CUDA
+        # Initialize CUDA. Python 3.14's default start method on non-macOS
+        # POSIX is forkserver, which does not inherit that CUDA state.
         t = torch.zeros(5, 5).cuda().cpu()
-        inq = mp.Queue()
-        outq = mp.Queue()
-        p = mp.Process(target=queue_get_exception, args=(inq, outq))
+        ctx = mp.get_context("fork")
+        inq = ctx.Queue()
+        outq = ctx.Queue()
+        p = ctx.Process(target=queue_get_exception, args=(inq, outq))
         p.start()
         inq.put(t)
         p.join()
@@ -862,19 +864,24 @@ class TestMultiprocessing(_MultiprocessingTestMixin, TestCase):
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_wrong_cuda_fork(self):
+        # Python 3.14's default start method on non-macOS POSIX is forkserver.
+        # This script is launched with `python -c`, so forkserver cannot
+        # reimport `__main__.run` and dies with AttributeError before CUDA
+        # init. Request fork so the child inherits the parent's CUDA state.
         stderr = TestCase.runWithPytorchAPIUsageStderr(
             """\
 import torch
-from torch.multiprocessing import Process
+from torch.multiprocessing import get_context
 def run(rank):
     torch.cuda.set_device(rank)
 if __name__ == "__main__":
     size = 2
     processes = []
+    ctx = get_context("fork")
     for rank in range(size):
         # it would work fine without the line below
         x = torch.rand(20, 2).cuda()
-        p = Process(target=run, args=(rank,))
+        p = ctx.Process(target=run, args=(rank,))
         p.start()
         processes.append(p)
     for p in processes:

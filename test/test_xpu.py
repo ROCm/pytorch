@@ -200,19 +200,24 @@ class TestXpu(TestCase):
 
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     def test_wrong_xpu_fork(self):
+        # Python 3.14's default start method on non-macOS POSIX is forkserver.
+        # This script is launched with `python -c`, so forkserver cannot
+        # reimport `__main__.run` and dies with AttributeError before XPU
+        # init. Request fork so the child inherits the parent's XPU state.
         stderr = TestCase.runWithPytorchAPIUsageStderr(
             """\
 import torch
-from torch.multiprocessing import Process
+from torch.multiprocessing import get_context
 def run(rank):
     torch.xpu.set_device(rank)
 if __name__ == "__main__":
     size = 2
     processes = []
+    ctx = get_context("fork")
     for rank in range(size):
         # it would work fine without the line below
         torch.xpu.set_device(0)
-        p = Process(target=run, args=(rank,))
+        p = ctx.Process(target=run, args=(rank,))
         p.start()
         processes.append(p)
     for p in processes:
@@ -236,7 +241,7 @@ if __name__ == "__main__":
 
         test_script = """\
 import torch
-from torch.multiprocessing import Process
+from torch.multiprocessing import get_context
 import copy
 
 def run_model(model, input):
@@ -247,7 +252,10 @@ def run_model(model, input):
     torch.testing.assert_close(loss_xpu.cpu(), loss)
 
 def test_multi_process(model, input):
-    p = Process(target=run_model, args=(model, input))
+    # Python 3.14 defaults to forkserver. This script is `python -c`, so
+    # forkserver cannot unpickle run_model. fork matches the pre-3.14 default.
+    ctx = get_context("fork")
+    p = ctx.Process(target=run_model, args=(model, input))
     p.start()
     p.join()
     assert p.exitcode == 0
