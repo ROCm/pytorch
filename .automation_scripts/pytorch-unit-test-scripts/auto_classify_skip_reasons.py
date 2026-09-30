@@ -35,7 +35,7 @@ from collections import Counter, defaultdict
 #   file:     (optional) regex to match against test_file
 #   cls:      (optional) regex to match against test_class
 #   name:     (optional) regex to match against test_name
-#   workflow: (optional) one of "default", "distributed", "inductor"
+#   workflow: (optional) one of "default", "distributed", "inductor", "slow"
 #
 # All provided fields must match (AND logic). Omitted fields match anything.
 # msg="" matches empty messages; omitting msg matches anything.
@@ -47,7 +47,10 @@ RULES = [
     # ==================================================================
 
     # --- PT2.0 - Convolution: conv2d backward parametrized skipped on ROCm ---
-    # Must precede the generic Misc "test skipped on ('gfx...')" rule.
+    # skipIfRocmArch(...) skips test_conv2d_backward_parametrized (see upstream
+    # #188671, CI timeout). Categorize it as a convolution issue rather than the
+    # generic Misc "test skipped on ('gfx...')" bucket below. Must precede that
+    # Misc arch rule.
     {"reason": "PT2.0 - Convolution",
      "msg": r"test skipped on \('gfx",
      "name": r"(?i)conv2d_backward"},
@@ -116,17 +119,18 @@ RULES = [
      "file": r"^test_nn$",
      "msg": r"skipIfRocm.*doesn't currently work"},
 
-    # --- Linalg: hipSOLVER version guards and ROCm linalg regressions ---
+    # --- Linalg: hipSOLVER xgeev requires ROCm >= 7.14 (linalg.eig via xgeev, pytorch#188720) ---
     {"reason": "Linalg",
      "msg": r"hipSOLVER xgeev"},
+    # --- Linalg: ROCm 6.4 regression on linalg ops (householder/decomp) ---
     {"reason": "Linalg",
      "msg": r"regression in ROCm 6\.4"},
 
-    # --- Profiler: CUPTI-dependent profiler tests ---
+    # --- Profiler: CUPTI-dependent profiler tests (libcupti / cupti-python) ---
     {"reason": "Profiler",
      "msg": r"(?i)cupti"},
 
-    # --- block_table: ROCm does not support paged-KV block_table ---
+    # --- block_table: ROCm does not support paged-KV block_table (varlen attention) ---
     {"reason": "block_table",
      "msg": r"ROCm does not support block_table"},
 
@@ -461,13 +465,14 @@ RULES = [
     {"reason": "Misc",
      "msg": r"Test skipped for ROCm"},
 
-    # Misc: generic skipIfRocm pointing at a tracked GitHub issue.
-    {"reason": "Misc",
-     "msg": r"skipIfRocm: https?://"},
-
     # Misc: architecture-specific skips
     {"reason": "Misc",
      "msg": r"test skipped on \('gfx"},
+
+    # Misc: generic skipIfRocm pointing at a tracked GitHub issue (no specific
+    # category; heterogeneous inductor/varlen tests)
+    {"reason": "Misc",
+     "msg": r"skipIfRocm: https?://"},
 
     # cuFFT-specific
     {"reason": "Misc",
@@ -543,8 +548,6 @@ RULES = [
     # guards; GPU/Triton-required inductor tests) ---
     {"reason": "PT2.0 - Inductor",
      "file": r"^inductor[./]test_triton_heuristics$"},
-
-    # --- inductor.test_fused_attention (SDPA pattern-rewriter tests) ---
     {"reason": "PT2.0 - Inductor",
      "file": r"^inductor[./]test_fused_attention$"},
 
@@ -919,13 +922,33 @@ def parse_args():
 
 
 def detect_columns(fieldnames):
-    """Detect whether CSV uses status_rocm/status_cuda or status_set1/status_set2."""
+    """Detect primary/secondary status and primary message columns.
+
+    The parity workflow lets callers label either side (for example
+    ``preview`` instead of ``rocm``), so generated columns are not limited to
+    the historical status_rocm/status_cuda or status_set1/status_set2 pairs.
+    Preserve those well-known pairs, then fall back to the status columns in
+    CSV order, preferring status_cuda as the secondary side when present.
+    """
     if 'status_rocm' in fieldnames:
         return 'status_rocm', 'status_cuda', 'message_rocm'
-    elif 'status_set1' in fieldnames:
+    if 'status_set1' in fieldnames:
         return 'status_set1', 'status_set2', 'message_set1'
-    else:
+
+    status_cols = [name for name in fieldnames if name.startswith('status_')]
+    if len(status_cols) < 2:
         raise ValueError(f"Cannot detect status columns. Available: {fieldnames}")
+
+    if 'status_cuda' in status_cols:
+        secondary = 'status_cuda'
+        primary = next((name for name in status_cols if name != secondary), None)
+    else:
+        primary, secondary = status_cols[:2]
+
+    message = primary.replace('status_', 'message_', 1) if primary else ''
+    if not primary or message not in fieldnames:
+        raise ValueError(f"Cannot detect status/message columns. Available: {fieldnames}")
+    return primary, secondary, message
 
 
 def main():
@@ -934,9 +957,19 @@ def main():
     rows = []
     with open(args.input, newline='') as f:
         reader = csv.DictReader(f)
-        fieldnames = list(reader.fieldnames)
+        fieldnames = list(reader.fieldnames or [])
         for row in reader:
             rows.append(row)
+
+    # A partial download can legitimately produce an empty parity CSV. There
+    # is nothing to enrich, and failing here would suppress later diagnostic
+    # steps in callers that do not use an always() condition.
+    if not fieldnames:
+        print(
+            f"WARNING: Empty parity CSV {args.input}; skipping classification",
+            file=sys.stderr,
+        )
+        return
 
     col_rocm, col_cuda, col_msg = detect_columns(fieldnames)
 

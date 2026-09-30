@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import json
 import os
 import re
 import pandas as pd
@@ -53,7 +54,7 @@ EXCLUDED_TESTS = [
 
 
 # Test config names
-TestConfigName = Enum('TestConfigName', ['default', 'distributed', 'inductor'])
+TestConfigName = Enum('TestConfigName', ['default', 'distributed', 'inductor', 'slow'])
 
 def _status_priority(test_case):
     """Return a numeric priority for deduplication of retried tests.
@@ -69,15 +70,50 @@ def _extract_shard(dirname):
         return f"{m.group(1)}/{m.group(2)}"
     return ""
 
+
+def _test_config_from_dir(dirname):
+    """Return the parity config encoded in a normalized shard directory."""
+    for config in TestConfigName:
+        if f"test-{config.name}" in dirname:
+            return config.name
+    return ""
+
+
+def _is_junit_fixture_xml(path):
+    """Return whether path is pytest's checked-in golden JUnit fixture."""
+    fixture_parts = ("junit_xml_testdata", "expected")
+    parts = path.parts
+    return any(
+        tuple(parts[index:index + len(fixture_parts)]) == fixture_parts
+        for index in range(len(parts) - len(fixture_parts) + 1)
+    )
+
+
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
     test_config = ""
     test_cases = {}
 
-    # download_testlogs writes the upstream pytorch CI workflow run id
-    # into "_wf_run_id" alongside the shard dirs. We combine it with each
-    # shard dir's trailing "_<job_id>" to form the URL
-    # https://github.com/pytorch/pytorch/actions/runs/<wf>/job/<job_id>
+    # download_testlogs records the upstream pytorch CI run id for each shard's
+    # job id in "_wf_run_ids.json" (job_id -> run_id) alongside the shard dirs,
+    # so we can build the URL
+    # https://github.com/pytorch/pytorch/actions/runs/<run_id>/job/<job_id>
     # surfaced as the "Job ID" column in the FAILED TESTS table.
+    #
+    # A single run id is NOT enough: the default/distributed/inductor configs
+    # resolve to DIFFERENT upstream runs (e.g. mi350 default+inductor come from
+    # a trunk push while distributed comes from periodic/a trunk fallback), so
+    # pairing every shard's job id with one run id produced links to a run the
+    # job never belonged to (a "busted" URL that 404s). We look each job id up
+    # in the per-job map and fall back to the legacy single "_wf_run_id" file
+    # only when the map has no entry (older downloads / backward compat).
+    run_id_by_job = {}
+    run_ids_file = os.path.join(path, "_wf_run_ids.json")
+    if os.path.isfile(run_ids_file):
+        try:
+            with open(run_ids_file) as f:
+                run_id_by_job = {str(k): str(v) for k, v in json.load(f).items()}
+        except Exception:
+            run_id_by_job = {}
     wf_run_id = ""
     wf_id_file = os.path.join(path, "_wf_run_id")
     if os.path.isfile(wf_id_file):
@@ -88,19 +124,22 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
     for dir in items_list:
         new_dir = path + '/' + dir + '/'
         if os.path.isdir(new_dir):
-            if "test-default" in new_dir:
-                test_config = TestConfigName.default.name
-            elif "test-distributed" in new_dir:
-                test_config = TestConfigName.distributed.name
-            elif "test-inductor" in new_dir:
-                test_config = TestConfigName.inductor.name
+            test_config = _test_config_from_dir(dir)
+            if not test_config:
+                continue
             shard = _extract_shard(dir)
             jid = re.search(r'_(\d+)$', dir)
+            job_id = jid.group(1) if jid else ""
+            # Prefer the run id recorded for this specific job; fall back to the
+            # single legacy run id so we never regress older download layouts.
+            shard_run_id = run_id_by_job.get(job_id, wf_run_id)
             job_url = (
-                f"https://github.com/pytorch/pytorch/actions/runs/{wf_run_id}/job/{jid.group(1)}"
-                if wf_run_id and jid else ""
+                f"https://github.com/pytorch/pytorch/actions/runs/{shard_run_id}/job/{job_id}"
+                if shard_run_id and job_id else ""
             )
             for xml_report in Path(new_dir).glob("**/*.xml"):
+                if _is_junit_fixture_xml(xml_report):
+                    continue
                 try:
                     new_cases = parse_xml_report(
                         tag,
@@ -203,6 +242,12 @@ def summarize_xml_files(args):
     ROCM_INDUCTOR = 0
     ROCMONLY_INDUCTOR = 0
 
+    SKIPPED_SLOW = 0
+    MISSED_SLOW = 0
+    CUDA_SLOW = 0
+    ROCM_SLOW = 0
+    ROCMONLY_SLOW = 0
+
     TOTAL_CUDA_RUNNING_TIME = 0.0
     TOTAL_ROCM_RUNNING_TIME = 0.0
 
@@ -261,6 +306,8 @@ def summarize_xml_files(args):
             ROCM_DISTRIBUTED += 1
         elif v['test_config'] == TestConfigName.inductor.name:
             ROCM_INDUCTOR += 1
+        elif v['test_config'] == TestConfigName.slow.name:
+            ROCM_SLOW += 1
 
     # start with creating empty dicts for set2 for each test tuple
     # for rocm/cuda comparison(with valid set2_path), sometimes parity sheet has inaccurate resutls due to different function string but with same test names,
@@ -294,6 +341,8 @@ def summarize_xml_files(args):
               CUDA_DISTRIBUTED += 1
           elif v['test_config'] == TestConfigName.inductor.name:
               CUDA_INDUCTOR += 1
+          elif v['test_config'] == TestConfigName.slow.name:
+              CUDA_SLOW += 1
 
       # for rocm/cuda comparison, sometimes parity sheet has inaccurate resutls due to different function string but with same test names,
       # such as test_np_argmin_argmax_keepdims_size_(1, 2, 3, 4)_axis_-4_method_<function argmax at 0x7f1e411e6a70>
@@ -410,6 +459,7 @@ def summarize_xml_files(args):
     skip_reasons_stat_default = dict()
     skip_reasons_stat_distributed = dict()
     skip_reasons_stat_inductor = dict()
+    skip_reasons_stat_slow = dict()
     if args.skip_reasons:
         # read skip reasons csv file
         known_skips = pd.read_csv(args.skip_reasons, sep='\t')
@@ -443,6 +493,8 @@ def summarize_xml_files(args):
                 SKIPPED_DISTRIBUTED += 1
             elif test_info['test_config'] == TestConfigName.inductor.name:
                 SKIPPED_INDUCTOR += 1
+            elif test_info['test_config'] == TestConfigName.slow.name:
+                SKIPPED_SLOW += 1
         elif set2_path:
             test_info_set2 = v[1]
             if status_set_1 == "MISSED" and status_set_2 != "MISSED":
@@ -452,6 +504,8 @@ def summarize_xml_files(args):
                 MISSED_DISTRIBUTED += 1
               elif test_info_set2['test_config'] == TestConfigName.inductor.name:
                 MISSED_INDUCTOR += 1
+              elif test_info_set2['test_config'] == TestConfigName.slow.name:
+                MISSED_SLOW += 1
 
 
         if args.skip_reasons:
@@ -474,6 +528,11 @@ def summarize_xml_files(args):
                               skip_reasons_stat_inductor[v[2]] = 1
                           else:
                               skip_reasons_stat_inductor[v[2]] += 1
+                      elif (test_info.__contains__('test_config') and test_info['test_config'] == TestConfigName.slow.name) or (test_info_set2.__contains__('test_config') and test_info_set2['test_config'] == TestConfigName.slow.name):
+                          if not skip_reasons_stat_slow.__contains__(v[2]):
+                              skip_reasons_stat_slow[v[2]] = 1
+                          else:
+                              skip_reasons_stat_slow[v[2]] += 1
                       v[3] = known_skip['assignee'] if known_skip.__contains__('assignee') and not pd.isna(known_skip['assignee']) else ' '
                       v[4] = known_skip['comments'] if known_skip.__contains__('comments') and not pd.isna(known_skip['comments']) else ' '
                       break
@@ -485,9 +544,13 @@ def summarize_xml_files(args):
                 ROCMONLY_DISTRIBUTED += 1
             elif test_info['test_config'] == TestConfigName.inductor.name:
                 ROCMONLY_INDUCTOR += 1
+            elif test_info['test_config'] == TestConfigName.slow.name:
+                ROCMONLY_SLOW += 1
 
     skip_reasons_stat_default.pop(' ', None)
     skip_reasons_stat_distributed.pop(' ', None)
+    skip_reasons_stat_inductor.pop(' ', None)
+    skip_reasons_stat_slow.pop(' ', None)
 
     test_cases_for_csv = {}
     # k is test_tuple, v is list of rocm and cuda info for that test_tuple
@@ -748,6 +811,10 @@ def summarize_xml_files(args):
     print( f"SKIPPED_INDUCTOR, MISSED_INDUCTOR, {set1_disp}ONLY_INDUCTOR, {set2_disp}_INDUCTOR, {set1_disp}_INDUCTOR" )
     print( str(SKIPPED_INDUCTOR) + ", " + str(MISSED_INDUCTOR) + ", " + str(ROCMONLY_INDUCTOR) + ", " + str(CUDA_INDUCTOR) + ", " + str(ROCM_INDUCTOR) )
     print( " " )
+    print( "=====Slow GPU Number=====" )
+    print( f"SKIPPED_SLOW, MISSED_SLOW, {set1_disp}ONLY_SLOW, {set2_disp}_SLOW, {set1_disp}_SLOW" )
+    print( str(SKIPPED_SLOW) + ", " + str(MISSED_SLOW) + ", " + str(ROCMONLY_SLOW) + ", " + str(CUDA_SLOW) + ", " + str(ROCM_SLOW) )
+    print( " " )
     print( "SELECTED CAUSES SUMMARY" )
     print( " " )
     print( "=====================" )
@@ -767,6 +834,12 @@ def summarize_xml_files(args):
     sorted_skip_reasons_statistics_inductor = sorted(skip_reasons_stat_inductor.keys(), key = lambda x : x.lower())
     for skip_reason_entry in sorted_skip_reasons_statistics_inductor:
         print( skip_reason_entry, ": ", skip_reasons_stat_inductor[skip_reason_entry] )
+    print( " " )
+    print( "=====================" )
+    print( "Slow test" )
+    sorted_skip_reasons_statistics_slow = sorted(skip_reasons_stat_slow.keys(), key = lambda x : x.lower())
+    for skip_reason_entry in sorted_skip_reasons_statistics_slow:
+        print( skip_reason_entry, ": ", skip_reasons_stat_slow[skip_reason_entry] )
     print( " " )
     print( "=====================" )
     print( "Time statistics" )
