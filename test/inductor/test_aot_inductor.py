@@ -7176,7 +7176,7 @@ class AOTInductorTestsTemplate:
 
         if TEST_WITH_ROCM:
             if CDNA5OrLater():
-                self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+                self.skipTest("int4 mm not yet implemented for gfx1250/gfx1250-strict (needs WMMA)")
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
@@ -7215,7 +7215,7 @@ class AOTInductorTestsTemplate:
 
         if TEST_WITH_ROCM:
             if CDNA5OrLater():
-                self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+                self.skipTest("int4 mm not yet implemented for gfx1250/gfx1250-strict (needs WMMA)")
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
