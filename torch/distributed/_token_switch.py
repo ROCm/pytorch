@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from typing import Any, TYPE_CHECKING
 
 import torch
+import torch.distributed as dist
 
 
 if TYPE_CHECKING:
@@ -99,6 +100,25 @@ def _import_nccl_ep() -> Any:
         ) from e
 
     return _ep
+
+
+def _import_mori() -> tuple[Any, Any]:
+    # MoRI EP v2 imports its flydsl kernel backend only when an op selects it, so
+    # check for flydsl here to fail at construction rather than at first dispatch.
+    try:
+        import mori.cco as cco
+        import mori.ops.dispatch_combine_v2 as ep
+    except ImportError as e:
+        raise ImportError(
+            "TokenSwitchMoRI needs the 'mori' package (MoRI EP v2) from "
+            "https://github.com/ROCm/mori."
+        ) from e
+    if importlib.util.find_spec("flydsl") is None:
+        raise ImportError(
+            "TokenSwitchMoRI needs MoRI's flydsl kernel backend; install it with "
+            "`pip install amd_mori[flydsl]`."
+        )
+    return cco, ep
 
 
 @dataclass(frozen=True, slots=True)
@@ -448,3 +468,202 @@ class TokenSwitchNCCL(TokenSwitch):
             expert_tokens,
             out_tokens,
         )
+
+
+def _to_local_topk(
+    idx: torch.Tensor,
+    weights: torch.Tensor,
+    first_expert: int,
+    experts_per_rank: int,
+    out_idx: torch.Tensor,
+    out_weights: torch.Tensor,
+) -> None:
+    # Global top-k -> this rank's local expert ids, ascending, packed to the front.
+    local = idx.long() - first_expert
+    in_range = (local >= 0) & (local < experts_per_rank)
+    key, perm = torch.where(in_range, local, experts_per_rank).sort(dim=1)
+    routed = key < experts_per_rank
+    out_idx.copy_(torch.where(routed, key, -1))
+    out_weights.copy_(torch.where(routed, weights.gather(1, perm), 0.0))
+
+
+@dataclass
+class _MoRIRoutingState:
+    # Routing is frozen; the MoRI handle is filled in by the first dispatch.
+    topk_idx: torch.Tensor
+    mori_handle: Any = None
+
+
+class TokenSwitchMoRI(TokenSwitch):
+    """Intranode token switch backed by MoRI EP v2 with the flydsl kernel backend.
+
+    Only the flat layout is supported. The first :meth:`dispatch` on a Routing
+    computes its receive-slot layout; later dispatches on it replay that layout.
+    ``hidden_dim``, ``top_k`` and ``dtype`` are fixed at construction.
+    """
+
+    def __init__(
+        self,
+        process_group: ProcessGroup,
+        num_experts: int,
+        max_dispatch_tokens_per_rank: int,
+        hidden_dim: int,
+        top_k: int,
+        dtype: torch.dtype = torch.bfloat16,
+    ) -> None:
+        cco, ep = _import_mori()
+        self._ep = ep
+        self._pg = process_group
+        self._rank = dist.get_rank(process_group)
+        world_size = dist.get_world_size(process_group)
+        if num_experts % world_size:
+            raise ValueError(
+                f"num_experts={num_experts} is not divisible by world_size={world_size}"
+            )
+        self._num_experts = num_experts
+        self._experts_per_rank = num_experts // world_size
+        # Compiled on first dispatch, not at import. Eager is ~8 kernels: ~125us vs
+        # ~22us fused for 16k rows at K=8.
+        self._to_local_topk = torch.compile(_to_local_topk, dynamic=False)
+
+        uid = [cco.Communicator.get_unique_id() if self._rank == 0 else None]
+        src = dist.get_global_rank(process_group, 0)
+        dist.broadcast_object_list(uid, src=src, group=process_group)
+        m = max_dispatch_tokens_per_rank
+        window = world_size * m * hidden_dim * dtype.itemsize * 2 + (1 << 24)
+        self._comm = cco.Communicator.init(
+            world_size, self._rank, uid[0], 2 * window + (1 << 28)
+        )
+        cfg = ep.EpDispatchCombineConfig(
+            rank=self._rank,
+            world_size=world_size,
+            hidden_dim=hidden_dim,
+            max_num_inp_token_per_rank=m,
+            num_experts_per_rank=self._experts_per_rank,
+            num_experts_per_token=top_k,
+            data_type=dtype,
+            kernel_backend="flydsl",
+        )
+        self._op = ep.EpDispatchCombineOp(cfg, self._comm)
+        self._comm.barrier()
+        self._max_recv_tokens_per_rank = cfg.max_recv
+        self._last_op: str | None = None
+        self._fence = torch.zeros(1, device=torch.cuda.current_device())
+
+    @property
+    def max_recv_tokens_per_rank(self) -> int:
+        return self._max_recv_tokens_per_rank
+
+    def close(self) -> None:
+        self._op.close()
+        self._comm.destroy()
+
+    def _fence_if_repeat(self, op: str) -> None:
+        # MoRI's kernels synchronize ranks on entry only, and a dispatch writes into
+        # peers' receive buffers before that. Alternating dispatch and combine is
+        # ordered by the other op's entry barrier; two of the same op in a row are
+        # not, so a fast peer could overwrite our buffers before we copy the previous
+        # results out. The all_reduce waits for every rank's earlier stream work.
+        if self._last_op == op:
+            dist.all_reduce(self._fence, group=self._pg)
+        self._last_op = op
+
+    def create_routing(
+        self,
+        topk_idx: torch.Tensor,
+        per_expert_token_counts: torch.Tensor | None = None,
+        *,
+        layout: str,
+    ) -> Routing:
+        """Create expert routing for this phase; pass to :meth:`dispatch` / :meth:`combine`.
+
+        ``layout`` must be ``"flat"``. Filling ``per_expert_token_counts`` costs an
+        all_reduce on the process group, since MoRI computes no counts before dispatch.
+        """
+        if layout != "flat":
+            raise NotImplementedError(
+                f"TokenSwitchMoRI supports layout='flat' only; got {layout!r}"
+            )
+        if per_expert_token_counts is not None:
+            ids = topk_idx.flatten().long()
+            counts = torch.bincount(ids, minlength=self._num_experts)
+            dist.all_reduce(counts, group=self._pg)
+            epr = self._experts_per_rank
+            lo = self._rank * epr
+            per_expert_token_counts[:epr].copy_(counts[lo : lo + epr])
+        state = _MoRIRoutingState(topk_idx.to(torch.int32).contiguous())
+        return Routing(handle=state, topk_idx=topk_idx, layout=layout)
+
+    def _alloc_dispatch_outputs(
+        self,
+        routing: Routing,
+        tokens: torch.Tensor,
+        topk_weights: torch.Tensor,
+        max_recv_tokens: int,
+        H: int,
+        K: int,
+    ) -> tuple[torch.Tensor, torch.Tensor | None, torch.Tensor | None]:
+        return (
+            tokens.new_zeros(max_recv_tokens, H),
+            topk_weights.new_zeros(max_recv_tokens, K),
+            tokens.new_zeros(max_recv_tokens, K, dtype=torch.int64),
+        )
+
+    def _dispatch(
+        self,
+        routing: Routing,
+        tokens: torch.Tensor,
+        topk_weights: torch.Tensor,
+        out_tokens: torch.Tensor,
+        out_topk_weights: torch.Tensor | None,
+        out_topk_idx: torch.Tensor | None,
+    ) -> None:
+        if out_topk_weights is None or out_topk_idx is None:
+            raise ValueError("TokenSwitchMoRI needs out_topk_weights and out_topk_idx")
+        self._fence_if_repeat("dispatch")
+        state = routing.handle
+        tokens = tokens.contiguous()
+        weights = topk_weights.to(torch.float32).contiguous()
+        if state.mori_handle is None:
+            out, out_w, _, out_idx, _, h = self._op.dispatch(
+                tokens, weights, None, state.topk_idx, return_routing=True
+            )
+            # The handle's dest map and recv count alias op-owned buffers that the
+            # next routing dispatch overwrites (ROCm/mori#715), so keep a copy.
+            state.mori_handle = self._ep.EpDispatchRoutingHandle(
+                h.disp_dest_tok_id_map.clone(),
+                h.inter_node_disp_dest_tok_id_map,
+                h.inter_node_disp_send_map,
+                h.total_recv_token_num.clone(),
+                cur_rank_num_token=h.cur_rank_num_token,
+            )
+        else:
+            out, out_w, _, out_idx, _ = self._op.dispatch(
+                tokens, weights, None, state.topk_idx, routing=state.mori_handle
+            )
+        # MoRI's outputs are views of op-owned buffers that the next dispatch
+        # overwrites. MoRI forwards each token's global top-k; translate it to this
+        # rank's local ids. Rows past the receive count translate to garbage, which
+        # the contract allows; trimming them would need a host sync.
+        n = min(out_tokens.shape[0], out.shape[0])
+        out_tokens[:n].copy_(out[:n])
+        first = self._rank * self._experts_per_rank
+        epr = self._experts_per_rank
+        self._to_local_topk(
+            out_idx[:n], out_w[:n], first, epr, out_topk_idx[:n], out_topk_weights[:n]
+        )
+
+    def _combine(
+        self,
+        routing: Routing,
+        expert_tokens: torch.Tensor,
+        out_tokens: torch.Tensor,
+    ) -> None:
+        mori_handle = routing.handle.mori_handle
+        if mori_handle is None:
+            raise RuntimeError(
+                "TokenSwitchMoRI: combine() before the first dispatch() on this Routing"
+            )
+        self._fence_if_repeat("combine")
+        out, _ = self._op.combine(expert_tokens.contiguous(), routing=mori_handle)
+        out_tokens.copy_(out)
