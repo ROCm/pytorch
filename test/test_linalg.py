@@ -11364,8 +11364,7 @@ class TestLinalgCudaOnly(TestCase):
         self.assertEqual(out1, out2)
         self.assertEqual(out_ref, out2.cpu())
 
-    @skipIfRocmArch(NAVI_ARCH)
-    @skipIfRocmArch(MI450_ARCH)
+    @skipIfRocmArch(MI450_ARCH + NAVI_ARCH)
     @skipCUDAIfNotRocm
     @unittest.skipIf(not blaslt_supported_device(), "blasLt not supported on current device")
     @setBlasBackendsToDefaultFinally
@@ -11380,8 +11379,7 @@ class TestLinalgCudaOnly(TestCase):
 
         self.assertEqual(ck_out, cpu_out)
 
-    @skipIfRocmArch(NAVI_ARCH)
-    @skipIfRocmArch(MI450_ARCH)
+    @skipIfRocmArch(MI450_ARCH + NAVI_ARCH)
     @skipCUDAIfNotRocm
     @unittest.skipIf(not blaslt_supported_device(), "blasLt not supported on current device")
     @setBlasBackendsToDefaultFinally
