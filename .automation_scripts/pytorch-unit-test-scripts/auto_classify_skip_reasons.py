@@ -530,6 +530,10 @@ RULES = [
     {"reason": "PT2.0 - Inductor",
      "file": r"^inductor\.test_torchinductor_strided_blocks$"},
 
+    # --- inductor.test_strict_numerics ---
+    {"reason": "PT2.0 - Inductor",
+     "file": r"^inductor[./]test_strict_numerics$"},
+
     # --- inductor.test_flex_decoding ---
     {"reason": "flex_decoding",
      "file": r"^inductor\.test_flex_decoding$"},
