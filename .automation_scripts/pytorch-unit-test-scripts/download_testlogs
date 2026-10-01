@@ -905,6 +905,8 @@ def _cross_side_command(source, sha, parsed_args):
         command.append("--ignore_status")
     if parsed_args.artifacts_only:
         command.append("--artifacts_only")
+    if parsed_args.include_inductor_periodic:
+        command.append("--include_inductor_periodic")
     if parsed_args.created:
         command.extend(["--created", parsed_args.created])
     if parsed_args.max_pages != 10:
@@ -916,11 +918,11 @@ def _cross_side_command(source, sha, parsed_args):
     return command
 
 
-def _find_cross_side_xml(source, sha):
+def _find_cross_side_xml(source, sha, root="."):
     """Find the XML directory emitted by a side's legacy downloader."""
     xml_name = "cuda_xml" if source == "trunk" else "rocm_xml"
     candidates = sorted(
-        (path for path in Path(".").glob(f"*_{sha}*") if path.is_dir()),
+        (path for path in Path(root).glob(f"*_{sha}*") if path.is_dir()),
         key=lambda path: path.stat().st_mtime,
         reverse=True,
     )
@@ -959,6 +961,9 @@ def run_cross_source_comparison(parsed_args):
         raise ValueError(
             "Cross-source mode cannot be combined with baseline_sha or pr_id"
         )
+    for sha in (parsed_args.set1_sha, parsed_args.set2_sha):
+        if not re.fullmatch(r"[0-9a-f]{40}", sha):
+            raise ValueError("Cross-source SHAs must be 40 lowercase hex characters")
 
     side_args = copy.copy(parsed_args)
     source_configs = []
@@ -967,7 +972,10 @@ def run_cross_source_comparison(parsed_args):
             PARITY_CONFIG["cuda"] if source == "trunk"
             else PARITY_CONFIG["rocm"][source]
         )
-        source_configs.append(set(config) & set(_TEST_CONFIGS))
+        configs = set(config) & set(_TEST_CONFIGS)
+        if source == "navi31":
+            configs &= {"default"}
+        source_configs.append(configs)
     common_configs = set.intersection(*source_configs)
     for config in _TEST_CONFIGS:
         if config not in common_configs:
@@ -990,14 +998,35 @@ def run_cross_source_comparison(parsed_args):
         (parsed_args.set1_source, parsed_args.set1_sha),
         (parsed_args.set2_source, parsed_args.set2_sha),
     ), start=1):
+        side_workspace = Path(f".cross_source_set{index}")
+        if side_workspace.exists():
+            shutil.rmtree(side_workspace)
+        side_workspace.mkdir()
         command = _cross_side_command(source, sha, side_args)
         print(f"Downloading set{index}: {source}@{sha}")
         print("Running:", " ".join(command))
-        result = subprocess.run(command, check=False)
+        result = subprocess.run(command, check=False, cwd=side_workspace)
         try:
-            source_folder, xml_dir = _find_cross_side_xml(source, sha)
+            source_folder, xml_dir = _find_cross_side_xml(
+                source, sha, side_workspace
+            )
             target = final_folder / f"set{index}_xml"
             shutil.copytree(xml_dir, target)
+            periodic_name = (
+                "inductor_periodic_cuda_dir" if source == "trunk"
+                else "inductor_periodic_rocm_dir"
+            )
+            periodic_dir = source_folder / periodic_name
+            if periodic_dir.is_dir():
+                shutil.copytree(
+                    periodic_dir,
+                    final_folder / f"set{index}_inductor_periodic",
+                )
+            for log in source_folder.glob("*.txt"):
+                shutil.copy2(
+                    log,
+                    final_folder / f"{source}@{sha[:8]}_{log.name}",
+                )
             metadata["sides"].append({
                 "set": index,
                 "source": source,

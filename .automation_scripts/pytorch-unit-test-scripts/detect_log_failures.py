@@ -82,15 +82,19 @@ LOG_FILE_MAP = {
 def classify_log_file(filename):
     """Return (platform, test_config, shard_num) from a log filename like rocm3.txt.
 
-    Commit-vs-commit parity prefixes log files with the short commit SHA
-    (for example, 09e0c59b_rocm3.txt). In that mode the SHA label is the
-    platform name used by generate_summary.py, so preserve it here.
+    Comparison modes prefix logs with either a short SHA or source@short-SHA.
+    Preserve that label because it is also used by generate_summary.py.
     """
     stem = Path(filename).stem
     label = None
-    m = re.match(r"(?P<label>[0-9a-f]{8,40})_(?P<stem>.+)", stem)
+    m = re.match(
+        r"(?P<label>[^_]+@[0-9a-f]{8}|[0-9a-f]{8,40})_(?P<stem>.+)",
+        stem,
+    )
     if m:
-        label = m.group("label")[:8]
+        label = m.group("label")
+        if "@" not in label:
+            label = label[:8]
         stem = m.group("stem")
     for prefix, (platform, test_config) in sorted(LOG_FILE_MAP.items(), key=lambda x: -len(x[0])):
         if stem.startswith(prefix):

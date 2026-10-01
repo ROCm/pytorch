@@ -139,18 +139,37 @@ jobs:
     steps:
       - name: Parse arch input into matrix
         id: parse
+        env:
+          SET1_SOURCE: ${{ inputs.set1_source }}
+          SET1_SHA: ${{ inputs.set1_sha }}
+          SET2_SOURCE: ${{ inputs.set2_source }}
+          SET2_SHA: ${{ inputs.set2_sha }}
         run: |
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            if [ -z "${{ inputs.set1_sha }}" ] || [ "${{ inputs.set2_source }}" = "legacy" ] || [ -z "${{ inputs.set2_sha }}" ]; then
+          if [ "$SET1_SOURCE" != "legacy" ]; then
+            if [ -z "$SET1_SHA" ] || [ "$SET2_SOURCE" = "legacy" ] || [ -z "$SET2_SHA" ]; then
               echo "::error::Cross-source mode requires both source dropdowns and both SHAs"
               exit 1
             fi
-          elif [ "${{ inputs.set2_source }}" != "legacy" ] || [ -n "${{ inputs.set1_sha }}" ] || [ -n "${{ inputs.set2_sha }}" ]; then
+            if ! [[ "$SET1_SHA" =~ ^[0-9a-f]{40}$ ]] || ! [[ "$SET2_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+              echo "::error::Cross-source SHAs must be 40 lowercase hex characters"
+              exit 1
+            fi
+          elif [ "$SET2_SOURCE" != "legacy" ] || [ -n "$SET1_SHA" ] || [ -n "$SET2_SHA" ]; then
             echo "::error::Set both source dropdowns to enable cross-source mode"
             exit 1
           fi
 
-          ARCHS="${{ inputs.arch }}"
+          if [ "$SET1_SOURCE" != "legacy" ]; then
+            if [ "$SET1_SOURCE" != "trunk" ]; then
+              ARCHS="$SET1_SOURCE"
+            elif [ "$SET2_SOURCE" != "trunk" ]; then
+              ARCHS="$SET2_SOURCE"
+            else
+              ARCHS="mi350"
+            fi
+          else
+            ARCHS="${{ inputs.arch }}"
+          fi
           ARCHS=$(echo "$ARCHS" | tr ',[:space:]' '\n' | sed '/^$/d' | tr '\n' ' ')
           JSON=$(echo "$ARCHS" | tr ' ' '\n' | sed '/^$/d' | sed 's/^/"/;s/$/"/' | paste -sd',' | sed 's/^/[/;s/$/]/')
           echo "matrix=$JSON" >> "$GITHUB_OUTPUT"
@@ -161,8 +180,8 @@ jobs:
           # specific identifier the dispatcher gave us.
           if [ -n "${{ inputs.csv_name }}" ]; then
             PREFIX="${{ inputs.csv_name }}"
-          elif [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            PREFIX="${{ inputs.set1_source }}-${{ inputs.set1_sha }}-vs-${{ inputs.set2_source }}-${{ inputs.set2_sha }}"
+          elif [ "$SET1_SOURCE" != "legacy" ]; then
+            PREFIX="${SET1_SOURCE}-${SET1_SHA}-vs-${SET2_SOURCE}-${SET2_SHA}"
           elif [ -n "${{ inputs.sha }}" ] && [ "${{ inputs.sha }}" != "latest" ]; then
             PREFIX="${{ inputs.sha }}"
           elif [ -n "${{ inputs.pr_id }}" ]; then
@@ -202,6 +221,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.PARITY_GITHUB_TOKEN || github.token }}
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          CROSS_SET1_SOURCE: ${{ inputs.set1_source }}
+          CROSS_SET1_SHA: ${{ inputs.set1_sha }}
+          CROSS_SET2_SOURCE: ${{ inputs.set2_source }}
+          CROSS_SET2_SHA: ${{ inputs.set2_sha }}
         run: |
           # Forward run options to download_testlogs.
           #
@@ -244,11 +267,11 @@ jobs:
           if [ -n "${{ inputs.baseline_sha }}" ]; then
             ARGS="$ARGS --baseline_sha ${{ inputs.baseline_sha }}"
           fi
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            ARGS="$ARGS --set1_source ${{ inputs.set1_source }}"
-            ARGS="$ARGS --set1_sha ${{ inputs.set1_sha }}"
-            ARGS="$ARGS --set2_source ${{ inputs.set2_source }}"
-            ARGS="$ARGS --set2_sha ${{ inputs.set2_sha }}"
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
+            ARGS="$ARGS --set1_source $CROSS_SET1_SOURCE"
+            ARGS="$ARGS --set1_sha $CROSS_SET1_SHA"
+            ARGS="$ARGS --set2_source $CROSS_SET2_SOURCE"
+            ARGS="$ARGS --set2_sha $CROSS_SET2_SHA"
           fi
 
           DIAG_SHA="${{ inputs.sha }}"
@@ -292,6 +315,11 @@ jobs:
 
       - name: Generate CSV
         working-directory: .automation_scripts/pytorch-unit-test-scripts
+        env:
+          CROSS_SET1_SOURCE: ${{ inputs.set1_source }}
+          CROSS_SET1_SHA: ${{ inputs.set1_sha }}
+          CROSS_SET2_SOURCE: ${{ inputs.set2_source }}
+          CROSS_SET2_SHA: ${{ inputs.set2_sha }}
         run: |
           set -o pipefail
           FOLDER="${{ steps.folder.outputs.folder }}"
@@ -305,9 +333,9 @@ jobs:
               exit 1
             fi
           }
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            require_xml "$FOLDER/set1_xml" "${{ inputs.set1_source }}"
-            require_xml "$FOLDER/set2_xml" "${{ inputs.set2_source }}"
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
+            require_xml "$FOLDER/set1_xml" "$CROSS_SET1_SOURCE"
+            require_xml "$FOLDER/set2_xml" "$CROSS_SET2_SOURCE"
           else
             if [ "${{ inputs.skip_rocm }}" != "true" ]; then
               require_xml "$FOLDER/rocm_xml" "ROCm"
@@ -325,12 +353,12 @@ jobs:
             CSV_NAME="${DATE}_all_tests_status_${ARCH}"
           fi
 
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            SET1_SHORT=$(echo "${{ inputs.set1_sha }}" | cut -c1-8)
-            SET2_SHORT=$(echo "${{ inputs.set2_sha }}" | cut -c1-8)
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
+            SET1_SHORT=$(echo "$CROSS_SET1_SHA" | cut -c1-8)
+            SET2_SHORT=$(echo "$CROSS_SET2_SHA" | cut -c1-8)
             ARGS="--set1 $FOLDER/set1_xml --set2 $FOLDER/set2_xml"
-            ARGS="$ARGS --set1_name ${{ inputs.set1_source }}@${SET1_SHORT}"
-            ARGS="$ARGS --set2_name ${{ inputs.set2_source }}@${SET2_SHORT}"
+            ARGS="$ARGS --set1_name ${CROSS_SET1_SOURCE}@${SET1_SHORT}"
+            ARGS="$ARGS --set2_name ${CROSS_SET2_SOURCE}@${SET2_SHORT}"
           elif [ -n "${{ inputs.baseline_sha }}" ]; then
             ARGS="--set1 $FOLDER/rocm_xml"
             ARGS="$ARGS --set2 $FOLDER/baseline_xml"
@@ -403,7 +431,9 @@ jobs:
           ${FOLDER}/*.log
           ${FOLDER}/*.txt
           ${FOLDER}/inductor_periodic_rocm_dir/
-          ${FOLDER}/inductor_periodic_cuda_dir/"
+          ${FOLDER}/inductor_periodic_cuda_dir/
+          ${FOLDER}/set1_inductor_periodic/
+          ${FOLDER}/set2_inductor_periodic/"
           if [ "${{ inputs.include_xml }}" = "true" ]; then
             PATHS="${PATHS}
           ${FOLDER}/rocm_xml/
@@ -454,16 +484,31 @@ jobs:
 
       - name: Build parity report
         working-directory: .automation_scripts/pytorch-unit-test-scripts
+        env:
+          CROSS_SET1_SOURCE: ${{ inputs.set1_source }}
+          CROSS_SET1_SHA: ${{ inputs.set1_sha }}
+          CROSS_SET2_SOURCE: ${{ inputs.set2_source }}
+          CROSS_SET2_SHA: ${{ inputs.set2_sha }}
         run: |
-          ARCHS="${{ inputs.arch }}"
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
+            if [ "$CROSS_SET1_SOURCE" != "trunk" ]; then
+              ARCHS="$CROSS_SET1_SOURCE"
+            elif [ "$CROSS_SET2_SOURCE" != "trunk" ]; then
+              ARCHS="$CROSS_SET2_SOURCE"
+            else
+              ARCHS="mi350"
+            fi
+          else
+            ARCHS="${{ inputs.arch }}"
+          fi
           SHA="${{ inputs.sha }}"
           [ "$SHA" = "latest" ] && SHA=""
           PR_ID="${{ inputs.pr_id }}"
           BASELINE_SHA="${{ inputs.baseline_sha }}"
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
-            SHA="${{ inputs.set1_sha }}"
-            SET1="${{ inputs.set1_source }}@$(echo "${{ inputs.set1_sha }}" | cut -c1-8)"
-            SET2="${{ inputs.set2_source }}@$(echo "${{ inputs.set2_sha }}" | cut -c1-8)"
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
+            SHA="$CROSS_SET1_SHA"
+            SET1="${CROSS_SET1_SOURCE}@$(echo "$CROSS_SET1_SHA" | cut -c1-8)"
+            SET2="${CROSS_SET2_SOURCE}@$(echo "$CROSS_SET2_SHA" | cut -c1-8)"
           elif [ -n "$BASELINE_SHA" ]; then
             SET1=$(echo "$SHA" | cut -c1-8)
             SET2=$(echo "$BASELINE_SHA" | cut -c1-8)
@@ -533,14 +578,14 @@ jobs:
             exit 1
           }
           cat "${OUTPUT}.md" >> "$GITHUB_STEP_SUMMARY"
-          if [ "${{ inputs.set1_source }}" != "legacy" ]; then
+          if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
             META=$(find ../../artifacts -name comparison_sources.json | head -1)
             {
               echo ""
               echo "### Comparison sources"
               echo ""
-              echo "- Set 1: \`${{ inputs.set1_source }}@${{ inputs.set1_sha }}\`"
-              echo "- Set 2: \`${{ inputs.set2_source }}@${{ inputs.set2_sha }}\`"
+              echo "- Set 1: \`${CROSS_SET1_SOURCE}@${CROSS_SET1_SHA}\`"
+              echo "- Set 2: \`${CROSS_SET2_SOURCE}@${CROSS_SET2_SHA}\`"
               if [ -n "$META" ]; then
                 jq -r '.sides[] | "- Set \(.set) upstream workflow runs: " + ((.workflow_run_ids // []) | join(", "))' "$META"
               fi

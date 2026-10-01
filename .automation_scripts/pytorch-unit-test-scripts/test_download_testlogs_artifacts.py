@@ -10,6 +10,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
+from detect_log_failures import classify_log_file
+
 
 def _load_download_testlogs():
     for var in ("GITHUB_TOKEN", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY"):
@@ -186,6 +188,7 @@ class CrossSourceComparisonTest(unittest.TestCase):
             "pr_id": None,
             "ignore_status": True,
             "artifacts_only": True,
+            "include_inductor_periodic": False,
             "created": None,
             "max_pages": 10,
             "exclude_default": False,
@@ -206,18 +209,29 @@ class CrossSourceComparisonTest(unittest.TestCase):
         self.assertIn("--no_cuda", preview)
         self.assertEqual(preview[preview.index("--arch") + 1], "preview")
 
+        periodic = dtl._cross_side_command(
+            "trunk", "a" * 40,
+            self._args(include_inductor_periodic=True),
+        )
+        self.assertIn("--include_inductor_periodic", periodic)
+
     def test_comparison_downloads_each_side_to_separate_directories(self):
         args = self._args()
         commands = []
 
-        def fake_run(command, check):
+        def fake_run(command, check, cwd):
             commands.append(command)
             sha = command[command.index("--sha1") + 1]
             xml_name = "cuda_xml" if "--no_rocm" in command else "rocm_xml"
-            xml_dir = Path(f"20260930_{sha}") / xml_name / "shard"
+            source = command[command.index("--arch") + 1]
+            folder = Path(cwd) / f"20260930_{sha}"
+            xml_dir = folder / xml_name / "shard"
             xml_dir.mkdir(parents=True, exist_ok=True)
-            (xml_dir / "TEST-result.xml").write_text("<testsuite/>")
+            (xml_dir / "TEST-result.xml").write_text(
+                f'<testsuite name="{source}"/>'
+            )
             (xml_dir / "_wf_run_ids.json").write_text('{"1": "123"}')
+            (folder / f"{xml_name[:-4]}1.txt").write_text("test log")
             return SimpleNamespace(returncode=0)
 
         with mock.patch.object(dtl.subprocess, "run", side_effect=fake_run):
@@ -232,6 +246,28 @@ class CrossSourceComparisonTest(unittest.TestCase):
         )
         self.assertEqual(metadata["sides"][0]["workflow_run_ids"], ["123"])
         self.assertTrue(all("--exclude_slow" in command for command in commands))
+        self.assertTrue((folder / f"trunk@{'a' * 8}_cuda1.txt").is_file())
+        self.assertTrue((folder / f"preview@{'b' * 8}_rocm1.txt").is_file())
+
+    def test_same_sha_rocm_sources_remain_isolated(self):
+        sha = "c" * 40
+        args = self._args(
+            set1_source="mi350", set1_sha=sha,
+            set2_source="preview", set2_sha=sha,
+        )
+
+        def fake_run(command, check, cwd):
+            source = command[command.index("--arch") + 1]
+            xml_dir = Path(cwd) / f"20260930_{sha}" / "rocm_xml"
+            xml_dir.mkdir(parents=True, exist_ok=True)
+            (xml_dir / "TEST-result.xml").write_text(source)
+            return SimpleNamespace(returncode=0)
+
+        with mock.patch.object(dtl.subprocess, "run", side_effect=fake_run):
+            folder = dtl.run_cross_source_comparison(args)
+
+        self.assertEqual((folder / "set1_xml/TEST-result.xml").read_text(), "mi350")
+        self.assertEqual((folder / "set2_xml/TEST-result.xml").read_text(), "preview")
 
     def test_comparison_requires_all_four_source_fields(self):
         with self.assertRaisesRegex(ValueError, "requires set1_source"):
@@ -260,6 +296,12 @@ class CrossSourceComparisonTest(unittest.TestCase):
         self.assertIsNone(args.set2_source)
         self.assertIsNone(args.set1_sha)
         self.assertIsNone(args.set2_sha)
+
+    def test_cross_source_log_label_is_preserved(self):
+        self.assertEqual(
+            classify_log_file("trunk@1234abcd_cuda_dist2.txt"),
+            ("trunk@1234abcd", "distributed", 2),
+        )
 
 
 if __name__ == "__main__":
