@@ -1,0 +1,117 @@
+name: TheRock PR Wheel CI
+run-name: "TheRock wheel CI · PR #${{ github.event.pull_request.number || inputs.pr_number }}"
+
+on:
+  pull_request_target:
+    branches:
+      - develop
+      - "release/**"
+    types:
+      - labeled
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: ROCm/pytorch PR number to validate.
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  pull-requests: write
+  statuses: write
+
+concurrency:
+  group: therock-pr-wheel-ci-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  dispatch:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.label.name == 'ci:therock'
+    name: Dispatch and monitor TheRock
+    runs-on: ubuntu-24.04
+    timeout-minutes: 360
+    steps:
+      # pull_request_target is intentional: secrets stay in the trusted base
+      # workflow, and the PR head is never checked out or executed here.
+      - name: Validate PR and label
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+
+          head_repository="$(jq -r '.head.repo.full_name' <<< "${pr_json}")"
+          if [[ "${head_repository}" != "ROCm/pytorch" ]]; then
+            echo "::error::TheRock CI only accepts branches in ROCm/pytorch; move the commit to an org branch."
+            exit 1
+          fi
+
+          if ! jq -e '.labels | any(.name == "ci:therock")' <<< "${pr_json}" >/dev/null; then
+            echo "::error::PR #${PR_NUMBER} does not have the ci:therock label."
+            exit 1
+          fi
+
+          event_sha="${{ github.event.pull_request.head.sha }}"
+          current_sha="$(jq -r '.head.sha' <<< "${pr_json}")"
+          if [[ -n "${event_sha}" && "${event_sha}" != "${current_sha}" ]]; then
+            echo "::error::The PR changed after ci:therock was applied; review and reapply the label."
+            exit 1
+          fi
+
+          base_ref="$(jq -r '.base.ref' <<< "${pr_json}")"
+          if [[ "${base_ref}" != "develop" && "${base_ref}" != release/* ]]; then
+            echo "::error::Unsupported base branch: ${base_ref}"
+            exit 1
+          fi
+
+          echo "number=${PR_NUMBER}" >> "${GITHUB_OUTPUT}"
+          echo "sha=${current_sha}" >> "${GITHUB_OUTPUT}"
+          echo "base_sha=$(jq -r '.base.sha' <<< "${pr_json}")" >> "${GITHUB_OUTPUT}"
+
+          # Consume approval so each new PR SHA requires a fresh label.
+          gh api --method DELETE \
+            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels/ci%3Atherock"
+
+      - name: Validate package configuration
+        env:
+          ROCM_VERSION: ${{ vars.THEROCK_ROCM_VERSION }}
+          PACKAGE_INDEX_URL: ${{ vars.THEROCK_ROCM_PACKAGE_INDEX_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ROCM_VERSION}" || -z "${PACKAGE_INDEX_URL}" ]]; then
+            echo "::error::THEROCK_ROCM_VERSION and THEROCK_ROCM_PACKAGE_INDEX_URL must be configured."
+            exit 1
+          fi
+
+      - name: Checkout trusted base scripts
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+          ref: ${{ steps.pr.outputs.base_sha }}
+
+      - name: Create scoped TheRock token
+        id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ROCm
+          repositories: TheRock
+          permission-actions: write
+          skip-token-revoke: true
+
+      - name: Dispatch and monitor wheel builds
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          THEROCK_TOKEN: ${{ steps.app-token.outputs.token }}
+          THEROCK_APP_ID: ${{ secrets.APP_ID }}
+          THEROCK_APP_PRIVATE_KEY: ${{ secrets.APP_PRIVATE_KEY }}
+        run: |
+          python .github/scripts/dispatch_therock_ci.py \
+            --sha "${{ steps.pr.outputs.sha }}" \
+            --rocm-version "${{ vars.THEROCK_ROCM_VERSION }}" \
+            --package-index-url "${{ vars.THEROCK_ROCM_PACKAGE_INDEX_URL }}"
