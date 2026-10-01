@@ -579,16 +579,12 @@ jobs:
           }
           cat "${OUTPUT}.md" >> "$GITHUB_STEP_SUMMARY"
           if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
-            META=$(find ../../artifacts -name comparison_sources.json | head -1)
             {
               echo ""
               echo "### Comparison sources"
               echo ""
               echo "- Set 1: \`${CROSS_SET1_SOURCE}@${CROSS_SET1_SHA}\`"
               echo "- Set 2: \`${CROSS_SET2_SOURCE}@${CROSS_SET2_SHA}\`"
-              if [ -n "$META" ]; then
-                jq -r '.sides[] | "- Set \(.set) upstream workflow runs: " + ((.workflow_run_ids // []) | join(", "))' "$META"
-              fi
             } >> "$GITHUB_STEP_SUMMARY"
           fi
 

@@ -933,19 +933,6 @@ def _find_cross_side_xml(source, sha, root="."):
     raise RuntimeError(f"No {source} XML reports found for {sha}")
 
 
-def _cross_side_run_ids(xml_dir):
-    """Collect resolved upstream run IDs for reproducibility metadata."""
-    run_ids = set()
-    for manifest in Path(xml_dir).rglob("_wf_run_ids.json"):
-        try:
-            run_ids.update(str(value) for value in json.loads(
-                manifest.read_text()
-            ).values())
-        except (OSError, ValueError, AttributeError):
-            continue
-    return sorted(run_ids)
-
-
 def run_cross_source_comparison(parsed_args):
     """Download two independently selected source/SHA pairs."""
     fields = (
@@ -993,7 +980,6 @@ def run_cross_source_comparison(parsed_args):
         shutil.rmtree(final_folder)
     final_folder.mkdir()
 
-    metadata = {"mode": "cross-source", "sides": []}
     for index, (source, sha) in enumerate((
         (parsed_args.set1_source, parsed_args.set1_sha),
         (parsed_args.set2_source, parsed_args.set2_sha),
@@ -1027,13 +1013,6 @@ def run_cross_source_comparison(parsed_args):
                     log,
                     final_folder / f"{source}@{sha[:8]}_{log.name}",
                 )
-            metadata["sides"].append({
-                "set": index,
-                "source": source,
-                "sha": sha,
-                "source_folder": str(source_folder),
-                "workflow_run_ids": _cross_side_run_ids(target),
-            })
         except RuntimeError as error:
             error_msgs.append(str(error))
             continue
@@ -1043,9 +1022,6 @@ def run_cross_source_comparison(parsed_args):
                 f"(exit code {result.returncode})"
             )
 
-    (final_folder / "comparison_sources.json").write_text(
-        json.dumps(metadata, indent=2) + "\n"
-    )
     print(f"Cross-source artifacts saved to: {final_folder}")
     return final_folder
 

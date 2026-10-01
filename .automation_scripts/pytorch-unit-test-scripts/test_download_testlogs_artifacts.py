@@ -1,6 +1,5 @@
 import importlib.machinery
 import importlib.util
-import json
 import os
 import sys
 import tempfile
@@ -239,12 +238,7 @@ class CrossSourceComparisonTest(unittest.TestCase):
 
         self.assertTrue((folder / "set1_xml/shard/TEST-result.xml").is_file())
         self.assertTrue((folder / "set2_xml/shard/TEST-result.xml").is_file())
-        metadata = json.loads((folder / "comparison_sources.json").read_text())
-        self.assertEqual(
-            [(side["source"], side["sha"]) for side in metadata["sides"]],
-            [("trunk", "a" * 40), ("preview", "b" * 40)],
-        )
-        self.assertEqual(metadata["sides"][0]["workflow_run_ids"], ["123"])
+        self.assertFalse((folder / "comparison_sources.json").exists())
         self.assertTrue(all("--exclude_slow" in command for command in commands))
         self.assertTrue((folder / f"trunk@{'a' * 8}_cuda1.txt").is_file())
         self.assertTrue((folder / f"preview@{'b' * 8}_rocm1.txt").is_file())
