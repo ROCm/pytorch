@@ -120,7 +120,7 @@ python -m spin clean
 retry pip install -qr requirements.txt
 case ${DESIRED_PYTHON} in
   cp314*)
-    retry pip install -q --pre numpy==2.3.4
+    retry pip install -q --pre numpy==2.4.5
     ;;
   cp31*)
     retry pip install -q --pre numpy==2.1.0
