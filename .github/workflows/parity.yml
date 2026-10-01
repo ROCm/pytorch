@@ -11,7 +11,7 @@ name: Parity Report
 # first of: "<sha> vs <baseline>", "PR <id>", or <sha> (which defaults to
 # "latest"). "autoparity-" only marks auto-trigger dispatches (parity-auto.yml)
 # and csv_name, when given, is prepended so a custom run is easy to spot.
-run-name: "${{ inputs.auto_triggered && 'autoparity-' || '' }}${{ inputs.csv_name && format('{0}-', inputs.csv_name) || '' }}${{ inputs.set1_source != 'legacy' && format('{0}@{1} vs {2}@{3}', inputs.set1_source, inputs.set1_sha, inputs.set2_source, inputs.set2_sha) || inputs.baseline_sha && format('{0} vs {1}', inputs.sha, inputs.baseline_sha) || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha }} · ${{ inputs.arch }}"
+run-name: "${{ inputs.auto_triggered && 'autoparity-' || '' }}${{ inputs.csv_name && format('{0}-', inputs.csv_name) || '' }}${{ inputs.set1_source != 'legacy' && format('{0}@{1} vs {2}@{3}', inputs.set1_source, inputs.set1_sha, inputs.set2_source, inputs.set2_sha) || inputs.baseline_sha && format('{0} vs {1}', inputs.sha, inputs.baseline_sha) || inputs.pr_id && format('PR {0}', inputs.pr_id) || inputs.sha }}${{ inputs.set1_source == 'legacy' && format(' · {0}', inputs.arch) || '' }}"
 
 on:
   workflow_dispatch:
