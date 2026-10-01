@@ -134,8 +134,8 @@ def evaluate_gfx_arch_within(arch_list):
 # nested by construction: CDNA5OrLater => CDNA3OrLater => CDNA2OrLater.
 _CDNA2_ARCHS = ["gfx90a"]
 _CDNA3_ARCHS = ["gfx942", "gfx950"]
-# GFX1250 (CDNA 5)
-_CDNA5_ARCHS = ["gfx1250"]
+# GFX1250 / gfx1250-strict (CDNA 5)
+_CDNA5_ARCHS = ["gfx1250", "gfx1250-strict"]
 
 def CDNA5OrLater():
     return evaluate_gfx_arch_within(_CDNA5_ARCHS)
@@ -148,18 +148,19 @@ def CDNA2OrLater():
 
 # Archs that take the opportunistic_fastAtomicAdd path (packed 2x16 atomics + DPP
 # lane coalescing) in ScatterGatherKernel.cu. Keep in sync with that kernel's arch
-# gate; this is intentionally not CDNA3OrLater (gfx1250 uses plain fastAtomicAdd).
+# gate; this is intentionally not CDNA3OrLater (gfx1250/gfx1250-strict use
+# plain fastAtomicAdd).
 def gfx_arch_supports_opportunistic_fastatomics():
     return evaluate_gfx_arch_within(["gfx942", "gfx950"])
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250 is omitted until flash-attention artifacts ship for it.
-        # The AOTriton path needs the gfx1250 GPU image from AOTriton 0.12.1b,
-        # which is wired up by PR #188242 (which also adds gfx1250 to this list);
-        # this gate-only PR leaves it out so the two changes do not conflict
-        # (see cmake/External/aotriton.cmake). The CK FAv3/AITER codegen is
-        # separately not yet wired for gfx1250
+        # NOTE: gfx1250/gfx1250-strict are omitted until flash-attention artifacts ship
+        # for them. The AOTriton path needs the gfx1250 GPU image from AOTriton 0.12.1b
+        # (the amd-gfx1250 regex also matches gfx1250-strict), which is wired up by
+        # PR #188242 (which also adds gfx1250 to this list); this gate-only PR leaves
+        # them out so the two changes do not conflict (see cmake/External/aotriton.cmake).
+        # The CK FAv3/AITER codegen is separately not yet wired for gfx1250/gfx1250-strict
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
@@ -179,11 +180,12 @@ def evaluate_platform_supports_ck_sdpa():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250 is omitted until mem-efficient-attention artifacts ship
-        # for it. The AOTriton gfx1250 image (from AOTriton 0.12.1b) is wired up
-        # by PR #188242, which also adds gfx1250 here; this gate-only PR leaves
-        # it out to avoid conflicting with that change. The CK FAv3/AITER codegen
-        # is separately not yet wired for gfx1250.
+        # NOTE: gfx1250/gfx1250-strict are omitted until mem-efficient-attention
+        # artifacts ship for them. The AOTriton gfx1250 image (from AOTriton 0.12.1b,
+        # whose regex also matches gfx1250-strict) is wired up by PR #188242, which
+        # also adds gfx1250 here; this gate-only PR leaves them out to avoid
+        # conflicting with that change. The CK FAv3/AITER codegen is separately
+        # not yet wired for gfx1250/gfx1250-strict.
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
@@ -268,7 +270,7 @@ def evaluate_platform_supports_fp8():
             if ROCM_VERSION >= (6, 5):
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
-                archs.append('gfx1250')
+                archs.extend(['gfx1250', 'gfx1250-strict'])
             for arch in archs:
                 if arch in torch.cuda.get_device_properties(0).gcnArchName:
                     return True
@@ -285,8 +287,8 @@ def evaluate_platform_supports_fp8_grouped_gemm():
         if torch.version.hip:
             if "USE_MSLK" not in torch.__config__.show():
                 return False
-            # gfx1250 omitted: MSLK only builds gfx942/gfx950 kernels (see the arch
-            # filter in aten/src/ATen/CMakeLists.txt). Add gfx1250 here once MSLK does.
+            # gfx1250/gfx1250-strict omitted: MSLK only builds gfx942/gfx950
+            # kernels (see aten/src/ATen/CMakeLists.txt). Add them once MSLK does.
             archs = ['gfx942', 'gfx950']
             for arch in archs:
                 if arch in torch.cuda.get_device_properties(0).gcnArchName:
@@ -300,7 +302,8 @@ def evaluate_platform_supports_mx_gemm():
         if torch.version.hip:
             if ROCM_VERSION >= (7, 0):
                 gcn_name = torch.cuda.get_device_properties(0).gcnArchName
-                return 'gfx950' in gcn_name or ('gfx1250' in gcn_name and ROCM_VERSION >= (7, 14))
+                cdna5 = 'gfx1250' in gcn_name or 'gfx1250-strict' in gcn_name
+                return 'gfx950' in gcn_name or (cdna5 and ROCM_VERSION >= (7, 14))
         else:
             return SM100OrLater
     if torch.xpu.is_available():
