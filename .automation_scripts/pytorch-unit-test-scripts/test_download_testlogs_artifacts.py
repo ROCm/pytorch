@@ -1,11 +1,13 @@
 import importlib.machinery
 import importlib.util
+import json
 import os
 import sys
 import tempfile
 import unittest
 import zipfile
 from pathlib import Path
+from types import SimpleNamespace
 from unittest import mock
 
 
@@ -162,6 +164,102 @@ class ApiRetryTest(unittest.TestCase):
 
         self.assertEqual(result, [{"id": 1}])
         sleep.assert_called_once_with(1)
+
+
+class CrossSourceComparisonTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(self.tmp.name)
+        dtl.error_msgs.clear()
+        self.addCleanup(dtl.error_msgs.clear)
+
+    def _args(self, **overrides):
+        values = {
+            "set1_source": "trunk",
+            "set1_sha": "a" * 40,
+            "set2_source": "preview",
+            "set2_sha": "b" * 40,
+            "baseline_sha": None,
+            "pr_id": None,
+            "ignore_status": True,
+            "artifacts_only": True,
+            "created": None,
+            "max_pages": 10,
+            "exclude_default": False,
+            "exclude_distributed": True,
+            "exclude_inductor": True,
+            "exclude_slow": False,
+        }
+        values.update(overrides)
+        return SimpleNamespace(**values)
+
+    def test_side_commands_select_platform_and_arch(self):
+        args = self._args()
+        trunk = dtl._cross_side_command("trunk", "a" * 40, args)
+        preview = dtl._cross_side_command("preview", "b" * 40, args)
+
+        self.assertIn("--no_rocm", trunk)
+        self.assertEqual(trunk[trunk.index("--arch") + 1], "mi350")
+        self.assertIn("--no_cuda", preview)
+        self.assertEqual(preview[preview.index("--arch") + 1], "preview")
+
+    def test_comparison_downloads_each_side_to_separate_directories(self):
+        args = self._args()
+        commands = []
+
+        def fake_run(command, check):
+            commands.append(command)
+            sha = command[command.index("--sha1") + 1]
+            xml_name = "cuda_xml" if "--no_rocm" in command else "rocm_xml"
+            xml_dir = Path(f"20260930_{sha}") / xml_name / "shard"
+            xml_dir.mkdir(parents=True, exist_ok=True)
+            (xml_dir / "TEST-result.xml").write_text("<testsuite/>")
+            (xml_dir / "_wf_run_ids.json").write_text('{"1": "123"}')
+            return SimpleNamespace(returncode=0)
+
+        with mock.patch.object(dtl.subprocess, "run", side_effect=fake_run):
+            folder = dtl.run_cross_source_comparison(args)
+
+        self.assertTrue((folder / "set1_xml/shard/TEST-result.xml").is_file())
+        self.assertTrue((folder / "set2_xml/shard/TEST-result.xml").is_file())
+        metadata = json.loads((folder / "comparison_sources.json").read_text())
+        self.assertEqual(
+            [(side["source"], side["sha"]) for side in metadata["sides"]],
+            [("trunk", "a" * 40), ("preview", "b" * 40)],
+        )
+        self.assertEqual(metadata["sides"][0]["workflow_run_ids"], ["123"])
+        self.assertTrue(all("--exclude_slow" in command for command in commands))
+
+    def test_comparison_requires_all_four_source_fields(self):
+        with self.assertRaisesRegex(ValueError, "requires set1_source"):
+            dtl.run_cross_source_comparison(self._args(set2_sha=None))
+
+    def test_missing_side_xml_is_recorded_as_failure(self):
+        with mock.patch.object(
+            dtl.subprocess, "run", return_value=SimpleNamespace(returncode=0)
+        ):
+            dtl.run_cross_source_comparison(self._args())
+
+        self.assertIn(
+            f"No trunk XML reports found for {'a' * 40}",
+            dtl.error_msgs,
+        )
+        self.assertIn(
+            f"No preview XML reports found for {'b' * 40}",
+            dtl.error_msgs,
+        )
+
+    def test_legacy_args_do_not_enable_cross_source_mode(self):
+        with mock.patch.object(sys, "argv", ["download_testlogs"]):
+            args = dtl.parse_args()
+
+        self.assertIsNone(args.set1_source)
+        self.assertIsNone(args.set2_source)
+        self.assertIsNone(args.set1_sha)
+        self.assertIsNone(args.set2_sha)
 
 
 if __name__ == "__main__":

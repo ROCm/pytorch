@@ -3,13 +3,17 @@
 
 try:
     import os
+    import copy
     import json
     import time
     import argparse
     import requests
     import re
     import sys
+    import shutil
+    import subprocess
     import zipfile
+    from pathlib import Path
     from job_name_match import choose_test_job_family
     from upload_stats_lib import unzip
     from upload_test_stats import download_gha_artifacts, download_s3_artifacts
@@ -879,7 +883,142 @@ def parse_args():
     parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi350', 'navi31', 'preview'], default='mi350', help='ROCm GPU architecture (mi200, mi300, mi350, navi31, or preview, default: mi350)')
     parser.add_argument('--include_inductor_periodic', action='store_true', help='Also download inductor-periodic benchmark artifacts (into a separate directory, not included in parity CSV)')
     parser.add_argument('--baseline_sha', type=str, help='Baseline commit SHA to compare against. Downloads the same ROCm workflows for this commit into baseline_xml/.')
+    parser.add_argument('--set1_source', choices=['trunk', 'mi350', 'mi300', 'mi200', 'navi31', 'preview'])
+    parser.add_argument('--set1_sha', type=str)
+    parser.add_argument('--set2_source', choices=['trunk', 'mi350', 'mi300', 'mi200', 'navi31', 'preview'])
+    parser.add_argument('--set2_sha', type=str)
     return parser.parse_args()
+
+
+def _cross_side_command(source, sha, parsed_args):
+    """Build one legacy downloader command for a cross-source side."""
+    command = [
+        sys.executable,
+        os.path.abspath(__file__),
+        "--sha1",
+        sha,
+        "--arch",
+        "mi350" if source == "trunk" else source,
+    ]
+    command.append("--no_rocm" if source == "trunk" else "--no_cuda")
+    if parsed_args.ignore_status:
+        command.append("--ignore_status")
+    if parsed_args.artifacts_only:
+        command.append("--artifacts_only")
+    if parsed_args.created:
+        command.extend(["--created", parsed_args.created])
+    if parsed_args.max_pages != 10:
+        command.extend(["--max_pages", str(parsed_args.max_pages)])
+    for option in ("exclude_default", "exclude_distributed", "exclude_inductor",
+                   "exclude_slow"):
+        if getattr(parsed_args, option):
+            command.append(f"--{option}")
+    return command
+
+
+def _find_cross_side_xml(source, sha):
+    """Find the XML directory emitted by a side's legacy downloader."""
+    xml_name = "cuda_xml" if source == "trunk" else "rocm_xml"
+    candidates = sorted(
+        (path for path in Path(".").glob(f"*_{sha}*") if path.is_dir()),
+        key=lambda path: path.stat().st_mtime,
+        reverse=True,
+    )
+    for folder in candidates:
+        xml_dir = folder / xml_name
+        if xml_dir.is_dir() and next(xml_dir.rglob("*.xml"), None):
+            return folder, xml_dir
+    raise RuntimeError(f"No {source} XML reports found for {sha}")
+
+
+def _cross_side_run_ids(xml_dir):
+    """Collect resolved upstream run IDs for reproducibility metadata."""
+    run_ids = set()
+    for manifest in Path(xml_dir).rglob("_wf_run_ids.json"):
+        try:
+            run_ids.update(str(value) for value in json.loads(
+                manifest.read_text()
+            ).values())
+        except (OSError, ValueError, AttributeError):
+            continue
+    return sorted(run_ids)
+
+
+def run_cross_source_comparison(parsed_args):
+    """Download two independently selected source/SHA pairs."""
+    fields = (
+        parsed_args.set1_source, parsed_args.set1_sha,
+        parsed_args.set2_source, parsed_args.set2_sha,
+    )
+    if not all(fields):
+        raise ValueError(
+            "Cross-source mode requires set1_source, set1_sha, "
+            "set2_source, and set2_sha"
+        )
+    if parsed_args.baseline_sha or parsed_args.pr_id:
+        raise ValueError(
+            "Cross-source mode cannot be combined with baseline_sha or pr_id"
+        )
+
+    side_args = copy.copy(parsed_args)
+    source_configs = []
+    for source in (parsed_args.set1_source, parsed_args.set2_source):
+        config = (
+            PARITY_CONFIG["cuda"] if source == "trunk"
+            else PARITY_CONFIG["rocm"][source]
+        )
+        source_configs.append(set(config) & set(_TEST_CONFIGS))
+    common_configs = set.intersection(*source_configs)
+    for config in _TEST_CONFIGS:
+        if config not in common_configs:
+            setattr(side_args, f"exclude_{config}", True)
+            print(
+                f"NOTE: {config} is not available on both sources; "
+                "excluding it from the comparison"
+            )
+
+    final_folder = Path(
+        f"{time.strftime('%Y%m%d', time.gmtime())}_"
+        f"{parsed_args.set1_sha}_comparison"
+    )
+    if final_folder.exists():
+        shutil.rmtree(final_folder)
+    final_folder.mkdir()
+
+    metadata = {"mode": "cross-source", "sides": []}
+    for index, (source, sha) in enumerate((
+        (parsed_args.set1_source, parsed_args.set1_sha),
+        (parsed_args.set2_source, parsed_args.set2_sha),
+    ), start=1):
+        command = _cross_side_command(source, sha, side_args)
+        print(f"Downloading set{index}: {source}@{sha}")
+        print("Running:", " ".join(command))
+        result = subprocess.run(command, check=False)
+        try:
+            source_folder, xml_dir = _find_cross_side_xml(source, sha)
+            target = final_folder / f"set{index}_xml"
+            shutil.copytree(xml_dir, target)
+            metadata["sides"].append({
+                "set": index,
+                "source": source,
+                "sha": sha,
+                "source_folder": str(source_folder),
+                "workflow_run_ids": _cross_side_run_ids(target),
+            })
+        except RuntimeError as error:
+            error_msgs.append(str(error))
+            continue
+        if result.returncode:
+            error_msgs.append(
+                f"{source}@{sha} download was incomplete "
+                f"(exit code {result.returncode})"
+            )
+
+    (final_folder / "comparison_sources.json").write_text(
+        json.dumps(metadata, indent=2) + "\n"
+    )
+    print(f"Cross-source artifacts saved to: {final_folder}")
+    return final_folder
 
 # Rate-limit issues
 # Authenticated users get 5000 requests/day
@@ -965,6 +1104,12 @@ def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status
 def main():
     global args
     args = parse_args()
+    cross_fields = (
+        args.set1_source, args.set1_sha, args.set2_source, args.set2_sha
+    )
+    if any(cross_fields):
+        run_cross_source_comparison(args)
+        return
     if args.max_pages < 1:
         args.max_pages=1
 
