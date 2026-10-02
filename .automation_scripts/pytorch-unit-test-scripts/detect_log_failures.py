@@ -68,6 +68,7 @@ CRASH_PATTERNS = [
 
 LOG_FILE_MAP = {
     "rocm": ("rocm", "default"),
+    "rocm_dist4gpu": ("rocm", "distributed"),
     "rocm_dist": ("rocm", "distributed"),
     "rocm_inductor": ("rocm", "inductor"),
     "rocm_slow": ("rocm", "slow"),

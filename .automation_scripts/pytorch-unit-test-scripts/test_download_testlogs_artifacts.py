@@ -313,6 +313,22 @@ class CrossSourceComparisonTest(unittest.TestCase):
 
         self.assertEqual(args.arch, "rx7900")
 
+    def test_mi350_has_trunk_and_four_gpu_distributed_sources(self):
+        config = dtl.PARITY_CONFIG["rocm"]["mi350"]
+
+        self.assertEqual(config["distributed"][0]["workflow"], "trunk")
+        self.assertEqual(
+            config["distributed_4gpu"][0]["workflow"],
+            "periodic-rocm-mi350",
+        )
+        self.assertEqual(config["shard_counts"]["distributed_4gpu"], 2)
+
+    def test_four_gpu_log_is_classified_as_distributed(self):
+        self.assertEqual(
+            classify_log_file("rocm_dist4gpu2.txt"),
+            ("rocm", "distributed", 2),
+        )
+
     def test_cross_source_log_label_is_preserved(self):
         self.assertEqual(
             classify_log_file("trunk@1234abcd_cuda_dist2.txt"),

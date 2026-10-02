@@ -1273,10 +1273,13 @@ def main():
         error_msg="Error: Periodic workflow not found in scanned workflow runs."
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         periodic_fallback_used = False
-        try:
-            periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-        except (IndexError, Exception):
-            periodic_wf = None
+        if ROCmWorkflowNames["distributed"] == "trunk" and trunk_full_wf is not None:
+            periodic_wf = trunk_full_wf
+        else:
+            try:
+                periodic_wf = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=ROCmWorkflowNames["distributed"], sha=periodic_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+            except (IndexError, Exception):
+                periodic_wf = None
         periodic_fallbacks = _fallbacks_for("distributed")
         if periodic_wf is None and arch in periodic_fallbacks:
             fallback_wf, fallback_prefix = periodic_fallbacks[arch]
@@ -1331,6 +1334,73 @@ def main():
                 test_artifacts_list_rocm_distributed,
                 folder_list[2],
                 allowed_substrings=dist_dl_subs,
+            )
+            os.chdir("..")
+
+    # Merge MI350's periodic four-GPU tests into distributed when available.
+    # Ordinary trunk SHAs remain valid without the supplemental run.
+    supplemental = arch_config.get("distributed_4gpu", [])
+    if supplemental and not args.exclude_distributed and not args.no_rocm:
+        source = supplemental[0]
+        print("==============================================")
+        print(f"Finding supplemental ROCm distributed_4gpu tests in workflow '{source['workflow']}' by sha: {sha}")
+        print("==============================================")
+        try:
+            supplemental_wf = download_workflow_run(
+                created=args.created,
+                max_pages=args.max_pages,
+                workflow=source["workflow"],
+                sha=sha,
+                ignore_status=args.ignore_status,
+                status=status,
+                error_msg="Supplemental distributed_4gpu workflow not found.",
+            )
+        except (IndexError, Exception):
+            supplemental_wf = None
+
+        if supplemental_wf is None:
+            print(f"NOTE: no supplemental distributed_4gpu run found for {sha}; using trunk distributed only")
+        else:
+            supplemental_prefix = resolve_job_prefix(
+                supplemental_wf, "distributed_4gpu", source["job_prefix"]
+            )
+            supplemental_shards = derive_shard_count(
+                supplemental_wf,
+                supplemental_prefix,
+                "distributed_4gpu",
+                rocm_shards["distributed_4gpu"],
+            )
+            print(
+                f"Using workflow '{source['workflow']}' with id:{supplemental_wf['id']} "
+                f"and {supplemental_shards} supplemental shards"
+            )
+            folder_list = get_or_create_test_folder(supplemental_wf)
+
+            if not args.artifacts_only:
+                supplemental_logs = [
+                    [
+                        f"{current_prefix}rocm_dist4gpu{i}.txt",
+                        f"{supplemental_prefix} / test (distributed_4gpu, {i}, {supplemental_shards}",
+                    ]
+                    for i in range(1, supplemental_shards + 1)
+                ]
+                download_logs(supplemental_wf, supplemental_logs, folder_list[0])
+
+            supplemental_artifacts = [
+                f"test-reports-test-distributed_4gpu-{i}-{supplemental_shards}"
+                for i in range(1, supplemental_shards + 1)
+            ]
+            supplemental_dl_wf, supplemental_dl_subs = resolve_artifact_download(
+                supplemental_wf,
+                supplemental_prefix,
+                "distributed_4gpu",
+                rocm_artifact_substrings,
+            )
+            download_artifacts(
+                supplemental_dl_wf,
+                supplemental_artifacts,
+                folder_list[2],
+                allowed_substrings=supplemental_dl_subs,
             )
             os.chdir("..")
 

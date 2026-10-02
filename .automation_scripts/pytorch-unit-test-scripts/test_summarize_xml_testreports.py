@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from summarize_xml_testreports import (
+    _test_config_from_dir,
     get_test_status,
     parse_xml_reports_as_dict,
 )
@@ -19,6 +20,12 @@ class TestXmlReportMerging(unittest.TestCase):
         path = root / shard / parent / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(contents)
+
+    def test_four_gpu_directory_merges_into_distributed(self):
+        self.assertEqual(
+            _test_config_from_dir("test-distributed_4gpu-1-2_1001"),
+            "distributed",
+        )
 
     def test_testsuites_remain_distinct_across_shards(self):
         with tempfile.TemporaryDirectory() as tmp:
