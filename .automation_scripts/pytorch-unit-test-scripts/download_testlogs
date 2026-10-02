@@ -432,63 +432,6 @@ def get_run_by_id(run_id):
         pass
     return None
 
-def resolve_artifact_download(wf, job_prefix, test_config, default_substrings):
-    """Redirect artifact download to the run that ACTUALLY ran this config's
-    shards, when it differs from the resolved caller run.
-
-    The standalone ROCm arch workflows (rocm-mi300, rocm-mi200, periodic-rocm-*,
-    inductor-rocm-*) are thin callers: on scheduled commits their sharded test
-    jobs execute under a DIFFERENT run (e.g. trunk-rocm-sandbox), and the
-    test-report artifacts live there - so downloading from the caller run finds
-    nothing and the job is flagged an incomplete download. The check-run's
-    details_url points at the run (and job) that really ran each shard, so we
-    read the hosting run id from there.
-
-    Returns (download_wf, allowed_substrings). When the shards ran in the
-    resolved run already, returns (wf, default_substrings) unchanged. When
-    redirecting, filters by the exact job ids so arches that share a
-    trunk-rocm-sandbox run don't pull each other's shards.
-    """
-    sha = wf.get("head_sha") if isinstance(wf, dict) else None
-    if not sha:
-        return wf, default_substrings
-    try:
-        check_runs = get_check_runs_for_commit(sha, job_prefix)
-    except Exception:
-        return wf, default_substrings
-    pat = re.compile(
-        re.escape(job_prefix) + r" / \S+ \(" + re.escape(test_config) + r","
-    )
-    runs = {}
-    jobs_by_run = {}
-    for cr in check_runs:
-        if not pat.search(cr.get("name", "")):
-            continue
-        m = re.search(r"/runs/(\d+)/job/(\d+)", cr.get("details_url", "") or "")
-        if not m:
-            continue
-        run_id, job_id = m.group(1), m.group(2)
-        runs[run_id] = runs.get(run_id, 0) + 1
-        jobs_by_run.setdefault(run_id, []).append(job_id)
-    if not runs:
-        return wf, default_substrings
-    max_shards = max(runs.values())
-    caller_id = str(wf.get("id"))
-    if runs.get(caller_id) == max_shards:
-        best = caller_id
-    else:
-        best = max(runs, key=runs.get)
-    if str(best) == str(wf.get("id")):
-        return wf, default_substrings
-    host = get_run_by_id(best)
-    if not host:
-        return wf, default_substrings
-    substrings = [f"_{jid}" for jid in jobs_by_run[best]]
-    print(f"NOTE: {test_config} shards for '{job_prefix}' ran in run {best} "
-          f"({host.get('name')}), not the resolved caller run {wf.get('id')}; "
-          f"downloading artifacts from there ({len(substrings)} jobs)")
-    return host, substrings
-
 def get_job_ids_by_prefix(wf, prefix):
     """Get job IDs (as strings) for jobs whose name contains the given prefix."""
     jobs = get_workflow_jobs(wf)
@@ -1335,14 +1278,11 @@ def main():
                 f"test-reports-test-distributed-{i}-{dist_shards}"
                 for i in range(1, dist_shards + 1)
             ]
-            dist_dl_wf, dist_dl_subs = resolve_artifact_download(
-                periodic_wf, dist_job_prefix, "distributed", rocm_artifact_substrings
-            )
             download_artifacts(
-                dist_dl_wf,
+                periodic_wf,
                 test_artifacts_list_rocm_distributed,
                 folder_list[2],
-                allowed_substrings=dist_dl_subs,
+                allowed_substrings=rocm_artifact_substrings,
             )
             os.chdir("..")
 
@@ -1399,17 +1339,11 @@ def main():
                 f"test-reports-test-distributed_4gpu-{i}-{supplemental_shards}"
                 for i in range(1, supplemental_shards + 1)
             ]
-            supplemental_dl_wf, supplemental_dl_subs = resolve_artifact_download(
-                supplemental_wf,
-                supplemental_prefix,
-                "distributed_4gpu",
-                rocm_artifact_substrings,
-            )
             download_artifacts(
-                supplemental_dl_wf,
+                supplemental_wf,
                 supplemental_artifacts,
                 folder_list[2],
-                allowed_substrings=supplemental_dl_subs,
+                allowed_substrings=rocm_artifact_substrings,
             )
             os.chdir("..")
 
@@ -1469,14 +1403,11 @@ def main():
               for i in range(1, default_shards + 1)
             ]
             if not args.exclude_default:
-                default_dl_wf, default_dl_subs = resolve_artifact_download(
-                    rocm_wf, rocm_job_prefix['default'], "default", rocm_artifact_substrings
-                )
                 download_artifacts(
-                    default_dl_wf,
+                    rocm_wf,
                     test_artifacts_list_rocm_default,
                     test_folder=folder_list[2],
-                    allowed_substrings=default_dl_subs,
+                    allowed_substrings=rocm_artifact_substrings,
                 )
             os.chdir("..")
 
@@ -1541,14 +1472,11 @@ def main():
               f"test-reports-test-inductor-{i}-{inductor_shards}"
               for i in range(1, inductor_shards + 1)
             ]
-            inductor_dl_wf, inductor_dl_subs = resolve_artifact_download(
-                inductor_wf_rocm, inductor_job_prefix, "inductor", rocm_artifact_substrings
-            )
             download_artifacts(
-                inductor_dl_wf,
+                inductor_wf_rocm,
                 test_artifacts_list_rocm_inductor,
                 test_folder=folder_list[2],
-                allowed_substrings=inductor_dl_subs,
+                allowed_substrings=rocm_artifact_substrings,
             )
             os.chdir("..")
 
@@ -1602,15 +1530,11 @@ def main():
                 f"test-reports-test-slow-{i}-{slow_shards}"
                 for i in range(1, slow_shards + 1)
             ]
-            slow_dl_wf, slow_dl_subs = resolve_artifact_download(
-                slow_wf_rocm, slow_job_prefix, "slow",
-                rocm_artifact_substrings,
-            )
             download_artifacts(
-                slow_dl_wf,
+                slow_wf_rocm,
                 slow_prefixes,
                 test_folder=folder_list[2],
-                allowed_substrings=slow_dl_subs,
+                allowed_substrings=rocm_artifact_substrings,
             )
             os.chdir("..")
 

@@ -148,60 +148,6 @@ class ApiRetryTest(unittest.TestCase):
     def setUp(self):
         dtl.authentication_headers = {}
 
-    def _distributed_check(self, run_id, job_id, shard):
-        prefix = "linux-noble-rocm-py3.11-mi350"
-        return {
-            "name": f"{prefix} / test (distributed, {shard}, 3, runner)",
-            "details_url": (
-                f"https://github.com/pytorch/pytorch/actions/runs/{run_id}"
-                f"/job/{job_id}"
-            ),
-        }
-
-    def test_artifact_resolver_prefers_caller_when_shard_counts_tie(self):
-        caller = {"id": 100, "head_sha": "a" * 40}
-        checks = [
-            *(self._distributed_check(200, 2000 + i, i) for i in range(1, 4)),
-            *(self._distributed_check(100, 1000 + i, i) for i in range(1, 4)),
-        ]
-
-        with (
-            mock.patch.object(dtl, "get_check_runs_for_commit", return_value=checks),
-            mock.patch.object(dtl, "get_run_by_id") as get_run,
-        ):
-            resolved, substrings = dtl.resolve_artifact_download(
-                caller,
-                "linux-noble-rocm-py3.11-mi350",
-                "distributed",
-                ["rocm.gpu"],
-            )
-
-        self.assertIs(resolved, caller)
-        self.assertEqual(substrings, ["rocm.gpu"])
-        get_run.assert_not_called()
-
-    def test_artifact_resolver_redirects_to_more_complete_run(self):
-        caller = {"id": 100, "head_sha": "a" * 40}
-        host = {"id": 200, "name": "trunk-rocm-sandbox"}
-        checks = [
-            *(self._distributed_check(200, 2000 + i, i) for i in range(1, 4)),
-            *(self._distributed_check(100, 1000 + i, i) for i in range(1, 3)),
-        ]
-
-        with (
-            mock.patch.object(dtl, "get_check_runs_for_commit", return_value=checks),
-            mock.patch.object(dtl, "get_run_by_id", return_value=host),
-        ):
-            resolved, substrings = dtl.resolve_artifact_download(
-                caller,
-                "linux-noble-rocm-py3.11-mi350",
-                "distributed",
-                ["rocm.gpu"],
-            )
-
-        self.assertIs(resolved, host)
-        self.assertEqual(substrings, ["_2001", "_2002", "_2003"])
-
     def test_cuda_artifact_allowlist_includes_distributed_jobs(self):
         prefix = "linux-jammy-cuda13.2-py3.11-gcc11"
         jobs = [
