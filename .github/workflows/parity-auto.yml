@@ -34,7 +34,7 @@ on:
       max_dispatches:
         description: 'Maximum number of ready upstream commits to dispatch in one scan.'
         required: false
-        default: '3'
+        default: '50'
         type: string
       max_age_hours:
         description: 'Skip commits older than this (avoid back-filling ancient SHAs).'
@@ -80,8 +80,8 @@ jobs:
           UPSTREAM: pytorch/pytorch
           BRANCH: main
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
-          MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '3' }}
-          DISPATCH_STAGGER_SECONDS: '120'
+          MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
+          DISPATCH_STAGGER_SECONDS: '10'
           MAX_FAILURE_RETRIES: '3'
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
           # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31/preview run in

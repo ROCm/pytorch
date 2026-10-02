@@ -203,6 +203,11 @@ class SlowParityProducerTest(unittest.TestCase):
         self.assertIn('if [ -n "$slow_archs" ]; then', parity_auto)
         self.assertIn('SLOW_EXCLUDE_FLAG="-f exclude_slow=true"', parity_auto)
         self.assertIn(".cuda.slow_checkrun_regex", parity_auto)
+        self.assertIn("inputs.max_dispatches || '50'", parity_auto)
+        self.assertIn("DISPATCH_STAGGER_SECONDS: '10'", parity_auto)
+        self.assertIn(
+            "some test shards are missing - skip", parity_auto
+        )
         self.assertIn("test-reports-test-slow-{i}-{slow_shards}", downloader)
         self.assertIn(
             'derive_shard_count(\n'
