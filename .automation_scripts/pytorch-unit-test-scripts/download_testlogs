@@ -533,15 +533,13 @@ def resolve_test_job_family(
 
 def get_cuda_inductor_test_jobs(jobs):
     """Return the CUDA inductor test kind and jobs for either main or PR CI layouts."""
-    inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
-    for test_kind in CUDA_TEST_KINDS:
-        test_jobs = [
-            j for j in jobs
-            if f"{inductor_prefix} / {test_kind} (inductor," in j['name']
-        ]
-        if test_jobs:
-            return test_kind, test_jobs
-    return CUDA_TEST_KINDS[0], []
+    configured_prefix = CUDA_JOB_PREFIXES["inductor"]
+    family = choose_test_job_family(
+        jobs, "inductor", "cuda", configured_prefix
+    )
+    if family is None:
+        return configured_prefix, CUDA_TEST_KINDS[0], []
+    return family["prefix"], family["kind"], family["jobs"]
 
 def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
@@ -1643,11 +1641,19 @@ def main():
                 print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
                 inductor_cuda_jobs = get_workflow_jobs(inductor_wf_cuda)
-                cuda_inductor_test_job_kind, cuda_inductor_test_jobs = get_cuda_inductor_test_jobs(inductor_cuda_jobs)
+                (
+                    cuda_inductor_prefix,
+                    cuda_inductor_test_job_kind,
+                    cuda_inductor_test_jobs,
+                ) = get_cuda_inductor_test_jobs(inductor_cuda_jobs)
                 # Same carried-over-on-rerun reasoning as CUDA default above: match
                 # artifacts by job ID across all attempts of the inductor run.
                 all_attempt_inductor_jobs = get_workflow_jobs(inductor_wf_cuda, all_attempts=True)
-                _, all_attempt_inductor_test_jobs = get_cuda_inductor_test_jobs(all_attempt_inductor_jobs)
+                (
+                    _,
+                    _,
+                    all_attempt_inductor_test_jobs,
+                ) = get_cuda_inductor_test_jobs(all_attempt_inductor_jobs)
                 cuda_inductor_job_ids = sorted({str(j['id']) for j in (cuda_inductor_test_jobs + all_attempt_inductor_test_jobs)})
                 cuda_inductor_artifact_substrings = (
                     [f"_{jid}" for jid in cuda_inductor_job_ids]
@@ -1659,7 +1665,6 @@ def main():
 
                 folder_list = get_or_create_test_folder(inductor_wf_cuda)
 
-                cuda_inductor_prefix = CUDA_JOB_PREFIXES["inductor"]
                 cuda_inductor_shards = derive_shard_count(
                     inductor_wf_cuda, cuda_inductor_prefix, "inductor",
                     cuda_shards["inductor"],

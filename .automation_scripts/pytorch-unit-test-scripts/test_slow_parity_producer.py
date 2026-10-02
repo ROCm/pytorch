@@ -128,6 +128,24 @@ class SlowParityProducerTest(unittest.TestCase):
         self.assertEqual(len(rocm_jobs), 1)
         self.assertEqual(len(cuda_jobs), 1)
 
+    def test_downloader_discovers_versioned_cuda_inductor_family(self):
+        jobs = [
+            {
+                "id": shard,
+                "name": (
+                    "unit-test / inductor-test-cuda132 / test "
+                    f"(inductor, {shard}, 2, runner)"
+                ),
+            }
+            for shard in range(1, 3)
+        ]
+
+        prefix, kind, matched = downloader.get_cuda_inductor_test_jobs(jobs)
+
+        self.assertEqual(prefix, "unit-test / inductor-test-cuda132")
+        self.assertEqual(kind, "test")
+        self.assertEqual([entry["id"] for entry in matched], [1, 2])
+
     def test_log_failure_detector_classifies_slow(self):
         self.assertEqual(
             classify_log_file("rocm_slow2.txt"), ("rocm", "slow", 2)
