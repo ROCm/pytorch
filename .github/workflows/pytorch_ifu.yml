@@ -24,9 +24,9 @@ on:
         default: "main"
         type: string
   schedule:
-    # Weekly, Saturday 08:00 UTC (12:00 AM PST). Weekly (not biweekly) so a failed
-    # run only costs a week before the next attempt. Scheduled runs carry no inputs,
-    # so the env defaults below supply the repo/branch values.
+    # Every Saturday 08:00 UTC (12:00 AM PST); the gate job below skips every other
+    # week so the IFU runs every 2 weeks. Scheduled runs carry no inputs, so the env
+    # defaults below supply the repo/branch values.
     - cron: "0 8 * * 6"
 
 permissions:
@@ -39,7 +39,28 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    runs-on: ubuntu-latest
+    outputs:
+      run: ${{ steps.check.outputs.run }}
+    steps:
+      - name: Decide whether this run should proceed
+        id: check
+        run: |
+          # Cron can't express "every 2 weeks", so scheduled runs only proceed on even
+          # weeks since the Unix epoch (exactly 14 days apart, even across year ends).
+          # Manual dispatches always run.
+          WEEK=$(( $(date -u +%s) / 604800 ))
+          if [ "${{ github.event_name }}" != "schedule" ] || [ $(( WEEK % 2 )) -eq 0 ]; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "Odd week (${WEEK}); skipping scheduled IFU."
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
   ifu:
+    needs: gate
+    if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     env:
       # On workflow_dispatch these come from the inputs above; on schedule the inputs
