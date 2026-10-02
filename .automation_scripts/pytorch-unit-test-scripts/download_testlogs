@@ -640,9 +640,13 @@ def _shorten_unzipped_dirs():
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
-        m = re.search(r'test-(?:osdc-)?(default|distributed|inductor|slow)-(\d+)-(\d+)', d.name)
+        m = re.search(
+            r'test-(?:osdc-)?(default|distributed_4gpu|distributed|inductor|slow)-(\d+)-(\d+)',
+            d.name,
+        )
         if m:
-            short_name = f"test-{m.group(1)}-{m.group(2)}-{m.group(3)}"
+            config = "distributed" if m.group(1) == "distributed_4gpu" else m.group(1)
+            short_name = f"test-{config}-{m.group(2)}-{m.group(3)}"
             # The artifact/dir name ends with "_<jobid>" (optionally ".zip")
             # where <jobid> is the upstream pytorch CI job id (e.g.
             # ..._68613413431 or ..._68613413431.zip). Carry it onto short_name

@@ -68,6 +68,18 @@ class CorruptArtifactTest(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
+    def test_four_gpu_directory_is_normalized_as_distributed(self):
+        source = Path(
+            "unzipped-test-reports-test-distributed_4gpu-2-2-"
+            "amd-dpx-linux.rocm.gpu.gfx950.4_110840610613"
+        )
+        source.mkdir()
+
+        job_ids = dtl._shorten_unzipped_dirs()
+
+        self.assertEqual(job_ids, ["110840610613"])
+        self.assertTrue(Path("test-distributed-2-2_110840610613").is_dir())
+
     def test_non_zip_artifact_is_skipped_not_fatal(self):
         self._stub_downloads(
             {
