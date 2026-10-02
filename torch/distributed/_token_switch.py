@@ -489,17 +489,27 @@ def _to_local_topk(
 
 @dataclass
 class _MoRIRoutingState:
-    # Routing is frozen; the MoRI handle is filled in by the first dispatch.
+    # Routing is frozen; the MoRI handle (and, for expert_major, the slot map) is
+    # filled in by the first dispatch.
     topk_idx: torch.Tensor
     mori_handle: Any = None
+    # expert_major: (recv row * top_k + k) feeding each slot, and each slot's recv
+    # row (recv_cap for unused slots, which combine drops).
+    slot_src: torch.Tensor | None = None
+    slot_dest_row: torch.Tensor | None = None
 
 
 class TokenSwitchMoRI(TokenSwitch):
     """Intranode token switch backed by MoRI EP v2 with the flydsl kernel backend.
 
-    Only the flat layout is supported. The first :meth:`dispatch` on a Routing
-    computes its receive-slot layout; later dispatches on it replay that layout.
-    ``hidden_dim``, ``top_k`` and ``dtype`` are fixed at construction.
+    The first :meth:`dispatch` on a Routing computes its receive-slot layout; later
+    dispatches on it replay that layout. ``hidden_dim``, ``top_k`` and ``dtype`` are
+    fixed at construction.
+
+    The expert_major layout is built on MoRI's flat dispatch: slots are ordered by
+    local expert, then by receive row, and can number up to
+    :attr:`max_expert_major_slots_per_rank` (more than ``max_recv_tokens_per_rank``
+    when a token hits several experts on one rank).
     """
 
     def __init__(
@@ -522,6 +532,7 @@ class TokenSwitchMoRI(TokenSwitch):
             )
         self._num_experts = num_experts
         self._experts_per_rank = num_experts // world_size
+        self._top_k = top_k
         # Compiled on first dispatch, not at import. Eager is ~8 kernels: ~125us vs
         # ~22us fused for 16k rows at K=8.
         self._to_local_topk = torch.compile(_to_local_topk, dynamic=False)
@@ -547,12 +558,19 @@ class TokenSwitchMoRI(TokenSwitch):
         self._op = ep.EpDispatchCombineOp(cfg, self._comm)
         self._comm.barrier()
         self._max_recv_tokens_per_rank = cfg.max_recv
+        self._recv_cap = cfg.effective_max_recv
+        self._em_slots = self._recv_cap * min(top_k, self._experts_per_rank)
         self._last_op: str | None = None
         self._fence = torch.zeros(1, device=torch.cuda.current_device())
 
     @property
     def max_recv_tokens_per_rank(self) -> int:
         return self._max_recv_tokens_per_rank
+
+    @property
+    def max_expert_major_slots_per_rank(self) -> int:
+        """Upper bound on expert_major receive slots per rank."""
+        return self._em_slots
 
     def close(self) -> None:
         self._op.close()
@@ -577,12 +595,15 @@ class TokenSwitchMoRI(TokenSwitch):
     ) -> Routing:
         """Create expert routing for this phase; pass to :meth:`dispatch` / :meth:`combine`.
 
-        ``layout`` must be ``"flat"``. Filling ``per_expert_token_counts`` costs an
-        all_reduce on the process group, since MoRI computes no counts before dispatch.
+        ``layout`` is ``"flat"`` or ``"expert_major"``. Filling
+        ``per_expert_token_counts`` costs an all_reduce on the process group, since
+        MoRI computes no counts before dispatch.
         """
-        if layout != "flat":
-            raise NotImplementedError(
-                f"TokenSwitchMoRI supports layout='flat' only; got {layout!r}"
+        if layout not in ("flat", "expert_major"):
+            raise ValueError(f"layout must be 'flat' or 'expert_major'; got {layout!r}")
+        if topk_idx.shape[1] != self._top_k:
+            raise ValueError(
+                f"top_k is fixed at {self._top_k}, got {topk_idx.shape[1]}"
             )
         if per_expert_token_counts is not None:
             ids = topk_idx.flatten().long()
@@ -603,11 +624,29 @@ class TokenSwitchMoRI(TokenSwitch):
         H: int,
         K: int,
     ) -> tuple[torch.Tensor, torch.Tensor | None, torch.Tensor | None]:
+        if routing.layout == "expert_major":
+            rows = max(max_recv_tokens, self._em_slots)
+            return tokens.new_zeros(rows, H), topk_weights.new_zeros(rows), None
         return (
             tokens.new_zeros(max_recv_tokens, H),
             topk_weights.new_zeros(max_recv_tokens, K),
             tokens.new_zeros(max_recv_tokens, K, dtype=torch.int64),
         )
+
+    def _set_expert_major_slots(
+        self, state: _MoRIRoutingState, out_idx: torch.Tensor, total_recv: torch.Tensor
+    ) -> None:
+        # Order every (recv row, k) pair that targets a local expert by (local
+        # expert, recv row); the first pairs in that order fill the slots.
+        epr, cap = self._experts_per_rank, self._recv_cap
+        local = out_idx.long() - self._rank * epr
+        row = torch.arange(cap, device=out_idx.device)[:, None]
+        valid = (local >= 0) & (local < epr) & (row < total_recv.long())
+        key = torch.where(valid, local * cap + row, epr * cap).flatten()
+        src = key.argsort(stable=True)[: self._em_slots]
+        used = torch.arange(self._em_slots, device=src.device) < valid.sum()
+        state.slot_src = torch.where(used, src, 0)
+        state.slot_dest_row = torch.where(used, src // self._top_k, cap)
 
     def _dispatch(
         self,
@@ -618,8 +657,11 @@ class TokenSwitchMoRI(TokenSwitch):
         out_topk_weights: torch.Tensor | None,
         out_topk_idx: torch.Tensor | None,
     ) -> None:
-        if out_topk_weights is None or out_topk_idx is None:
-            raise ValueError("TokenSwitchMoRI needs out_topk_weights and out_topk_idx")
+        flat = routing.layout == "flat"
+        if out_topk_weights is None or (flat and out_topk_idx is None):
+            raise ValueError(
+                "TokenSwitchMoRI needs out_topk_weights (and flat: out_topk_idx)"
+            )
         self._fence_if_repeat("dispatch")
         state = routing.handle
         tokens = tokens.contiguous()
@@ -637,14 +679,23 @@ class TokenSwitchMoRI(TokenSwitch):
                 h.total_recv_token_num.clone(),
                 cur_rank_num_token=h.cur_rank_num_token,
             )
+            if not flat:
+                total = state.mori_handle.total_recv_token_num
+                self._set_expert_major_slots(state, out_idx, total)
         else:
             out, out_w, _, out_idx, _ = self._op.dispatch(
                 tokens, weights, None, state.topk_idx, routing=state.mori_handle
             )
         # MoRI's outputs are views of op-owned buffers that the next dispatch
-        # overwrites. MoRI forwards each token's global top-k; translate it to this
-        # rank's local ids. Rows past the receive count translate to garbage, which
-        # the contract allows; trimming them would need a host sync.
+        # overwrites, so copy them out. Rows past the receive count (or slot count)
+        # are garbage, which the contract allows; trimming them needs a host sync.
+        if not flat:
+            n = min(out_tokens.shape[0], self._em_slots)
+            src = state.slot_src[:n]
+            out_tokens[:n].copy_(out[src // self._top_k])
+            out_topk_weights[:n].copy_(out_w.reshape(-1)[src])
+            return
+        # MoRI forwards each token's global top-k; translate it to local ids.
         n = min(out_tokens.shape[0], out.shape[0])
         out_tokens[:n].copy_(out[:n])
         first = self._rank * self._experts_per_rank
@@ -665,5 +716,16 @@ class TokenSwitchMoRI(TokenSwitch):
                 "TokenSwitchMoRI: combine() before the first dispatch() on this Routing"
             )
         self._fence_if_repeat("combine")
-        out, _ = self._op.combine(expert_tokens.contiguous(), routing=mori_handle)
+        if routing.layout == "flat":
+            out, _ = self._op.combine(expert_tokens.contiguous(), routing=mori_handle)
+        else:
+            # Sum each recv row's slots into MoRI's combine input buffer; MoRI skips
+            # its own staging copy when handed that buffer.
+            staged, cap = self._op.combine_in_view(), self._recv_cap
+            m = min(expert_tokens.shape[0], self._em_slots)
+            dest = routing.handle.slot_dest_row[:m]
+            acc = staged.new_zeros(cap + 1, staged.shape[1], dtype=torch.float32)
+            acc.index_add_(0, dest, expert_tokens[:m].float())
+            staged.copy_(acc[:cap])
+            out, _ = self._op.combine(staged, routing=mori_handle)
         out_tokens.copy_(out)
