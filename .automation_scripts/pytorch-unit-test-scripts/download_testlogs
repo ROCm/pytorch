@@ -472,7 +472,12 @@ def resolve_artifact_download(wf, job_prefix, test_config, default_substrings):
         jobs_by_run.setdefault(run_id, []).append(job_id)
     if not runs:
         return wf, default_substrings
-    best = sorted(runs.items(), key=lambda kv: -kv[1])[0][0]
+    max_shards = max(runs.values())
+    caller_id = str(wf.get("id"))
+    if runs.get(caller_id) == max_shards:
+        best = caller_id
+    else:
+        best = max(runs, key=runs.get)
     if str(best) == str(wf.get("id")):
         return wf, default_substrings
     host = get_run_by_id(best)
