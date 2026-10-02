@@ -175,7 +175,9 @@ def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=T
 
     skip_miss = s1_skip_not_s2 + s1_miss_not_s2_skip
     s2_minus = total_s2 - skip_miss
-    pct = (skip_miss / total_s2 * 100) if total_s2 else 0
+    # With no comparable rows the rate is undefined, not zero: rendering 0.00%
+    # made a config whose download produced nothing look like perfect parity.
+    pct = f'{skip_miss / total_s2 * 100:.2f}%' if total_s2 else 'n/a'
 
     vals = {}
     keys = test_config_stats_keys(s1_name, s2_name)
@@ -188,7 +190,7 @@ def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=T
     vals[keys[6]] = total_s1
     vals[keys[7]] = skip_miss
     vals[keys[8]] = s2_minus
-    vals[keys[9]] = f'{pct:.2f}%'
+    vals[keys[9]] = pct
     return vals
 
 
@@ -258,13 +260,15 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
         total_disagree += s1_skip_not_s2 + s1_miss_not_s2_skip
         total_s2 += sum(1 for r in wf_rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
 
-    disagree_pct = (total_disagree / total_s2 * 100) if total_s2 else 0
-    agree_pct = 100 - disagree_pct
-
     vals = {}
     keys = overall_stats_keys(s1_name, s2_name)
-    vals[keys[0]] = f'{disagree_pct:.2f}%'
-    vals[keys[1]] = f'{agree_pct:.2f}%'
+    if total_s2:
+        disagree_pct = total_disagree / total_s2 * 100
+        vals[keys[0]] = f'{disagree_pct:.2f}%'
+        vals[keys[1]] = f'{100 - disagree_pct:.2f}%'
+    else:
+        vals[keys[0]] = 'n/a'
+        vals[keys[1]] = 'n/a'
 
     idx = 2
     for status in ['PASSED', 'SKIPPED', 'FAILED', 'XFAILED']:

@@ -31,7 +31,7 @@ on:
         required: false
         default: legacy
         type: choice
-        options: [legacy, trunk, mi350, preview, mi300, mi200, navi31]
+        options: [legacy, trunk, mi350, preview, mi300, mi200, rx7900]
       set1_sha:
         description: 'Commit SHA for cross-source side 1.'
         required: false
@@ -41,7 +41,7 @@ on:
         required: false
         default: legacy
         type: choice
-        options: [legacy, trunk, mi350, preview, mi300, mi200, navi31]
+        options: [legacy, trunk, mi350, preview, mi300, mi200, rx7900]
       set2_sha:
         description: 'Commit SHA for cross-source side 2.'
         required: false
@@ -51,7 +51,7 @@ on:
         required: false
         type: string
       arch:
-        description: 'ROCm architectures, comma or space separated. Options: mi350, mi300, mi200, navi31, preview. Example: "preview, mi350" or "mi300"'
+        description: 'ROCm architectures, comma or space separated. Options: mi350, mi300, mi200, rx7900, preview. Example: "preview, mi350" or "mi300"'
         required: false
         default: 'mi350, mi300, mi200'
         type: string
@@ -61,12 +61,12 @@ on:
         default: false
         type: boolean
       exclude_distributed:
-        description: 'Exclude distributed tests (auto-excluded for navi31)'
+        description: 'Exclude distributed tests (auto-excluded when unavailable)'
         required: false
         default: false
         type: boolean
       exclude_inductor:
-        description: 'Exclude inductor tests (auto-excluded for navi31)'
+        description: 'Exclude inductor tests (auto-excluded when unavailable)'
         required: false
         default: false
         type: boolean
@@ -326,17 +326,47 @@ jobs:
               exit 1
             fi
           }
+
+          # A single stray XML anywhere satisfies require_xml, so a config that
+          # downloaded nothing still shipped a report whose every row read
+          # MISSED. Check each config this arch is configured for and that was
+          # not excluded. Only hard-fail when download_testlogs claimed success:
+          # a reported incomplete download already fails the job later and we
+          # still want its partial report.
+          ARCH_CONFIGS=$(jq -r --arg a "$ARCH" \
+            '.rocm[$a] | keys_unsorted[] | select(IN("default","distributed","inductor"))' \
+            parity_job_config.json)
+          require_config_xml() {
+            local directory="$1" label="$2" config
+            for config in $ARCH_CONFIGS; do
+              case "$config" in
+                default)     [ "${{ inputs.exclude_default }}" = "true" ] && continue ;;
+                distributed) [ "${{ inputs.exclude_distributed }}" = "true" ] && continue ;;
+                inductor)    [ "${{ inputs.exclude_inductor }}" = "true" ] && continue ;;
+              esac
+              if ! find "$directory" -maxdepth 1 -type d -name "test-${config}-*" \
+                   -print -quit 2>/dev/null | grep -q .; then
+                if [ "${{ steps.download.outputs.download_rc }}" = "0" ]; then
+                  echo "::error::No $label XML reports for the '$config' config, yet the download reported success"
+                  exit 1
+                fi
+                echo "::warning::No $label XML reports for the '$config' config; it will read as MISSED"
+              fi
+            done
+          }
           if [ "$CROSS_SET1_SOURCE" != "legacy" ]; then
             require_xml "$FOLDER/set1_xml" "$CROSS_SET1_SOURCE"
             require_xml "$FOLDER/set2_xml" "$CROSS_SET2_SOURCE"
           else
             if [ "${{ inputs.skip_rocm }}" != "true" ]; then
               require_xml "$FOLDER/rocm_xml" "ROCm"
+              require_config_xml "$FOLDER/rocm_xml" "ROCm"
             fi
             if [ -n "${{ inputs.baseline_sha }}" ]; then
               require_xml "$FOLDER/baseline_xml" "baseline"
             elif [ "${{ inputs.skip_cuda }}" != "true" ]; then
               require_xml "$FOLDER/cuda_xml" "CUDA"
+              require_config_xml "$FOLDER/cuda_xml" "CUDA"
             fi
           fi
 
