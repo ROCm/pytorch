@@ -139,6 +139,30 @@ class TestXmlReportMerging(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, "Conflicting duplicate testsuite"):
                 parse_xml_reports_as_dict(-1, -1, "testsuite", str(root))
 
+    def test_checked_in_junit_fixtures_are_ignored(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            failed = (
+                '<testcase classname="TestJunitOutcomes" '
+                'name="test_assert_failure" time="1"><failure /></testcase>'
+            )
+            self._write(
+                root,
+                "test-default-1-1_1001",
+                "junit_xml_testdata/expected",
+                "pytest.xml",
+                SUITE.format(time=1, testcase=failed),
+            )
+
+            self.assertEqual(
+                parse_xml_reports_as_dict(-1, -1, "testcase", str(root)),
+                {},
+            )
+            self.assertEqual(
+                parse_xml_reports_as_dict(-1, -1, "testsuite", str(root)),
+                {},
+            )
+
     def test_empty_primary_set_is_allowed_for_cuda_only_report(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.assertEqual(

@@ -51,6 +51,12 @@ EXCLUDED_TEST_CLASSES = [
 ]
 EXCLUDED_TESTS = [
 ]
+# Checked-in JUnit XML fixtures from the pytorch source tree (the golden files
+# in test/junit_xml_testdata/expected/) are packaged into upstream test-reports
+# artifacts. They fail on purpose, so never parse them as test results.
+EXCLUDED_XML_DIRS = [
+    "junit_xml_testdata",
+]
 
 
 # Test config names
@@ -77,16 +83,6 @@ def _test_config_from_dir(dirname):
         if f"test-{config.name}" in dirname:
             return config.name
     return ""
-
-
-def _is_junit_fixture_xml(path):
-    """Return whether path is pytest's checked-in golden JUnit fixture."""
-    fixture_parts = ("junit_xml_testdata", "expected")
-    parts = path.parts
-    return any(
-        tuple(parts[index:index + len(fixture_parts)]) == fixture_parts
-        for index in range(len(parts) - len(fixture_parts) + 1)
-    )
 
 
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
@@ -138,7 +134,7 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                 if shard_run_id and job_id else ""
             )
             for xml_report in Path(new_dir).glob("**/*.xml"):
-                if _is_junit_fixture_xml(xml_report):
+                if any(part in EXCLUDED_XML_DIRS for part in xml_report.parts):
                     continue
                 try:
                     new_cases = parse_xml_report(
