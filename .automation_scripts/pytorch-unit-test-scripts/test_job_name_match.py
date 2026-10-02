@@ -1,3 +1,6 @@
+import json
+import os
+import re
 import unittest
 
 from job_name_match import choose_test_job_family
@@ -8,6 +11,24 @@ def job(name, job_id):
 
 
 class ChooseTestJobFamilyTest(unittest.TestCase):
+    def test_auto_trigger_matches_versioned_cuda_inductor_family(self):
+        config_path = os.path.join(
+            os.path.dirname(__file__), "parity_job_config.json"
+        )
+        with open(config_path) as config_file:
+            regex = re.compile(json.load(config_file)["cuda"]["checkrun_regex"])
+
+        for family in (
+            "inductor-test",
+            "inductor-test-cuda132",
+            "inductor-test-cuda134",
+        ):
+            with self.subTest(family=family):
+                self.assertRegex(
+                    f"unit-test / {family} / test (inductor, 1, 2, runner)",
+                    regex,
+                )
+
     def test_discovers_renamed_cuda_family(self):
         jobs = [
             job(

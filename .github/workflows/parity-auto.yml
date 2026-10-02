@@ -110,8 +110,7 @@ jobs:
 
           # Read parity_job_config.json over the API at GITHUB_SHA (this job never
           # checks out the fork) and build the regex maps used for matching.
-          # Manual override inputs win when set. Also derives slow-only regexes
-          # and expected shard counts for arches that register a slow source.
+          # Manual override inputs win when set.
           load_matching_config() {
             local config_json
             config_json=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
@@ -125,29 +124,10 @@ jobs:
             # (primary + fallback entries).
             ARCH_WORKFLOW_REGEX_MAP=${ARCH_WORKFLOW_REGEX_OVERRIDE:-$(echo "$config_json" | jq -c '
               .rocm | map_values(
-                [ (.default[]?, .distributed[]?, .inductor[]?, .slow[]?).workflow ] | unique
+                [ (.default[]?, .distributed[]?, .inductor[]?).workflow ] | unique
                 | "(^|/)(" + join("|") + ")[.]yml$"
               )')}
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
-            ROCM_SLOW_JOBNAME_REGEX_MAP=$(echo "$config_json" | jq -c '
-              .rocm | map_values(
-                [ .slow[]?.job_prefix
-                  | gsub("(?<c>[][(){}.*+?^$|\\\\])"; "\\\(.c)") ] as $p
-                | if ($p | length) == 0 then ""
-                  else "^(" + ($p | join("|")) + ") / (test-osdc|test) [(]slow,"
-                  end
-              )')
-            ROCM_SLOW_SHARDS_MAP=$(echo "$config_json" | jq -c '
-              .rocm | map_values(.shard_counts.slow // 0)')
-            CUDA_SLOW_JOBNAME_REGEX=$(echo "$config_json" | jq -r '
-              .cuda.slow_checkrun_regex // (
-                [ .cuda.slow[]?.job_prefix
-                  | gsub("(?<c>[][(){}.*+?^$|\\\\])"; "\\\(.c)") ] as $p
-                | if ($p | length) == 0 then ""
-                  else "^(" + ($p | join("|")) + ") / (test-osdc|test) [(]slow,"
-                  end
-              )')
-            CUDA_SLOW_SHARDS=$(echo "$config_json" | jq -r '.cuda.shard_counts.slow // 0')
             # Upstream workflow file names for the non-trunk arches (mi350 rides
             # trunk). Their scheduled runs land on
             # their own SHAs, so fetch_scheduled_commits mines those SHAs as
@@ -156,7 +136,7 @@ jobs:
               [ .rocm | to_entries[]
                 | select(.key != "mi350")
                 | .key as $arch
-                | [ (.value.default[]?, .value.distributed[]?, .value.inductor[]?, .value.slow[]?).workflow ]
+                | [ (.value.default[]?, .value.distributed[]?, .value.inductor[]?).workflow ]
                 | unique[]
                 | "\($arch) \(.)" ] | .[]')
           }
@@ -176,8 +156,6 @@ jobs:
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
               "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP" \
               "CUDA jobs:       $CUDA_JOBNAME_REGEX" \
-              "ROCm slow jobs:   $ROCM_SLOW_JOBNAME_REGEX_MAP" \
-              "CUDA slow jobs:   $CUDA_SLOW_JOBNAME_REGEX" \
               ""
           }
 
@@ -455,8 +433,6 @@ jobs:
             local sha="$1" date="$2"
             local short commit_epoch all_check_runs cuda_check_runs
             local total_cr pending_cr pending_sample arch_dispatch
-            local slow_archs="" rocm_slow_check_runs='[]' cuda_slow_check_runs='[]'
-            local SLOW_EXCLUDE_FLAG=""
             short=$(echo "$sha" | cut -c1-8)
 
             commit_epoch=$(date -u -d "$date" +%s 2>/dev/null || echo 0)
@@ -507,48 +483,6 @@ jobs:
             done
             cuda_check_runs=$(echo "$all_check_runs" | select_test_check_runs "$CUDA_JOBNAME_REGEX")
 
-            # Slow checks are consumed only by arches that explicitly register
-            # a ROCm slow source. Today that is MI350; other reports neither
-            # wait for nor download CUDA slow.
-            local slow_regex expected_slow actual_slow
-            for arch in $RUN_ARCHS; do
-              expected_slow=$(echo "$ROCM_SLOW_SHARDS_MAP" | jq -r --arg a "$arch" '.[$a] // 0')
-              [ "$expected_slow" -le 0 ] && continue
-              slow_archs="$slow_archs $arch"
-              slow_regex=$(echo "$ROCM_SLOW_JOBNAME_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
-              if [ -z "$slow_regex" ]; then
-                echo "[$short] $date  $arch registers slow shards but has no slow check regex - skip"
-                return 0
-              fi
-              local arch_slow_runs
-              arch_slow_runs=$(echo "$all_check_runs" \
-                | select_test_check_runs "$slow_regex" | jq 'unique_by(.name)')
-              actual_slow=$(echo "$arch_slow_runs" | jq 'length')
-              if [ "$actual_slow" -lt "$expected_slow" ]; then
-                echo "[$short] $date  $arch slow shards incomplete ($actual_slow/$expected_slow present) - skip"
-                return 0
-              fi
-              rocm_slow_check_runs=$(jq -s 'add | unique_by(.name)' \
-                <(echo "$rocm_slow_check_runs") <(echo "$arch_slow_runs"))
-            done
-            slow_archs=$(echo "$slow_archs" | xargs)
-            if [ -n "$slow_archs" ]; then
-              if [ -z "$CUDA_SLOW_JOBNAME_REGEX" ] || [ "$CUDA_SLOW_SHARDS" -le 0 ]; then
-                echo "[$short] $date  slow report requested but CUDA slow matching config is missing - skip"
-                return 0
-              fi
-              cuda_slow_check_runs=$(echo "$all_check_runs" \
-                | select_test_check_runs "$CUDA_SLOW_JOBNAME_REGEX" \
-                | jq 'unique_by(.name)')
-              actual_slow=$(echo "$cuda_slow_check_runs" | jq 'length')
-              if [ "$actual_slow" -lt "$CUDA_SLOW_SHARDS" ]; then
-                echo "[$short] $date  CUDA slow shards incomplete ($actual_slow/$CUDA_SLOW_SHARDS present) for $slow_archs - skip"
-                return 0
-              fi
-            else
-              SLOW_EXCLUDE_FLAG="-f exclude_slow=true"
-            fi
-
             if [ "$(echo "$ROCM_CHECK_RUNS" | jq 'length')" -eq 0 ]; then
               echo "[$short] $date  ROCm workflows ran ($RUN_ARCHS) but no parity check-runs yet - skip"
               return 0
@@ -589,9 +523,7 @@ jobs:
             local gate_check_runs
             gate_check_runs=$(jq -s 'add' \
               <(echo "$ROCM_CHECK_RUNS") \
-              <(echo "$cuda_check_runs") \
-              <(echo "$rocm_slow_check_runs") \
-              <(echo "$cuda_slow_check_runs"))
+              <(echo "$cuda_check_runs"))
             total_cr=$(echo "$gate_check_runs" | jq 'length')
             pending_cr=$(echo "$gate_check_runs" | jq 'map(select(.status != "completed")) | length')
             if [ "$pending_cr" -ne 0 ]; then
@@ -615,7 +547,7 @@ jobs:
             fi
 
             arch_dispatch=$(echo "$READY" | sed 's/ /, /g')
-            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; slow: ${slow_archs:-excluded}; not-run: ${NOT_RUN_NOTES:-none}; excluded-configs: ${cuda_missing:-none})"
+            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; not-run: ${NOT_RUN_NOTES:-none}; excluded-configs: ${cuda_missing:-none})"
             echo "[$short] dispatching for: '$(echo "$READY" | tr ' ' ',')'${EXCLUDE_FLAGS:+ (excluding${cuda_missing:+ }$cuda_missing)}"
 
             if [ "$DRY_RUN" = "true" ]; then
@@ -628,7 +560,6 @@ jobs:
                 -f sha="$sha" \
                 -f arch="$arch_dispatch" \
                 -f auto_triggered=true \
-                $SLOW_EXCLUDE_FLAG \
                 $EXCLUDE_FLAGS; then
                 echo "::error::Failed to dispatch parity.yml for $sha" >&2
                 return 2

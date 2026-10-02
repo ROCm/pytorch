@@ -1,11 +1,10 @@
 {
   "_comment": "Single source of truth for pytorch/pytorch job-name matching used by the parity tooling. Consumed by download_testlogs (Python, S3 artifact + log matching) and parity-auto.yml (bash/jq, upstream check-run gating before dispatching parity.yml). See _subfields for the per-arch schema.",
   "_subfields": {
-    "default/distributed/inductor/slow": "Ordered list of {workflow, job_prefix} sources for that test config. The first entry is the primary upstream workflow + check-run/job-name prefix; any later entries are fallbacks tried (in order) when the primary workflow run is missing for a SHA.",
+    "default/distributed/inductor": "Ordered list of {workflow, job_prefix} sources for that test config. The first entry is the primary upstream workflow + check-run/job-name prefix; any later entries are fallbacks tried (in order) when the primary workflow run is missing for a SHA.",
     "shard_counts": "Number of shards per test config.",
     "test_kinds": "CUDA only: upstream test-job kinds to match (e.g. test-osdc, test).",
-    "checkrun_regex": "PCRE matching this arch's ROCm test check-run names (parity-auto gating). CUDA uses it for the trunk CUDA test jobs.",
-    "slow_checkrun_regex": "CUDA only: rename-tolerant PCRE for slow test check-runs."
+    "checkrun_regex": "PCRE matching this arch's ROCm test check-run names (parity-auto gating). CUDA uses it for the trunk CUDA test jobs."
   },
   "_notes": {
     "artifact_substrings": "The S3 artifact downloader always filters on the ROCm-GPU runner tag (rocm.gpu), since every ROCm runner label follows that convention; no per-arch config is needed.",
@@ -15,11 +14,9 @@
     "default": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
     "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
     "inductor": [{ "workflow": "inductor", "job_prefix": "unit-test / inductor-test" }],
-    "slow": [{ "workflow": "slow", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11-sm86" }],
     "test_kinds": ["test-osdc", "test"],
-    "shard_counts": { "default": 14, "distributed": 10, "inductor": 2, "slow": 3 },
-    "checkrun_regex": "(linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+ / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test(-cuda[0-9]+)? / (test-osdc|test) [(]inductor,)",
-    "slow_checkrun_regex": "^linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+-sm86 / (test-osdc|test) [(]slow,"
+    "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
+    "checkrun_regex": "(linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+ / (test-osdc|test) [(](default|distributed),|unit-test / inductor-test(-cuda[0-9]+)? / (test-osdc|test) [(]inductor,)"
   },
   "rocm": {
     "mi350": {
@@ -34,10 +31,7 @@
       "inductor": [
         { "workflow": "trunk", "job_prefix": "linux-noble-rocm-py3.11-mi350" }
       ],
-      "slow": [
-        { "workflow": "slow", "job_prefix": "linux-noble-rocm-py3.11-mi350" }
-      ],
-      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2, "slow": 3 },
+      "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|inductor),"
     },
     "mi300": {

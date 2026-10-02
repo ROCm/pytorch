@@ -75,11 +75,6 @@ on:
         required: false
         default: false
         type: boolean
-      exclude_slow:
-        description: 'Exclude slow tests (auto-excluded for arches without a slow source)'
-        required: false
-        default: false
-        type: boolean
       include_logs:
         description: 'Download and include CI log files (.txt) in artifact zip'
         required: false
@@ -248,9 +243,7 @@ jobs:
           if [ "${{ inputs.exclude_default }}" = "true" ]; then
             ARGS="$ARGS --exclude_default"
           fi
-          if [ "${{ inputs.exclude_slow }}" = "true" ]; then
-            ARGS="$ARGS --exclude_slow"
-          fi
+          ARGS="$ARGS --exclude_slow"
           ARGS="$ARGS --ignore_status"
           if [ "${{ inputs.include_logs }}" != "true" ]; then
             ARGS="$ARGS --artifacts_only"
