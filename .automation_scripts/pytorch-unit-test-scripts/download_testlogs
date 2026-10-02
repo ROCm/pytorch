@@ -514,6 +514,14 @@ def get_test_jobs_for_config(jobs, job_prefix, test_config):
             return test_kind, test_jobs
     return CUDA_TEST_KINDS[0], []
 
+def get_cuda_artifact_job_ids(jobs, job_prefix, configs):
+    """Return job IDs whose S3 artifacts belong to enabled CUDA configs."""
+    job_ids = set()
+    for config in configs:
+        _, config_jobs = get_test_jobs_for_config(jobs, job_prefix, config)
+        job_ids.update(str(job["id"]) for job in config_jobs)
+    return job_ids
+
 def resolve_test_job_family(
     workflow_run, test_config, platform, configured_prefix, fallback_shards
 ):
@@ -1555,8 +1563,19 @@ def main():
         # S3 reports keep the original attempt's job ID; filtering only by the
         # latest attempt's IDs would silently drop them (missing CUDA columns).
         all_attempt_cuda_jobs = get_workflow_jobs(trunk_wf, all_attempts=True)
-        _, all_attempt_cuda_test_jobs = get_cuda_test_jobs(all_attempt_cuda_jobs, cuda_job_prefix)
-        cuda_job_ids = sorted({str(j['id']) for j in (cuda_test_jobs + all_attempt_cuda_test_jobs)})
+        enabled_cuda_configs = []
+        if not args.exclude_default:
+            enabled_cuda_configs.append("default")
+        if not args.exclude_distributed:
+            enabled_cuda_configs.append("distributed")
+        cuda_job_ids = sorted(
+            get_cuda_artifact_job_ids(
+                all_cuda_jobs, cuda_job_prefix, enabled_cuda_configs
+            )
+            | get_cuda_artifact_job_ids(
+                all_attempt_cuda_jobs, cuda_job_prefix, enabled_cuda_configs
+            )
+        )
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
         print(f"Using CUDA test job kind: {cuda_test_job_kind}")
