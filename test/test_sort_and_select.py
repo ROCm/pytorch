@@ -818,6 +818,20 @@ class TestSortAndSelect(TestCase):
                 self.assertEqual(top1, top2)
                 self.assertEqual(idx1, idx2)
 
+    @onlyCUDA
+    @dtypes(torch.bfloat16, torch.float16, torch.float32)
+    def test_topk_deterministic_ties(self, device, dtype):
+        # Single-block topk on ROCm once ordered tied values by warp arrival (#196177).
+        for cols in (257, 1024):
+            x = torch.randint(0, 4, (256, cols), device=device).to(dtype)
+            for k, largest, sorted_ in product((8, 300), (True, False), (True, False)):
+                if k > cols:
+                    continue
+                _, idx = torch.topk(x, k, largest=largest, sorted=sorted_)
+                for _ in range(10):
+                    rerun = torch.topk(x, k, largest=largest, sorted=sorted_)[1]
+                    self.assertEqual(rerun, idx, msg=f"{cols=} {k=} {largest=} {sorted_=}")
+
     def _test_topk_dtype(self, device, dtype, integral, size):
         if integral:
             a = torch.randint(
