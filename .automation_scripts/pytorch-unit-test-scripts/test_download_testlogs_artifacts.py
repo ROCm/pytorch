@@ -305,6 +305,14 @@ class CrossSourceComparisonTest(unittest.TestCase):
         self.assertIsNone(args.set1_sha)
         self.assertIsNone(args.set2_sha)
 
+    def test_cli_accepts_rx7900_from_shared_config(self):
+        with mock.patch.object(
+            sys, "argv", ["download_testlogs", "--arch", "rx7900"]
+        ):
+            args = dtl.parse_args()
+
+        self.assertEqual(args.arch, "rx7900")
+
     def test_cross_source_log_label_is_preserved(self):
         self.assertEqual(
             classify_log_file("trunk@1234abcd_cuda_dist2.txt"),

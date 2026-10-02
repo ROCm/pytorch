@@ -31,7 +31,7 @@ on:
         required: false
         default: legacy
         type: choice
-        options: [legacy, trunk, mi350, preview, mi300, mi200, navi31]
+        options: [legacy, trunk, mi350, preview, mi300, mi200, rx7900]
       set1_sha:
         description: 'Commit SHA for cross-source side 1.'
         required: false
@@ -41,7 +41,7 @@ on:
         required: false
         default: legacy
         type: choice
-        options: [legacy, trunk, mi350, preview, mi300, mi200, navi31]
+        options: [legacy, trunk, mi350, preview, mi300, mi200, rx7900]
       set2_sha:
         description: 'Commit SHA for cross-source side 2.'
         required: false
@@ -51,7 +51,7 @@ on:
         required: false
         type: string
       arch:
-        description: 'ROCm architectures, comma or space separated. Options: mi350, mi300, mi200, navi31, preview. Example: "preview, mi350" or "mi300"'
+        description: 'ROCm architectures, comma or space separated. Options: mi350, mi300, mi200, rx7900, preview. Example: "preview, mi350" or "mi300"'
         required: false
         default: 'mi350, mi300, mi200'
         type: string
@@ -61,12 +61,12 @@ on:
         default: false
         type: boolean
       exclude_distributed:
-        description: 'Exclude distributed tests (auto-excluded for navi31)'
+        description: 'Exclude distributed tests (auto-excluded when unavailable)'
         required: false
         default: false
         type: boolean
       exclude_inductor:
-        description: 'Exclude inductor tests (auto-excluded for navi31)'
+        description: 'Exclude inductor tests (auto-excluded when unavailable)'
         required: false
         default: false
         type: boolean

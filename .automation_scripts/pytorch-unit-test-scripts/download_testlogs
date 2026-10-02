@@ -886,12 +886,13 @@ def parse_args():
     parser.add_argument('--no_rocm', action='store_true')
     parser.add_argument('--no_cuda', action='store_true')
     parser.add_argument('--pr_id', type=int, help='The pull request ID')
-    parser.add_argument('--arch', type=str, choices=['mi200', 'mi300', 'mi350', 'navi31', 'preview'], default='mi350', help='ROCm GPU architecture (mi200, mi300, mi350, navi31, or preview, default: mi350)')
+    rocm_arches = list(PARITY_CONFIG["rocm"])
+    parser.add_argument('--arch', type=str, choices=rocm_arches, default='mi350', help='ROCm GPU architecture (default: mi350)')
     parser.add_argument('--include_inductor_periodic', action='store_true', help='Also download inductor-periodic benchmark artifacts (into a separate directory, not included in parity CSV)')
     parser.add_argument('--baseline_sha', type=str, help='Baseline commit SHA to compare against. Downloads the same ROCm workflows for this commit into baseline_xml/.')
-    parser.add_argument('--set1_source', choices=['trunk', 'mi350', 'mi300', 'mi200', 'navi31', 'preview'])
+    parser.add_argument('--set1_source', choices=['trunk', *rocm_arches])
     parser.add_argument('--set1_sha', type=str)
-    parser.add_argument('--set2_source', choices=['trunk', 'mi350', 'mi300', 'mi200', 'navi31', 'preview'])
+    parser.add_argument('--set2_source', choices=['trunk', *rocm_arches])
     parser.add_argument('--set2_sha', type=str)
     return parser.parse_args()
 
@@ -966,7 +967,7 @@ def run_cross_source_comparison(parsed_args):
             else PARITY_CONFIG["rocm"][source]
         )
         configs = set(config) & set(_TEST_CONFIGS)
-        if source == "navi31":
+        if source == "rx7900":
             configs &= {"default"}
         source_configs.append(configs)
     common_configs = set.intersection(*source_configs)
@@ -1128,12 +1129,16 @@ def main():
     # in, job-name prefixes, shard counts and fallbacks) comes from
     # parity_job_config.json - see PARITY_CONFIG at the top of this file.
     global ROCmWorkflowNames
-    arch = args.arch  # 'mi200', 'mi300', 'mi350', 'navi31', or 'preview'
+    arch = args.arch
     arch_config = PARITY_CONFIG["rocm"][arch]
 
     ROCmWorkflowNames, rocm_job_prefix, arch_fallbacks = parity_config_views(arch_config)
     rocm_shards = dict(arch_config["shard_counts"])
     rocm_artifact_substrings = ROCM_ARTIFACT_SUBSTRINGS
+    if not args.no_rocm:
+        for test_config in _TEST_CONFIGS:
+            if test_config not in ROCmWorkflowNames:
+                setattr(args, f"exclude_{test_config}", True)
 
     # Fallback (workflow, job_prefix) to try per test type when the primary
     # workflow run is missing for a SHA. Kept as tuples keyed by arch so the
@@ -1175,14 +1180,6 @@ def main():
             f"No {test_type} source found for {target_sha}: "
             + "; ".join(failures)
         )
-    # navi31 only has default tests (no distributed/inductor workflows)
-    if arch in ("navi31",):
-        if not args.exclude_distributed:
-            print(f"NOTE: {arch} has no distributed workflow, auto-excluding distributed")
-            args.exclude_distributed = True
-        if not args.exclude_inductor:
-            print(f"NOTE: {arch} has no inductor workflow, auto-excluding inductor")
-            args.exclude_inductor = True
     if "slow" not in arch_config and not args.exclude_slow:
         print(f"NOTE: {arch} has no slow workflow, auto-excluding slow")
         args.exclude_slow = True

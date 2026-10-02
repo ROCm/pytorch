@@ -48,12 +48,10 @@
       "shard_counts": { "default": 10, "distributed": 3, "inductor": 4 },
       "checkrun_regex": "rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),"
     },
-    "navi31": {
-      "default": [{ "workflow": "rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
-      "distributed": [{ "workflow": "periodic-rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
-      "inductor": [{ "workflow": "inductor-rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
-      "shard_counts": { "default": 2, "distributed": 3, "inductor": 2 },
-      "checkrun_regex": "rocm.*navi31.*/ test [(]default,"
+    "rx7900": {
+      "default": [{ "workflow": "rocm-rx7900", "job_prefix": "linux-jammy-rocm-py3.11-rx7900" }],
+      "shard_counts": { "default": 2 },
+      "checkrun_regex": "linux-jammy-rocm-py3[.]11-rx7900 / test [(]default,"
     },
     "preview": {
       "default": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],

@@ -4,7 +4,7 @@ run-name: "Parity auto-trigger · pytorch/pytorch main"
 # Every 10 min, dispatch parity.yml once per upstream SHA whose parity inputs
 # have all finished. Candidate SHAs come from two sources: completed trunk.yml
 # pushes (mi350 rides along there) and the scheduled per-arch workflows for
-# mi300/mi200/navi31/preview (which run on their own SHAs at their own cadence). A SHA
+# mi300/mi200/rx7900/preview (which run on their own SHAs at their own cadence). A SHA
 # that carries several arches yields ONE combined parity report (parity.yml's
 # matrix emits a per-arch artifact plus a merged summary).
 #
@@ -86,11 +86,7 @@ jobs:
           DISPATCH_STAGGER_SECONDS: '120'
           MAX_FAILURE_RETRIES: '3'
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31/preview run in
-          # their own scheduled workflows on their own SHAs. We scan both sources
-          # (see fetch_candidate_commits) so a SHA that carries several arches
-          # yields one combined parity report once every arch's run has finished.
-          ARCHS_IN: mi350 mi300 mi200 navi31 preview
+          # Architectures and workflow names come from parity_job_config.json.
           # Optional manual overrides; blank means "derive from parity_job_config.json".
           ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
           ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}
@@ -118,6 +114,7 @@ jobs:
               echo "::error::Could not read $CONFIG_PATH at $GITHUB_SHA"
               exit 1
             fi
+            ARCHS=$(echo "$config_json" | jq -r '.rocm | keys | join(" ")')
             ARCH_JOBNAME_REGEX_MAP=${ARCH_JOBNAME_REGEX_OVERRIDE:-$(echo "$config_json" | jq -c '.rocm | map_values(.checkrun_regex)')}
             # workflow_regex is not stored: derive it per arch from the union of
             # the workflow values across that arch's configured source lists
@@ -289,7 +286,7 @@ jobs:
           }
 
           # Echo "<sha> <created_at>" lines for recent completed runs of the
-          # non-trunk arch workflows (mi300/mi200/navi31/preview). These arches run on a
+          # non-trunk arch workflows. These arches run on a
           # schedule against whatever main HEAD was current then, so their runs
           # surface SHAs that the trunk-push scan alone would rank too low to
           # reach. 404/stale workflows simply yield nothing.
@@ -611,8 +608,6 @@ jobs:
             NOW_EPOCH=$(date -u +%s)
             MAX_AGE_EPOCH=$((NOW_EPOCH - MAX_AGE_HOURS * 3600))
             TARGET_REF="${TARGET_REF_IN:-$GITHUB_REF_NAME}"
-            ARCHS=$(echo "$ARCHS_IN" | tr ',' ' ' | xargs)
-
             load_matching_config
             print_run_config
 

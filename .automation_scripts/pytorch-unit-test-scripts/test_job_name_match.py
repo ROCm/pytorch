@@ -11,6 +11,29 @@ def job(name, job_id):
 
 
 class ChooseTestJobFamilyTest(unittest.TestCase):
+    def test_rx7900_replaces_navi31_topology(self):
+        config_path = os.path.join(
+            os.path.dirname(__file__), "parity_job_config.json"
+        )
+        with open(config_path) as config_file:
+            rocm = json.load(config_file)["rocm"]
+
+        self.assertNotIn("navi31", rocm)
+        self.assertEqual(
+            rocm["rx7900"],
+            {
+                "default": [{
+                    "workflow": "rocm-rx7900",
+                    "job_prefix": "linux-jammy-rocm-py3.11-rx7900",
+                }],
+                "shard_counts": {"default": 2},
+                "checkrun_regex": (
+                    "linux-jammy-rocm-py3[.]11-rx7900 "
+                    "/ test [(]default,"
+                ),
+            },
+        )
+
     def test_auto_trigger_matches_versioned_cuda_inductor_family(self):
         config_path = os.path.join(
             os.path.dirname(__file__), "parity_job_config.json"
