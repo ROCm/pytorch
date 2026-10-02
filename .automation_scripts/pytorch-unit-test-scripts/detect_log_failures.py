@@ -11,6 +11,7 @@ Usage:
 
 import argparse
 import csv
+import json
 import os
 import re
 import sys
@@ -103,6 +104,25 @@ def classify_log_file(filename):
             if remainder.isdigit():
                 return label or platform, test_config, int(remainder)
     return None, None, None
+
+
+def _shard_total_key(filename):
+    """Key a log file into its shard family: 'rocm_dist4gpu1.txt' -> 'rocm_dist4gpu'."""
+    m = re.match(r"(.*?)(\d+)\.txt$", filename)
+    return m.group(1) if m else ""
+
+
+def _load_expected_shard_totals(logs_dir):
+    """Read the expected per-family shard totals download_testlogs wrote."""
+    path = os.path.join(logs_dir, "_shard_totals.json")
+    if not os.path.isfile(path):
+        return {}
+    try:
+        with open(path) as f:
+            return {str(k): int(v) for k, v in json.load(f).items()}
+    except Exception as error:
+        print(f"WARNING: could not read {path}: {error}")
+        return {}
 
 
 RE_TIMESTAMP = re.compile(r"^\d{4}-\d{2}-\d{2}T[\d:.]+Z\s*")
@@ -319,10 +339,11 @@ def scan_logs(logs_dir):
     all_flaky = []
     shard_map = defaultdict(set)
 
-    # Pre-compute job-level shard totals per (platform, test_config) by
-    # counting how many log files belong to each group. Log files are
-    # 1-indexed (e.g. rocm1.txt..rocm6.txt for a 6-way sharded job), so
-    # the count == total shards for that CI job.
+    # Job-level shard totals, preferring the expected totals download_testlogs
+    # recorded. Counting the log files present instead would shrink the
+    # denominator whenever a log failed to download, reporting "3/5" for what is
+    # really shard 3 of 8.
+    expected_totals = _load_expected_shard_totals(logs_dir)
     shard_totals = defaultdict(int)
     for fname in os.listdir(logs_dir):
         if not fname.endswith(".txt"):
@@ -340,7 +361,8 @@ def scan_logs(logs_dir):
         if platform is None:
             continue
 
-        job_total = shard_totals.get((platform, test_config), 0)
+        job_total = expected_totals.get(_shard_total_key(fname)) \
+            or shard_totals.get((platform, test_config), 0)
         job_shard_str = f"{shard_num}/{job_total}" if job_total else str(shard_num)
 
         # If download_testlogs left a "<log>.job_url" file next to this log,

@@ -126,6 +126,9 @@ jobs:
                 | "(^|/)(" + join("|") + ")[.]yml$"
               )')}
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
+            CUDA_WORKFLOW_REGEX=$(echo "$config_json" | jq -r '
+              [ (.cuda.default[]?, .cuda.distributed[]?, .cuda.inductor[]?).workflow ]
+              | unique | "(^|/)(" + join("|") + ")[.]yml$"')
             # Upstream workflow file names for the non-trunk arches (mi350 rides
             # trunk). Their scheduled runs land on
             # their own SHAs, so fetch_scheduled_commits mines those SHAs as
@@ -156,6 +159,7 @@ jobs:
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
               "Arch->workflows: $ARCH_WORKFLOW_REGEX_MAP" \
               "CUDA jobs:       $CUDA_JOBNAME_REGEX" \
+              "CUDA workflows:  $CUDA_WORKFLOW_REGEX" \
               ""
           }
 
@@ -370,22 +374,45 @@ jobs:
           }
 
           # Filter a check-run JSON array down to the parity test shards whose
-          # name matches $2 (PCRE), dropping non-test check-runs. Reads the array
-          # from stdin, echoes the filtered array.
+          # name matches $1 (PCRE) AND that belong to one of the workflow run ids
+          # in $2 (JSON array of strings), dropping non-test check-runs. Reads the
+          # array from stdin, echoes the filtered array.
+          #
+          # The run-id filter is what keeps the gate honest: check-runs are
+          # commit-scoped, so trunk, trunk-rocm-sandbox and rocm-preview all
+          # publish shards named 'linux-noble-rocm-py3.11-mi350 / test (default,'
+          # on the same SHA. Matching on name alone made mi350 wait on - and be
+          # satisfied by - shards from workflows the report never reads.
           select_test_check_runs() {
-            local regex="$1"
+            local regex="$1" run_ids="$2"
             jq --arg rx "$regex" --arg skip "$NON_TEST_CHECKRUNS" \
-              '[.[] | select((.name | test($rx)) and (.name | test($skip) | not))]'
+               --argjson ids "${run_ids:-[]}" '
+              [ .[]
+                | select((.name | test($rx)) and ((.name | test($skip)) | not))
+                | select(
+                    ([ (.details_url // "") | scan("/runs/([0-9]+)/") ]
+                      | flatten | first // "") as $r
+                    | ($ids | index($r)) != null
+                  )
+              ]'
+          }
+
+          # Echo the JSON array of workflow run ids (as strings) in $1 whose path
+          # matches the workflow regex $2.
+          run_ids_matching() {
+            echo "$1" | jq -c --arg rx "$2" \
+              '[ .[] | select((.path // "") | test($rx)) | .id | tostring ]'
           }
 
           # Determine which in-scope archs had their upstream workflow run on $1.
           # Sets RUN_ARCHS (space separated) and NOT_RUN_NOTES (per-arch reasons
-          # for the ones that did not, for logging). Sets globals rather than
-          # echoing so both outputs survive - command substitution would run this
-          # in a subshell and drop NOT_RUN_NOTES.
+          # for the ones that did not, for logging), plus ARCH_RUN_IDS_MAP and
+          # CUDA_RUN_IDS which scope the shard gates to the configured sources.
+          # Sets globals rather than echoing so all outputs survive - command
+          # substitution would run this in a subshell and drop them.
           archs_that_ran() {
             local sha="$1" all_runs arch wf_regex wf_total wf_latest
-            local run_archs="" notes="" latest_source=""
+            local run_archs="" notes="" latest_source="" run_ids_map='{}'
             all_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/actions/runs?head_sha=$sha&per_page=100" \
               '.workflow_runs[] | {id,name,path,status,conclusion,created_at}' \
@@ -402,6 +429,11 @@ jobs:
                 notes="$notes $arch:no-workflow"
               else
                 run_archs="$run_archs $arch"
+                # Remember which runs are this arch's configured sources so the
+                # shard gates below only ever look at those runs' check-runs.
+                run_ids_map=$(jq -c --arg a "$arch" \
+                  --argjson ids "$(run_ids_matching "$all_runs" "$wf_regex")" \
+                  '.[$a] = $ids' <<<"$run_ids_map")
                 wf_latest=$(echo "$all_runs" | jq -r --arg rx "$wf_regex" '
                   [ .[] | select((.path // "") | test($rx)) | .created_at // empty ]
                   | max // empty')
@@ -414,6 +446,8 @@ jobs:
             NOT_RUN_NOTES=$(echo "$notes" | xargs)
             LATEST_SOURCE_CREATED_AT="$latest_source"
             SOURCE_WORKFLOW_RUNS="$all_runs"
+            ARCH_RUN_IDS_MAP="$run_ids_map"
+            CUDA_RUN_IDS=$(run_ids_matching "$all_runs" "$CUDA_WORKFLOW_REGEX")
           }
 
           # Determine which archs from $1 have at least one ROCm test check-run
@@ -422,6 +456,7 @@ jobs:
           # Sets globals for the same subshell reason as archs_that_ran.
           archs_with_shards() {
             local run_archs="$1" arch regex total ready="" notes=""
+            local arch_run_ids arch_check_runs
             local supplemental_wf supplemental_runs expected actual
             for arch in $run_archs; do
               regex=$(echo "$ARCH_JOBNAME_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
@@ -429,8 +464,13 @@ jobs:
                 notes="$notes $arch:no-regex"
                 continue
               fi
-              total=$(echo "$ROCM_CHECK_RUNS" | jq --arg rx "$regex" \
-                'map(select(.name | test($rx))) | length')
+              # Narrow the (already CUDA-trimmed) gate set to this arch's own
+              # source runs, so another arch's or workflow's shards can never
+              # stand in for this arch's.
+              arch_run_ids=$(echo "$ARCH_RUN_IDS_MAP" | jq -c --arg a "$arch" '.[$a] // []')
+              arch_check_runs=$(echo "$ROCM_CHECK_RUNS" \
+                | select_test_check_runs "$regex" "$arch_run_ids")
+              total=$(echo "$arch_check_runs" | jq 'length')
               if [ "$total" -eq 0 ]; then
                 notes="$notes $arch:workflow-run-no-shards-yet"
                 continue
@@ -444,7 +484,7 @@ jobs:
                 if [ "$supplemental_runs" -gt 0 ]; then
                   expected=$(echo "$PARITY_CONFIG_JSON" | jq -r \
                     --arg a "$arch" '.rocm[$a].shard_counts.distributed_4gpu')
-                  actual=$(echo "$ROCM_CHECK_RUNS" | jq \
+                  actual=$(echo "$arch_check_runs" | jq \
                     'map(select(.name | test("[(]distributed_4gpu,"))) | length')
                   if [ "$actual" -lt "$expected" ]; then
                     notes="$notes $arch:distributed_4gpu-${actual}/${expected}-shards"
@@ -500,19 +540,22 @@ jobs:
             # flip to failure before sibling shards finish, so we look per shard).
             all_check_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/commits/$sha/check-runs?per_page=100" \
-              '.check_runs[] | {id,name,status,conclusion}' \
+              '.check_runs[] | {id,name,status,conclusion,details_url}' \
               "check-runs for $sha") || return 2
 
             ROCM_CHECK_RUNS='[]'
-            local arch regex arch_check_runs
+            local arch regex arch_check_runs arch_run_ids
             for arch in $RUN_ARCHS; do
               regex=$(echo "$ARCH_JOBNAME_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
               [ -z "$regex" ] && continue
-              arch_check_runs=$(echo "$all_check_runs" | select_test_check_runs "$regex")
+              arch_run_ids=$(echo "$ARCH_RUN_IDS_MAP" | jq -c --arg a "$arch" '.[$a] // []')
+              arch_check_runs=$(echo "$all_check_runs" \
+                | select_test_check_runs "$regex" "$arch_run_ids")
               ROCM_CHECK_RUNS=$(jq -s 'add | unique_by(.name)' \
                 <(echo "$ROCM_CHECK_RUNS") <(echo "$arch_check_runs"))
             done
-            cuda_check_runs=$(echo "$all_check_runs" | select_test_check_runs "$CUDA_JOBNAME_REGEX")
+            cuda_check_runs=$(echo "$all_check_runs" \
+              | select_test_check_runs "$CUDA_JOBNAME_REGEX" "$CUDA_RUN_IDS")
 
             if [ "$(echo "$ROCM_CHECK_RUNS" | jq 'length')" -eq 0 ]; then
               echo "[$short] $date  ROCm workflows ran ($RUN_ARCHS) but no parity check-runs yet - skip"

@@ -301,9 +301,12 @@ def derive_shard_count(wf, job_prefix, test_config, fallback):
 
     Two sources are consulted, in order:
       1. the run's jobs API (surfaces CUDA test jobs directly), then
-      2. the commit check-runs API - the ROCm arch workflows run their sharded
-         test jobs inside a reusable workflow (workflow_call), and those shards
-         are NOT returned by the jobs API but ARE returned by check-runs.
+      2. this run's check-runs - the ROCm arch workflows run their sharded test
+         jobs inside a reusable workflow (workflow_call), and those shards are
+         NOT always returned by the jobs API but ARE returned by check-runs.
+    Both sources are scoped to `wf`: sibling workflows on the same SHA publish
+    identically named shards, and borrowing a total from one of those would make
+    every constructed artifact prefix miss.
     Falls back to `fallback` only when neither source has a matching job.
     """
     try:
@@ -319,7 +322,7 @@ def derive_shard_count(wf, job_prefix, test_config, fallback):
     sha = wf.get("head_sha") if isinstance(wf, dict) else None
     if sha:
         try:
-            check_runs = get_check_runs_for_commit(sha, job_prefix)
+            check_runs = get_check_runs_for_run(sha, wf.get("id"), job_prefix)
         except Exception:
             check_runs = []
         total = _modal_shard_total(
@@ -353,12 +356,15 @@ def resolve_job_prefix(wf, test_config, configured_prefix):
     The job-name prefix in parity_job_config.json drifts whenever upstream
     bumps the OS/python/compiler or renames a runner tag (e.g. the Preview
     'gfx942' -> 'mi350' rename, or py3.10 -> py3.12), which used to require a
-    manual config edit each time. Candidates are gathered from the run's jobs
-    API and the commit check-runs API (ROCm arch shards run in a reusable
-    workflow, so they only appear in check-runs). If the configured prefix is
-    present we keep it unchanged; otherwise we pick the candidate most similar
-    to it within the same accelerator family. If nothing matches we return the
-    configured value untouched.
+    manual config edit each time. Candidates come from `wf` only - its jobs API
+    plus its own check-runs (ROCm arch shards run in a reusable workflow, so
+    they only appear in check-runs). Scoping matters: a commit-wide candidate
+    list would offer prefixes that exist solely in a sibling workflow, and
+    adopting one of those silently points log and shard matching at a run we
+    never download from. If the configured prefix is present we keep it
+    unchanged; otherwise we pick the candidate most similar to it within the
+    same accelerator family. If nothing matches we return the configured value
+    untouched.
     """
     names = []
     try:
@@ -368,7 +374,10 @@ def resolve_job_prefix(wf, test_config, configured_prefix):
     sha = wf.get("head_sha") if isinstance(wf, dict) else None
     if sha:
         try:
-            names += [cr.get("name", "") for cr in get_check_runs_for_commit(sha, "")]
+            names += [
+                cr.get("name", "")
+                for cr in get_check_runs_for_run(sha, wf.get("id"), "")
+            ]
         except Exception:
             pass
     candidates = _candidate_job_prefixes(names, test_config)
@@ -418,6 +427,23 @@ def get_check_runs_for_commit(sha, prefix):
             break
         page += 1
     return check_runs
+
+def get_check_runs_for_run(sha, run_id, prefix):
+    """Like get_check_runs_for_commit, but restricted to one workflow run.
+
+    The check-runs API is commit-scoped, so a single SHA returns identically
+    named shards from every workflow that ran it (trunk, trunk-rocm-sandbox and
+    rocm-preview all publish 'linux-noble-rocm-py3.11-mi350 / test (default, ...'
+    check-runs). Deciding a run's job prefix or shard total from that mixture is
+    how artifacts previously got attributed to the wrong workflow, so callers
+    reasoning about a specific run must filter on the run id embedded in
+    details_url.
+    """
+    marker = f"/runs/{run_id}/"
+    return [
+        cr for cr in get_check_runs_for_commit(sha, prefix)
+        if marker in (cr.get("details_url") or "")
+    ]
 
 def get_run_by_id(run_id):
     """Fetch a single workflow-run object by id (for its run_attempt/name)."""
@@ -497,6 +523,29 @@ def get_cuda_inductor_test_jobs(jobs):
         return configured_prefix, CUDA_TEST_KINDS[0], []
     return family["prefix"], family["kind"], family["jobs"]
 
+def _record_log_shard_totals(test_folder, test_log_list):
+    """Persist the expected shard total per log-file family ("_shard_totals.json").
+
+    detect_log_failures.py otherwise derives the "shard N/M" denominator from the
+    number of logs it finds, so three undownloaded logs silently turn "3/8" into
+    "3/5"."""
+    totals = {}
+    path = os.path.join(test_folder, "_shard_totals.json")
+    if os.path.isfile(path):
+        try:
+            with open(path) as f:
+                totals = json.load(f)
+        except Exception:
+            totals = {}
+    # Key on the filename with its shard index stripped ("rocm_dist4gpu1.txt" ->
+    # "rocm_dist4gpu"), which detect_log_failures.py can reproduce per log file.
+    for name, _ in test_log_list:
+        m = re.match(r'(.*?)(\d+)\.txt$', name)
+        if m:
+            totals[m.group(1)] = totals.get(m.group(1), 0) + 1
+    with open(path, "w") as f:
+        json.dump(totals, f)
+
 def download_logs(wf, test_log_list, test_folder, jobs=None):
     if wf is None: 
         raise Exception("wf is None!")
@@ -504,6 +553,7 @@ def download_logs(wf, test_log_list, test_folder, jobs=None):
     if jobs is None:
         jobs = get_workflow_jobs(wf)
 
+    _record_log_shard_totals(test_folder, test_log_list)
     for test_log in test_log_list:
         write_out_file = test_folder + "/" + test_log[0]
         write_test_log_to_file(write_out_file, test_log[1], jobs, wf['head_sha'])
@@ -568,6 +618,39 @@ def download_gha_artifacts_filtered(workflow_run_id, workflow_run_attempt, prefi
 
     return artifact_paths
 
+# Shard directory / artifact prefix tail: test[-osdc]-<config>-<idx>-<total>.
+# distributed_4gpu must precede distributed so the longer config wins.
+_SHARD_RE = r'test-(?:osdc-)?(default|distributed_4gpu|distributed|inductor|slow)-(\d+)-(\d+)'
+
+def _expected_shards(prefixes):
+    """Parse (config, idx, total) out of the S3 artifact prefixes we asked for."""
+    expected = []
+    for prefix in prefixes:
+        m = re.search(_SHARD_RE + r'$', prefix)
+        if m:
+            expected.append((m.group(1), int(m.group(2)), int(m.group(3))))
+    return expected
+
+def _report_missing_shards(label, run_id, prefixes, produced):
+    """Flag shards we asked for but did not get, per test config.
+
+    A silently absent shard turns its whole slice of the suite into MISSED rows
+    that are indistinguishable from a genuine ROCm coverage gap, so name the
+    gap explicitly and let error_msgs fail the job at exit."""
+    expected = _expected_shards(prefixes)
+    if not expected:
+        return
+    got = {(config, idx) for config, idx, _ in produced}
+    for config in dict.fromkeys(config for config, _, _ in expected):
+        total = next(t for c, _, t in expected if c == config)
+        missing = sorted(i for c, i, _ in expected if c == config and (c, i) not in got)
+        if missing:
+            msg = (f"WARNING: {label} {config} shards missing from run {run_id}: "
+                   f"{', '.join(str(i) for i in missing)} of {total}; those tests "
+                   f"will look MISSED in the report")
+            print(msg)
+            error_msgs.append(msg)
+
 def _shorten_unzipped_dirs():
     """Rename unzipped-* directories to short names for Windows MAX_PATH compatibility.
 
@@ -582,17 +665,20 @@ def _shorten_unzipped_dirs():
     can still detect workflow type via substring matching. The trailing
     '_<jobid>' is the upstream pytorch CI job id, used to link to the
     failing job from the parity summary.
+
+    Returns (job_ids, shards) where shards lists the (config, idx, total) each
+    directory came from, using the artifact's own config name so a caller can
+    tell which of the shards it asked for actually arrived.
     """
     from pathlib import Path
     job_ids = []
+    shards = []
     for d in sorted(Path(".").glob("unzipped-*")):
         if not d.is_dir():
             continue
-        m = re.search(
-            r'test-(?:osdc-)?(default|distributed_4gpu|distributed|inductor|slow)-(\d+)-(\d+)',
-            d.name,
-        )
+        m = re.search(_SHARD_RE, d.name)
         if m:
+            shards.append((m.group(1), int(m.group(2)), int(m.group(3))))
             config = "distributed" if m.group(1) == "distributed_4gpu" else m.group(1)
             short_name = f"test-{config}-{m.group(2)}-{m.group(3)}"
             # The artifact/dir name ends with "_<jobid>" (optionally ".zip")
@@ -609,7 +695,7 @@ def _shorten_unzipped_dirs():
                 print(f"  Renamed {d.name} -> {short_name}")
             else:
                 print(f"  WARNING: {short_name} already exists, keeping {d.name}")
-    return job_ids
+    return job_ids, shards
 
 def _record_shard_run_ids(job_ids, workflow_run_id):
     """Persist a job_id -> upstream run_id map ("_wf_run_ids.json") next to the
@@ -711,7 +797,7 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
         error_msg = f"WARNING: workflow run id: {workflow_run_id} - no artifacts found (S3 or GHA) for prefixes: {prefixes}"
         print(error_msg)
         error_msgs.append(error_msg)
-        return
+        return []
 
     for path in artifact_paths:
         if not zipfile.is_zipfile(path):
@@ -727,7 +813,7 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
             continue
         unzip(path)
 
-    job_ids = _shorten_unzipped_dirs()
+    job_ids, shards = _shorten_unzipped_dirs()
     # Record which upstream run each shard's job id came from so job URLs are
     # built per-shard (different configs come from different runs).
     _record_shard_run_ids(job_ids, workflow_run_id)
@@ -744,16 +830,21 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
         except Exception:
             pass
 
+    return shards
+
 def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None):
     os.chdir(test_folder)
     #download the xml files
-    download_xml_files(
+    shards = download_xml_files(
         wf['id'],
         wf.get('run_attempt',1),
         prefixes,
         allowed_substrings=allowed_substrings,
     )
     os.chdir("..")
+    # The folder already names the side (rocm_xml / cuda_xml / baseline_xml).
+    label = os.path.basename(str(test_folder).rstrip("/")).replace("_xml", "") or "artifacts"
+    _report_missing_shards(label, wf['id'], prefixes, shards or [])
 # for older runs, add 'created':'<=YYYY-MM-DD'. see https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates
 def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, ignore_status=False, status='success', error_msg='Error downloading workflow runs'):
     if not workflow:

@@ -9,7 +9,11 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from detect_log_failures import classify_log_file
+from detect_log_failures import (
+    _load_expected_shard_totals,
+    _shard_total_key,
+    classify_log_file,
+)
 
 
 def _load_download_testlogs():
@@ -75,9 +79,10 @@ class CorruptArtifactTest(unittest.TestCase):
         )
         source.mkdir()
 
-        job_ids = dtl._shorten_unzipped_dirs()
+        job_ids, shards = dtl._shorten_unzipped_dirs()
 
         self.assertEqual(job_ids, ["110840610613"])
+        self.assertEqual(shards, [("distributed_4gpu", 2, 2)])
         self.assertTrue(Path("test-distributed-2-2_110840610613").is_dir())
 
     def test_non_zip_artifact_is_skipped_not_fatal(self):
@@ -346,6 +351,155 @@ class CrossSourceComparisonTest(unittest.TestCase):
             classify_log_file("trunk@1234abcd_cuda_dist2.txt"),
             ("trunk@1234abcd", "distributed", 2),
         )
+
+
+class RunScopedCheckRunTest(unittest.TestCase):
+    """trunk, trunk-rocm-sandbox and rocm-preview publish identically named
+    shards on the same SHA, so anything reasoning about one run must filter on
+    the run id in details_url."""
+
+    SHA = "a" * 40
+    PREFIX = "linux-noble-rocm-py3.11-mi350"
+
+    def setUp(self):
+        dtl.authentication_headers = {}
+        self.trunk = {"id": 37000844958, "head_sha": self.SHA, "run_attempt": 1}
+        # trunk ran 3 distributed shards; the sandbox run ran 8 under the same
+        # names, so a commit-wide modal total would pick the sandbox layout.
+        self.check_runs = [
+            self._check_run(37000844958, "distributed", i, 3) for i in range(1, 4)
+        ] + [
+            self._check_run(37005184175, "distributed", i, 8) for i in range(1, 9)
+        ]
+
+    def _check_run(self, run_id, config, idx, total):
+        return {
+            "name": f"{self.PREFIX} / test ({config}, {idx}, {total}, rocm.gpu)",
+            "details_url": (
+                f"https://github.com/pytorch/pytorch/actions/runs/{run_id}"
+                f"/job/{run_id}{idx}"
+            ),
+        }
+
+    def test_sibling_workflow_check_runs_are_filtered_out(self):
+        with mock.patch.object(
+            dtl, "get_check_runs_for_commit", return_value=self.check_runs
+        ):
+            scoped = dtl.get_check_runs_for_run(self.SHA, 37000844958, self.PREFIX)
+
+        self.assertEqual(len(scoped), 3)
+        self.assertTrue(
+            all("/runs/37000844958/" in cr["details_url"] for cr in scoped)
+        )
+
+    def test_shard_count_ignores_sibling_workflow_totals(self):
+        # The jobs API has nothing, so the check-run path decides.
+        with (
+            mock.patch.object(dtl, "get_workflow_jobs", return_value=[]),
+            mock.patch.object(
+                dtl, "get_check_runs_for_commit", return_value=self.check_runs
+            ),
+        ):
+            total = dtl.derive_shard_count(
+                self.trunk, self.PREFIX, "distributed", 99
+            )
+
+        self.assertEqual(total, 3)
+
+    def test_job_prefix_is_not_adopted_from_a_sibling_workflow(self):
+        sandbox_only = [
+            {
+                "name": "linux-noble-rocm-py3.12-mi350 / test (default, 1, 8, rocm.gpu)",
+                "details_url": (
+                    "https://github.com/pytorch/pytorch/actions/runs/37005184175/job/1"
+                ),
+            }
+        ]
+        with (
+            mock.patch.object(dtl, "get_workflow_jobs", return_value=[]),
+            mock.patch.object(
+                dtl, "get_check_runs_for_commit", return_value=sandbox_only
+            ),
+        ):
+            resolved = dtl.resolve_job_prefix(self.trunk, "default", self.PREFIX)
+
+        self.assertEqual(resolved, self.PREFIX)
+
+
+class ShardCompletenessTest(unittest.TestCase):
+    def setUp(self):
+        dtl.error_msgs.clear()
+        self.addCleanup(dtl.error_msgs.clear)
+
+    def test_missing_shard_is_named_in_error_msgs(self):
+        dtl._report_missing_shards(
+            "rocm",
+            37000844958,
+            [f"test-reports-test-distributed-{i}-3" for i in (1, 2, 3)],
+            [("distributed", 1, 3), ("distributed", 3, 3)],
+        )
+
+        self.assertEqual(len(dtl.error_msgs), 1)
+        self.assertIn("rocm distributed shards missing", dtl.error_msgs[0])
+        self.assertIn("37000844958", dtl.error_msgs[0])
+        self.assertIn("2 of 3", dtl.error_msgs[0])
+
+    def test_complete_download_is_silent(self):
+        dtl._report_missing_shards(
+            "cuda",
+            1,
+            [
+                "test-reports-test-osdc-default-1-2",
+                "test-reports-test-osdc-default-2-2",
+            ],
+            [("default", 1, 2), ("default", 2, 2)],
+        )
+
+        self.assertEqual(dtl.error_msgs, [])
+
+    def test_four_gpu_shards_are_tracked_under_their_own_config(self):
+        dtl._report_missing_shards(
+            "rocm",
+            37005713395,
+            [f"test-reports-test-distributed_4gpu-{i}-2" for i in (1, 2)],
+            [("distributed_4gpu", 1, 2)],
+        )
+
+        self.assertEqual(len(dtl.error_msgs), 1)
+        self.assertIn("distributed_4gpu shards missing", dtl.error_msgs[0])
+        self.assertIn("2 of 2", dtl.error_msgs[0])
+
+
+class LogShardTotalsTest(unittest.TestCase):
+    """download_testlogs records the expected totals; detect_log_failures must
+    key into them with the same scheme so a missing log cannot shrink the
+    reported "shard N/M" denominator."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+
+    def test_expected_totals_are_recorded_per_log_family(self):
+        folder = self.tmp.name
+        dtl._record_log_shard_totals(
+            folder, [[f"rocm{i}.txt", "key"] for i in range(1, 9)]
+        )
+        dtl._record_log_shard_totals(
+            folder, [[f"rocm_dist4gpu{i}.txt", "key"] for i in range(1, 3)]
+        )
+
+        self.assertEqual(
+            _load_expected_shard_totals(folder),
+            {"rocm": 8, "rocm_dist4gpu": 2},
+        )
+
+    def test_log_filenames_key_into_the_recorded_totals(self):
+        for name, key in (
+            ("rocm3.txt", "rocm"),
+            ("rocm_dist4gpu2.txt", "rocm_dist4gpu"),
+            ("cuda_dist10.txt", "cuda_dist"),
+        ):
+            self.assertEqual(_shard_total_key(name), key)
 
 
 if __name__ == "__main__":
