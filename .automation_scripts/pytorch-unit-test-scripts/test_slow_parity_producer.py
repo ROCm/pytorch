@@ -146,6 +146,20 @@ class SlowParityProducerTest(unittest.TestCase):
         self.assertEqual(kind, "test")
         self.assertEqual([entry["id"] for entry in matched], [1, 2])
 
+    def test_auto_trigger_matches_versioned_cuda_inductor_family(self):
+        regex = re.compile(self.config["cuda"]["checkrun_regex"])
+
+        for family in (
+            "inductor-test",
+            "inductor-test-cuda132",
+            "inductor-test-cuda134",
+        ):
+            with self.subTest(family=family):
+                self.assertRegex(
+                    f"unit-test / {family} / test (inductor, 1, 2, runner)",
+                    regex,
+                )
+
     def test_log_failure_detector_classifies_slow(self):
         self.assertEqual(
             classify_log_file("rocm_slow2.txt"), ("rocm", "slow", 2)
