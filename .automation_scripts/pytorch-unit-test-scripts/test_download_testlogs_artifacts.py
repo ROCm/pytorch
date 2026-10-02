@@ -136,6 +136,20 @@ class ApiRetryTest(unittest.TestCase):
     def setUp(self):
         dtl.authentication_headers = {}
 
+    def test_cuda_artifact_allowlist_includes_distributed_jobs(self):
+        prefix = "linux-jammy-cuda13.2-py3.11-gcc11"
+        jobs = [
+            {"id": 1, "name": f"{prefix} / test (default, 1, 14, runner)"},
+            {"id": 2, "name": f"{prefix} / test (distributed, 1, 10, runner)"},
+            {"id": 3, "name": f"{prefix}-debug / test (default, 1, 7, runner)"},
+        ]
+
+        job_ids = dtl.get_cuda_artifact_job_ids(
+            jobs, prefix, ("default", "distributed")
+        )
+
+        self.assertEqual(job_ids, {"1", "2"})
+
     def test_jobs_retry_connection_drop_and_secondary_limit(self):
         responses = [
             dtl.requests.exceptions.ConnectionError(),
