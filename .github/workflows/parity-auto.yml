@@ -1,10 +1,16 @@
 name: Parity Auto Trigger
 run-name: "Parity auto-trigger · pytorch/pytorch main"
 
-# Every 10 min, dispatch parity.yml once per completed upstream trunk.yml push
-# whose parity inputs have all finished. Scope is trunk only: the mi350 ROCm
-# shards that ride along in trunk.yml vs that run's CUDA shards. Other arches
-# have their own periodic workflows - run parity.yml manually for those.
+# Every 10 min, dispatch parity.yml once per upstream SHA whose parity inputs
+# have all finished. Candidate SHAs come from two sources: completed trunk.yml
+# pushes (mi350 rides along there) and the scheduled per-arch workflows for
+# mi300/mi200/navi31/preview (which run on their own SHAs at their own cadence). A SHA
+# that carries several arches yields ONE combined parity report (parity.yml's
+# matrix emits a per-arch artifact plus a merged summary).
+#
+# Because the scheduled arches lag trunk, we hold back SHAs newer than the
+# newest scheduled run so a late mi300/mi200 batch can still join that SHA's
+# report instead of producing a premature trunk-only one.
 #
 # Readiness is gated per check-run, not on workflow_run conclusion: one failed
 # shard flips the parent run to failure while siblings are still going, so we
@@ -75,10 +81,16 @@ jobs:
           BRANCH: main
           MAX_COMMITS: ${{ github.event_name == 'pull_request' && '20' || inputs.max_commits || '200' }}
           MAX_DISPATCHES: ${{ github.event_name == 'pull_request' && '5' || inputs.max_dispatches || '50' }}
+          # Keep downloader concurrency low enough to avoid jobs-API 403s while
+          # allowing one scan to drain a large ready backlog.
+          DISPATCH_STAGGER_SECONDS: '120'
+          MAX_FAILURE_RETRIES: '3'
           MAX_AGE_HOURS: ${{ inputs.max_age_hours || '72' }}
-          # Auto-parity is trunk-scoped: mi350 is the only ROCm arch that rides
-          # along in trunk.yml. Other arches have their own periodic workflows.
-          ARCHS_IN: mi350
+          # mi350 rides along in trunk.yml (per push); mi300/mi200/navi31/preview run in
+          # their own scheduled workflows on their own SHAs. We scan both sources
+          # (see fetch_candidate_commits) so a SHA that carries several arches
+          # yields one combined parity report once every arch's run has finished.
+          ARCHS_IN: mi350 mi300 mi200 navi31 preview
           # Optional manual overrides; blank means "derive from parity_job_config.json".
           ARCH_JOBNAME_REGEX_OVERRIDE: ${{ inputs.arch_jobname_regex_map || '' }}
           ARCH_WORKFLOW_REGEX_OVERRIDE: ${{ inputs.arch_workflow_regex_map || '' }}
@@ -98,8 +110,7 @@ jobs:
 
           # Read parity_job_config.json over the API at GITHUB_SHA (this job never
           # checks out the fork) and build the regex maps used for matching.
-          # Manual override inputs win when set. Sets ARCH_JOBNAME_REGEX_MAP,
-          # ARCH_WORKFLOW_REGEX_MAP, and CUDA_JOBNAME_REGEX.
+          # Manual override inputs win when set.
           load_matching_config() {
             local config_json
             config_json=$(gh api "repos/$GITHUB_REPOSITORY/contents/$CONFIG_PATH?ref=$GITHUB_SHA" --jq '.content' | base64 -d)
@@ -109,14 +120,25 @@ jobs:
             fi
             ARCH_JOBNAME_REGEX_MAP=${ARCH_JOBNAME_REGEX_OVERRIDE:-$(echo "$config_json" | jq -c '.rocm | map_values(.checkrun_regex)')}
             # workflow_regex is not stored: derive it per arch from the union of
-            # the workflow values across that arch's default/distributed/inductor
-            # source lists (primary + fallback entries).
+            # the workflow values across that arch's configured source lists
+            # (primary + fallback entries).
             ARCH_WORKFLOW_REGEX_MAP=${ARCH_WORKFLOW_REGEX_OVERRIDE:-$(echo "$config_json" | jq -c '
               .rocm | map_values(
                 [ (.default[]?, .distributed[]?, .inductor[]?).workflow ] | unique
                 | "(^|/)(" + join("|") + ")[.]yml$"
               )')}
             CUDA_JOBNAME_REGEX=$(echo "$config_json" | jq -r '.cuda.checkrun_regex')
+            # Upstream workflow file names for the non-trunk arches (mi350 rides
+            # trunk). Their scheduled runs land on
+            # their own SHAs, so fetch_scheduled_commits mines those SHAs as
+            # extra candidates on top of the trunk pushes.
+            SCHEDULED_WORKFLOWS=$(echo "$config_json" | jq -r '
+              [ .rocm | to_entries[]
+                | select(.key != "mi350")
+                | .key as $arch
+                | [ (.value.default[]?, .value.distributed[]?, .value.inductor[]?).workflow ]
+                | unique[]
+                | "\($arch) \(.)" ] | .[]')
           }
 
           print_run_config() {
@@ -124,8 +146,11 @@ jobs:
               "Upstream:        $UPSTREAM@$BRANCH" \
               "Target ref:      $TARGET_REF" \
               "Scope archs:     $ARCHS" \
+              "Scheduled wfs:   $(echo "$SCHEDULED_WORKFLOWS" | tr '\n' ';')" \
               "Max trunk runs:  $MAX_COMMITS" \
               "Max dispatches:  $MAX_DISPATCHES" \
+              "Dispatch stagger: ${DISPATCH_STAGGER_SECONDS}s" \
+              "Failure retries: $MAX_FAILURE_RETRIES" \
               "Max age:         ${MAX_AGE_HOURS}h" \
               "Dry run:         $DRY_RUN" \
               "Arch->jobs:      $ARCH_JOBNAME_REGEX_MAP" \
@@ -134,17 +159,114 @@ jobs:
               ""
           }
 
+          fetch_paginated_array() {
+            local endpoint="$1" filter="$2" label="$3" samples="${4:-2}"
+            local paginate="${5:-true}" pagination=()
+            local attempt=1 raw result rc separator="?"
+            local aggregate='[]' successes=0
+            [[ "$endpoint" == *"?"* ]] && separator="&"
+            [ "$paginate" = "true" ] && pagination+=(--paginate)
+            while [ "$attempt" -le "$samples" ]; do
+              raw=$(gh api -H "Cache-Control: no-cache" "${pagination[@]}" \
+                "${endpoint}${separator}cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
+                --jq "$filter" 2>/dev/null)
+              rc=$?
+              if [ "$rc" -eq 0 ]; then
+                result=$(printf '%s\n' "$raw" | jq -s '.' 2>/dev/null)
+                if echo "$result" | jq -e 'type == "array"' >/dev/null 2>&1; then
+                  aggregate=$(jq -s '
+                    add
+                    | reduce .[] as $item ({};
+                        .[($item.id | tostring)] = $item)
+                    | [.[]]
+                  ' <(echo "$aggregate") <(echo "$result"))
+                  successes=$((successes + 1))
+                  attempt=$((attempt + 1))
+                  continue
+                fi
+              fi
+              echo "::warning::$label API request failed; retrying" >&2
+              sleep "$attempt"
+              attempt=$((attempt + 1))
+            done
+            if [ "$successes" -gt 0 ]; then
+              echo "$aggregate"
+              return 0
+            fi
+            echo "::error::$label API request failed after retries" >&2
+            return 1
+          }
+
+          # Resolve the active workflow registration by exact path. GitHub's
+          # filename endpoint can resolve a stale registration after a workflow
+          # is recreated, returning old runs even while the active workflow runs.
+          resolve_workflow_id() {
+            local workflow="$1" path=".github/workflows/$1.yml"
+            local workflows workflow_id
+            workflows=$(fetch_paginated_array \
+              "repos/$UPSTREAM/actions/workflows?per_page=100" \
+              '.workflows[] | {id,path,state,updated_at}' \
+              "workflow list" 3) || return 2
+            workflow_id=$(echo "$workflows" | jq -r --arg path "$path" '
+              [ .[] | select(.path == $path and .state == "active") ]
+              | sort_by(.updated_at) | last | .id // empty')
+            if ! [[ "$workflow_id" =~ ^[0-9]+$ ]]; then
+              return 1
+            fi
+            echo "$workflow_id"
+          }
+
+          fetch_trunk_runs_page() {
+            local workflow_id="$1" page="$2" attempt=1 page_runs newest_epoch rc
+            local best_runs='[]' best_epoch=0
+            while [ "$attempt" -le 5 ]; do
+              page_runs=$(gh api -H "Cache-Control: no-cache" \
+                "repos/$UPSTREAM/actions/workflows/$workflow_id/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page&cache_bust=${GITHUB_RUN_ID:-local}-$attempt" \
+                --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+              rc=$?
+              if [ "$rc" -eq 0 ] && echo "$page_runs" | jq -e 'type == "array"' >/dev/null 2>&1; then
+                if [ "$page" -ne 1 ]; then
+                  echo "$page_runs"
+                  return 0
+                fi
+                if [ "$(echo "$page_runs" | jq 'length')" -gt 0 ]; then
+                  newest_epoch=$(date -u -d "$(echo "$page_runs" | jq -r '.[0].created_at')" +%s 2>/dev/null || echo 0)
+                  if [ "$newest_epoch" -gt "$best_epoch" ]; then
+                    best_epoch="$newest_epoch"
+                    best_runs="$page_runs"
+                  fi
+                fi
+              else
+                echo "::warning::trunk runs API request failed; retrying" >&2
+                sleep "$attempt"
+              fi
+              attempt=$((attempt + 1))
+            done
+            if [ "$best_epoch" -ge "$MAX_AGE_EPOCH" ]; then
+              echo "$best_runs"
+              return 0
+            fi
+            echo "::error::Could not fetch a current first page of trunk runs" >&2
+            return 1
+          }
+
           # Echo "<sha> <created_at>" lines for the most recent completed
           # trunk.yml pushes, deduped and newest-first, up to MAX_COMMITS.
           # Candidate SHAs come from completed trunk pushes (not raw main
           # commits): the report consumes trunk's jobs, so a completed trunk run
           # is the earliest a SHA can be ready.
           fetch_trunk_commits() {
-            local commits_json='[]' page=1 page_runs
+            local commits_json='[]' page=1 page_runs workflow_id rc
+            workflow_id=$(resolve_workflow_id trunk)
+            rc=$?
+            if [ "$rc" -ne 0 ]; then
+              [ "$rc" -eq 1 ] && echo "::error::Could not resolve active trunk workflow" >&2
+              return 1
+            fi
             while [ "$(echo "$commits_json" | jq 'length')" -lt "$MAX_COMMITS" ]; do
-              page_runs=$(gh api \
-                "repos/$UPSTREAM/actions/workflows/trunk.yml/runs?branch=$BRANCH&event=push&status=completed&per_page=100&page=$page" \
-                --jq '.workflow_runs | map({head_sha, created_at})' 2>/dev/null)
+              if ! page_runs=$(fetch_trunk_runs_page "$workflow_id" "$page"); then
+                return 1
+              fi
               # On a gh api failure (rate limit / transient 5xx) page_runs is
               # empty or non-JSON; stop paginating and use what we have so far.
               if ! echo "$page_runs" | jq -e . >/dev/null 2>&1; then
@@ -166,22 +288,80 @@ jobs:
             echo "$commits_json" | jq -r '.[] | "\(.head_sha) \(.created_at)"'
           }
 
+          # Echo "<sha> <created_at>" lines for recent completed runs of the
+          # non-trunk arch workflows (mi300/mi200/navi31/preview). These arches run on a
+          # schedule against whatever main HEAD was current then, so their runs
+          # surface SHAs that the trunk-push scan alone would rank too low to
+          # reach. 404/stale workflows simply yield nothing.
+          fetch_scheduled_commits() {
+            local arch candidate_arch wf runs rows workflow_id rc found
+            for arch in $(echo "$SCHEDULED_WORKFLOWS" | awk '{print $1}' | sort -u); do
+              found=false
+              while read -r candidate_arch wf; do
+                [ "$candidate_arch" != "$arch" ] && continue
+                workflow_id=$(resolve_workflow_id "$wf")
+                rc=$?
+                if [ "$rc" -eq 2 ]; then
+                  return 1
+                fi
+                if [ "$rc" -eq 1 ]; then
+                  echo "::warning::Configured workflow $wf is not active; trying another $arch source" >&2
+                  continue
+                fi
+                runs=$(fetch_paginated_array \
+                  "repos/$UPSTREAM/actions/workflows/$workflow_id/runs?branch=$BRANCH&status=completed&per_page=30" \
+                  '.workflow_runs[] | {id,head_sha,created_at}' \
+                  "scheduled workflow $wf" 5 false) || return 1
+                [ "$(echo "$runs" | jq 'length')" -eq 0 ] && continue
+                rows=$(echo "$runs" | jq -r '.[] | "\(.head_sha) \(.created_at)"')
+                printf '%s\n' "$rows"
+                found=true
+              done <<< "$SCHEDULED_WORKFLOWS"
+              if [ "$found" != "true" ]; then
+                echo "::error::No active $arch workflow returned completed runs" >&2
+                return 1
+              fi
+            done
+          }
+
+          # Merge trunk pushes + the already-fetched scheduled candidates (global
+          # SCHEDULED_COMMITS) into one newest-first "<sha> <created_at>" list, one
+          # row per SHA, capped at MAX_COMMITS. Called in a subshell via $(), so it
+          # only reads globals - main computes NEWEST_SCHEDULED_EPOCH itself.
+          fetch_candidate_commits() {
+            # $1 ~ 40-hex guard drops any stray non-row output (e.g. a 404 body
+            # from a missing scheduled workflow) that slipped past the API calls.
+            { printf '%s\n' "$TRUNK_COMMITS"; printf '%s\n' "$SCHEDULED_COMMITS"; } \
+              | awk 'NF>=2 && $1 ~ /^[0-9a-f]{40}$/' \
+              | sort -k2,2r | awk '!seen[$1]++' | head -n "$MAX_COMMITS"
+          }
+
           # Echo a JSON array of recent auto-parity workflow_dispatch runs in our
           # repo, used to skip SHAs we already dispatched. Auto runs come from
           # github-actions[bot] and carry an "autoparity-" run-name prefix; we
           # match either signal so manual parity.yml runs don't suppress us.
           fetch_existing_dispatches() {
-            gh api --paginate \
+            fetch_paginated_array \
               "repos/$GITHUB_REPOSITORY/actions/workflows/parity.yml/runs?event=workflow_dispatch&created=%3E%3D$(date -u -d "@$MAX_AGE_EPOCH" '+%Y-%m-%dT%H:%M:%SZ')&per_page=100" \
-              --jq '.workflow_runs[] | {display_title, actor: .actor.login}' |
-              jq -s '.'
+              '.workflow_runs[] | {id,display_title,status,conclusion,actor: .actor.login}' \
+              "existing parity dispatches" 5
           }
 
           # True if EXISTING already has an auto-parity run for this SHA.
           sha_already_dispatched() {
             local sha="$1"
-            echo "$EXISTING" | jq -e --arg sha "$sha" \
-              'any(.[]; ((.display_title // "") | contains($sha)) and (((.display_title // "") | startswith("autoparity-")) or (.actor == "github-actions[bot]")))' >/dev/null
+            echo "$EXISTING" | jq -e --arg sha "$sha" --argjson retries "$MAX_FAILURE_RETRIES" '
+              [ .[]
+                | select(((.display_title // "") | contains($sha))
+                    and (((.display_title // "") | startswith("autoparity-"))
+                        or .actor == "github-actions[bot]")) ] as $runs
+              | any($runs[]; .status != "completed" or .conclusion == "success")
+                or ([ $runs[]
+                      | select(.conclusion == "failure"
+                          or .conclusion == "timed_out"
+                          or .conclusion == "startup_failure") ]
+                    | length) >= $retries
+            ' >/dev/null
           }
 
           # Filter a check-run JSON array down to the parity test shards whose
@@ -200,10 +380,10 @@ jobs:
           # in a subshell and drop NOT_RUN_NOTES.
           archs_that_ran() {
             local sha="$1" all_runs arch wf_regex wf_total run_archs="" notes=""
-            all_runs=$(gh api --paginate \
+            all_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/actions/runs?head_sha=$sha&per_page=100" \
-              --jq '.workflow_runs[] | {name,path,status,conclusion}' \
-              2>/dev/null | jq -s '.' || echo '[]')
+              '.workflow_runs[] | {id,name,path,status,conclusion}' \
+              "workflow runs for $sha") || return 2
             for arch in $ARCHS; do
               wf_regex=$(echo "$ARCH_WORKFLOW_REGEX_MAP" | jq -r --arg a "$arch" '.[$a] // ""')
               if [ -z "$wf_regex" ]; then
@@ -261,13 +441,25 @@ jobs:
               return 1
             fi
 
+            # Hold back SHAs newer than the newest scheduled arch run: the schedule
+            # has not reached them yet, so a mi300/mi200/navi batch may still land
+            # on this SHA. Waiting lets us emit ONE combined report per SHA once
+            # every arch that will run has finished, rather than a premature
+            # trunk-only report that a later batch can no longer join. (When no
+            # scheduled runs exist NEWEST_SCHEDULED_EPOCH == now, so nothing is
+            # held and mi350/trunk behaves exactly as before.)
+            if [ "$commit_epoch" -ne 0 ] && [ "$commit_epoch" -gt "$NEWEST_SCHEDULED_EPOCH" ]; then
+              echo "[$short] $date  newer than newest scheduled arch run - waiting for scheduled arches to catch up"
+              return 0
+            fi
+
             if sha_already_dispatched "$sha"; then
               echo "[$short] parity report already exists for this SHA - skip"
               return 0
             fi
 
             # Sets RUN_ARCHS and NOT_RUN_NOTES.
-            archs_that_ran "$sha"
+            archs_that_ran "$sha" || return $?
             if [ -z "$RUN_ARCHS" ]; then
               echo "[$short] $date  no in-scope ROCm workflows ran on upstream (${NOT_RUN_NOTES:-none}) - skip"
               return 0
@@ -275,10 +467,10 @@ jobs:
 
             # Per-shard check-run state for this SHA (workflow_run conclusion can
             # flip to failure before sibling shards finish, so we look per shard).
-            all_check_runs=$(gh api --paginate \
+            all_check_runs=$(fetch_paginated_array \
               "repos/$UPSTREAM/commits/$sha/check-runs?per_page=100" \
-              --jq '.check_runs[] | {name,status,conclusion}' \
-              2>/dev/null | jq -s '.' || echo '[]')
+              '.check_runs[] | {id,name,status,conclusion}' \
+              "check-runs for $sha") || return 2
 
             ROCM_CHECK_RUNS='[]'
             local arch regex arch_check_runs
@@ -300,11 +492,38 @@ jobs:
               return 0
             fi
 
+            # Per-config CUDA baseline presence. A config whose CUDA test jobs did
+            # not run on this SHA (e.g. a failed trunk run that never launched CUDA
+            # default) has no baseline to compare against, so exclude it from the
+            # dispatch instead of emitting a bogus all-MISSED column. The length
+            # check above guarantees at least one config still has a baseline.
+            EXCLUDE_FLAGS=""
+            local cfg cuda_missing=""
+            for cfg in default distributed inductor; do
+              if ! echo "$cuda_check_runs" | jq -e --arg c "$cfg" \
+                   'any(.[]; .name | test("[(]" + $c + ","))' >/dev/null; then
+                EXCLUDE_FLAGS="$EXCLUDE_FLAGS -f exclude_${cfg}=true"
+                cuda_missing="$cuda_missing $cfg"
+              fi
+            done
+            cuda_missing=$(echo "$cuda_missing" | xargs)
+            if [ -n "$cuda_missing" ]; then
+              # Drop the excluded configs' ROCm check-runs from the completion gate
+              # so a missing-CUDA config never makes us wait on its ROCm shards.
+              local miss_rx
+              miss_rx=$(echo "$cuda_missing" | tr ' ' '|')
+              ROCM_CHECK_RUNS=$(echo "$ROCM_CHECK_RUNS" | jq --arg rx "[(]($miss_rx)," \
+                '[.[] | select((.name | test($rx)) | not)]')
+              echo "[$short] $date  no CUDA baseline for: $cuda_missing - excluding from report"
+            fi
+
             # Gate 1: every check-run the report consumes (ROCm shards for arches
             # that ran + CUDA tests) must be status=completed - we author the
             # SHA's report on dispatch, so dispatching early = partial data.
             local gate_check_runs
-            gate_check_runs=$(jq -s 'add' <(echo "$ROCM_CHECK_RUNS") <(echo "$cuda_check_runs"))
+            gate_check_runs=$(jq -s 'add' \
+              <(echo "$ROCM_CHECK_RUNS") \
+              <(echo "$cuda_check_runs"))
             total_cr=$(echo "$gate_check_runs" | jq 'length')
             pending_cr=$(echo "$gate_check_runs" | jq 'map(select(.status != "completed")) | length')
             if [ "$pending_cr" -ne 0 ]; then
@@ -328,25 +547,34 @@ jobs:
             fi
 
             arch_dispatch=$(echo "$READY" | sed 's/ /, /g')
-            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; not-run: ${NOT_RUN_NOTES:-none})"
-            echo "[$short] dispatching for: '$(echo "$READY" | tr ' ' ',')'"
+            echo "[$short] READY archs: '$(echo "$READY" | tr ' ' ',')' (committed $date; not-run: ${NOT_RUN_NOTES:-none}; excluded-configs: ${cuda_missing:-none})"
+            echo "[$short] dispatching for: '$(echo "$READY" | tr ' ' ',')'${EXCLUDE_FLAGS:+ (excluding${cuda_missing:+ }$cuda_missing)}"
 
             if [ "$DRY_RUN" = "true" ]; then
               echo "[$short] DRY_RUN=true - not dispatching"
             else
-              gh workflow run parity.yml \
+              # $EXCLUDE_FLAGS is intentionally unquoted so its -f pairs word-split.
+              if ! gh workflow run parity.yml \
                 --repo "$GITHUB_REPOSITORY" \
                 --ref  "$TARGET_REF" \
                 -f sha="$sha" \
                 -f arch="$arch_dispatch" \
-                -f auto_triggered=true
+                -f auto_triggered=true \
+                $EXCLUDE_FLAGS; then
+                echo "::error::Failed to dispatch parity.yml for $sha" >&2
+                return 2
+              fi
             fi
 
             DISPATCHED_COUNT=$((DISPATCHED_COUNT + 1))
-            DISPATCHED_SUMMARY="${DISPATCHED_SUMMARY}${short}:${arch_dispatch}"$'\n'
+            DISPATCHED_SUMMARY="${DISPATCHED_SUMMARY}${short}:${arch_dispatch}${cuda_missing:+ (no-cuda:$(echo "$cuda_missing" | tr ' ' ','))}"$'\n'
             if [ "$DISPATCHED_COUNT" -ge "$MAX_DISPATCHES" ]; then
               echo "Reached max dispatches for this scan ($MAX_DISPATCHES); stopping"
               return 1
+            fi
+            if [ "$DRY_RUN" != "true" ]; then
+              echo "Staggering the next dispatch by ${DISPATCH_STAGGER_SECONDS}s"
+              sleep "$DISPATCH_STAGGER_SECONDS"
             fi
             return 0
           }
@@ -388,22 +616,47 @@ jobs:
             load_matching_config
             print_run_config
 
-            local commits
-            commits=$(fetch_trunk_commits)
-            if [ -z "$commits" ]; then
-              echo "::warning::No completed trunk.yml push runs returned from $UPSTREAM@$BRANCH"
-              exit 0
+            if ! TRUNK_COMMITS=$(fetch_trunk_commits); then
+              exit 1
             fi
 
-            EXISTING=$(fetch_existing_dispatches)
+            # Fetch scheduled-arch candidates once (global, read by
+            # fetch_candidate_commits) and record the newest scheduled run time so
+            # process_commit can hold back not-yet-reached SHAs. No scheduled runs
+            # => hold nothing (NEWEST_SCHEDULED_EPOCH = now).
+            if ! SCHEDULED_COMMITS=$(fetch_scheduled_commits); then
+              exit 1
+            fi
+            local newest
+            newest=$(printf '%s\n' "$SCHEDULED_COMMITS" | awk 'NF>=2 && $1 ~ /^[0-9a-f]{40}$/{print $2}' | sort -r | head -1)
+            if [ -n "$newest" ]; then
+              NEWEST_SCHEDULED_EPOCH=$(date -u -d "$newest" +%s 2>/dev/null || echo "$NOW_EPOCH")
+            else
+              NEWEST_SCHEDULED_EPOCH=$NOW_EPOCH
+            fi
+
+            local commits
+            commits=$(fetch_candidate_commits)
+            if [ -z "$commits" ]; then
+              echo "::error::No completed trunk/scheduled workflow runs returned from $UPSTREAM@$BRANCH"
+              exit 1
+            fi
+
+            if ! EXISTING=$(fetch_existing_dispatches); then
+              exit 1
+            fi
 
             DISPATCHED_COUNT=0
             DISPATCHED_SUMMARY=""
             local sha date
             while IFS=' ' read -r sha date; do
               [ -z "$sha" ] && continue
-              # process_commit returns non-zero to stop the scan (too old / cap).
-              process_commit "$sha" "$date" || break
+              process_commit "$sha" "$date"
+              rc=$?
+              [ "$rc" -eq 1 ] && break
+              if [ "$rc" -gt 1 ]; then
+                echo "::warning::[$sha] transient API failure; deferring this commit to the next scan"
+              fi
             done <<< "$commits"
 
             write_step_summary
