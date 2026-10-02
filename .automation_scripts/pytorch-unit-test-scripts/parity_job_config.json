@@ -48,20 +48,11 @@
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
     "mi200": {
-      "default": [
-        { "workflow": "rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" },
-        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" }
-      ],
-      "distributed": [
-        { "workflow": "periodic-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" },
-        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" }
-      ],
-      "inductor": [
-        { "workflow": "inductor-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" },
-        { "workflow": "trunk-rocm-sandbox", "job_prefix": "linux-jammy-rocm-py3.10" }
-      ],
+      "default": [{ "workflow": "rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
+      "distributed": [{ "workflow": "periodic-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
+      "inductor": [{ "workflow": "inductor-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
       "shard_counts": { "default": 10, "distributed": 3, "inductor": 4 },
-      "checkrun_regex": "(rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),|linux-jammy-rocm-py3[.]10 / test [(](default|distributed|inductor),)"
+      "checkrun_regex": "rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),"
     },
     "navi31": {
       "default": [{ "workflow": "rocm-navi31", "job_prefix": "linux-jammy-rocm-py3.10-navi31" }],
