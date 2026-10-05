@@ -82,6 +82,7 @@ static void check_blockwise_e8m0fnu_arch_supported() {
   std::vector<std::string> mx_archs{"gfx950"};
 #if ROCM_VERSION >= 71400
   mx_archs.push_back("gfx1250");
+  mx_archs.push_back("gfx1250-strict");
 #endif
   TORCH_CHECK_NOT_IMPLEMENTED(
       at::detail::getCUDAHooks().isGPUArch(mx_archs),
