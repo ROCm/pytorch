@@ -50,6 +50,8 @@ if(NOT __AOTRITON_INCLUDED)
       "amd-gfx115x"
       "amd-gfx120x"
       "amd-gfx1250"
+      # gfx1250-strict has no image. The matcher below is anchored so it does
+      # not select this gfx1250 package for the strict target.
      )
   set(__AOTRITON_IMAGE_SHA256_LIST
      "7cc293803aa73bd223554d51a77fab50fd37b0bdb9d5e874f7e2997f4390b9c5" # amd-gfx90a
@@ -147,6 +149,17 @@ if(NOT __AOTRITON_INCLUDED)
       aotriton_build_windows_dependencies(dlfcn-win32_external xz_external dlfcn-win32_DIR liblzma_DIR)
     endif()
     message(STATUS "PYTORCH_ROCM_ARCH ${PYTORCH_ROCM_ARCH}")
+    # AOTriton has a gfx1250 target and no gfx1250-strict target. The strict
+    # arch is a distinct ELF machine, so drop it here instead of asking the
+    # pinned AOTriton to compile an unknown offload arch. Remove this filter
+    # once AOTriton publishes gfx1250-strict kernels.
+    set(_aotriton_target_arch ${PYTORCH_ROCM_ARCH})
+    list(REMOVE_ITEM _aotriton_target_arch "gfx1250-strict")
+    if(_aotriton_target_arch STREQUAL "")
+      message(FATAL_ERROR
+        "AOTriton has no gfx1250-strict support and PYTORCH_ROCM_ARCH "
+        "(${PYTORCH_ROCM_ARCH}) has no other arch")
+    endif()
 
     ExternalProject_Add(${project}
       GIT_REPOSITORY https://github.com/ROCm/aotriton.git
@@ -154,7 +167,7 @@ if(NOT __AOTRITON_INCLUDED)
       GIT_TAG ${__AOTRITON_CI_COMMIT}
       PREFIX ${__AOTRITON_EXTERN_PREFIX}
       CMAKE_CACHE_ARGS
-      -DAOTRITON_TARGET_ARCH:STRING=${PYTORCH_ROCM_ARCH}
+      -DAOTRITON_TARGET_ARCH:STRING=${_aotriton_target_arch}
       -DCMAKE_INSTALL_PREFIX:FILEPATH=${__AOTRITON_INSTALL_DIR}
       CMAKE_ARGS
       -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
@@ -278,7 +291,10 @@ if(NOT __AOTRITON_INCLUDED)
       string(SUBSTRING ${image} 7 -1 gfx_pattern)
       string(REPLACE "x" "." gfx_regex ${gfx_pattern})
       foreach(target ${PYTORCH_ROCM_ARCH})
-        if(target MATCHES ${gfx_regex})
+        # Anchor the arch. An unanchored gfx1250 pattern also matches
+        # gfx1250-strict, which is a different offload target. Feature
+        # suffixes such as gfx90a:xnack- still match.
+        if(target MATCHES "^${gfx_regex}($|:)")
           set(__AOTRITON_DOWNLOAD_TARGET aotriton_image_${gfx_pattern})
           aotriton_download_image(${image} ${__AOTRITON_DOWNLOAD_TARGET})
           add_dependencies(${__AOTRITON_CHAINED_IMAGE} ${__AOTRITON_DOWNLOAD_TARGET})
