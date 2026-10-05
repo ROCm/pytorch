@@ -1,5 +1,6 @@
 import importlib.machinery
 import importlib.util
+import json
 import os
 import sys
 import tempfile
@@ -468,6 +469,80 @@ class ShardCompletenessTest(unittest.TestCase):
         self.assertEqual(len(dtl.error_msgs), 1)
         self.assertIn("distributed_4gpu shards missing", dtl.error_msgs[0])
         self.assertIn("2 of 2", dtl.error_msgs[0])
+
+
+class AbsentConfigTest(unittest.TestCase):
+    """A config whose source workflow never ran for the SHA is omitted, not
+    reported as an incomplete download: mi300 and mi200 take their three
+    configs from separately scheduled workflows that a mid-batch commit splits
+    across two SHAs, and re-running cannot recover the missing side."""
+
+    def setUp(self):
+        dtl.error_msgs.clear()
+        for names in dtl.absent_configs.values():
+            names.clear()
+        self.addCleanup(dtl.error_msgs.clear)
+        self.addCleanup(lambda: [n.clear() for n in dtl.absent_configs.values()])
+
+    def test_absent_rocm_config_does_not_fail_the_job(self):
+        args = SimpleNamespace(exclude_distributed=False)
+
+        dtl._skip_missing_config(
+            "distributed", "91a0edaa", "periodic-rocm-mi300", args=args
+        )
+
+        self.assertEqual(dtl.error_msgs, [])
+        self.assertEqual(dtl.absent_configs["rocm"], ["distributed"])
+
+    def test_absent_rocm_config_also_drops_the_cuda_side(self):
+        args = SimpleNamespace(exclude_inductor=False)
+
+        dtl._skip_missing_config(
+            "inductor", "91a0edaa", "inductor-rocm-mi300", args=args
+        )
+
+        self.assertTrue(args.exclude_inductor)
+
+    def test_absent_cuda_baseline_is_recorded_on_the_cuda_side(self):
+        dtl._skip_missing_config("inductor", "3b73144f", "inductor", side="cuda")
+
+        self.assertEqual(dtl.absent_configs, {"rocm": [], "cuda": ["inductor"]})
+
+    def test_incomplete_download_still_fails_the_job(self):
+        dtl._skip_missing_config(
+            "distributed", "91a0edaa", "periodic-rocm-mi300",
+            args=SimpleNamespace(exclude_distributed=False),
+        )
+        dtl._report_missing_shards(
+            "rocm", 37000844958,
+            [f"test-reports-test-default-{i}-3" for i in (1, 2, 3)],
+            [("default", 1, 3)],
+        )
+
+        self.assertEqual(len(dtl.error_msgs), 1)
+        self.assertIn("default shards missing", dtl.error_msgs[0])
+
+    def test_omitted_configs_are_published_for_the_workflow_gate(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        dtl._skip_missing_config(
+            "distributed", "91a0edaa", "periodic-rocm-mi200",
+            args=SimpleNamespace(exclude_distributed=False),
+        )
+        dtl._skip_missing_config("slow", "91a0edaa", "slow", side="cuda")
+
+        with mock.patch.object(dtl, "_first_folder_abs", tmp.name):
+            dtl._write_absent_configs()
+
+        with open(os.path.join(tmp.name, "_absent_configs.json")) as handle:
+            self.assertEqual(
+                json.load(handle),
+                {"rocm": ["distributed"], "cuda": ["slow"]},
+            )
+
+    def test_nothing_is_published_when_no_folder_was_created(self):
+        with mock.patch.object(dtl, "_first_folder_abs", None):
+            dtl._write_absent_configs()
 
 
 class LogShardTotalsTest(unittest.TestCase):

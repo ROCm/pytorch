@@ -36,22 +36,41 @@ if missing_vars:
 
 # global variables
 error_msgs = []
+# Configs whose source workflow never ran for the SHA, per side. Kept apart from
+# error_msgs: absent data is not incomplete data (see _skip_missing_config).
+absent_configs = {"rocm": [], "cuda": []}
 
-def _skip_missing_config(config_name, sha_val, wf_names):
-    """Record a missing ROCm test config and let the run continue.
+def _skip_missing_config(config_name, sha_val, wf_names, side="rocm", args=None):
+    """Omit a test config whose source workflow never ran for this SHA.
 
-    mi300's default/distributed/inductor come from three separately-scheduled
-    workflows (rocm-mi300 / periodic-rocm-mi300 / inductor-rocm-mi300) that do
-    not always land on the same SHA, so a config can be absent for a given SHA
-    even though the arch "ran". Rather than aborting the whole download (which
-    loses the configs that *are* present), skip just this config: the report is
-    still built from the available configs, and appending to error_msgs keeps
-    the job flagged failed at exit so the gap stays visible."""
-    msg = (f"WARNING: no ROCm {config_name} workflow run found for sha {sha_val} "
-           f"({wf_names}); skipping the {config_name} config. Report will omit it "
-           f"and the job will be flagged failed.")
-    print(msg)
-    error_msgs.append(msg)
+    mi300 and mi200 take default, distributed and inductor from three
+    separately scheduled workflows (rocm-mi300 / periodic-rocm-mi300 /
+    inductor-rocm-mi300 and the mi200 equivalents) sharing one cron. GitHub
+    spreads a batch over 10+ minutes, so a commit landing mid-batch leaves the
+    configs recorded against two adjacent SHAs. Re-running cannot recover the
+    data for this SHA, so omit the config rather than report an incomplete
+    download. Passing args also excludes the opposite side, whose rows would
+    otherwise read as real coverage gaps instead of an absent comparison."""
+    print(f"NOTE: no {side.upper()} {config_name} workflow run found for sha "
+          f"{sha_val} ({wf_names}); it never ran for this commit, so the "
+          f"report omits the {config_name} config.")
+    absent_configs[side].append(config_name)
+    if args is not None:
+        setattr(args, f"exclude_{config_name}", True)
+
+def _write_absent_configs():
+    """Publish the omitted configs next to the report, keyed by side.
+
+    parity.yml's per-config XML gate cannot otherwise tell an omitted config
+    apart from one whose download silently produced nothing. A "rocm" entry
+    means the config left the comparison entirely, so it is absent from
+    cuda_xml too; a "cuda" entry means only the baseline was missing."""
+    if _first_folder_abs is None:
+        return
+    path = os.path.join(_first_folder_abs, "_absent_configs.json")
+    payload = {side: sorted(set(names)) for side, names in absent_configs.items()}
+    with open(path, "w") as f:
+        json.dump(payload, f)
 
 # Job-name matching config (workflow names, job-name prefixes, shard counts and
 # check-run regexes) lives in a single JSON file next to this script so
@@ -894,6 +913,9 @@ def create_test_folder(wf):
     return [test_folder, cuda_xml_folder, rocm_xml_folder]
 
 _first_folder = None
+# Absolute form of _first_folder: callers chdir in and out of the test folders,
+# so the relative path is only valid from the script's own directory.
+_first_folder_abs = None
 
 def get_or_create_test_folder(wf):
     """Reuse the first folder created so all artifacts land in one place.
@@ -903,7 +925,7 @@ def get_or_create_test_folder(wf):
     create separate directories.  This wrapper ensures every call returns the
     same folder that was established by the very first invocation.
     """
-    global _first_folder
+    global _first_folder, _first_folder_abs
     if _first_folder is not None:
         test_folder = _first_folder
         cuda_xml = test_folder + "/cuda_xml"
@@ -913,6 +935,7 @@ def get_or_create_test_folder(wf):
         return [test_folder, cuda_xml, rocm_xml]
     result = create_test_folder(wf)
     _first_folder = result[0]
+    _first_folder_abs = os.path.abspath(result[0])
     return result
 
 def parse_args():
@@ -1336,7 +1359,8 @@ def main():
             periodic_fallback_used = True
         if periodic_wf is None:
             _skip_missing_config("distributed", periodic_sha,
-                                 ROCmWorkflowNames['distributed'] + " and fallbacks")
+                                 ROCmWorkflowNames['distributed'] + " and fallbacks",
+                                 args=args)
         else:
             dist_wf_name = ROCmWorkflowNames['distributed'] if not periodic_fallback_used else periodic_fallbacks[arch][0]
             print(f"Using workflow '{dist_wf_name}' with id:{periodic_wf['id']} for ROCm distributed")
@@ -1467,7 +1491,8 @@ def main():
             rocm_job_prefix['default'] = fallback_prefix
         if rocm_wf is None:
             _skip_missing_config("default", rocm_sha,
-                                 ROCmWorkflowNames['default'] + " and fallbacks")
+                                 ROCmWorkflowNames['default'] + " and fallbacks",
+                                 args=args)
         else:
             default_wf_name = ROCmWorkflowNames['default'] if not default_fallback_used else default_fallbacks[arch][0]
             print(f"Using workflow '{default_wf_name}' with id:{rocm_wf['id']} for ROCm default{' (fallback)' if default_fallback_used else ''}")
@@ -1531,11 +1556,9 @@ def main():
             inductor_wf_rocm = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=fallback_wf, sha=inductor_rocm_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
             inductor_fallback_used = True
         if inductor_wf_rocm is None:
-            # Inductor does not run for every SHA. Skip it instead of aborting
-            # the whole run (which would also drop the CUDA download below and
-            # publish an empty report); record it so the job is flagged failed.
             _skip_missing_config("inductor", inductor_rocm_sha,
-                                 ROCmWorkflowNames['inductor'] + " and fallbacks")
+                                 ROCmWorkflowNames['inductor'] + " and fallbacks",
+                                 args=args)
         else:
             inductor_wf_name = ROCmWorkflowNames['inductor'] if not inductor_fallback_used else inductor_fallbacks[arch][0]
             print(f"Using workflow '{inductor_wf_name}' with id:{inductor_wf_rocm['id']} for ROCm inductor")
@@ -1592,7 +1615,8 @@ def main():
             slow_wf_rocm = None
 
         if slow_wf_rocm is None:
-            _skip_missing_config("slow", slow_sha, ROCmWorkflowNames["slow"])
+            _skip_missing_config("slow", slow_sha, ROCmWorkflowNames["slow"],
+                                 args=args)
         else:
             slow_job_prefix = resolve_job_prefix(
                 slow_wf_rocm, "slow", rocm_job_prefix["slow"]
@@ -1693,10 +1717,12 @@ def main():
 
         # Download logs
         if not args.artifacts_only:
-            test_log_list_cuda = [
-                [f"cuda{i}.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, {i}, {cuda_default_shards}"]
-                for i in range(1, cuda_default_shards + 1)
-            ]
+            test_log_list_cuda = []
+            if not args.exclude_default:
+                test_log_list_cuda += [
+                    [f"cuda{i}.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (default, {i}, {cuda_default_shards}"]
+                    for i in range(1, cuda_default_shards + 1)
+                ]
             if not args.exclude_distributed:
                 test_log_list_cuda += [
                     [f"cuda_dist{i}.txt", f"{cuda_job_prefix} / {cuda_test_job_kind} (distributed, {i}, {cuda_dist_shards}"]
@@ -1742,11 +1768,10 @@ def main():
             except (IndexError, Exception):
                 inductor_wf_cuda = None
             if inductor_wf_cuda is None:
-                # CUDA inductor baseline does not run for every SHA (e.g. a PR with
-                # ciflow/trunk but not ciflow/inductor). Skip it rather than abort,
-                # and record it so the job is flagged failed.
-                _skip_missing_config("inductor (CUDA baseline)", inductor_sha,
-                                     CUDAWorkflowNames['inductor'])
+                # The CUDA inductor baseline does not run for every SHA (e.g. a
+                # PR carrying ciflow/trunk but not ciflow/inductor).
+                _skip_missing_config("inductor", inductor_sha,
+                                     CUDAWorkflowNames['inductor'], side="cuda")
             else:
                 print(f"Using workflow '{CUDAWorkflowNames['inductor']}' with id:{inductor_wf_cuda['id']} for CUDA inductor")
 
@@ -1821,7 +1846,7 @@ def main():
 
             if slow_wf_cuda is None:
                 _skip_missing_config(
-                    "slow (CUDA baseline)", sha, CUDAWorkflowNames["slow"]
+                    "slow", sha, CUDAWorkflowNames["slow"], side="cuda"
                 )
             else:
                 slow_cuda_prefix = resolve_job_prefix(
@@ -2124,6 +2149,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+    _write_absent_configs()
+    omitted = [f"{side} {name}"
+               for side, names in absent_configs.items() for name in names]
+    if omitted:
+        print("Configs omitted (never ran for this sha): " + ", ".join(omitted))
     if error_msgs:
         for msg in error_msgs:
             print(msg)

@@ -336,9 +336,30 @@ jobs:
           ARCH_CONFIGS=$(jq -r --arg a "$ARCH" \
             '.rocm[$a] | keys_unsorted[] | select(IN("default","distributed","inductor"))' \
             parity_job_config.json)
+          # Configs whose source workflow never ran for this SHA, which the
+          # report omits by design rather than having failed to download them
+          # (see _skip_missing_config in download_testlogs).
+          absent_configs() {
+            jq -r --arg side "$1" '.[$side][]? // empty' \
+              "$FOLDER/_absent_configs.json" 2>/dev/null | tr '\n' ' '
+          }
+          ROCM_ABSENT=$(absent_configs rocm)
+          CUDA_ABSENT=$(absent_configs cuda)
+          if [ -n "$ROCM_ABSENT$CUDA_ABSENT" ]; then
+            echo "::notice::Configs omitted because they never ran for this SHA:${ROCM_ABSENT:+ ROCm: $ROCM_ABSENT}${CUDA_ABSENT:+ CUDA: $CUDA_ABSENT}"
+          fi
           require_config_xml() {
-            local directory="$1" label="$2" config
+            local directory="$1" label="$2" config absent
+            case "$label" in
+              # An absent ROCm config is dropped from both sides, so it is
+              # missing from cuda_xml too; an absent CUDA baseline only takes
+              # the CUDA side with it.
+              ROCm) absent=" $ROCM_ABSENT " ;;
+              CUDA) absent=" $ROCM_ABSENT $CUDA_ABSENT " ;;
+              *)    absent=" " ;;
+            esac
             for config in $ARCH_CONFIGS; do
+              case "$absent" in *" $config "*) continue ;; esac
               case "$config" in
                 default)     [ "${{ inputs.exclude_default }}" = "true" ] && continue ;;
                 distributed) [ "${{ inputs.exclude_distributed }}" = "true" ] && continue ;;
