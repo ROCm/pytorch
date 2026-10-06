@@ -470,6 +470,110 @@ class ShardCompletenessTest(unittest.TestCase):
         self.assertIn("2 of 2", dtl.error_msgs[0])
 
 
+class RunSelectionTest(unittest.TestCase):
+    """A sha can have several runs of one workflow, and the newest is often a
+    reduced re-trigger that completed with none of the sharded test jobs in it.
+    Picking it leaves the S3 download with nothing to fetch, which reads as a
+    coverage gap rather than the wrong run."""
+
+    PREFIX = "unit-test / inductor-test"
+
+    def _run(self, run_id, status="completed"):
+        return {"id": run_id, "status": status}
+
+    def _test_jobs(self, prefix, total, shards=None):
+        return [
+            {"name": f"{prefix} / test (inductor, {i}, {total}, a10g)", "id": i}
+            for i in (shards if shards is not None else range(1, total + 1))
+        ]
+
+    def _patch_jobs(self, jobs_by_run):
+        return mock.patch.object(
+            dtl, "get_workflow_jobs",
+            side_effect=lambda wf, all_attempts=False: jobs_by_run[wf["id"]],
+        )
+
+    def test_reduced_retrigger_is_skipped_for_the_complete_run(self):
+        # The shape seen on 2cce586c: inductor run 37370199625 carried only the
+        # caller jobs, while 37329726050 held the unit-test shards.
+        jobs = {
+            37370199625: [{"name": "unit-test / inductor-test-cuda132", "id": 1}],
+            37329726050: self._test_jobs("unit-test / inductor-test-cuda132", 2),
+        }
+        with self._patch_jobs(jobs):
+            picked = dtl.pick_run_with_test_jobs(
+                [self._run(37370199625), self._run(37329726050)],
+                "inductor", "cuda", self.PREFIX,
+            )
+
+        self.assertEqual(picked["id"], 37329726050)
+
+    def test_complete_run_wins_over_a_newer_partial_one(self):
+        jobs = {
+            2: self._test_jobs("unit-test / inductor-test-cuda132", 2, shards=[2]),
+            1: self._test_jobs("unit-test / inductor-test-cuda132", 2),
+        }
+        with self._patch_jobs(jobs):
+            picked = dtl.pick_run_with_test_jobs(
+                [self._run(2), self._run(1)], "inductor", "cuda", self.PREFIX,
+            )
+
+        self.assertEqual(picked["id"], 1)
+
+    def test_partial_run_is_used_when_nothing_is_complete(self):
+        jobs = {1: self._test_jobs("unit-test / inductor-test-cuda132", 2, shards=[1])}
+        with self._patch_jobs(jobs):
+            picked = dtl.pick_run_with_test_jobs(
+                [self._run(1)], "inductor", "cuda", self.PREFIX,
+            )
+
+        self.assertEqual(picked["id"], 1)
+
+    def test_newest_run_is_kept_when_no_run_has_the_jobs(self):
+        # An unrecognised job layout must not be mistaken for an absent config.
+        jobs = {2: [], 1: []}
+        runs = [self._run(2), self._run(1)]
+        with (
+            self._patch_jobs(jobs),
+            mock.patch.object(dtl, "_fetch_workflow_runs", return_value=runs),
+        ):
+            got = dtl.download_workflow_run(
+                workflow="inductor", sha="a" * 40, ignore_status=True,
+                require_config="inductor", platform="cuda",
+                job_prefix=self.PREFIX,
+            )
+
+        self.assertEqual(got["id"], 2)
+
+    def test_lookup_without_require_config_keeps_the_newest_run(self):
+        runs = [self._run(2), self._run(1)]
+        with (
+            mock.patch.object(dtl, "_fetch_workflow_runs", return_value=runs),
+            mock.patch.object(dtl, "get_workflow_jobs") as jobs_api,
+        ):
+            got = dtl.download_workflow_run(
+                workflow="inductor", sha="a" * 40, ignore_status=True,
+            )
+
+        self.assertEqual(got["id"], 2)
+        jobs_api.assert_not_called()
+
+    def test_in_progress_runs_are_not_inspected(self):
+        runs = [self._run(2, status="in_progress")]
+        with (
+            mock.patch.object(dtl, "_fetch_workflow_runs", return_value=runs),
+            mock.patch.object(dtl, "get_workflow_jobs") as jobs_api,
+        ):
+            got = dtl.download_workflow_run(
+                workflow="inductor", sha="a" * 40, ignore_status=True,
+                require_config="inductor", platform="cuda",
+                job_prefix=self.PREFIX,
+            )
+
+        self.assertEqual(got["id"], 2)
+        jobs_api.assert_not_called()
+
+
 class LogShardTotalsTest(unittest.TestCase):
     """download_testlogs records the expected totals; detect_log_failures must
     key into them with the same scheme so a missing log cannot shrink the
