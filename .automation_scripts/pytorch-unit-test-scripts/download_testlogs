@@ -1737,10 +1737,16 @@ def main():
             # find tests in inductor workflow with given sha and success status
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
             error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
-            try:
-                inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-            except (IndexError, Exception):
-                inductor_wf_cuda = None
+            if CUDAWorkflowNames["inductor"] == CUDAWorkflowNames["default"]:
+                # Same workflow as default, so reuse the canonical run instead of
+                # resolving it again; a second lookup can land on a different run
+                # of the same workflow (see resolve_full_trunk_run).
+                inductor_wf_cuda = trunk_wf
+            else:
+                try:
+                    inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+                except (IndexError, Exception):
+                    inductor_wf_cuda = None
             if inductor_wf_cuda is None:
                 # CUDA inductor baseline does not run for every SHA (e.g. a PR with
                 # ciflow/trunk but not ciflow/inductor). Skip it rather than abort,
