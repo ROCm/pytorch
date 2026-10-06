@@ -1500,7 +1500,10 @@ def main():
                     test_folder=folder_list[2],
                     allowed_substrings=rocm_artifact_substrings,
                 )
-            os.chdir("..")
+                # download_artifacts leaves the cwd one level down, so only
+                # pop when it actually ran; otherwise later configs resolve
+                # their relative folder outside the working directory.
+                os.chdir("..")
 
     # add new inductor workflow downloading for ROCm
     if not args.no_rocm and not args.exclude_inductor:
@@ -1726,7 +1729,8 @@ def main():
                 test_folder=folder_list[1],
                 allowed_substrings=cuda_artifact_substrings,
             )
-        os.chdir("..")
+            # Same cwd pairing as the ROCm default block above.
+            os.chdir("..")
 
         # add new inductor workflow downloading for CUDA
         if not args.exclude_inductor:
