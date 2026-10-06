@@ -17442,9 +17442,15 @@ op_db: list[OpInfo] = [
         supports_gradgrad=True,
         supports_out=False,
         inplace_variant=partial(torch.nn.functional.mish, inplace=True),
+        # NumPy >= 2.3 float16 tanh saturates a few ULPs below 1, so
+        # mish(x) = x * tanh(softplus(x)) disagrees with PyTorch by up to
+        # 0.001953125 relative on finite float16 values. The half reference
+        # check uses rtol=1.2e-3, and assertEqual keeps the max of that and
+        # this override, so the override must be larger to take effect.
+        # https://github.com/pytorch/pytorch/issues/174775
         decorators=[
             DecorateInfo(
-                toleranceOverride({torch.float16: tol(atol=1e-02, rtol=1e-03)}), 'TestUnaryUfuncs',), ],
+                toleranceOverride({torch.float16: tol(atol=1e-02, rtol=2e-03)}), 'TestUnaryUfuncs',), ],
     ),
     UnaryUfuncInfo(
         'nn.functional.softsign',
@@ -24661,9 +24667,11 @@ python_ref_db = [
         "_refs.nn.functional.mish",
         torch_opinfo_name="nn.functional.mish",
         supports_out=True,
+        # Same NumPy float16 tanh tolerance as nn.functional.mish above.
+        # Decorators are not inherited by the reference OpInfo.
         decorators=[
             DecorateInfo(
-                toleranceOverride({torch.float16: tol(atol=1e-02, rtol=1e-03)}),
+                toleranceOverride({torch.float16: tol(atol=1e-02, rtol=2e-03)}),
                 'TestUnaryUfuncs',), ],
         skips=(
             # AssertionError: Tensor-likes are not equal!
