@@ -846,7 +846,27 @@ def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None
     label = os.path.basename(str(test_folder).rstrip("/")).replace("_xml", "") or "artifacts"
     _report_missing_shards(label, wf['id'], prefixes, shards or [])
 # for older runs, add 'created':'<=YYYY-MM-DD'. see https://docs.github.com/en/search-github/getting-started-with-searching-on-github/understanding-the-search-syntax#query-for-dates
-def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, ignore_status=False, status='success', error_msg='Error downloading workflow runs'):
+def pick_run_with_test_jobs(runs, test_config, platform, configured_prefix):
+    """Return the first run that actually holds this config's test jobs.
+
+    A SHA can have several runs of one workflow, and the newest is often a
+    reduced re-trigger that completed with none of the sharded test jobs in it.
+    Prefer a run whose shard set is complete, then one that has the jobs at all.
+    """
+    partial = None
+    for run in runs:
+        family = choose_test_job_family(
+            get_workflow_jobs(run), test_config, platform, configured_prefix
+        )
+        if family is None or not family["jobs"]:
+            continue
+        if family["complete"]:
+            return run
+        if partial is None:
+            partial = run
+    return partial
+
+def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, ignore_status=False, status='success', error_msg='Error downloading workflow runs', require_config=None, platform=None, job_prefix=None):
     if not workflow:
         raise Exception("Workflow must be specified")
     for page in range(max_pages):
@@ -869,6 +889,19 @@ def download_workflow_run(created=None, max_pages=10, workflow=None, sha=None, i
         # runs exist for the same SHA, the most recent may still be
         # running and have no artifacts yet.
         completed = [wf for wf in workflow_runs if wf.get('status') == 'completed']
+        if require_config and completed:
+            picked = pick_run_with_test_jobs(
+                completed, require_config, platform, job_prefix
+            )
+            if picked is not None:
+                if picked is not completed[0]:
+                    print(f"NOTE: newest {workflow} run {completed[0]['id']} holds no "
+                          f"{require_config} test jobs; using run {picked['id']}")
+                return picked
+            # Fall through to the newest run instead of giving up: an
+            # unrecognised job layout should still be attempted.
+            print(f"NOTE: no completed {workflow} run for this sha holds "
+                  f"{require_config} test jobs; using the newest one")
         if completed:
             return completed[0]
         return workflow_runs[0]
@@ -1738,7 +1771,10 @@ def main():
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
             error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
             try:
-                inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+                # require_config: the newest inductor run for a sha is often a
+                # reduced re-trigger with no unit-test jobs, and its S3 download
+                # then comes back empty (see pick_run_with_test_jobs).
+                inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg, require_config="inductor", platform="cuda", job_prefix=CUDA_JOB_PREFIXES["inductor"])
             except (IndexError, Exception):
                 inductor_wf_cuda = None
             if inductor_wf_cuda is None:
