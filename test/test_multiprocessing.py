@@ -849,13 +849,11 @@ class TestMultiprocessing(_MultiprocessingTestMixin, TestCase):
     @unittest.skipIf(IS_WINDOWS, "not applicable to Windows (only fails with fork)")
     @unittest.skipIf(not torch.cuda.is_available(), "CUDA not available")
     def test_cuda_bad_call(self):
-        # Initialize CUDA. Python 3.14's default start method on non-macOS
-        # POSIX is forkserver, which does not inherit that CUDA state.
+        # Initialize CUDA
         t = torch.zeros(5, 5).cuda().cpu()
-        ctx = mp.get_context("fork")
-        inq = ctx.Queue()
-        outq = ctx.Queue()
-        p = ctx.Process(target=queue_get_exception, args=(inq, outq))
+        inq = mp.Queue()
+        outq = mp.Queue()
+        p = mp.Process(target=queue_get_exception, args=(inq, outq))
         p.start()
         inq.put(t)
         p.join()
