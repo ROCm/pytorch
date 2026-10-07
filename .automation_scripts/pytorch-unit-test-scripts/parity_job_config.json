@@ -14,17 +14,13 @@
   "cuda": {
     "default": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
     "distributed": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
-    "inductor": [
-      { "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" },
-      { "workflow": "inductor", "job_prefix": "unit-test / inductor-test-cuda132" }
-    ],
+    "inductor": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
     "test_kinds": ["test-osdc", "test"],
     "shard_counts": { "default": 14, "distributed": 10, "inductor": 2 },
     "checkrun_regex": "linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+ / (test-osdc|test) [(](default|distributed|inductor),"
   },
   "rocm": {
     "mi350": {
-      "arch_aliases": ["mi350", "mi355", "gfx950"],
       "default": [
         { "workflow": "trunk", "job_prefix": "linux-noble-rocm-py3.11-mi350" },
         { "workflow": "rocm-mi350", "job_prefix": "linux-noble-rocm-py3.12-mi350" }
@@ -42,7 +38,6 @@
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|distributed_4gpu|inductor),"
     },
     "mi300": {
-      "arch_aliases": ["mi300", "gfx942"],
       "default": [{ "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "distributed": [{ "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
       "inductor": [{ "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
@@ -50,7 +45,6 @@
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
     "mi200": {
-      "arch_aliases": ["mi200", "mi210", "gfx90a"],
       "default": [{ "workflow": "rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
       "distributed": [{ "workflow": "periodic-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
       "inductor": [{ "workflow": "inductor-rocm-mi200", "job_prefix": "linux-jammy-rocm-py3.10-mi200" }],
@@ -58,13 +52,11 @@
       "checkrun_regex": "rocm.*(mi200|mi210).*/ test [(](default|distributed|inductor),"
     },
     "rx7900": {
-      "arch_aliases": ["rx7900", "navi31", "gfx1100"],
       "default": [{ "workflow": "rocm-rx7900", "job_prefix": "linux-jammy-rocm-py3.11-rx7900" }],
       "shard_counts": { "default": 2 },
       "checkrun_regex": "linux-jammy-rocm-py3[.]11-rx7900 / test [(]default,"
     },
     "preview": {
-      "arch_aliases": ["rocm-preview", "preview"],
       "default": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "distributed": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],
       "inductor": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.12-mi350" }],

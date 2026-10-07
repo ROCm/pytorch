@@ -60,11 +60,6 @@ on:
         required: false
         default: false
         type: boolean
-      source_manifest_b64:
-        description: 'Internal: run-scoped topology selected by parity-auto.'
-        required: false
-        default: ''
-        type: string
       exclude_distributed:
         description: 'Exclude distributed tests (auto-excluded when unavailable)'
         required: false
@@ -225,7 +220,6 @@ jobs:
           CROSS_SET1_SHA: ${{ inputs.set1_sha }}
           CROSS_SET2_SOURCE: ${{ inputs.set2_source }}
           CROSS_SET2_SHA: ${{ inputs.set2_sha }}
-          SOURCE_MANIFEST_B64: ${{ inputs.source_manifest_b64 }}
         run: |
           # Forward run options to download_testlogs.
           #
@@ -271,9 +265,6 @@ jobs:
             ARGS="$ARGS --set1_sha $CROSS_SET1_SHA"
             ARGS="$ARGS --set2_source $CROSS_SET2_SOURCE"
             ARGS="$ARGS --set2_sha $CROSS_SET2_SHA"
-          fi
-          if [ -n "$SOURCE_MANIFEST_B64" ]; then
-            ARGS="$ARGS --source_manifest_b64 $SOURCE_MANIFEST_B64"
           fi
 
           DIAG_SHA="${{ inputs.sha }}"
