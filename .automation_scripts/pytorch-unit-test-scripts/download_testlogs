@@ -3,6 +3,7 @@
 
 try:
     import os
+    import base64
     import copy
     import json
     import time
@@ -15,6 +16,10 @@ try:
     import zipfile
     from pathlib import Path
     from job_name_match import choose_test_job_family
+    from parity_source_discovery import (
+        AmbiguousSourceError,
+        resolve_topology,
+    )
     from upload_stats_lib import unzip
     from upload_test_stats import download_gha_artifacts, download_s3_artifacts
 except ImportError:
@@ -36,6 +41,7 @@ if missing_vars:
 
 # global variables
 error_msgs = []
+RESOLVED_TOPOLOGY = None
 
 def _skip_missing_config(config_name, sha_val, wf_names):
     """Record a missing ROCm test config and let the run continue.
@@ -457,6 +463,62 @@ def get_run_by_id(run_id):
     except Exception:
         pass
     return None
+
+
+def _load_or_discover_topology(sha, encoded_manifest=None):
+    """Load auto-trigger topology or discover it from this SHA's check-runs."""
+    if encoded_manifest:
+        try:
+            manifest = json.loads(base64.b64decode(encoded_manifest).decode())
+        except (ValueError, UnicodeDecodeError) as error:
+            raise RuntimeError("Invalid parity source manifest") from error
+        if manifest.get("version") != 1:
+            raise RuntimeError("Unsupported parity source manifest version")
+        return manifest
+
+    check_runs = get_check_runs_for_commit(sha, "")
+    run_ids = sorted({
+        int(match.group(1))
+        for check in check_runs
+        if (match := re.search(
+            r"/actions/runs/(\d+)(?:/|$)", check.get("details_url") or ""
+        ))
+    })
+    runs = []
+    for run_id in run_ids:
+        run = get_run_by_id(run_id)
+        if run is not None:
+            runs.append(run)
+    try:
+        return resolve_topology(check_runs, runs, PARITY_CONFIG)
+    except AmbiguousSourceError as error:
+        raise RuntimeError(f"Parity source discovery is ambiguous: {error}") from error
+
+
+def _resolved_family(platform, config, arch=None):
+    if not RESOLVED_TOPOLOGY:
+        return None
+    if platform == "cuda":
+        return RESOLVED_TOPOLOGY.get("cuda", {}).get(config)
+    return (
+        RESOLVED_TOPOLOGY.get("rocm", {})
+        .get(arch, {})
+        .get(config)
+    )
+
+
+def _resolved_run(platform, config, arch=None):
+    family = _resolved_family(platform, config, arch)
+    if family is None:
+        return None
+    run = get_run_by_id(family["run_id"])
+    if run is None:
+        raise RuntimeError(
+            f"Could not fetch discovered {platform}/{arch or ''}/{config} "
+            f"run {family['run_id']}"
+        )
+    return run
+
 
 def get_job_ids_by_prefix(wf, prefix):
     """Get job IDs (as strings) for jobs whose name contains the given prefix."""
@@ -937,6 +999,10 @@ def parse_args():
     parser.add_argument('--set1_sha', type=str)
     parser.add_argument('--set2_source', choices=['trunk', *rocm_arches])
     parser.add_argument('--set2_sha', type=str)
+    parser.add_argument(
+        '--source_manifest_b64',
+        help='Resolved runtime parity topology from parity-auto.',
+    )
     return parser.parse_args()
 
 
@@ -1092,6 +1158,30 @@ def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status
 
     Returns (trunk_wf, cuda_test_jobs, cuda_test_kind, all_cuda_jobs).
     """
+    resolved = _resolved_family("cuda", "default")
+    if resolved is not None:
+        run = _resolved_run("cuda", "default")
+        jobs = get_workflow_jobs(run)
+        family = choose_test_job_family(
+            jobs, "default", "cuda", resolved["prefix"]
+        )
+        # Reusable-workflow jobs can be absent from the jobs endpoint. The
+        # manifest's run-scoped check-runs are still sufficient for log IDs.
+        source_jobs = jobs
+        if family is None:
+            source_jobs = get_check_runs_for_run(sha, run["id"], "")
+            family = choose_test_job_family(
+                source_jobs, "default", "cuda", resolved["prefix"]
+            )
+        if family is None:
+            raise RuntimeError(
+                f"Discovered CUDA default family disappeared from run {run['id']}"
+            )
+        CUDA_JOB_PREFIXES["default"] = family["prefix"]
+        kind, test_jobs = get_cuda_test_jobs(source_jobs, family["prefix"])
+        print(f"Found CUDA test jobs in discovered run {run['id']}")
+        return run, test_jobs, kind, source_jobs
+
     params = {'per_page': 10, 'head_sha': sha}
     if not ignore_status and status:
         params['status'] = status
@@ -1273,6 +1363,39 @@ def main():
         print(f"Resolved 'latest' to sha: {sha}")
     print(f"sha: {sha}")
 
+    global RESOLVED_TOPOLOGY
+    RESOLVED_TOPOLOGY = _load_or_discover_topology(
+        sha, args.source_manifest_b64
+    )
+    print(
+        "Resolved parity topology: "
+        + json.dumps(
+            {
+                "cuda": sorted(RESOLVED_TOPOLOGY.get("cuda", {})),
+                "rocm": {
+                    name: sorted(configs)
+                    for name, configs in RESOLVED_TOPOLOGY.get("rocm", {}).items()
+                    if configs
+                },
+                "missing": RESOLVED_TOPOLOGY.get("missing", []),
+            },
+            sort_keys=True,
+        )
+    )
+    for config, family in RESOLVED_TOPOLOGY.get("cuda", {}).items():
+        CUDAWorkflowNames[config] = os.path.splitext(
+            os.path.basename(family["workflow_path"])
+        )[0]
+        CUDA_JOB_PREFIXES[config] = family["prefix"]
+    for config, family in (
+        RESOLVED_TOPOLOGY.get("rocm", {}).get(arch, {}).items()
+    ):
+        ROCmWorkflowNames[config] = os.path.splitext(
+            os.path.basename(family["workflow_path"])
+        )[0]
+        rocm_job_prefix[config] = family["prefix"]
+        rocm_shards[config] = family["total"]
+
     # When comparing two commits, prefix log filenames with short SHAs
     if args.baseline_sha:
         current_prefix = sha[:8] + "_"
@@ -1316,7 +1439,10 @@ def main():
         error_msg="Error: Periodic workflow not found in scanned workflow runs."
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         periodic_fallback_used = False
-        if ROCmWorkflowNames["distributed"] == "trunk" and trunk_full_wf is not None:
+        periodic_wf = _resolved_run("rocm", "distributed", arch)
+        if periodic_wf is not None:
+            pass
+        elif ROCmWorkflowNames["distributed"] == "trunk" and trunk_full_wf is not None:
             periodic_wf = trunk_full_wf
         else:
             try:
@@ -1385,24 +1511,35 @@ def main():
         print("==============================================")
         print(f"Finding supplemental ROCm distributed_4gpu tests in workflow '{source['workflow']}' by sha: {sha}")
         print("==============================================")
-        try:
-            supplemental_wf = download_workflow_run(
-                created=args.created,
-                max_pages=args.max_pages,
-                workflow=source["workflow"],
-                sha=sha,
-                ignore_status=args.ignore_status,
-                status=status,
-                error_msg="Supplemental distributed_4gpu workflow not found.",
-            )
-        except (IndexError, Exception):
-            supplemental_wf = None
+        supplemental_wf = _resolved_run("rocm", "distributed_4gpu", arch)
+        if supplemental_wf is None:
+            try:
+                supplemental_wf = download_workflow_run(
+                    created=args.created,
+                    max_pages=args.max_pages,
+                    workflow=source["workflow"],
+                    sha=sha,
+                    ignore_status=args.ignore_status,
+                    status=status,
+                    error_msg="Supplemental distributed_4gpu workflow not found.",
+                )
+            except (IndexError, Exception):
+                supplemental_wf = None
 
         if supplemental_wf is None:
             print(f"NOTE: no supplemental distributed_4gpu run found for {sha}; using trunk distributed only")
         else:
+            supplemental_family = _resolved_family(
+                "rocm", "distributed_4gpu", arch
+            )
             supplemental_prefix = resolve_job_prefix(
-                supplemental_wf, "distributed_4gpu", source["job_prefix"]
+                supplemental_wf,
+                "distributed_4gpu",
+                (
+                    supplemental_family["prefix"]
+                    if supplemental_family
+                    else source["job_prefix"]
+                ),
             )
             supplemental_shards = derive_shard_count(
                 supplemental_wf,
@@ -1448,7 +1585,10 @@ def main():
         #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
         error_msg="Error: rocm workflow not found in scanned workflow runs. Try increasing max_pages."
         default_fallback_used = False
-        if ROCmWorkflowNames["default"] == "trunk" and trunk_full_wf is not None:
+        rocm_wf = _resolved_run("rocm", "default", arch)
+        if rocm_wf is not None:
+            pass
+        elif ROCmWorkflowNames["default"] == "trunk" and trunk_full_wf is not None:
             # Read ROCm default from the canonical trunk run rather than the
             # newest completed one, so it matches the CUDA side (see
             # resolve_full_trunk_run).
@@ -1512,7 +1652,10 @@ def main():
         print("===========================================")
         error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
         inductor_fallback_used = False
-        if ROCmWorkflowNames["inductor"] == "trunk" and trunk_full_wf is not None:
+        inductor_wf_rocm = _resolved_run("rocm", "inductor", arch)
+        if inductor_wf_rocm is not None:
+            pass
+        elif ROCmWorkflowNames["inductor"] == "trunk" and trunk_full_wf is not None:
             # Read ROCm inductor from the canonical trunk push run (same as
             # default/distributed above). Resolving a fresh trunk run here can
             # land on the periodic rerun_disabled_tests/mem_leak_check trunk run,
@@ -1737,10 +1880,19 @@ def main():
             # find tests in inductor workflow with given sha and success status
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
             error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
-            try:
-                inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
-            except (IndexError, Exception):
-                inductor_wf_cuda = None
+            inductor_wf_cuda = _resolved_run("cuda", "inductor")
+            if inductor_wf_cuda is not None:
+                pass
+            elif CUDAWorkflowNames["inductor"] == CUDAWorkflowNames["default"]:
+                # Same workflow as default, so reuse the canonical run instead of
+                # resolving it again; a second lookup can land on a different run
+                # of the same workflow (see resolve_full_trunk_run).
+                inductor_wf_cuda = trunk_wf
+            else:
+                try:
+                    inductor_wf_cuda = download_workflow_run(created=args.created, max_pages=args.max_pages, workflow=CUDAWorkflowNames["inductor"], sha=inductor_sha, ignore_status=args.ignore_status, status=status, error_msg=error_msg)
+                except (IndexError, Exception):
+                    inductor_wf_cuda = None
             if inductor_wf_cuda is None:
                 # CUDA inductor baseline does not run for every SHA (e.g. a PR with
                 # ciflow/trunk but not ciflow/inductor). Skip it rather than abort,
