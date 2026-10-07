@@ -220,6 +220,18 @@ static void _syncCurrentWithCarveoutStream(hipStream_t stream, bool presync) {
 
 namespace at::cuda::blas {
 
+#ifdef USE_ROCM
+// hipBLASLt bf16 GEMMs on gfx1250 (CDNA5, GFX12.5, wave32) do not match
+// rocBLAS or the fused CPU reference. Fused Adagrad stores the sum of
+// squared gradients, so one bad GEMM row shows up as a large relative
+// error in optimizer state. The parameter update is approximately
+// lr * sign(grad), so it can still match. gfx942 hipBLASLt bf16 agrees
+// with the CPU reference and stays on hipBLASLt.
+inline bool rocm_bf16_gemm_use_rocblas() {
+  return at::detail::getCUDAHooks().isGPUArch({"gfx1250"});
+}
+#endif
+
 using detail::CuBlasLtMatmulDescriptor;
 using detail::CuBlasLtMatrixLayout;
 using detail::CuBlasLtMatmulPreference;
@@ -253,6 +265,13 @@ using detail::CuBlasLtGroupedMatrixLayout;
 
 template <typename Dtype, typename C_Dtype = Dtype>
 static inline bool bgemm_internal_cublaslt(CUDABLAS_BGEMM_ARGTYPES_AND_C_DTYPE(Dtype, C_Dtype)) {
+#ifdef USE_ROCM
+  if constexpr (std::is_same_v<Dtype, at::BFloat16>) {
+    if (rocm_bf16_gemm_use_rocblas()) {
+      return false;
+    }
+  }
+#endif
 #if defined(USE_ROCM) && ROCM_VERSION == 60400
   // regression in ROCm 6.4, planned fixed in 6.4.1, hipblaslt TT fp32 calculation errors
   // best to disallow hipblaslt for this specific case
@@ -1526,6 +1545,16 @@ bool gemm_and_bias(
     if (at::globalContext().allowFP16AccumulationCuBLAS())
       TORCH_CHECK(false, "gemm input type at::Half and output type float is not supported with allowFP16AccumulationCuBLAS");
   }
+
+#ifdef USE_ROCM
+  // Returning false makes addmm retry on the rocBLAS path. See
+  // rocm_bf16_gemm_use_rocblas.
+  if constexpr (std::is_same_v<Dtype, at::BFloat16>) {
+    if (rocm_bf16_gemm_use_rocblas()) {
+      return false;
+    }
+  }
+#endif
 
   using opmath_t = at::opmath_type<Dtype>;
   // bias is added in the epilogue, which accumulates with beta == 0

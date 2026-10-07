@@ -1,5 +1,6 @@
 #pragma once
 #include <ATen/core/Tensor.h>
+#include <ATen/native/cuda/DeviceSqrt.cuh>
 #include <ATen/native/cuda/ForeachFunctors.cuh>
 #include <ATen/native/cuda/MultiTensorApply.cuh>
 
@@ -37,7 +38,16 @@ C10_DEVICE inline void adagrad_math(
       grad += param * weight_decay; // Can I change this to use std::fma?
     }
     state_sum += grad * grad; // Can I change this to use std::fma?
+#if defined(USE_ROCM)
+    // Same opmath_t update as the fused CPU kernel. std::sqrt(float) is not
+    // a reliable f32 sqrt in ROCm device code; DeviceSqrt.cuh uses sqrtf.
+    const opmath_t step_lr = static_cast<opmath_t>(corrected_lr);
+    const opmath_t eps_t = static_cast<opmath_t>(eps);
+    const opmath_t std_val = device_sqrt<opmath_t>(state_sum) + eps_t;
+    param = param - step_lr * grad / std_val;
+#else
     param = param - corrected_lr * grad / (std::sqrt(state_sum) + eps);
+#endif
 
     r_args[kParamIdx][ii] = param;
     if (grad_scale_ptr) {
