@@ -20,7 +20,11 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
 
         self.assertNotIn("navi31", rocm)
         self.assertEqual(
-            rocm["rx7900"],
+            {
+                key: value
+                for key, value in rocm["rx7900"].items()
+                if key != "arch_aliases"
+            },
             {
                 "default": [{
                     "workflow": "rocm-rx7900",
@@ -43,11 +47,18 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
             cuda = json.load(config_file)["cuda"]
 
         self.assertEqual(
-            cuda["inductor"],
-            [{
+            cuda["inductor"][0],
+            {
                 "workflow": "trunk",
                 "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11",
-            }],
+            },
+        )
+        self.assertEqual(
+            cuda["inductor"][1],
+            {
+                "workflow": "inductor",
+                "job_prefix": "unit-test / inductor-test-cuda132",
+            },
         )
 
         regex = re.compile(cuda["checkrun_regex"])
