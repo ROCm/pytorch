@@ -6366,11 +6366,11 @@ class TestTDMConfigDenseAndGeneric(TestCase):
         graph = GraphLowering(make_fx(lambda: torch.zeros(2, 3))())
         device = torch.device("cuda", 0)
         mat1 = Buffer(
-            "A",
-            FixedLayout(device, torch.float16, (256, k), (max(64, k), 1), 0),
+            name="A",
+            layout=FixedLayout(device, torch.float16, (256, k), (max(64, k), 1), 0),
         )
         mat2 = Buffer(
-            "B", FixedLayout(device, torch.float16, (k, 256), (256, 1), 0)
+            name="B", layout=FixedLayout(device, torch.float16, (k, 256), (256, 1), 0)
         )
         kernel_inputs = MMKernelInputs([mat1, mat2])
         heuristic_cls = (
