@@ -503,6 +503,7 @@ jobs:
               .automation_scripts/pytorch-unit-test-scripts/resolve_parity_sources.py \
               --check-runs "$topology_dir/checks.json" \
               --workflow-runs "$topology_dir/runs.json" \
+              --sha "$sha" \
               --config "$CONFIG_PATH"); then
               echo "::error::[$short] runtime parity source discovery failed"
               return 3

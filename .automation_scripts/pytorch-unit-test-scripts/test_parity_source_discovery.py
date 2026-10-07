@@ -167,6 +167,42 @@ class ParitySourceDiscoveryTest(unittest.TestCase):
 
         self.assertIn("cuda/default", topology["missing"])
 
+    def test_rerun_keeps_successful_and_cancelled_job_ids(self):
+        checks = family(
+            80, "linux-jammy-cuda13.2-py3.11-gcc11", "default", 2, 100
+        )
+        duplicate = dict(checks[0])
+        duplicate.update({"id": 999, "conclusion": "cancelled"})
+        checks.append(duplicate)
+
+        topology = resolve_topology(
+            checks,
+            [run(80, ".github/workflows/trunk.yml")],
+            CONFIG,
+            archs=[],
+        )
+
+        selected = topology["cuda"]["default"]
+        self.assertTrue(selected["complete"])
+        self.assertEqual(selected["job_ids"], [101, 102, 999])
+
+    def test_configured_path_separates_sibling_workflow(self):
+        prefix = "linux-jammy-cuda13.2-py3.11-gcc11"
+        checks = family(90, prefix, "default", 2, 100)
+        checks += family(91, prefix, "default", 2, 200)
+
+        topology = resolve_topology(
+            checks,
+            [
+                run(90, ".github/workflows/trunk.yml"),
+                run(91, ".github/workflows/trunk-rocm-sandbox.yml"),
+            ],
+            CONFIG,
+            archs=[],
+        )
+
+        self.assertEqual(topology["cuda"]["default"]["run_id"], 90)
+
 
 if __name__ == "__main__":
     unittest.main()

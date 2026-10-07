@@ -204,11 +204,17 @@ def _select_family(candidates, hints, bundle_sizes):
     raise AmbiguousSourceError(f"equally suitable parity sources: {choices}")
 
 
-def resolve_topology(check_runs, run_metadata, parity_config, archs=None):
+def resolve_topology(check_runs, run_metadata, parity_config, archs=None, sha=None):
     """Return the selected physical source for each semantic parity role."""
     families = discover_families(check_runs, run_metadata, parity_config)
     bundles = _bundle_sizes(families)
-    selected = {"version": 1, "cuda": {}, "rocm": {}, "missing": []}
+    selected = {
+        "version": 1,
+        "sha": sha or "",
+        "cuda": {},
+        "rocm": {},
+        "missing": [],
+    }
 
     for config in _CONFIGS:
         candidates = [

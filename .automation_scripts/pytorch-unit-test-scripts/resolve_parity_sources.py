@@ -13,6 +13,7 @@ def parse_args():
     parser.add_argument("--check-runs", required=True)
     parser.add_argument("--workflow-runs", required=True)
     parser.add_argument("--config", required=True)
+    parser.add_argument("--sha", required=True)
     parser.add_argument("--arch", action="append", dest="archs")
     return parser.parse_args()
 
@@ -26,7 +27,9 @@ def main():
     with open(args.config) as config_file:
         config = json.load(config_file)
     try:
-        topology = resolve_topology(checks, runs, config, args.archs)
+        topology = resolve_topology(
+            checks, runs, config, args.archs, sha=args.sha
+        )
     except AmbiguousSourceError as error:
         print(f"ERROR: {error}", file=sys.stderr)
         return 2

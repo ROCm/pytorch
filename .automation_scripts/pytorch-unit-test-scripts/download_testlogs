@@ -474,6 +474,26 @@ def _load_or_discover_topology(sha, encoded_manifest=None):
             raise RuntimeError("Invalid parity source manifest") from error
         if manifest.get("version") != 1:
             raise RuntimeError("Unsupported parity source manifest version")
+        if manifest.get("sha") != sha:
+            raise RuntimeError(
+                "Parity source manifest SHA does not match the requested SHA"
+            )
+        for family in [
+            *manifest.get("cuda", {}).values(),
+            *[
+                family
+                for configs in manifest.get("rocm", {}).values()
+                for family in configs.values()
+            ],
+        ]:
+            if not isinstance(family.get("run_id"), int) or family["run_id"] < 1:
+                raise RuntimeError("Parity source manifest has an invalid run ID")
+            if not isinstance(family.get("total"), int) or family["total"] < 1:
+                raise RuntimeError("Parity source manifest has an invalid shard total")
+            if family.get("kind") not in CUDA_TEST_KINDS:
+                raise RuntimeError("Parity source manifest has an invalid test kind")
+            if not family.get("prefix") or not family.get("job_ids"):
+                raise RuntimeError("Parity source manifest has an incomplete family")
         return manifest
 
     check_runs = get_check_runs_for_commit(sha, "")
@@ -490,7 +510,7 @@ def _load_or_discover_topology(sha, encoded_manifest=None):
         if run is not None:
             runs.append(run)
     try:
-        return resolve_topology(check_runs, runs, PARITY_CONFIG)
+        return resolve_topology(check_runs, runs, PARITY_CONFIG, sha=sha)
     except AmbiguousSourceError as error:
         raise RuntimeError(f"Parity source discovery is ambiguous: {error}") from error
 
@@ -518,6 +538,32 @@ def _resolved_run(platform, config, arch=None):
             f"run {family['run_id']}"
         )
     return run
+
+
+def _validate_enabled_topology(manifest, arch, parsed_args):
+    """Pinned auto-trigger manifests must cover every enabled semantic role."""
+    enabled = {
+        "default": not parsed_args.exclude_default,
+        "distributed": not parsed_args.exclude_distributed,
+        "inductor": not parsed_args.exclude_inductor,
+    }
+    if not parsed_args.no_cuda:
+        for config, is_enabled in enabled.items():
+            if is_enabled and config not in manifest.get("cuda", {}):
+                raise RuntimeError(
+                    f"Parity source manifest is missing enabled CUDA {config}"
+                )
+    if not parsed_args.no_rocm:
+        rocm = manifest.get("rocm", {}).get(arch, {})
+        for config, is_enabled in enabled.items():
+            if (
+                is_enabled
+                and config in PARITY_CONFIG["rocm"][arch]
+                and config not in rocm
+            ):
+                raise RuntimeError(
+                    f"Parity source manifest is missing enabled ROCm {arch}/{config}"
+                )
 
 
 def get_job_ids_by_prefix(wf, prefix):
@@ -1252,6 +1298,16 @@ def main():
     cross_fields = (
         args.set1_source, args.set1_sha, args.set2_source, args.set2_sha
     )
+    if args.source_manifest_b64 and (
+        any(cross_fields)
+        or args.baseline_sha
+        or args.pr_id
+        or not re.fullmatch(r"[0-9a-f]{40}", args.sha1 or "")
+    ):
+        raise ValueError(
+            "source_manifest_b64 requires one explicit SHA and cannot be "
+            "combined with PR, baseline, latest, or cross-source modes"
+        )
     if any(cross_fields):
         run_cross_source_comparison(args)
         return
@@ -1367,6 +1423,8 @@ def main():
     RESOLVED_TOPOLOGY = _load_or_discover_topology(
         sha, args.source_manifest_b64
     )
+    if args.source_manifest_b64:
+        _validate_enabled_topology(RESOLVED_TOPOLOGY, arch, args)
     print(
         "Resolved parity topology: "
         + json.dumps(

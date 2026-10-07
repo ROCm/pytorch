@@ -508,7 +508,16 @@ class RuntimeTopologyTest(unittest.TestCase):
     def test_encoded_auto_trigger_manifest_is_loaded_without_api_calls(self):
         manifest = {
             "version": 1,
-            "cuda": {"inductor": {"run_id": 123}},
+            "sha": "a" * 40,
+            "cuda": {
+                "inductor": {
+                    "run_id": 123,
+                    "total": 2,
+                    "kind": "test",
+                    "prefix": "cuda",
+                    "job_ids": [1, 2],
+                }
+            },
             "rocm": {},
             "missing": [],
         }
@@ -521,6 +530,34 @@ class RuntimeTopologyTest(unittest.TestCase):
 
         self.assertEqual(loaded, manifest)
         get_check_runs.assert_not_called()
+
+    def test_encoded_manifest_sha_mismatch_fails_closed(self):
+        manifest = {
+            "version": 1,
+            "sha": "b" * 40,
+            "cuda": {},
+            "rocm": {},
+        }
+        encoded = base64.b64encode(json.dumps(manifest).encode()).decode()
+
+        with self.assertRaisesRegex(RuntimeError, "SHA does not match"):
+            dtl._load_or_discover_topology("a" * 40, encoded)
+
+    def test_enabled_manifest_role_is_required(self):
+        args = SimpleNamespace(
+            exclude_default=False,
+            exclude_distributed=True,
+            exclude_inductor=True,
+            no_cuda=False,
+            no_rocm=True,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "enabled CUDA default"):
+            dtl._validate_enabled_topology(
+                {"version": 1, "sha": "a" * 40, "cuda": {}, "rocm": {}},
+                "mi350",
+                args,
+            )
 
     def test_discovered_run_id_is_used_directly(self):
         old = dtl.RESOLVED_TOPOLOGY

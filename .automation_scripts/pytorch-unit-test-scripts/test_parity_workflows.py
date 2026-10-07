@@ -20,6 +20,7 @@ class RuntimeDiscoveryWorkflowTest(unittest.TestCase):
 
         self.assertEqual(steps[0]["name"], "Checkout")
         self.assertIn("resolve_parity_sources.py", script)
+        self.assertIn('--sha "$sha"', script)
         self.assertIn("repos/$UPSTREAM/commits?", script)
         self.assertIn("-f source_manifest_b64=", script)
         self.assertNotIn('archs_that_ran "$sha"', script)
