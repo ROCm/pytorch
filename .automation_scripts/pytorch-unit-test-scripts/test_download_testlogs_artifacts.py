@@ -47,6 +47,36 @@ class Response:
         return self._body
 
 
+class DownloadArtifactsWorkingDirectoryTest(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(self.tmp.name)
+        Path("artifacts").mkdir()
+
+    @mock.patch.object(dtl, "_report_missing_shards")
+    @mock.patch.object(dtl, "download_xml_files", return_value=[])
+    def test_restores_working_directory_after_download(self, _download, _report):
+        original_cwd = os.getcwd()
+
+        dtl.download_artifacts({"id": 123}, test_folder="artifacts")
+
+        self.assertEqual(os.getcwd(), original_cwd)
+
+    @mock.patch.object(
+        dtl, "download_xml_files", side_effect=RuntimeError("download failed")
+    )
+    def test_restores_working_directory_after_error(self, _download):
+        original_cwd = os.getcwd()
+
+        with self.assertRaisesRegex(RuntimeError, "download failed"):
+            dtl.download_artifacts({"id": 123}, test_folder="artifacts")
+
+        self.assertEqual(os.getcwd(), original_cwd)
+
+
 class CorruptArtifactTest(unittest.TestCase):
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
