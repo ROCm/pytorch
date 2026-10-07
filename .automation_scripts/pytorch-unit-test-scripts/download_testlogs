@@ -941,15 +941,18 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
     return shards
 
 def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None):
-    os.chdir(test_folder)
-    #download the xml files
-    shards = download_xml_files(
-        wf['id'],
-        wf.get('run_attempt',1),
-        prefixes,
-        allowed_substrings=allowed_substrings,
-    )
-    os.chdir("..")
+    original_cwd = os.getcwd()
+    try:
+        os.chdir(test_folder)
+        #download the xml files
+        shards = download_xml_files(
+            wf['id'],
+            wf.get('run_attempt',1),
+            prefixes,
+            allowed_substrings=allowed_substrings,
+        )
+    finally:
+        os.chdir(original_cwd)
     # The folder already names the side (rocm_xml / cuda_xml / baseline_xml).
     label = os.path.basename(str(test_folder).rstrip("/")).replace("_xml", "") or "artifacts"
     _report_missing_shards(label, wf['id'], prefixes, shards or [])
@@ -1559,7 +1562,6 @@ def main():
                 folder_list[2],
                 allowed_substrings=rocm_artifact_substrings,
             )
-            os.chdir("..")
 
     # Merge MI350's periodic four-GPU tests into distributed when available.
     # Ordinary trunk SHAs remain valid without the supplemental run.
@@ -1631,7 +1633,6 @@ def main():
                 folder_list[2],
                 allowed_substrings=rocm_artifact_substrings,
             )
-            os.chdir("..")
 
     # Download ROCm default rocm_wf when ROCm is enabled
     if not args.no_rocm and not args.exclude_default:
@@ -1698,7 +1699,6 @@ def main():
                     test_folder=folder_list[2],
                     allowed_substrings=rocm_artifact_substrings,
                 )
-            os.chdir("..")
 
     # add new inductor workflow downloading for ROCm
     if not args.no_rocm and not args.exclude_inductor:
@@ -1770,7 +1770,6 @@ def main():
                 test_folder=folder_list[2],
                 allowed_substrings=rocm_artifact_substrings,
             )
-            os.chdir("..")
 
     # Slow parity is intentionally opt-in by architecture: only an arch with a
     # configured ROCm slow source also downloads the matching CUDA slow source.
@@ -1828,7 +1827,6 @@ def main():
                 test_folder=folder_list[2],
                 allowed_substrings=rocm_artifact_substrings,
             )
-            os.chdir("..")
 
     if not args.no_cuda:
         cuda_config = PARITY_CONFIG["cuda"]
@@ -1927,7 +1925,6 @@ def main():
                 test_folder=folder_list[1],
                 allowed_substrings=cuda_artifact_substrings,
             )
-        os.chdir("..")
 
         # add new inductor workflow downloading for CUDA
         if not args.exclude_inductor:
@@ -2009,7 +2006,6 @@ def main():
                     test_folder=folder_list[1],
                     allowed_substrings=cuda_inductor_artifact_substrings,
                 )
-                os.chdir("..")
 
         if not args.exclude_slow:
             slow_cuda_prefix = CUDA_JOB_PREFIXES["slow"]
@@ -2083,7 +2079,6 @@ def main():
                     test_folder=folder_list[1],
                     allowed_substrings=slow_cuda_substrings,
                 )
-                os.chdir("..")
 
     # Download baseline commit artifacts for commit-vs-commit comparison
     if args.baseline_sha and not args.no_rocm:
@@ -2140,7 +2135,6 @@ def main():
                     test_folder=baseline_xml_dir,
                     allowed_substrings=rocm_artifact_substrings,
                 )
-                os.chdir("..")
             except Exception as e:
                 print(f"WARNING: Could not download baseline default artifacts: {e}")
 
@@ -2182,7 +2176,6 @@ def main():
                     test_folder=baseline_xml_dir,
                     allowed_substrings=rocm_artifact_substrings,
                 )
-                os.chdir("..")
             except Exception as e:
                 print(f"WARNING: Could not download baseline distributed artifacts: {e}")
 
@@ -2225,7 +2218,6 @@ def main():
                     test_folder=baseline_xml_dir,
                     allowed_substrings=rocm_artifact_substrings,
                 )
-                os.chdir("..")
             except Exception as e:
                 print(f"WARNING: Could not download baseline inductor artifacts: {e}")
 
@@ -2264,7 +2256,6 @@ def main():
                     test_folder=baseline_xml_dir,
                     allowed_substrings=rocm_artifact_substrings,
                 )
-                os.chdir("..")
             except Exception as e:
                 print(f"WARNING: Could not download baseline slow artifacts: {e}")
 
@@ -2306,7 +2297,6 @@ def main():
                     test_folder=rocm_periodic_dir,
                     allowed_substrings=["rocm.gpu"],
                 )
-                os.chdir("..")
 
             if not args.no_cuda:
                 print("Downloading inductor-periodic CUDA artifacts...")
@@ -2322,7 +2312,6 @@ def main():
                     test_folder=cuda_periodic_dir,
                     allowed_substrings=cuda_periodic_substrings,
                 )
-                os.chdir("..")
 
             print(f"Inductor-periodic artifacts saved to:")
             print(f"  ROCm: {rocm_periodic_dir}")

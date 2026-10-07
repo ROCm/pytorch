@@ -38,23 +38,67 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
             },
         )
 
-    def test_auto_trigger_matches_versioned_cuda_inductor_family(self):
+    def test_cuda_inductor_source_is_trunk(self):
+        """pytorch/pytorch#199291 moved the only CUDA inductor config to trunk."""
         config_path = os.path.join(
             os.path.dirname(__file__), "parity_job_config.json"
         )
         with open(config_path) as config_file:
-            regex = re.compile(json.load(config_file)["cuda"]["checkrun_regex"])
+            cuda = json.load(config_file)["cuda"]
 
-        for family in (
-            "inductor-test",
-            "inductor-test-cuda132",
-            "inductor-test-cuda134",
-        ):
-            with self.subTest(family=family):
+        self.assertEqual(
+            cuda["inductor"],
+            [{
+                "workflow": "trunk",
+                "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11",
+            }],
+        )
+
+        regex = re.compile(cuda["checkrun_regex"])
+        for config in ("default", "distributed", "inductor"):
+            with self.subTest(config=config):
                 self.assertRegex(
-                    f"unit-test / {family} / test (inductor, 1, 2, runner)",
+                    "linux-jammy-cuda13.2-py3.11-gcc11 / test "
+                    f"({config}, 1, 2, mt-l-x86aavx2-11-41-l4)",
                     regex,
                 )
+        for name in (
+            # Retired by #199291; inductor-unittest.yml has no inductor config.
+            "unit-test / inductor-test-cuda132 / test (inductor, 1, 2, runner)",
+            "linux-noble-rocm-py3.11-mi350 / test (inductor, 1, 2, gfx950)",
+            "linux-jammy-cuda13.2-py3.11-gcc11 / test "
+            "(inductor_cpp_wrapper, 1, 2, a10g)",
+        ):
+            with self.subTest(name=name):
+                self.assertNotRegex(name, regex)
+
+    def test_cuda_inductor_family_resolves_in_a_shared_trunk_run(self):
+        """One trunk run now holds both platforms' inductor jobs."""
+        jobs = [
+            job(
+                "linux-jammy-cuda13.2-py3.11-gcc11 / test "
+                f"(inductor, {shard}, 2, l4)",
+                100 + shard,
+            )
+            for shard in (1, 2)
+        ] + [
+            job(
+                "linux-noble-rocm-py3.11-mi350 / test "
+                f"(inductor, {shard}, 2, gfx950)",
+                200 + shard,
+            )
+            for shard in (1, 2)
+        ]
+
+        family = choose_test_job_family(
+            jobs, "inductor", "cuda", "linux-jammy-cuda13.2-py3.11-gcc11"
+        )
+        self.assertEqual(family["prefix"], "linux-jammy-cuda13.2-py3.11-gcc11")
+        self.assertEqual(family["total"], 2)
+        self.assertTrue(family["complete"])
+        self.assertEqual(
+            sorted(j["id"] for j in family["jobs"]), [101, 102]
+        )
 
     def test_discovers_renamed_cuda_family(self):
         jobs = [
