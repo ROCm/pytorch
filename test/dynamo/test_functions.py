@@ -5927,7 +5927,8 @@ class GraphModule(torch.nn.Module):
                 raise AssertionError(type.__name__)
             if not type.__doc__.startswith("type("):
                 raise AssertionError(type.__doc__)
-            if sys.version_info >= (3, 12):
+            # Before 3.12.4 this returned its own descriptor (CPython gh-119011).
+            if sys.version_info >= (3, 12, 4):
                 if type.__type_params__ != ():
                     raise AssertionError(type.__type_params__)
             return x + 1
