@@ -9,6 +9,7 @@
 #include <ATen/native/TensorIterator.h>
 #include <ATen/native/cuda/Loops.cuh>
 #include <ATen/native/cuda/JitLoops.cuh>
+#include <c10/cuda/CUDAMathCompat.h>
 
 // NOTE: CUDA on Windows requires that the enclosing function
 // of a __device__ lambda not have internal linkage.
@@ -47,7 +48,11 @@ void sigmoid_backward_kernel_cuda(TensorIteratorBase& iter) {
   } else {
     AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16, dtype, "sigmoid_backward_cuda", [&]() {
       gpu_kernel(iter, []GPU_LAMBDA(scalar_t a, scalar_t b) -> scalar_t {
-        return a * (scalar_t(1.) - b) * b;
+        if constexpr (std::is_same_v<scalar_t, at::BFloat16>) {
+          return c10::cuda::compat::sigmoid_backward_bf16(a, b);
+        } else {
+          return a * (scalar_t(1.) - b) * b;
+        }
       });
     });
   }

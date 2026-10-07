@@ -6,7 +6,10 @@
 #if defined(__CUDACC__) || defined(__HIPCC__)
 
 #include <c10/macros/Macros.h>
+#include <c10/util/BFloat16.h>
 #include <c10/util/Exception.h>
+
+#include <cmath>
 
 #ifdef __HIPCC__
 #define __MATH_FUNCTIONS_DECL__ inline C10_DEVICE
@@ -32,6 +35,41 @@ __MATH_FUNCTIONS_DECL__ float exp(float x) {
 }
 __MATH_FUNCTIONS_DECL__ double exp(double x) {
   return ::exp(x);
+}
+
+// f32 exp for gfx1250. That arch's v_exp_bf16 instruction is exp2, not exp,
+// and is not correctly rounded. If the compiler contracts an f32 exp whose
+// result is stored as bf16 into v_exp_bf16, sigmoid disagrees with the CPU
+// reference and with gfx942 (which has no v_exp_bf16). The volatile float
+// forces the value to exist as f32 so that contraction cannot happen.
+// Other architectures return std::exp(float), same as the previous call.
+__MATH_FUNCTIONS_DECL__ float exp_f32(float x) {
+#if defined(USE_ROCM) && defined(__HIP_DEVICE_COMPILE__)
+  if (__builtin_amdgcn_processor_is("gfx1250")) {
+    float y = ::expf(x);
+    volatile float yv = y;
+    return yv;
+  }
+#endif
+  return std::exp(x);
+}
+
+// bf16 sigmoid backward. gfx942 and CUDA keep the existing bf16 arithmetic.
+// gfx1250 evaluates it in f32 so true16 bf16 muls are not used, matching the
+// fused CPU kernel, then rounds once.
+__MATH_FUNCTIONS_DECL__ c10::BFloat16 sigmoid_backward_bf16(
+    c10::BFloat16 a,
+    c10::BFloat16 b) {
+#if defined(USE_ROCM) && defined(__HIP_DEVICE_COMPILE__)
+  if (__builtin_amdgcn_processor_is("gfx1250")) {
+    float ao = static_cast<float>(a);
+    float bo = static_cast<float>(b);
+    float r = ao * (1.f - bo) * bo;
+    volatile float rv = r;
+    return static_cast<c10::BFloat16>(rv);
+  }
+#endif
+  return a * (c10::BFloat16(1.f) - b) * b;
 }
 
 __MATH_FUNCTIONS_DECL__ float ceil(float x) {

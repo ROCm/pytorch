@@ -222,11 +222,12 @@ namespace at::cuda::blas {
 
 #ifdef USE_ROCM
 // hipBLASLt bf16 GEMMs on gfx1250 (CDNA5, GFX12.5, wave32) do not match
-// rocBLAS or the fused CPU reference. Fused Adagrad stores the sum of
-// squared gradients, so one bad GEMM row shows up as a large relative
-// error in optimizer state. The parameter update is approximately
-// lr * sign(grad), so it can still match. gfx942 hipBLASLt bf16 agrees
-// with the CPU reference and stays on hipBLASLt.
+// rocBLAS or the fused CPU reference. Fused Adagrad, Adam, AdamW, and SGD
+// all compare CPU state against device state for the same bf16 model, and
+// that state is the gradient (or the square of it). One bad GEMM row
+// therefore fails every fused CPU-match test. The parameter update can
+// still match because it is a small step along sign(grad). gfx942
+// hipBLASLt bf16 agrees with the CPU reference and stays on hipBLASLt.
 inline bool rocm_bf16_gemm_use_rocblas() {
   return at::detail::getCUDAHooks().isGPUArch({"gfx1250"});
 }

@@ -157,7 +157,14 @@ void sigmoid_kernel_cuda(TensorIteratorBase& iter) {
       gpu_kernel(iter, []GPU_LAMBDA(scalar_t a) -> scalar_t {
         using opmath_t = at::opmath_type<scalar_t>;
         const auto one = opmath_t{1};
-        return static_cast<scalar_t>(one/(one + std::exp(-opmath_t{a})));
+        const opmath_t neg = -opmath_t{a};
+        opmath_t e;
+        if constexpr (std::is_same_v<opmath_t, float>) {
+          e = c10::cuda::compat::exp_f32(neg);
+        } else {
+          e = std::exp(neg);
+        }
+        return static_cast<scalar_t>(one / (one + e));
       });
     });
   }
