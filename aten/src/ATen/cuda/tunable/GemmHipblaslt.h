@@ -8,7 +8,9 @@
 #include <ATen/cuda/detail/CublasLtUtils.h>
 #include <ATen/cuda/tunable/TunableOp.h>
 #include <ATen/cuda/tunable/GemmCommon.h>
+#include <ATen/detail/CUDAHooksInterface.h>
 #include <c10/cuda/CUDACachingAllocator.h>
+#include <c10/util/irange.h>
 #include <c10/util/StringUtil.h>
 #include <fmt/printf.h>
 
@@ -640,8 +642,30 @@ class HipblasltGemmOp : public Callable<ParamsT> {
     hipblasLtMatmulAlgo_t algo_;
 };
 
+// TunableOp instances are process-wide statics shared by every device, so
+// hipBLASLt candidates are only offered when all visible devices support it.
+// This mirrors the check in Context::blasPreferredBackend(). On unsupported
+// architectures hipBLASLt ships no kernels and getAllAlgos fails.
+inline bool HipBlasLtSupportedOnAllDevices() {
+  static const bool supported = []() {
+    const auto& archs = at::detail::getCUDAHooks().getHipblasltSupportedArchs();
+    for (auto index : c10::irange(at::detail::getCUDAHooks().deviceCount())) {
+      if (!at::detail::getCUDAHooks().isGPUArch(archs, index)) {
+        return false;
+      }
+    }
+    return true;
+  }();
+  return supported;
+}
+
 template <typename AT, typename BT, typename CT, BlasOp ALayout, BlasOp BLayout, typename ParamsT>
 auto GetHipBlasLtTypeStringAndOps() {
+  if (!HipBlasLtSupportedOnAllDevices()) {
+    TUNABLE_LOG1("hipBLASLt is not supported on all visible devices, skipping hipBLASLt candidates");
+    return std::vector<std::pair<std::string, std::unique_ptr<Callable<ParamsT>>>>{};
+  }
+
   hipblasOperation_t transa_outer = MapLayoutToHipBlasLt(ALayout);
   hipblasOperation_t transb_outer = MapLayoutToHipBlasLt(BLayout);
   auto a_datatype = HipDataTypeFor<AT>();
