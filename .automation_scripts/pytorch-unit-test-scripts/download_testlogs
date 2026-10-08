@@ -1934,7 +1934,7 @@ def main():
             print("==========================================")
             # find tests in inductor workflow with given sha and success status
             #https://docs.github.com/en/rest/actions/workflow-runs#list-workflow-runs-for-a-repository
-            error_msg="Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
+            error_msg = "Error: inductor workflow not found in scanned workflow runs. Try increasing max_pages."
             inductor_wf_cuda = _resolved_run("cuda", "inductor")
             if inductor_wf_cuda is not None:
                 pass
