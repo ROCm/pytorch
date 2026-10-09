@@ -1,0 +1,43 @@
+name: PyTorch develop branch IFU
+run-name: "Scheduled develop IFU sync with pytorch/pytorch main"
+
+# Dispatches pytorch_ifu.yml on a ~biweekly cadence to merge upstream main into develop.
+
+on:
+  schedule:
+    # 1st and 15th of each month at 09:00 UTC (~every 2 weeks)
+    - cron: '0 9 1,15 * *'
+  pull_request:
+    paths:
+      - '.github/workflows/pytorch_develop_ifu_schedule.yml'
+      - '.github/workflows/pytorch_ifu.yml'
+  workflow_dispatch:
+
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: develop-ifu-schedule
+  cancel-in-progress: false
+
+jobs:
+  trigger-ifu:
+    if: github.repository == 'ROCm/pytorch'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger pytorch_ifu.yml
+        env:
+          GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
+        run: |
+          gh workflow run pytorch_ifu.yml \
+            --repo "$GITHUB_REPOSITORY" \
+            --ref develop \
+            -f ifu_target_repo=ROCm/pytorch \
+            -f ifu_target_branch=develop \
+            -f ifu_source_repo=pytorch/pytorch \
+            -f ifu_source_branch=main
+
+      - name: Summarize
+        run: |
+          echo "::notice title=Scheduled develop IFU::Dispatched pytorch_ifu.yml for develop <- pytorch/pytorch main"
