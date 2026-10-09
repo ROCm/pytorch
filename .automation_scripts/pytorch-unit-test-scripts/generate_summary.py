@@ -744,6 +744,16 @@ def _parse_log_failure_names(lf):
     return parts[0], parts[1]
 
 
+def _test_key(arch, test_config, test_file, test_class, test_name):
+    """Identity of a single test that matches XML and log rows.
+
+    XML classes carry the module path ('test.distributed.test_x.FooTest')
+    while log reasons only name the class ('FooTest'), so compare the last
+    dotted component of the class."""
+    return (arch, test_config, _norm_test_file(test_file),
+            test_class.rsplit('.', 1)[-1], test_name)
+
+
 def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     """ROCm log-detected failures not already in the XML FAILED TESTS table,
     deduplicated to one row per test.
@@ -752,24 +762,47 @@ def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     'FAILED' line and a 'FAILED CONSISTENTLY' line (category CONSISTENT_FAILURE)
     describe the same test. Collapse those to a single row, preferring
     CONSISTENT_FAILURE over a one-off FAILED so a test is never listed as both.
+
+    A whole-file entry (no test class/name, e.g. 'cpp/test_api 1/1 failed!')
+    is dropped when a named failure is already reported for the same file;
+    it is kept when nothing else explains the file failing (e.g. a crash
+    before any test ran).
     """
-    xml_failed_keys = {
-        (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
-        for t in (failed_tests or [])
-    }
+    rocm_log_failures = [
+        lf for lf in (log_failures or [])
+        if _is_primary_platform(lf.get('platform', ''), s1_name)
+    ]
+    xml_failed_keys = set()
+    named_failure_files = set()
+    for t in (failed_tests or []):
+        xml_failed_keys.add(_test_key(
+            t['arch'], t.get('test_config', ''), t['test_file'],
+            t['test_class'], t['test_name']))
+        if t['test_name']:
+            named_failure_files.add((
+                t['arch'], t.get('test_config', ''),
+                _norm_test_file(t['test_file'])))
+    for lf in rocm_log_failures:
+        if lf.get('category', '') != 'FLAKY' and _parse_log_failure_names(lf)[1]:
+            named_failure_files.add((
+                lf.get('arch', ''), lf.get('test_config', ''),
+                _norm_test_file(lf.get('test_file', ''))))
+
     best = {}
     order = []
-    for lf in (log_failures or []):
-        if not _is_primary_platform(lf.get('platform', ''), s1_name):
-            continue
+    for lf in rocm_log_failures:
         test_class, test_name = _parse_log_failure_names(lf)
-        key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
-               test_class, test_name)
+        key = _test_key(lf.get('arch', ''), lf.get('test_config', ''),
+                        lf.get('test_file', ''), test_class, test_name)
+        file_key = key[:3]
         # Skip entries already present in the XML-based FAILED TESTS table to
         # avoid double-counting the same failure, except FLAKY entries which
         # represent an independent signal (a rerun passed).
-        if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
-            continue
+        if lf.get('category', '') != 'FLAKY':
+            if key in xml_failed_keys:
+                continue
+            if not test_name and file_key in named_failure_files:
+                continue
         existing = best.get(key)
         if existing is None:
             best[key] = lf
