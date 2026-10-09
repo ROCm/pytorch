@@ -471,23 +471,6 @@ class TokenSwitchNCCL(TokenSwitch):
         )
 
 
-def _to_local_topk(
-    idx: torch.Tensor,
-    weights: torch.Tensor,
-    first_expert: int,
-    experts_per_rank: int,
-    out_idx: torch.Tensor,
-    out_weights: torch.Tensor,
-) -> None:
-    # Global top-k -> this rank's local expert ids, ascending, packed to the front.
-    local = idx.long() - first_expert
-    in_range = (local >= 0) & (local < experts_per_rank)
-    key, perm = torch.where(in_range, local, experts_per_rank).sort(dim=1)
-    routed = key < experts_per_rank
-    out_idx.copy_(torch.where(routed, key, -1))
-    out_weights.copy_(torch.where(routed, weights.gather(1, perm), 0.0))
-
-
 @dataclass
 class _MoRIRoutingState:
     # Routing is frozen; the MoRI handle (and, for expert_major, the slot map) is
@@ -534,9 +517,6 @@ class TokenSwitchMoRI(TokenSwitch):
         self._num_experts = num_experts
         self._experts_per_rank = num_experts // world_size
         self._top_k = top_k
-        # Compiled on first dispatch, not at import. Eager is ~8 kernels: ~125us vs
-        # ~22us fused for 16k rows at K=8.
-        self._to_local_topk = torch.compile(_to_local_topk, dynamic=False)
 
         uid = [cco.Communicator.get_unique_id() if self._rank == 0 else None]
         src = dist.get_global_rank(process_group, 0)
@@ -696,14 +676,15 @@ class TokenSwitchMoRI(TokenSwitch):
             out_tokens[:n].copy_(out[src // self._top_k])
             out_topk_weights[:n].copy_(out_w.reshape(-1)[src])
             return
-        # MoRI forwards each token's global top-k; translate it to local ids.
+        # MoRI forwards each token's global top-k; keep this rank's experts as local
+        # ids in place and mark the others -1.
         n = min(out_tokens.shape[0], out.shape[0])
         out_tokens[:n].copy_(out[:n])
-        first = self._rank * self._experts_per_rank
         epr = self._experts_per_rank
-        self._to_local_topk(
-            out_idx[:n], out_w[:n], first, epr, out_topk_idx[:n], out_topk_weights[:n]
-        )
+        local = out_idx[:n].long() - self._rank * epr
+        other = (local < 0) | (local >= epr)
+        out_topk_idx[:n].copy_(local.masked_fill_(other, -1))
+        out_topk_weights[:n].copy_(out_w[:n]).masked_fill_(other, 0.0)
 
     def _combine(
         self,
