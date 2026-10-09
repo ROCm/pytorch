@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from summarize_xml_testreports import (
+    _test_config_from_dir,
     get_test_status,
     parse_xml_reports_as_dict,
 )
@@ -19,6 +20,12 @@ class TestXmlReportMerging(unittest.TestCase):
         path = root / shard / parent / filename
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(contents)
+
+    def test_four_gpu_directory_merges_into_distributed(self):
+        self.assertEqual(
+            _test_config_from_dir("test-distributed_4gpu-1-2_1001"),
+            "distributed",
+        )
 
     def test_testsuites_remain_distinct_across_shards(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -73,6 +80,38 @@ class TestXmlReportMerging(unittest.TestCase):
             self.assertEqual(len(cases), 1)
             self.assertEqual(get_test_status(next(iter(cases.values()))), "PASSED")
 
+    def test_checked_in_junit_fixtures_are_excluded(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shard = "test-default-1-1_1001"
+            fixture = (
+                '<testcase classname="TestJunitOutcomes" '
+                'name="test_phantom" time="1"><failure /></testcase>'
+            )
+            real = '<testcase classname="TestReal" name="test_real" time="1" />'
+            self._write(
+                root,
+                shard,
+                "junit_xml_testdata/expected",
+                "pytest.xml",
+                SUITE.format(time=10, testcase=fixture),
+            )
+            self._write(
+                root,
+                shard,
+                "test/test-reports",
+                "real.xml",
+                SUITE.format(time=20, testcase=real),
+            )
+
+            cases = parse_xml_reports_as_dict(-1, -1, "testcase", str(root))
+            suites = parse_xml_reports_as_dict(-1, -1, "testsuite", str(root))
+
+            self.assertEqual(len(cases), 1)
+            self.assertEqual(next(iter(cases.values()))["name"], "test_real")
+            self.assertEqual(len(suites), 1)
+            self.assertEqual(next(iter(suites.values()))["running_time_xml"], 20)
+
     def test_duplicate_testsuite_in_same_shard_is_not_double_counted(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
@@ -106,6 +145,30 @@ class TestXmlReportMerging(unittest.TestCase):
 
             with self.assertRaisesRegex(ValueError, "Conflicting duplicate testsuite"):
                 parse_xml_reports_as_dict(-1, -1, "testsuite", str(root))
+
+    def test_checked_in_junit_fixtures_are_ignored(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            failed = (
+                '<testcase classname="TestJunitOutcomes" '
+                'name="test_assert_failure" time="1"><failure /></testcase>'
+            )
+            self._write(
+                root,
+                "test-default-1-1_1001",
+                "junit_xml_testdata/expected",
+                "pytest.xml",
+                SUITE.format(time=1, testcase=failed),
+            )
+
+            self.assertEqual(
+                parse_xml_reports_as_dict(-1, -1, "testcase", str(root)),
+                {},
+            )
+            self.assertEqual(
+                parse_xml_reports_as_dict(-1, -1, "testsuite", str(root)),
+                {},
+            )
 
     def test_empty_primary_set_is_allowed_for_cuda_only_report(self):
         with tempfile.TemporaryDirectory() as tmp:
