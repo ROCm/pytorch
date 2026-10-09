@@ -7,7 +7,10 @@ on:
       - develop
       - "release/**"
     types:
-      - labeled
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
   workflow_dispatch:
     inputs:
       pr_number:
@@ -26,19 +29,19 @@ jobs:
   setup:
     if: >-
       github.event_name == 'workflow_dispatch' ||
-      github.event.label.name == 'ci:therock'
+      !github.event.pull_request.draft
     name: Validate request
     runs-on: ubuntu-24.04
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: read
       statuses: write
     outputs:
       sha: ${{ steps.pr.outputs.sha }}
     steps:
       # pull_request_target keeps the workflow definition on the trusted base;
       # the PR head is passed to TheRock only as source to build.
-      - name: Validate PR and label
+      - name: Validate PR
         id: pr
         env:
           GH_TOKEN: ${{ github.token }}
@@ -50,11 +53,6 @@ jobs:
           head_repository="$(jq -r '.head.repo.full_name' <<< "${pr_json}")"
           if [[ "${head_repository}" != "ROCm/pytorch" ]]; then
             echo "::error::TheRock CI only accepts branches in ROCm/pytorch; move the commit to an org branch."
-            exit 1
-          fi
-
-          if ! jq -e '.labels | any(.name == "ci:therock")' <<< "${pr_json}" >/dev/null; then
-            echo "::error::PR #${PR_NUMBER} does not have the ci:therock label."
             exit 1
           fi
 
@@ -72,10 +70,6 @@ jobs:
           fi
 
           echo "sha=${current_sha}" >> "${GITHUB_OUTPUT}"
-
-          # Consume approval so each new PR SHA requires a fresh label.
-          gh api --method DELETE \
-            "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/labels/ci%3Atherock"
 
       - name: Validate package configuration
         env:
