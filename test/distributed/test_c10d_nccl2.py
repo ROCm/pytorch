@@ -425,6 +425,11 @@ class _ProcessGroupNCCL2SubgroupTest(MultiProcContinuousTest):
         dist.all_reduce(t, group=group)
         self.assertEqual(t, torch.full_like(t, self.world_size))
 
+    def _abort_timed_out_group(self, pg) -> None:
+        # Rank 0's communicator is aborted after its timeout. A graceful
+        # destroy on the other ranks would wait for it forever at NCCL 2.31+'s
+        # teardown barrier, so every rank aborts instead.
+        dist.distributed_c10d._abort_process_group(pg)
 
 class ProcessGroupNCCL2AbortTest(_ProcessGroupNCCL2SubgroupTest):
     @requires_nccl()
@@ -489,7 +494,7 @@ class ProcessGroupNCCL2WatchdogNoTearDownTest(_ProcessGroupNCCL2SubgroupTest):
         else:
             time.sleep(30)
 
-        dist.destroy_process_group(pg)
+        self._abort_timed_out_group(pg)
         self._check_all_reduce()
 
     @requires_nccl()
@@ -513,7 +518,7 @@ class ProcessGroupNCCL2WatchdogNoTearDownTest(_ProcessGroupNCCL2SubgroupTest):
         else:
             time.sleep(30)
 
-        dist.destroy_process_group(pg)
+        self._abort_timed_out_group(pg)
         self._check_all_reduce()
 
 
@@ -538,7 +543,7 @@ class ProcessGroupNCCL2BlockingWaitTest(_ProcessGroupNCCL2SubgroupTest):
         else:
             time.sleep(30)
 
-        dist.destroy_process_group(pg)
+        self._abort_timed_out_group(pg)
         self._check_all_reduce()
 
 
