@@ -7,6 +7,7 @@ import unittest
 sys.path.insert(0, os.path.dirname(__file__))
 
 from auto_classify_skip_reasons import detect_columns
+from detect_log_failures import parse_log_file
 from generate_summary import (
     add_promoted_failure_stats,
     collect_log_failed_tests,
@@ -82,6 +83,39 @@ class FailureReportingTest(unittest.TestCase):
         self.assertIn("### FAILED TESTS (1)", markdown)
         self.assertIn("CONSISTENT_FAILURE", markdown)
         self.assertNotIn("No failed tests found.", markdown)
+
+    def _parse_shard_log(self, lines):
+        running = (
+            "2026-10-06T07:38:21.6395057Z Running inductor/test_aot_inductor 6/11"
+            " ... [2026-10-06 07:38:21.639003][12082.382829547]"
+        )
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, "rocm_1.txt")
+            with open(path, "w") as f:
+                f.write("\n".join([running] + lines) + "\n")
+            results, _, _, _ = parse_log_file(path)
+        return results["inductor/test_aot_inductor 6/11"]
+
+    def test_crash_word_in_skip_reason_is_not_a_crash(self):
+        info = self._parse_shard_log([
+            "2026-10-06T07:49:06.2477712Z inductor/test_aot_inductor.py::"
+            "AOTInductorTestABICompatibleCpu::test_nan_cpu SKIPPED [0.0003s] "
+            "(Skip this test, only for local test. SIGABRT is produced.) [ 13%]",
+            "2026-10-06T07:49:06.2600000Z inductor/test_aot_inductor.py::"
+            "TestCheckUpperboundConfig::test_aoti_check_upperbound_codegen "
+            "PASSED [1.2000s] [100%]",
+        ])
+        self.assertEqual(info["crashes"], [])
+
+    def test_real_crash_is_still_detected(self):
+        info = self._parse_shard_log([
+            "2026-10-06T07:49:06.2477712Z inductor/test_aot_inductor.py::"
+            "TestCheckUpperboundConfig::test_aoti_check_upperbound_codegen "
+            "Fatal Python error: Aborted",
+            "2026-10-06T07:49:06.2600000Z Got exit code -6 (SIGABRT)",
+        ])
+        self.assertIn("SIGABRT", info["crashes"])
+        self.assertIn("FATAL_PYTHON", info["crashes"])
 
 
 if __name__ == "__main__":
