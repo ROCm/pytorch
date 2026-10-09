@@ -196,8 +196,11 @@ jobs:
               --draft --label needs-manual-resolution --assignee pablo-garay,jithunnair-amd
           else
             gh pr create --base "$BASE" --head "$HEAD" --title "$TITLE" --body-file pr_body.md
+            # Must be a merge commit: squash/rebase would drop upstream history and make
+            # every later IFU conflict.
+            gh pr merge "$HEAD" --merge
           fi
 
       - name: Summarize
         run: |
-          echo "::notice title=IFU Completed::Branch ${{ steps.tag.outputs.TAG }} pushed. PR created (or already existed). Merge status: ${{ steps.merge.outputs.merge_status }}"
+          echo "::notice title=IFU Completed::Branch ${{ steps.tag.outputs.TAG }} pushed. PR created (or already existed); clean merges are merged automatically. Merge status: ${{ steps.merge.outputs.merge_status }}"
