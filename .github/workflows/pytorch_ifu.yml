@@ -191,9 +191,7 @@ jobs:
           fi
 
           if [ "${MERGE_STATUS}" = "conflict" ]; then
-            # Ensure the label exists, then open the PR as a draft for manual resolution.
-            gh label create needs-manual-resolution --color FBCA04 \
-              --description "IFU merge conflicts need manual resolution" --force 2>/dev/null || true
+            # Open the PR as a draft for manual resolution.
             gh pr create --base "$BASE" --head "$HEAD" --title "$TITLE" --body-file pr_body.md \
               --draft --label needs-manual-resolution
           else
