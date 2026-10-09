@@ -6,6 +6,7 @@ on:
     branches:
       - develop
       - "release/**"
+      - ethanwee1-therock-ci-e2e-base
     types:
       - opened
       - reopened
@@ -64,7 +65,9 @@ jobs:
           fi
 
           base_ref="$(jq -r '.base.ref' <<< "${pr_json}")"
-          if [[ "${base_ref}" != "develop" && "${base_ref}" != release/* ]]; then
+          if [[ "${base_ref}" != "develop" &&
+                "${base_ref}" != release/* &&
+                "${base_ref}" != "ethanwee1-therock-ci-e2e-base" ]]; then
             echo "::error::Unsupported base branch: ${base_ref}"
             exit 1
           fi
