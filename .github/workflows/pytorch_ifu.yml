@@ -185,7 +185,7 @@ jobs:
           fi
 
           # If a PR for this head already exists, skip creating a new one
-          if gh pr list --head "$HEAD" --base "$BASE" --state all --json number | grep -q '[0-9]'; then
+          if gh pr list --head "$HEAD" --base "$BASE" --state open --json number | grep -q '[0-9]'; then
             echo "PR already exists for $HEAD -> $BASE. Skipping creation."
             exit 0
           fi
