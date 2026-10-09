@@ -83,6 +83,87 @@ class FailureReportingTest(unittest.TestCase):
         self.assertIn("CONSISTENT_FAILURE", markdown)
         self.assertNotIn("No failed tests found.", markdown)
 
+    def test_whole_file_log_failure_dropped_when_named_failure_exists(self):
+        xml_failed = [{
+            "arch": "mi200",
+            "test_config": "default",
+            "test_file": "cpp.test_api",
+            "test_class": "test_api",
+            "test_name": "RNNTest.BidirectionalLSTMReverseForward_CUDA",
+        }]
+        whole_file = {
+            "arch": "mi200",
+            "platform": "rocm",
+            "test_config": "default",
+            "test_file": "cpp/test_api",
+            "job_shard": "1/10",
+            "test_shard": "1/1",
+            "status": "FAILED",
+            "category": "FAILED",
+            "reason": "",
+        }
+
+        promoted = collect_log_failed_tests(
+            [whole_file], xml_failed, "mi200")
+
+        self.assertEqual(promoted, [])
+
+    def test_whole_file_log_failure_kept_without_named_failure(self):
+        whole_file = {
+            "arch": "mi200",
+            "platform": "rocm",
+            "test_config": "default",
+            "test_file": "cpp/test_api",
+            "job_shard": "1/10",
+            "test_shard": "1/1",
+            "status": "FAILED",
+            "category": "FAILED",
+            "reason": "",
+        }
+        other_file_failure = {
+            "arch": "mi200",
+            "test_config": "default",
+            "test_file": "inductor.test_torchinductor_opinfo_properties",
+            "test_class": "TestOpInfoPropertiesCUDA",
+            "test_name": (
+                "test_unary_ufunc_numerical_exp_backend_inductor_default_cuda_float32"
+            ),
+        }
+
+        promoted = collect_log_failed_tests(
+            [whole_file], [other_file_failure], "mi200")
+
+        self.assertEqual(len(promoted), 1)
+        self.assertEqual(promoted[0]["test_file"], "cpp/test_api")
+        self.assertEqual(promoted[0]["test_name"], "")
+
+    def test_log_failure_matches_xml_row_with_qualified_class(self):
+        xml_failed = [{
+            "arch": "mi350",
+            "test_config": "distributed",
+            "test_file": "distributed.test_symmetric_memory",
+            "test_class": (
+                "test.distributed.test_symmetric_memory.SymmetricMemoryTest"
+            ),
+            "test_name": "test_rendezvous_after_strict_subgroup",
+        }]
+        consistent = {
+            "arch": "mi350",
+            "platform": "rocm",
+            "test_config": "distributed",
+            "test_file": "distributed/test_symmetric_memory",
+            "job_shard": "1/2",
+            "test_shard": "1/1",
+            "status": "FAILED_CONSISTENTLY",
+            "category": "CONSISTENT_FAILURE",
+            "reason": "SymmetricMemoryTest::test_rendezvous_after_strict_subgroup",
+        }
+
+        promoted = collect_log_failed_tests(
+            [consistent], xml_failed, "mi350")
+
+        self.assertEqual(promoted, [])
+
 
 if __name__ == "__main__":
     unittest.main()
