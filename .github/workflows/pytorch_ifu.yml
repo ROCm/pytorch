@@ -193,7 +193,7 @@ jobs:
           if [ "${MERGE_STATUS}" = "conflict" ]; then
             # Open the PR as a draft for manual resolution.
             gh pr create --base "$BASE" --head "$HEAD" --title "$TITLE" --body-file pr_body.md \
-              --draft --label needs-manual-resolution
+              --draft --label needs-manual-resolution --assignee pablo-garay,jithunnair-amd
           else
             gh pr create --base "$BASE" --head "$HEAD" --title "$TITLE" --body-file pr_body.md
           fi
