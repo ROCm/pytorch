@@ -71,6 +71,8 @@ from ..scheduler import (
 from ..shape_propagation import get_broadcasted_shape
 from ..stream_utils import get_raw_stream_name
 from ..utils import (
+    _descriptor_shape_fits_in_int32,
+    _TDM_SUPPORTED_DTYPES,
     _TMA_SUPPORTED_DTYPES,
     cache_on_self,
     DelayReplaceLine,
@@ -88,6 +90,7 @@ from ..utils import (
     triton_type,
     triton_version_uses_attrs_dict,
     upcast_compute_type,
+    use_gfx1250_descriptor_codegen,
 )
 from ..virtualized import _ops as ops, ReductionType, StoreMode, V
 from ..wrapper_benchmark import get_kernel_category_by_source_code
@@ -2785,9 +2788,28 @@ class TMACompatibilityChecker:
     force: bool
     # Inductor buffer name being loaded from / stored to.
     buffer_name: str | None = None
+    # Compilation- and device-scoped; see _gfx1250_capable.
+    _gfx1250_cache: tuple[torch.device, bool] | None = dataclasses.field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self):
         self.failed_debug_prefix = "Cannot use TMA descriptor for load / store since: "
+
+    def _gfx1250_capable(self, device: torch.device) -> bool:
+        """Cache the gfx1250 descriptor probe for this checker only.
+
+        ``_gfx1250_device_prereqs`` is deliberately not memoized process-wide, so
+        a transient device-property failure cannot disable TDM everywhere.
+        Re-probes on a device change rather than assuming one checker cannot
+        span devices.
+        """
+        cached = self._gfx1250_cache
+        if cached is not None and cached[0] == device:
+            return cached[1]
+        capable = use_gfx1250_descriptor_codegen(device)
+        self._gfx1250_cache = (device, capable)
+        return capable
 
     # Also see Note: TMA API Restrictions for the below
     def can_use_tma(
@@ -2795,24 +2817,37 @@ class TMACompatibilityChecker:
     ) -> bool:
         if self.force:
             return True
-        if not (
+
+        device = V.graph.get_current_device_or_throw()
+        device_type = device.type
+        # Probe gfx1250 first: ROCm devices also have device_type == "cuda".
+        # The cached result avoids an uncached CUDA capability query below.
+        # Capability skips the conjunct below, including use_tensor_descriptor
+        # and has_triton_stable_tma_api(). That is safe because
+        # use_gfx1250_descriptor_codegen establishes the same ground itself, not
+        # because those checks would have failed: it requires
+        # use_tensor_descriptor and assume_aligned_inputs, and its device probe
+        # requires ROCm >= 7.14, gfx1250, and has_triton_amd_tdm_device, which
+        # imports the same triton.language.make_tensor_descriptor.
+        gfx1250_capable = self._gfx1250_capable(device)
+        if not gfx1250_capable and not (
             (
                 (
-                    V.graph.get_current_device_or_throw().type == "cuda"
+                    device_type == "cuda"
+                    and torch.version.hip is None
                     and torch.cuda.get_device_capability()[0] >= 9
                     and config.assume_aligned_inputs
                 )
-                or V.graph.get_current_device_or_throw().type == "xpu"
+                or device_type == "xpu"
             )
             and config.triton.use_tensor_descriptor
             and has_triton_stable_tma_api()
-            # For CUDA The base ptr needs to be aligned
         ):
             log.debug(
-                (
-                    "%s Requires triton>=3.4.0, a CUDA device with cc>=9.0 and"
-                    " `use_tensor_descriptor` and `assume_aligned_inputs` options enabled"
-                ),
+                "%s Requires use_tensor_descriptor=True and a supported backend: "
+                "CUDA cc>=9.0 with the stable descriptor API (upstream triton>=3.4.0) "
+                "and assume_aligned_inputs=True; XPU with the stable descriptor API; "
+                "or TDM-capable gfx1250 with ROCm>=7.14 and assume_aligned_inputs=True",
                 self.failed_debug_prefix,
             )
             return False
@@ -2828,11 +2863,15 @@ class TMACompatibilityChecker:
             )
             return False
 
-        if self.dtype not in _TMA_SUPPORTED_DTYPES:
+        supported_dtypes = (
+            _TDM_SUPPORTED_DTYPES if gfx1250_capable else _TMA_SUPPORTED_DTYPES
+        )
+        if self.dtype not in supported_dtypes:
             log.debug(
-                "%s dtype %s has no CUtensorMapDataType mapping.",
+                "%s dtype %s is not in %s.",
                 self.failed_debug_prefix,
                 self.dtype,
+                supported_dtypes,
             )
             return False
 
@@ -2848,6 +2887,7 @@ class TMACompatibilityChecker:
         If force, we allow relying on symbolic hints equivalent
         to what we check for Triton templates.
         """
+        device = V.graph.get_current_device_or_throw()
         if self.force:
             strides = [
                 V.graph.sizevars.replace_backed_symbols_with_hints(st)
@@ -2859,6 +2899,48 @@ class TMACompatibilityChecker:
         else:
             strides = block_params.strides
             constant_offset_expr = sympy.sympify(constant_offset)
+
+        # Scope these shared descriptor constraints to the new gfx1250 path
+        # to preserve CUDA/XPU eligibility. Rank 1-5 is a Triton descriptor
+        # API limit, also enforced by the dense path's _is_tma_compatible.
+        # Without force, symbolic int32 bounds must already be provable; an
+        # in-range hint alone is not enough.
+        if self._gfx1250_capable(device):
+            # Resolve backed shape hints only where the TDM range check uses them.
+            # Without force, still expand precomputed sizes: BlockDescriptorOptions
+            # .create rewrites a composite extent such as s0*s1 into an opaque ps0
+            # that has no ShapeEnv range, so the bound below would fail to prove
+            # even when both factors are bounded. The force path already expands
+            # these inside replace_backed_symbols_with_hints.
+            shape = (
+                [
+                    V.graph.sizevars.replace_backed_symbols_with_hints(sz)
+                    for sz in block_params.shape
+                ]
+                if self.force
+                else [
+                    (
+                        V.graph.sizevars.remove_precomputed_replacements(sz)
+                        if isinstance(sz, sympy.Expr)
+                        else sz
+                    )
+                    for sz in block_params.shape
+                ]
+            )
+            if not 1 <= len(shape) <= 5:
+                log.debug(
+                    "%s TDM descriptors require rank between 1 and 5. Shape is: %s",
+                    self.failed_debug_prefix,
+                    shape,
+                )
+                return False
+            if not _descriptor_shape_fits_in_int32(shape):
+                log.debug(
+                    "%s TDM descriptor dimensions must fit in int32. Shape is: %s",
+                    self.failed_debug_prefix,
+                    shape,
+                )
+                return False
 
         # The TMA API requires that the innermost stride is 1
         # and that the outer strides are 16 byte aligned
@@ -2951,7 +3033,6 @@ class TMACompatibilityChecker:
         # and in that case we should fall back to the generic analysis below.
         if (
             self.kernel.persistent_reduction
-            and not self.for_store
             and innermost_block_symt in TritonSymbols.reduction_types
         ):
             # For a discontiguous tensor, a 1D block will be split across several
@@ -2986,7 +3067,7 @@ class TMACompatibilityChecker:
                 innermost_block_bytes, sympy.Integer(16)
             ):
                 log.debug(
-                    "%s persistent reduction innermost block shape cannot load 16 bytes. Block shape: %s, persistent RBLOCK: %d",
+                    "%s persistent reduction innermost block shape cannot transfer 16 bytes. Block shape: %s, persistent RBLOCK: %d",
                     self.failed_debug_prefix,
                     block_params.block_shape,
                     persistent_rblock,
@@ -3032,6 +3113,38 @@ class TMACompatibilityChecker:
                         "%s the minimum block size to satisfy expression %s is too large: %d",
                         self.failed_debug_prefix,
                         solve_expr_simplified,
+                        min_block_size,
+                    )
+                    return False
+
+                # When no_x_dim is True, XBLOCK is fixed at 1. TMA cannot
+                # be used if the innermost block is XBLOCK and the minimum
+                # required size exceeds 1.
+                if (
+                    self.kernel.no_x_dim
+                    and innermost_block_symt == SymT.XBLOCK
+                    and min_block_size > 1
+                ):
+                    log.debug(
+                        "%s no_x_dim kernel has XBLOCK fixed at 1 but TMA requires min block size %d",
+                        self.failed_debug_prefix,
+                        min_block_size,
+                    )
+                    return False
+
+                # In combo kernels without per-subkernel blocks, XBLOCK is
+                # shared and may be forced to 1 by a sibling sub-kernel.
+                # Reject TMA when the innermost block is XBLOCK since we
+                # cannot guarantee it will meet the 16-byte minimum.
+                if (
+                    self.kernel.is_combo_kernel
+                    and not self.kernel.per_subkernel_blocks
+                    and innermost_block_symt == SymT.XBLOCK
+                    and min_block_size > 1
+                ):
+                    log.debug(
+                        "%s combo kernel with shared XBLOCK cannot guarantee TMA min block size %d",
+                        self.failed_debug_prefix,
                         min_block_size,
                     )
                     return False
