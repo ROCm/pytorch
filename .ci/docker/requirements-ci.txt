@@ -373,9 +373,9 @@ parameterized==0.8.1
 #Pinned versions: 1.24.0
 #test that import: test_sac_estimator.py
 
-pwlf==2.2.1
+pwlf==2.6.0
 #Description: required for testing torch/distributed/_tools/sac_estimator.py
-#Pinned versions: 2.2.1
+#Pinned versions: 2.6.0
 #test that import: test_sac_estimator.py
 
 # To build PyTorch itself
