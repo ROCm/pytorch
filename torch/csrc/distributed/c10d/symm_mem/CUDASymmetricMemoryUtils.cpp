@@ -72,7 +72,7 @@ IpcChannel::~IpcChannel() {
 }
 
 void IpcChannel::send_fd(int dst_pid, int fd) {
-  // Because file descriptors are process-local kernel objects, and we can’t
+  // Because file descriptors are process-local kernel objects, and we can't
   // pass them via normal socket payloads (like write() or send()).  Unix domain
   // sockets provide a mechanism to pass actual FDs via sendmsg()/recvmsg().
   // Define destination socket address
