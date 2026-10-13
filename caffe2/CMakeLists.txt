@@ -1536,7 +1536,7 @@ if(USE_ROCM)
         endforeach()
       endif()
 
-        target_link_libraries(torch_hip PRIVATE torch_rocshmem)
+      target_link_libraries(torch_hip PRIVATE torch_rocshmem)
 
       install(TARGETS torch_rocshmem EXPORT Caffe2Targets DESTINATION
         "${TORCH_INSTALL_LIB_DIR}")
