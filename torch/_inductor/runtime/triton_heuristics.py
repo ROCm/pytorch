@@ -4376,6 +4376,33 @@ def _maybe_filter_configs_for_tma_restrictions(
     return configs
 
 
+def _apply_tuning_list(
+    category, size_hints, configs, make_config, triton_meta, inductor_meta
+):
+    """Fold any caller-supplied candidates into the list the heuristic generated.
+
+    Gated per category rather than by one rule, because the categories differ in what
+    there is to gate. The reductions sit at a single candidate unless max-autotune is on,
+    so a supplied list waits for the flag that already means "I will pay cold-build time".
+    Pointwise autotunes either way, so there is nothing for a flag to decide.
+    """
+    if category != "pointwise" and not (
+        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    ):
+        return configs
+
+    from torch._inductor import tuning_list
+
+    return tuning_list.apply(
+        category,
+        size_hints,
+        configs,
+        make_config,
+        device=triton_meta.get("device"),
+        kernel_name=inductor_meta.get("kernel_name"),
+    )
+
+
 def pointwise(
     size_hints,
     triton_meta: TritonMeta,
@@ -4436,6 +4463,15 @@ def pointwise(
         hinted_configs,
         tile_hint=tile_hint,
         inductor_meta=inductor_meta,
+    )
+
+    configs = _apply_tuning_list(
+        "pointwise",
+        size_hints,
+        configs,
+        triton_config_with_settings,
+        triton_meta,
+        inductor_meta,
     )
 
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)

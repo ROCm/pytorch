@@ -3032,6 +3032,16 @@ class lookup_table:
     check_src_hash: bool = True
 
 
+class tuning_list:
+    # Caller-supplied Triton configuration candidates for codegen kernels, keyed by
+    # "<category>/<arity>" with an optional "<device>+" prefix taking priority, e.g.
+    # "gfx950+pointwise/1" then "pointwise/1". Category is pointwise, reduction or
+    # persistent_reduction; arity is len(size_hints), which is what the compiler already
+    # dispatches on. Each value is {"configs": [...], "mode": "append" | "replace"}.
+    # See torch/_inductor/tuning_list/README.md for the schema and the precedence rules.
+    table: dict[str, dict[str, Any]] | None = None
+
+
 class test_configs:
     force_extern_kernel_in_multi_template: bool = False
 
