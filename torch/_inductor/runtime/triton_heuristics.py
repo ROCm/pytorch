@@ -4376,21 +4376,45 @@ def _maybe_filter_configs_for_tma_restrictions(
     return configs
 
 
+def _make_reduction_config(size_hints, *blocks, warp_size, **knobs):
+    """Build a reduction candidate, tiled when the kernel has a y axis."""
+    if len(blocks) == 3:
+        return triton_config_tiled_reduction(
+            size_hints, *blocks, warp_size=warp_size, **knobs
+        )
+    return triton_config_reduction(size_hints, *blocks, warp_size=warp_size, **knobs)
+
+
+def _make_persistent_reduction_config(size_hints, *blocks, warp_size, **knobs):
+    """Build a persistent reduction candidate the way get_persistent_configs does.
+
+    The reduction extent is not a block size to choose here. A persistent kernel spans it
+    whole and then drops it from the config, so it comes from size_hints and is popped
+    again, leaving a supplied candidate shaped like a generated one.
+    """
+    config = _make_reduction_config(
+        size_hints,
+        *blocks,
+        get_total_reduction_numel(size_hints),
+        warp_size=warp_size,
+        **knobs,
+    )
+    for prefix in size_hints:
+        if prefix_is_reduction(prefix):
+            config.kwargs.pop(f"{prefix.upper()}BLOCK", None)
+    return config
+
+
 def _apply_tuning_list(
     category, size_hints, configs, make_config, triton_meta, inductor_meta
 ):
     """Fold any caller-supplied candidates into the list the heuristic generated.
 
-    Gated per category rather than by one rule, because the categories differ in what
-    there is to gate. The reductions sit at a single candidate unless max-autotune is on,
-    so a supplied list waits for the flag that already means "I will pay cold-build time".
-    Pointwise autotunes either way, so there is nothing for a flag to decide.
+    Deliberately not gated on max-autotune. Supplying a list is already the decision to
+    spend build time on it, and asking for the flag as well would make a caller state
+    that twice; the lookup table for templated kernels is orthogonal to the flag for the
+    same reason.
     """
-    if category != "pointwise" and not (
-        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
-    ):
-        return configs
-
     from torch._inductor import tuning_list
 
     return tuning_list.apply(
@@ -4721,6 +4745,18 @@ def reduction(
         num_dynamic=num_dynamic,
     )
 
+    configs = _apply_tuning_list(
+        "reduction",
+        size_hints,
+        configs,
+        functools.partial(
+            _make_reduction_config,
+            warp_size=triton_meta["device"].warp_size_or_default,
+        ),
+        triton_meta,
+        inductor_meta,
+    )
+
     configs = _maybe_filter_configs_for_tma_restrictions(inductor_meta, configs)
     configs = filter_reduction_configs_for_determinism(inductor_meta, configs)
 
@@ -4825,6 +4861,18 @@ def persistent_reduction(
 
     configs = _persistent_reduction_configs(
         size_hints, reduction_hint, inductor_meta, triton_meta
+    )
+
+    configs = _apply_tuning_list(
+        "persistent_reduction",
+        size_hints,
+        configs,
+        functools.partial(
+            _make_persistent_reduction_config,
+            warp_size=triton_meta["device"].warp_size_or_default,
+        ),
+        triton_meta,
+        inductor_meta,
     )
 
     # This key is not added to the inductor meta as its clear from the heuristic

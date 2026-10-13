@@ -26,14 +26,11 @@ log = logging.getLogger(__name__)
 
 __all__ = ["apply", "lookup"]
 
-# Block sizes are passed positionally to the config constructors, in this order, so a
-# supplied entry names them rather than relying on the caller to order them. "r0_" covers
-# the reduction extent under either of the names size_hints uses for it.
-BLOCK_ARGS: dict[str, tuple[str, ...]] = {
-    "pointwise": ("XBLOCK", "YBLOCK", "ZBLOCK"),
-    "reduction": ("XBLOCK", "R0_BLOCK"),
-    "persistent_reduction": ("XBLOCK", "R0_BLOCK"),
-}
+# A kernel's axes, in the order every config constructor takes them positionally. An
+# entry names its block sizes rather than ordering them, so which ones a kernel wants
+# follows from its size_hints instead of from a table that could disagree with them.
+AXIS_ORDER = ("x", "y", "z", "r0_", "r1_")
+REDUCTION_AXES = ("r0_", "r1_")
 
 # Everything else a supplied entry may carry. These reach the constructor as keywords, so
 # the set is deliberately narrow: an unknown key is a caller mistake, not a stale config.
@@ -96,12 +93,26 @@ def lookup(
     return None
 
 
-def _split(category: str, supplied: Any, key: str) -> tuple[list[int], dict[str, Any]]:
+def _block_names(category: str, size_hints: dict[str, int]) -> list[str]:
+    """The block sizes an entry for this kernel names, in constructor order.
+
+    Persistent reductions are the exception: they cover the whole reduction extent in one
+    block and drop it from the config afterwards, so their reduction axes are not the
+    caller's to choose.
+    """
+    axes = [a for a in AXIS_ORDER if a in size_hints]
+    if category == "persistent_reduction":
+        axes = [a for a in axes if a not in REDUCTION_AXES]
+    return [f"{a.upper()}BLOCK" for a in axes]
+
+
+def _split(
+    category: str, names: list[str], supplied: Any, key: str
+) -> tuple[list[int], dict[str, Any]]:
     """Separate a supplied entry into positional block sizes and keyword knobs.
 
-    Raises on anything the table itself got wrong. Block sizes must be positive integers
-    and must be contiguous from the first axis, because that is how the constructors take
-    them; a gap would silently shift a value onto the wrong axis.
+    Raises on anything the table itself got wrong: an entry filed under a key names every
+    block size that key's kernels take, and nothing else.
     """
     if not isinstance(supplied, dict):
         raise InvalidTuningList(
@@ -109,35 +120,35 @@ def _split(category: str, supplied: Any, key: str) -> tuple[list[int], dict[str,
             "of block sizes and knobs"
         )
 
-    names = BLOCK_ARGS[category]
     unknown = set(supplied) - set(names) - KNOB_ARGS[category]
     if unknown:
+        extra = ""
+        if category == "persistent_reduction" and any(
+            n.startswith(("R0_", "R1_")) for n in unknown
+        ):
+            extra = (
+                ". A persistent reduction spans its whole reduction extent in one block, "
+                "so the compiler sets that one"
+            )
         raise InvalidTuningList(
             f"tuning_list entry {key!r} carries {sorted(unknown)}, which {category} does "
-            f"not accept. Block sizes are {list(names)}; knobs are "
-            f"{sorted(KNOB_ARGS[category])}"
+            f"not accept. Block sizes are {names}; knobs are "
+            f"{sorted(KNOB_ARGS[category])}{extra}"
         )
 
     blocks = []
     for name in names:
         if name not in supplied:
-            break
+            raise InvalidTuningList(
+                f"tuning_list entry {key!r} does not name {name}; kernels under this key "
+                f"take {names}"
+            )
         value = supplied[name]
         if not isinstance(value, int) or isinstance(value, bool) or value <= 0:
             raise InvalidTuningList(
                 f"tuning_list entry {key!r} has {name}={value!r}, expected a positive int"
             )
         blocks.append(value)
-    if not blocks:
-        raise InvalidTuningList(
-            f"tuning_list entry {key!r} names no block size; expected at least {names[0]}"
-        )
-    missing = [n for n in names[len(blocks) :] if n in supplied]
-    if missing:
-        raise InvalidTuningList(
-            f"tuning_list entry {key!r} gives {missing} without the block sizes before "
-            f"them; {category} takes {list(names)} in order"
-        )
 
     return blocks, {k: v for k, v in supplied.items() if k not in names}
 
@@ -160,12 +171,13 @@ def apply(
     if entry is None:
         return configs
 
+    names = _block_names(category, size_hints)
     supplied = []
     for one in entry["configs"]:
-        blocks, knobs = _split(category, one, entry["key"])
+        blocks, knobs = _split(category, names, one, entry["key"])
         try:
             supplied.append(make_config(size_hints, *blocks, **knobs))
-        except Exception as exc:  # noqa: BLE001 - a failure here is about this kernel's shape
+        except Exception as exc:  # noqa: BLE001
             # A list fitted on one corpus meets kernels it was not fitted on, so a config
             # that will not build for this shape is expected rather than exceptional.
             log.warning(
