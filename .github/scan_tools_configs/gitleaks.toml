@@ -1,19 +1,20 @@
+# Copyright Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: MIT
+#
 # gitleaks.toml
 # Reference: https://github.com/gitleaks/gitleaks/blob/master/config/gitleaks.toml
+# Local scan: gitleaks detect --source . --config .github/scan_tools_configs/gitleaks.toml
 #
-# The default for repositories that ship no gitleaks config of their
-# own. A repository that ships one replaces this file wholesale rather
-# than layering onto it, so suppressions that belong to a single
-# repository belong in that repository's `gitleaks.toml` and
-# `.gitleaksignore`, not here. What goes here is what should hold for a
-# repository that has said nothing.
+# Gitleaks configuration for this repository's security scans.
 #
-# Within a scan, the layering is:
-#   * the `[[allowlists]]` below, applying to every rule.
-#   * `.gitleaksignore` at the scanned repo's root, carrying one-off
-#     fingerprint suppressions for historical findings that don't fit
-#     a structural rule. Keep that file shrinking; move recurring
-#     patterns up into a config when you see them.
+# This file defines the repository's complete Gitleaks policy. Recurring
+# exclusions belong in this file.
+#
+# The `[extend]` section inherits Gitleaks' built-in rules, and the
+# `[[allowlists]]` below apply to every rule.
+#
+# Use `.gitleaksignore` for one-off finding fingerprints. Add recurring path
+# or regex exclusions to `[[allowlists]]` in this file.
 
 title = "gitleaks config"
 
@@ -52,45 +53,19 @@ regexTarget = "match"
 regexes = [
   '''(?i)\bINVALID_TOKEN\s*=''',
   '''(?i)\bwrong_secret\s*=''',
-  '''(?i)\bsecret\s*='''
+  # Explicit test-only secret identifiers
+  '''(?i)\btest_secret\s*=''',
+  '''(?i)\bdummy_secret\s*=''',
+  '''(?i)\bfake_secret\s*=''',
+  '''(?i)\bexample_secret\s*='''
 ]
 
 [[allowlists]]
 description = "Public artifact digests (variable names ending in SHA256/512/MD5)"
-# SHA-256/512/MD5 hashes of public artifacts (tarballs, GPG keys,
-# mirrored binaries) are not secrets - they're one-way digests used
-# for integrity verification. Match by variable name (against the
-# whole line) so we don't broadly allowlist every 64-char hex string.
+# SHA-256/512/MD5 hashes of public artifacts are not secrets.
 regexTarget = "line"
 regexes = [
   '''[A-Z][A-Z0-9_]*SHA256\s*[=:]''',
   '''[A-Z][A-Z0-9_]*SHA512\s*[=:]''',
   '''[A-Z][A-Z0-9_]*MD5\s*[=:]''',
-]
-
-# ---------------------------------------------------------------------------
-# `generic-api-key` fires on any high-entropy value sitting near a word like
-# "key" or "token". Across this tree those words are almost always part of a
-# tensor or kernel parameter name, so the entries below anchor on the shape of
-# the value rather than on file paths -- a real credential in the same files is
-# still reported.
-# ---------------------------------------------------------------------------
-
-[[allowlists]]
-description = "Python keyword arguments"
-# `src_key_padding_mask=src_key_padding_mask` and
-# `lower_symint=_lower_symint_divisor`: a call site forwarding a name, where
-# the `key` in the parameter name is what draws the rule.
-regexes = [
-  '''^[a-z_][a-z0-9_]*=[a-z_][a-z0-9_]*$''',
-]
-
-[[allowlists]]
-description = "snake_case scheme and variant identifiers"
-# `classifier_key="nvgemm_efc_partition_v1"` names a partitioning scheme.
-# Each underscore-separated segment is a short word, and at least one
-# separator is required, so an unbroken lowercase token (hex digests, a
-# lowercased API key) does not qualify.
-regexes = [
-  '''^[a-z][a-z0-9]{0,11}(?:_[a-z0-9]{1,12}){1,5}$''',
 ]
