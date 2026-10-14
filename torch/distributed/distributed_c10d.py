@@ -7596,10 +7596,14 @@ def _validate_and_process_excluded_ranks(
 
 
 def _finalize_shrunk_group(
+<<<<<<< HEAD
     group_info: _ShrinkGroupInfo,
     excluded_ranks_set: set[int],
     new_backend: C10DBackend,
     shrink_flags: int,
+=======
+    group_info: dict, excluded_ranks_set: set, new_backend, shrink_flags: int
+>>>>>>> d0a965607c5 ([release/2.13] Fix shrink_group(SHRINK_ABORT) hang by aborting the parent group instead of destroying it (#194775) (#3811))
 ) -> ProcessGroup:
     """Clean up old group and create new shrunk process group."""
     target_pg = group_info["process_group"]
