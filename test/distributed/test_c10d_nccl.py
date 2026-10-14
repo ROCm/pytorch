@@ -673,13 +673,19 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     def _helper_test_extra_cuda_context_by_nvml(self):
         """
-        A helper for `test_extra_cuda_context`, if pynvml is available.
-        pynvml provides python bindings for NVIDIA NVML functionalities.
-        Here we are interested in: nvmlDeviceGetComputeRunningProcesses
+        A helper for `test_extra_cuda_context`, if pynvml (CUDA) or amdsmi (ROCm)
+        is available. They provide python bindings for NVML / AMD SMI.
+        Here we are interested in: nvmlDeviceGetComputeRunningProcesses /
+        amdsmi_get_gpu_process_list
         """
-        import pynvml
+        if torch.version.hip:
+            # Raises ModuleNotFoundError if amdsmi is not available.
+            handle = torch.cuda._get_amdsmi_handler(self.rank)
+            import amdsmi
+        else:
+            import pynvml
 
-        pynvml.nvmlInit()
+            pynvml.nvmlInit()
 
         device = torch.device(f"cuda:{self.rank:d}")
         x = torch.empty((1,), device=device)
@@ -690,8 +696,11 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         if self.rank == 0:
             time.sleep(5)
         del work
-        handle = pynvml.nvmlDeviceGetHandleByIndex(self.rank)
-        processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        if torch.version.hip:
+            processes = amdsmi.amdsmi_get_gpu_process_list(handle)
+        else:
+            handle = pynvml.nvmlDeviceGetHandleByIndex(self.rank)
+            processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
         nprocs = len(processes)
 
         # A barrier for non-0 ranks
@@ -709,6 +718,12 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         A helper for `test_extra_cuda_context`, if pynvml is NOT available.
         If extra context is created, it would manifest into device 0's memory usage.
         """
+        if torch.version.hip:
+            raise SkipTest(
+                "Requires amdsmi on ROCm: an extra HIP context uses almost no device "
+                "memory, while the first RCCL kernel launch allocates ~1 GB of scratch "
+                "on the rank's own device, so memory growth cannot detect it."
+            )
         device = torch.device(f"cuda:{self.rank:d}")
         x = torch.empty((1,), device=device)
         # Rank 0 takes a snapshot before collective -- this snapshot should have
