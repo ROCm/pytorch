@@ -6113,6 +6113,12 @@ def shrink_group(
     Notes:
         - Only non-excluded ranks should call this function; excluded ranks
           must not participate in the shrink operation.
+        - With ``SHRINK_DEFAULT``, the healthy parent group is destroyed normally.
+          With ``SHRINK_ABORT``, the parent group is aborted on surviving ranks.
+          Excluded ranks that remain alive must also abort the parent group
+          (e.g. via ``_abort_process_group``). For NCCL, destruction is an
+          intra-node collective; mixing abort and destroy on the same
+          communicator can hang with NCCL >= 2.31.2.
         - Shrinking the default group destroys all other process groups since
           rank reassignment makes them inconsistent.
     """
@@ -6139,7 +6145,9 @@ def shrink_group(
 
     # Step 6: Handle cleanup and creation of new process group
     target_group_info["pg_options_override"] = pg_options
-    return _finalize_shrunk_group(target_group_info, excluded_ranks_set, new_backend)
+    return _finalize_shrunk_group(
+        target_group_info, excluded_ranks_set, new_backend, shrink_flags
+    )
 
 
 def _validate_shrink_inputs(ranks_to_exclude: list[int], shrink_flags: int) -> None:
@@ -6276,7 +6284,7 @@ def _validate_and_process_excluded_ranks(
 
 
 def _finalize_shrunk_group(
-    group_info: dict, excluded_ranks_set: set, new_backend
+    group_info: dict, excluded_ranks_set: set, new_backend, shrink_flags: int
 ) -> ProcessGroup:
     """Clean up old group and create new shrunk process group."""
     target_pg = group_info["process_group"]
@@ -6295,8 +6303,7 @@ def _finalize_shrunk_group(
         rank for rank in original_ranks if rank not in excluded_ranks_set
     ]
 
-    # Clean up the original group
-    _cleanup_original_group(target_pg, is_default_group)
+    _cleanup_original_group(target_pg, is_default_group, shrink_flags)
 
     # Create and configure the new process group
     new_pg = _create_shrunk_process_group(
@@ -6349,17 +6356,25 @@ def _extract_group_metadata(target_pg: ProcessGroup) -> dict:
     }
 
 
-def _cleanup_original_group(target_pg: ProcessGroup, is_default_group: bool) -> None:
+def _cleanup_original_group(
+    target_pg: ProcessGroup, is_default_group: bool, shrink_flags: int
+) -> None:
     """Clean up the original process group safely."""
     try:
-        destroy_process_group(target_pg)
+        # Excluded ranks abort the parent with SHRINK_ABORT. NCCL destroy is
+        # an intra-node collective, so surviving ranks must abort it too.
+        if shrink_flags & SHRINK_ABORT:
+            _abort_process_group(target_pg)
+        else:
+            destroy_process_group(target_pg)
     except Exception:
+        action = "abort" if shrink_flags & SHRINK_ABORT else "destroy"
         group_type = "default" if is_default_group else "non-default"
         logger.warning(
-            "Failed to destroy %s group during shrinking", group_type, exc_info=True
+            "Failed to %s %s group during shrinking", action, group_type, exc_info=True
         )
 
-    # Ensure global state cleanup even if destroy_process_group fails
+    # Ensure global state cleanup even if the destroy/abort above fails
     _cleanup_process_group_global_state(target_pg)
 
 
