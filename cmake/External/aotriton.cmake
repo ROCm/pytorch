@@ -51,6 +51,8 @@ if(NOT __AOTRITON_INCLUDED)
       "amd-gfx120x"
       "amd-gfx1250"
      )
+  # gfx1250-strict is not a separate AOTriton image; the amd-gfx1250 regex
+  # also matches gfx1250-strict in PYTORCH_ROCM_ARCH.
   set(__AOTRITON_IMAGE_SHA256_LIST
      "7cc293803aa73bd223554d51a77fab50fd37b0bdb9d5e874f7e2997f4390b9c5" # amd-gfx90a
      "eae5d36c974d974f085cfbdecf77760db71324fa9814ed50d8a3fc42bfbe3e41" # amd-gfx942
