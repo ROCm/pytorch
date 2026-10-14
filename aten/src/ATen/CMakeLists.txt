@@ -667,10 +667,11 @@ if(USE_ROCM)
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
   else()
-    # composable_kernel has no gfx1250 support yet, so its CK GEMM kernels fail to
-    # compile for that arch. Build CK GEMM as a separate library with gfx1250
-    # filtered out of HIP_ARCHITECTURES so every other requested arch still gets
-    # CK GEMM. Remove this filtering once the CK submodule supports gfx1250.
+    # composable_kernel has no gfx1250 or gfx1250-strict support yet, so its CK
+    # GEMM kernels fail to compile for those archs. Build CK GEMM as a separate
+    # library with them filtered out of HIP_ARCHITECTURES so every other
+    # requested arch still gets CK GEMM. Remove this filtering once the CK
+    # submodule supports gfx1250 and gfx1250-strict.
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
     set(_ck_gemm_hip_arches ${PYTORCH_ROCM_ARCH})
