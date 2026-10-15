@@ -1,6 +1,7 @@
 #include <ATen/ATen.h>
 #include <ATen/EmptyTensor.h>
 #include <ATen/core/Dict.h>
+#include <ATen/native/Resize.h>
 #ifdef USE_RPC
 #include <torch/csrc/distributed/rpc/rref_context.h>
 #endif
@@ -944,6 +945,21 @@ void Unpickler::rebuildSparseTensor() {
   });
 }
 
+namespace {
+
+// QUInt4x2 / QUInt2x4 store several logical elements in one byte, but
+// itemsize() is still 1. Scale a logical byte count down to the packed
+// storage size. Same adjustment as at::native::checkInBoundsForStorage.
+size_t applySubBytePacking(size_t logical_nbytes, size_t element_per_byte) {
+  if (element_per_byte <= 1) {
+    return logical_nbytes;
+  }
+  return logical_nbytes / element_per_byte +
+      (logical_nbytes % element_per_byte == 0 ? 0 : 1);
+}
+
+} // namespace
+
 void Unpickler::rebuildTensor(bool quantized) {
   globals_.emplace_back([this, quantized] {
     auto tup = pop(stack_).toTuple();
@@ -1006,15 +1022,25 @@ void Unpickler::rebuildTensor(bool quantized) {
     }
     const size_t itemsize = storage_tensor.dtype().itemsize();
     const size_t storage_nbytes = storage_tensor.storage().nbytes();
+    // Sub-byte quantized dtypes pack multiple logical elements per byte.
+    // Tensor.set_() divides the logical byte estimate by that factor in
+    // checkInBoundsForStorage; do the same here. Otherwise a contiguous
+    // quint4x2 tensor of shape [N, K] (storage of ceil(N*K/2) bytes) is
+    // rejected because N*K*itemsize exceeds the packed storage.
+    const size_t element_per_byte = static_cast<size_t>(
+        at::native::subByteElementPerByte(storage_tensor.dtype()));
     // Bound storage_offset independently: computeStorageNbytes returns 0 when
     // any dim is 0, so without this check a zero-numel tensor with a huge
     // offset would slip past the combined check and later operations
     // (reshape/resize_) could dereference out-of-bounds memory.
     size_t offset_nbytes = 0;
+    const bool offset_overflowed = c10::mul_overflows(
+        static_cast<size_t>(storage_offset), itemsize, &offset_nbytes);
+    if (!offset_overflowed) {
+      offset_nbytes = applySubBytePacking(offset_nbytes, element_per_byte);
+    }
     TORCH_CHECK(
-        !c10::mul_overflows(
-            static_cast<size_t>(storage_offset), itemsize, &offset_nbytes) &&
-            offset_nbytes <= storage_nbytes,
+        !offset_overflowed && offset_nbytes <= storage_nbytes,
         "Tensor: storage offset ",
         storage_offset,
         " is out of bounds for storage of size ",
@@ -1022,8 +1048,10 @@ void Unpickler::rebuildTensor(bool quantized) {
         " bytes (itemsize ",
         itemsize,
         ")");
-    const size_t required_nbytes = at::detail::computeStorageNbytes(
-        size, stride, itemsize, static_cast<size_t>(storage_offset));
+    const size_t required_nbytes = applySubBytePacking(
+        at::detail::computeStorageNbytes(
+            size, stride, itemsize, static_cast<size_t>(storage_offset)),
+        element_per_byte);
     TORCH_CHECK(
         required_nbytes == 0 || required_nbytes <= storage_nbytes,
         "Tensor: sizes ",
