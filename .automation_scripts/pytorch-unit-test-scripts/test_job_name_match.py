@@ -20,7 +20,11 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
 
         self.assertNotIn("navi31", rocm)
         self.assertEqual(
-            rocm["rx7900"],
+            {
+                key: value
+                for key, value in rocm["rx7900"].items()
+                if key != "arch_aliases"
+            },
             {
                 "default": [{
                     "workflow": "rocm-rx7900",

@@ -1,5 +1,7 @@
 import importlib.machinery
 import importlib.util
+import base64
+import json
 import os
 import sys
 import tempfile
@@ -530,6 +532,79 @@ class LogShardTotalsTest(unittest.TestCase):
             ("cuda_dist10.txt", "cuda_dist"),
         ):
             self.assertEqual(_shard_total_key(name), key)
+
+
+class RuntimeTopologyTest(unittest.TestCase):
+    def test_encoded_auto_trigger_manifest_is_loaded_without_api_calls(self):
+        manifest = {
+            "version": 1,
+            "sha": "a" * 40,
+            "cuda": {
+                "inductor": {
+                    "run_id": 123,
+                    "total": 2,
+                    "kind": "test",
+                    "prefix": "cuda",
+                    "job_ids": [1, 2],
+                }
+            },
+            "rocm": {},
+            "missing": [],
+        }
+        encoded = base64.b64encode(json.dumps(manifest).encode()).decode()
+
+        with mock.patch.object(
+            dtl, "get_check_runs_for_commit"
+        ) as get_check_runs:
+            loaded = dtl._load_or_discover_topology("a" * 40, encoded)
+
+        self.assertEqual(loaded, manifest)
+        get_check_runs.assert_not_called()
+
+    def test_encoded_manifest_sha_mismatch_fails_closed(self):
+        manifest = {
+            "version": 1,
+            "sha": "b" * 40,
+            "cuda": {},
+            "rocm": {},
+        }
+        encoded = base64.b64encode(json.dumps(manifest).encode()).decode()
+
+        with self.assertRaisesRegex(RuntimeError, "SHA does not match"):
+            dtl._load_or_discover_topology("a" * 40, encoded)
+
+    def test_enabled_manifest_role_is_required(self):
+        args = SimpleNamespace(
+            exclude_default=False,
+            exclude_distributed=True,
+            exclude_inductor=True,
+            no_cuda=False,
+            no_rocm=True,
+        )
+
+        with self.assertRaisesRegex(RuntimeError, "enabled CUDA default"):
+            dtl._validate_enabled_topology(
+                {"version": 1, "sha": "a" * 40, "cuda": {}, "rocm": {}},
+                "mi350",
+                args,
+            )
+
+    def test_discovered_run_id_is_used_directly(self):
+        old = dtl.RESOLVED_TOPOLOGY
+        self.addCleanup(setattr, dtl, "RESOLVED_TOPOLOGY", old)
+        dtl.RESOLVED_TOPOLOGY = {
+            "version": 1,
+            "cuda": {"inductor": {"run_id": 456}},
+            "rocm": {},
+        }
+
+        with mock.patch.object(
+            dtl, "get_run_by_id", return_value={"id": 456}
+        ) as get_run:
+            result = dtl._resolved_run("cuda", "inductor")
+
+        self.assertEqual(result, {"id": 456})
+        get_run.assert_called_once_with(456)
 
 
 if __name__ == "__main__":
