@@ -1137,7 +1137,8 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         backend = pg._get_backend(device)
         opts = self.opts()
         opts.config.blocking = blocking
-        child = backend.split(c10d.distributed_c10d._get_default_store(), [0], opts)
+        # dist.split_group requires a bound device, which eagerly inits the parent.
+        child = pg.split_group([0], opts=opts)
         self.assertEqual(backend._is_initialized(), False)
         if self.rank == 0:
             tensor = torch.ones(1, device=device)
