@@ -10,7 +10,7 @@ import sys
 import tempfile
 import textwrap
 from contextlib import contextmanager, nullcontext
-from unittest import mock, skip, skipIf, skipUnless
+from unittest import mock, skipIf, skipUnless
 
 import torch
 import torch.distributed as dist
@@ -56,8 +56,6 @@ from torch.testing._internal.common_distributed import (
     skip_if_rocm_ver_lessthan_multiprocess,
 )
 from torch.testing._internal.common_utils import (
-    get_cycles_per_ms,
-    instantiate_parametrized_tests,
     get_cycles_per_ms,
     getRocmVersion,
     instantiate_parametrized_tests,
