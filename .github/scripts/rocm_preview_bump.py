@@ -106,8 +106,13 @@ def evaluate(
     python_version: str = "3.12",
 ) -> Evaluation:
     schema = _schema_version(data.get("schema_version"))
-    if schema is None or schema < MINIMUM_SCHEMA:
-        return _ineligible("Quartz schema must be at least 2.2", data)
+    if (
+        schema is None
+        or len(schema) < 2
+        or schema[0] != MINIMUM_SCHEMA[0]
+        or schema[1] < MINIMUM_SCHEMA[1]
+    ):
+        return _ineligible("Quartz schema must be compatible with 2.2", data)
     if isinstance(threshold, bool) or not isinstance(threshold, int) or threshold <= 0:
         return _ineligible("threshold must be a positive integer", data)
 

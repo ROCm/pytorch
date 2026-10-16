@@ -122,6 +122,8 @@ class TestEvaluate(unittest.TestCase):
         data = payload()
         data["schema_version"] = "2.1"
         self.assertFalse(evaluate(data, CURRENT_PIN).eligible)
+        data["schema_version"] = "3.0"
+        self.assertFalse(evaluate(data, CURRENT_PIN).eligible)
         data["schema_version"] = "2.2"
         data["pipelines"]["pytorch"]["test_full"]["linux"]["gfx94X-dcgpu"]["variants"][
             1
