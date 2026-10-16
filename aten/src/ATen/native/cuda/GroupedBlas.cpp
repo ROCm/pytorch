@@ -80,7 +80,7 @@ bool _scaled_mm_allowed_device(bool sm90_only=false, bool sm100_only=false) {
     "gfx950",
 #endif
 #if ROCM_VERSION >= 71400
-        "gfx1250",
+        "gfx1250", "gfx1250-strict",
 #endif
 };
   return at::detail::getCUDAHooks().isGPUArch(archs);
