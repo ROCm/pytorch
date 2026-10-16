@@ -195,21 +195,6 @@ jobs:
               echo "Configure exactly one of ROCM_PREVIEW_ACTIONABLE_ISSUE or ROCM_PREVIEW_SUPPORTING_MAINTAINER" >&2
               exit 1
             fi
-            if [ -n "$issue" ]; then
-              if ! [[ "$issue" =~ ^[0-9]+$ ]]; then
-                echo "The configured actionable issue must be numeric" >&2
-                exit 1
-              fi
-              issue_data="$(gh issue view "$issue" --repo pytorch/pytorch --json state,labels)"
-              if [ "$(jq -r '.state' <<<"$issue_data")" != "OPEN" ] || \
-                 ! jq -e '.labels | any(.name == "actionable")' <<<"$issue_data" >/dev/null; then
-                echo "Configured issue #$issue must be open and labeled actionable" >&2
-                exit 1
-              fi
-            elif ! [[ "$maintainer" =~ ^[A-Za-z0-9-]+$ ]]; then
-              echo "The configured supporting maintainer is invalid" >&2
-              exit 1
-            fi
 
             branch="ethanwee1-rocm-preview-${ROCM_VERSION}"
             if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
@@ -217,6 +202,26 @@ jobs:
               exit 1
             fi
             git checkout -B "$branch" upstream/main
+          fi
+
+          if [ -n "$issue" ] && [ -n "$maintainer" ] || [ -z "$issue" ] && [ -z "$maintainer" ]; then
+            echo "Configure exactly one actionable issue or supporting maintainer" >&2
+            exit 1
+          fi
+          if [ -n "$issue" ]; then
+            if ! [[ "$issue" =~ ^[0-9]+$ ]]; then
+              echo "The configured actionable issue must be numeric" >&2
+              exit 1
+            fi
+            issue_data="$(gh issue view "$issue" --repo pytorch/pytorch --json state,labels)"
+            if [ "$(jq -r '.state' <<<"$issue_data")" != "OPEN" ] || \
+               ! jq -e '.labels | any(.name == "actionable")' <<<"$issue_data" >/dev/null; then
+              echo "Configured issue #$issue must be open and labeled actionable" >&2
+              exit 1
+            fi
+          elif ! [[ "$maintainer" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "The configured supporting maintainer is invalid" >&2
+            exit 1
           fi
 
           if [ "$(tr -d '[:space:]' < "$pin_file")" = "$ROCM_VERSION" ]; then
@@ -238,7 +243,11 @@ jobs:
             -m "Tracked in AIPYTORCH-1525."
           git push --set-upstream origin "HEAD:$branch"
 
-          git show upstream/main:.github/PULL_REQUEST_TEMPLATE.md > "$RUNNER_TEMP/upstream-template.md"
+          if [ "$pr_count" -eq 1 ]; then
+            cp "$RUNNER_TEMP/existing-body.md" "$RUNNER_TEMP/upstream-template.md"
+          else
+            git show upstream/main:.github/PULL_REQUEST_TEMPLATE.md > "$RUNNER_TEMP/upstream-template.md"
+          fi
           python3 "$RUNNER_TEMP/rocm_preview_bump.py" render-pr-body \
             --template "$RUNNER_TEMP/upstream-template.md" \
             --output "$RUNNER_TEMP/pr-body.md" \
