@@ -54,6 +54,11 @@ RE_FLAKY_ENTRY = re.compile(
     r"['\"](?:test/)?(?P<file>\S+?\.py)::(?P<cls>\w+)::(?P<method>[^'\"]+?)['\"]"
 )
 
+# A pytest result line for a test that did not fail. Its skip/xfail reason can
+# mention a crash, e.g. "SKIPPED (... SIGABRT is produced.)", which must not be
+# counted as a crash of the shard.
+RE_PYTEST_NON_FAILURE = re.compile(r"\.py::\S+ (?:PASSED|SKIPPED|XFAIL|XPASS)\b")
+
 CRASH_PATTERNS = [
     (re.compile(r"Segmentation fault", re.IGNORECASE), "SEGFAULT"),
     (re.compile(r"SIGSEGV"), "SIGSEGV"),
@@ -312,7 +317,7 @@ def parse_log_file(filepath):
                         "test_shard": test_shard,
                     })
 
-            if active and active in results:
+            if active and active in results and not RE_PYTEST_NON_FAILURE.search(stripped):
                 for pattern, label in CRASH_PATTERNS:
                     if pattern.search(stripped):
                         if label not in results[active]["crashes"]:
