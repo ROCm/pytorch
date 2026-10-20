@@ -300,6 +300,11 @@ if(USE_FLASH_ATTENTION)
         CK_TILE_FMHA_FWD_APPENDKV_API=1
         CK_TILE_FMHA_FWD_PAGEDKV_API=1
         __GCC_HAVE_DWARF2_CFI_ASM=1
+        # Newer composable_kernel defaults ck_tile to its unified MMA framework,
+        # which needs a single GPU target at compile time (CK_CMAKE_GPU_TARGET_IDS)
+        # that a multi-arch build cannot give. Keep the WarpGemm path, which is
+        # what older CK uses by default.
+        USE_NEW_UNIFIED_FRAMEWORK=0
         USE_ROCM_CK_SDPA)
 
     message(STATUS "Generating CK kernel instances...")
