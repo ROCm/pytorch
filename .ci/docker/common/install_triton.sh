@@ -54,6 +54,10 @@ cd triton
 as_jenkins git checkout ${TRITON_PINNED_COMMIT}
 as_jenkins git submodule update --init --recursive
 
+if [ -f python/requirements.txt ]; then
+  pip_install -r python/requirements.txt
+fi
+
 # Old versions of python have setup.py in ./python; newer versions have it in ./
 if [ ! -f setup.py ]; then
   cd python
