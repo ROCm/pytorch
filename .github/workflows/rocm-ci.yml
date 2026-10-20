@@ -3,20 +3,14 @@ name: ROCm CI
 on:
   pull_request:
     branches:
-      - release/2.11
-      - release/2.12
-      - release/2.13
-      - release/2.14
+      - release/**
   push:
     branches:
-      - release/2.11
-      - release/2.12
-      - release/2.13
-      - release/2.14
+      - release/**
   workflow_dispatch:
 
 concurrency:
-  group: rocm-gfx942-${{ github.event.pull_request.number || github.ref }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}-${{ github.event_name == 'workflow_dispatch' && github.run_id }}
   cancel-in-progress: true
 
 permissions:
@@ -30,6 +24,15 @@ defaults:
 env:
   BUILD_ENVIRONMENT: linux-noble-rocm-py3.12-gfx942
   CI: "1"
+  DOCKER_IMAGE_NAME: pytorch-linux-noble-rocm7.2.4-py3.12
+  GIT_CONFIG_COUNT: "3"
+  GIT_CONFIG_KEY_0: http.lowSpeedLimit
+  GIT_CONFIG_VALUE_0: "1024"
+  GIT_CONFIG_KEY_1: http.lowSpeedTime
+  GIT_CONFIG_VALUE_1: "60"
+  GIT_CONFIG_KEY_2: submodule.fetchJobs
+  GIT_CONFIG_VALUE_2: "4"
+  HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
   MAX_JOBS: 58
   PYTORCH_ROCM_ARCH: gfx942
   SCCACHE_CACHE_SIZE: 10G
@@ -38,18 +41,65 @@ env:
   SKIP_SCCACHE_INITIALIZATION: "1"
 
 jobs:
-  build:
-    name: build
+  docker-image:
+    name: docker-image
     if: >-
       github.repository == 'ROCm/pytorch' &&
       (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    runs-on: build-only-pytorch
+    timeout-minutes: 180
+    outputs:
+      ci-docker-hash: ${{ steps.calculate.outputs.ci-docker-hash }}
+    steps:
+      - name: Checkout PyTorch
+        timeout-minutes: 10
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ env.HEAD_SHA }}
+          show-progress: false
+          sparse-checkout: .ci/docker
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Calculate docker image
+        id: calculate
+        run: |
+          ci_docker_hash=$(git rev-parse HEAD:.ci/docker)
+          docker_image="rocm/pytorch-ci-private:${DOCKER_IMAGE_NAME}-${ci_docker_hash}-${PYTORCH_ROCM_ARCH//;/_}"
+          echo "ci-docker-hash=${ci_docker_hash}" >> "${GITHUB_OUTPUT}"
+          echo "docker-image=${docker_image}" >> "${GITHUB_OUTPUT}"
+          if docker manifest inspect "${docker_image}" > /dev/null; then
+            echo "exists=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Build docker image
+        if: steps.calculate.outputs.exists != 'true'
+        working-directory: .ci/docker
+        env:
+          DOCKER_IMAGE: ${{ steps.calculate.outputs.docker-image }}
+        run: ./build.sh "${DOCKER_IMAGE_NAME}" -t "${DOCKER_IMAGE}"
+
+      - name: Push docker image
+        if: steps.calculate.outputs.exists != 'true'
+        env:
+          DOCKER_IMAGE: ${{ steps.calculate.outputs.docker-image }}
+        run: docker push "${DOCKER_IMAGE}"
+
+  build:
+    name: build
+    needs: docker-image
     runs-on: build-only-pytorch
     timeout-minutes: 120
     outputs:
       artifact-name: rocm-gfx942-build-${{ github.run_attempt }}
     container:
-      image: >-
-        rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
+      image: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
       options: >-
         --user=0
         --cpus=58
@@ -57,23 +107,17 @@ jobs:
         --memory-swap=192g
         --shm-size=32g
     steps:
-      - name: Configure Git transfers
-        run: |
-          git config --global http.lowSpeedLimit 1024
-          git config --global http.lowSpeedTime 60
-          git config --global submodule.fetchJobs 4
-
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
         timeout-minutes: 80
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
           fetch-depth: 1
           persist-credentials: false
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.HEAD_SHA }}
           show-progress: false
           submodules: recursive
 
@@ -83,56 +127,19 @@ jobs:
         timeout-minutes: 2
         run: |
           # Cancelling docker exec can leave checkout and Git running inside the container.
-          python3 - <<'PY'
-          import os
-          import signal
-          import time
-          from pathlib import Path
-
-          workspace = os.fsencode(f"GITHUB_WORKSPACE={os.environ['GITHUB_WORKSPACE']}")
-
-          def checkout_processes():
-              found = []
-              for entry in Path("/proc").iterdir():
-                  if not entry.name.isdigit() or int(entry.name) == os.getpid():
-                      continue
-                  try:
-                      environment = (entry / "environ").read_bytes().split(b"\0")
-                      fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
-                      if (
-                          workspace in environment
-                          and b"PYTORCH_CHECKOUT_ATTEMPT=initial" in environment
-                          and fields[0] != "Z"
-                      ):
-                          found.append((int(entry.name), fields[19]))
-                  except (FileNotFoundError, PermissionError, ProcessLookupError):
-                      continue
-              return found
-
-          def send(processes, signum):
-              for pid, start in processes:
-                  try:
-                      fields = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
-                      if fields[19] == start:
-                          os.kill(pid, signum)
-                  except (FileNotFoundError, ProcessLookupError):
-                      pass
-
-          deadline = time.monotonic() + 3
-          while time.monotonic() < deadline:
-              processes = checkout_processes()
-              if not processes:
-                  break
-              send(processes, signal.SIGTERM)
-              send(processes, signal.SIGCONT)
-              time.sleep(0.1)
-          send(checkout_processes(), signal.SIGKILL)
-          deadline = time.monotonic() + 3
-          while checkout_processes() and time.monotonic() < deadline:
-              time.sleep(0.05)
-          if checkout_processes():
-              raise SystemExit("Interrupted checkout processes survived cleanup")
-          PY
+          checkout_pids() {
+            grep -lsxz PYTORCH_CHECKOUT_ATTEMPT=initial /proc/[0-9]*/environ | cut -d/ -f3 || true
+          }
+          for _ in {1..30}; do
+            pids=$(checkout_pids)
+            [[ -z "${pids}" ]] && break
+            kill -KILL ${pids} 2> /dev/null || true
+            sleep 0.1
+          done
+          if [[ -n "$(checkout_pids)" ]]; then
+            echo "Interrupted checkout processes survived cleanup"
+            exit 1
+          fi
           rm -rf -- .git
 
       - name: Retry checkout PyTorch
@@ -140,11 +147,11 @@ jobs:
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 80
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           persist-credentials: false
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.HEAD_SHA }}
           show-progress: false
           submodules: recursive
 
@@ -166,7 +173,7 @@ jobs:
         run: tar -cf artifacts.tar dist/ build/custom_test_artifacts build/lib build/bin .additional_ci_files
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rocm-gfx942-build-${{ github.run_attempt }}
           path: artifacts.tar
@@ -177,68 +184,22 @@ jobs:
 
   test:
     name: test / ${{ matrix.config }} / ${{ matrix.shard }} of ${{ matrix.num_shards }}
-    needs: build
+    needs:
+      - docker-image
+      - build
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 420
     strategy:
       fail-fast: false
       matrix:
         include:
-          - config: default
-            shard: 1
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 2
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 3
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 4
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 5
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 6
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 7
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: default
-            shard: 8
-            num_shards: 8
-            runner: linux-pytorch-mi325-1
-          - config: distributed
-            shard: 1
-            num_shards: 3
-            runner: linux-pytorch-mi325-4
-          - config: distributed
-            shard: 2
-            num_shards: 3
-            runner: linux-pytorch-mi325-4
-          - config: distributed
-            shard: 3
-            num_shards: 3
-            runner: linux-pytorch-mi325-4
-          - config: inductor
-            shard: 1
-            num_shards: 2
-            runner: linux-pytorch-mi325-1
-          - config: inductor
-            shard: 2
-            num_shards: 2
-            runner: linux-pytorch-mi325-1
+          - { config: default, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-1 }
+          - { config: default, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-1 }
+          - { config: distributed, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-4 }
+          - { config: distributed, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-4 }
+          - { config: inductor, shard: 1, num_shards: 1, runner: linux-pytorch-mi325-1 }
     container:
-      image: >-
-        rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-bcc89563815d4fd3c922038ed660e719ad6da147-gfx942
+      image: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
       options: >-
         --user=0
         --cpus=19
@@ -269,25 +230,25 @@ jobs:
       SHARD_NUMBER: ${{ matrix.shard }}
       SHA1: ${{ github.event.pull_request.head.sha || github.sha }}
       TEST_CONFIG: ${{ matrix.config }}
+      TESTS_TO_INCLUDE: >-
+        ${{
+          matrix.config == 'default' && 'test_nn test_torch test_cuda test_ops test_unary_ufuncs test_binary_ufuncs test_autograd inductor/test_torchinductor' ||
+          matrix.config == 'distributed' && 'distributed/test_c10d_common distributed/test_c10d_nccl distributed/test_distributed_spawn' ||
+          ''
+        }}
       USE_ARC: "1"
     steps:
-      - name: Configure Git transfers
-        run: |
-          git config --global http.lowSpeedLimit 1024
-          git config --global http.lowSpeedTime 60
-          git config --global submodule.fetchJobs 4
-
       - name: Checkout PyTorch
         id: checkout
         continue-on-error: true
         timeout-minutes: 80
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         env:
           PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
           fetch-depth: 1
           persist-credentials: false
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.HEAD_SHA }}
           show-progress: false
           submodules: recursive
 
@@ -297,56 +258,19 @@ jobs:
         timeout-minutes: 2
         run: |
           # Cancelling docker exec can leave checkout and Git running inside the container.
-          python3 - <<'PY'
-          import os
-          import signal
-          import time
-          from pathlib import Path
-
-          workspace = os.fsencode(f"GITHUB_WORKSPACE={os.environ['GITHUB_WORKSPACE']}")
-
-          def checkout_processes():
-              found = []
-              for entry in Path("/proc").iterdir():
-                  if not entry.name.isdigit() or int(entry.name) == os.getpid():
-                      continue
-                  try:
-                      environment = (entry / "environ").read_bytes().split(b"\0")
-                      fields = (entry / "stat").read_text().rsplit(")", 1)[1].split()
-                      if (
-                          workspace in environment
-                          and b"PYTORCH_CHECKOUT_ATTEMPT=initial" in environment
-                          and fields[0] != "Z"
-                      ):
-                          found.append((int(entry.name), fields[19]))
-                  except (FileNotFoundError, PermissionError, ProcessLookupError):
-                      continue
-              return found
-
-          def send(processes, signum):
-              for pid, start in processes:
-                  try:
-                      fields = Path(f"/proc/{pid}/stat").read_text().rsplit(")", 1)[1].split()
-                      if fields[19] == start:
-                          os.kill(pid, signum)
-                  except (FileNotFoundError, ProcessLookupError):
-                      pass
-
-          deadline = time.monotonic() + 3
-          while time.monotonic() < deadline:
-              processes = checkout_processes()
-              if not processes:
-                  break
-              send(processes, signal.SIGTERM)
-              send(processes, signal.SIGCONT)
-              time.sleep(0.1)
-          send(checkout_processes(), signal.SIGKILL)
-          deadline = time.monotonic() + 3
-          while checkout_processes() and time.monotonic() < deadline:
-              time.sleep(0.05)
-          if checkout_processes():
-              raise SystemExit("Interrupted checkout processes survived cleanup")
-          PY
+          checkout_pids() {
+            grep -lsxz PYTORCH_CHECKOUT_ATTEMPT=initial /proc/[0-9]*/environ | cut -d/ -f3 || true
+          }
+          for _ in {1..30}; do
+            pids=$(checkout_pids)
+            [[ -z "${pids}" ]] && break
+            kill -KILL ${pids} 2> /dev/null || true
+            sleep 0.1
+          done
+          if [[ -n "$(checkout_pids)" ]]; then
+            echo "Interrupted checkout processes survived cleanup"
+            exit 1
+          fi
           rm -rf -- .git
 
       - name: Retry checkout PyTorch
@@ -354,11 +278,11 @@ jobs:
           ${{ !cancelled() && steps.checkout.outcome == 'failure' &&
               steps.checkout_cleanup.outcome == 'success' }}
         timeout-minutes: 80
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 1
           persist-credentials: false
-          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          ref: ${{ env.HEAD_SHA }}
           show-progress: false
           submodules: recursive
 
@@ -366,7 +290,7 @@ jobs:
         id: download
         continue-on-error: true
         timeout-minutes: 80
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: .
@@ -389,7 +313,7 @@ jobs:
       - name: Retry download build artifact
         if: ${{ !cancelled() && steps.artifact_cleanup.outcome == 'success' }}
         timeout-minutes: 80
-        uses: actions/download-artifact@v8
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: .
@@ -427,12 +351,6 @@ jobs:
         timeout-minutes: 5
         run: python -m pip install dist/*.whl
 
-      - name: Install test tools
-        timeout-minutes: 5
-        env:
-          PIP_DEFAULT_TIMEOUT: "60"
-        run: python -m pip install spin==0.17 uv==0.11.29
-
       - name: Verify PyTorch GPU visibility
         working-directory: test
         run: |
@@ -464,19 +382,26 @@ jobs:
 
       - name: Upload test reports
         if: always()
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rocm-gfx942-reports-${{ github.run_attempt }}-${{ matrix.config }}-${{ matrix.shard }}
           path: test/test-reports/**/*.xml
           if-no-files-found: warn
           retention-days: 14
 
+      - name: Summarize test results
+        if: ${{ !cancelled() }}
+        uses: mikepenz/action-junit-report@6ef3fdcfcd5f0b5d14df3e659ef19b8c6820f93d # v6.6.1
+        with:
+          report_paths: test/test-reports/**/*.xml
+          annotate_only: true
+          detailed_summary: true
+
   required:
     name: ROCm CI
-    if: >-
-      !cancelled() && github.repository == 'ROCm/pytorch' &&
-      (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    if: ${{ !cancelled() && github.repository == 'ROCm/pytorch' }}
     needs:
+      - docker-image
       - build
       - test
     runs-on: ubuntu-latest
@@ -484,10 +409,16 @@ jobs:
     steps:
       - name: Check job results
         env:
+          FORK_PR: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+          DOCKER_IMAGE_RESULT: ${{ needs.docker-image.result }}
           BUILD_RESULT: ${{ needs.build.result }}
           TEST_RESULT: ${{ needs.test.result }}
         run: |
-          if [[ "$BUILD_RESULT" != success || "$TEST_RESULT" != success ]]; then
-            echo "build=${BUILD_RESULT} test=${TEST_RESULT}"
+          if [[ "$FORK_PR" == true ]]; then
+            echo "ROCm CI does not run on fork pull requests; push the branch to ROCm/pytorch to run it"
+            exit 1
+          fi
+          if [[ "$DOCKER_IMAGE_RESULT" != success || "$BUILD_RESULT" != success || "$TEST_RESULT" != success ]]; then
+            echo "docker-image=${DOCKER_IMAGE_RESULT} build=${BUILD_RESULT} test=${TEST_RESULT}"
             exit 1
           fi
