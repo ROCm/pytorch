@@ -34,6 +34,15 @@
 #if defined(USE_FLASH_ATTENTION) || defined(USE_MEM_EFF_ATTENTION)
 #include <ATen/native/transformers/hip/aotriton_versions.h>
 #include <aotriton/flash.h>
+#include <c10/util/FileSystem.h>
+#include <c10/util/CallOnce.h>
+#include <string>
+#include <string_view>
+#ifdef _WIN32
+#include <c10/util/win32-headers.h>
+#else
+#include <dlfcn.h>
+#endif
 #define USE_ROCM_ATTENTION 1
 #endif
 #else
@@ -181,6 +190,77 @@ inline int aotriton_max_hdim() {
 #endif
   }();
   return max_hdim;
+}
+
+// AOTriton loads its kernels from aotriton.images/amd-<pack> next to its own
+// library, where <pack> is an arch or an arch family with 'x' wildcards
+// (gfx942, gfx110x). AMD multi-arch wheels ship those images in a per-family
+// device package; without it check_gpu() still passes, but every AOTriton call
+// fails, so treat a missing image directory like an unsupported GPU.
+c10::filesystem::path aotriton_images_dir() {
+  const auto* anchor = reinterpret_cast<const void*>(&aotriton::v2::flash::check_gpu);
+#ifdef _WIN32
+  HMODULE module = nullptr;
+  std::wstring path(MAX_PATH * 2, L'\0');
+  if (!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, reinterpret_cast<LPCWSTR>(anchor), &module)) {
+    return {};
+  }
+  const auto size = GetModuleFileNameW(module, path.data(), static_cast<DWORD>(path.size()));
+  if (size == 0 || size == path.size()) {
+    return {};
+  }
+  path.resize(size);
+#else
+  Dl_info info;
+  if (dladdr(anchor, &info) == 0 || info.dli_fname == nullptr) {
+    return {};
+  }
+  std::string path(info.dli_fname);
+#endif
+  return c10::filesystem::path(path).parent_path() / "aotriton.images";
+}
+
+bool aotriton_has_images_for(const c10::filesystem::path& images, std::string_view arch) {
+  std::error_code ec;
+  for (c10::filesystem::directory_iterator it(images, ec), end; !ec && it != end; it.increment(ec)) {
+    const auto name = it->path().filename().string();
+    if (name.size() != arch.size() + 4 || name.compare(0, 4, "amd-") != 0) {
+      continue;
+    }
+    if (std::equal(arch.begin(), arch.end(), name.begin() + 4, [](char a, char p) { return a == p || p == 'x'; }) &&
+        it->is_directory(ec) && !c10::filesystem::is_empty(it->path(), ec)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool check_aotriton_images(const char* backend, bool debug) {
+  static std::array<c10::once_flag, C10_COMPILE_TIME_MAX_GPUS> flags;
+  static std::array<std::string, C10_COMPILE_TIME_MAX_GPUS> missing;
+  const auto device = at::cuda::current_device();
+  c10::call_once(flags[device], [device] {
+    const auto images = aotriton_images_dir();
+    if (images.empty()) {
+      return;
+    }
+    std::string_view arch(at::cuda::getDeviceProperties(device)->gcnArchName);
+    arch = arch.substr(0, arch.find(':'));
+    if (!aotriton_has_images_for(images, arch)) {
+      const auto dir = images.u8string();
+      missing[device] = c10::str(
+          "AOTriton has no kernel images for ", arch, " in ", std::string_view(reinterpret_cast<const char*>(dir.data()), dir.size()),
+          ". With AMD multi-arch wheels, install torch with the extra for this GPU, e.g. pip install torch[device-", arch, "].");
+    }
+  });
+  if (!missing[device].empty()) {
+    TORCH_WARN_ONCE(missing[device], " Flash and Mem Efficient attention will not use AOTriton.");
+    if (debug) {
+      TORCH_WARN(backend, " attention cannot run on this GPU: ", missing[device]);
+    }
+    return false;
+  }
+  return true;
 }
 #endif // USE_ROCM_ATTENTION
 
@@ -521,6 +601,9 @@ bool check_flash_attention_hardware_support(sdp_params const& params, bool debug
       }
     }
 #endif
+    if (!check_aotriton_images("Flash", debug)) {
+      return false;
+    }
   }
 #else
   return false;
@@ -581,6 +664,9 @@ bool check_mem_efficient_hardware_support(sdp_params const& params, bool debug) 
       }
     }
 #endif
+    if (!check_aotriton_images("Mem Efficient", debug)) {
+      return false;
+    }
   }
 #else
   return false;

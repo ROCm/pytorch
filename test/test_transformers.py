@@ -4623,6 +4623,16 @@ class TestSDPAAccelerator(NNTestCase):
         params = SDPAParams(q, k, v, None, 0.0, True, False)
         self.assertFalse(can_use_flash_attention(params))
 
+    @unittest.skipIf(not TEST_WITH_ROCM, "AOTriton kernel image check is ROCm-only")
+    @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION or not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Needs AOTriton SDPA")
+    def test_aotriton_kernel_images_found(self, device):
+        if torch.backends.cuda.preferred_rocm_fa_library() == torch._C._ROCmFABackend.Ck:
+            self.skipTest("The image check only applies to the AOTriton backend")
+        q = torch.empty(1, 1, 128, 64, dtype=torch.float16, device=device)
+        params = SDPAParams(q, q, q, None, 0.0, False, False)
+        self.assertTrue(can_use_flash_attention(params, True))
+        self.assertTrue(torch.backends.cuda.can_use_efficient_attention(params, True))
+
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cuDNN Attention is not supported on this system")
     def test_fused_attention_different_dk_dv(self, device):
         dtype = torch.bfloat16
