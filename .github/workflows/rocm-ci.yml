@@ -61,12 +61,6 @@ jobs:
           show-progress: false
           sparse-checkout: .ci/docker
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-
       - name: Calculate docker image
         id: calculate
         run: |
@@ -74,8 +68,11 @@ jobs:
           docker_image="rocm/pytorch-ci-private:${DOCKER_IMAGE_NAME}-${ci_docker_hash}-${PYTORCH_ROCM_ARCH//;/_}"
           echo "ci-docker-hash=${ci_docker_hash}" >> "${GITHUB_OUTPUT}"
           echo "docker-image=${docker_image}" >> "${GITHUB_OUTPUT}"
-          if docker manifest inspect "${docker_image}" > /dev/null; then
+          if manifest=$(docker manifest inspect "${docker_image}" 2>&1); then
             echo "exists=true" >> "${GITHUB_OUTPUT}"
+          elif [[ "${manifest}" != *"no such manifest"* ]]; then
+            echo "${manifest}"
+            exit 1
           fi
 
       - name: Build docker image
