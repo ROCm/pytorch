@@ -311,6 +311,25 @@ class TestCoordinateDescentTuner(TestCase):
         self.assertEqual(tuner.get_neighbour_values("XBLOCK", 16), [32])
         self.assertEqual(tuner.get_neighbour_values("R0_BLOCK", 64), [128])
 
+    def test_tma_minimum_block_sizes(self):
+        tuner = CoordescTuner(
+            inductor_meta={
+                "uses_tma": True,
+                "tma_min_block_sizes": {
+                    "XBLOCK": 4,
+                    "R0_BLOCK": 16,
+                },
+            }
+        )
+
+        self.assertTrue(tuner.value_too_small("XBLOCK", 2))
+        self.assertFalse(tuner.value_too_small("XBLOCK", 4))
+        self.assertTrue(tuner.value_too_small("R0_BLOCK", 8))
+        self.assertFalse(tuner.value_too_small("R0_BLOCK", 16))
+
+        stale_tma = CoordescTuner(inductor_meta={"tma_min_block_sizes": {"XBLOCK": 4}})
+        self.assertFalse(stale_tma.value_too_small("XBLOCK", 2))
+
     def test_combo_metadata_orders_larger_subkernels_first_for_coordesc(self):
         def make_configs(xblock, yblock):
             return [
