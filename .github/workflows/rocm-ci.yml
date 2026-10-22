@@ -195,29 +195,10 @@ jobs:
           - { config: distributed, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-4 }
           - { config: distributed, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-4 }
           - { config: inductor, shard: 1, num_shards: 1, runner: linux-pytorch-mi325-1 }
-    container:
-      image: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
-      options: >-
-        --user=0
-        --cpus=19
-        --memory=160g
-        --memory-swap=160g
-        --env-file /etc/podinfo/gha-gpu-isolation-settings
-        --device=/dev/mem
-        --device=/dev/kfd
-        --device=/dev/dri
-        --group-add 109
-        --group-add video
-        --group-add daemon
-        --group-add bin
-        --cap-add=SYS_PTRACE
-        --security-opt seccomp=unconfined
-        --shm-size=8g
-        --ulimit stack=10485760:83886080
-        --ulimit core=0
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       BRANCH: ${{ github.head_ref || github.ref_name }}
+      DOCKER_IMAGE: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
       GIT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
       MAX_JOBS: 6
       NUM_TEST_SHARDS: ${{ matrix.num_shards }}
@@ -240,8 +221,6 @@ jobs:
         continue-on-error: true
         timeout-minutes: 80
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        env:
-          PYTORCH_CHECKOUT_ATTEMPT: initial
         with:
           fetch-depth: 1
           persist-credentials: false
@@ -253,22 +232,7 @@ jobs:
         id: checkout_cleanup
         if: ${{ !cancelled() && steps.checkout.outcome == 'failure' }}
         timeout-minutes: 2
-        run: |
-          # Cancelling docker exec can leave checkout and Git running inside the container.
-          checkout_pids() {
-            grep -lsxz PYTORCH_CHECKOUT_ATTEMPT=initial /proc/[0-9]*/environ | cut -d/ -f3 || true
-          }
-          for _ in {1..30}; do
-            pids=$(checkout_pids)
-            [[ -z "${pids}" ]] && break
-            kill -KILL ${pids} 2> /dev/null || true
-            sleep 0.1
-          done
-          if [[ -n "$(checkout_pids)" ]]; then
-            echo "Interrupted checkout processes survived cleanup"
-            exit 1
-          fi
-          rm -rf -- .git
+        run: rm -rf -- .git
 
       - name: Retry checkout PyTorch
         if: >-
@@ -321,22 +285,64 @@ jobs:
           tar -xf artifacts.tar
           rm artifacts.tar
 
+      - name: Start test container
+        timeout-minutes: 30
+        run: |
+          read -ra gpu_flags < /etc/podinfo/gha-render-devices
+          test_container=$(docker run \
+            --detach \
+            --tty \
+            --user=0 \
+            --cpus=19 \
+            --memory=160g \
+            --memory-swap=160g \
+            --device=/dev/mem \
+            --device=/dev/kfd \
+            "${gpu_flags[@]}" \
+            --group-add video \
+            --group-add daemon \
+            --group-add bin \
+            --cap-add=SYS_PTRACE \
+            --security-opt seccomp=unconfined \
+            --shm-size=8g \
+            --ulimit stack=10485760:83886080 \
+            --ulimit core=0 \
+            -e BASE_SHA \
+            -e BRANCH \
+            -e BUILD_ENVIRONMENT \
+            -e CI \
+            -e GIT_DEFAULT_BRANCH \
+            -e GITHUB_ACTIONS \
+            -e GITHUB_JOB \
+            -e GITHUB_REPOSITORY \
+            -e GITHUB_RUN_ATTEMPT \
+            -e GITHUB_RUN_ID \
+            -e GITHUB_RUN_NUMBER \
+            -e GITHUB_WORKFLOW \
+            -e MAX_JOBS \
+            -e NUM_TEST_SHARDS \
+            -e OMP_NUM_THREADS \
+            -e PR_NUMBER \
+            -e PYTORCH_ROCM_ARCH \
+            -e REQUIRED_GPU_COUNT \
+            -e SCCACHE_CACHE_SIZE \
+            -e SCCACHE_DIRECT \
+            -e SCCACHE_GHA_ENABLED \
+            -e SHA1 \
+            -e SHARD_NUMBER \
+            -e SKIP_SCCACHE_INITIALIZATION \
+            -e TEST_CONFIG \
+            -e TESTS_TO_INCLUDE \
+            -e USE_ARC \
+            -v "${GITHUB_WORKSPACE}:${GITHUB_WORKSPACE}" \
+            -w "${GITHUB_WORKSPACE}" \
+            "${DOCKER_IMAGE}")
+          echo "TEST_CONTAINER=${test_container}" >> "${GITHUB_ENV}"
+          docker exec "${test_container}" git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+
       - name: Verify gfx942 runner
         run: |
-          for variable in ROCR_VISIBLE_DEVICES HIP_VISIBLE_DEVICES; do
-            value=${!variable:-}
-            if [[ ! "$value" =~ ^[0-9]+(,[0-9]+)*$ ]]; then
-              echo "$variable is missing or malformed: '$value'"
-              exit 1
-            fi
-            IFS=',' read -ra devices <<< "$value"
-            if (( ${#devices[@]} != REQUIRED_GPU_COUNT )); then
-              echo "Expected ${REQUIRED_GPU_COUNT} devices in $variable, found ${#devices[@]}: $value"
-              exit 1
-            fi
-          done
-
-          rocminfo_output=$(rocminfo)
+          rocminfo_output=$(docker exec "${TEST_CONTAINER}" rocminfo)
           printf '%s\n' "$rocminfo_output"
           gpu_count=$(grep -c -E 'Name:.*\sgfx942' <<< "$rocminfo_output" || true)
           if (( gpu_count != REQUIRED_GPU_COUNT )); then
@@ -346,22 +352,25 @@ jobs:
 
       - name: Install PyTorch wheel
         timeout-minutes: 5
-        run: python -m pip install dist/*.whl
+        run: docker exec "${TEST_CONTAINER}" python -m pip install dist/*.whl
 
       - name: Verify PyTorch GPU visibility
-        working-directory: test
         run: |
-          python - <<'PY'
+          docker exec -i -w "${GITHUB_WORKSPACE}/test" "${TEST_CONTAINER}" python - <<'PY'
           import os
 
+          import amdsmi
           import torch
 
           expected = int(os.environ["REQUIRED_GPU_COUNT"])
-          actual = torch.cuda.device_count()
           if torch.version.hip is None:
               raise RuntimeError("The installed PyTorch wheel has no ROCm support")
-          if actual != expected:
-              raise RuntimeError(f"Expected {expected} visible GPUs, found {actual}")
+          if torch.cuda.device_count() != expected:
+              raise RuntimeError(f"Expected {expected} visible GPUs, found {torch.cuda.device_count()}")
+          amdsmi.amdsmi_init()
+          amdsmi_count = len(amdsmi.amdsmi_get_processor_handles())
+          if amdsmi_count != expected:
+              raise RuntimeError(f"Expected amdsmi to see {expected} GPUs, found {amdsmi_count}")
           PY
 
       - name: Configure sccache
@@ -375,7 +384,13 @@ jobs:
 
       - name: Run tests
         timeout-minutes: 360
-        run: .ci/pytorch/test.sh
+        run: >-
+          docker exec
+          -e ACTIONS_CACHE_SERVICE_V2
+          -e ACTIONS_RESULTS_URL
+          -e ACTIONS_RUNTIME_TOKEN
+          "${TEST_CONTAINER}"
+          .ci/pytorch/test.sh
 
       - name: Upload test reports
         if: always()
@@ -393,6 +408,10 @@ jobs:
           report_paths: test/test-reports/**/*.xml
           annotate_only: true
           detailed_summary: true
+
+      - name: Stop test container
+        if: always() && env.TEST_CONTAINER != ''
+        run: docker rm --force "${TEST_CONTAINER}"
 
   required:
     name: ROCm CI
