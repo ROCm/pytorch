@@ -30,9 +30,9 @@ on:
         type: string
         default: "gfx120X-all"
       python_version:
-        description: Python version to build wheels for. Default 3.11 (what TheRock's Windows CI builds use).
+        description: Python version to build wheels for. Default 3.12 (used by TheRock's own dispatched Windows builds that succeeded).
         type: string
-        default: "3.11"
+        default: "3.12"
       pytorch_git_ref:
         description: PyTorch ref to check out ("nightly" or a release branch such as "release/2.13"). Default nightly.
         type: string
@@ -46,17 +46,18 @@ on:
       rocm_version:
         description: >-
           ROCm package version to install and build against. Must exist on the
-          index below. Default 10.2.0a20261014.
+          index below. Default 10.2.0a20261012 (the version a successful TheRock
+          Windows nightly build of 2026-10-15 used).
         type: string
-        default: "10.2.0a20261014"
+        default: "10.2.0a20261012"
       rocm_package_index_url:
         description: pip --index-url for ROCm packages (PEP 503 index).
         type: string
         default: "https://nightly.repo.amd.com/rocm/whl-next"
       release_type:
-        description: Release type string passed to build_prod_wheels.py. TheRock's Windows nightly runs use "nightly".
+        description: Release type string passed to build_prod_wheels.py. TheRock's own dispatched Windows builds use "dev".
         type: string
-        default: "nightly"
+        default: "dev"
       therock_ref:
         description: Branch, tag or SHA of ROCm/TheRock that provides the build scripts.
         type: string
@@ -68,7 +69,7 @@ on:
 
 run-name: >-
   Windows PyTorch ROCm build (${{ inputs.amdgpu_families || 'gfx120X-all' }},
-  py ${{ inputs.python_version || '3.11' }}, torch ${{ inputs.pytorch_git_ref || 'nightly' }})
+  py ${{ inputs.python_version || '3.12' }}, torch ${{ inputs.pytorch_git_ref || 'nightly' }})
 
 # A new push to the branch cancels the previous run, so a shared runner is not
 # kept busy by superseded runs.
@@ -81,19 +82,19 @@ permissions:
 
 jobs:
   build_pytorch_wheels:
-    name: Build | py ${{ inputs.python_version || '3.11' }} | torch ${{ inputs.pytorch_git_ref || 'nightly' }}
+    name: Build | py ${{ inputs.python_version || '3.12' }} | torch ${{ inputs.pytorch_git_ref || 'nightly' }}
     # Same expression as TheRock: the runner label is only used for repositories
     # owned by the ROCm organization; anything else falls back to a GitHub-hosted runner.
     runs-on: ${{ github.repository_owner == 'ROCm' && (inputs.build_runs_on || 'aws-windows-scale-rocm-prod-mix') || 'windows-2022' }}
     timeout-minutes: 240
     env:
-      PYTHON_VERSION: ${{ inputs.python_version || '3.11' }}
+      PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
       PYTORCH_GITREPO_ORIGIN: ${{ inputs.pytorch_gitrepo_origin || '' }}
       PYTORCH_GIT_REF: ${{ inputs.pytorch_git_ref || 'nightly' }}
-      ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261014' }}
+      ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
       ROCM_INDEX_URL: ${{ inputs.rocm_package_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
       AMDGPU_FAMILIES: ${{ inputs.amdgpu_families || 'gfx120X-all' }}
-      BUILD_RELEASE_TYPE: ${{ inputs.release_type || 'nightly' }}
+      BUILD_RELEASE_TYPE: ${{ inputs.release_type || 'dev' }}
       CHECKOUT_ROOT: B:/src
       # Note the \ here instead of /. This should be used from 'cmd' not 'bash'!
       PACKAGE_DIST_DIR: ${{ github.workspace }}\output\packages\dist
@@ -227,6 +228,7 @@ jobs:
         shell: cmd
         working-directory: TheRock
         env:
+          ROCM_FIND_LINKS: ""
           AMDGPU_TARGETS: ${{ steps.expand.outputs.targets }}
         run: |
           setlocal EnableDelayedExpansion
@@ -235,6 +237,7 @@ jobs:
             build ^
             --install-rocm ^
             --index-url="!ROCM_INDEX_URL!" ^
+            --find-links="!ROCM_FIND_LINKS!" ^
             --root-checkout-dir ${{ env.CHECKOUT_ROOT }} ^
             --clean ^
             --output-dir "!PACKAGE_DIST_DIR!" ^
