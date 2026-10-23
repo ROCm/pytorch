@@ -801,7 +801,6 @@ def _create_nccl_process_group(
     else:
         # default backend_options for NCCL
         backend_options = ProcessGroupNCCL.Options()
-        backend_options.is_high_priority_stream = False
     # pyrefly: ignore [bad-argument-type]
     backend_options._timeout = opts.timeout
 

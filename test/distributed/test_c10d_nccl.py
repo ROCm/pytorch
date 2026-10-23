@@ -263,6 +263,24 @@ class TimeoutTest(test_c10d_common.AbstractTimeoutTest, TestCase):
         self._test_default_store_timeout(NCCL_BACKEND)
 
 
+@instantiate_parametrized_tests
+class ProcessGroupNCCLOptionsTest(TestCase):
+    def test_default_stream_priority(self):
+        options = c10d.ProcessGroupNCCL.Options()
+        self.assertEqual(options.is_high_priority_stream, TEST_WITH_ROCM)
+
+    @parametrize("high_priority_stream", [False, True])
+    def test_explicit_stream_priority(self, high_priority_stream):
+        options = c10d.ProcessGroupNCCL.Options(high_priority_stream)
+        self.assertEqual(options.is_high_priority_stream, high_priority_stream)
+        self.assertEqual(
+            copy.copy(options).is_high_priority_stream, high_priority_stream
+        )
+        self.assertEqual(
+            copy.deepcopy(options).is_high_priority_stream, high_priority_stream
+        )
+
+
 class ProcessGroupNCCLNoGPUTest(TestCase):
     MAIN_PROCESS_RANK = 0
 
@@ -335,6 +353,19 @@ class ProcessGroupNCCLInitTest(MultiProcessTestCase):
         x = torch.empty(1, device=self.device)
         c10d.all_reduce(x)
         os.environ["TORCH_NCCL_RANKS_PER_ROOT"] = "0"
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(1)
+    def test_default_options_direct_constructor(self):
+        store = c10d.FileStore(self.file_name, self.world_size)
+        backend = c10d.ProcessGroupNCCL(store, self.rank, self.world_size)
+        try:
+            self.assertEqual(backend.options.is_high_priority_stream, TEST_WITH_ROCM)
+            tensor = torch.ones(1, device=self.device)
+            backend.allreduce([tensor]).wait()
+            self.assertEqual(tensor, torch.full_like(tensor, self.world_size))
+        finally:
+            backend.shutdown()
 
 
 class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
@@ -1234,13 +1265,21 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     @requires_nccl_version((2, 18), "Need NCCL 2.18+ for ncclCommSplit")
     @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
-    def test_comm_split_group(self):
+    @parametrize("high_priority_stream", [None, False, True])
+    def test_comm_split_group(self, high_priority_stream):
         # Test `ncclCommSplit` for smaller subgroups of the world when
         # we've passed a specific device_id to init_process_group.
         store = c10d.FileStore(self.file_name, self.world_size)
         device = torch.device(f"cuda:{self.rank}")
-        pg = self._create_process_group_nccl(store, self.opts(), device_id=device)
+        options = (
+            None if high_priority_stream is None else self.opts(high_priority_stream)
+        )
+        pg = self._create_process_group_nccl(store, options, device_id=device)
         backend = pg._get_backend(torch.device(device))
+        self.assertEqual(
+            backend.options.is_high_priority_stream,
+            TEST_WITH_ROCM if high_priority_stream is None else high_priority_stream,
+        )
 
         tensor = torch.full((1,), self.rank).cuda(device)
         # Create subgroup between ranks 0, 1
@@ -4860,11 +4899,11 @@ class CommTest(test_c10d_common.AbstractCommTest, MultiProcessTestCase):
             self.fail("NCCL time estimator did not produce a result")
         self.assertGreater(estimated_time, 0)
 
-    def _test_pass_nccl_options(self, pg_opts):
+    def _test_pass_nccl_options(self, pg_opts, backend=NCCL_BACKEND):
         store = c10d.FileStore(self.file_name, self.world_size)
         # Test init_process_group accepts options
         dist.init_process_group(
-            NCCL_BACKEND,
+            backend,
             world_size=self.world_size,
             rank=self.rank,
             store=store,
@@ -4873,6 +4912,16 @@ class CommTest(test_c10d_common.AbstractCommTest, MultiProcessTestCase):
 
         # Test with new_group
         pg = c10d.new_group([0, 1], pg_options=pg_opts)
+        expected_priority = (
+            TEST_WITH_ROCM if pg_opts is None else pg_opts.is_high_priority_stream
+        )
+        for group in (c10d.distributed_c10d._get_default_group(), pg):
+            self.assertEqual(
+                group._get_backend(
+                    torch.device("cuda")
+                ).options.is_high_priority_stream,
+                expected_priority,
+            )
         # test the process group works as expected
         t = torch.tensor([self.rank + 1] * 10).cuda(self.rank)
         pg.allreduce(t).wait()
@@ -4881,10 +4930,15 @@ class CommTest(test_c10d_common.AbstractCommTest, MultiProcessTestCase):
 
     @requires_nccl()
     @skip_if_lt_x_gpu(2)
-    def test_pass_nccl_options_high_priority_stream(self):
-        pg_opts = c10d.ProcessGroupNCCL.Options()
-        pg_opts.is_high_priority_stream = True
-        self._test_pass_nccl_options(pg_opts)
+    @parametrize("backend", [NCCL_BACKEND, "nccl2"])
+    @parametrize("high_priority_stream", [None, False, True])
+    def test_pass_nccl_options_stream_priority(self, backend, high_priority_stream):
+        pg_opts = (
+            None
+            if high_priority_stream is None
+            else c10d.ProcessGroupNCCL.Options(high_priority_stream)
+        )
+        self._test_pass_nccl_options(pg_opts, backend=backend)
 
     @requires_nccl()
     @requires_nccl_version(

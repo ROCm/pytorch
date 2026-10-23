@@ -51,10 +51,10 @@ class ProcessGroupNCCLOpTest(MultiProcContinuousTest):
         return "nccl"
 
     @classmethod
-    def opts(cls, high_priority_stream=False):
-        opts = c10d.ProcessGroupNCCL.Options()
-        opts.is_high_priority_stream = high_priority_stream
-        return opts
+    def opts(cls, high_priority_stream=None):
+        if high_priority_stream is None:
+            return c10d.ProcessGroupNCCL.Options()
+        return c10d.ProcessGroupNCCL.Options(high_priority_stream)
 
     @property
     def rank_to_GPU(self):

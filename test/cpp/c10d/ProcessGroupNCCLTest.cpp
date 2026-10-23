@@ -20,6 +20,22 @@ using namespace c10d::test;
 
 using at::cuda::CUDAStream;
 
+TEST(ProcessGroupNCCLOptionsTest, StreamPriority) {
+#ifdef USE_ROCM
+  constexpr bool expectedDefault = true;
+#else
+  constexpr bool expectedDefault = false;
+#endif
+  using Options = c10d::ProcessGroupNCCL::Options;
+  EXPECT_EQ(Options().is_high_priority_stream, expectedDefault);
+  EXPECT_EQ(Options::create()->is_high_priority_stream, expectedDefault);
+  for (bool highPriority : {false, true}) {
+    EXPECT_EQ(Options(highPriority).is_high_priority_stream, highPriority);
+    EXPECT_EQ(
+        Options::create(highPriority)->is_high_priority_stream, highPriority);
+  }
+}
+
 TEST(NCCLBootstrapTest, RootIndex) {
   struct TestCase {
     int numRanks;

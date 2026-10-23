@@ -513,9 +513,16 @@ class TORCH_API ProcessGroupNCCL : public Backend {
   };
 
   struct Options : Backend::Options {
+#ifdef USE_ROCM
+    // Separate RCCL from normal-priority compute in ROCm's queue pools.
+    static constexpr bool kDefaultHighPriorityStream = true;
+#else
+    static constexpr bool kDefaultHighPriorityStream = false;
+#endif
+
     // NOTE: timeout in ProcessGroupNCCL::Options denote the timeout for
     // operations. This is only used when blockingWait_ is enabled.
-    explicit Options(bool is_high_priority_stream = false);
+    explicit Options(bool is_high_priority_stream = kDefaultHighPriorityStream);
     Options(const Options&) = default;
     Options(Options&&) noexcept = default;
     Options& operator=(const Options&) = delete;
@@ -524,7 +531,7 @@ class TORCH_API ProcessGroupNCCL : public Backend {
 
     // return intrusive_ptr of the object
     static c10::intrusive_ptr<Options> create(
-        bool is_high_priority_stream = false) {
+        bool is_high_priority_stream = kDefaultHighPriorityStream) {
       return c10::make_intrusive<Options>(is_high_priority_stream);
     }
 

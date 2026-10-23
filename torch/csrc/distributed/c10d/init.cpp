@@ -4009,7 +4009,6 @@ options :class:`~torch.distributed.ProcessGroupNCCL.Options`).
                 py::gil_scoped_release nogil{};
 
                 auto options = ::c10d::ProcessGroupNCCL::Options::create();
-                options->is_high_priority_stream = false;
                 options->timeout = timeout;
                 return c10::make_intrusive<::c10d::ProcessGroupNCCL>(
                     store, rank, size, options);
@@ -4199,7 +4198,10 @@ Arguments:
     is_high_priority_stream (bool, optional): flag to enable/disable process
             group to pick up high priority cuda streams. It lets CUDA driver
             to prioritize NCCL kernels when there are compute kernels waiting.
-            Default is False.
+            Default is True on ROCm and False otherwise. On ROCm, high priority
+            places internal communication streams in a different runtime queue
+            pool from normal-priority compute. Explicitly pass False to opt out;
+            TORCH_NCCL_HIGH_PRIORITY=1 still forces high priority.
 
 Attributes:
     config (NCCLConfig): configures NCCL communicators (only available for
@@ -4226,7 +4228,10 @@ Example::
     >>> # initialize a nccl process group with the options just created
     >>> dist.init_process_group("nccl", pg_options=nccl_options)
       )")
-      .def(py::init<bool>(), py::arg("is_high_priority_stream") = false)
+      .def(
+          py::init<bool>(),
+          py::arg("is_high_priority_stream") =
+              ::c10d::ProcessGroupNCCL::Options::kDefaultHighPriorityStream)
       .def_readwrite("config", &::c10d::ProcessGroupNCCL::Options::config)
       .def_readwrite(
           "is_high_priority_stream",

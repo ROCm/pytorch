@@ -11,7 +11,7 @@ For more information on the environment variables, see [ProcessGroupNCCL Environ
 * - ``TORCH_NCCL_ASYNC_ERROR_HANDLING``
   - Control how we perform Async Error Handling with NCCL when an exception is observed in watchdog. If set to 0, no handling of asynchronous NCCL errors. If set to 1, aborting NCCL communicator and tearing down process upon error. If set to 2, only abort NCCL communicator and if set to 3, tearing down process without aborting NCCL communicator. By default, it is set to 3.
 * - ``TORCH_NCCL_HIGH_PRIORITY``
-  - Control whether to use high priority stream for the NCCL communicator.
+  - Set to ``1`` to force high-priority internal communication streams regardless of ``ProcessGroupNCCL.Options.is_high_priority_stream``. If unset or ``0``, the per-group option controls priority. That option defaults to ``True`` on ROCm and ``False`` otherwise; explicitly set it to ``False`` to request normal priority on ROCm. This setting does not change the priority of caller-owned streams used by synchronous or direct library calls.
 * - ``TORCH_NCCL_BLOCKING_WAIT``
   - Control whether or not wait() is blocking or non-blocking.
 * - ``TORCH_NCCL_DUMP_ON_TIMEOUT``

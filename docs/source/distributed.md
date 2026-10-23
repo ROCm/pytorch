@@ -212,6 +212,18 @@ You can tune NCCL communicators even further using `torch.distributed.ProcessGro
 and `torch.distributed.ProcessGroupNCCL.Options`. Learn more about them using `help`
 (e.g. `help(torch.distributed.ProcessGroupNCCL.NCCLConfig)`) in the interpreter.
 
+On ROCm, `ProcessGroupNCCL.Options.is_high_priority_stream` defaults to `True`.
+This places internal RCCL communication streams in a different runtime queue pool
+from normal-priority compute streams, avoiding serialization when those streams
+would otherwise share a queue. It does not reserve GPU compute resources or
+guarantee overlap. Other platforms retain the default of `False`.
+
+To request normal-priority internal streams on ROCm, pass
+`ProcessGroupNCCL.Options(is_high_priority_stream=False)` through `pg_options`,
+with `TORCH_NCCL_HIGH_PRIORITY` unset or `0`. A value of `1` for that environment
+variable continues to force high priority. This option does not change the
+priority of the caller's current stream or streams used by direct RCCL calls.
+
 (nccl-collective-config)=
 
 ### Per-collective NCCL configuration
