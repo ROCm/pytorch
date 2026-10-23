@@ -1082,6 +1082,41 @@ def run_cross_source_comparison(parsed_args):
 # Authenticated users get 5000 requests/day
 # Check rate-limit without penalty: curl -H "Authorization: token $GITHUB_TOKEN" -I https://api.github.com/users/octocat
 
+def resolve_non_variant_run(workflow, sha, test_config, job_prefix, status='success', ignore_status=False):
+    """Resolve the run of `workflow` for `sha` that ran the real <test_config> shards.
+
+    Upstream schedules a second run of the same workflow on the same commit
+    that re-runs only the rerun_disabled_tests / mem_leak_check variants
+    (slow.yml does this about a minute after the push run, so it is the newest
+    run for the SHA). Those jobs carry the shard names verbatim, so the variant
+    filter drops all of them and every constructed key reports DOES NOT EXIST
+    IN JOBS. Anchor on a run that still has non-variant shards instead.
+
+    Returns the run dict, or None when no run for the SHA has any.
+    """
+    params = {'per_page': 10, 'head_sha': sha}
+    if not ignore_status and status:
+        params['status'] = status
+    resp = requests.get(
+        f"https://api.github.com/repos/pytorch/pytorch/actions/workflows/{workflow}.yml/runs",
+        headers=authentication_headers, params=params,
+    )
+    runs = [r for r in resp.json().get('workflow_runs', [])
+            if r.get('status') == 'completed']
+    # A stable sort keeps the API's newest-first order within each group, so
+    # the newest push run is tried before any scheduled variant re-run.
+    runs.sort(key=lambda r: r.get('event') != 'push')
+    for run in runs:
+        try:
+            jobs = get_workflow_jobs(run)
+        except Exception:
+            continue
+        _, test_jobs = get_test_jobs_for_config(jobs, job_prefix, test_config)
+        if any(not _is_variant_job(j.get('name', '')) for j in test_jobs):
+            return run
+    return None
+
+
 def resolve_full_trunk_run(sha, cuda_job_prefix, status='success', ignore_status=False):
     """Resolve the canonical trunk.yml run for a SHA.
 
@@ -1596,6 +1631,14 @@ def main():
             slow_job_prefix = resolve_job_prefix(
                 slow_wf_rocm, "slow", rocm_job_prefix["slow"]
             )
+            non_variant_wf = resolve_non_variant_run(
+                ROCmWorkflowNames["slow"], slow_sha, "slow", slow_job_prefix,
+                status=status, ignore_status=args.ignore_status,
+            )
+            if non_variant_wf is not None and non_variant_wf['id'] != slow_wf_rocm['id']:
+                print(f"NOTE: ROCm slow run {slow_wf_rocm['id']} has only variant "
+                      f"shards; using run {non_variant_wf['id']} instead")
+                slow_wf_rocm = non_variant_wf
             slow_shards = derive_shard_count(
                 slow_wf_rocm, slow_job_prefix, "slow", rocm_shards["slow"]
             )
@@ -1829,6 +1872,14 @@ def main():
                 slow_cuda_prefix = resolve_job_prefix(
                     slow_wf_cuda, "slow", slow_cuda_prefix
                 )
+                non_variant_wf = resolve_non_variant_run(
+                    CUDAWorkflowNames["slow"], sha, "slow", slow_cuda_prefix,
+                    status=status, ignore_status=args.ignore_status,
+                )
+                if non_variant_wf is not None and non_variant_wf['id'] != slow_wf_cuda['id']:
+                    print(f"NOTE: CUDA slow run {slow_wf_cuda['id']} has only variant "
+                          f"shards; using run {non_variant_wf['id']} instead")
+                    slow_wf_cuda = non_variant_wf
                 slow_cuda_shards = derive_shard_count(
                     slow_wf_cuda, slow_cuda_prefix, "slow",
                     cuda_shards["slow"],
