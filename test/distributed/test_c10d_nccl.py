@@ -23,7 +23,10 @@ from unittest import mock, SkipTest
 import torch
 import torch.distributed as c10d
 import torch.distributed._functional_collectives as _functional_collectives
-from torch.distributed.distributed_c10d import SHRINK_ABORT as NCCL_SHRINK_ABORT
+from torch.distributed.distributed_c10d import (
+    SHRINK_ABORT as NCCL_SHRINK_ABORT,
+    SHRINK_DEFAULT as NCCL_SHRINK_DEFAULT,
+)
 
 
 if not c10d.is_available() or not c10d.is_nccl_available():
@@ -758,13 +761,19 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     def _helper_test_extra_cuda_context_by_nvml(self):
         """
-        A helper for `test_extra_cuda_context`, if pynvml is available.
-        pynvml provides python bindings for NVIDIA NVML functionalities.
-        Here we are interested in: nvmlDeviceGetComputeRunningProcesses
+        A helper for `test_extra_cuda_context`, if pynvml (CUDA) or amdsmi (ROCm)
+        is available. They provide python bindings for NVML / AMD SMI.
+        Here we are interested in: nvmlDeviceGetComputeRunningProcesses /
+        amdsmi_get_gpu_process_list
         """
-        import pynvml
+        if torch.version.hip:
+            # Raises ModuleNotFoundError if amdsmi is not available.
+            handle = torch.cuda._get_amdsmi_handler(self.rank)
+            import amdsmi
+        else:
+            import pynvml
 
-        pynvml.nvmlInit()
+            pynvml.nvmlInit()
 
         device = torch.device(f"cuda:{self.rank:d}")
         x = torch.empty((1,), device=device)
@@ -774,8 +783,11 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         # Wait for every rank to delete Work without touching another CUDA context.
         store = c10d.distributed_c10d._get_default_store()
         store.barrier("work_deleted", self.world_size)
-        handle = pynvml.nvmlDeviceGetHandleByIndex(self.rank)
-        processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
+        if torch.version.hip:
+            processes = amdsmi.amdsmi_get_gpu_process_list(handle)
+        else:
+            handle = pynvml.nvmlDeviceGetHandleByIndex(self.rank)
+            processes = pynvml.nvmlDeviceGetComputeRunningProcesses(handle)
         nprocs = len(processes)
 
         # A barrier for non-0 ranks
@@ -793,6 +805,12 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         A helper for `test_extra_cuda_context`, if pynvml is NOT available.
         If extra context is created, it would manifest into device 0's memory usage.
         """
+        if torch.version.hip:
+            raise SkipTest(
+                "Requires amdsmi on ROCm: an extra HIP context uses almost no device "
+                "memory, while the first RCCL kernel launch allocates ~1 GB of scratch "
+                "on the rank's own device, so memory growth cannot detect it."
+            )
         device = torch.device(f"cuda:{self.rank:d}")
         x = torch.empty((1,), device=device)
         # Rank 0 takes a snapshot before collective -- this snapshot should have
@@ -1205,6 +1223,28 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         # the default group should stay lazy
         self.assertEqual(backend._is_initialized(), False)
         torch.cuda.synchronize()
+        dist.destroy_process_group()
+
+    @requires_nccl()
+    @skip_but_pass_in_sandcastle_if(not TEST_MULTIGPU, "NCCL test requires 2+ GPUs")
+    @parametrize("blocking", [0, 1])
+    def test_backend_split_with_lazy_parent(self, blocking: int):
+        # The parent has no communicator yet, so the member creates the child
+        # via a fresh init and non-members have no nocolor split to join.
+        store = c10d.FileStore(self.file_name, self.world_size)
+        device = torch.device(f"cuda:{self.rank}")
+        pg = self._create_process_group_nccl(store, self.opts())
+        backend = pg._get_backend(device)
+        opts = self.opts()
+        opts.config.blocking = blocking
+        child = backend.split(c10d.distributed_c10d._get_default_store(), [0], opts)
+        self.assertEqual(backend._is_initialized(), False)
+        if self.rank == 0:
+            tensor = torch.ones(1, device=device)
+            child.allreduce([tensor]).wait()
+            self.assertEqual(tensor, torch.ones_like(tensor))
+        else:
+            self.assertIsNone(child)
         dist.destroy_process_group()
 
     @requires_nccl_version((2, 18), "Need NCCL 2.18+ for ncclCommSplit")
@@ -1720,21 +1760,27 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
 
     @requires_nccl_shrink()
     @requires_world_size(3)
-    def test_shrink_group_multiple_comms(self):
+    @parametrize("shrink_flags", [NCCL_SHRINK_DEFAULT, NCCL_SHRINK_ABORT])
+    def test_shrink_group_multiple_comms(self, shrink_flags):
         """Test shrink_group across a subgroup and the default group."""
-        device, _ = self._setup_shrink_test("multiple_comms")
+        device, default_pg = self._setup_shrink_test("multiple_comms")
         ranks_to_exclude = [self.world_size - 1]
 
         subgroup = c10d.new_group(list(range(self.world_size)))
-        self._shrink_or_destroy(ranks_to_exclude, subgroup, device, "subgroup")
+        self._shrink_or_destroy(
+            ranks_to_exclude, subgroup, device, "subgroup", shrink_flags=shrink_flags
+        )
 
-        dist.barrier()
+        self._test_collective_on_shrunk_group(
+            default_pg, device, [], "default after subgroup shrink"
+        )
 
         self._shrink_or_destroy(
             ranks_to_exclude,
-            c10d.distributed_c10d._get_default_group(),
+            default_pg,
             device,
             "default",
+            shrink_flags=shrink_flags,
         )
 
     def _test_shrink_group_with_flag(self, shrink_flag, flag_name, rank_to_exclude):
@@ -2155,7 +2201,9 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
             dist.destroy_process_group()
         else:
             log_test_info(self.rank, "Excluded from shrink test - exiting immediately")
-            dist.destroy_process_group()
+            # Survivors shrink with NCCL_SHRINK_ABORT and abort the parent, so
+            # the excluded rank must abort too; destroy here would hang.
+            pg1._get_backend(torch.device(device)).abort()
             return
 
         # Performance analysis (only for participating ranks)
