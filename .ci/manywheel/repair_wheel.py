@@ -107,17 +107,13 @@ def rocm_rpaths() -> str:
     ROCm libs come from the `rocm` pip package, which unpacks under
     <site-packages>/_rocm_sdk_core (a sibling of torch/), so point at it
     $ORIGIN-relatively, mirroring cuda_rpaths(). No ROCm libs are bundled into
-    the wheel in this layout. ``host-math/lib`` holds ``librocm-openblas.so.0``
-    and ``rocm_sysdeps/lib`` holds ``librocm_sysdeps_numa.so.1``; devel images
-    can place those same sonames under ``_rocm_sdk_devel`` instead of core.
+    the wheel in this layout. ``host-math/lib`` holds ``librocm-openblas.so.0``.
     """
     return (
         "$ORIGIN/../../_rocm_sdk_core/lib"
         ":$ORIGIN/../../_rocm_sdk_core/lib/rocm_sysdeps/lib"
         ":$ORIGIN/../../_rocm_sdk_core/lib/host-math/lib"
         ":$ORIGIN/../../_rocm_sdk_libraries/lib"
-        ":$ORIGIN/../../_rocm_sdk_devel/lib/host-math/lib"
-        ":$ORIGIN/../../_rocm_sdk_devel/lib/rocm_sysdeps/lib"
     )
 
 
