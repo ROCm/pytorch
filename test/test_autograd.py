@@ -10949,6 +10949,12 @@ for shape in [(1,), ()]:
         out = x * y
         out.sum().backward()
 
+    # On Windows the ROCm wheels are built with clang-cl, which does not emit
+    # dllexport for c10::Error subclass constructors inherited via
+    # `using Error::Error;` (llvm/llvm-project#162640). JIT-compiling this
+    # inline extension therefore fails to link/load against c10.
+    # Fixed on main by #175340, which is not in this release branch.
+    @unittest.skipIf(IS_WINDOWS, "Inline extension fails to load on Windows, see #181892")
     @scoped_load_inline
     def test_multi_grad_all_hooks(self, load_inline):
         t1 = torch.rand(2, requires_grad=True)
