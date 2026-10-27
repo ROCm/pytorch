@@ -8,6 +8,17 @@
 #include <array>
 #include <cctype>
 #include <string>
+#include <string_view>
+
+#if defined(USE_ROCM) && defined(__has_include) && \
+    __has_include(<ATen/ROCmCKGEMMConfig.h>)
+#include <ATen/ROCmCKGEMMConfig.h>
+#endif
+#ifndef TORCH_CK_GEMM_ARCH_LIST
+// Non-CMake ROCm builds (e.g. Buck) do not generate the header; fall back to
+// the default CK GEMM allowlist.
+#define TORCH_CK_GEMM_ARCH_LIST "gfx90a,gfx942,gfx950"
+#endif
 
 #include <ATen/cpu/FlushDenormal.h>
 
@@ -561,16 +572,62 @@ at::BlasBackend Context::blasPreferredBackend() {
 bool Context::ckSupported() {
 #ifdef USE_ROCM
   static const std::vector<std::string> supported_archs = {
-    "gfx942", "gfx950"
+      "gfx942", "gfx950",
   };
   for (auto index : c10::irange(detail::getCUDAHooks().deviceCount())) {
-    if(!detail::getCUDAHooks().isGPUArch(supported_archs, index)) {
+    if (!detail::getCUDAHooks().isGPUArch(supported_archs, index)) {
       TORCH_WARN_ONCE(
-        "Attempting to use CK on an unsupported architecture! Cannot set backend to CK");
+          "Attempting to use CK on an unsupported architecture! Cannot set "
+          "backend to CK");
       return false;
     }
   }
   return true;
+#else
+  return false;
+#endif
+}
+
+#ifdef USE_ROCM
+namespace {
+// Split the generated comma-separated CK GEMM architecture list.
+std::vector<std::string> parseArchList(std::string_view archs) {
+  std::vector<std::string> result;
+  while (!archs.empty()) {
+    const auto comma = archs.find(',');
+    result.emplace_back(archs.substr(0, comma));
+    if (comma == std::string_view::npos) {
+      break;
+    }
+    archs.remove_prefix(comma + 1);
+  }
+  return result;
+}
+} // namespace
+#endif
+
+bool Context::ckGemmSupported() {
+#ifdef USE_ROCM
+  // TORCH_CK_GEMM_ARCH_LIST is the allowlist this build was compiled for (the
+  // same list that drives the ck_gemm build arch filter), so the check stays in
+  // step with the build. It is empty if overridden empty. Cached because the
+  // CK GEMM dispatch calls this on every GEMM.
+  static const bool supported = [] {
+    const auto supported_archs = parseArchList(TORCH_CK_GEMM_ARCH_LIST);
+    if (supported_archs.empty()) {
+      return false;
+    }
+    for (auto index : c10::irange(detail::getCUDAHooks().deviceCount())) {
+      if (!detail::getCUDAHooks().isGPUArch(supported_archs, index)) {
+        TORCH_WARN_ONCE(
+            "Attempting to use CK GEMM on an unsupported architecture! Cannot "
+            "set blas backend to CK");
+        return false;
+      }
+    }
+    return true;
+  }();
+  return supported;
 #else
   return false;
 #endif
@@ -586,11 +643,11 @@ void Context::setBlasPreferredBackend(at::BlasBackend b) {
   TORCH_CHECK((b != at::BlasBackend::Cublaslt) || hasCuBLASLt(),
       "Cannot set preferred backend to cuBLASLt if PyTorch has not been compiled with cuBLASLt.");
 #ifdef USE_ROCM
-  static const bool ckSupportedFlag = ckSupported();
+  static const bool ckGemmSupportedFlag = ckGemmSupported();
   static const bool hasCKGEMMFlag = hasCKGEMM();
-  TORCH_CHECK((b != at::BlasBackend::Ck) || (ckSupportedFlag && hasCKGEMMFlag),
+  TORCH_CHECK((b != at::BlasBackend::Ck) || (ckGemmSupportedFlag && hasCKGEMMFlag),
       "Cannot set preferred blas backend to CK since following conditions are not true: ",
-      "architecture supported for CK: ", ckSupportedFlag,
+      "architecture supported for CK GEMM: ", ckGemmSupportedFlag,
       ", PyTorch built with CK GEMM support: ", hasCKGEMMFlag);
 #endif
   if (b != at::BlasBackend::Default && b != at::BlasBackend::Cublas) {
