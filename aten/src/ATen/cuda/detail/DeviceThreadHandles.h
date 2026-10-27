@@ -86,7 +86,9 @@ struct DeviceThreadHandlePool : public std::enable_shared_from_this<DeviceThread
     PoolWindow(std::shared_ptr<DeviceThreadHandlePool> parent): weak_parent(std::move(parent)) {}
     ~PoolWindow(){ release(); }
 
-    Handle_t reserve(int device)
+    // With create=false, returns nullptr instead of creating a handle when
+    // this thread has none for the device and the pool has no spare.
+    Handle_t reserve(int device, bool create = true)
     {
         // If this thread already has a handle for this device, return it
         if(my_handles.find(device) != my_handles.end())
@@ -102,6 +104,10 @@ struct DeviceThreadHandlePool : public std::enable_shared_from_this<DeviceThread
         {
         my_handles[device] = parent->available_handles[device].back();
         parent->available_handles[device].pop_back();
+        }
+        else if(!create)
+        {
+        return nullptr;
         }
         else
         {

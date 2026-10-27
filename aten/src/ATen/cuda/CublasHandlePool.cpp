@@ -387,8 +387,8 @@ cublasHandle_t getCurrentCUDABlasHandle() {
   return handle;
 }
 
-cublasLtHandle_t getCurrentCUDABlasLtHandle() {
 #ifdef USE_ROCM
+static cublasLtHandle_t reserveCurrentCUDABlasLtHandle(bool create) {
   c10::DeviceIndex device = 0;
   AT_CUDA_CHECK(c10::cuda::GetDevice(&device));
 
@@ -407,8 +407,17 @@ cublasLtHandle_t getCurrentCUDABlasLtHandle() {
   thread_local std::unique_ptr<CuBlasLtPoolType::PoolWindow> myPoolWindow(
       pool->newPoolWindow());
 
-  auto handle = myPoolWindow->reserve(device);
-  return handle;
+  return myPoolWindow->reserve(device, create);
+}
+
+cublasLtHandle_t getCurrentCUDABlasLtHandleIfAvailable() {
+  return reserveCurrentCUDABlasLtHandle(/*create=*/false);
+}
+#endif
+
+cublasLtHandle_t getCurrentCUDABlasLtHandle() {
+#ifdef USE_ROCM
+  return reserveCurrentCUDABlasLtHandle(/*create=*/true);
 #else
   return reinterpret_cast<cublasLtHandle_t>(getCurrentCUDABlasHandle());
 #endif

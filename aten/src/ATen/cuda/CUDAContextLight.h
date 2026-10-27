@@ -87,6 +87,12 @@ TORCH_CUDA_CPP_API c10::Allocator* getCUDADeviceAllocator();
 TORCH_CUDA_CPP_API cusparseHandle_t getCurrentCUDASparseHandle();
 TORCH_CUDA_CPP_API cublasHandle_t getCurrentCUDABlasHandle();
 TORCH_CUDA_CPP_API cublasLtHandle_t getCurrentCUDABlasLtHandle();
+#ifdef USE_ROCM
+// Like getCurrentCUDABlasLtHandle(), but returns nullptr instead of creating a
+// handle when the current thread has none for the current device and the pool
+// has no spare. Safe to call under stream capture.
+TORCH_CUDA_CPP_API cublasLtHandle_t getCurrentCUDABlasLtHandleIfAvailable();
+#endif
 
 TORCH_CUDA_CPP_API void clearCublasWorkspaces();
 struct WorkspaceMapWithMutex {
