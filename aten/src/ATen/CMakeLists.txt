@@ -55,6 +55,12 @@ set_bool(AT_CUDNN_ENABLED CAFFE2_USE_CUDNN)
 set_bool(AT_CUSPARSELT_ENABLED CAFFE2_USE_CUSPARSELT)
 set_bool(AT_HIPSPARSELT_ENABLED CAFFE2_USE_HIPSPARSELT)
 
+# CK GEMM allowlist (TORCH_CK_GEMM_ARCH_LIST, top-level CMakeLists.txt) surfaced
+# to Context.cpp and the ck_gemm .hip dispatch, so the runtime check stays in
+# step with the build arch filter (torch_filter_ck_gemm_arches).
+string(REPLACE ";" "," TORCH_CK_GEMM_ARCH_LIST_STR "${TORCH_CK_GEMM_ARCH_LIST}")
+configure_file(ROCmCKGEMMConfig.h.in "${CMAKE_BINARY_DIR}/aten/src/ATen/ROCmCKGEMMConfig.h" @ONLY)
+
 configure_file(Config.h.in "${CMAKE_CURRENT_SOURCE_DIR}/Config.h")
 # TODO: Do not generate CUDAConfig.h for ROCm BUILDS
 # At the moment, `jit_macros.h` include CUDAConfig.h for both CUDA and HIP builds
@@ -653,14 +659,10 @@ if(USE_ROCM)
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
   else()
-    # composable_kernel has no gfx1250/gfx1250-strict support yet, so its CK GEMM kernels fail to
-    # compile for those archs. Build CK GEMM as a separate library with gfx1250/gfx1250-strict
-    # filtered out of HIP_ARCHITECTURES so every other requested arch still gets
-    # CK GEMM. Remove this filtering once the CK submodule supports gfx1250/gfx1250-strict.
+    # Build CK GEMM only for architectures in TORCH_CK_GEMM_ARCH_LIST.
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
-    set(_ck_gemm_hip_arches ${PYTORCH_ROCM_ARCH})
-    list(REMOVE_ITEM _ck_gemm_hip_arches "gfx1250" "gfx1250-strict")
+    torch_filter_ck_gemm_arches(_ck_gemm_hip_arches)
     set_source_files_properties(${native_hip_bgemm} ${native_hip_ck} PROPERTIES LANGUAGE HIP)
     add_library(ck_gemm STATIC ${native_hip_bgemm} ${native_hip_ck})
     set_target_properties(ck_gemm PROPERTIES
