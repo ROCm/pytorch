@@ -102,7 +102,6 @@ except ImportError:
     has_pytest = False
 
 SEED = 1234
-MI450_ARCH = ("gfx1250",)
 MI350_ARCH = ("gfx950",)
 MI300_ARCH = ("gfx942",)
 MI200_ARCH = ("gfx90a",)
@@ -118,6 +117,8 @@ NAVI_ARCH = (
 NAVI3_ARCH = ("gfx1100", "gfx1101")
 NAVI3_5_ARCH = ("gfx1150", "gfx1151")
 NAVI4_ARCH = ("gfx1200", "gfx1201")
+# Matches at::Context::ckSDPASupported(). gfx1250 and gfx1250-strict are not included.
+CK_SUPPORTED_ARCH = ("gfx942", "gfx950")
 
 class ProfilingMode(Enum):
     LEGACY = 1
@@ -2458,6 +2459,14 @@ def skipIfRocmArch(arch: tuple[str, ...]):
         lambda: TEST_WITH_ROCM and isRocmArchAnyOf(arch),
         f"skipIfRocm: test skipped on {arch}",
     )
+
+def skipIfRocmCkUnsupported(func=None):
+    """Skip when the ROCm GPU is not a CK-supported architecture."""
+    decorator = lazy_skip_if(
+        lambda: TEST_WITH_ROCM and not isRocmArchAnyOf(CK_SUPPORTED_ARCH),
+        "skipIfRocmCkUnsupported: CK is not supported on this ROCm architecture",
+    )
+    return decorator(func) if func is not None else decorator
 
 def runOnRocm(fn):
     @wraps(fn)

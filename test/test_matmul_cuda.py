@@ -42,7 +42,6 @@ from torch.testing._internal.common_device_type import (
 from torch.testing._internal.common_utils import (
     IS_JETSON,
     IS_WINDOWS,
-    MI450_ARCH,
     MI200_ARCH,
     NAVI_ARCH,
     getRocmVersion,
@@ -54,6 +53,7 @@ from torch.testing._internal.common_utils import (
     serialTest,
     skipIfRocm,
     skipIfRocmArch,
+    skipIfRocmCkUnsupported,
     TEST_CUDA,
     TEST_WITH_ROCM,
     TestCase,
@@ -1146,7 +1146,7 @@ class TestMatmulCuda(InductorTestCase):
         self.assertEqual(C, C_ref)
 
     @skipCUDAIfNotRocm
-    @skipIfRocmArch(MI450_ARCH)
+    @skipIfRocmCkUnsupported
     # Fails with triton 3.7
     def test_grouped_gemm_rocm_ck_flag(self):
         CK_EQUAL_K_HINT = "kernel_grouped_gemm_xdl_splitk"
