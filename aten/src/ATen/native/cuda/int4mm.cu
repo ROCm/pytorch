@@ -136,7 +136,7 @@ inline __host__ __device__ uint32_t getAlignmentRoundUp(const void* p) {
 
 // Conceptual only for now and subject to change
 // __gfx1250 cannot simply be added to the `#if` list above.
-// gfx950 (CDNA4) vs. gfx1250 (CDNA5 / CDNA-next / UDNA)
+// gfx950 (CDNA4) vs. gfx1250 (CDNA5 / CDNA-next)
 // MFMA vs. WMMA
 // Warp 64/32 vs. Warp 32 only
 // Intrinsics __builtin_amdgcn_mfma_* vs. __builtin_amdgcn_wmma_*, e.g., __builtin_amdgcn_mfma_f32_16x16x16bf16_1k called below
@@ -165,7 +165,7 @@ static bool isCDNA2orLater(int index) {
 }
 
 // Conceptual for now and subject to change
-// gfx1250 (CDNA5 / CDNA-next / UDNA)
+// gfx1250 (CDNA5 / CDNA-next)
 static bool isCDNA5orLater(int index) {
   return at::detail::getCUDAHooks().isGPUArch({"gfx1250"}, index);
 }
