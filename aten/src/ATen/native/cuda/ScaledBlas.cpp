@@ -82,6 +82,8 @@ bool _scaled_mm_allowed_device(bool sm90_only=false, bool sm100_only=false) {
 #endif
 #if ROCM_VERSION >= 71400
         "gfx1250",
+#endif
+#if ROCM_VERSION >= 100300
         "gfx1250-strict",
 #endif
     };
@@ -107,6 +109,8 @@ static void check_blockwise_e8m0fnu_arch_supported() {
   std::vector<std::string> mx_archs{"gfx950"};
 #if ROCM_VERSION >= 71400
   mx_archs.push_back("gfx1250");
+#endif
+#if ROCM_VERSION >= 100300
   mx_archs.push_back("gfx1250-strict");
 #endif
   TORCH_CHECK_NOT_IMPLEMENTED(

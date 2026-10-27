@@ -155,11 +155,6 @@ if(NOT __AOTRITON_INCLUDED)
     # once AOTriton publishes gfx1250-strict kernels.
     set(_aotriton_target_arch ${PYTORCH_ROCM_ARCH})
     list(REMOVE_ITEM _aotriton_target_arch "gfx1250-strict")
-    if(_aotriton_target_arch STREQUAL "")
-      message(FATAL_ERROR
-        "AOTriton has no gfx1250-strict support and PYTORCH_ROCM_ARCH "
-        "(${PYTORCH_ROCM_ARCH}) has no other arch")
-    endif()
 
     ExternalProject_Add(${project}
       GIT_REPOSITORY https://github.com/ROCm/aotriton.git

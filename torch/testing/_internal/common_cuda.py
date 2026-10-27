@@ -255,9 +255,15 @@ def evaluate_platform_supports_fp8():
             if ROCM_VERSION >= (6, 5):
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
-                archs.extend(['gfx1250', 'gfx1250-strict'])
+                archs.append('gfx1250')
+            if ROCM_VERSION >= (10, 3):
+                archs.append('gfx1250-strict')
+            gcn_name = torch.cuda.get_device_properties(0).gcnArchName
+            # "gfx1250" is a prefix of "gfx1250-strict".
+            if 'gfx1250-strict' in gcn_name:
+                return ROCM_VERSION >= (10, 3)
             for arch in archs:
-                if arch in torch.cuda.get_device_properties(0).gcnArchName:
+                if arch in gcn_name:
                     return True
             return False
         else:
@@ -287,8 +293,12 @@ def evaluate_platform_supports_mx_gemm():
         if torch.version.hip:
             if ROCM_VERSION >= (7, 0):
                 gcn_name = torch.cuda.get_device_properties(0).gcnArchName
-                cdna5 = any(arch in gcn_name for arch in _CDNA5_ARCHS)
-                return 'gfx950' in gcn_name or (cdna5 and ROCM_VERSION >= (7, 14))
+                if 'gfx950' in gcn_name:
+                    return True
+                # "gfx1250" is a prefix of "gfx1250-strict", so test strict first.
+                if 'gfx1250-strict' in gcn_name:
+                    return ROCM_VERSION >= (10, 3)
+                return 'gfx1250' in gcn_name and ROCM_VERSION >= (7, 14)
         else:
             return SM100OrLater
     return False
