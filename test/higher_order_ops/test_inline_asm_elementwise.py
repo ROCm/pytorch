@@ -15,10 +15,10 @@ import torch
 from torch._higher_order_ops.inline_asm_elementwise import inline_asm_elementwise
 from torch.testing._internal.common_cuda import evaluate_gfx_arch_within, SM70OrLater
 from torch.testing._internal.common_utils import (
-    GFX1250_ARCH,
     instantiate_parametrized_tests,
     MI200_ARCH,
     MI300_ARCH,
+    MI450_ARCH,
     NAVI3_5_ARCH,
     NAVI3_ARCH,
     NAVI4_ARCH,
@@ -34,7 +34,7 @@ from torch.utils._triton import has_triton
 
 
 # Upstream Triton enables LLVM real-true16 for Navi3, Navi3.5, Navi4 and gfx1250.
-TRUE16_ARCH = (*NAVI3_ARCH, *NAVI3_5_ARCH, *NAVI4_ARCH, *GFX1250_ARCH)
+TRUE16_ARCH = (*NAVI3_ARCH, *NAVI3_5_ARCH, *NAVI4_ARCH, *MI450_ARCH)
 
 
 @dataclass
