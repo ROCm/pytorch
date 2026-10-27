@@ -2063,6 +2063,14 @@ class triton:
     # can be satisfied, along with any existing requirements for index expressions
     use_tensor_descriptor = False
 
+    # Whether FlexAttention forward/decode may select AMD TDM descriptors on
+    # gfx1250. Defaults off on this release: the pinned Triton compiler has not
+    # been qualified for automatic TDM selection. When enabled, selection is
+    # capability-driven and USE_TMA=False still forces pointers; when disabled,
+    # forward/decode use pointers even for USE_TMA=True. It does not affect
+    # NVIDIA, XPU, dense GEMM or generic descriptor codegen.
+    enable_flex_tdm = False
+
     # (Experimental)
     # Whether to allow reordering tensor descriptor matches with descending
     # strides, at the expense of transposing values after load / before store.
