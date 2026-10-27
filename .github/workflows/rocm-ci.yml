@@ -185,7 +185,7 @@ jobs:
       - docker-image
       - build
     runs-on: ${{ matrix.runner }}
-    timeout-minutes: 420
+    timeout-minutes: 540
     strategy:
       fail-fast: false
       matrix:
@@ -194,7 +194,8 @@ jobs:
           - { config: default, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-1 }
           - { config: distributed, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-4 }
           - { config: distributed, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-4 }
-          - { config: inductor, shard: 1, num_shards: 1, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-1 }
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       BRANCH: ${{ github.head_ref || github.ref_name }}
@@ -383,7 +384,7 @@ jobs:
             core.exportVariable('ACTIONS_RUNTIME_TOKEN', process.env.ACTIONS_RUNTIME_TOKEN);
 
       - name: Run tests
-        timeout-minutes: 360
+        timeout-minutes: 480
         run: >-
           docker exec
           -e ACTIONS_CACHE_SERVICE_V2
