@@ -1,24 +1,24 @@
+# Copyright Advanced Micro Devices, Inc.
+# SPDX-License-Identifier: MIT
+#
+# Dependabot version updates. See
+# https://docs.github.com/en/code-security/reference/supply-chain-security/dependabot-options-reference
+
 version: 2
 updates:
-  # Update to the latest transformers version with dependabot
-  - package-ecosystem: "pip"
-    directory: "/.ci/docker/ci_commit_pins"
+  - package-ecosystem: "github-actions"
+    # "/" covers .github/workflows; composite actions keep their own `uses:`
+    # pins, so .github/actions has to be listed separately to get bumped.
+    directory: "/"
     schedule:
       interval: "daily"
-    target-branch: "main"
-    allow:
-      - dependency-name: "transformers"
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-patch"]
-    commit-message:
-      prefix: "[Dependabot] Update"
-      include: "scope"
-    labels:
-      - "dependencies"
-      - "open source"
-      - "python"
-      - "topic: not user facing"
-      - "module: ci"
-      - "module: inductor"
-      - "ciflow/inductor"
+      # Wait a week before adopting newly released action versions.
+    cooldown:
+      default-days: 7
+      exclude:
+        - "ROCm/rocm-security-gh*"
+    groups:
+      rocm-security-gh:
+        patterns: ["ROCm/rocm-security-gh*"]
+      github-actions:
+        patterns: ["*"]
