@@ -130,7 +130,10 @@ SM75OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_devic
 SM80OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (8, 0))
 SM89OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (8, 9))
 SM90OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (9, 0))
-SM100OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (10, 0))
+# False on ROCm, where get_device_capability() returns the gfx-arch version and
+# gfx10/11/12 would otherwise read as SM100+.
+SM100OrLater = LazyVal(lambda: torch.version.hip is None and torch.cuda.is_available() and
+                       torch.cuda.get_device_capability() >= (10, 0))
 SM120OrLater = LazyVal(lambda: torch.cuda.is_available() and torch.cuda.get_device_capability() >= (12, 0))
 BF16X9_API_SUPPORTED = LazyVal(
     lambda: TEST_CUDA
