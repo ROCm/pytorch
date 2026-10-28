@@ -194,8 +194,10 @@ jobs:
           - { config: default, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-1 }
           - { config: distributed, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-4 }
           - { config: distributed, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-4 }
-          - { config: inductor, shard: 1, num_shards: 2, runner: linux-pytorch-mi325-1 }
-          - { config: inductor, shard: 2, num_shards: 2, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 1, num_shards: 4, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 2, num_shards: 4, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 3, num_shards: 4, runner: linux-pytorch-mi325-1 }
+          - { config: inductor, shard: 4, num_shards: 4, runner: linux-pytorch-mi325-1 }
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       BRANCH: ${{ github.head_ref || github.ref_name }}
