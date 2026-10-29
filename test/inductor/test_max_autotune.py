@@ -5792,7 +5792,7 @@ def _tdm_fake_kernel(**overrides):
 class TestTDMConfigDenseAndGeneric(TestCase):
     _PREREQS = "torch._inductor.utils._gfx1250_device_prereqs"
 
-    def test_tdm_arch_gate_accepts_only_gfx1250(self):
+    def test_tdm_arch_gate_accepts_gfx1250_peer_targets(self):
         from torch._inductor.utils import is_gfx1250_arch
 
         self.assertTrue(is_gfx1250_arch("gfx1250"))
