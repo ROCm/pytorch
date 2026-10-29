@@ -3689,12 +3689,11 @@ exit(2)
         elem = 4
 
         # this was annoying to write but stresses the expectations pretty rigorously
-        # For small_pool cases, delta_cudaMallocs and delta_cudaMalloc_bytes include
-        # an extra kSmallBuffer segment for the per-capture RNG state tensors, which
-        # are allocated on the default stream (separate from stream s).
+        # The per-capture RNG state tensors go to the default stream; an anchor block
+        # there (below) makes them reuse an existing segment regardless of earlier tests.
         cases = (
-            (512 // elem, 2, 2 * kSmallBuffer, kSmallBuffer, "small_pool"),
-            (kSmallSize // elem, 3, 3 * kSmallBuffer, kSmallBuffer, "small_pool"),
+            (512 // elem, 1, 1 * kSmallBuffer, kSmallBuffer, "small_pool"),
+            (kSmallSize // elem, 2, 2 * kSmallBuffer, kSmallBuffer, "small_pool"),
             ((kSmallSize + 512) // elem, 1, kLargeBuffer, kLargeBuffer, "large_pool"),
             (
                 (kMinLargeAlloc - 512) // elem,
@@ -3721,6 +3720,9 @@ exit(2)
         gc.collect()
         torch.cuda.empty_cache()
 
+        with torch.cuda.stream(torch.cuda.default_stream()):
+            anchor = torch.empty((1,), device="cuda")  # noqa: F841
+
         s = torch.cuda.Stream()
 
         for (
@@ -3742,9 +3744,6 @@ exit(2)
             g = torch.cuda.CUDAGraph()
             s.wait_stream(torch.cuda.current_stream())
             with torch.cuda.stream(s):
-                # Per-capture RNG state tensors are allocated on the default stream
-                # (not the capture stream), so they occupy a separate segment from
-                # user tensors created here on stream s.
                 a = torch.ones((numel,), device="cuda")
 
                 precapture_stats = torch.cuda.memory_stats()
