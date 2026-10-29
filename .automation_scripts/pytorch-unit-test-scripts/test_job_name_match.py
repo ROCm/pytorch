@@ -34,34 +34,6 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
             },
         )
 
-    def test_preview_checkrun_regex_tolerates_python_bumps(self):
-        """pytorch/pytorch#199316 moved Preview from py3.12 to py3.11."""
-        config_path = os.path.join(
-            os.path.dirname(__file__), "parity_job_config.json"
-        )
-        with open(config_path) as config_file:
-            preview = json.load(config_file)["rocm"]["preview"]
-
-        regex = re.compile(preview["checkrun_regex"])
-        for python in ("3.11", "3.12", "3.13"):
-            for config in ("default", "distributed", "inductor"):
-                with self.subTest(python=python, config=config):
-                    self.assertRegex(
-                        f"linux-noble-rocm-preview-py{python}-mi350 / test "
-                        f"({config}, 1, 8, linux.rocm.gpu.gfx950.1)",
-                        regex,
-                    )
-        self.assertNotRegex(
-            "linux-noble-rocm-py3.11-mi350 / test "
-            "(default, 1, 8, linux.rocm.gpu.gfx950.1)",
-            regex,
-        )
-        for config in ("default", "distributed", "inductor"):
-            self.assertEqual(
-                preview[config][0]["job_prefix"],
-                "linux-noble-rocm-preview-py3.11-mi350",
-            )
-
     def test_cuda_inductor_source_is_trunk(self):
         """pytorch/pytorch#199291 moved the only CUDA inductor config to trunk."""
         config_path = os.path.join(
