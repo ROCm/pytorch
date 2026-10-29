@@ -1886,6 +1886,8 @@ void scaled_gemm(
             std::vector<std::string> mx_archs{"gfx950"};
   #if ROCM_VERSION >= 71400
             mx_archs.push_back("gfx1250");
+  #endif
+  #if ROCM_VERSION >= 100300
             mx_archs.push_back("gfx1250-strict");
   #endif
             if (at::detail::getCUDAHooks().isGPUArch(mx_archs)) {
