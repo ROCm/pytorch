@@ -95,6 +95,7 @@ jobs:
     timeout-minutes: 120
     outputs:
       artifact-name: rocm-gfx942-build-${{ github.run_attempt }}
+      wheel-artifact-name: rocm-gfx942-wheel-${{ github.run_attempt }}
     container:
       image: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
       options: >-
@@ -166,14 +167,27 @@ jobs:
           SCCACHE_LOG: sccache::server=debug
         run: .ci/pytorch/build.sh
 
-      - name: Archive build artifact
-        run: tar -cf artifacts.tar dist/ build/custom_test_artifacts build/lib build/bin .additional_ci_files
+      - name: Archive build artifacts
+        run: |
+          tar -cf artifacts.tar dist/ build/custom_test_artifacts build/lib build/bin .additional_ci_files
+          mkdir wheel-artifact
+          tar -cf wheel-artifact/artifacts.tar dist/ build/custom_test_artifacts .additional_ci_files
 
       - name: Upload build artifact
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rocm-gfx942-build-${{ github.run_attempt }}
           path: artifacts.tar
+          compression-level: 1
+          if-no-files-found: error
+          include-hidden-files: true
+          retention-days: 14
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: rocm-gfx942-wheel-${{ github.run_attempt }}
+          path: wheel-artifact/artifacts.tar
           compression-level: 1
           if-no-files-found: error
           include-hidden-files: true
@@ -201,8 +215,11 @@ jobs:
     env:
       BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
       BRANCH: ${{ github.head_ref || github.ref_name }}
+      BUILD_ARTIFACT_NAME: ${{ matrix.config == 'default' && needs.build.outputs.artifact-name || needs.build.outputs.wheel-artifact-name }}
+      DISTRIBUTED_TESTS_ENV_INIT_ONLY: "1"
       DOCKER_IMAGE: rocm/pytorch-ci-private:pytorch-linux-noble-rocm7.2.4-py3.12-${{ needs.docker-image.outputs.ci-docker-hash }}-gfx942
       GIT_DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+      INDUCTOR_SKIP_OPS_SUITES: "1"
       MAX_JOBS: 6
       NUM_TEST_SHARDS: ${{ matrix.num_shards }}
       OMP_NUM_THREADS: 4
@@ -229,7 +246,7 @@ jobs:
           persist-credentials: false
           ref: ${{ env.HEAD_SHA }}
           show-progress: false
-          submodules: recursive
+          submodules: false
 
       - name: Discard interrupted checkout
         id: checkout_cleanup
@@ -248,7 +265,7 @@ jobs:
           persist-credentials: false
           ref: ${{ env.HEAD_SHA }}
           show-progress: false
-          submodules: recursive
+          submodules: false
 
       - name: Download build artifact
         id: download
@@ -256,7 +273,7 @@ jobs:
         timeout-minutes: 80
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: ${{ needs.build.outputs.artifact-name }}
+          name: ${{ env.BUILD_ARTIFACT_NAME }}
           path: .
 
       - name: Validate build artifact
@@ -279,7 +296,7 @@ jobs:
         timeout-minutes: 80
         uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
         with:
-          name: ${{ needs.build.outputs.artifact-name }}
+          name: ${{ env.BUILD_ARTIFACT_NAME }}
           path: .
 
       - name: Extract build artifact
@@ -314,6 +331,7 @@ jobs:
             -e BRANCH \
             -e BUILD_ENVIRONMENT \
             -e CI \
+            -e DISTRIBUTED_TESTS_ENV_INIT_ONLY \
             -e GIT_DEFAULT_BRANCH \
             -e GITHUB_ACTIONS \
             -e GITHUB_JOB \
@@ -322,6 +340,7 @@ jobs:
             -e GITHUB_RUN_ID \
             -e GITHUB_RUN_NUMBER \
             -e GITHUB_WORKFLOW \
+            -e INDUCTOR_SKIP_OPS_SUITES \
             -e MAX_JOBS \
             -e NUM_TEST_SHARDS \
             -e OMP_NUM_THREADS \
