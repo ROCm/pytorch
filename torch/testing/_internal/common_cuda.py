@@ -257,7 +257,7 @@ def evaluate_platform_supports_fp8():
             if ROCM_VERSION >= (7, 14):
                 archs.append('gfx1250')
             if ROCM_VERSION >= (10, 3):
-                archs.append('gfx1250-strict')
+                archs.extend(['gfx1170', 'gfx1171', 'gfx1250-strict'])
             gcn_name = torch.cuda.get_device_properties(0).gcnArchName
             # "gfx1250" is a prefix of "gfx1250-strict".
             if 'gfx1250-strict' in gcn_name:
