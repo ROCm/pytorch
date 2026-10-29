@@ -180,9 +180,11 @@ def evaluate_gfx_arch_within(arch_list):
         return False
     gcn_arch_name = torch.cuda.get_device_properties('cuda').gcnArchName
     effective_arch = os.environ.get('PYTORCH_DEBUG_FLASH_ATTENTION_GCN_ARCH_OVERRIDE', gcn_arch_name)
-    # gcnArchName can be complicated strings like gfx90a:sramecc+:xnack-
-    # Hence the matching should be done reversely
-    return any(arch in effective_arch for arch in arch_list)
+    # gcnArchName is "<offload-target>:<features>", for example
+    # gfx90a:sramecc+:xnack-. Match the target exactly. A substring check
+    # treats gfx1250-strict as gfx1250, and those are different targets.
+    target = effective_arch.split(":", 1)[0]
+    return target in arch_list
 
 # Per-generation gfx targets, ordered oldest -> newest. Each "OrLater" helper
 # below unions its own generation with every newer one, so the predicates are
