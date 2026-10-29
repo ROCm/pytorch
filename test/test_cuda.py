@@ -891,6 +891,8 @@ print(t.is_pinned())
                     archs.extend(["gfx1100", "gfx1101", "gfx1151"])
                 if ROCM_VERSION >= (7, 14):
                     archs.extend(["gfx1250"])
+                if ROCM_VERSION >= (10, 3):
+                    archs.extend(["gfx1170", "gfx1171"])
                 gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
                 hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
                 if hipblaslt_preferred:
