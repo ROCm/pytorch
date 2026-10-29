@@ -890,9 +890,16 @@ print(t.is_pinned())
                 if ROCM_VERSION >= (7, 13):
                     archs.extend(["gfx1100", "gfx1101", "gfx1151"])
                 if ROCM_VERSION >= (7, 14):
-                    archs.extend(["gfx1250", "gfx1250-strict"])
+                    archs.append("gfx1250")
+                if ROCM_VERSION >= (10, 3):
+                    archs.append("gfx1250-strict")
                 gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
-                hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
+                # "gfx1250" is a prefix of "gfx1250-strict". The strict target
+                # is gated on ROCm 10.3, so do not let the shorter name match it.
+                if "gfx1250-strict" in gcn_arch_name:
+                    hipblaslt_preferred = ROCM_VERSION >= (10, 3)
+                else:
+                    hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
                 if hipblaslt_preferred:
                     self.assertTrue(default == torch._C._BlasBackend.Cublaslt)
                 else:
