@@ -68,6 +68,25 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
             with self.subTest(name=name):
                 self.assertNotRegex(name, regex)
 
+    def test_mi300_prefers_single_sha_scheduled_workflow(self):
+        config_path = os.path.join(
+            os.path.dirname(__file__), "parity_job_config.json"
+        )
+        with open(config_path) as config_file:
+            mi300 = json.load(config_file)["rocm"]["mi300"]
+
+        legacy_workflows = {
+            "default": "rocm-mi300",
+            "distributed": "periodic-rocm-mi300",
+            "inductor": "inductor-rocm-mi300",
+        }
+        for config, legacy_workflow in legacy_workflows.items():
+            with self.subTest(config=config):
+                self.assertEqual(
+                    [source["workflow"] for source in mi300[config]],
+                    ["scheduled-rocm-mi300", legacy_workflow],
+                )
+
     def test_cuda_inductor_family_resolves_in_a_shared_trunk_run(self):
         """One trunk run now holds both platforms' inductor jobs."""
         jobs = [
