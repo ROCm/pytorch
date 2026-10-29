@@ -54,6 +54,13 @@ struct NVSHMEMAllocation {
         buffer_offset(buffer_offset),
         device_idx(device_idx) {}
 
+  // Whether ptr falls within this allocation's data buffer.
+  bool contains(const void* ptr) const {
+    auto ptr_int = reinterpret_cast<uintptr_t>(ptr);
+    auto buffer_ptr = reinterpret_cast<uintptr_t>(alloc_base) + buffer_offset;
+    return ptr_int >= buffer_ptr && ptr_int < buffer_ptr + buffer_size;
+  }
+
   // Delete copy and move operations to prevent double-free
   NVSHMEMAllocation(const NVSHMEMAllocation&) = delete;
   NVSHMEMAllocation& operator=(const NVSHMEMAllocation&) = delete;
@@ -434,7 +441,22 @@ class NVSHMEMSymmetricMemoryAllocator : public SymmetricMemoryAllocator {
 
   void free(void* ptr) override {
     std::lock_guard<std::mutex> lock(mutex_);
-    allocations_.erase(ptr);
+    auto alloc_it = allocations_.find(ptr);
+    if (alloc_it == allocations_.end()) {
+      return;
+    }
+    // Drop cached rendezvous handles pointing into this allocation: a future
+    // allocation may reuse the same address range, and a stale cached handle
+    // would carry the old allocation's size and peer mappings (matches the
+    // NCCL allocator's invalidation on free).
+    for (auto it = symm_mems_.begin(); it != symm_mems_.end();) {
+      if (alloc_it->second->contains(it->first.first)) {
+        it = symm_mems_.erase(it);
+      } else {
+        ++it;
+      }
+    }
+    allocations_.erase(alloc_it);
   };
 
   size_t get_alloc_size(void* ptr) override {
