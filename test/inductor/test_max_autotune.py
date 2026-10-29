@@ -5797,8 +5797,11 @@ class TestTDMConfigDenseAndGeneric(TestCase):
 
         self.assertTrue(is_gfx1250_arch("gfx1250"))
         self.assertTrue(is_gfx1250_arch("gfx1250:sramecc+:xnack-"))
+        self.assertTrue(is_gfx1250_arch("gfx1250-strict"))
+        self.assertTrue(is_gfx1250_arch("gfx1250-strict:sramecc+:xnack-"))
         self.assertFalse(is_gfx1250_arch("gfx0000"))
         self.assertFalse(is_gfx1250_arch("amd-gfx1250"))
+        self.assertFalse(is_gfx1250_arch("amd-gfx1250-strict"))
 
     def test_tdm_device_prereqs_use_runtime_floor_and_backend_probe(self):
         from torch._inductor.utils import _gfx1250_device_prereqs, _rocm_version_tuple

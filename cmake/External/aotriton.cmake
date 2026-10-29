@@ -289,7 +289,7 @@ if(NOT __AOTRITON_INCLUDED)
         # Anchor the arch. An unanchored gfx1250 pattern also matches
         # gfx1250-strict, which is a different offload target. Feature
         # suffixes such as gfx90a:xnack- still match.
-        if(target MATCHES "^${gfx_regex}($|:)")
+        if(target MATCHES "^gfx${gfx_regex}($|:)")
           set(__AOTRITON_DOWNLOAD_TARGET aotriton_image_${gfx_pattern})
           aotriton_download_image(${image} ${__AOTRITON_DOWNLOAD_TARGET})
           add_dependencies(${__AOTRITON_CHAINED_IMAGE} ${__AOTRITON_DOWNLOAD_TARGET})
