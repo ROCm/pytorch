@@ -1,0 +1,182 @@
+name: TheRock PR Wheel CI
+run-name: "TheRock wheel CI · PR #${{ github.event.pull_request.number || inputs.pr_number }}"
+
+on:
+  pull_request_target:
+    branches:
+      - develop
+      - "release/**"
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - ready_for_review
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: ROCm/pytorch PR number to validate.
+        required: true
+        type: number
+
+permissions:
+  contents: read
+
+concurrency:
+  group: therock-pr-wheel-ci-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  setup:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      !github.event.pull_request.draft
+    name: Validate request
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pull-requests: read
+      statuses: write
+    outputs:
+      sha: ${{ steps.pr.outputs.sha }}
+    steps:
+      # pull_request_target keeps the workflow definition on the trusted base;
+      # the PR head is passed to TheRock only as source to build.
+      - name: Validate PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+        run: |
+          set -euo pipefail
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}")"
+
+          head_repository="$(jq -r '.head.repo.full_name' <<< "${pr_json}")"
+          if [[ "${head_repository}" != "ROCm/pytorch" ]]; then
+            echo "::error::TheRock CI only accepts branches in ROCm/pytorch; move the commit to an org branch."
+            exit 1
+          fi
+
+          event_sha="${{ github.event.pull_request.head.sha }}"
+          current_sha="$(jq -r '.head.sha' <<< "${pr_json}")"
+          if [[ -n "${event_sha}" && "${event_sha}" != "${current_sha}" ]]; then
+            echo "::error::The PR changed after ci:therock was applied; review and reapply the label."
+            exit 1
+          fi
+
+          base_ref="$(jq -r '.base.ref' <<< "${pr_json}")"
+          if [[ "${base_ref}" != "develop" && "${base_ref}" != release/* ]]; then
+            echo "::error::Unsupported base branch: ${base_ref}"
+            exit 1
+          fi
+
+          echo "sha=${current_sha}" >> "${GITHUB_OUTPUT}"
+
+      - name: Validate package configuration
+        env:
+          ROCM_VERSION: ${{ vars.THEROCK_ROCM_VERSION }}
+          PACKAGE_INDEX_URL: ${{ vars.THEROCK_ROCM_PACKAGE_INDEX_URL }}
+        run: |
+          set -euo pipefail
+          if [[ -z "${ROCM_VERSION}" || -z "${PACKAGE_INDEX_URL}" ]]; then
+            echo "::error::THEROCK_ROCM_VERSION and THEROCK_ROCM_PACKAGE_INDEX_URL must be configured."
+            exit 1
+          fi
+
+      - name: Set pending commit statuses
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ steps.pr.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          for platform in Linux Windows; do
+            gh api --method POST \
+              "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
+              -f state=pending \
+              -f context="TheRock/${platform} wheel CI" \
+              -f description="TheRock ${platform} wheel build is queued" \
+              -f target_url="${RUN_URL}"
+          done
+
+  # Keep the workflow revision and checkout revision identical.
+  linux:
+    name: Linux wheel build
+    needs: setup
+    permissions:
+      contents: read
+      id-token: write
+    uses: ROCm/TheRock/.github/workflows/multi_arch_build_portable_linux_pytorch_wheels_ci.yml@0331a2248010c61e01dd42c7dc211a1dad9088d0
+    secrets: inherit
+    with:
+      artifact_group: gfx94X-dcgpu
+      python_version: "3.12"
+      pytorch_git_ref: ${{ needs.setup.outputs.sha }}
+      rocm_package_index_url: ${{ vars.THEROCK_ROCM_PACKAGE_INDEX_URL }}
+      rocm_version: ${{ vars.THEROCK_ROCM_VERSION }}
+      cache_type: sccache
+      build_runs_on: aws-linux-scale-rocm-prod
+      repository: ROCm/TheRock
+      ref: 0331a2248010c61e01dd42c7dc211a1dad9088d0
+
+  # Keep the workflow revision and checkout revision identical.
+  windows:
+    name: Windows wheel build
+    needs: setup
+    permissions:
+      contents: read
+      id-token: write
+    uses: ROCm/TheRock/.github/workflows/multi_arch_build_windows_pytorch_wheels_ci.yml@0331a2248010c61e01dd42c7dc211a1dad9088d0
+    secrets: inherit
+    with:
+      artifact_group: gfx1151
+      python_version: "3.12"
+      pytorch_git_ref: ${{ needs.setup.outputs.sha }}
+      rocm_package_index_url: ${{ vars.THEROCK_ROCM_PACKAGE_INDEX_URL }}
+      rocm_version: ${{ vars.THEROCK_ROCM_VERSION }}
+      cache_type: sccache
+      build_runs_on: aws-windows-scale-rocm-prod-mix
+      repository: ROCm/TheRock
+      ref: 0331a2248010c61e01dd42c7dc211a1dad9088d0
+
+  finalize:
+    name: Report results
+    if: ${{ always() && needs.setup.result == 'success' }}
+    needs: [setup, linux, windows]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      statuses: write
+    steps:
+      - name: Set final commit statuses
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ needs.setup.outputs.sha }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          LINUX_RESULT: ${{ needs.linux.result }}
+          WINDOWS_RESULT: ${{ needs.windows.result }}
+        run: |
+          set -euo pipefail
+
+          report() {
+            local platform="$1"
+            local result="$2"
+            local state
+
+            case "${result}" in
+              success) state=success ;;
+              failure) state=failure ;;
+              *) state=error ;;
+            esac
+
+            gh api --method POST \
+              "repos/${GITHUB_REPOSITORY}/statuses/${SHA}" \
+              -f state="${state}" \
+              -f context="TheRock/${platform} wheel CI" \
+              -f description="TheRock ${platform} wheel build: ${result}" \
+              -f target_url="${RUN_URL}"
+          }
+
+          report Linux "${LINUX_RESULT}"
+          report Windows "${WINDOWS_RESULT}"
+
+          [[ "${LINUX_RESULT}" == success && "${WINDOWS_RESULT}" == success ]]
