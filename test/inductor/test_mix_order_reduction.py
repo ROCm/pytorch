@@ -1,6 +1,7 @@
 # Owner(s): ["module: inductor"]
 
 import unittest
+from types import SimpleNamespace
 from unittest import mock
 from unittest.mock import patch
 
@@ -15,6 +16,7 @@ from torch._inductor.runtime.hints import DeviceProperties
 from torch._inductor.runtime.triton_heuristics import persistent_reduction
 from torch._inductor.scheduler import MixOrderReduction
 from torch._inductor.test_case import run_tests, TestCase
+from torch._inductor.virtualized import V
 from torch.testing import FileCheck
 from torch.testing._internal.common_device_type import largeTensorTest
 from torch.testing._internal.common_utils import (
@@ -24,6 +26,7 @@ from torch.testing._internal.common_utils import (
     skipIfXpu,
 )
 from torch.testing._internal.inductor_utils import GPU_TYPE, HAS_GPU
+from torch.utils._ordered_set import OrderedSet
 from torch.utils._triton import has_triton_tma_device
 
 
@@ -1442,16 +1445,101 @@ class MixOrderReductionHeuristicTest(TestBase):
     """
 
     def test_uses_tma_tracks_emitted_descriptors(self):
-        for source in (None, "host", "device"):
-            with self.subTest(source=source):
+        graph = SimpleNamespace(
+            removed_buffers=OrderedSet(), inplaced_to_remove=OrderedSet()
+        )
+        cases = (
+            (None, False, False),
+            ("host", True, False),
+            ("device", True, True),
+            ("removed_host", False, False),
+            ("removed_device", False, False),
+        )
+        for source, uses_tma, uses_device_tma in cases:
+            with self.subTest(source=source), V.set_graph_handler(graph):
                 kernel = object.__new__(TritonKernel)
-                host_descriptors = {}
-                if source == "host":
-                    host_descriptors["arg"] = mock.sentinel.descriptor
-                kernel.host_tma_descriptor_args = host_descriptors
-                kernel._emitted_device_tma = source == "device"
-                self.assertEqual(kernel.uses_tma, source is not None)
-                self.assertEqual(kernel.uses_device_tma, source == "device")
+                kernel.host_tma_descriptor_args = {}
+                kernel._host_tma_descriptor_buffers = {}
+                kernel._device_tma_buffers = OrderedSet()
+                kernel.removed_buffers = OrderedSet()
+                kernel.inplaced_to_remove = OrderedSet()
+                if source in ("host", "removed_host"):
+                    kernel.host_tma_descriptor_args["arg"] = mock.sentinel.descriptor
+                    kernel._host_tma_descriptor_buffers["arg"] = OrderedSet(["buf0"])
+                elif source in ("device", "removed_device"):
+                    kernel._device_tma_buffers.add("buf0")
+                if source is not None and source.startswith("removed_"):
+                    kernel.removed_buffers.add("buf0")
+                self.assertEqual(kernel.uses_tma, uses_tma)
+                self.assertEqual(kernel.uses_device_tma, uses_device_tma)
+
+    def test_removed_store_min_block_keeps_power_of_two_xblock(self):
+        # A live input descriptor keeps uses_tma, while the fused-away BF16
+        # reduction store's XBLOCK>=8 requirement is dropped. With a split size
+        # of 96, XBLOCK must still be a power of two that divides it.
+        kernel = object.__new__(TritonKernel)
+        kernel.host_tma_descriptor_args = {}
+        kernel._host_tma_descriptor_buffers = {}
+        kernel._device_tma_buffers = OrderedSet(["buf_in", "buf_out"])
+        kernel._tma_min_block_sizes_by_buffer = {}
+        kernel._record_tma_min_block_size("buf_in", "R0_BLOCK", 8)
+        kernel._record_tma_min_block_size("buf_out", "XBLOCK", 8)
+        kernel.removed_buffers = OrderedSet(["buf_out"])
+        kernel.inplaced_to_remove = OrderedSet()
+        graph = SimpleNamespace(
+            removed_buffers=OrderedSet(), inplaced_to_remove=OrderedSet()
+        )
+        with V.set_graph_handler(graph):
+            inductor_meta = {
+                "uses_tma": kernel.uses_tma,
+                "uses_device_tma": kernel.uses_device_tma,
+                "tma_min_block_sizes": kernel.tma_min_block_sizes,
+            }
+        self.assertEqual(
+            inductor_meta,
+            {
+                "uses_tma": True,
+                "uses_device_tma": True,
+                "tma_min_block_sizes": {"R0_BLOCK": 8},
+            },
+        )
+
+        rsplit_size = 96
+        configs = persistent_reduction(
+            {"x": 4096, "r0_": 1024},
+            triton_meta={
+                "device": DeviceProperties(
+                    type="cpu", index=0, multi_processor_count=1, cc=0
+                )
+            },
+            inductor_meta={**inductor_meta, "RSPLIT_SIZE": rsplit_size},
+            return_configs=True,
+        )
+        self.assertTrue(configs)
+        for config in configs:
+            xblock = config.kwargs["XBLOCK"]
+            self.assertEqual(xblock & (xblock - 1), 0)
+            self.assertEqual(rsplit_size % xblock, 0)
+
+    def test_rsplit_size_rejects_live_min_block(self):
+        # A live XBLOCK>=8 requirement cannot be met by any power of two that
+        # divides a split size of 36.
+        with self.assertRaisesRegex(ValueError, "RSPLIT_SIZE=36"):
+            persistent_reduction(
+                {"x": 4096, "r0_": 1024},
+                triton_meta={
+                    "device": DeviceProperties(
+                        type="cpu", index=0, multi_processor_count=1, cc=0
+                    )
+                },
+                inductor_meta={
+                    "RSPLIT_SIZE": 36,
+                    "uses_tma": True,
+                    "uses_device_tma": True,
+                    "tma_min_block_sizes": {"XBLOCK": 8},
+                },
+                return_configs=True,
+            )
 
     def _gen_num_stages(
         self, *, tma, allow_multi_stages, device_tma=False, rsplit_size=256, rnumel=256
