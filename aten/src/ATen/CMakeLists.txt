@@ -699,6 +699,9 @@ if(USE_ROCM)
       POSITION_INDEPENDENT_CODE ON
       HIP_ARCHITECTURES "${_ck_gemm_hip_arches}")
     target_compile_options(ck_gemm PRIVATE ${HIP_CXX_FLAGS})
+    # ck_tile_group_gemm.hip uses ck_tile: see USE_NEW_UNIFIED_FRAMEWORK in
+    # CK_SDPA_EXTRA_HIPCC_OPTIONS above.
+    target_compile_definitions(ck_gemm PRIVATE USE_NEW_UNIFIED_FRAMEWORK=0)
     target_include_directories(ck_gemm PRIVATE
       ${CMAKE_CURRENT_SOURCE_DIR}/hip
       ${CMAKE_CURRENT_SOURCE_DIR}/../../../third_party/composable_kernel/include
