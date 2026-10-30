@@ -1,0 +1,405 @@
+name: Nightly ROCm preview bump
+
+on:
+  schedule:
+    - cron: "30 12 * * *"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Evaluate without pushing or opening/updating a PR"
+        type: boolean
+        default: true
+      source:
+        description: "Quartz latest.json URL or checkout-local path"
+        type: string
+        default: "https://api.github.com/repos/ROCm/Quartz/contents/nightly/latest.json"
+      threshold:
+        description: "Exclusive test failure threshold"
+        type: string
+        default: "10"
+      pipeline:
+        description: "Quartz pipeline name"
+        type: string
+        default: "test_full"
+      platform:
+        description: "Quartz platform name"
+        type: string
+        default: "linux"
+      target:
+        description: "Quartz target name"
+        type: string
+        default: "gfx94X-dcgpu"
+      torch_variant:
+        description: "Quartz torch variant"
+        type: string
+        default: "nightly"
+      python_version:
+        description: "Quartz Python version"
+        type: string
+        default: "3.12"
+      actionable_issue:
+        description: "Upstream actionable issue number required for a new PR"
+        type: string
+        default: ""
+      supporting_maintainer:
+        description: "Explicit upstream supporting maintainer for a new PR"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nightly-rocm-preview-bump
+  cancel-in-progress: false
+
+jobs:
+  evaluate-and-bump:
+    if: github.repository == 'ROCm/pytorch' && (github.repository_owner == 'ROCm' || github.repository_owner == 'pytorch')
+    runs-on: ubuntu-24.04
+    env:
+      SOURCE: ${{ inputs.source || 'https://api.github.com/repos/ROCm/Quartz/contents/nightly/latest.json' }}
+      THRESHOLD: ${{ inputs.threshold || '10' }}
+      PIPELINE: ${{ inputs.pipeline || 'test_full' }}
+      PLATFORM: ${{ inputs.platform || 'linux' }}
+      TARGET: ${{ inputs.target || 'gfx94X-dcgpu' }}
+      TORCH_VARIANT: ${{ inputs.torch_variant || 'nightly' }}
+      PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
+      DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run || false }}
+      ACTIONABLE_ISSUE: ${{ inputs.actionable_issue || vars.ROCM_PREVIEW_ACTIONABLE_ISSUE }}
+      SUPPORTING_MAINTAINER: ${{ inputs.supporting_maintainer || vars.ROCM_PREVIEW_SUPPORTING_MAINTAINER }}
+    steps:
+      - name: Generate ROCm repository token
+        id: rocm-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ROCm
+          repositories: pytorch
+
+      - name: Checkout ROCm develop
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          repository: ROCm/pytorch
+          ref: develop
+          fetch-depth: 0
+          token: ${{ steps.rocm-token.outputs.token }}
+
+      - name: Preserve automation helper
+        run: cp .github/scripts/rocm_preview_bump.py "$RUNNER_TEMP/rocm_preview_bump.py"
+
+      - name: Read the upstream preview pin
+        run: |
+          set -euo pipefail
+          git fetch --no-tags https://github.com/pytorch/pytorch.git main
+          git show FETCH_HEAD:.ci/docker/ci_commit_pins/rocm-preview.txt \
+            > "$RUNNER_TEMP/upstream-rocm-preview.txt"
+
+      - name: Evaluate Quartz nightly
+        id: gate
+        env:
+          GITHUB_TOKEN: ${{ steps.rocm-token.outputs.token }}
+        run: |
+          set -euo pipefail
+          python3 "$RUNNER_TEMP/rocm_preview_bump.py" evaluate \
+            --source "$SOURCE" \
+            --pin-file "$RUNNER_TEMP/upstream-rocm-preview.txt" \
+            --threshold "$THRESHOLD" \
+            --pipeline "$PIPELINE" \
+            --platform "$PLATFORM" \
+            --target "$TARGET" \
+            --torch-variant "$TORCH_VARIANT" \
+            --python-version "$PYTHON_VERSION" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Validate cross-repository credentials
+        if: steps.gate.outputs.eligible == 'true' && env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "IFU_GITHUB_TOKEN is required for upstream PR and sandbox access" >&2
+            exit 1
+          fi
+          gh api repos/pytorch/pytorch --jq '.full_name' >/dev/null
+          gh api \
+            repos/jithunnair-amd/sandbox/actions/workflows/approve_workflows_and_apply_labels.yml \
+            --jq '.path' >/dev/null
+
+      - name: Update or create the upstream draft PR
+        id: bump
+        if: steps.gate.outputs.eligible == 'true' && env.DRY_RUN != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
+          ROCM_TOKEN: ${{ steps.rocm-token.outputs.token }}
+          ROCM_VERSION: ${{ steps.gate.outputs.rocm_version }}
+          BUILD_DATE: ${{ steps.gate.outputs.build_date }}
+        run: |
+          set -euo pipefail
+          marker='<!-- rocm-preview-nightly-bump -->'
+          pin_file='.ci/docker/ci_commit_pins/rocm-preview.txt'
+
+          if ! [[ "$ROCM_VERSION" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "Unsafe ROCm version for branch creation: $ROCM_VERSION" >&2
+            exit 1
+          fi
+
+          gh pr list --repo pytorch/pytorch --state open --limit 100 \
+            --search 'rocm-preview-nightly-bump in:body' \
+            --json number,isDraft,body,headRefName,headRepositoryOwner,url \
+            > "$RUNNER_TEMP/open-prs.json"
+          jq --arg marker "$marker" \
+            '[.[] | select(.body | contains($marker))]' \
+            "$RUNNER_TEMP/open-prs.json" > "$RUNNER_TEMP/marked-prs.json"
+          pr_count="$(jq length "$RUNNER_TEMP/marked-prs.json")"
+          if [ "$pr_count" -gt 1 ]; then
+            echo "Multiple open ROCm preview bump PRs contain the marker" >&2
+            exit 1
+          fi
+
+          git config user.name "ROCm Preview Update Bot"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin "https://x-access-token:${ROCM_TOKEN}@github.com/ROCm/pytorch.git"
+          git remote add upstream https://github.com/pytorch/pytorch.git
+          git fetch upstream main
+
+          created=false
+          branch_already_pushed=false
+          candidate_key="${ROCM_VERSION}+${BUILD_DATE}"
+          issue="$ACTIONABLE_ISSUE"
+          maintainer="${SUPPORTING_MAINTAINER#@}"
+          if [ "$pr_count" -eq 1 ]; then
+            pr_number="$(jq -r '.[0].number' "$RUNNER_TEMP/marked-prs.json")"
+            pr_url="$(jq -r '.[0].url' "$RUNNER_TEMP/marked-prs.json")"
+            branch="$(jq -r '.[0].headRefName' "$RUNNER_TEMP/marked-prs.json")"
+            owner="$(jq -r '.[0].headRepositoryOwner.login' "$RUNNER_TEMP/marked-prs.json")"
+            is_draft="$(jq -r '.[0].isDraft' "$RUNNER_TEMP/marked-prs.json")"
+            if [ "$owner" != "ROCm" ] || [ "$is_draft" != "true" ]; then
+              echo "Marked PR must be an open draft with a ROCm head" >&2
+              exit 1
+            fi
+            git fetch origin "$branch"
+            git checkout -B "$branch" "origin/$branch"
+            jq -r '.[0].body' "$RUNNER_TEMP/marked-prs.json" > "$RUNNER_TEMP/existing-body.md"
+            if grep -Fq "<!-- rocm-preview-key: ${candidate_key} -->" "$RUNNER_TEMP/existing-body.md"; then
+              if [ "$(tr -d '[:space:]' < "$pin_file")" != "$ROCM_VERSION" ]; then
+                echo "Existing PR marker matches candidate but its pin does not" >&2
+                exit 1
+              fi
+              echo "Candidate $candidate_key already has an open draft PR"
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "created=false" >> "$GITHUB_OUTPUT"
+              echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+              echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+              echo "branch=$branch" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            if [ -z "$issue" ] && [ -z "$maintainer" ]; then
+              issue="$(grep -oE '(Part of|Fixes) #[0-9]+' "$RUNNER_TEMP/existing-body.md" | grep -oE '[0-9]+' | head -1 || true)"
+              maintainer="$(grep -oE 'Supported by @[A-Za-z0-9-]+' "$RUNNER_TEMP/existing-body.md" | cut -d@ -f2 | head -1 || true)"
+            fi
+          else
+            if [ -n "$issue" ] && [ -n "$maintainer" ] || [ -z "$issue" ] && [ -z "$maintainer" ]; then
+              echo "Configure exactly one of ROCM_PREVIEW_ACTIONABLE_ISSUE or ROCM_PREVIEW_SUPPORTING_MAINTAINER" >&2
+              exit 1
+            fi
+
+            branch="ethanwee1-rocm-preview-${ROCM_VERSION}"
+            if git ls-remote --exit-code --heads origin "$branch" >/dev/null 2>&1; then
+              git fetch origin "$branch"
+              git checkout -B "$branch" "origin/$branch"
+              changed_files="$(git diff --name-only upstream/main...HEAD)"
+              if [ "$changed_files" != "$pin_file" ] || \
+                 [ "$(tr -d '[:space:]' < "$pin_file")" != "$ROCM_VERSION" ]; then
+                echo "Existing orphan branch does not contain only the candidate pin" >&2
+                exit 1
+              fi
+              branch_already_pushed=true
+            else
+              git checkout -B "$branch" upstream/main
+            fi
+          fi
+
+          if [ -n "$issue" ] && [ -n "$maintainer" ] || [ -z "$issue" ] && [ -z "$maintainer" ]; then
+            echo "Configure exactly one actionable issue or supporting maintainer" >&2
+            exit 1
+          fi
+          if [ -n "$issue" ]; then
+            if ! [[ "$issue" =~ ^[0-9]+$ ]]; then
+              echo "The configured actionable issue must be numeric" >&2
+              exit 1
+            fi
+            issue_data="$(gh issue view "$issue" --repo pytorch/pytorch --json state,labels)"
+            if [ "$(jq -r '.state' <<<"$issue_data")" != "OPEN" ] || \
+               ! jq -e '.labels | any(.name == "actionable")' <<<"$issue_data" >/dev/null; then
+              echo "Configured issue #$issue must be open and labeled actionable" >&2
+              exit 1
+            fi
+          elif ! [[ "$maintainer" =~ ^[A-Za-z0-9-]+$ ]]; then
+            echo "The configured supporting maintainer is invalid" >&2
+            exit 1
+          fi
+
+          if [ "$pr_count" -eq 1 ] && \
+             [ "$(tr -d '[:space:]' < "$pin_file")" != "$ROCM_VERSION" ]; then
+            branch_gate="$(
+              python3 "$RUNNER_TEMP/rocm_preview_bump.py" evaluate \
+                --source "$SOURCE" \
+                --pin-file "$pin_file" \
+                --threshold "$THRESHOLD" \
+                --pipeline "$PIPELINE" \
+                --platform "$PLATFORM" \
+                --target "$TARGET" \
+                --torch-variant "$TORCH_VARIANT" \
+                --python-version "$PYTHON_VERSION"
+            )"
+            if ! jq -e '.eligible == true' <<<"$branch_gate" >/dev/null; then
+              echo "Existing PR branch is already at or beyond the candidate"
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "created=false" >> "$GITHUB_OUTPUT"
+              echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+              echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+              echo "branch=$branch" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          changed=false
+          if [ "$(tr -d '[:space:]' < "$pin_file")" = "$ROCM_VERSION" ]; then
+            echo "Candidate $ROCM_VERSION is already present; no duplicate commit"
+          else
+            printf '%s\n' "$ROCM_VERSION" > "$pin_file"
+            changed_files="$(git status --short | awk '{print $2}')"
+            if [ "$changed_files" != "$pin_file" ]; then
+              echo "Refusing to commit files other than $pin_file: $changed_files" >&2
+              exit 1
+            fi
+            git add "$pin_file"
+            git commit -m "Update ROCm preview pin to ${ROCM_VERSION}" \
+              -m "Tracked in AIPYTORCH-1525."
+            git push --set-upstream origin "HEAD:$branch"
+            changed=true
+          fi
+
+          if [ "$branch_already_pushed" != "true" ] && \
+             [ "$pr_count" -eq 0 ] && [ "$changed" != "true" ]; then
+            echo "New branch has no candidate commit to push" >&2
+            exit 1
+          fi
+
+          if [ "$pr_count" -eq 1 ]; then
+            cp "$RUNNER_TEMP/existing-body.md" "$RUNNER_TEMP/upstream-template.md"
+          else
+            git show upstream/main:.github/PULL_REQUEST_TEMPLATE.md > "$RUNNER_TEMP/upstream-template.md"
+          fi
+          python3 "$RUNNER_TEMP/rocm_preview_bump.py" render-pr-body \
+            --template "$RUNNER_TEMP/upstream-template.md" \
+            --output "$RUNNER_TEMP/pr-body.md" \
+            --rocm-version "$ROCM_VERSION" \
+            --build-date "$BUILD_DATE" \
+            --issue "$issue" \
+            --maintainer "$maintainer"
+
+          if [ "$pr_count" -eq 1 ]; then
+            gh pr edit "$pr_number" --repo pytorch/pytorch \
+              --body-file "$RUNNER_TEMP/pr-body.md"
+          else
+            pr_url="$(gh pr create --repo pytorch/pytorch --base main \
+              --head "ROCm:$branch" --draft \
+              --title "Update ROCm preview to ${ROCM_VERSION}" \
+              --body-file "$RUNNER_TEMP/pr-body.md")"
+            pr_number="${pr_url##*/}"
+            created=true
+          fi
+
+          echo "changed=$changed" >> "$GITHUB_OUTPUT"
+          echo "created=$created" >> "$GITHUB_OUTPUT"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+          echo "pr_url=$pr_url" >> "$GITHUB_OUTPUT"
+          echo "branch=$branch" >> "$GITHUB_OUTPUT"
+
+      - name: Apply required labels through sandbox
+        id: labels
+        if: steps.bump.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.IFU_GITHUB_TOKEN }}
+          PR_NUMBER: ${{ steps.bump.outputs.pr_number }}
+        run: |
+          set -euo pipefail
+          gh api repos/pytorch/pytorch/labels/ciflow%2Fdocker --jq '.name' \
+            | grep -Fx 'ciflow/docker' >/dev/null
+
+          expected='["ciflow/docker","ciflow/rocm-preview","ciflow/trunk","keep-going"]'
+          actual="$(gh pr view "$PR_NUMBER" --repo pytorch/pytorch \
+            --json labels --jq '[.labels[].name]')"
+          if jq -e --argjson expected "$expected" \
+            '$expected - . | length == 0' <<<"$actual" >/dev/null; then
+            echo "Required labels are already present"
+            exit 0
+          fi
+
+          started_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          gh workflow run approve_workflows_and_apply_labels.yml \
+            --repo jithunnair-amd/sandbox --ref main \
+            -f repo=pytorch/pytorch \
+            -f pr="$PR_NUMBER" \
+            -f labels=ciflow/docker \
+            -f mi350_full=true \
+            -f keep_going=true \
+            -f rocm_preview=true
+
+          run_json=''
+          for _ in $(seq 1 10); do
+            run_json="$(gh api --method GET \
+              repos/jithunnair-amd/sandbox/actions/workflows/approve_workflows_and_apply_labels.yml/runs \
+              -f event=workflow_dispatch \
+              --jq ".workflow_runs | map(select(.created_at >= \"$started_at\")) | first // empty")"
+            [ -n "$run_json" ] && break
+            sleep 3
+          done
+          if [ -z "$run_json" ]; then
+            echo "Sandbox label workflow dispatch did not produce a run" >&2
+            exit 1
+          fi
+          run_id="$(jq -r '.id' <<<"$run_json")"
+          run_url="$(jq -r '.html_url' <<<"$run_json")"
+          echo "run_url=$run_url" >> "$GITHUB_OUTPUT"
+          gh run watch "$run_id" --repo jithunnair-amd/sandbox --exit-status
+
+          for _ in $(seq 1 12); do
+            actual="$(gh pr view "$PR_NUMBER" --repo pytorch/pytorch \
+              --json labels --jq '[.labels[].name]')"
+            if jq -e --argjson expected "$expected" \
+              '$expected - . | length == 0' <<<"$actual" >/dev/null; then
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "Required labels did not land on upstream PR #$PR_NUMBER" >&2
+          exit 1
+
+      - name: Write workflow summary
+        if: always()
+        env:
+          ELIGIBLE: ${{ steps.gate.outputs.eligible }}
+          REASON: ${{ steps.gate.outputs.reason }}
+          ROCM_VERSION: ${{ steps.gate.outputs.rocm_version }}
+          BUILD_DATE: ${{ steps.gate.outputs.build_date }}
+          FAILURE_COUNT: ${{ steps.gate.outputs.test_failure_count }}
+          CHANGED: ${{ steps.bump.outputs.changed }}
+          PR_URL: ${{ steps.bump.outputs.pr_url }}
+          LABEL_RUN_URL: ${{ steps.labels.outputs.run_url }}
+        run: |
+          {
+            echo "## Nightly ROCm preview bump"
+            echo "- Eligible: \`${ELIGIBLE:-false}\`"
+            echo "- Reason: ${REASON:-evaluation failed}"
+            echo "- Candidate: \`${ROCM_VERSION:-unknown}\` (build \`${BUILD_DATE:-unknown}\`)"
+            echo "- Test failures: \`${FAILURE_COUNT:-unknown}\` / threshold \`$THRESHOLD\`"
+            echo "- Dry run: \`$DRY_RUN\`"
+            echo "- Changed: \`${CHANGED:-false}\`"
+            [ -z "${PR_URL:-}" ] || echo "- Upstream PR: $PR_URL"
+            [ -z "${LABEL_RUN_URL:-}" ] || echo "- Label workflow: $LABEL_RUN_URL"
+          } >> "$GITHUB_STEP_SUMMARY"
