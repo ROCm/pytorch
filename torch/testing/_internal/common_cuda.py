@@ -329,7 +329,7 @@ def evaluate_platform_supports_fp8():
             if ROCM_VERSION >= (7, 14):
                 archs.append('gfx1250')
             if ROCM_VERSION >= (10, 3):
-                archs.append('gfx1250-strict')
+                archs.extend(["gfx1170", "gfx1171", "gfx1250-strict"])
             gcn_name = torch.cuda.get_device_properties(0).gcnArchName
             # "gfx1250" is a prefix of "gfx1250-strict".
             if 'gfx1250-strict' in gcn_name:
@@ -701,12 +701,16 @@ def _xfail_cuda_on_windows_wrapper(test_fn):
 
 
 def xfailCUDAIfSM89OrLaterOnWindows(test_fn):
-    """Mark a CUDA test as expected failure on Windows with SM >= 8.9.
+    """Mark a CUDA test as expected failure on Windows with NVIDIA SM >= 8.9.
 
     Works for both device-parameterized tests and plain TestCase CUDA tests.
     CPU/XPU variants of device-parameterized tests are unaffected.
     """
-    return _xfail_cuda_on_windows_wrapper(test_fn) if IS_WINDOWS and SM89OrLater else test_fn
+    return (
+        _xfail_cuda_on_windows_wrapper(test_fn)
+        if IS_WINDOWS and not TEST_WITH_ROCM and SM89OrLater
+        else test_fn
+    )
 
 
 # When using nvcc from the CUDA toolkit its versuib must be at least the one from ptxas bundled with Triton

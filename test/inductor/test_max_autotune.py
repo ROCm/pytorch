@@ -60,6 +60,7 @@ from torch._inductor.heuristics.template.triton import (
 )
 from torch._inductor.ir import Buffer, ChoiceCaller, FixedLayout, FlexibleLayout
 from torch._inductor.kernel.mm_plus_mm import aten_mm_plus_mm
+from torch._inductor.runtime.coordinate_descent_tuner import CoordescTuner
 from torch._inductor.runtime.hints import DeviceProperties
 from torch._inductor.runtime.triton_heuristics import CachingAutotuner, pointwise
 from torch._inductor.scheduler import Scheduler
@@ -7194,6 +7195,150 @@ class TestTDMEndToEnd(TestCase):
         self.assertIn("make_tensor_descriptor", joined)
         self.assertIn("load_tensor_descriptor", joined)
         self.assertEqual(result, fn(bias, a, b), atol=2e-2, rtol=2e-2)
+
+    # Smallest XBLOCK whose 1-D descriptor block reaches Triton's 16-byte minimum.
+    _OUTPUT_STORE_MIN_XBLOCK = {torch.float32: 4, torch.bfloat16: 8}
+
+    def _compile_generic_and_get_autotuners(self, fn, *args, extra_config=None):
+        # Record every autotuner with the configs it was created with; the
+        # launch-time precompile discards ``configs``. One compile thread keeps
+        # autotuner construction in this process.
+        autotuners = []
+        original_init = CachingAutotuner.__init__
+
+        def record_init(autotuner, *init_args, **init_kwargs):
+            original_init(autotuner, *init_args, **init_kwargs)
+            autotuners.append(
+                (autotuner, [cfg.kwargs.copy() for cfg in autotuner.configs])
+            )
+
+        with (
+            config.patch({"compile_threads": 1, **(extra_config or {})}),
+            mock.patch.object(CachingAutotuner, "__init__", record_init),
+        ):
+            result, code = self._compile_generic_and_get_code(fn, *args)
+        return result, code, autotuners
+
+    def _assert_output_store_min_xblock(self, code, autotuners, min_xblock):
+        joined = "\n".join(code)
+        # Only the reduction output is descriptor-eligible: the input row
+        # stride is not a 16-byte multiple, so its loads stay pointer loads.
+        self.assertIn("tl.make_tensor_descriptor(out_ptr", joined)
+        self.assertNotIn("tl.make_tensor_descriptor(in_ptr", joined)
+        tma_autotuners = [
+            (autotuner, configs)
+            for autotuner, configs in autotuners
+            if autotuner.inductor_meta.get("uses_tma")
+        ]
+        self.assertEqual(len(tma_autotuners), 1)
+        autotuner, configs = tma_autotuners[0]
+        self.assertTrue(autotuner.inductor_meta.get("uses_device_tma"))
+        self.assertEqual(
+            autotuner.inductor_meta.get("tma_min_block_sizes"),
+            {"XBLOCK": min_xblock},
+        )
+        self.assertTrue(configs)
+        for cfg in configs:
+            self.assertGreaterEqual(cfg["XBLOCK"], min_xblock)
+        self.assertTrue(autotuner.launchers)
+        for launcher in autotuner.launchers:
+            self.assertGreaterEqual(launcher.config.kwargs["XBLOCK"], min_xblock)
+
+    @parametrize("dtype,tol", ((torch.float32, 1e-4), (torch.bfloat16, 1e-2)))
+    def test_tdm_generic_persistent_reduction_output_store_min_block(
+        self, device, dtype, tol
+    ):
+        # The reduction output is the only descriptor access, so its minimum
+        # block size must survive into the heuristics; otherwise XBLOCK=1
+        # yields a store below Triton's 16-byte minimum.
+        def fn(x):
+            return x.sum(dim=1)
+
+        x = torch.randn(384, 94, device=device, dtype=dtype)
+        result, code, autotuners = self._compile_generic_and_get_autotuners(fn, x)
+        self.assertIn("triton_per_", "\n".join(code))
+        self._assert_output_store_min_xblock(
+            code, autotuners, self._OUTPUT_STORE_MIN_XBLOCK[dtype]
+        )
+        self.assertEqual(result, fn(x), atol=tol, rtol=tol)
+
+    def test_tdm_generic_looping_reduction_output_store_min_block(self, device):
+        # 8191 columns: the input rows are not 16-byte aligned, so unlike the
+        # 8192-column case no input descriptor already marks the kernel as TMA.
+        def fn(x):
+            return x.sum(dim=1)
+
+        x = torch.randn(384, 8191, device=device, dtype=torch.float32)
+        result, code, autotuners = self._compile_generic_and_get_autotuners(
+            fn,
+            x,
+            extra_config={"split_reductions": False},
+        )
+        self.assertIn("triton_red_", "\n".join(code))
+        self._assert_output_store_min_xblock(
+            code, autotuners, self._OUTPUT_STORE_MIN_XBLOCK[torch.float32]
+        )
+        self.assertEqual(result, fn(x), atol=1e-3, rtol=1e-4)
+
+    def test_tdm_generic_removed_reduction_store_drops_tma_metadata(self, device):
+        # The float sum is fused into the boolean epilogue and never stored.
+        # Its descriptor eligibility must not leave TMA metadata on the
+        # surviving kernel, whose boolean store is not a TDM dtype.
+        def fn(x):
+            return x.sum(dim=1) > 0
+
+        x = torch.randn(384, 94, device=device, dtype=torch.float32)
+        result, code, autotuners = self._compile_generic_and_get_autotuners(fn, x)
+        joined = "\n".join(code)
+        # Only the boolean result is written; the float sum (out_ptr0) is gone.
+        self.assertIn("'out_ptr1': '*i1'", joined)
+        self.assertNotIn("out_ptr0", joined)
+        self.assertNotIn("tl.make_tensor_descriptor", joined)
+        self.assertTrue(autotuners)
+        for autotuner, _ in autotuners:
+            for field in ("uses_tma", "uses_device_tma", "tma_min_block_sizes"):
+                self.assertNotIn(field, autotuner.inductor_meta)
+        self.assertEqual(result, fn(x))
+
+    @parametrize("dtype,tol", ((torch.float32, 1e-4), (torch.bfloat16, 1e-2)))
+    def test_tdm_generic_coordinate_descent_respects_output_store_min_block(
+        self, device, dtype, tol
+    ):
+        # compare_config() swallows compile failures, so neither the winner nor
+        # the numerics reveal undersized attempts; record each candidate
+        # before it is compiled and check them after tuning returns.
+        attempted = []
+        original_compare_config = CoordescTuner.compare_config
+
+        def record_compare_config(tuner, func, candidate_config, *rest):
+            attempted.append(candidate_config.kwargs.copy())
+            return original_compare_config(tuner, func, candidate_config, *rest)
+
+        # Rank configs by XBLOCK instead of measured time, so tuning starts
+        # from the smallest legal XBLOCK and always considers the next
+        # smaller value. Real timings make that start depend on the device.
+        def bench_by_xblock(autotuner, launcher, *args, **kwargs):
+            return float(launcher.config.kwargs["XBLOCK"])
+
+        def fn(x):
+            return x.sum(dim=1)
+
+        x = torch.randn(384, 94, device=device, dtype=dtype)
+        with (
+            mock.patch.object(CoordescTuner, "compare_config", record_compare_config),
+            mock.patch.object(CachingAutotuner, "bench", bench_by_xblock),
+        ):
+            result, code, autotuners = self._compile_generic_and_get_autotuners(
+                fn,
+                x,
+                extra_config={"coordinate_descent_tuning": True},
+            )
+        min_xblock = self._OUTPUT_STORE_MIN_XBLOCK[dtype]
+        self._assert_output_store_min_xblock(code, autotuners, min_xblock)
+        self.assertTrue(attempted)
+        for cfg in attempted:
+            self.assertGreaterEqual(cfg["XBLOCK"], min_xblock)
+        self.assertEqual(result, fn(x), atol=tol, rtol=tol)
 
     def test_tdm_generic_pointwise_correctness_and_selection(self, device):
         def fn(x, y):

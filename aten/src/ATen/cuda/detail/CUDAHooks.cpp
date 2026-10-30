@@ -569,7 +569,7 @@ const std::vector<std::string>& CUDAHooks::getHipblasltPreferredArchs() const {
     "gfx1250",
 #endif
 #if ROCM_VERSION >= 100300
-    "gfx1250-strict",
+    "gfx1170", "gfx1171", "gfx1250-strict",
 #endif
   };
   return archs;
@@ -588,7 +588,7 @@ const std::vector<std::string>& CUDAHooks::getHipblasltSupportedArchs() const {
     "gfx1250",
 #endif
 #if ROCM_VERSION >= 100300
-    "gfx1250-strict"
+    "gfx1170", "gfx1171", "gfx1250-strict",
 #endif
   };
   return archs;
