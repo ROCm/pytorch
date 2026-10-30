@@ -74,6 +74,14 @@ device_type = "cuda"
 device_module = torch.get_device_module(device_type)
 
 
+def sync_ranks():
+    # Stands in for SymmetricMemory.barrier(), which the NVSHMEM backend does not
+    # implement on this branch. dist.barrier() runs on gloo here and does not wait
+    # for GPU work, so finish this rank's GPU writes first.
+    device_module.synchronize()
+    dist.barrier()
+
+
 @requires_nvshmem()
 @requires_cuda_p2p_access()
 class NVSHMEMSymmetricMemoryTest(MultiProcContinuousTest):
@@ -136,6 +144,9 @@ class NVSHMEMSymmetricMemoryTest(MultiProcContinuousTest):
                 tensor = torch.zeros(numel, dtype=dtype, device=self.device)
 
         symm_mem.rendezvous(tensor, group=group_name)
+        # src_rank writes into every peer's buffer below, so each peer's zeros
+        # must land first.
+        sync_ranks()
         torch.ops.symm_mem.nvshmem_broadcast(tensor, src_rank, group_name)
         self.assertEqual(tensor, torch.arange(numel, dtype=dtype, device=self.device))
 
@@ -181,6 +192,9 @@ class NVSHMEMSymmetricMemoryTest(MultiProcContinuousTest):
             y = torch.mm(x, w)
 
         # y should be a symm tensor
+        # rank 0 writes into every peer's y below, so each peer's mm must land
+        # first.
+        sync_ranks()
         torch.ops.symm_mem.nvshmem_broadcast(y, 0, group_name)
         expected = torch.mm(x0, w)
         self.assertEqual(y, expected)
@@ -270,6 +284,9 @@ class NVSHMEMSymmetricMemoryTest(MultiProcContinuousTest):
         numel = 1024
         tensor = symm_mem.empty(numel, dtype=dtype, device=self.device).fill_(self.rank)
         hdl = symm_mem.rendezvous(tensor, group=group_name)
+        # rank 0 writes into rank 1's buffer below, so rank 1's fill_ must land
+        # first.
+        sync_ranks()
         signal_pad = hdl.get_signal_pad(self.rank)
         signal_val = 5
 
@@ -291,6 +308,8 @@ class NVSHMEMSymmetricMemoryTest(MultiProcContinuousTest):
         numel = 1024
         tensor = symm_mem.empty(numel, dtype=dtype, device=self.device).fill_(self.rank)
         symm_mem.rendezvous(tensor, group=group_name)
+        # rank 0 reads rank 1's buffer below, so rank 1's fill_ must land first.
+        sync_ranks()
 
         if self.rank == 0:
             torch.ops.symm_mem.nvshmem_get(tensor, 1)
@@ -408,6 +427,8 @@ class NVSHMEMAll2AllTest(MultiProcContinuousTest):
 
         symm_mem.rendezvous(inp, group=group_name)
         symm_mem.rendezvous(out, group=group_name)
+        # Peers write into `out`, so every rank's fill_(-1) must land first.
+        sync_ranks()
         torch.ops.symm_mem.nvshmem_all_to_all(inp, out, group_name)
 
         expected = torch.cat(
