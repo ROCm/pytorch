@@ -1,6 +1,7 @@
 #define TORCH_ASSERT_ONLY_METHOD_OPERATORS
 #include <ATen/core/Tensor.h>
 #include <ATen/Config.h>
+#include <ATen/Context.h>
 #include <ATen/TensorSubclassLikeUtils.h>
 #include <ATen/detail/CUDAHooksInterface.h>
 #include <ATen/native/SpectralOpsUtils.h>
@@ -69,6 +70,7 @@ namespace {
 // Promote inputs to FFT functions
 // * Integers are promoted to the default floating type
 // * If require_complex=True, all types are promoted to complex
+// * bfloat16 on ROCm is promoted to float32 (hipFFT has no bfloat16 kernel)
 // * Raises an error for half-precision dtypes to allow future support
 ScalarType promote_type_fft(ScalarType type, bool require_complex, Device device) {
   if (at::isComplexType(type)) {
@@ -84,6 +86,10 @@ ScalarType promote_type_fft(ScalarType type, bool require_complex, Device device
     // device we err on the side of accepting it
     device.is_cuda() || device.is_meta() || device.is_xpu()
   );
+  // hipFFT has no bfloat16 kernel. Cast first so the float32 plan is used.
+  if (type == kBFloat16 && device.is_cuda() && at::globalContext().hasROCM()) {
+    type = kFloat;
+  }
   if (maybe_support_half) {
     TORCH_CHECK(type == kHalf || type == kFloat || type == kDouble, "Unsupported dtype ", type);
   } else {
