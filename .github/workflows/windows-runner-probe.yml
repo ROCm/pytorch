@@ -1,0 +1,59 @@
+name: Windows runner probe
+
+on:
+  push:
+    branches:
+      - windows-rocm-ci-bringup
+    paths:
+      - .github/workflows/windows-runner-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    name: probe | ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: R9700 (xsj-dispatch)
+            labels: '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]'
+          - name: Strix Halo (devlab-dispatch)
+            labels: '["self-hosted","Windows","devlab-dispatch","strix-halo"]'
+    runs-on: ${{ fromJSON(matrix.labels) }}
+    timeout-minutes: 15
+    steps:
+      - name: Machine and tool inventory
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Continue'
+          Write-Host "== Runner =="
+          "RUNNER_NAME=$env:RUNNER_NAME RUNNER_OS=$env:RUNNER_OS RUNNER_ARCH=$env:RUNNER_ARCH"
+          hostname
+          whoami
+          Write-Host "== OS, CPU, GPU =="
+          Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, TotalVisibleMemorySize | Format-List | Out-String
+          Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | Format-List | Out-String
+          Get-CimInstance Win32_VideoController | Select-Object Name, DriverVersion, AdapterRAM | Format-List | Out-String
+          Write-Host "== Drives (is there a B: drive? the build workflow uses B:/src) =="
+          Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{n='UsedGB';e={[math]::Round($_.Used/1GB,1)}}, @{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table | Out-String
+          Write-Host "== Tools on PATH =="
+          foreach ($t in 'python','py','pip','git','bash','cmake','ninja','cl','link','clang-cl','hipcc','hipInfo','rocm-sdk','sccache','choco','7z') {
+            $c = Get-Command $t -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($c) { "{0,-10} {1}" -f $t, $c.Source } else { "{0,-10} NOT FOUND" -f $t }
+          }
+          Write-Host "== Folders =="
+          foreach ($p in 'C:\Program Files\AMD','C:\Program Files\AMD\ROCm','C:\Program Files (x86)\Microsoft Visual Studio','C:\Program Files\Microsoft Visual Studio','C:\Jenkins','C:\hostedtoolcache') {
+            "{0}  exists={1}" -f $p, (Test-Path $p)
+          }
+          Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio' -ErrorAction SilentlyContinue | Select-Object Name
+          Write-Host "== Variables =="
+          foreach ($v in 'HIP_PATH','ROCM_PATH','HIP_PLATFORM','VCINSTALLDIR','VSINSTALLDIR') {
+            "{0}={1}" -f $v, [Environment]::GetEnvironmentVariable($v)
+          }
+          Write-Host "== Network (can it reach what the build needs?) =="
+          foreach ($u in 'https://pypi.org/simple/pip/','https://nightly.repo.amd.com/rocm/whl-next/','https://github.com','http://nexus-service.nexus-ns.svc.cluster.local:8081/repository/choco-group/') {
+            try { $r = Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 20; "{0} -> HTTP {1}" -f $u, $r.StatusCode }
+            catch { "{0} -> FAILED: {1}" -f $u, $_.Exception.Message }
+          }
