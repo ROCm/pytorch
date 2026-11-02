@@ -58,7 +58,10 @@ from torch.testing._internal.common_utils import (
 )
 
 f8_msg = "FP8 is only supported on H100+, SM 8.9 and MI300+, XPU and CPU devices"
-mx_msg = "MX gemm is only supported on CUDA capability 10.0+ and gfx950/gfx1250"
+mx_msg = (
+    "MX gemm is only supported on CUDA capability 10.0+ and "
+    "gfx950/gfx1250/gfx1250-strict"
+)
 
 # Protects against includes accidentally setting the default dtype
 if torch.get_default_dtype() is not torch.float32:
@@ -80,8 +83,14 @@ def blaslt_supported_device():
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
                 archs.append('gfx1250')
+            if ROCM_VERSION >= (10, 3):
+                archs.append('gfx1250-strict')
+            gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
+            # "gfx1250" is a prefix of "gfx1250-strict".
+            if 'gfx1250-strict' in gcn_arch_name:
+                return ROCM_VERSION >= (10, 3)
             for arch in archs:
-                if arch in torch.cuda.get_device_properties(0).gcnArchName:
+                if arch in gcn_arch_name:
                     return True
         else:
             return True
@@ -7271,7 +7280,9 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest(
+                "int4 mm not implemented for gfx1250/gfx1250-strict (needs WMMA)"
+            )
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda is supported only for CDNA2 or later")
@@ -7343,7 +7354,9 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest(
+                "int4 mm not implemented for gfx1250/gfx1250-strict (needs WMMA)"
+            )
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda supported only for CDNA2 or later")
