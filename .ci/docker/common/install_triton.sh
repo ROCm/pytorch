@@ -23,7 +23,7 @@ elif [ -n "${TRITON_CPU}" ]; then
   TRITON_REPO="https://github.com/triton-lang/triton-cpu"
   TRITON_TEXT_FILE="triton-cpu"
 else
-  TRITON_REPO="https://github.com/triton-lang/triton"
+  TRITON_REPO="https://github.com/ROCm/triton"
   TRITON_TEXT_FILE="triton"
 fi
 
@@ -53,6 +53,10 @@ as_jenkins git clone --recursive ${TRITON_REPO} triton
 cd triton
 as_jenkins git checkout ${TRITON_PINNED_COMMIT}
 as_jenkins git submodule update --init --recursive
+
+if [ -f python/requirements.txt ]; then
+  pip_install -r python/requirements.txt
+fi
 
 # Old versions of python have setup.py in ./python; newer versions have it in ./
 if [ ! -f setup.py ]; then
