@@ -1,5 +1,11 @@
 name: Windows runner probe
 
+# Probe v2. Three jobs to find out why the Windows R9700 label is not picked up:
+#   win-xsj-any : Windows + xsj-dispatch, no GPU label (is the Windows xsj pool reachable from this repo?)
+#   linux-r9700 : the label Keerthana validated on ROCm/aiter (does xsj + R9700 work from this repo?)
+#   win-r9700   : the label the team asked for (Windows R9700)
+# Only prints machine information. No secrets, read-only token.
+
 on:
   push:
     branches:
@@ -11,20 +17,20 @@ permissions:
   contents: read
 
 jobs:
-  probe:
+  probe_windows:
     name: probe | ${{ matrix.name }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - name: R9700 (xsj-dispatch)
+          - name: win-xsj-any
+            labels: '["self-hosted","Windows","xsj-dispatch"]'
+          - name: win-r9700
             labels: '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]'
-          - name: Strix Halo (devlab-dispatch)
-            labels: '["self-hosted","Windows","devlab-dispatch","strix-halo"]'
     runs-on: ${{ fromJSON(matrix.labels) }}
     timeout-minutes: 15
     steps:
-      - name: Machine and tool inventory
+      - name: Machine and tool inventory (Windows)
         shell: powershell
         run: |
           $ErrorActionPreference = 'Continue'
@@ -36,24 +42,50 @@ jobs:
           Get-CimInstance Win32_OperatingSystem | Select-Object Caption, Version, TotalVisibleMemorySize | Format-List | Out-String
           Get-CimInstance Win32_Processor | Select-Object Name, NumberOfCores, NumberOfLogicalProcessors | Format-List | Out-String
           Get-CimInstance Win32_VideoController | Select-Object Name, DriverVersion, AdapterRAM | Format-List | Out-String
-          Write-Host "== Drives (is there a B: drive? the build workflow uses B:/src) =="
+          Write-Host "== Drives =="
           Get-PSDrive -PSProvider FileSystem | Select-Object Name, @{n='UsedGB';e={[math]::Round($_.Used/1GB,1)}}, @{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-Table | Out-String
           Write-Host "== Tools on PATH =="
           foreach ($t in 'python','py','pip','git','bash','cmake','ninja','cl','link','clang-cl','hipcc','hipInfo','rocm-sdk','sccache','choco','7z') {
             $c = Get-Command $t -ErrorAction SilentlyContinue | Select-Object -First 1
             if ($c) { "{0,-10} {1}" -f $t, $c.Source } else { "{0,-10} NOT FOUND" -f $t }
           }
-          Write-Host "== Folders =="
-          foreach ($p in 'C:\Program Files\AMD','C:\Program Files\AMD\ROCm','C:\Program Files (x86)\Microsoft Visual Studio','C:\Program Files\Microsoft Visual Studio','C:\Jenkins','C:\hostedtoolcache') {
-            "{0}  exists={1}" -f $p, (Test-Path $p)
-          }
-          Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio' -ErrorAction SilentlyContinue | Select-Object Name
           Write-Host "== Variables =="
           foreach ($v in 'HIP_PATH','ROCM_PATH','HIP_PLATFORM','VCINSTALLDIR','VSINSTALLDIR') {
             "{0}={1}" -f $v, [Environment]::GetEnvironmentVariable($v)
           }
-          Write-Host "== Network (can it reach what the build needs?) =="
-          foreach ($u in 'https://pypi.org/simple/pip/','https://nightly.repo.amd.com/rocm/whl-next/','https://github.com','http://nexus-service.nexus-ns.svc.cluster.local:8081/repository/choco-group/') {
+          Write-Host "== HIP SDK on this machine (gfx name of the GPU) =="
+          if ($env:HIP_PATH -and (Test-Path $env:HIP_PATH)) {
+            foreach ($d in 'bin','lib\llvm\bin') {
+              $dir = Join-Path $env:HIP_PATH $d
+              if (Test-Path $dir) {
+                "--- $dir"
+                Get-ChildItem $dir -ErrorAction SilentlyContinue | Where-Object { $_.Name -match '^(hipInfo|rocminfo|amdgpu-arch|offload-arch)' } | Select-Object -ExpandProperty Name
+                foreach ($exe in 'hipInfo.exe','amdgpu-arch.exe','offload-arch.exe') {
+                  $p = Join-Path $dir $exe
+                  if (Test-Path $p) { "--- running $exe"; & $p 2>&1 | Select-Object -First 40 }
+                }
+              }
+            }
+          } else { "HIP_PATH not set or missing" }
+          Write-Host "== Network =="
+          foreach ($u in 'https://pypi.org/simple/pip/','https://nightly.repo.amd.com/rocm/whl-next/','https://github.com') {
             try { $r = Invoke-WebRequest -UseBasicParsing -Uri $u -TimeoutSec 20; "{0} -> HTTP {1}" -f $u, $r.StatusCode }
             catch { "{0} -> FAILED: {1}" -f $u, $_.Exception.Message }
           }
+
+  probe_linux:
+    name: probe | linux-r9700
+    runs-on: [self-hosted, Linux, xsj-dispatch, radeon-r9700]
+    timeout-minutes: 15
+    steps:
+      - name: Machine inventory (Linux)
+        shell: bash
+        run: |
+          set +e
+          echo "== Runner =="; echo "RUNNER_NAME=$RUNNER_NAME RUNNER_OS=$RUNNER_OS RUNNER_ARCH=$RUNNER_ARCH"; hostname; whoami
+          echo "== OS =="; head -4 /etc/os-release; uname -a
+          echo "== GPU =="
+          lspci 2>/dev/null | grep -iE 'vga|display|3d'
+          if command -v rocminfo >/dev/null; then rocminfo | grep -E 'Marketing Name|gfx' | head -10; else echo "rocminfo NOT FOUND"; fi
+          if command -v rocm-smi >/dev/null; then rocm-smi --showproductname; else echo "rocm-smi NOT FOUND"; fi
+          echo "== Tools =="; for t in python3 git docker; do command -v $t || echo "$t NOT FOUND"; done
