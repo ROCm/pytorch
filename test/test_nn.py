@@ -14979,6 +14979,11 @@ if __name__ == '__main__':
             elif _resolved_policy == "balanced":  # fp16
                 expected_input_grad_max_ulp_diff = 48
                 expected_weight_grad_max_ulp_diff = 48
+                if "cpu" not in device and isRocmArchAnyOf(MI200_ARCH):
+                    # MI200 bf16-intermediate backward GEMMs.
+                    # Measured 116/117 ULP for input/weight gradients.
+                    expected_input_grad_max_ulp_diff = 256
+                    expected_weight_grad_max_ulp_diff = 256
             else:  # compact, fp16
                 expected_input_grad_max_ulp_diff = 48
                 expected_weight_grad_max_ulp_diff = 128
