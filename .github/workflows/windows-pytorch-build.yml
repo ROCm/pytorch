@@ -25,10 +25,10 @@ on:
       amdgpu_families:
         description: >-
           Semicolon-separated AMD GPU families to build for (for example
-          'gfx120X-all'). Expanded to gfx targets by TheRock's
-          expand_amdgpu_families.py. Default: gfx120X-all.
+          'gfx1151'). Expanded to gfx targets by TheRock's
+          expand_amdgpu_families.py. Default: gfx1151 (the Strix Halo runner).
         type: string
-        default: "gfx120X-all"
+        default: "gfx1151"
       python_version:
         description: Python version to build wheels for. Default 3.12 (used by TheRock's own dispatched Windows builds that succeeded).
         type: string
@@ -62,13 +62,9 @@ on:
         description: Branch, tag or SHA of ROCm/TheRock that provides the build scripts.
         type: string
         default: "main"
-      build_runs_on:
-        description: Build runner label.
-        type: string
-        default: "aws-windows-scale-rocm-prod-mix"
 
 run-name: >-
-  Windows PyTorch ROCm build (${{ inputs.amdgpu_families || 'gfx120X-all' }},
+  Windows PyTorch ROCm build (${{ inputs.amdgpu_families || 'gfx1151' }},
   py ${{ inputs.python_version || '3.12' }}, torch ${{ inputs.pytorch_git_ref || 'nightly' }})
 
 # A new push to the branch cancels the previous run, so a shared runner is not
@@ -83,9 +79,9 @@ permissions:
 jobs:
   build_pytorch_wheels:
     name: Build | py ${{ inputs.python_version || '3.12' }} | torch ${{ inputs.pytorch_git_ref || 'nightly' }}
-    # Same expression as TheRock: the runner label is only used for repositories
-    # owned by the ROCm organization; anything else falls back to a GitHub-hosted runner.
-    runs-on: ${{ github.repository_owner == 'ROCm' && (inputs.build_runs_on || 'aws-windows-scale-rocm-prod-mix') || 'windows-2022' }}
+    # Strix Halo (gfx1151) Windows runner from the DevLab Dispatch pool. This label
+    # was tested with the runner probe on 2026-11-02 and a job was picked up.
+    runs-on: [self-hosted, Windows, devlab-dispatch, strix-halo]
     timeout-minutes: 240
     env:
       PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
@@ -93,9 +89,10 @@ jobs:
       PYTORCH_GIT_REF: ${{ inputs.pytorch_git_ref || 'nightly' }}
       ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
       ROCM_INDEX_URL: ${{ inputs.rocm_package_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
-      AMDGPU_FAMILIES: ${{ inputs.amdgpu_families || 'gfx120X-all' }}
+      AMDGPU_FAMILIES: ${{ inputs.amdgpu_families || 'gfx1151' }}
       BUILD_RELEASE_TYPE: ${{ inputs.release_type || 'dev' }}
-      CHECKOUT_ROOT: B:/src
+      # Short path on C: (this runner has no B: drive); short paths avoid Windows path-length limits.
+      CHECKOUT_ROOT: C:/b
       # Note the \ here instead of /. This should be used from 'cmd' not 'bash'!
       PACKAGE_DIST_DIR: ${{ github.workspace }}\output\packages\dist
       optional_build_prod_arguments: ""
@@ -127,18 +124,16 @@ jobs:
           python build_tools/github_actions/python_to_cp_version.py \
             --python-version "${PYTHON_VERSION}"
 
-      # Runner-specific: this is the package-source setup used on AMD's Windows
-      # runners in TheRock's workflow (internal Nexus mirror). It will not work
-      # on a GitHub-hosted runner.
-      - name: Install requirements
+      # Public package source only. TheRock's workflow points Chocolatey at an
+      # AMD-internal Nexus mirror here; this runner cannot reach it (checked with
+      # the runner probe). It is the same ninja package, so it is installed from
+      # PyPI instead (PyPI was reachable from the runner).
+      - name: Install ninja (public source)
         run: |
-          choco source disable -n=chocolatey
-          choco source add -n=internal -s http://nexus-service.nexus-ns.svc.cluster.local:8081/repository/choco-group/ --priority=1
-          if command -v ninja >/dev/null 2>&1; then
-            printf '%s\n' "ninja already installed: $(ninja --version)"
-          else
-            choco install --no-progress -y ninja --version 1.13.2
-          fi
+          python -m pip install "ninja>=1.13.2"
+          echo "ninja executables on PATH (first one wins):"
+          which -a ninja || true
+          ninja --version
 
       # Build a fixed version of libuv from source, no matter the pytorch ref.
       # gloo requires >= 1.26; v1.47.0 matches upstream's source build.
