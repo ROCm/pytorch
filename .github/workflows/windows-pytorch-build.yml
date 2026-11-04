@@ -109,6 +109,12 @@ jobs:
           ref: ${{ inputs.therock_ref || 'main' }}
           path: TheRock
 
+      - name: Disk free (before)
+        shell: powershell
+        run: |
+          $c = Get-PSDrive -Name C
+          "C: used {0} GB, free {1} GB" -f [math]::Round($c.Used/1GB,1), [math]::Round($c.Free/1GB,1)
+
       - name: Configure Git Identity
         run: |
           git config --global user.name "ci-bringup"
@@ -246,6 +252,32 @@ jobs:
         working-directory: TheRock
         run: |
           python external-builds/pytorch/sanity_check_wheel.py "%PACKAGE_DIST_DIR%"
+
+      # Storage numbers for the Windows image requirements (measured, not estimated).
+      - name: Disk usage (after build)
+        if: always()
+        shell: powershell
+        run: |
+          $c = Get-PSDrive -Name C
+          "C: used {0} GB, free {1} GB" -f [math]::Round($c.Used/1GB,1), [math]::Round($c.Free/1GB,1)
+          function Get-SizeGB([string]$Path) {
+            if (-not (Test-Path $Path)) { return 'missing' }
+            $sum = (Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            return [math]::Round($sum/1GB, 2)
+          }
+          $paths = @(
+            "$env:CHECKOUT_ROOT/pytorch",
+            "$env:CHECKOUT_ROOT/pytorch/build",
+            "$env:CHECKOUT_ROOT/pytorch/dist",
+            "$env:CHECKOUT_ROOT/pytorch_audio",
+            "$env:CHECKOUT_ROOT/pytorch_vision",
+            "$env:CHECKOUT_ROOT",
+            "$env:GITHUB_WORKSPACE",
+            "$env:RUNNER_TOOL_CACHE",
+            "$env:LOCALAPPDATA\pip\Cache",
+            "$env:TEMP"
+          )
+          foreach ($p in $paths) { "{0,-60} {1} GB" -f $p, (Get-SizeGB $p) }
 
       - name: Upload wheels
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
