@@ -173,6 +173,15 @@ class CoordescTuner:
         return False
 
     def value_too_small(self, name: str, val: int) -> bool:
+        tma_minimums = self.inductor_meta.get("tma_min_block_sizes")
+        if (
+            self.inductor_meta.get("uses_tma")
+            and isinstance(tma_minimums, dict)
+            and name in tma_minimums
+            and val < tma_minimums[name]
+        ):
+            return True
+
         min_block = None
         if name == "XBLOCK":
             min_block = self.inductor_meta.get("min_xblock")

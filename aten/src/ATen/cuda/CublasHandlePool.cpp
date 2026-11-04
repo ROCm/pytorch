@@ -172,8 +172,8 @@ size_t parseChosenWorkspaceSize() {
     // for extra convenience
     val = c10::utils::get_env("ROCBLAS_WORKSPACE_CONFIG");
   }
-  /* 32MiB default, 128MiB for gfx942/gfx950/gfx1250 */
-  const bool gfx942_950_1250 = at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx1250"});
+  /* 32MiB default, 128MiB for gfx942/gfx950/gfx1250/gfx1250-strict */
+  const bool gfx942_950_1250 = at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx1250", "gfx1250-strict"});
   const size_t default_size = gfx942_950_1250 ? 1024 * 128 * 1024 : 1024 * 32 * 1024;
 #else
   /* :4096:2:16:8 default, 32MiB for Hopper and Blackwell */
@@ -470,8 +470,8 @@ cublasHandle_t getCurrentCUDABlasHandle(bool setup) {
   return handle;
 }
 
-cublasLtHandle_t getCurrentCUDABlasLtHandle() {
 #ifdef USE_ROCM
+static cublasLtHandle_t reserveCurrentCUDABlasLtHandle(bool create) {
   c10::DeviceIndex device = 0;
   AT_CUDA_CHECK(c10::cuda::GetDevice(&device));
 
@@ -494,8 +494,17 @@ cublasLtHandle_t getCurrentCUDABlasLtHandle() {
   // so reserve a handle unique to each (device, stream) pair.
   auto stream = c10::cuda::getCurrentCUDAStream();
   cudaStream_t _stream = stream;
-  auto handle = myPoolWindow->reserve(device, static_cast<void*>(_stream));
-  return handle;
+  return myPoolWindow->reserve(device, static_cast<void*>(_stream), create);
+}
+
+cublasLtHandle_t getCurrentCUDABlasLtHandleIfAvailable() {
+  return reserveCurrentCUDABlasLtHandle(/*create=*/false);
+}
+#endif
+
+cublasLtHandle_t getCurrentCUDABlasLtHandle() {
+#ifdef USE_ROCM
+  return reserveCurrentCUDABlasLtHandle(/*create=*/true);
 #else
   return reinterpret_cast<cublasLtHandle_t>(getCurrentCUDABlasHandle(/*setup=*/false));
 #endif
