@@ -135,7 +135,12 @@ function Ensure-Git {
         Add-Result 'git+bash' 'MISSING' "expected $gitBash"
         return
     }
-    if (-not $CheckOnly) { Add-ToPath $gitDir }
+    if (-not $CheckOnly) {
+        Add-ToPath $gitDir
+        # Git must allow long paths or a checkout of PyTorch-sized trees fails with
+        # "Filename too long" on Windows. System-wide so actions/checkout inherits it.
+        if ($script:IsAdmin) { & (Join-Path $gitDir 'git.exe') config --system core.longpaths true }
+    }
 
     # `bash` on PATH may be the WSL launcher in System32; the build needs Git's bash.
     $onPath = Find-Tool 'bash'
