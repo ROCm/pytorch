@@ -37,11 +37,25 @@ jobs:
       run:
         shell: powershell
     steps:
-      # actions/checkout uses the GitHub REST API when git is not installed.
+      # Must come before the checkout (as in upstream's _win-build.yml). Without it a
+      # git checkout of this repository fails on Windows with "Filename too long".
+      - name: Enable git long paths (if git is installed)
+        run: |
+          if (Get-Command git -ErrorAction SilentlyContinue) {
+            git config --global core.longpaths true
+            'core.longpaths set'
+          } else {
+            'git is not installed yet: the checkout will use the REST API'
+          }
+
+      # actions/checkout uses the GitHub REST API when git is not installed. Only the
+      # script folder is needed, so use a sparse checkout.
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          sparse-checkout: .github/scripts/windows-build-env
+          sparse-checkout-cone-mode: true
 
       - name: 1. Report (check only, never fails)
         run: |
