@@ -309,6 +309,13 @@ cmake_dependent_option(
   "USE_CUDA AND LINUX AND BUILD_PYTHON" OFF)
 cmake_dependent_option(USE_ROCM "Use ROCm" ON "LINUX OR WIN32" OFF)
 cmake_dependent_option(USE_ROCM_CK_GEMM "Use ROCm Composable Kernel for GEMMs" ON "USE_ROCM;NOT WIN32" OFF)
+# Single source of truth for the GPU archs Composable Kernel GEMM supports. It
+# drives both the ck_gemm build arch filter (torch_filter_ck_gemm_arches in
+# cmake/public/utils.cmake) and the runtime support check / dispatch, which read
+# it through the generated ATen/ROCmCKGEMMConfig.h. Add a WMMA arch (e.g.
+# gfx1200) here to opt it back in without patching source.
+set(TORCH_CK_GEMM_ARCH_LIST "gfx90a;gfx942;gfx950" CACHE STRING
+    "Semicolon-separated GPU archs Composable Kernel GEMM is built and enabled for")
 cmake_dependent_option(USE_ROCM_CK_SDPA "Use ROCm Composable Kernel for SDPA" ON "USE_ROCM;NOT WIN32" OFF)
 option(CAFFE2_STATIC_LINK_CUDA "Statically link CUDA libraries" OFF)
 cmake_dependent_option(USE_CUDNN "Use cuDNN" ON "USE_CUDA" OFF)
