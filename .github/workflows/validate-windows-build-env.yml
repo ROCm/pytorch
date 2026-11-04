@@ -1,0 +1,85 @@
+name: Validate Windows build environment
+
+# Runs .github/scripts/windows-build-env/setup-build-env.ps1 on the Windows runners
+# and checks that the result is usable by the build workflow. It does not build
+# PyTorch. Steps:
+#   1. report what is missing (check only)
+#   2. install what is missing
+#   3. validate in fresh steps (a new step sees the PATH written to GITHUB_PATH),
+#      including a bash step, because the build workflow uses bash as default shell
+# On a runner that already has everything (the Strix Halo runner) step 2 changes nothing.
+
+on:
+  push:
+    branches:
+      - windows-rocm-ci-bringup
+    paths:
+      - .github/workflows/validate-windows-build-env.yml
+      - .github/scripts/windows-build-env/setup-build-env.ps1
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    name: validate | ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: R9700 (xsj-dispatch)
+            labels: '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]'
+          - name: Strix Halo (devlab-dispatch)
+            labels: '["self-hosted","Windows","devlab-dispatch","strix-halo"]'
+    runs-on: ${{ fromJSON(matrix.labels) }}
+    timeout-minutes: 120
+    defaults:
+      run:
+        shell: powershell
+    steps:
+      # actions/checkout uses the GitHub REST API when git is not installed.
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 1. Report (check only, never fails)
+        run: |
+          & ./.github/scripts/windows-build-env/setup-build-env.ps1 -CheckOnly
+          "check-only exit code: $LASTEXITCODE"
+          exit 0
+
+      - name: 2. Install missing tools
+        run: |
+          & ./.github/scripts/windows-build-env/setup-build-env.ps1
+          if ($LASTEXITCODE -ne 0) { throw "setup-build-env.ps1 exited with $LASTEXITCODE" }
+
+      - name: 3a. Validate git, python, cmake (fresh step)
+        run: |
+          $ErrorActionPreference = 'Continue'
+          git --version
+          python --version
+          cmake --version | Select-Object -First 1
+          Get-PSDrive -Name C | Select-Object @{n='UsedGB';e={[math]::Round($_.Used/1GB,1)}}, @{n='FreeGB';e={[math]::Round($_.Free/1GB,1)}} | Format-List | Out-String
+
+      - name: 3b. Validate MSVC compiler and the OpenMP DLL the build copies
+        run: |
+          $ErrorActionPreference = 'Continue'
+          $vswhere = Join-Path ${env:ProgramFiles(x86)} 'Microsoft Visual Studio\Installer\vswhere.exe'
+          $vs = & $vswhere -products '*' -version '[17.0,18.0)' -requires 'Microsoft.VisualStudio.Component.VC.Tools.x86.x64' -property installationPath | Select-Object -First 1
+          "Visual Studio: $vs"
+          $bat = Join-Path $vs 'VC\Auxiliary\Build\vcvarsall.bat'
+          cmd /c "`"$bat`" x64 >nul && (cl 2>&1 | findstr /C:Version) && set VCToolsRedistDir" | Tee-Object -Variable out
+          $redist = ($out | Where-Object { $_ -like 'VCToolsRedistDir=*' }) -replace '^VCToolsRedistDir=', ''
+          if (-not $redist) { throw 'VCToolsRedistDir is empty after vcvarsall' }
+          $omp = Get-ChildItem -Path $redist -Recurse -Filter 'libomp140.x86_64.dll' -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $omp) { throw "libomp140.x86_64.dll not found under $redist" }
+          "libomp140: $($omp.FullName)"
+
+      - name: 3c. Validate bash (the build workflow's default shell)
+        shell: bash
+        run: |
+          bash --version | head -1
+          which -a bash
+          git --version
+          python --version
