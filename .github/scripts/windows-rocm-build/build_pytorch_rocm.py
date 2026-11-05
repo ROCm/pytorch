@@ -28,6 +28,7 @@ Example (from a Visual Studio x64 environment):
 """
 
 import argparse
+import ctypes
 import os
 import platform
 import shlex
@@ -36,6 +37,8 @@ import subprocess
 import sys
 import tempfile
 import textwrap
+import threading
+import time
 from pathlib import Path
 
 # ROCm libraries that torch/_rocm_init.py preloads on Windows. The names are the
@@ -108,6 +111,12 @@ def parse_args():
     p.add_argument("--build-number", default="1")
     p.add_argument("--clean", action="store_true", help="remove build/ and dist/ first")
     p.add_argument("--skip-hipify", action="store_true")
+    p.add_argument(
+        "--heartbeat-seconds",
+        type=int,
+        default=60,
+        help="print memory and disk use into the log this often during the build (0 = off)",
+    )
     p.add_argument("--dry-run", action="store_true", help="print, do not change anything")
     return p.parse_args()
 
@@ -240,6 +249,78 @@ def copy_runtime_dlls(source_dir):
         copy_dll(uv, lib, "libuv")
 
 
+class _MemoryStatus(ctypes.Structure):
+    """Windows MEMORYSTATUSEX, filled by GlobalMemoryStatusEx."""
+
+    _fields_ = [
+        ("dwLength", ctypes.c_ulong),
+        ("dwMemoryLoad", ctypes.c_ulong),
+        ("ullTotalPhys", ctypes.c_ulonglong),
+        ("ullAvailPhys", ctypes.c_ulonglong),
+        ("ullTotalPageFile", ctypes.c_ulonglong),
+        ("ullAvailPageFile", ctypes.c_ulonglong),
+        ("ullTotalVirtual", ctypes.c_ulonglong),
+        ("ullAvailVirtual", ctypes.c_ulonglong),
+        ("sullAvailExtendedVirtual", ctypes.c_ulonglong),
+    ]
+
+
+def memory_status_gb():
+    """Returns (ram_used, ram_total, commit_used, commit_limit) in GB."""
+    status = _MemoryStatus()
+    status.dwLength = ctypes.sizeof(_MemoryStatus)
+    if not ctypes.windll.kernel32.GlobalMemoryStatusEx(ctypes.byref(status)):
+        raise OSError("GlobalMemoryStatusEx failed")
+    gb = 1024 ** 3
+    return (
+        (status.ullTotalPhys - status.ullAvailPhys) / gb,
+        status.ullTotalPhys / gb,
+        (status.ullTotalPageFile - status.ullAvailPageFile) / gb,
+        status.ullTotalPageFile / gb,
+    )
+
+
+def heartbeat_line(started, disk_path, peak):
+    ram_used, ram_total, commit_used, commit_limit = memory_status_gb()
+    free_disk = shutil.disk_usage(disk_path).free / 1024 ** 3
+    peak["ram_used"] = max(peak.get("ram_used", 0.0), ram_used)
+    peak["commit_used"] = max(peak.get("commit_used", 0.0), commit_used)
+    peak["min_free_disk"] = min(peak.get("min_free_disk", free_disk), free_disk)
+    minutes = (time.time() - started) / 60
+    return (
+        f"[heartbeat {time.strftime('%H:%M:%S')}] build {minutes:.1f} min | "
+        f"RAM used {ram_used:.1f}/{ram_total:.1f} GB | "
+        f"commit {commit_used:.1f}/{commit_limit:.1f} GB | "
+        f"{os.path.splitdrive(str(disk_path))[0] or 'disk'} free {free_disk:.1f} GB"
+    )
+
+
+def start_heartbeat(interval, disk_path):
+    """Prints memory and disk use into the build output every `interval` seconds.
+
+    Because the lines are part of the build's own log, they reach the CI log live, so the
+    last numbers are available even if the machine dies during the build.
+    Returns (stop_event, thread, peak) where peak collects the maximum values seen."""
+    stop = threading.Event()
+    peak = {}
+    started = time.time()
+
+    def emit():
+        try:
+            print(heartbeat_line(started, disk_path, peak), flush=True)
+        except Exception as exc:  # never let monitoring break the build
+            print(f"[heartbeat] could not read memory/disk: {exc}", flush=True)
+
+    def loop():
+        emit()
+        while not stop.wait(interval):
+            emit()
+
+    thread = threading.Thread(target=loop, daemon=True)
+    thread.start()
+    return stop, thread, peak
+
+
 def find_wheel(dist_dir):
     wheels = sorted(dist_dir.glob("torch-*.whl"))
     if len(wheels) != 1:
@@ -295,7 +376,21 @@ def main():
         if args.clean:
             shutil.rmtree(source_dir / "build", ignore_errors=True)
     print("+++ Building PyTorch")
-    run([py, "-m", "build", "--wheel", "--no-isolation"], cwd=source_dir, env=env)
+    stop = thread = peak = None
+    if not DRY_RUN and args.heartbeat_seconds > 0:
+        stop, thread, peak = start_heartbeat(args.heartbeat_seconds, source_dir)
+    try:
+        run([py, "-m", "build", "--wheel", "--no-isolation"], cwd=source_dir, env=env)
+    finally:
+        if stop is not None:
+            stop.set()
+            thread.join(timeout=5)
+            print(
+                f"[heartbeat] peak RAM used {peak.get('ram_used', 0):.1f} GB, "
+                f"peak commit {peak.get('commit_used', 0):.1f} GB, "
+                f"minimum free disk {peak.get('min_free_disk', 0):.1f} GB",
+                flush=True,
+            )
     if DRY_RUN:
         print("--- dry run finished: nothing was built")
         return
