@@ -1,0 +1,239 @@
+# Windows PyTorch (ROCm) wheel build.
+#
+# Builds the PyTorch wheel with ROCm on a Windows runner. Everything it needs is in this
+# repository or public:
+#   - the PyTorch source is cloned with plain git (default: pytorch/pytorch, branch nightly)
+#   - the ROCm SDK is installed with pip from a package index
+#   - the build tools (Git for Windows, Visual Studio Build Tools, CMake) are installed by
+#     .github/scripts/windows-build-env/setup-build-env.ps1 when the machine lacks them
+#   - the build itself is .github/scripts/windows-rocm-build/build_pytorch_rocm.py, which
+#     ends in `python -m build --wheel --no-isolation`
+# The default runner is the Windows R9700 VM; pass runner_labels to use another runner.
+
+name: Windows PyTorch ROCm build
+
+on:
+  push:
+    branches:
+      - windows-rocm-ci-bringup
+    paths:
+      - .github/workflows/windows-pytorch-rocm-build.yml
+      - .github/scripts/windows-rocm-build/**
+  workflow_dispatch:
+    inputs:
+      rocm_arch:
+        description: GPU targets to build for, separated by semicolons.
+        type: string
+        default: "gfx1200;gfx1201"
+      pytorch_repository:
+        description: GitHub repository to build (owner/name).
+        type: string
+        default: "pytorch/pytorch"
+      pytorch_ref:
+        description: Branch, tag or commit SHA of that repository to build.
+        type: string
+        default: "nightly"
+      python_version:
+        description: Python version.
+        type: string
+        default: "3.12"
+      rocm_version:
+        description: ROCm SDK package version to install and build against (must exist on the index).
+        type: string
+        default: "10.2.0a20261012"
+      rocm_index_url:
+        description: pip index that serves the rocm packages.
+        type: string
+        default: "https://nightly.repo.amd.com/rocm/whl-next"
+      max_jobs:
+        description: Maximum parallel compile jobs (the R9700 VM has about 32 GB RAM).
+        type: string
+        default: "8"
+      runner_labels:
+        description: Runner labels as a JSON array.
+        type: string
+        default: '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]'
+
+run-name: >-
+  Windows PyTorch ROCm build (${{ inputs.rocm_arch || 'gfx1200;gfx1201' }},
+  ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}@${{ inputs.pytorch_ref || 'nightly' }})
+
+# A new push to the branch cancels the previous run, so a shared runner is not kept busy.
+concurrency:
+  group: windows-pytorch-rocm-build-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build | ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
+    runs-on: ${{ fromJSON(inputs.runner_labels || '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]') }}
+    timeout-minutes: 240
+    env:
+      PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
+      PYTORCH_REPOSITORY: ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}
+      PYTORCH_REF: ${{ inputs.pytorch_ref || 'nightly' }}
+      ROCM_ARCH: ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
+      ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
+      ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
+      MAX_JOBS: ${{ inputs.max_jobs || '8' }}
+      # Short source path: the Windows compile command lines get very long in this tree.
+      SOURCE_DIR: C:/b/pytorch
+      PACKAGE_DIST_DIR: ${{ github.workspace }}\output\packages\dist
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # The machine may be bare, so the first steps use PowerShell: bash does not exist
+      # until Git for Windows is installed.
+      - name: Enable git long paths (if git is installed)
+        shell: powershell
+        run: |
+          if (Get-Command git -ErrorAction SilentlyContinue) {
+            git config --global core.longpaths true
+            'core.longpaths set'
+          } else {
+            'git is not installed yet: the checkout will use the REST API'
+          }
+
+      - name: Checkout the build scripts (this repository, sparse)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts/windows-build-env
+            .github/scripts/windows-rocm-build
+          sparse-checkout-cone-mode: true
+
+      - name: Install missing build tools
+        shell: powershell
+        run: |
+          # -SkipPython: this workflow gets Python from actions/setup-python.
+          & ./.github/scripts/windows-build-env/setup-build-env.ps1 -SkipPython
+          if ($LASTEXITCODE -ne 0) { throw "setup-build-env.ps1 exited with $LASTEXITCODE" }
+
+      - name: Disk free (before)
+        shell: powershell
+        run: |
+          $c = Get-PSDrive -Name C
+          "C: used {0} GB, free {1} GB" -f [math]::Round($c.Used/1GB,1), [math]::Round($c.Free/1GB,1)
+
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # PyTorch's Gloo (torch.distributed) needs libuv on Windows. Built from a fixed
+      # version, whatever PyTorch ref is built; the build script copies uv.dll into torch/lib.
+      - name: Build libuv from source
+        run: |
+          git clone https://github.com/libuv/libuv.git -b v1.47.0 --depth 1
+          cmake -S libuv -B libuv/build -DBUILD_TESTING=OFF
+          cmake --build libuv/build --config Release
+          cmake --install libuv/build --prefix "${{ github.workspace }}/libuv-install"
+          echo "libuv_ROOT=${{ github.workspace }}/libuv-install" >> $GITHUB_ENV
+
+      # After the other installs, so MSVC gets priority in PATH.
+      - name: Configure MSVC
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756 # v1.13.0
+
+      - name: Clone PyTorch
+        timeout-minutes: 45
+        run: |
+          set -euo pipefail
+          git config --global core.longpaths true
+          rm -rf "${SOURCE_DIR}"
+          mkdir -p "${SOURCE_DIR}"
+          cd "${SOURCE_DIR}"
+          git init --initial-branch=main
+          git config advice.detachedHead false
+          git remote add origin "https://github.com/${PYTORCH_REPOSITORY}.git"
+          git fetch -j 10 origin "${PYTORCH_REF}"
+          git checkout FETCH_HEAD
+          git submodule update --init --recursive -j 10
+          echo "PyTorch source:"
+          git log -1 --format='%H %s'
+
+      # Records physical memory use every 20 s while the build runs.
+      - name: Start memory sampler
+        shell: powershell
+        run: |
+          $script = @'
+          $log = Join-Path $env:RUNNER_TEMP 'memory-log.csv'
+          'time,used_gb,free_gb' | Out-File $log -Encoding ascii
+          while ($true) {
+            $os = Get-CimInstance Win32_OperatingSystem
+            $total = $os.TotalVisibleMemorySize / 1MB
+            $free = $os.FreePhysicalMemory / 1MB
+            ('{0},{1:N1},{2:N1}' -f (Get-Date -Format 'HH:mm:ss'), ($total - $free), $free) | Add-Content $log
+            Start-Sleep -Seconds 20
+          }
+          '@
+          $path = Join-Path $env:RUNNER_TEMP 'memory-sampler.ps1'
+          Set-Content -Path $path -Value $script
+          $p = Start-Process -FilePath powershell.exe -ArgumentList '-NoProfile','-ExecutionPolicy','Bypass','-File',$path -PassThru -WindowStyle Hidden
+          $p.Id | Out-File (Join-Path $env:RUNNER_TEMP 'memory-sampler.pid')
+          "started memory sampler, pid $($p.Id)"
+
+      - name: Build PyTorch wheel
+        shell: powershell
+        run: |
+          python .github/scripts/windows-rocm-build/build_pytorch_rocm.py `
+            --source-dir "$env:SOURCE_DIR" `
+            --rocm-arch "$env:ROCM_ARCH" `
+            --rocm-version "$env:ROCM_VERSION" `
+            --index-url "$env:ROCM_INDEX_URL" `
+            --output-dir "$env:PACKAGE_DIST_DIR" `
+            --max-jobs "$env:MAX_JOBS" `
+            --clean
+          if ($LASTEXITCODE -ne 0) { throw "build_pytorch_rocm.py exited with $LASTEXITCODE" }
+
+      # Storage numbers for sizing the Windows image.
+      - name: Disk usage (after build)
+        if: always()
+        shell: powershell
+        run: |
+          $c = Get-PSDrive -Name C
+          "C: used {0} GB, free {1} GB" -f [math]::Round($c.Used/1GB,1), [math]::Round($c.Free/1GB,1)
+          function Get-SizeGB([string]$Path) {
+            if (-not (Test-Path $Path)) { return 'missing' }
+            $sum = (Get-ChildItem -LiteralPath $Path -Recurse -Force -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum
+            return [math]::Round($sum/1GB, 2)
+          }
+          $paths = @(
+            "$env:SOURCE_DIR",
+            "$env:SOURCE_DIR/build",
+            "$env:SOURCE_DIR/dist",
+            "$env:GITHUB_WORKSPACE",
+            "$env:RUNNER_TOOL_CACHE",
+            "$env:LOCALAPPDATA\pip\Cache",
+            "$env:TEMP"
+          )
+          foreach ($p in $paths) { "{0,-60} {1} GB" -f $p, (Get-SizeGB $p) }
+
+      - name: Memory report
+        if: always()
+        shell: powershell
+        run: |
+          $log = Join-Path $env:RUNNER_TEMP 'memory-log.csv'
+          $pidFile = Join-Path $env:RUNNER_TEMP 'memory-sampler.pid'
+          if (Test-Path $pidFile) { Stop-Process -Id ([int](Get-Content $pidFile)) -ErrorAction SilentlyContinue }
+          if (Test-Path $log) {
+            $rows = @(Import-Csv $log)
+            $used = $rows | ForEach-Object { [double]$_.used_gb }
+            $free = $rows | ForEach-Object { [double]$_.free_gb }
+            $total = [math]::Round((Get-CimInstance Win32_OperatingSystem).TotalVisibleMemorySize / 1MB, 1)
+            "Samples: $($rows.Count)  Total RAM: $total GB"
+            "Peak used: $(($used | Measure-Object -Maximum).Maximum) GB   Minimum free: $(($free | Measure-Object -Minimum).Minimum) GB"
+            'Every 12th sample (about 4 minutes):'
+            for ($i = 0; $i -lt $rows.Count; $i += 12) { '{0}  used {1} GB  free {2} GB' -f $rows[$i].time, $rows[$i].used_gb, $rows[$i].free_gb }
+          } else { 'no memory log found' }
+
+      - name: Upload wheels
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: pytorch-rocm-windows-wheels-py${{ env.PYTHON_VERSION }}
+          path: ${{ env.PACKAGE_DIST_DIR }}
+          if-no-files-found: error
+          retention-days: 14
