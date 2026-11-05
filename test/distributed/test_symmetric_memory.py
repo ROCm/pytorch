@@ -53,6 +53,10 @@ from torch.testing._internal.common_distributed import (
 )
 from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
+    isRocmArchAnyOf,
+    lazy_skip_if,
+    MI300_ARCH,
+    MI350_ARCH,
     parametrize,
     requires_cuda,
     requires_cuda_p2p_access,
@@ -530,6 +534,12 @@ class SymmetricMemoryTest(MultiProcContinuousTest):
         torch.ops.symm_mem._barrier(sm)
 
 
+skip_if_no_rocm_async_mm = lazy_skip_if(
+    lambda: TEST_WITH_ROCM and not isRocmArchAnyOf(MI300_ARCH + MI350_ARCH),
+    "ROCm native async-TP kernel (AsyncMM.hip) is only built for gfx942/gfx950",
+)
+
+
 # We move AsyncTP tests to a separate test suite because 1) Async TP ops are not
 # the core symmetric memory APIs, they are more like applications, 2)
 # MultiProcContinuousTest will skip all the following tests if a test fails (
@@ -602,9 +612,10 @@ class AsyncTPTest(MultiProcContinuousTest):
     @parametrize("symm_mem_input", [True, False])
     @parametrize("is_b_row_major", [True, False])
     @skipIf(
-        SM100OrLater,
+        SM100OrLater and not TEST_WITH_ROCM,
         "https://github.com/pytorch/pytorch/issues/162917",
     )
+    @skip_if_no_rocm_async_mm
     def test_fused_all_gather_matmul_native(
         self, symm_mem_input: bool, is_b_row_major: bool
     ) -> None:
@@ -822,7 +833,7 @@ class AsyncTPTest(MultiProcContinuousTest):
     @parametrize("scatter_dim", [0, 1])
     @parametrize("rowwise", [True, False])
     @skipIf(
-        SM100OrLater,
+        SM100OrLater and not TEST_WITH_ROCM,
         "https://github.com/pytorch/pytorch/issues/162940",
     )
     def test_fused_scaled_matmul_reduce_scatter(
