@@ -56,7 +56,7 @@ on:
 
 run-name: >-
   Windows PyTorch ROCm build (${{ inputs.rocm_arch || 'gfx1200;gfx1201' }},
-  ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}@${{ inputs.pytorch_ref || 'nightly' }})
+  ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}@${{ inputs.pytorch_ref || '7f24a19c' }})
 
 # A new push to the branch cancels the previous run, so a shared runner is not kept busy.
 concurrency:
@@ -74,7 +74,9 @@ jobs:
     env:
       PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
       PYTORCH_REPOSITORY: ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}
-      PYTORCH_REF: ${{ inputs.pytorch_ref || 'nightly' }}
+      # TEMPORARY test: pinned to the Nov 4 nightly commit that built successfully on the R9700.
+      # Put 'nightly' back after the test.
+      PYTORCH_REF: ${{ inputs.pytorch_ref || '7f24a19c0967db04f2d5ba44c1e56eca489932ec' }}
       ROCM_ARCH: ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
       ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
       ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
@@ -186,6 +188,7 @@ jobs:
             --index-url "$env:ROCM_INDEX_URL" `
             --output-dir "$env:PACKAGE_DIST_DIR" `
             --max-jobs "$env:MAX_JOBS" `
+            --heartbeat-seconds 10 `
             --clean
           if ($LASTEXITCODE -ne 0) { throw "build_pytorch_rocm.py exited with $LASTEXITCODE" }
 
