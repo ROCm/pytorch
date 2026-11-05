@@ -405,6 +405,27 @@ class _ProcessGroupNCCL2SubgroupTest(MultiProcContinuousTest):
     def device_type(cls) -> str:
         return "cuda"
 
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file) -> None:
+        # Binding the default group to a device makes _new_subgroup split it.
+        # On ROCm 10.2, RCCL runs small all_reduces on a standalone 8-rank
+        # communicator with a DDA kernel that ignores ncclCommAbort, so
+        # aborting the timed-out subgroup would hang.
+        if rdvz_file is None:
+            raise AssertionError("Expected rdvz_file to not be None")
+        os.environ["LOCAL_RANK"] = str(rank)
+        store = dist.FileStore(rdvz_file, world_size)
+        dist.init_process_group(
+            backend=cls.backend_str(),
+            world_size=world_size,
+            rank=rank,
+            store=store,
+            pg_options=cls.opts(),
+            timeout=cls.timeout,
+            device_id=torch.device("cuda", rank),
+        )
+        cls.pg = dist.distributed_c10d._get_default_group()
+
     @property
     def device(self) -> torch.device:
         return torch.device("cuda", self.rank)
@@ -430,6 +451,7 @@ class _ProcessGroupNCCL2SubgroupTest(MultiProcContinuousTest):
         # destroy on the other ranks would wait for it forever at NCCL 2.31+'s
         # teardown barrier, so every rank aborts instead.
         dist.distributed_c10d._abort_process_group(pg)
+
 
 class ProcessGroupNCCL2AbortTest(_ProcessGroupNCCL2SubgroupTest):
     @requires_nccl()
