@@ -143,7 +143,7 @@ namespace at::hip::detail {
 
         template <typename T>
         concept GroupGemmConfigs = GemmTypeConfigs<typename T::Forward> && GemmTypeConfigs<typename T::GradInput> &&
-                GemmTypeConfigs<typename T::GradWeight> && requires { typename T::Fallback; };
+                GemmTypeConfigs<typename T::GradWeight> && requires { typename T::Fallback; T::kMaxPerExpertMNK; };
 
         // Tile configs for one target. Deliberately undefined: launch's if constexpr turns an arch or dtype without
         // configs into a not-implemented error at runtime.
@@ -154,6 +154,9 @@ namespace at::hip::detail {
         // configs for bf16 inputs on gfx950
         template <>
         struct CkTileGroupGemmConfigs<amdgcn_target_id::GFX950, ck_tile::bf16_t> {
+            // Largest per-expert M*N*K at which ck_tile beats hipBLASLt, fitted on the Primus-Turbo MoE shapes (MI355X).
+            static constexpr double kMaxPerExpertMNK = 4.6e10;
+
             // Pads M, N and K with 1-element C vectors, so it accepts every shape.
             using AnyShape = CkTileGroupGemmConfig<256, 128, 64, 16, 16, 32, 2, 2, true, true, true, false, 0, 1>;
 
@@ -202,6 +205,9 @@ namespace at::hip::detail {
         // 256 rows or columns spill at K_Tile 32; eight waves halve the accumulators per lane.
         template <>
         struct CkTileGroupGemmConfigs<amdgcn_target_id::GFX950, ck_tile::fp32_t> {
+            // Largest per-expert M*N*K at which ck_tile beats hipBLASLt, fitted on the Primus-Turbo MoE shapes (MI355X).
+            static constexpr double kMaxPerExpertMNK = 8.6e9;
+
             // Pads M, N and K with 1-element C vectors, so it accepts every shape.
             using AnyShape = CkTileGroupGemmConfig<128, 128, 16, 32, 32, 4, 2, 2, true, true, true, false, 0, 1>;
 
@@ -241,6 +247,9 @@ namespace at::hip::detail {
         // 192-wide tiles only build along a non-contiguous dim, and 192x256 with 32x32x16 warp tiles gives wrong results.
         template <>
         struct CkTileGroupGemmConfigs<amdgcn_target_id::GFX942, ck_tile::bf16_t> {
+            // Placeholder until measured on MI300X: keeps every shape on ck_tile.
+            static constexpr double kMaxPerExpertMNK = std::numeric_limits<double>::infinity();
+
             // Pads M, N and K with 1-element C vectors, so it accepts every shape.
             using AnyShape = CkTileGroupGemmConfig<256, 128, 64, 16, 16, 32, 2, 2, true, true, true, false, 0, 1>;
 
@@ -289,6 +298,9 @@ namespace at::hip::detail {
         // 16x16x16 warp tiles (four 16x16x4 MFMAs) were the fastest measured for every GEMM type.
         template <>
         struct CkTileGroupGemmConfigs<amdgcn_target_id::GFX942, ck_tile::fp32_t> {
+            // Placeholder until measured on MI300X: keeps every shape on ck_tile.
+            static constexpr double kMaxPerExpertMNK = std::numeric_limits<double>::infinity();
+
             // Pads M, N and K with 1-element C vectors, so it accepts every shape.
             using AnyShape = CkTileGroupGemmConfig<128, 128, 16, 32, 32, 4, 2, 2, true, true, true, false, 0, 1>;
 
@@ -619,6 +631,44 @@ namespace at::hip::detail {
                 run_ck_tile_group_gemm<DataType, ColMajor, RowMajor, typename Configs::Fallback>(group_args.const_data_ptr(), group_count, stream);
             }
         }
+
+        // Calls f(arch_tag, data_tag) for the current GPU's arch and dtype if they have a CkTileGroupGemmConfigs
+        // specialization, and returns whether it did. The arch is only known at runtime; integral_constant turns it into a
+        // template argument, and only combos with configs are instantiated.
+        template <typename F>
+        bool with_configs(at::ScalarType dtype, F&& f) {
+            const auto with_arch = [&](auto arch_tag) {
+                const auto with_type = [&](auto data_tag) {
+                    if constexpr (GroupGemmConfigs<CkTileGroupGemmConfigs<decltype(arch_tag)::value, decltype(data_tag)>>) {
+                        f(arch_tag, data_tag);
+                        return true;
+                    } else {
+                        return false;
+                    }
+                };
+                switch (dtype) {
+                    case at::kBFloat16: return with_type(ck_tile::bf16_t{});
+                    case at::kHalf: return with_type(ck_tile::half_t{});
+                    case at::kFloat: return with_type(ck_tile::fp32_t{});
+                    default: return false;
+                }
+            };
+            if (at::detail::getCUDAHooks().isGPUArch({"gfx950"})) {
+                return with_arch(std::integral_constant<amdgcn_target_id, amdgcn_target_id::GFX950>{});
+            }
+            if (at::detail::getCUDAHooks().isGPUArch({"gfx942"})) {
+                return with_arch(std::integral_constant<amdgcn_target_id, amdgcn_target_id::GFX942>{});
+            }
+            return false;
+        }
+    }
+
+    double group_gemm_ck_tile_max_per_expert_mnk(at::ScalarType dtype) {
+        double max_mnk = 0;
+        with_configs(dtype, [&](auto arch_tag, auto data_tag) {
+            max_mnk = CkTileGroupGemmConfigs<decltype(arch_tag)::value, decltype(data_tag)>::kMaxPerExpertMNK;
+        });
+        return max_mnk;
     }
 
     void group_gemm_ck_tile(
@@ -720,37 +770,14 @@ namespace at::hip::detail {
                 {group_count * static_cast<int64_t>(sizeof(ck_tile::GemmTransKernelArg<>))},
                 out.options().dtype(at::kByte));
 
-        // 5. Arch and dtype dispatch. The arch is only known at runtime; integral_constant turns it into a template argument.
-        // Only data types with a CkTileGroupGemmConfigs specialization are instantiated.
-        auto with_ck_type = [](at::ScalarType dtype, auto&& f) {
-            switch (dtype) {
-                case at::kBFloat16: return f(ck_tile::bf16_t{});
-                case at::kHalf: return f(ck_tile::half_t{});
-                case at::kFloat: return f(ck_tile::fp32_t{});
-                default: TORCH_CHECK(false, "ck_tile group gemm: unsupported dtype ", dtype);
-            }
-        };
-        auto launch = [&](auto arch_tag) {
-            with_ck_type(mat_a.scalar_type(), [&](auto data_tag) {
-                constexpr amdgcn_target_id Arch = decltype(arch_tag)::value;
-                using DataType = decltype(data_tag);
-                if constexpr (GroupGemmConfigs<CkTileGroupGemmConfigs<Arch, DataType>>) {
-                    launch_ck_tile_group_gemm<Arch, DataType>(
-                            mat_a, mat_b, offs, out, group_args, a_row_major, b_row_major,
-                            static_cast<int32_t>(M), static_cast<int32_t>(N), static_cast<int32_t>(K), static_cast<int32_t>(group_count),
-                            jagged_total);
-                } else {
-                    TORCH_CHECK_NOT_IMPLEMENTED(false, "ck_tile group gemm: no configs for ", mat_a.scalar_type(), " inputs on ",
-                            at::cuda::getCurrentDeviceProperties()->gcnArchName);
-                }
-            });
-        };
-        if (at::detail::getCUDAHooks().isGPUArch({"gfx950"})) {
-            launch(std::integral_constant<amdgcn_target_id, amdgcn_target_id::GFX950>{});
-        } else if (at::detail::getCUDAHooks().isGPUArch({"gfx942"})) {
-            launch(std::integral_constant<amdgcn_target_id, amdgcn_target_id::GFX942>{});
-        } else {
-            TORCH_CHECK_NOT_IMPLEMENTED(false, "ck_tile group gemm: no tile configs for ", at::cuda::getCurrentDeviceProperties()->gcnArchName);
-        }
+        // 5. Arch and dtype dispatch.
+        const bool launched = with_configs(mat_a.scalar_type(), [&](auto arch_tag, auto data_tag) {
+            launch_ck_tile_group_gemm<decltype(arch_tag)::value, decltype(data_tag)>(
+                    mat_a, mat_b, offs, out, group_args, a_row_major, b_row_major,
+                    static_cast<int32_t>(M), static_cast<int32_t>(N), static_cast<int32_t>(K), static_cast<int32_t>(group_count),
+                    jagged_total);
+        });
+        TORCH_CHECK_NOT_IMPLEMENTED(launched, "ck_tile group gemm: no configs for ", mat_a.scalar_type(), " inputs on ",
+                at::cuda::getCurrentDeviceProperties()->gcnArchName);
     }
 }

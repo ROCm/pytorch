@@ -23,6 +23,10 @@ void group_gemm_ck_tile(
     const std::optional<at::Tensor>& offs,
     const std::optional<at::Tensor>& bias,
     at::Tensor& out);
+
+// Largest per-expert M*N*K at which group_gemm_ck_tile beats hipBLASLt for dtype on the current GPU, or 0 if it has no
+// configs for them.
+double group_gemm_ck_tile_max_per_expert_mnk(c10::ScalarType dtype);
 } // namespace detail
 } // namespace hip
 } // namespace at
