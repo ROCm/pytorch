@@ -246,6 +246,12 @@ def evaluate_platform_supports_ck_sdpa():
     else:
         return False
 
+def evaluate_platform_supports_ck_gemms():
+    # Matches at::Context::ckGemmSupported(). gfx1250 and gfx1250-strict are omitted.
+    if TEST_WITH_ROCM:
+        return evaluate_gfx_arch_within(["gfx90a", "gfx942", "gfx950"])
+    return False
+
 # Gate for RDNA 3/3.5, which supports SDPA but up to 256
 def evaluate_platform_sdpa_supports_hdim512():
     if not TEST_WITH_ROCM:
@@ -299,6 +305,7 @@ PLATFORM_SUPPORTS_FUSED_ATTENTION: bool = LazyVal(lambda: PLATFORM_SUPPORTS_FLAS
 PLATFORM_SUPPORTS_FUSED_SDPA: bool = TEST_CUDA and not TEST_WITH_ROCM
 
 PLATFORM_SUPPORTS_CK_SDPA: bool = LazyVal(lambda: evaluate_platform_supports_ck_sdpa())
+PLATFORM_SUPPORTS_CK_GEMMS: bool = LazyVal(lambda: evaluate_platform_supports_ck_gemms())
 
 PLATFORM_FUSED_ATTENTION_SUPPORTS_HDIM512: bool = LazyVal(lambda: evaluate_platform_sdpa_supports_hdim512())
 
