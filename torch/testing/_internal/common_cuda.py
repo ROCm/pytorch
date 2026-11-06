@@ -4,6 +4,9 @@ r"""This file is allowed to initialize CUDA context when imported."""
 
 import functools
 import threading
+from collections.abc import Callable
+from typing import Any
+
 import torch
 import torch.cuda
 from torch.testing._internal.common_utils import LazyVal, TEST_NUMBA, TEST_WITH_ROCM, TEST_CUDA, IS_WINDOWS, IS_MACOS, TEST_XPU
@@ -19,6 +22,40 @@ CUDA_ALREADY_INITIALIZED_ON_IMPORT = torch.cuda.is_initialized()
 
 TEST_MULTIGPU = TEST_CUDA and torch.cuda.device_count() >= 2
 CUDA_DEVICE = torch.device("cuda:0") if TEST_CUDA else None
+CUDA_DEVICE_IS_INTEGRATED = LazyVal(
+    lambda: TEST_CUDA
+    and bool(torch.cuda.get_device_properties(CUDA_DEVICE).is_integrated)
+)
+
+
+def with_limited_cuda_memory_on_integrated_device(
+    limit_mb: int,
+) -> Callable[[Callable[..., Any]], Callable[..., Any]]:
+    def decorator(test: Callable[..., Any]) -> Callable[..., Any]:
+        @functools.wraps(test)
+        def wrapped(*args: Any, **kwargs: Any) -> Any:
+            if not CUDA_DEVICE_IS_INTEGRATED:
+                return test(*args, **kwargs)
+
+            original_fraction = torch.cuda.get_per_process_memory_fraction(CUDA_DEVICE)
+            torch.cuda.empty_cache()
+            reserved = torch.cuda.memory_reserved(CUDA_DEVICE)
+            total = torch.cuda.get_device_properties(CUDA_DEVICE).total_memory
+            fraction = (reserved + limit_mb * 1024**2) / total
+            torch.cuda.set_per_process_memory_fraction(fraction, CUDA_DEVICE)
+            try:
+                return test(*args, **kwargs)
+            finally:
+                torch.cuda.empty_cache()
+                torch.cuda.set_per_process_memory_fraction(
+                    original_fraction, CUDA_DEVICE
+                )
+
+        return wrapped
+
+    return decorator
+
+
 # note: if ROCm is targeted, TEST_CUDNN is code for TEST_MIOPEN
 if TEST_WITH_ROCM:
     TEST_CUDNN = LazyVal(lambda: TEST_CUDA)
@@ -26,7 +63,25 @@ else:
     TEST_CUDNN = LazyVal(lambda: TEST_CUDA and torch.backends.cudnn.is_acceptable(torch.tensor(1., device=CUDA_DEVICE)))
 
 TEST_CUDNN_VERSION = LazyVal(lambda: torch.backends.cudnn.version() if TEST_CUDNN else 0)
-ROCM_VERSION = LazyVal(lambda : tuple(int(v) for v in torch.version.hip.split('.')[:2]) if torch.version.hip else (0, 0))
+
+def _rocm_version_str():
+    """ROCm release version string, or None when this is not a ROCm build.
+
+    torch.version.hip is the HIP runtime version. It tracks the ROCm release
+    version on shipped ROCm but not on preview builds, so prefer
+    torch.version.rocm and fall back only for builds that never recorded it.
+    """
+    if torch.version.hip is None:
+        return None
+    return getattr(torch.version, 'rocm', None) or torch.version.hip
+
+def _rocm_major_minor():
+    version = _rocm_version_str()
+    if version is None:
+        return (0, 0)
+    return tuple(int(v) for v in version.split('.')[:2])
+
+ROCM_VERSION = LazyVal(_rocm_major_minor)
 
 # The CUPTI monitor needs both the cupti-python bindings and the build-generated
 # _cupti_stubs catalogs (emitted only on CUDA >= 13.3 builds where the field-id codegen
@@ -125,17 +180,19 @@ def evaluate_gfx_arch_within(arch_list):
         return False
     gcn_arch_name = torch.cuda.get_device_properties('cuda').gcnArchName
     effective_arch = os.environ.get('PYTORCH_DEBUG_FLASH_ATTENTION_GCN_ARCH_OVERRIDE', gcn_arch_name)
-    # gcnArchName can be complicated strings like gfx90a:sramecc+:xnack-
-    # Hence the matching should be done reversely
-    return any(arch in effective_arch for arch in arch_list)
+    # gcnArchName is "<offload-target>:<features>", for example
+    # gfx90a:sramecc+:xnack-. Match the target exactly. A substring check
+    # treats gfx1250-strict as gfx1250, and those are different targets.
+    target = effective_arch.split(":", 1)[0]
+    return target in arch_list
 
 # Per-generation gfx targets, ordered oldest -> newest. Each "OrLater" helper
 # below unions its own generation with every newer one, so the predicates are
 # nested by construction: CDNA5OrLater => CDNA3OrLater => CDNA2OrLater.
 _CDNA2_ARCHS = ["gfx90a"]
 _CDNA3_ARCHS = ["gfx942", "gfx950"]
-# GFX1250 (CDNA 5)
-_CDNA5_ARCHS = ["gfx1250"]
+# GFX1250 / gfx1250-strict (CDNA 5)
+_CDNA5_ARCHS = ["gfx1250", "gfx1250-strict"]
 
 def CDNA5OrLater():
     return evaluate_gfx_arch_within(_CDNA5_ARCHS)
@@ -148,18 +205,19 @@ def CDNA2OrLater():
 
 # Archs that take the opportunistic_fastAtomicAdd path (packed 2x16 atomics + DPP
 # lane coalescing) in ScatterGatherKernel.cu. Keep in sync with that kernel's arch
-# gate; this is intentionally not CDNA3OrLater (gfx1250 uses plain fastAtomicAdd).
+# gate; this is intentionally not CDNA3OrLater (gfx1250/gfx1250-strict use
+# plain fastAtomicAdd).
 def gfx_arch_supports_opportunistic_fastatomics():
     return evaluate_gfx_arch_within(["gfx942", "gfx950"])
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250 is omitted until flash-attention artifacts ship for it.
-        # The AOTriton path needs the gfx1250 GPU image from AOTriton 0.12.1b,
-        # which is wired up by PR #188242 (which also adds gfx1250 to this list);
-        # this gate-only PR leaves it out so the two changes do not conflict
-        # (see cmake/External/aotriton.cmake). The CK FAv3/AITER codegen is
-        # separately not yet wired for gfx1250
+        # NOTE: gfx1250/gfx1250-strict are omitted until flash-attention artifacts ship
+        # for them. The AOTriton path needs the gfx1250 GPU image from AOTriton 0.12.1b
+        # (the amd-gfx1250 regex also matches gfx1250-strict), which is wired up by
+        # PR #188242 (which also adds gfx1250 to this list); this gate-only PR leaves
+        # them out so the two changes do not conflict (see cmake/External/aotriton.cmake).
+        # The CK FAv3/AITER codegen is separately not yet wired for gfx1250/gfx1250-strict
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
@@ -185,11 +243,12 @@ def evaluate_platform_supports_ck_gemms():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250 is omitted until mem-efficient-attention artifacts ship
-        # for it. The AOTriton gfx1250 image (from AOTriton 0.12.1b) is wired up
-        # by PR #188242, which also adds gfx1250 here; this gate-only PR leaves
-        # it out to avoid conflicting with that change. The CK FAv3/AITER codegen
-        # is separately not yet wired for gfx1250.
+        # NOTE: gfx1250/gfx1250-strict are omitted until mem-efficient-attention
+        # artifacts ship for them. The AOTriton gfx1250 image (from AOTriton 0.12.1b,
+        # whose regex also matches gfx1250-strict) is wired up by PR #188242, which
+        # also adds gfx1250 here; this gate-only PR leaves them out to avoid
+        # conflicting with that change. The CK FAv3/AITER codegen is separately
+        # not yet wired for gfx1250/gfx1250-strict.
         arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
@@ -276,8 +335,14 @@ def evaluate_platform_supports_fp8():
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
                 archs.append('gfx1250')
+            if ROCM_VERSION >= (10, 3):
+                archs.extend(["gfx1170", "gfx1171", "gfx1250-strict"])
+            gcn_name = torch.cuda.get_device_properties(0).gcnArchName
+            # "gfx1250" is a prefix of "gfx1250-strict".
+            if 'gfx1250-strict' in gcn_name:
+                return ROCM_VERSION >= (10, 3)
             for arch in archs:
-                if arch in torch.cuda.get_device_properties(0).gcnArchName:
+                if arch in gcn_name:
                     return True
             return False
         else:
@@ -292,8 +357,8 @@ def evaluate_platform_supports_fp8_grouped_gemm():
         if torch.version.hip:
             if "USE_MSLK" not in torch.__config__.show():
                 return False
-            # gfx1250 omitted: MSLK only builds gfx942/gfx950 kernels (see the arch
-            # filter in aten/src/ATen/CMakeLists.txt). Add gfx1250 here once MSLK does.
+            # gfx1250/gfx1250-strict omitted: MSLK only builds gfx942/gfx950
+            # kernels (see aten/src/ATen/CMakeLists.txt). Add them once MSLK does.
             archs = ['gfx942', 'gfx950']
             for arch in archs:
                 if arch in torch.cuda.get_device_properties(0).gcnArchName:
@@ -307,7 +372,12 @@ def evaluate_platform_supports_mx_gemm():
         if torch.version.hip:
             if ROCM_VERSION >= (7, 0):
                 gcn_name = torch.cuda.get_device_properties(0).gcnArchName
-                return 'gfx950' in gcn_name or ('gfx1250' in gcn_name and ROCM_VERSION >= (7, 14))
+                if 'gfx950' in gcn_name:
+                    return True
+                # "gfx1250" is a prefix of "gfx1250-strict", so test strict first.
+                if 'gfx1250-strict' in gcn_name:
+                    return ROCM_VERSION >= (10, 3)
+                return 'gfx1250' in gcn_name and ROCM_VERSION >= (7, 14)
         else:
             return SM100OrLater
     if torch.xpu.is_available():
@@ -517,9 +587,9 @@ def _get_torch_cuda_version():
     return tuple(int(x) for x in cuda_version.split("."))
 
 def _get_torch_rocm_version():
-    if not TEST_WITH_ROCM or torch.version.hip is None:
+    rocm_version = _rocm_version_str()
+    if not TEST_WITH_ROCM or rocm_version is None:
         return (0, 0)
-    rocm_version = str(torch.version.hip)
     rocm_version = rocm_version.split("-", maxsplit=1)[0]    # ignore git sha
     return tuple(int(x) for x in rocm_version.split("."))
 
@@ -638,12 +708,16 @@ def _xfail_cuda_on_windows_wrapper(test_fn):
 
 
 def xfailCUDAIfSM89OrLaterOnWindows(test_fn):
-    """Mark a CUDA test as expected failure on Windows with SM >= 8.9.
+    """Mark a CUDA test as expected failure on Windows with NVIDIA SM >= 8.9.
 
     Works for both device-parameterized tests and plain TestCase CUDA tests.
     CPU/XPU variants of device-parameterized tests are unaffected.
     """
-    return _xfail_cuda_on_windows_wrapper(test_fn) if IS_WINDOWS and SM89OrLater else test_fn
+    return (
+        _xfail_cuda_on_windows_wrapper(test_fn)
+        if IS_WINDOWS and not TEST_WITH_ROCM and SM89OrLater
+        else test_fn
+    )
 
 
 # When using nvcc from the CUDA toolkit its versuib must be at least the one from ptxas bundled with Triton

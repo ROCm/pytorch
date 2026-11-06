@@ -77,6 +77,8 @@ from ..stream_utils import (
     get_raw_stream_name,
 )
 from ..utils import (
+    _descriptor_shape_fits_in_int32,
+    _TDM_SUPPORTED_DTYPES,
     _TMA_SUPPORTED_DTYPES,
     cache_on_self,
     DelayReplaceLine,
@@ -95,6 +97,7 @@ from ..utils import (
     triton_type,
     triton_version_uses_attrs_dict,
     upcast_compute_type,
+    use_gfx1250_descriptor_codegen,
 )
 from ..virtualized import _ops as ops, ReductionType, StoreMode, V
 from ..wrapper_benchmark import get_kernel_category_by_source_code
@@ -135,6 +138,7 @@ from .triton_utils import (
     select_tile_hint,
     should_unwrap_unspec_arg,
     signature_to_meta,
+    use_block_ptr_enabled,
     use_uint8_triton_storage_for_cuda_float8_e4m3fn,
 )
 from .wrapper import SymbolicCallArg
@@ -542,7 +546,7 @@ class BlockDescriptorOptions:
 
         try:
             # Get permutation to sort strides in ascending order.
-            # This is used as the order argument in tl.make_block_ptr
+            # This is used as the order argument for the block descriptor.
             order = utils.argsort_sym(V.graph._shape_env, params.strides)
         except AssertionError:
             # Symbolic shapes, failed to evaluate comparison expression
@@ -2912,9 +2916,28 @@ class TMACompatibilityChecker:
     force: bool
     # Inductor buffer name being loaded from / stored to.
     buffer_name: str | None = None
+    # Compilation- and device-scoped; see _gfx1250_capable.
+    _gfx1250_cache: tuple[torch.device, bool] | None = dataclasses.field(
+        default=None, init=False, repr=False, compare=False
+    )
 
     def __post_init__(self):
         self.failed_debug_prefix = "Cannot use TMA descriptor for load / store since: "
+
+    def _gfx1250_capable(self, device: torch.device) -> bool:
+        """Cache the gfx1250 descriptor probe for this checker only.
+
+        ``_gfx1250_device_prereqs`` is deliberately not memoized process-wide, so
+        a transient device-property failure cannot disable TDM everywhere.
+        Re-probes on a device change rather than assuming one checker cannot
+        span devices.
+        """
+        cached = self._gfx1250_cache
+        if cached is not None and cached[0] == device:
+            return cached[1]
+        capable = use_gfx1250_descriptor_codegen(device)
+        self._gfx1250_cache = (device, capable)
+        return capable
 
     # Also see Note: TMA API Restrictions for the below
     def can_use_tma(
@@ -2923,7 +2946,8 @@ class TMACompatibilityChecker:
         if self.force:
             return True
 
-        device_type = V.graph.get_current_device_or_throw().type
+        device = V.graph.get_current_device_or_throw()
+        device_type = device.type
         if device_type == "cpu":
             if not (
                 config.triton.use_tensor_descriptor
@@ -2940,10 +2964,21 @@ class TMACompatibilityChecker:
             # constraints below do not apply.
             return True
 
-        if not (
+        # Probe gfx1250 first: ROCm devices also have device_type == "cuda".
+        # The cached result avoids an uncached CUDA capability query below.
+        # Capability skips the conjunct below, including use_tensor_descriptor
+        # and has_triton_stable_tma_api(). That is safe because
+        # use_gfx1250_descriptor_codegen establishes the same ground itself, not
+        # because those checks would have failed: it requires
+        # use_tensor_descriptor and assume_aligned_inputs, and its device probe
+        # requires ROCm >= 7.14, gfx1250, and has_triton_amd_tdm_device, which
+        # imports the same triton.language.make_tensor_descriptor.
+        gfx1250_capable = self._gfx1250_capable(device)
+        if not gfx1250_capable and not (
             (
                 (
                     device_type == "cuda"
+                    and torch.version.hip is None
                     and torch.cuda.get_device_capability()[0] >= 9
                     and config.assume_aligned_inputs
                 )
@@ -2953,8 +2988,10 @@ class TMACompatibilityChecker:
             and has_triton_stable_tma_api()
         ):
             log.debug(
-                "%s Requires triton>=3.4.0, a CUDA device with cc>=9.0,"
-                " use_tensor_descriptor=True, and assume_aligned_inputs=True",
+                "%s Requires use_tensor_descriptor=True and a supported backend: "
+                "CUDA cc>=9.0 with the stable descriptor API (upstream triton>=3.4.0) "
+                "and assume_aligned_inputs=True; XPU with the stable descriptor API; "
+                "or TDM-capable gfx1250 with ROCm>=7.14 and assume_aligned_inputs=True",
                 self.failed_debug_prefix,
             )
             return False
@@ -2972,11 +3009,15 @@ class TMACompatibilityChecker:
             )
             return False
 
-        if self.dtype not in _TMA_SUPPORTED_DTYPES:
+        supported_dtypes = (
+            _TDM_SUPPORTED_DTYPES if gfx1250_capable else _TMA_SUPPORTED_DTYPES
+        )
+        if self.dtype not in supported_dtypes:
             log.debug(
-                "%s dtype %s has no CUtensorMapDataType mapping.",
+                "%s dtype %s is not in %s.",
                 self.failed_debug_prefix,
                 self.dtype,
+                supported_dtypes,
             )
             return False
 
@@ -2992,7 +3033,8 @@ class TMACompatibilityChecker:
         If force, we allow relying on symbolic hints equivalent
         to what we check for Triton templates.
         """
-        device_type = V.graph.get_current_device_or_throw().type
+        device = V.graph.get_current_device_or_throw()
+        device_type = device.type
         if self.force:
             strides = [
                 V.graph.sizevars.replace_backed_symbols_with_hints(st)
@@ -3004,6 +3046,48 @@ class TMACompatibilityChecker:
         else:
             strides = block_params.strides
             constant_offset_expr = sympy.sympify(constant_offset)
+
+        # Scope these shared descriptor constraints to the new gfx1250 path
+        # to preserve CUDA/XPU eligibility. Rank 1-5 is a Triton descriptor
+        # API limit, also enforced by the dense path's _is_tma_compatible.
+        # Without force, symbolic int32 bounds must already be provable; an
+        # in-range hint alone is not enough.
+        if self._gfx1250_capable(device):
+            # Resolve backed shape hints only where the TDM range check uses them.
+            # Without force, still expand precomputed sizes: BlockDescriptorOptions
+            # .create rewrites a composite extent such as s0*s1 into an opaque ps0
+            # that has no ShapeEnv range, so the bound below would fail to prove
+            # even when both factors are bounded. The force path already expands
+            # these inside replace_backed_symbols_with_hints.
+            shape = (
+                [
+                    V.graph.sizevars.replace_backed_symbols_with_hints(sz)
+                    for sz in block_params.shape
+                ]
+                if self.force
+                else [
+                    (
+                        V.graph.sizevars.remove_precomputed_replacements(sz)
+                        if isinstance(sz, sympy.Expr)
+                        else sz
+                    )
+                    for sz in block_params.shape
+                ]
+            )
+            if not 1 <= len(shape) <= 5:
+                log.debug(
+                    "%s TDM descriptors require rank between 1 and 5. Shape is: %s",
+                    self.failed_debug_prefix,
+                    shape,
+                )
+                return False
+            if not _descriptor_shape_fits_in_int32(shape):
+                log.debug(
+                    "%s TDM descriptor dimensions must fit in int32. Shape is: %s",
+                    self.failed_debug_prefix,
+                    shape,
+                )
+                return False
 
         # The TMA API requires that the innermost stride is 1
         # and that the outer strides are 16 byte aligned
@@ -3241,11 +3325,10 @@ class TMACompatibilityChecker:
                         )
                         return False
                 else:
-                    # Update the minimum block sizes that are passed to triton
-                    # heuristics
-                    self.kernel.tma_min_block_sizes[block_type_str] = max(
+                    self.kernel._record_tma_min_block_size(
+                        self.buffer_name,
+                        block_type_str,
                         min_block_size,
-                        self.kernel.tma_min_block_sizes.get(block_type_str, 1),
                     )
 
             except ValueError:
@@ -3317,11 +3400,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         self.pointer_advancements: dict[SymT, dict[str, list[sympy.Expr]]] = (
             collections.defaultdict(dict)
         )
-        self.tma_min_block_sizes = dict[str, int]()
+        self._tma_min_block_sizes_by_buffer: dict[str | None, dict[str, int]] = {}
         self.host_tma_descriptor_args: dict[str, TensorDescriptorOptions] = {}
         self._host_tma_non_materializable: OrderedSet[str] = OrderedSet()
         self._host_tma_non_materializable_buffers: OrderedSet[str] | None = None
-        self._emitted_device_tma = False
+        self._host_tma_descriptor_buffers: dict[str, OrderedSet[str]] = {}
+        self._device_tma_buffers: OrderedSet[str] = OrderedSet()
         self.hint_override = hint_override
         self._load_counts: collections.Counter[str] = collections.Counter()
         self._pdl_load_index = 0
@@ -3354,11 +3438,67 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
     @property
     def uses_tma(self) -> bool:
-        return bool(self.host_tma_descriptor_args or self._emitted_device_tma)
+        return bool(self._active_host_tma_descriptor_args() or self.uses_device_tma)
 
     @property
     def uses_device_tma(self) -> bool:
-        return self._emitted_device_tma
+        return any(
+            not self._is_tma_buffer_removed(name) for name in self._device_tma_buffers
+        )
+
+    def _is_tma_buffer_removed(self, name: str) -> bool:
+        return any(
+            name in removed
+            for removed in (
+                V.graph.removed_buffers,
+                self.removed_buffers,
+                V.graph.inplaced_to_remove,
+                self.inplaced_to_remove,
+            )
+        )
+
+    def _active_host_tma_descriptor_args(self) -> dict[str, TensorDescriptorOptions]:
+        return {
+            var: options
+            for var, options in self.host_tma_descriptor_args.items()
+            if not (buffer_names := self._host_tma_descriptor_buffers.get(var))
+            or any(not self._is_tma_buffer_removed(name) for name in buffer_names)
+        }
+
+    def _active_tma_buffer_names(self) -> OrderedSet[str]:
+        names = OrderedSet(
+            name
+            for name in self._device_tma_buffers
+            if not self._is_tma_buffer_removed(name)
+        )
+        for var in self._active_host_tma_descriptor_args():
+            names.update(
+                name
+                for name in self._host_tma_descriptor_buffers.get(var, ())
+                if not self._is_tma_buffer_removed(name)
+            )
+        return names
+
+    @property
+    def tma_min_block_sizes(self) -> dict[str, int]:
+        result: dict[str, int] = {}
+        active_buffers = self._active_tma_buffer_names()
+        for buffer_name, requirements in self._tma_min_block_sizes_by_buffer.items():
+            if buffer_name is not None and buffer_name not in active_buffers:
+                continue
+            for block_type, min_block_size in requirements.items():
+                result[block_type] = max(min_block_size, result.get(block_type, 1))
+        return result
+
+    def _record_tma_min_block_size(
+        self, buffer_name: str | None, block_type: str, min_block_size: int
+    ) -> None:
+        requirements = self._tma_min_block_sizes_by_buffer.setdefault(buffer_name, {})
+        requirements[block_type] = max(min_block_size, requirements.get(block_type, 1))
+
+    def _discard_host_tma_descriptor(self, var: str) -> None:
+        self.host_tma_descriptor_args.pop(var, None)
+        self._host_tma_descriptor_buffers.pop(var, None)
 
     def triton_tensor_ndim(self) -> int:
         return sum(int(tree.tensor_dim is not None) for tree in self.range_trees)
@@ -3641,7 +3781,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         if V.graph.sizevars.statically_known_multiple_of(offset_bytes, TMA_ALIGNMENT):
             return False
         self._host_tma_non_materializable.add(var)
-        self.host_tma_descriptor_args.pop(var, None)
+        self._discard_host_tma_descriptor(var)
         return True
 
     @property
@@ -3857,7 +3997,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
         if (
             (
-                (block_ptr and self.allow_block_ptr and config.triton.use_block_ptr)
+                (block_ptr and self.allow_block_ptr and use_block_ptr_enabled())
                 or (
                     tma_compatibility_checker
                     and tma_compatibility_checker.can_use_tma()
@@ -4075,12 +4215,12 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
 
                 options_class = (
                     self.block_ptr_options_cls
-                    if config.triton.use_block_ptr
+                    if use_block_ptr_enabled()
                     else self.tensor_descriptor_options_cls
                 )
                 nonlocal tma_compatibility_checker
                 stride_sorter_cls: type[BlockParameters.StrideSorter]
-                if config.triton.use_block_ptr:
+                if use_block_ptr_enabled():
                     can_lift = False
                     stride_sorter_cls = BlockParameters.IdentityStrideSorter
                 else:
@@ -4326,6 +4466,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             ):
                 if var not in self.host_tma_descriptor_args:
                     self.host_tma_descriptor_args[var] = indexing
+                self._host_tma_descriptor_buffers.setdefault(var, OrderedSet()).add(
+                    name
+                )
                 return var, other
             # A non-zero constant offset can't be host-TMA'd: mark it
             # non-materializable and fall through to device-side TMA below.
@@ -4336,12 +4479,11 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 and indexing.constant_offset != 0
             ):
                 self._host_tma_non_materializable.add(var)
-                if var in self.host_tma_descriptor_args:
-                    del self.host_tma_descriptor_args[var]
+                self._discard_host_tma_descriptor(var)
 
             # Device-side TMA: reached for every case except the host-TMA branch
             # above (which returned) -- emit an in-kernel tl.make_tensor_descriptor.
-            self._emitted_device_tma = True
+            self._device_tma_buffers.add(name)
 
         else:
             if not check:
@@ -4918,13 +5060,13 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 )
             elif is_sympy_integer_like(original_index):
                 self._host_tma_non_materializable.add(var)
-                self.host_tma_descriptor_args.pop(var, None)
+                self._discard_host_tma_descriptor(var)
                 line = f"tl.load({var} + ({original_index}))"
                 append_broadcast = indexing.expand_str
                 shape = ()
             else:
                 self._host_tma_non_materializable.add(var)
-                self.host_tma_descriptor_args.pop(var, None)
+                self._discard_host_tma_descriptor(var)
                 line = f"tl.load({var} + ({indexing.index_str}), {indexing.mask_str}{ep}{other}{cachemod})"
 
                 # The block shape of tl.load depends on the indexing expression.
@@ -5078,7 +5220,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     value_shape = ", ".join(map(str, value.shape))
                     indexing_str += f".broadcast_to({value_shape})"
             self._host_tma_non_materializable.add(var)
-            self.host_tma_descriptor_args.pop(var, None)
+            self._discard_host_tma_descriptor(var)
             line = f"tl.store({var} + ({indexing_str}), {value}, {indexing.mask_str})"
         elif mode == "atomic_add":
             self.atomic_add_found = True
@@ -6142,6 +6284,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                 dtype=dtype,
                 for_store=True,
                 force=False,
+                buffer_name=name,
             ),
         )
         self.inside_reduction = True
@@ -6156,15 +6299,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
         self._handle_pdl_before_access(self.post_loop_store, var)
 
         if isinstance(indexing, (BlockPtrOptions, TensorDescriptorOptions)):
+            block_descriptor, other = self.codegen_block_ptr(name, var, indexing)
             self.post_loop_store.writeline(
                 DeferredLine(
                     name,
                     self.codegen_block_ptr_store_line(
                         name,
                         indexing,
-                        indexing.format(var),
+                        block_descriptor,
                         value,
-                        f", boundary_check={indexing.boundary_check()!r}",
+                        other,
                     ),
                 )
             )
@@ -7066,7 +7210,8 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             flops = self.estimate_flops()
             if flops is not None:
                 out["kernel_flop"] = flops
-        if self.host_tma_descriptor_args:
+        host_tma_descriptor_args = self._active_host_tma_descriptor_args()
+        if host_tma_descriptor_args:
             _, _, signature, _ = self.args.python_argdefs()
             sig_arg_names = OrderedSet(
                 arg.name for arg in signature if hasattr(arg, "name")
@@ -7103,7 +7248,7 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
                     return str(s)
 
             resolved = {}
-            for inner, opts in self.host_tma_descriptor_args.items():
+            for inner, opts in host_tma_descriptor_args.items():
                 dims = [_resolve_block_dim(s) for s in opts.block_shape]
                 resolved[inner] = {
                     "block_shape": dims,

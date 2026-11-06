@@ -42,8 +42,7 @@ from torch.testing._internal.common_dtype import (
     floating_and_complex_types_and, floating_types_and, complex_types,
 )
 from torch.testing._internal.common_cuda import CDNA2OrLater, CDNA5OrLater, SM80OrLater, SM90OrLater, tf32_enabled, tf32_on_and_off, _get_magma_version, \
-    _get_torch_cuda_version, TEST_MULTIGPU, PLATFORM_SUPPORTS_CK_GEMMS, \
-    PLATFORM_SUPPORTS_FP8, blas_library_context
+    _get_torch_cuda_version, TEST_MULTIGPU, PLATFORM_SUPPORTS_CK_GEMMS, PLATFORM_SUPPORTS_FP8, blas_library_context, ROCM_VERSION
 from torch.testing._internal.common_quantization import _group_quantize_tensor, _dynamically_quantize_per_channel, \
     _group_quantize_tensor_symmetric
 from torch.testing._internal.common_mkldnn import reduced_f32_on_and_off
@@ -68,7 +67,6 @@ if TEST_SCIPY:
 def blaslt_supported_device():
     if torch.cuda.is_available():
         if torch.version.hip:
-            ROCM_VERSION = tuple(int(v) for v in torch.version.hip.split('.')[:2])
             archs = ['gfx90a', 'gfx94']
             if ROCM_VERSION >= (6, 3):
                 archs.extend(['gfx110', 'gfx120'])
@@ -76,8 +74,14 @@ def blaslt_supported_device():
                 archs.append('gfx95')
             if ROCM_VERSION >= (7, 14):
                 archs.append('gfx1250')
+            if ROCM_VERSION >= (10, 3):
+                archs.append('gfx1250-strict')
+            gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
+            # "gfx1250" is a prefix of "gfx1250-strict".
+            if 'gfx1250-strict' in gcn_arch_name:
+                return ROCM_VERSION >= (10, 3)
             for arch in archs:
-                if arch in torch.cuda.get_device_properties(0).gcnArchName:
+                if arch in gcn_arch_name:
                     return True
         else:
             return True
@@ -977,6 +981,44 @@ class TestLinalg(TestCase):
         uplos = ["U", "L"]
         for shape, batch, uplo in itertools.product(shapes, batches, uplos):
             run_test(shape, batch, uplo)
+
+    @onlyCUDA
+    @skipCUDAIfNotRocm
+    @serialTest()
+    def test_eigh_workspace_growth_with_full_caching_allocator(self, device):
+        # Warm up n=1024 so the rocBLAS GEMM code objects are loaded. Then
+        # allocate until the device is full: 1 GiB blocks, then 64 MiB, 2 MiB,
+        # and 256 KiB, so the leftover hole is under 256 KiB. Deleting those
+        # tensors returns the blocks to the caching allocator without
+        # empty_cache. rocBLAS hipMalloc still cannot grow the handle
+        # workspace. The n=2048 syevd workspace is taken from that cache.
+        def spd(n):
+            a = torch.randn(4, n, n, device=device)
+            return a @ a.mT + torch.eye(n, device=device)
+
+        warmup = spd(1024)
+        torch.linalg.eigh(warmup)
+        torch.cuda.synchronize()
+        del warmup
+
+        chunks = []
+        try:
+            for size in (1 << 30, 64 << 20, 2 << 20, 256 << 10):
+                try:
+                    while True:
+                        chunks.append(torch.empty(size, dtype=torch.uint8, device=device))
+                except torch.OutOfMemoryError:
+                    pass
+            del chunks
+            chunks = []
+            values, _ = torch.linalg.eigh(spd(2048))
+            torch.cuda.synchronize()
+            # isnan on device would load a new kernel while the device is still
+            # full. The copy is a memcpy of the finished eigenvalues.
+            self.assertFalse(torch.isnan(values.cpu()).any())
+        finally:
+            del chunks
+            torch.cuda.empty_cache()
 
     @skipCUDAIfNoCusolver
     @skipCPUIfNoLapack
@@ -6958,7 +7000,7 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest("int4 mm not implemented for gfx1250/gfx1250-strict (needs WMMA)")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda is supported only for CDNA2 or later")
@@ -7030,7 +7072,7 @@ scipy_lobpcg  | {eq_err_scipy:10.2e}  | {eq_err_general_scipy:10.2e}  | {iters2:
             self.skipTest("requires SM80 or later")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and CDNA5OrLater():
-            self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+            self.skipTest("int4 mm not implemented for gfx1250/gfx1250-strict (needs WMMA)")
 
         if TEST_WITH_ROCM and self.device_type == 'cuda' and not CDNA2OrLater():
             self.skipTest("_convert_weight_to_int4pack_cuda supported only for CDNA2 or later")

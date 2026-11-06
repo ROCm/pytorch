@@ -86,6 +86,7 @@ from torch.testing._internal.common_distributed import (
     with_nccl_blocking_wait,
 )
 from torch.testing._internal.common_utils import (
+    DeterministicGuard,
     FILE_SCHEMA,
     instantiate_parametrized_tests,
     IS_FBCODE,
@@ -4871,9 +4872,15 @@ class DistributedTest:
                     model.parameters(), model_optim_in_bwd.parameters(), strict=True
                 ):
                     self.assertEqual(p1, p2, "Parameters not initially equal!")
-                # Enable determinism in cudnn operators
-                with torch.backends.cudnn.flags(
-                    enabled=True, deterministic=True, benchmark=False
+                # The loss diverges quickly, so any run-to-run nondeterminism
+                # (e.g. rocBLAS GEMMs using atomics) is amplified past the
+                # default tolerances. Enable determinism in cudnn and BLAS.
+                # ResNet50's adaptive average pool backward has no deterministic path.
+                with (
+                    torch.backends.cudnn.flags(
+                        enabled=True, deterministic=True, benchmark=False
+                    ),
+                    DeterministicGuard(True, warn_only=j == 2),
                 ):
                     for i in range(8):
                         inp = (
@@ -8934,6 +8941,11 @@ class DistributedTest:
                         monitored_barrier_timeout_seconds, wait_all_ranks=wait_all_ranks
                     )
 
+            # The timed-out wait aborted nccl_pg's communicator on ranks != 0,
+            # so abort it on every rank. Finalizing it on rank 0 in
+            # destroy_process_group() runs an intra-node barrier with the
+            # aborted peers (NCCL >= 2.31), which fails.
+            dist.distributed_c10d._abort_process_group(nccl_pg)
             self._barrier(timeout=30)
 
         @with_nccl_blocking_wait

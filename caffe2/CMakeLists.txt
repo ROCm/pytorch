@@ -679,6 +679,38 @@ if(USE_ROCM)
     append_filelist("libtorch_cuda_distributed_base_sources" Caffe2_HIP_SRCS)
     if(NOT WIN32)
       append_filelist("libtorch_cuda_distributed_extra_sources" Caffe2_HIP_SRCS)
+      # On ROCm the native async-TP GEMM is the CK-tile kernel in
+      # hip/AsyncMM.hip instead of the CUTLASS one in cuda/AsyncMM.cu. The .hip
+      # file always provides the async_input_mm symbol the op registration
+      # needs; the kernel itself (USE_ROCM_ASYNC_MM) needs gfx942/gfx950 in
+      # PYTORCH_ROCM_ARCH and the CK headers, which ATen adds to the include
+      # path only when CK SDPA or CK GEMM is enabled.
+      list(REMOVE_ITEM Caffe2_HIP_SRCS
+        ${TORCH_SRC_DIR}/csrc/distributed/c10d/cuda/AsyncMM.cu)
+      set(ASYNC_MM_HIP_FILE "${TORCH_SRC_DIR}/csrc/distributed/c10d/hip/AsyncMM.hip")
+      list(APPEND Caffe2_HIP_SRCS ${ASYNC_MM_HIP_FILE})
+      set(_have_async_mm_arch FALSE)
+      if((USE_FLASH_ATTENTION AND USE_ROCM_CK_SDPA) OR USE_ROCM_CK_GEMM)
+        foreach(ARCH gfx942 gfx950)
+          if("${ARCH}" IN_LIST PYTORCH_ROCM_ARCH)
+            set(_have_async_mm_arch TRUE)
+            break()
+          endif()
+        endforeach()
+      endif()
+      if(_have_async_mm_arch)
+        # ck_tile does not compile for every arch, so build the kernel for
+        # gfx942/gfx950 only.
+        set(_async_mm_no_arch_opts)
+        foreach(ARCH IN LISTS PYTORCH_ROCM_ARCH)
+          if(NOT ARCH MATCHES "^gfx9(42|50)$")
+            list(APPEND _async_mm_no_arch_opts "--no-offload-arch=${ARCH}")
+          endif()
+        endforeach()
+        set_source_files_properties(${ASYNC_MM_HIP_FILE} PROPERTIES
+          COMPILE_DEFINITIONS USE_ROCM_ASYNC_MM
+          COMPILE_OPTIONS "${_async_mm_no_arch_opts}")
+      endif()
     endif()
   endif()
   # caffe2_nvrtc's stubs to driver APIs are useful for HIP.
@@ -1537,7 +1569,7 @@ if(USE_ROCM)
   if(USE_NVSHMEM)
     if(rocshmem_FOUND AND rocshmem_VERSION VERSION_GREATER_EQUAL "3.3.0")
       # rocSHMEM upstream ships device code for a subset of AMD gfx targets only.
-      set(ROCSHMEM_SUPPORTED_ARCH gfx90a gfx942 gfx950 gfx1100 gfx1201)
+      set(ROCSHMEM_SUPPORTED_ARCH gfx90a gfx942 gfx950 gfx1100 gfx1201 gfx1250)
       set(_torch_rocshmem_build_arches)
       foreach(_arch ${PYTORCH_ROCM_ARCH})
         list(FIND ROCSHMEM_SUPPORTED_ARCH "${_arch}" _rocsmem_supported_idx)

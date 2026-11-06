@@ -39,7 +39,7 @@ from torch.testing._internal.common_utils import dtype_name, freeze_rng_state, r
     download_file, get_function_arglist, load_tests, skipIfMPS, MACOS_VERSION, \
     IS_PPC, IS_ARM64, IS_MACOS, IS_WINDOWS, IS_CPU_CAPABILITY_SVE, IS_CPU_EXT_SVE_SUPPORTED, xfailIf, \
     parametrize as parametrize_test, subtest, instantiate_parametrized_tests, \
-    skipIfTorchDynamo, gcIfJetson, set_default_dtype, skipIfNoCuteDSL
+    skipIfTorchDynamo, gcIfJetson, set_default_dtype, skipIfNoCuteDSL, isRocmArchAnyOf, MI200_ARCH
 from torch.testing._internal.common_cuda import TEST_CUDA, TEST_MULTIGPU, TEST_CUDNN, \
     SM80OrLater, SM90OrLater, _get_torch_rocm_version, has_device_side_assert
 from torch.testing._internal.common_nn import NNTestCase, NewModuleTest, CriterionTest, \
@@ -10861,16 +10861,20 @@ class TestNNDeviceType(NNTestCase):
             x = torch.randn(shape, device=device, dtype=torch.float16, requires_grad=True)
             y = F.log_softmax(x, dim=-1, dtype=dtype)
             y.backward(y)
-            with torch.no_grad():
-                xx = x.cpu().requires_grad_()
-            yy = F.log_softmax(xx.float(), dim=-1).to(dtype)
-            yy.backward(yy)
+            yc = y.detach().cpu()
+            yy = F.log_softmax(x.detach().cpu().float(), dim=-1).to(dtype)
             # workaround to reduce memory usage vs. self.assertEqual, see #84944
             rtol, atol = torch.testing._comparison.get_tolerances(dtype, rtol=None, atol=None)
-            self.assertTrue(torch.allclose(y.cpu(), yy, rtol=rtol, atol=atol))
+            self.assertTrue(torch.allclose(yc, yy, rtol=rtol, atol=atol))
+            del yy
+            # The backward reference starts from the device's own forward output. A last-bit
+            # rounding difference in the forward, which the check above allows, is otherwise
+            # amplified past the gradient tolerance.
+            yc = yc.float()
+            grad_ref = torch._log_softmax_backward_data(yc, yc, -1, torch.float32).half()
             # x is half
             rtol, _ = torch.testing._comparison.get_tolerances(torch.half, rtol=None, atol=None)
-            self.assertTrue(torch.allclose(x.grad.cpu(), xx.grad, rtol=rtol, atol=1e-3))
+            self.assertTrue(torch.allclose(x.grad.cpu(), grad_ref, rtol=rtol, atol=1e-3))
 
         run_test(1100000000, 2)  # Illegal memory access https://github.com/pytorch/pytorch/issues/52715
         run_test(2200000000, 1)  # invalid configuration argument https://github.com/pytorch/pytorch/issues/52716
@@ -14092,6 +14096,10 @@ if __name__ == '__main__':
             else:  # compact, fp16
                 expected_input_grad_max_ulp_diff = 48
                 expected_weight_grad_max_ulp_diff = 128
+                if "cpu" not in device and isRocmArchAnyOf(MI200_ARCH):
+                    # bf16-grade backward GEMMs (see wb_grad_err_tol below);
+                    # measured 116 against the shared cap of 48.
+                    expected_input_grad_max_ulp_diff = 256
         elif _resolved_policy == "accurate":
             if "cpu" in device:
                 if dtype == torch.float16:
@@ -14178,6 +14186,13 @@ if __name__ == '__main__':
 
         eta = torch.finfo(dtype).eps
         feps = torch.finfo(dtype).eps * 3
+        # Weight/bias grad_error use feps, except MI200 fp16 where backward
+        # GEMMs use the bf16-intermediate alt implementation
+        # (fp16_on_mi200 in numerical_accuracy.md). Measured weight-grad
+        # error is 3.283e-3 = 3.36 * eps against the feps = 3 * eps cap.
+        wb_grad_err_tol = feps
+        if "cpu" not in device and dtype == torch.float16 and isRocmArchAnyOf(MI200_ARCH):
+            wb_grad_err_tol = feps * 2
 
         def diff_ulp(x, y):
             # ULP difference between two normal numbers, applied to
@@ -14351,9 +14366,9 @@ if __name__ == '__main__':
 
         self.assertLessEqual(maximal_input_grad_err, feps,
                              msg=lambda msg: f"{msg}\nworst input-grad err {maximal_input_grad_err} from kwargs={worst_input_grad_err_kwargs}")
-        self.assertLessEqual(maximal_linear_weight_grad_err, feps,
+        self.assertLessEqual(maximal_linear_weight_grad_err, wb_grad_err_tol,
                              msg=lambda msg: f"{msg}\nworst linear_weight-grad err {maximal_linear_weight_grad_err} from kwargs={worst_linear_weight_grad_err_kwargs}")
-        self.assertLessEqual(maximal_linear_bias_grad_err, feps,
+        self.assertLessEqual(maximal_linear_bias_grad_err, wb_grad_err_tol,
                              msg=lambda msg: f"{msg}\nworst linear_bias-grad err {maximal_linear_bias_grad_err} from kwargs={worst_linear_bias_grad_err_kwargs}")
         self.assertLessEqual(maximal_output_max_ulp_diff, expected_max_ulp_diff,
                              msg=lambda msg: f"{msg}\nworst output ULP {maximal_output_max_ulp_diff} from kwargs={worst_output_kwargs}")

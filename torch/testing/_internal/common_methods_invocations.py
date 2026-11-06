@@ -11,6 +11,7 @@ import unittest
 import math
 import enum
 import os
+import sys
 
 import torch
 import numpy as np
@@ -17294,10 +17295,8 @@ op_db: list[OpInfo] = [
         check_batched_forward_grad=False,
         # TODO: Skip because it produces a CUDA illegal memory access for some reason
         skip_cow_input_backward=True,
-        # FIXME: mask_type == 2 (LowerRight)
         decorators=[
             skipCUDAIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "This platform doesn't support efficient attention"),
-            skipCUDAIf(TEST_WITH_ROCM, "Efficient attention on ROCM doesn't support custom_mask_type==2"),
             skipXPU],
         skips=(
             # Checking the scaler value of the philox seed and offset
@@ -17447,6 +17446,13 @@ op_db: list[OpInfo] = [
         decorators=[
             DecorateInfo(
                 toleranceOverride({torch.float16: tol(atol=1e-02, rtol=1e-03)}), 'TestUnaryUfuncs',), ],
+        skips=(
+            DecorateInfo(
+                unittest.skipIf(sys.version_info[:2] == (3, 14), "test fails on Python 3.14"),
+                'TestUnaryUfuncs', 'test_reference_numerics_large',
+                device_type='cuda', dtypes=(torch.float16,),
+            ),
+        ),
     ),
     UnaryUfuncInfo(
         'nn.functional.softsign',
@@ -24668,6 +24674,11 @@ python_ref_db = [
                 toleranceOverride({torch.float16: tol(atol=1e-02, rtol=1e-03)}),
                 'TestUnaryUfuncs',), ],
         skips=(
+            DecorateInfo(
+                unittest.skipIf(sys.version_info[:2] == (3, 14), "test fails on Python 3.14"),
+                'TestUnaryUfuncs', 'test_reference_numerics_large',
+                device_type='cuda', dtypes=(torch.float16,),
+            ),
             # AssertionError: Tensor-likes are not equal!
             DecorateInfo(unittest.expectedFailure, 'TestCommon', 'test_python_ref', device_type='mps', dtypes=(
                 torch.uint8, torch.int8, torch.int32, torch.int16, torch.bool
