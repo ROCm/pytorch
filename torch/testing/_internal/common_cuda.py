@@ -199,9 +199,16 @@ PLATFORM_SUPPORTS_FUSED_ATTENTION: bool = LazyVal(lambda: PLATFORM_SUPPORTS_FLAS
                                                   PLATFORM_SUPPORTS_CUDNN_ATTENTION or
                                                   PLATFORM_SUPPORTS_MEM_EFF_ATTENTION)
 
+def evaluate_platform_supports_ck_gemms():
+    # Matches at::Context::ckGemmSupported(). gfx1250 and gfx1250-strict are omitted.
+    if TEST_WITH_ROCM:
+        return evaluate_gfx_arch_within(["gfx90a", "gfx942", "gfx950"])
+    return False
+
 PLATFORM_SUPPORTS_FUSED_SDPA: bool = TEST_CUDA and not TEST_WITH_ROCM
 
 PLATFORM_SUPPORTS_CK_SDPA: bool = LazyVal(lambda: evaluate_platform_supports_ck_sdpa())
+PLATFORM_SUPPORTS_CK_GEMMS: bool = LazyVal(lambda: evaluate_platform_supports_ck_gemms())
 
 
 def evaluate_platform_supports_bf16():
