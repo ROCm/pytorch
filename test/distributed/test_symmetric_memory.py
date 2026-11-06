@@ -61,6 +61,7 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     isRocmArchAnyOf,
     lazy_skip_if,
+    MI300_ARCH,
     MI350_ARCH,
     parametrize,
     requires_cuda,
