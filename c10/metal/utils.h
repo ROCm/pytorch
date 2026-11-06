@@ -371,7 +371,12 @@ inline common_dtype<T, U> div(const T x, const U y) {
   if (y.y == 0) {
     return T(x.x / y.x, x.y / y.x);
   }
-  return T(::metal::dot(x, y), x.y * y.x - x.x * y.y) / ::metal::dot(y, y);
+  if (::metal::abs(y.x) >= ::metal::abs(y.y)) {
+    const auto rat = y.y / y.x;
+    return T(x.x + x.y * rat, x.y - x.x * rat) / (y.x + y.y * rat);
+  }
+  const auto rat = y.x / y.y;
+  return T(x.x * rat + x.y, x.y * rat - x.x) / (y.y + y.x * rat);
 }
 
 template <
@@ -457,9 +462,9 @@ inline float2 pow(T a, U b) {
   // Use explicit computation instead of length() due to numerical issues
   const auto r = ::metal::precise::sqrt(a.x * a.x + a.y * a.y);
 
-  // Special case: if r is 0, return 0
+  // Special case: 0^b is 0 if Re(b) > 0, undefined otherwise
   if (r == 0.0) {
-    return float2(0.0, 0.0);
+    return b.x > 0 ? float2(0.0, 0.0) : float2(NAN, NAN);
   }
 
   const auto theta = ::metal::precise::atan2(a.y, a.x);

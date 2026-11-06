@@ -19,7 +19,7 @@ from unittest import mock
 import torch
 import torch.cuda._gpu_trace as gpu_trace
 import torch.distributed as dist
-from torch._C._distributed_c10d import ErrorType, ReconfigureOptions
+from torch._C._distributed_c10d import ErrorType, ReconfigureOptions, WorkResult
 from torch.testing._internal.common_device_type import instantiate_device_type_tests
 from torch.testing._internal.common_distributed import (
     MultiProcContinuousTest,
@@ -29,10 +29,12 @@ from torch.testing._internal.common_distributed import (
     skip_if_lt_x_gpu,
 )
 from torch.testing._internal.common_utils import (
+    get_cycles_per_ms,
     IS_FBCODE,
     IS_SANDCASTLE,
     parametrize,
     run_tests,
+    skipIfRocm,
     TEST_CUDA,
     TestCase,
 )
@@ -185,6 +187,53 @@ class ProcessGroupNCCL2Test(MultiProcContinuousTest):
 
     @requires_nccl()
     @skip_if_lt_x_gpu(2)
+    def test_coalescing_window_retains_inputs_under_capture(self) -> None:
+        torch.cuda.set_device(self.device)
+        pg = dist.distributed_c10d._get_default_group()
+        # Warm up so the communicator exists before capture.
+        dist.all_reduce(torch.ones(1, device=self.device))
+        torch.cuda.synchronize()
+        graph = torch.cuda.CUDAGraph()
+        with torch.cuda.graph(graph):
+            tensors = [torch.ones(4, device=self.device) for _ in range(2)]
+            refs = [weakref.ref(tensor) for tensor in tensors]
+            pg._start_coalescing(self.device)
+            for tensor in tensors:
+                dist.all_reduce(tensor, async_op=True)
+            window = pg._end_coalescing(self.device)
+            del tensors, tensor
+            # Capture drops the ops' works, so only the window holds the inputs.
+            self.assertTrue(all(ref() is not None for ref in refs))
+            window.wait()
+            self.assertEqual([ref() for ref in refs], [None, None])
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
+    def test_coalescing_window_single_coalesced_op(self) -> None:
+        pg = dist.distributed_c10d._get_default_group()
+        tensors = [torch.ones(4, device=self.device) for _ in range(2)]
+        pg._start_coalescing(self.device)
+        dist.all_reduce_coalesced(tensors, async_op=True)
+        work = pg._end_coalescing(self.device)
+        # The window returns the op's coalesced work, not a combined one.
+        self.assertEqual(work.result(), tensors)
+        work.wait()
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
+    def test_coalescing_window_future_result(self) -> None:
+        pg = dist.distributed_c10d._get_default_group()
+        tensors = [torch.ones(4, device=self.device) for _ in range(2)]
+        pg._start_coalescing(self.device)
+        for tensor in tensors:
+            dist.all_reduce(tensor, async_op=True)
+        work = pg._end_coalescing(self.device)
+        # Without wait() or is_completed(), only the watchdog completes this.
+        result = WorkResult(work.get_future_result().wait())
+        self.assertEqual(result, WorkResult.SUCCESS)
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
     def test_shared_options_type(self) -> None:
         self.assertIs(dist.ProcessGroupNCCL2.Options, dist.ProcessGroupNCCL.Options)
         opts = dist.ProcessGroupNCCL2.Options()
@@ -292,6 +341,37 @@ class ProcessGroupNCCL2Test(MultiProcContinuousTest):
             work.wait()
             time.sleep(0.1)
         self.fail("ephemeral timeout was not reset after collective completion")
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
+    def test_all_gather_zero_sized(self) -> None:
+        # All zero-sized outputs
+        input_empty = torch.empty(0, device=self.device)
+        outputs_empty = [
+            torch.empty(0, device=self.device) for _ in range(self.world_size)
+        ]
+        dist.all_gather(outputs_empty, input_empty)
+        for out in outputs_empty:
+            self.assertEqual(out.numel(), 0)
+
+        # Uneven gather where the first rank(s) have zero-sized tensors.
+        # Catches #199579 where zero-sized outputs both had null data_ptr and were
+        # misclassified as aliased.
+        sizes = [0, 4] if self.world_size == 2 else [0, 0] + [4] * (self.world_size - 2)
+        input_tensor = (
+            torch.empty(0, device=self.device)
+            if sizes[self.rank] == 0
+            else torch.full((sizes[self.rank],), float(self.rank), device=self.device)
+        )
+        outputs = [torch.empty(s, device=self.device) for s in sizes]
+        dist.all_gather(outputs, input_tensor)
+        for r, s in enumerate(sizes):
+            if s == 0:
+                self.assertEqual(outputs[r].numel(), 0)
+            else:
+                self.assertEqual(
+                    outputs[r], torch.full((s,), float(r), device=self.device)
+                )
 
 
 class ProcessGroupNCCL2WorkLifetimeTest(MultiProcessTestCase):
@@ -601,6 +681,41 @@ class ProcessGroupNCCL2EnvironmentConfigTest(_ProcessGroupNCCL2OptionsTest):
         self.assertGreater(work._get_duration(), 0)
 
 
+class ProcessGroupNCCL2TimingTest(_ProcessGroupNCCL2OptionsTest):
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file) -> None:
+        os.environ["TORCH_NCCL_ENABLE_TIMING"] = "1"
+        super()._init_pg(rank, world_size, rdvz_file)
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
+    def test_coalescing_window_keeps_op_duration(self) -> None:
+        # The sleep and its events run on the current device.
+        torch.cuda.set_device(self.device)
+        pg = dist.distributed_c10d._get_default_group()
+        first = torch.ones(4, device=self.device)
+        last = torch.ones(4, device=self.device)
+        sleep_cycles = int(100 * get_cycles_per_ms())
+        self._check_all_reduce()
+        pg._start_coalescing(self.device)
+        dist.all_reduce(first, async_op=True)
+        # Delay the last op so the window starts well before it does.
+        torch.cuda._sleep(sleep_cycles)
+        last_work = dist.all_reduce(last, async_op=True)
+        window = pg._end_coalescing(self.device)
+        window.wait()
+        torch.cuda.synchronize(self.device)
+        # Compare against the last op rather than a fixed bound: rank skew
+        # lengthens the last op's wait for its peer, not the gap before it.
+        self.assertGreater(window._get_duration() - last_work._get_duration(), 50)
+
+
+class ProcessGroupNCCLLazyTimingTest(ProcessGroupNCCL2TimingTest):
+    @classmethod
+    def backend_str(cls) -> str:
+        return "nccl-lazy"
+
+
 class ProcessGroupNCCL2NonblockingOptionPrecedenceTest(_ProcessGroupNCCL2OptionsTest):
     @classmethod
     def _init_pg(cls, rank, world_size, rdvz_file) -> None:
@@ -774,6 +889,7 @@ class ProcessGroupNCCL2WatchdogNoTearDownTest(_ProcessGroupNCCL2SubgroupTest):
 
     @requires_nccl()
     @skip_if_lt_x_gpu(2)
+    @skipIfRocm
     def test_timeout_with_communicator_cleanup(self) -> None:
         env = {"TORCH_NCCL_ASYNC_ERROR_HANDLING": "2"}
         with mock.patch.dict(os.environ, env):
@@ -1119,6 +1235,65 @@ class ProcessGroupNCCL2MemPoolTest(MultiProcContinuousTest):
         backend = self._backend()
         pool = torch.cuda.MemPool(backend.mem_allocator)
         with self.assertRaisesRegex(RuntimeError, "not previously registered"):
+            backend.deregister_mem_pool(pool)
+
+    @requires_nccl()
+    @skip_if_lt_x_gpu(2)
+    def test_register_mem_pool_conflicting_symm_raises(self) -> None:
+        backend = self._backend()
+        pool = torch.cuda.MemPool(backend.mem_allocator)
+        backend.register_mem_pool(pool, symm=False)
+        try:
+            backend.register_mem_pool(pool, symm=False)
+            with self.assertRaisesRegex(RuntimeError, "already registered with symm"):
+                backend.register_mem_pool(pool, symm=True)
+        finally:
+            backend.deregister_mem_pool(pool)
+
+
+class ProcessGroupNCCL2MemPoolNoWindowTest(MultiProcContinuousTest):
+    """register_mem_pool(symm=True) with NCCL window registration disabled, so
+    every NCCL_WIN_COLL_SYMMETRIC registration fails."""
+
+    @classmethod
+    def backend_str(cls) -> str:
+        return "nccl2"
+
+    @classmethod
+    def device_type(cls) -> str:
+        return "cuda"
+
+    @property
+    def device(self) -> torch.device:
+        return torch.device("cuda", self.rank)
+
+    @classmethod
+    def _init_pg(cls, rank, world_size, rdvz_file) -> None:
+        # NCCL reads its environment once per process, before the first comm.
+        os.environ["NCCL_WIN_ENABLE"] = "0"
+        torch.cuda.set_device(rank)
+        super()._init_pg(rank, world_size, rdvz_file)
+
+    @requires_nccl_version((2, 28), "Need NCCL 2.28+ for NCCL_WIN_ENABLE")
+    @unittest.skipIf(
+        torch.version.hip is not None,
+        "RCCL window registration succeeds with NCCL_WIN_ENABLE=0",
+    )
+    @skip_if_lt_x_gpu(2)
+    def test_register_mem_pool_symmetric_later_allocation_raises(self) -> None:
+        dist.all_reduce(torch.zeros(1, device=self.device))
+        backend = dist.get_backend_impl(device=self.device)
+        pool = torch.cuda.MemPool(backend.mem_allocator)
+        backend.register_mem_pool(pool, symm=True)
+        try:
+            with self.assertRaisesRegex(RuntimeError, "does not support symmetric"):
+                with torch.cuda.use_mem_pool(pool):
+                    torch.ones(1024 * 1024, device=self.device)
+            # The failed allocation must not leave the communicator unusable.
+            t = torch.ones(4, device=self.device)
+            dist.all_reduce(t)
+            self.assertEqual(t, torch.full_like(t, self.world_size))
+        finally:
             backend.deregister_mem_pool(pool)
 
 

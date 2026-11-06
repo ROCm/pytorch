@@ -680,7 +680,7 @@ if(USE_ROCM)
     exclude(ATen_HIP_SRCS "${ATen_HIP_SRCS}"
       ${native_hip_bgemm} ${native_hip_ck})
     set(_ck_gemm_hip_arches ${PYTORCH_ROCM_ARCH})
-    list(REMOVE_ITEM _ck_gemm_hip_arches "gfx1250")
+    list(REMOVE_ITEM _ck_gemm_hip_arches "gfx1250" "gfx1250-strict")
     set_source_files_properties(${native_hip_bgemm} ${native_hip_ck} PROPERTIES LANGUAGE HIP)
     add_library(ck_gemm STATIC ${native_hip_bgemm} ${native_hip_ck})
     set_target_properties(ck_gemm PROPERTIES
@@ -825,6 +825,12 @@ if(NOT EMSCRIPTEN AND NOT INTERN_BUILD_MOBILE)
     set(SLEEF_DISABLE_OPENMP ON CACHE BOOL "OpenMP only used by sleef DFT and tests, both disabled" FORCE)
     if(WIN32)
       set(SLEEF_BUILD_WITH_LIBM OFF CACHE BOOL "Don't build sleef with libm for Windows." FORCE)
+      # Turn off SLEEF SVE on Windows:
+      # - MSVC 14.51 (VS 2026) ships arm_sve.h, so SLEEF's SVE check passes
+      # - SLEEF has no MSVC flag that defines __ARM_FEATURE_SVE, so its SVE files fail to build
+      # - MSVC 14.44 (VS 2022) had no arm_sve.h, so SVE was already off
+      # - ATen builds no SVE kernels with MSVC, so nothing uses SLEEF SVE here
+      set(SLEEF_DISABLE_SVE ON CACHE BOOL "Disable SLEEF SVE on Windows" FORCE)
     endif()
     if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
       if(CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64" OR CMAKE_OSX_ARCHITECTURES MATCHES "arm64")
