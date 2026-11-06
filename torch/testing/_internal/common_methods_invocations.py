@@ -17450,7 +17450,7 @@ op_db: list[OpInfo] = [
                 toleranceOverride({torch.float16: tol(atol=1e-02, rtol=1e-03)}), 'TestUnaryUfuncs',), ],
         skips=(
             DecorateInfo(
-                unittest.skipIf(sys.version_info >= (3, 14), "test fails on Python 3.14+"),
+                unittest.skipIf(sys.version_info[:2] == (3, 14), "test fails on Python 3.14"),
                 'TestUnaryUfuncs', 'test_reference_numerics_large',
                 device_type='cuda', dtypes=(torch.float16,),
             ),
@@ -24677,7 +24677,7 @@ python_ref_db = [
                 'TestUnaryUfuncs',), ],
         skips=(
             DecorateInfo(
-                unittest.skipIf(sys.version_info >= (3, 14), "test fails on Python 3.14+"),
+                unittest.skipIf(sys.version_info[:2] == (3, 14), "test fails on Python 3.14"),
                 'TestUnaryUfuncs', 'test_reference_numerics_large',
                 device_type='cuda', dtypes=(torch.float16,),
             ),
