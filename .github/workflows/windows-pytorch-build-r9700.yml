@@ -1,3 +1,4 @@
+# Re-run on 2026-11-06 to compare with the new TheRock-free workflow (it passed on 2026-11-04).
 # Build-only Windows PyTorch (ROCm) wheel workflow (bring-up draft).
 #
 # Derived from ROCm/TheRock .github/workflows/multi_arch_build_windows_pytorch_wheels.yml
