@@ -11365,7 +11365,10 @@ class TestLinalgCudaOnly(TestCase):
         self.assertEqual(out1, out2)
         self.assertEqual(out_ref, out2.cpu())
 
-    @unittest.skipUnless(PLATFORM_SUPPORTS_CK_GEMMS, "CK GEMM unsupported")
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_CK_GEMMS,
+        "CK GEMM is not supported on this platform",
+    )
     @skipCUDAIfNotRocm
     @unittest.skipIf(not blaslt_supported_device(), "blasLt not supported on current device")
     @setBlasBackendsToDefaultFinally
@@ -11380,7 +11383,10 @@ class TestLinalgCudaOnly(TestCase):
 
         self.assertEqual(ck_out, cpu_out)
 
-    @unittest.skipUnless(PLATFORM_SUPPORTS_CK_GEMMS, "CK GEMM unsupported")
+    @unittest.skipIf(
+        not PLATFORM_SUPPORTS_CK_GEMMS,
+        "CK GEMM is not supported on this platform",
+    )
     @skipCUDAIfNotRocm
     @unittest.skipIf(not blaslt_supported_device(), "blasLt not supported on current device")
     @setBlasBackendsToDefaultFinally
