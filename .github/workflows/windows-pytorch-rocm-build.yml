@@ -1,3 +1,4 @@
+# Re-run on 2026-11-06 after the new R9700 VM template.
 # Windows PyTorch (ROCm) wheel build.
 #
 # Builds the PyTorch wheel with ROCm on a Windows runner. Everything it needs is in this
