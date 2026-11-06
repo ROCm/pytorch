@@ -1,0 +1,67 @@
+# CRCR hello world.
+#
+# Receives the repository_dispatch events that the Cross-Repo CI Relay (CRCR) sends when a
+# pull request is opened, updated or closed in pytorch/pytorch, or when code is pushed there.
+# It only prints the event. It builds and tests nothing, and reports nothing back.
+#
+# A repository_dispatch workflow only runs from the default branch (develop).
+# It can also be tested without the relay by sending a dispatch event by hand:
+#   gh api repos/ROCm/pytorch/dispatches -f event_type=pull_request \
+#     -f 'client_payload[event_type]=pull_request' \
+#     -f 'client_payload[payload][action]=opened' \
+#     -F 'client_payload[payload][pull_request][number]=1' \
+#     -f 'client_payload[payload][pull_request][head][sha]=0000000000000000000000000000000000000000' \
+#     -f 'client_payload[delivery_id]=manual-test'
+
+name: CRCR hello world
+
+on:
+  repository_dispatch:
+    types:
+      - pull_request
+      - push
+
+run-name: >-
+  CRCR hello world -
+  ${{ github.event.client_payload.event_type || github.event.action }}
+  ${{ github.event.client_payload.payload.pull_request.number && format('PR #{0}', github.event.client_payload.payload.pull_request.number) || github.event.client_payload.payload.ref }}
+  ${{ github.event.client_payload.payload.action }}
+
+# One run per PyTorch PR: a newer event for the same PR cancels the older one.
+concurrency:
+  group: crcr-hello-${{ github.event.client_payload.payload.pull_request.number || github.event.client_payload.payload.ref || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  hello:
+    name: Print the CRCR event
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # The event values go through environment variables, never straight into the shell
+      # command, because they come from another repository.
+      - name: Print the event
+        env:
+          DISPATCH_TYPE: ${{ github.event.action }}
+          EVENT_TYPE: ${{ github.event.client_payload.event_type }}
+          PAYLOAD_ACTION: ${{ github.event.client_payload.payload.action }}
+          PR_NUMBER: ${{ github.event.client_payload.payload.pull_request.number }}
+          HEAD_SHA: ${{ github.event.client_payload.payload.pull_request.head.sha }}
+          PUSH_REF: ${{ github.event.client_payload.payload.ref }}
+          PUSH_SHA: ${{ github.event.client_payload.payload.after }}
+          UPSTREAM_REPO: ${{ github.event.client_payload.payload.repository.full_name }}
+          DELIVERY_ID: ${{ github.event.client_payload.delivery_id }}
+        run: |
+          echo "CRCR hello world: the relay reached ${GITHUB_REPOSITORY}"
+          echo "dispatch type : ${DISPATCH_TYPE}"
+          echo "event type    : ${EVENT_TYPE}"
+          echo "action        : ${PAYLOAD_ACTION}"
+          echo "upstream repo : ${UPSTREAM_REPO}"
+          echo "delivery id   : ${DELIVERY_ID}"
+          echo "PR number     : ${PR_NUMBER}"
+          echo "PR head sha   : ${HEAD_SHA}"
+          echo "push ref      : ${PUSH_REF}"
+          echo "push sha      : ${PUSH_SHA}"
