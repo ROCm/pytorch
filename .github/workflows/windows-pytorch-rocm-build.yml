@@ -178,19 +178,20 @@ jobs:
           $p.Id | Out-File (Join-Path $env:RUNNER_TEMP 'memory-sampler.pid')
           "started memory sampler, pid $($p.Id)"
 
+      # TEST: run under cmd (the shell the passing build used) instead of PowerShell.
       - name: Build PyTorch wheel
-        shell: powershell
+        shell: cmd
         run: |
-          python .github/scripts/windows-rocm-build/build_pytorch_rocm.py `
-            --source-dir "$env:SOURCE_DIR" `
-            --rocm-arch "$env:ROCM_ARCH" `
-            --rocm-version "$env:ROCM_VERSION" `
-            --index-url "$env:ROCM_INDEX_URL" `
-            --output-dir "$env:PACKAGE_DIST_DIR" `
-            --max-jobs "$env:MAX_JOBS" `
-            --heartbeat-seconds 10 `
+          python .github/scripts/windows-rocm-build/build_pytorch_rocm.py ^
+            --source-dir "%SOURCE_DIR%" ^
+            --rocm-arch "%ROCM_ARCH%" ^
+            --rocm-version "%ROCM_VERSION%" ^
+            --index-url "%ROCM_INDEX_URL%" ^
+            --output-dir "%PACKAGE_DIST_DIR%" ^
+            --max-jobs "%MAX_JOBS%" ^
+            --heartbeat-seconds 10 ^
             --clean
-          if ($LASTEXITCODE -ne 0) { throw "build_pytorch_rocm.py exited with $LASTEXITCODE" }
+          if errorlevel 1 exit /b 1
 
       # Storage numbers for sizing the Windows image.
       - name: Disk usage (after build)
