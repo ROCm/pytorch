@@ -429,7 +429,7 @@ static void copy_kernel_cuda(TensorIterator& iter, bool non_blocking) {
   }
 
   // Copy between CPU and GPU
-  cuda::OptionalCUDAGuard device_guard;
+  at::cuda::OptionalCUDAGuard device_guard;
   cudaMemcpyKind kind;
   if (dst_device.is_cuda() && src_device.is_cpu()) {
     device_guard.set_device(dst_device);
