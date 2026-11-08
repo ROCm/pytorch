@@ -626,7 +626,7 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
     def get_device_cache_size(
         self: Self, device_type: str | torch.device | None = None
     ) -> int:
-        """Get the L2/global cache size, in bytes, of the current device."""
+        """Get a cache-flush size hint in bytes, covering both L2 and LLC."""
         if "L2_cache_size" in self.__dict__:
             return self.__dict__["L2_cache_size"]
 
@@ -634,11 +634,12 @@ class InductorBenchmarker(TritonBenchmarker):  # noqa: docstring_linter
         device_interface = get_interface_for_device(device_type)
         device = device_interface.current_device()
         props = device_interface.get_device_properties(device)
-        for attr in ("L2_cache_size", "last_level_cache_size"):
-            cache_size = getattr(props, attr, None)
-            if cache_size:
-                return cache_size
-        return 256 * 1024 * 1024
+        # The outermost cache need not have the largest capacity.
+        cache_size = max(
+            getattr(props, "L2_cache_size", 0) or 0,
+            getattr(props, "last_level_cache_size", 0) or 0,
+        )
+        return cache_size or 256 * 1024 * 1024
 
     def get_event_pairs(
         self: Self, iters: int, device_type: str | torch.device | None = None
