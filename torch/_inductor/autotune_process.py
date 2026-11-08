@@ -905,13 +905,12 @@ class GPUDeviceBenchmarkMixin:
             if indices and request.cudagraph_unroll > 1:
                 weight_bytes = sum(input_tensors[index].nbytes for index in indices)
                 props = device_interface.get_device_properties(device_idx)
-                cache_size = next(
-                    (
-                        getattr(props, attr)
-                        for attr in ("L2_cache_size", "last_level_cache_size")
-                        if getattr(props, attr, None)
-                    ),
-                    256 * 1024 * 1024,
+                cache_size = (
+                    max(
+                        getattr(props, "L2_cache_size", 0) or 0,
+                        getattr(props, "last_level_cache_size", 0) or 0,
+                    )
+                    or 256 * 1024 * 1024
                 )
                 pool_size = request.cudagraph_unroll
                 for candidate_size in range(2, request.cudagraph_unroll + 1):
