@@ -18,8 +18,6 @@ from torch.testing._internal.common_utils import (
     instantiate_parametrized_tests,
     MI200_ARCH,
     MI300_ARCH,
-    NAVI3_ARCH,
-    NAVI4_ARCH,
     NAVI_ARCH,
     parametrize,
     run_tests,
@@ -31,27 +29,8 @@ from torch.testing._internal.common_utils import (
 from torch.utils._triton import has_triton
 
 
-# Triton LLVM enables real-true16 on Navi3, Navi3.5, Navi4, and gfx1250
-# (including the gfx1250-strict offload target). 16-bit asm outputs are
-# allocated to VGPR halves on those targets.
-TRUE16_ARCH = (
-    *NAVI3_ARCH,
-    "gfx1150",
-    "gfx1151",
-    *NAVI4_ARCH,
-    "gfx1250",
-    "gfx1250-strict",
-)
-
-# v_cvt_pk_bf16_f32 requires gfx950+. RDNA, including RDNA3.5, does not have it.
-# gfx1150/gfx1151 are not in NAVI_ARCH on this branch.
-_BF16_PACK_UNSUPPORTED_ARCH = (
-    *MI200_ARCH,
-    *MI300_ARCH,
-    *NAVI_ARCH,
-    "gfx1150",
-    "gfx1151",
-)
+# gfx1250 allocates 16-bit inline-asm outputs to VGPR halves.
+TRUE16_ARCH = ("gfx1250",)
 
 
 @dataclass
@@ -358,7 +337,13 @@ class TestInlineAsmElementwise(TestCase):
         if (
             torch.version.hip
             and tc.name == "add_bf16_native"
-            and evaluate_gfx_arch_within(_BF16_PACK_UNSUPPORTED_ARCH)
+            and evaluate_gfx_arch_within(
+                [
+                    *MI200_ARCH,
+                    *MI300_ARCH,
+                    *NAVI_ARCH,
+                ]
+            )
         ):
             self.skipTest("Requires gfx950+")
 
@@ -411,7 +396,13 @@ class TestInlineAsmElementwise(TestCase):
         if (
             torch.version.hip
             and tc.name == "add_bf16_native"
-            and evaluate_gfx_arch_within(_BF16_PACK_UNSUPPORTED_ARCH)
+            and evaluate_gfx_arch_within(
+                [
+                    *MI200_ARCH,
+                    *MI300_ARCH,
+                    *NAVI_ARCH,
+                ]
+            )
         ):
             self.skipTest("Requires gfx950+")
 
