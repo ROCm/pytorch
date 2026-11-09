@@ -29,6 +29,10 @@ from torch.testing._internal.common_utils import (
 from torch.utils._triton import has_triton
 
 
+# gfx1250 allocates 16-bit inline-asm outputs to VGPR halves.
+TRUE16_ARCH = ("gfx1250",)
+
+
 @dataclass
 class AsmTestCase:
     name: str
@@ -40,6 +44,24 @@ class AsmTestCase:
     pack: int = 1
     compile_only: bool = False
     min_sm: int = 70
+    true16_asm_str: str | None = None
+    true16_constraints: str | None = None
+
+
+def _get_asm_config(tc: AsmTestCase) -> tuple[str, str]:
+    if (
+        torch.version.hip
+        and (tc.true16_asm_str is not None or tc.true16_constraints is not None)
+        and evaluate_gfx_arch_within(TRUE16_ARCH)
+    ):
+        asm_str = tc.true16_asm_str if tc.true16_asm_str is not None else tc.asm_str
+        constraints = (
+            tc.true16_constraints
+            if tc.true16_constraints is not None
+            else tc.constraints
+        )
+        return asm_str, constraints
+    return tc.asm_str, tc.constraints
 
 
 TEST_CASES = [
@@ -167,8 +189,9 @@ TEST_CASES = [
     ),
     # Truncate u32 -> u16 (compile-only).
     # PTX: uses "h" (16-bit) output / "r" (32-bit) input constraints.
-    # AMDGCN: VGPRs are always 32-bit (no "h" equivalent), so we use "v"
-    # and extract the lower 16 bits via v_bfe_u32.
+    # AMDGCN: use "v" and extract the lower 16 bits via v_bfe_u32. With
+    # real-true16, move the source's low half into the 16-bit output with
+    # v_mov_b16. v_bfe_u32 cannot write a VGPR half.
     AsmTestCase(
         "truncate_to_uint16",
         lambda: (torch.randint(0, 256, (100,), device="cuda", dtype=torch.int32),),
@@ -177,6 +200,7 @@ TEST_CASES = [
         torch.uint16,
         lambda x: x.to(torch.uint16),
         compile_only=True,
+        true16_asm_str="v_mov_b16 $0, $1.l",
     ),
     # Broadcasting
     AsmTestCase(
@@ -203,6 +227,8 @@ TEST_CASES = [
     # ROCm: Inductor feeds f32 values (upcasted for computation).  AMDGCN has no
     # "h" constraint for 16-bit regs, so we add in f32 and convert to the target
     # format.  PTX "h" constraints tell Triton to downcast before the asm.
+    # Under real-true16 the fp16 output is a VGPR half, which v_add_f32 cannot
+    # write. Sum in physical v0, declared as a clobber, then convert into $0.
     AsmTestCase(
         "add_fp16_native",
         lambda: (
@@ -218,10 +244,14 @@ TEST_CASES = [
         torch.float16,
         lambda x, y: x + y,
         compile_only=True,
+        true16_asm_str="v_add_f32 v0, $1, $2\nv_cvt_f16_f32 $0, v0",
+        true16_constraints="=v,v,v,~{v0}",
     ),
     # AMDGCN: v_cvt_pk_bf16_f32 packs two f32 values into bf16 in a single
     # 32-bit register.  We pass $0 twice — only the lower 16 bits (first
     # bf16 slot) are used by Triton.
+    # Under real-true16 neither v_add_f32 nor v_cvt_pk_bf16_f32 can write the
+    # 16-bit output. Pack into physical v0, then copy the low half with v_mov_b16.
     AsmTestCase(
         "add_bf16_native",
         lambda: (
@@ -238,6 +268,10 @@ TEST_CASES = [
         lambda x, y: x + y,
         compile_only=True,
         min_sm=90,
+        true16_asm_str=(
+            "v_add_f32 v0, $1, $2\nv_cvt_pk_bf16_f32 v0, v0, v0\nv_mov_b16 $0, v0.l"
+        ),
+        true16_constraints="=v,v,v,~{v0}",
     ),
     # pack=2: each asm invocation processes 2 elements (compile-only)
     AsmTestCase(
@@ -314,12 +348,13 @@ class TestInlineAsmElementwise(TestCase):
             self.skipTest("Requires gfx950+")
 
         inputs = tc.input_gen_fn()
+        asm_str, constraints = _get_asm_config(tc)
 
         def fn(*args):
             return inline_asm_elementwise(
                 *args,
-                asm_str=tc.asm_str,
-                constraints=tc.constraints,
+                asm_str=asm_str,
+                constraints=constraints,
                 dtype=tc.dtype,
                 pack=tc.pack,
             )
@@ -372,12 +407,13 @@ class TestInlineAsmElementwise(TestCase):
             self.skipTest("Requires gfx950+")
 
         inputs = tc.input_gen_fn()
+        asm_str, constraints = _get_asm_config(tc)
 
         def fn(*args):
             return inline_asm_elementwise(
                 *args,
-                asm_str=tc.asm_str,
-                constraints=tc.constraints,
+                asm_str=asm_str,
+                constraints=constraints,
                 dtype=tc.dtype,
                 pack=tc.pack,
             )
