@@ -57,7 +57,7 @@ on:
 
 run-name: >-
   Windows PyTorch ROCm build (${{ inputs.rocm_arch || 'gfx1200;gfx1201' }},
-  ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}@${{ inputs.pytorch_ref || '7f24a19c' }})
+  ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}@${{ inputs.pytorch_ref || 'nightly' }})
 
 # A new push to the branch cancels the previous run, so a shared runner is not kept busy.
 concurrency:
@@ -75,9 +75,7 @@ jobs:
     env:
       PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
       PYTORCH_REPOSITORY: ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}
-      # TEMPORARY test: pinned to the Nov 4 nightly commit that built successfully on the R9700.
-      # Put 'nightly' back after the test.
-      PYTORCH_REF: ${{ inputs.pytorch_ref || '7f24a19c0967db04f2d5ba44c1e56eca489932ec' }}
+      PYTORCH_REF: ${{ inputs.pytorch_ref || 'nightly' }}
       ROCM_ARCH: ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
       ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
       ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
@@ -179,20 +177,18 @@ jobs:
           $p.Id | Out-File (Join-Path $env:RUNNER_TEMP 'memory-sampler.pid')
           "started memory sampler, pid $($p.Id)"
 
-      # TEST: run under cmd (the shell the passing build used) instead of PowerShell.
       - name: Build PyTorch wheel
-        shell: cmd
+        shell: powershell
         run: |
-          python .github/scripts/windows-rocm-build/build_pytorch_rocm.py ^
-            --source-dir "%SOURCE_DIR%" ^
-            --rocm-arch "%ROCM_ARCH%" ^
-            --rocm-version "%ROCM_VERSION%" ^
-            --index-url "%ROCM_INDEX_URL%" ^
-            --output-dir "%PACKAGE_DIST_DIR%" ^
-            --max-jobs "%MAX_JOBS%" ^
-            --heartbeat-seconds 10 ^
+          python .github/scripts/windows-rocm-build/build_pytorch_rocm.py `
+            --source-dir "$env:SOURCE_DIR" `
+            --rocm-arch "$env:ROCM_ARCH" `
+            --rocm-version "$env:ROCM_VERSION" `
+            --index-url "$env:ROCM_INDEX_URL" `
+            --output-dir "$env:PACKAGE_DIST_DIR" `
+            --max-jobs "$env:MAX_JOBS" `
             --clean
-          if errorlevel 1 exit /b 1
+          if ($LASTEXITCODE -ne 0) { throw "build_pytorch_rocm.py exited with $LASTEXITCODE" }
 
       # Storage numbers for sizing the Windows image.
       - name: Disk usage (after build)
