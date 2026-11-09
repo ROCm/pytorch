@@ -2640,7 +2640,6 @@ class TestVarlenAttention(NNTestCase):
             )
             self.assertEqual(out_buf, out)
 
-
     @unittest.skipIf(
         not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Flash Attention not supported"
     )
@@ -2702,7 +2701,9 @@ class TestVarlenAttention(NNTestCase):
                 window_size_left=left if left >= 0 else None,
                 window_size_right=right if right >= 0 else None,
             )[0]
-            self.assertEqual(out[0].float(), ref_attn(q[0], k[0], v[0]), atol=2e-2, rtol=2e-2)
+            self.assertEqual(
+                out[0].float(), ref_attn(q[0], k[0], v[0]), atol=2e-2, rtol=2e-2
+            )
 
             # Varlen, forward and backward
             q_lens = [q_len, max(q_len // 2, 1)]
