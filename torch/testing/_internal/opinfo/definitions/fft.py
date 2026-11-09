@@ -117,9 +117,23 @@ def sample_inputs_fftshift(op_info, device, dtype, requires_grad, **kwargs):
     yield SampleInput(mt((5, 6, 2)), kwargs=dict(dim=(0, 2)))
 
 
+def _spectral_func_info(*args, **kwargs):
+    # hipFFT has no bfloat16 kernel. promote_type_fft casts bfloat16 to float32
+    # on ROCm before the float32 plan, so these ops succeed there. CUDA on this
+    # branch still rejects bfloat16, so it stays out of dtypesIfCUDA.
+    cuda_dtypes = kwargs.get("dtypesIfCUDA")
+    if (
+        cuda_dtypes is not None
+        and "dtypesIfROCM" not in kwargs
+        and torch.bfloat16 not in cuda_dtypes
+    ):
+        kwargs["dtypesIfROCM"] = cuda_dtypes + (torch.bfloat16,)
+    return SpectralFuncInfo(*args, **kwargs)
+
+
 # Operator database
 op_db: list[OpInfo] = [
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.fft",
         aten_name="fft_fft",
         decomp_aten_name="_fft_c2c",
@@ -137,7 +151,7 @@ op_db: list[OpInfo] = [
         # See https://github.com/pytorch/pytorch/pull/78358
         check_batched_forward_grad=False,
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.fft2",
         aten_name="fft_fft2",
         ref=np.fft.fft2,
@@ -180,7 +194,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.fftn",
         aten_name="fft_fftn",
         decomp_aten_name="_fft_c2c",
@@ -219,7 +233,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.hfft",
         aten_name="fft_hfft",
         decomp_aten_name="_fft_c2r",
@@ -251,7 +265,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.hfft2",
         aten_name="fft_hfft2",
         decomp_aten_name="_fft_c2r",
@@ -296,7 +310,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.hfftn",
         aten_name="fft_hfftn",
         decomp_aten_name="_fft_c2r",
@@ -330,7 +344,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.rfft",
         aten_name="fft_rfft",
         decomp_aten_name="_fft_r2c",
@@ -348,7 +362,7 @@ op_db: list[OpInfo] = [
         check_batched_grad=False,
         check_batched_gradgrad=False,
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.rfft2",
         aten_name="fft_rfft2",
         decomp_aten_name="_fft_r2c",
@@ -369,7 +383,7 @@ op_db: list[OpInfo] = [
             precisionOverride({torch.float: 1e-4}),
         ],
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.rfftn",
         aten_name="fft_rfftn",
         decomp_aten_name="_fft_r2c",
@@ -390,7 +404,7 @@ op_db: list[OpInfo] = [
             precisionOverride({torch.float: 1e-4}),
         ],
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ifft",
         aten_name="fft_ifft",
         decomp_aten_name="_fft_c2c",
@@ -408,7 +422,7 @@ op_db: list[OpInfo] = [
         # CUDA supports Half/ComplexHalf Precision FFT only on SM53 or later archs
         dtypesIfCUDA=all_types_and_complex_and(torch.bool, torch.half, torch.complex32),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ifft2",
         aten_name="fft_ifft2",
         decomp_aten_name="_fft_c2c",
@@ -449,7 +463,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ifftn",
         aten_name="fft_ifftn",
         decomp_aten_name="_fft_c2c",
@@ -491,7 +505,7 @@ op_db: list[OpInfo] = [
             ),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ihfft",
         aten_name="fft_ihfft",
         decomp_aten_name="_fft_r2c",
@@ -508,7 +522,7 @@ op_db: list[OpInfo] = [
         dtypesIfCUDA=all_types_and(torch.bool, torch.half),
         check_batched_grad=False,
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ihfft2",
         aten_name="fft_ihfft2",
         decomp_aten_name="_fft_r2c",
@@ -538,7 +552,7 @@ op_db: list[OpInfo] = [
             DecorateInfo(unittest.expectedFailure, "TestCommon", "test_out_warnings"),
         ),
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.ihfftn",
         aten_name="fft_ihfftn",
         decomp_aten_name="_fft_r2c",
@@ -567,7 +581,7 @@ op_db: list[OpInfo] = [
             ),
         ],
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.irfft",
         aten_name="fft_irfft",
         decomp_aten_name="_fft_c2r",
@@ -586,7 +600,7 @@ op_db: list[OpInfo] = [
         dtypesIfCUDA=all_types_and_complex_and(torch.bool, torch.half, torch.complex32),
         check_batched_gradgrad=False,
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.irfft2",
         aten_name="fft_irfft2",
         decomp_aten_name="_fft_c2r",
@@ -612,7 +626,7 @@ op_db: list[OpInfo] = [
             )
         ],
     ),
-    SpectralFuncInfo(
+    _spectral_func_info(
         "fft.irfftn",
         aten_name="fft_irfftn",
         decomp_aten_name="_fft_c2r",
