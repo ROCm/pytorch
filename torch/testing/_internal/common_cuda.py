@@ -212,14 +212,11 @@ def gfx_arch_supports_opportunistic_fastatomics():
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250/gfx1250-strict are omitted until flash-attention artifacts ship
-        # for them. The AOTriton path needs the gfx1250 GPU image from AOTriton 0.12.1b
-        # (the amd-gfx1250 regex also matches gfx1250-strict), which is wired up by
-        # PR #188242 (which also adds gfx1250 to this list); this gate-only PR leaves
-        # them out so the two changes do not conflict (see cmake/External/aotriton.cmake).
-        # The CK FAv3/AITER codegen is separately not yet wired for gfx1250/gfx1250-strict
+        # gfx1250 uses the AOTriton gfx1250 GPU image. gfx1250-strict has no
+        # AOTriton image (see cmake/External/aotriton.cmake). The CK
+        # FAv3/AITER codegen is not wired for gfx1250
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
@@ -243,13 +240,11 @@ def evaluate_platform_supports_ck_gemms():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250/gfx1250-strict are omitted until mem-efficient-attention
-        # artifacts ship for them. The AOTriton gfx1250 image (from AOTriton 0.12.1b,
-        # whose regex also matches gfx1250-strict) is wired up by PR #188242, which
-        # also adds gfx1250 here; this gate-only PR leaves them out to avoid
-        # conflicting with that change. The CK FAv3/AITER codegen is separately
-        # not yet wired for gfx1250/gfx1250-strict.
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        # gfx1250 uses the AOTriton gfx1250 GPU image. gfx1250-strict has no
+        # AOTriton image (see cmake/External/aotriton.cmake). The CK
+        # FAv3/AITER codegen is not wired for gfx1250
+        # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
