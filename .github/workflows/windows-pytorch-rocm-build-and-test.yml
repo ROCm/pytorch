@@ -1,0 +1,311 @@
+# Windows PyTorch (ROCm) wheel build and test.
+#
+# Builds the wheel with the reusable workflow _windows-pytorch-rocm-build.yml, then installs
+# it on a new VM and runs the PyTorch test suites on the GPU (second job below).
+# Test-only reruns: prebuilt_run_id (or [prebuilt:<run id>] in a push's commit message) skips the
+# build and tests the wheel of an earlier run.
+# Manual only for now (workflow_dispatch with an optional commit SHA); the nightly build
+# workflow stays build-only until the test results are trusted. When they are, add a
+# schedule here and take it off the nightly build workflow, so a night is not built twice.
+# A workflow_dispatch workflow runs from the default branch only. Nothing is reported to CRCR.
+
+name: Windows PyTorch ROCm build and test
+
+on:
+  # TEMPORARY, for testing on this branch before the workflows move to the CRCR repository: a
+  # push that changes one of these two files starts a run (no inputs, so the defaults apply
+  # and the tip of main is built). Remove this block when the files move.
+  push:
+    branches:
+      - windows-rocm-ci-bringup
+    paths:
+      - .github/workflows/windows-pytorch-rocm-build-and-test.yml
+      - .github/workflows/_windows-pytorch-rocm-build.yml
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: "Commit SHA (40 characters) of pytorch_repository to build. Leave empty for the tip of main."
+        type: string
+        required: false
+        default: ""
+      rocm_arch:
+        description: GPU targets to build for, separated by semicolons.
+        type: string
+        default: "gfx1200;gfx1201"
+      pytorch_repository:
+        description: GitHub repository to build (owner/name).
+        type: string
+        default: "pytorch/pytorch"
+      python_version:
+        description: Python version.
+        type: string
+        default: "3.12"
+      rocm_version:
+        description: ROCm SDK package version to install and build against (must exist on the index).
+        type: string
+        default: "10.1.0"
+      rocm_index_url:
+        description: pip index that serves the rocm packages.
+        type: string
+        default: "https://stable.repo.amd.com/rocm/whl-next/"
+      max_jobs:
+        description: Maximum parallel compile jobs (the R9700 VM has about 32 GB RAM).
+        type: string
+        default: "8"
+      runner_labels:
+        description: Runner labels as a JSON array.
+        type: string
+        default: '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]'
+      prebuilt_run_id:
+        description: >-
+          Skip the build and test the wheel uploaded by this earlier run of this workflow (its run ID;
+          artifacts are kept 14 days). The `sha` input is then ignored: the test sources are taken at the
+          commit the wheel was built from. On a push, put [prebuilt:<run id>] in the commit message instead.
+        type: string
+        default: ""
+      test_device_extras:
+        description: >-
+          pip extras of the rocm package that carry the GPU kernels for the test machine
+          (comma separated, no spaces).
+        type: string
+        default: "device-gfx1200,device-gfx1201"
+
+
+run-name: >-
+  Windows PyTorch ROCm build and test -
+  ${{ github.event_name == 'workflow_dispatch' && 'manual' || 'push test' }}
+  (${{ inputs.sha || 'main tip' }}, ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }})
+
+# One Windows build or test at a time; a new run waits instead of cancelling.
+concurrency:
+  group: windows-pytorch-rocm
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build
+    if: ${{ inputs.prebuilt_run_id == '' && !contains(github.event.head_commit.message, '[prebuilt:') }}
+    uses: ./.github/workflows/_windows-pytorch-rocm-build.yml
+    with:
+      sha: ${{ inputs.sha }}
+      rocm_arch: ${{ inputs.rocm_arch }}
+      pytorch_repository: ${{ inputs.pytorch_repository }}
+      python_version: ${{ inputs.python_version }}
+      rocm_version: ${{ inputs.rocm_version }}
+      rocm_index_url: ${{ inputs.rocm_index_url }}
+      max_jobs: ${{ inputs.max_jobs }}
+      runner_labels: ${{ inputs.runner_labels }}
+
+  # ---------------------------------------------------------------------------
+  # Test job. Starts after a successful build, on a new VM with the same labels (the
+  # R9700 VM has the GPU), installs the wheel built above into a fresh virtual environment
+  # and runs PyTorch's own test runner (test/run_test.py) on the GPU. Nothing in this job
+  # comes from TheRock: the test sources are plain git, the venv is plain `python -m venv`,
+  # and the test command is the upstream one.
+  #
+  # Suites: test_torch, test_cuda, test_autograd, test_unary_ufuncs, test_binary_ufuncs.
+  # They are AMD's documented PyTorch-on-ROCm check (test_nn, test_ops left out: test_nn is
+  # excluded on Windows by PyTorch's own blocklist, test_ops had Triton problems).
+  #
+  # No skip list yet. The earlier TheRock-based runs deselected a few hundred known-bad
+  # tests; this job starts from a plain upstream baseline, and the list of tests that must
+  # pass (and which are skipped) is to be agreed and added once the first results are in.
+  # ---------------------------------------------------------------------------
+  test:
+    name: Test | ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
+    needs: build
+    # always(): a skipped build (prebuilt wheel) would otherwise skip this job too.
+    if: ${{ always() && (needs.build.result == 'success' || needs.build.result == 'skipped') }}
+    runs-on: ${{ fromJSON(inputs.runner_labels || '["self-hosted","Windows","xsj-dispatch","radeon-r9700"]') }}
+    timeout-minutes: 180
+    env:
+      PYTHON_VERSION: ${{ inputs.python_version || '3.12' }}
+      PYTORCH_REPOSITORY: ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}
+      PYTORCH_SHA: ${{ needs.build.outputs.sha }}
+      ROCM_VERSION: ${{ inputs.rocm_version || '10.1.0' }}
+      ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://stable.repo.amd.com/rocm/whl-next/' }}
+      TEST_DEVICE_EXTRAS: ${{ inputs.test_device_extras || 'device-gfx1200,device-gfx1201' }}
+      # Test sources (a plain checkout; the tests import the torch installed in the venv).
+      TEST_SOURCE_DIR: C:/pytorch
+      # Pin OpenBLAS threads to 1 for deterministic reductions.
+      OPENBLAS_NUM_THREADS: "1"
+      PYTORCH_NUM_PYTEST_RERUNS: "2"
+    defaults:
+      run:
+        shell: bash
+    steps:
+      # The machine may be bare, so the first steps use PowerShell (bash comes with Git for
+      # Windows, which the setup script installs when it is missing).
+      - name: Enable git long paths (if git is installed)
+        shell: powershell
+        run: |
+          if (Get-Command git -ErrorAction SilentlyContinue) {
+            git config --global core.longpaths true
+            'core.longpaths set'
+          } else {
+            'git is not installed yet: the checkout will use the REST API'
+          }
+
+      - name: Checkout the setup script (this repository, sparse)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          sparse-checkout: |
+            .github/scripts/windows-build-env
+          sparse-checkout-cone-mode: true
+
+      - name: Install missing tools
+        shell: powershell
+        run: |
+          & ./.github/scripts/windows-build-env/setup-build-env.ps1 -SkipPython
+          if ($LASTEXITCODE -ne 0) { throw "setup-build-env.ps1 exited with $LASTEXITCODE" }
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      # This run's own build, unless a prebuilt run was named (dispatch input, or
+      # [prebuilt:<run id>] in a push's commit message).
+      - name: Decide which run's wheel to test
+        id: source
+        env:
+          PREBUILT_INPUT: ${{ inputs.prebuilt_run_id }}
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message || '' }}
+        run: |
+          RUN_ID="${GITHUB_RUN_ID}"
+          if [ -n "${PREBUILT_INPUT}" ]; then
+            RUN_ID="${PREBUILT_INPUT}"
+          elif [[ "${COMMIT_MESSAGE}" =~ \[prebuilt:([0-9]+)\] ]]; then
+            RUN_ID="${BASH_REMATCH[1]}"
+          fi
+          echo "Using the wheel from run ${RUN_ID}"
+          echo "run_id=${RUN_ID}" >> "$GITHUB_OUTPUT"
+
+      - name: Download the wheel
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: pytorch-rocm-windows-wheels-py${{ env.PYTHON_VERSION }}
+          path: wheels
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      # The venv lives in the runner temp folder under a name unique to this run, so a folder
+      # left on a persistent machine by an earlier job cannot break the setup. The wheel's
+      # own dependencies come from PyPI; the rocm package (and the GPU kernels it carries
+      # for this machine, through the device extras) from the ROCm index.
+      - name: Set up virtual environment and install the wheel
+        timeout-minutes: 15
+        run: |
+          ls -l wheels
+          TORCH_WHEEL="$(ls wheels/torch-*.whl | head -n 1)"
+          VENV_DIR="${RUNNER_TEMP}/venv-${GITHUB_RUN_ID}"
+          python -m venv "${VENV_DIR}"
+          echo "VENV_DIR=${VENV_DIR}" >> "$GITHUB_ENV"
+          echo "VIRTUAL_ENV=$(cygpath -w "${VENV_DIR}")" >> "$GITHUB_ENV"
+          echo "$(cygpath -w "${VENV_DIR}/Scripts")" >> "$GITHUB_PATH"
+          VENV_PYTHON="${VENV_DIR}/Scripts/python.exe"
+          "${VENV_PYTHON}" -m pip install --upgrade pip
+          echo "Installing ${TORCH_WHEEL} and rocm[${TEST_DEVICE_EXTRAS}]==${ROCM_VERSION}"
+          "${VENV_PYTHON}" -m pip install --no-cache-dir \
+            "${TORCH_WHEEL}" "rocm[${TEST_DEVICE_EXTRAS}]==${ROCM_VERSION}" \
+            --extra-index-url "${ROCM_INDEX_URL}"
+          "${VENV_PYTHON}" -m pip list
+
+      # The test files must match the wheel: the same PyTorch commit the build job built.
+      - name: Checkout PyTorch test sources
+        timeout-minutes: 30
+        run: |
+          set -euo pipefail
+          # From another folder: in the source tree its torch/ folder would shadow the installed wheel.
+          WHEEL_SHA="$(cd "${RUNNER_TEMP}" && python -c 'import torch; print(torch.version.git_version)')"
+          echo "Installed wheel reports git version: ${WHEEL_SHA}"
+          SHA="${PYTORCH_SHA:-${WHEEL_SHA}}"
+          echo "Pinning the test sources to: ${SHA}"
+          rm -rf "${TEST_SOURCE_DIR}"
+          mkdir -p "${TEST_SOURCE_DIR}"
+          cd "${TEST_SOURCE_DIR}"
+          git init --initial-branch=main
+          git config advice.detachedHead false
+          git remote add origin "https://github.com/${PYTORCH_REPOSITORY}.git"
+          git fetch --depth 1 origin "${SHA}"
+          git checkout FETCH_HEAD
+          echo "Test sources:"
+          git log -1 --format='%H %s'
+
+      - name: Install test requirements
+        run: |
+          python -m pip install pytest pytest-timeout pytest-xdist expecttest hypothesis ninja numpy psutil
+          python -m pip install -r "${TEST_SOURCE_DIR}/.ci/docker/requirements-ci.txt"
+          pip freeze
+
+      # Does the venv's torch see the GPU, and can it run a kernel? Fails early (with the
+      # driver and device printed) when the VM has no usable GPU.
+      - name: GPU smoke check
+        timeout-minutes: 10
+        run: |
+          python - <<'PY'
+          import torch
+          print("torch", torch.__version__, "| hip", torch.version.hip, "| git", torch.version.git_version)
+          assert torch.cuda.is_available(), "torch.cuda.is_available() is False: no usable GPU or driver"
+          props = torch.cuda.get_device_properties(0)
+          print("device:", torch.cuda.get_device_name(0), "| arch:", getattr(props, "gcnArchName", "n/a"),
+                "| memory GB:", round(props.total_memory / 2**30, 1))
+          a = torch.randn(512, 512, device="cuda")
+          b = torch.randn(512, 512, device="cuda")
+          c = a @ b
+          torch.cuda.synchronize()
+          print("matmul on the GPU ok:", float(c.sum()))
+          PY
+
+      - name: Run rocm-sdk sanity tests
+        timeout-minutes: 5
+        run: |
+          rocm-sdk test
+
+      # The environment below is what PyTorch's own CI sets for ROCm test runs; the values are
+      # the same ones the earlier TheRock-based test jobs used, so results stay comparable.
+      # Add --shard N M to the command if a run ever needs to be split (one shard took about
+      # 12 minutes on a gfx1201 machine in the October runs).
+      - name: Run PyTorch tests
+        timeout-minutes: 120
+        run: |
+          export CI=1
+          export BUILD_ENVIRONMENT="linux-noble-rocm-py3.12-mi300"
+          export PYTORCH_TEST_WITH_ROCM=1
+          export PYTORCH_TESTING_DEVICE_ONLY_FOR=cuda
+          export PYTORCH_PRINT_REPRO_ON_FAILURE=0
+          export TORCH_SERIALIZATION_DEBUG=1
+          export TEST_CONFIG=default
+          export PYTORCH_TEST_RUN_EVERYTHING_IN_SERIAL=1
+          export MIOPEN_CUSTOM_CACHE_DIR="$(cygpath -w "$(mktemp -d)")"
+          export PYTHONPATH="$(cygpath -w "${TEST_SOURCE_DIR}/test")"
+          cd "${TEST_SOURCE_DIR}"
+          python test/run_test.py \
+            --keep-going \
+            --verbose \
+            --include \
+              test_torch \
+              test_cuda \
+              test_unary_ufuncs \
+              test_binary_ufuncs \
+              test_autograd \
+            --timeout 900 \
+            --continue-on-collection-errors
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: test-reports
+          path: ${{ env.TEST_SOURCE_DIR }}/test/test-reports/
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Remove the venv
+        if: always()
+        run: |
+          rm -rf "${VENV_DIR}" || true
