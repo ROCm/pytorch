@@ -6,13 +6,15 @@ import csv
 import os
 import re
 import sys
+from typing import NamedTuple
 
 
-TEST_CONFIGS = ['default', 'distributed', 'inductor']
+TEST_CONFIGS = ['default', 'distributed', 'inductor', 'slow']
 TEST_CONFIG_DISPLAY = {
     'default': 'TEST DEFAULT',
     'distributed': 'TEST DISTRIBUTED',
     'inductor': 'TEST INDUCTOR',
+    'slow': 'TEST SLOW',
 }
 MAX_DIAGNOSTIC_FIELD_CHARS = 20_000
 DIAGNOSTIC_FIELDS = {
@@ -127,9 +129,20 @@ def test_config_stats_keys(s1_name, s2_name, has_set2=True):
     ]
 
 
+def parity_metric_rows(rows, s2_col, has_set2=True):
+    """Exclude Slow rows CUDA did not pass from parity metrics."""
+    if not has_set2:
+        return rows
+    return [
+        row for row in rows
+        if row.get('test_config') != 'slow' or row.get(s2_col) == 'PASSED'
+    ]
+
+
 def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+    rows = parity_metric_rows(rows, s2_col, has_set2)
 
     if not has_set2:
         vals = {}
@@ -163,7 +176,9 @@ def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=T
 
     skip_miss = s1_skip_not_s2 + s1_miss_not_s2_skip
     s2_minus = total_s2 - skip_miss
-    pct = (skip_miss / total_s2 * 100) if total_s2 else 0
+    # With no comparable rows the rate is undefined, not zero: rendering 0.00%
+    # made a config whose download produced nothing look like perfect parity.
+    pct = f'{skip_miss / total_s2 * 100:.2f}%' if total_s2 else 'n/a'
 
     vals = {}
     keys = test_config_stats_keys(s1_name, s2_name)
@@ -176,7 +191,7 @@ def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=T
     vals[keys[6]] = total_s1
     vals[keys[7]] = skip_miss
     vals[keys[8]] = s2_minus
-    vals[keys[9]] = f'{pct:.2f}%'
+    vals[keys[9]] = pct
     return vals
 
 
@@ -211,6 +226,7 @@ def overall_stats_keys(s1_name, s2_name, has_set2=True):
 def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_name, s2_name, has_set2=True):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
+    rows = parity_metric_rows(rows, s2_col, has_set2)
 
     def safe_float(v):
         try:
@@ -245,13 +261,15 @@ def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_nam
         total_disagree += s1_skip_not_s2 + s1_miss_not_s2_skip
         total_s2 += sum(1 for r in wf_rows if r[s2_col].strip() and r[s2_col].strip() != 'MISSED')
 
-    disagree_pct = (total_disagree / total_s2 * 100) if total_s2 else 0
-    agree_pct = 100 - disagree_pct
-
     vals = {}
     keys = overall_stats_keys(s1_name, s2_name)
-    vals[keys[0]] = f'{disagree_pct:.2f}%'
-    vals[keys[1]] = f'{agree_pct:.2f}%'
+    if total_s2:
+        disagree_pct = total_disagree / total_s2 * 100
+        vals[keys[0]] = f'{disagree_pct:.2f}%'
+        vals[keys[1]] = f'{100 - disagree_pct:.2f}%'
+    else:
+        vals[keys[0]] = 'n/a'
+        vals[keys[1]] = 'n/a'
 
     idx = 2
     for status in ['PASSED', 'SKIPPED', 'FAILED', 'XFAILED']:
@@ -432,6 +450,19 @@ def collect_failed_tests(arch_data, archs, s1_name, s2_name):
     return failed
 
 
+def _is_primary_platform(platform, s1_name):
+    """Return whether a log row belongs to the report's primary side.
+
+    detect_log_failures records the physical platform (``rocm``/``cuda``),
+    while callers can use a display label such as ``preview`` or ``mi300``.
+    """
+    return platform in ('rocm', s1_name)
+
+
+def _is_secondary_platform(platform, s2_name):
+    return platform in ('cuda', s2_name)
+
+
 def _add_cross_arch_info(failed_tests, log_failures, s2_name):
     """Populate 'also_failing_in' for each entry.
 
@@ -446,7 +477,7 @@ def _add_cross_arch_info(failed_tests, log_failures, s2_name):
 
     cuda_log_tuples = set()
     for lf in log_failures or []:
-        if lf.get('platform', '') == s2_name:
+        if _is_secondary_platform(lf.get('platform', ''), s2_name):
             test_class, test_name = _parse_log_failure_names(lf)
             cuda_log_tuples.add((lf.get('test_file', ''), test_class, test_name))
 
@@ -469,7 +500,7 @@ def _add_log_failure_cross_arch(log_failures, failed_tests, s1_name, s2_name):
     by_tuple_archs = defaultdict(set)
 
     for lf in log_failures or []:
-        if lf.get('platform', '') == s1_name:
+        if _is_primary_platform(lf.get('platform', ''), s1_name):
             test_class, test_name = _parse_log_failure_names(lf)
             key = (lf.get('test_file', ''), test_class, test_name)
             by_tuple_archs[key].add(lf.get('arch', ''))
@@ -479,7 +510,7 @@ def _add_log_failure_cross_arch(log_failures, failed_tests, s1_name, s2_name):
 
     cuda_log_tuples = set()
     for lf in log_failures or []:
-        if lf.get('platform', '') == s2_name:
+        if _is_secondary_platform(lf.get('platform', ''), s2_name):
             test_class, test_name = _parse_log_failure_names(lf)
             cuda_log_tuples.add((lf.get('test_file', ''), test_class, test_name))
 
@@ -650,7 +681,7 @@ def build_rows(args, archs, arch_data):
             f'https://hud.pytorch.org/hud/pytorch/pytorch/{args.sha}/1'
             '?per_page=50'
             '&name_filter=%28trunk.*cuda%7Cinductor%7Crocm%29.*test.*'
-            '%28default%7Cdistributed%7Cinductor%29%2C'
+            '%28default%7Cdistributed%7Cinductor%7Cslow%29%2C'
             '&useRegexFilter=true'
         )
         out.append(('__header__', f'HUD: [parity jobs for this commit]({hud_url})'))
@@ -714,6 +745,27 @@ def _parse_log_failure_names(lf):
     return parts[0], parts[1]
 
 
+class _TestKey(NamedTuple):
+    """Identity of a single test that matches XML and log rows."""
+    arch: str
+    test_config: str
+    test_file: str
+    test_class: str
+    test_name: str
+
+    @classmethod
+    def of(cls, row, test_class, test_name):
+        # XML classes carry the module path ('test.distributed.test_x.FooTest')
+        # while log reasons only name the class ('FooTest').
+        return cls(row.get('arch', ''), row.get('test_config', ''),
+                   _norm_test_file(row.get('test_file', '')),
+                   test_class.rsplit('.', 1)[-1], test_name)
+
+    @property
+    def file(self):
+        return (self.arch, self.test_config, self.test_file)
+
+
 def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     """ROCm log-detected failures not already in the XML FAILED TESTS table,
     deduplicated to one row per test.
@@ -722,32 +774,107 @@ def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     'FAILED' line and a 'FAILED CONSISTENTLY' line (category CONSISTENT_FAILURE)
     describe the same test. Collapse those to a single row, preferring
     CONSISTENT_FAILURE over a one-off FAILED so a test is never listed as both.
+
+    A whole-file entry (no test class/name, e.g. 'cpp/test_api 1/1 failed!')
+    is dropped when a named failure is already reported for the same file;
+    it is kept when nothing else explains the file failing (e.g. a crash
+    before any test ran).
     """
-    xml_failed_keys = {
-        (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
-        for t in (failed_tests or [])
-    }
+    rocm_log_failures = [
+        (lf, _TestKey.of(lf, *_parse_log_failure_names(lf)))
+        for lf in (log_failures or [])
+        if _is_primary_platform(lf.get('platform', ''), s1_name)
+    ]
+    xml_keys = {_TestKey.of(t, t['test_class'], t['test_name'])
+                for t in (failed_tests or [])}
+    failing_keys = xml_keys | {key for lf, key in rocm_log_failures
+                               if lf.get('category', '') != 'FLAKY'}
+    files_with_named_failure = {key.file for key in failing_keys if key.test_name}
+
     best = {}
-    order = []
-    for lf in (log_failures or []):
-        if lf.get('platform', '') != s1_name:
-            continue
-        test_class, test_name = _parse_log_failure_names(lf)
-        key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
-               test_class, test_name)
-        # Skip entries already present in the XML-based FAILED TESTS table to
-        # avoid double-counting the same failure, except FLAKY entries which
-        # represent an independent signal (a rerun passed).
-        if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
+    for lf, key in rocm_log_failures:
+        # Skip failures the XML table already reports, and whole-file rows for
+        # a file that has a named failure. FLAKY entries are an independent
+        # signal (a rerun passed), so always keep them.
+        already_reported = key in xml_keys or (
+            not key.test_name and key.file in files_with_named_failure)
+        if already_reported and lf.get('category', '') != 'FLAKY':
             continue
         existing = best.get(key)
-        if existing is None:
+        if existing is None or (
+                lf.get('category') == 'CONSISTENT_FAILURE'
+                and existing.get('category') != 'CONSISTENT_FAILURE'):
             best[key] = lf
-            order.append(key)
-        elif (lf.get('category') == 'CONSISTENT_FAILURE'
-              and existing.get('category') != 'CONSISTENT_FAILURE'):
-            best[key] = lf
-    return [best[k] for k in order]
+    return list(best.values())
+
+
+def collect_log_failed_tests(log_failures, xml_failed_tests, s1_name):
+    """Promote crash/timeout failures without XML into FAILED TESTS rows."""
+    promoted = []
+    for lf in _select_rocm_log_failures(
+            log_failures, xml_failed_tests, s1_name):
+        # A flaky rerun is useful context, but its final status is not FAILED.
+        if lf.get('category', '') == 'FLAKY':
+            continue
+        test_class, test_name = _parse_log_failure_names(lf)
+        category = lf.get('category', '') or 'LOG_FAILURE'
+        reason = lf.get('reason', '')
+        promoted.append({
+            'arch': lf.get('arch', ''),
+            'test_file': lf.get('test_file', ''),
+            'test_class': test_class,
+            'test_name': test_name,
+            'test_config': lf.get('test_config', ''),
+            'run_time': lf.get('run_time', ''),
+            f'shard_{s1_name}': lf.get('job_shard', ''),
+            f'test_shard_{s1_name}': lf.get(
+                'test_shard', lf.get('shard', '')),
+            f'job_url_{s1_name}': lf.get('job_url', ''),
+            f'status_{s1_name}': 'FAILED',
+            'error_message': f'{category}: {reason}'.strip(': '),
+            'failure_source': 'log',
+        })
+    return promoted
+
+
+def add_promoted_failure_stats(rows, archs, promoted, s1_name):
+    """Include promoted log failures in per-config and overall totals."""
+    if not promoted:
+        return
+
+    from collections import Counter
+    overall = Counter(t.get('arch', '') for t in promoted)
+    by_config = Counter(
+        (t.get('test_config', ''), t.get('arch', '')) for t in promoted)
+    arch_index = {arch: i for i, arch in enumerate(archs)}
+    current_config = ''
+    primary_label = s1_name.upper()
+
+    def increment(values, counts):
+        for arch, count in counts.items():
+            if arch not in arch_index:
+                continue
+            idx = arch_index[arch]
+            try:
+                values[idx] = int(values[idx]) + count
+            except (TypeError, ValueError):
+                values[idx] = count
+
+    for label, values in rows:
+        if label == '__section__':
+            section = str(values)
+            current_config = (
+                section[len('TEST '):].lower()
+                if section.startswith('TEST ') else '')
+            continue
+        if label == primary_label and current_config:
+            increment(values, {
+                arch: by_config[(current_config, arch)] for arch in archs
+            })
+        elif label == f'FAILED({s1_name})':
+            increment(values, overall)
+        elif label == f'TOTAL {primary_label}':
+            increment(values, overall)
 
 
 def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_name='set2', has_set2=True, log_failures=None, shard_lookup=None):
@@ -768,6 +895,9 @@ def write_csv(rows, archs, output_path, failed_tests=None, s1_name='set1', s2_na
     shard_lookup = shard_lookup or {}
 
     def _xml_test_shard(t, platform):
+        explicit = t.get(f'test_shard_{platform}', '')
+        if explicit:
+            return _format_test_shards(explicit)
         key = (t.get('arch', ''), platform, t.get('test_config', ''),
                t.get(f'shard_{platform}', ''),
                _norm_test_file(t.get('test_file', '')))
@@ -867,6 +997,9 @@ def write_markdown(rows, archs, output_path, failed_tests=None, s1_name='set1', 
     shard_lookup = shard_lookup or {}
 
     def _xml_test_shard(t, platform):
+        explicit = t.get(f'test_shard_{platform}', '')
+        if explicit:
+            return _format_test_shards(explicit)
         key = (t.get('arch', ''), platform, t.get('test_config', ''),
                t.get(f'shard_{platform}', ''),
                _norm_test_file(t.get('test_file', '')))
@@ -983,12 +1116,19 @@ def main():
         arch_data[arch] = {'rows': rows, 'cols': cols, 'has_set2': has_set2}
 
     data_rows = build_rows(args, archs, arch_data)
-    failed = collect_failed_tests(arch_data, archs, args.set1_name, args.set2_name)
+    xml_failed = collect_failed_tests(
+        arch_data, archs, args.set1_name, args.set2_name)
     any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())
     log_failures = load_log_failures(args.log_failures) if args.log_failures else []
     if args.log_failures:
         log_failures.extend(load_flaky_tests_as_log_failures(args.log_failures))
     shard_lookup = load_log_shards(args.log_failures) if args.log_failures else {}
+
+    promoted = collect_log_failed_tests(
+        log_failures, xml_failed, args.set1_name)
+    failed = xml_failed + promoted
+    add_promoted_failure_stats(
+        data_rows, archs, promoted, args.set1_name)
 
     _add_cross_arch_info(failed, log_failures, args.set2_name)
     _add_log_failure_cross_arch(log_failures, failed, args.set1_name, args.set2_name)
