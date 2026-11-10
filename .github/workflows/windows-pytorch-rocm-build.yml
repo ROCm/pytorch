@@ -41,11 +41,11 @@ on:
       rocm_version:
         description: ROCm SDK package version to install and build against (must exist on the index).
         type: string
-        default: "10.2.0a20261012"
+        default: "10.1.0"
       rocm_index_url:
         description: pip index that serves the rocm packages.
         type: string
-        default: "https://nightly.repo.amd.com/rocm/whl-next"
+        default: "https://stable.repo.amd.com/rocm/whl-next/"
       max_jobs:
         description: Maximum parallel compile jobs (the R9700 VM has about 32 GB RAM).
         type: string
@@ -77,11 +77,12 @@ jobs:
       PYTORCH_REPOSITORY: ${{ inputs.pytorch_repository || 'pytorch/pytorch' }}
       PYTORCH_REF: ${{ inputs.pytorch_ref || 'nightly' }}
       ROCM_ARCH: ${{ inputs.rocm_arch || 'gfx1200;gfx1201' }}
-      ROCM_VERSION: ${{ inputs.rocm_version || '10.2.0a20261012' }}
-      ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://nightly.repo.amd.com/rocm/whl-next' }}
+      ROCM_VERSION: ${{ inputs.rocm_version || '10.1.0' }}
+      ROCM_INDEX_URL: ${{ inputs.rocm_index_url || 'https://stable.repo.amd.com/rocm/whl-next/' }}
       MAX_JOBS: ${{ inputs.max_jobs || '8' }}
+      # One runner per VM, so jobs do not share this folder.
       # Short source path: the Windows compile command lines get very long in this tree.
-      SOURCE_DIR: C:/b/pytorch
+      SOURCE_DIR: C:/pytorch
       PACKAGE_DIST_DIR: ${{ github.workspace }}\output\packages\dist
     defaults:
       run:
