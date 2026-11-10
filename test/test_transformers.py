@@ -3173,9 +3173,13 @@ class TestSDPACudaOnly(NNTestCase):
         self.assertEqual(actual.contiguous(), math_ref.contiguous().to(dtype), atol=1e-3, rtol=1e-2)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Memory efficient attention is not supported on this system")
+    @setSdpaBackendsToDefaultFinally
     @parametrize("enable_gqa", [False, True])
     def test_mqa_singleton_head_broadcast(self, device, enable_gqa):
         """Singleton KV heads should use fused attention with either GQA mode."""
+        if TEST_WITH_ROCM:
+            # CK mem-efficient attention does not support GQA/MQA; pin AOTriton.
+            torch.backends.cuda.preferred_rocm_fa_library("aotriton")
         make_tensor = partial(
             torch.randn, device=device, dtype=torch.float32, requires_grad=True
         )
@@ -3205,6 +3209,7 @@ class TestSDPACudaOnly(NNTestCase):
             self.assertEqual(actual_grad, expected_grad, atol=1e-4, rtol=1e-4)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Memory efficient attention is not supported on this system")
+    @setSdpaBackendsToDefaultFinally
     @parametrize("dtype", [torch.float32, torch.float16])
     @parametrize(
         "num_query_heads,num_kv_heads,is_causal,use_attn_mask,q_layout,k_layout,v_layout",
@@ -3227,6 +3232,9 @@ class TestSDPACudaOnly(NNTestCase):
         v_layout,
     ):
         """Map query heads to KV groups while keeping masks query-head indexed."""
+        if TEST_WITH_ROCM:
+            # CK mem-efficient attention does not support GQA/MQA; pin AOTriton.
+            torch.backends.cuda.preferred_rocm_fa_library("aotriton")
         query = make_strided_sdpa_input(
             (2, num_query_heads, 16, 32), q_layout, device, dtype
         )
@@ -3287,8 +3295,12 @@ class TestSDPACudaOnly(NNTestCase):
             )
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Memory efficient attention is not supported on this system")
+    @setSdpaBackendsToDefaultFinally
     def test_mem_efficient_attention_gqa_dropout(self, device):
         """GQA should preserve query-head dropout and mask semantics."""
+        if TEST_WITH_ROCM:
+            # CK mem-efficient attention does not support GQA/MQA; pin AOTriton.
+            torch.backends.cuda.preferred_rocm_fa_library("aotriton")
         batch, num_query_heads, num_kv_heads = 2, 6, 2
         group_size = num_query_heads // num_kv_heads
         query = make_strided_sdpa_input(
@@ -4122,8 +4134,12 @@ class TestSDPACudaOnly(NNTestCase):
         self.assertEqual(actual_grad, expected_grad)
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
+    @setSdpaBackendsToDefaultFinally
     def test_mem_efficient_attention_vmap_gqa_backward(self, device):
         """Exercise GQA backward with a per-query-head mask under vmap."""
+        if TEST_WITH_ROCM:
+            # CK mem-efficient attention does not support GQA/MQA; pin AOTriton.
+            torch.backends.cuda.preferred_rocm_fa_library("aotriton")
         vmap_batch, batch, num_query_heads, num_kv_heads = 3, 2, 6, 2
         make_tensor = partial(
             torch.randn,
