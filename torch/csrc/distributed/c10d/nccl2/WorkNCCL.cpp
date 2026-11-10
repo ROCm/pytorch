@@ -23,12 +23,60 @@ namespace {
 std::atomic<uint64_t> nextCompletionKey{1};
 } // namespace
 
+NCCLEventPool::NCCLEventPool(
+    bool cacheEnabled,
+    bool timingEnabled,
+    size_t maxSize)
+    : event_cache_enabled_(cacheEnabled),
+      max_event_pool_size_(maxSize),
+      timing_enabled_(timingEnabled) {}
+
+std::unique_ptr<at::cuda::CUDAEvent> NCCLEventPool::getEvent(
+    bool timingEnabled) {
+  std::lock_guard<std::mutex> lock(event_pool_mutex_);
+  if (event_cache_enabled_ && timingEnabled == timing_enabled_.load() &&
+      !event_pool_.empty()) {
+    auto event = std::move(event_pool_.front());
+    event_pool_.pop();
+    return event;
+  }
+  return std::make_unique<at::cuda::CUDAEvent>(
+      timingEnabled ? cudaEventDefault : cudaEventDisableTiming);
+}
+
+void NCCLEventPool::returnEvent(
+    std::unique_ptr<at::cuda::CUDAEvent> event,
+    bool timingEnabled) {
+  std::lock_guard<std::mutex> lock(event_pool_mutex_);
+  if (event_cache_enabled_ && timingEnabled == timing_enabled_.load() &&
+      event_pool_.size() < max_event_pool_size_) {
+    event_pool_.push(std::move(event));
+  }
+}
+
+void NCCLEventPool::clear() {
+  std::lock_guard<std::mutex> lock(event_pool_mutex_);
+  std::queue<std::unique_ptr<at::cuda::CUDAEvent>>().swap(event_pool_);
+}
+
+void NCCLEventPool::enableTiming() {
+  std::lock_guard<std::mutex> lock(event_pool_mutex_);
+  if (timing_enabled_.exchange(true)) {
+    return;
+  }
+  std::queue<std::unique_ptr<at::cuda::CUDAEvent>>().swap(event_pool_);
+}
+
+bool NCCLEventPool::timingEnabled() const {
+  return timing_enabled_.load();
+}
+
 struct WorkNCCL::Events {
-  Events(ProcessGroupNCCL* comm, bool timing_enabled)
-      : comm(comm),
+  Events(const std::shared_ptr<NCCLEventPool>& eventPool, bool timing_enabled)
+      : eventPool(eventPool),
         timingEnabled(timing_enabled),
-        start(comm->getEvent(timing_enabled)),
-        end(comm->getEvent(timing_enabled)) {}
+        start(eventPool->getEvent(timing_enabled)),
+        end(eventPool->getEvent(timing_enabled)) {}
 
   Events(const Events&) = delete;
   Events(Events&&) = delete;
@@ -36,11 +84,13 @@ struct WorkNCCL::Events {
   Events& operator=(Events&&) = delete;
 
   ~Events() {
-    comm->returnEvent(std::move(start), timingEnabled);
-    comm->returnEvent(std::move(end), timingEnabled);
+    if (auto pool = eventPool.lock()) {
+      pool->returnEvent(std::move(start), timingEnabled);
+      pool->returnEvent(std::move(end), timingEnabled);
+    }
   }
 
-  ProcessGroupNCCL* comm;
+  std::weak_ptr<NCCLEventPool> eventPool;
   bool timingEnabled;
   std::unique_ptr<at::cuda::CUDAEvent> start;
   std::unique_ptr<at::cuda::CUDAEvent> end;
@@ -56,6 +106,11 @@ void WorkNCCL::InputTensorShelf::append(InputTensorShelf& other) {
       std::make_move_iterator(other.tensors.begin()),
       std::make_move_iterator(other.tensors.end()));
   other.tensors.clear();
+}
+
+void WorkNCCL::InputTensorShelf::appendCopy(InputTensorShelf& other) {
+  std::scoped_lock lock(mutex, other.mutex);
+  tensors.insert(tensors.end(), other.tensors.begin(), other.tensors.end());
 }
 
 void WorkNCCL::InputTensorShelf::clear() {
@@ -76,7 +131,7 @@ WorkNCCL::State::State(
       timeout(timeout),
       completionKey(nextCompletionKey.fetch_add(1, std::memory_order_relaxed)),
       timingEnabled(comm->collectivesTimingEnabled()),
-      events(std::make_shared<Events>(comm, timingEnabled)),
+      events(std::make_shared<Events>(comm->getEventPool(), timingEnabled)),
       durationStartEvents(events),
       futureWorkResult(
           c10::make_intrusive<c10::ivalue::Future>(c10::AnyEnumType::get())) {}
@@ -151,8 +206,10 @@ bool WorkNCCL::State::setTerminalStatus(WorkStatus terminal_status) {
 
     if (terminal_status == WorkStatus::TIMEDOUT) {
       result = WorkResult::TIMEOUT;
-      workException = std::make_exception_ptr(
-          C10_BUILD_ERROR(DistBackendError, "NCCL operation timed out"));
+      workException = std::make_exception_ptr(C10_BUILD_ERROR(
+          DistBackendError,
+          "Watchdog caught collective operation timeout: NCCL operation "
+          "timed out"));
     } else if (terminal_status == WorkStatus::ERROR) {
       result = WorkResult::COMM_ERROR;
       workException = std::make_exception_ptr(
@@ -209,13 +266,33 @@ std::chrono::milliseconds WorkNCCL::getTimeout() const {
   return state_->timeout;
 }
 
+void WorkNCCL::setDurationStart(const WorkNCCL& first) {
+  std::scoped_lock lock(state_->durationMutex, first.state_->durationMutex);
+  state_->durationStartEvents = first.state_->durationStartEvents;
+}
+
 void WorkNCCL::setChildren(std::vector<c10::intrusive_ptr<WorkNCCL>> children) {
   if (!children.empty()) {
-    std::lock_guard<std::mutex> lock(state_->durationMutex);
-    state_->durationStartEvents = children.front()->state_->events;
+    setDurationStart(*children.front());
   }
   for (const auto& child : children) {
     inputTensors_->append(*child->inputTensors_);
+  }
+}
+
+void WorkNCCL::retainInputs(
+    const std::vector<c10::intrusive_ptr<WorkNCCL>>& works) {
+  for (const auto& work : works) {
+    inputTensors_->appendCopy(*work->inputTensors_);
+  }
+}
+
+void WorkNCCL::waitFor(const std::vector<c10::intrusive_ptr<WorkNCCL>>& works) {
+  for (const auto& work : works) {
+    if (work->state_->stream == state_->stream) {
+      continue;
+    }
+    work->state_->events->end->block(state_->stream);
   }
 }
 
