@@ -90,7 +90,6 @@ updates:
       - "module: ci"
       - "ciflow/trunk"
       - "ciflow/inductor"
-<<<<<<< HEAD
 
   - package-ecosystem: "github-actions"
     # "/" covers .github/workflows; composite actions keep their own `uses:`
@@ -108,5 +107,3 @@ updates:
         patterns: ["ROCm/rocm-security-gh*"]
       github-actions:
         patterns: ["*"]
-=======
->>>>>>> origin/develop
