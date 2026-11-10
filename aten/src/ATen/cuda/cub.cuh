@@ -70,10 +70,10 @@
 #define ATEN_CUB_MAXIMUM() NO_ROCM(at_cuda_detail)ROCM_HIPCUB(::cub)::Max()
 #endif
 
-// Pre ROCm 8.0 we require backporting of FpLimits specialization
-// for 'c10::BFloat16'. However, ROCm 8.0 lifts the compatible
-// CUB version to 3.x which uses libhipcxx and derives numerical
-// limits from there.
+// hipCUB versions compatible with CCCL < 3.0 (HIPCUB_CCCL_VERSION < 300000,
+// e.g. the standalone/hipccl2 hipCUB) require backporting of the FpLimits
+// specialization for 'c10::BFloat16'. The hipccl3 hipCUB is compatible with
+// CCCL 3.x, is built on libhipcxx, and derives numerical limits from there.
 #if defined(USE_ROCM) && !(defined(HIPCUB_CCCL_VERSION) && HIPCUB_CCCL_VERSION >= 300000)
 
 // backport https://github.com/NVIDIA/cub/pull/306 for c10::BFloat16
