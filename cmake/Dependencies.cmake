@@ -1095,6 +1095,8 @@ if(USE_ROCM)
     # CMAKE_HIP_FLAGS: flags passed to the HIP compiler for device code.
     # Architecture is handled by CMAKE_HIP_ARCHITECTURES (set in LoadHIP.cmake).
     string(APPEND CMAKE_HIP_FLAGS " --offload-compress -std=c++20")
+    # Match the Clang C++ warning policy for failed optimization requests.
+    string(APPEND CMAKE_HIP_FLAGS " -Wno-pass-failed")
     # Pass device library path for theRock nightly builds
     if(DEFINED ENV{HIP_DEVICE_LIB_PATH})
       file(TO_CMAKE_PATH "$ENV{HIP_DEVICE_LIB_PATH}" _hip_device_lib_path)
