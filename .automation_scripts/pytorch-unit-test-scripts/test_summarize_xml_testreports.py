@@ -3,6 +3,7 @@ import unittest
 from pathlib import Path
 
 from summarize_xml_testreports import (
+    _canonical_classname,
     _test_config_from_dir,
     get_test_status,
     parse_xml_reports_as_dict,
@@ -79,6 +80,41 @@ class TestXmlReportMerging(unittest.TestCase):
 
             self.assertEqual(len(cases), 1)
             self.assertEqual(get_test_status(next(iter(cases.values()))), "PASSED")
+
+    def test_testcase_retry_deduplicates_module_qualified_classname(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = Path(tmp)
+            shard = "test-distributed-1-1_1001"
+            failed = (
+                '<testcase classname="test.distributed.test_nccl.'
+                'NCCLSymmetricMemoryTest" name="test_nccl_symmem_put" time="300">'
+                "<failure /></testcase>"
+            )
+            passed = (
+                '<testcase classname="NCCLSymmetricMemoryTest" '
+                'name="test_nccl_symmem_put" time="10" />'
+            )
+            for filename, testcase in (("failed.xml", failed), ("passed.xml", passed)):
+                self._write(
+                    root,
+                    shard,
+                    "distributed.test_nccl",
+                    filename,
+                    SUITE.format(time=1, testcase=testcase),
+                )
+
+            cases = parse_xml_reports_as_dict(-1, -1, "testcase", str(root))
+
+            self.assertEqual(len(cases), 1)
+            key, case = next(iter(cases.items()))
+            self.assertEqual(key[1], "NCCLSymmetricMemoryTest")
+            self.assertEqual(get_test_status(case), "PASSED")
+
+    def test_unrelated_dotted_classname_is_preserved(self):
+        self.assertEqual(
+            _canonical_classname("distributed.test_nccl", "package.NestedTest"),
+            "package.NestedTest",
+        )
 
     def test_checked_in_junit_fixtures_are_excluded(self):
         with tempfile.TemporaryDirectory() as tmp:
