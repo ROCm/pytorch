@@ -189,9 +189,19 @@ class FlexKernelOptions(TypedDict, total=False):
     option for debugging. Default: False."""
 
     USE_TMA: NotRequired[bool]
-    """Whether to use Tensor Memory Accelerator (TMA) on supported hardware.
-    This is experimental and may not work on all hardware, currently specific
-    to NVIDIA GPUs Hopper+. Default: False."""
+    """Whether to use hardware tensor descriptors for the attention operands.
+    This is experimental and may not work on all hardware. It is supported on
+    NVIDIA Hopper+ (TMA), Intel GPUs, and AMD gfx1250 (TDM); the AMD path covers
+    the forward and decode kernels only, not the backward pass. The default is
+    backend-dependent: Intel GPUs select descriptors automatically, and
+    everything else defaults to False. Setting False forces the pointer path.
+    Setting True requests descriptors but remains subject to the dtype and
+    layout checks, falling back to the pointer path when the operands are
+    ineligible. On AMD gfx1250, forward and decode descriptors additionally
+    require ``torch._inductor.config.triton.enable_flex_tdm = True`` at compile
+    time. It is off by default, so ``USE_TMA=True`` alone uses the pointer
+    path; once enabled, eligible inputs select descriptors automatically. The
+    control does not affect NVIDIA or Intel selection."""
 
     # ROCm-specific options
 
