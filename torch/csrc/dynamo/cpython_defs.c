@@ -223,15 +223,33 @@ static inline PyFrameObject* THP_PyFrame_GetFrameObject(
 
 #if IS_PYTHON_3_14_PLUS
 
+// _PyFrame_Copy / PyStackRef_MakeHeapSafe shares an owned stackref (no
+// incref) and increfs a borrowed one. Give the copy its own owned ref
+// when the bits were shared, so the original frame can be cleared
+// without freeing the copy's object. PyStackRef_DUP(NULL) is undefined
+// on 3.14 (debug assert, and an incref of a garbage pointer on the
+// free-threaded build).
+static void THP_own_copied_stackref(_PyStackRef* copied, _PyStackRef src) {
+  if (PyStackRef_IsNull(*copied)) {
+    return;
+  }
+  if (copied->bits == src.bits) {
+    *copied = PyStackRef_DUP(*copied);
+  }
+}
+
 static void THP_take_ownership(PyFrameObject* f, _PyInterpreterFrame* frame) {
   Py_BEGIN_CRITICAL_SECTION(f);
   CHECK(frame->owner < FRAME_OWNED_BY_INTERPRETER);
   CHECK(frame->owner != FRAME_OWNED_BY_FRAME_OBJECT);
   _PyInterpreterFrame* new_frame = (_PyInterpreterFrame*)f->_f_frame_data;
   _PyFrame_Copy(frame, new_frame);
-  // _PyFrame_Copy takes the reference to the executable,
-  // so we need to restore it.
-  frame->f_executable = PyStackRef_DUP(new_frame->f_executable);
+  // _PyFrame_Copy takes the reference to the executable. Own it on the
+  // copy (CPython 3.14.4, gh-144446) instead of writing the original
+  // frame, which races with other threads and leaks the code object
+  // when this frame is not cleared afterwards.
+  THP_own_copied_stackref(&new_frame->f_executable, frame->f_executable);
+  THP_own_copied_stackref(&new_frame->f_funcobj, frame->f_funcobj);
   f->f_frame = new_frame;
   new_frame->owner = FRAME_OWNED_BY_FRAME_OBJECT;
   if (_PyFrame_IsIncomplete(new_frame)) {
@@ -341,7 +359,42 @@ void THP_PyFrame_Clear(_PyInterpreterFrame* frame) {
     PyFrameObject* f = frame->frame_obj;
     frame->frame_obj = NULL;
     if (!_PyObject_IsUniquelyReferenced((PyObject*)f)) {
+      // A finished function (the compiled-autograd backward graph-breaks
+      // on Tensor.item()) can leave this frame object alive via a
+      // traceback or f_back link. take_ownership copies locals into it
+      // and returns without closing them, so the saved tensor stays
+      // referenced and WeakTensorRef.expired() never becomes true.
+      // Generators still need those locals; a returned function does not.
+      int drop_locals = frame->owner != FRAME_OWNED_BY_GENERATOR;
       THP_take_ownership(f, frame);
+      if (drop_locals) {
+        Py_BEGIN_CRITICAL_SECTION(f);
+        _PyInterpreterFrame* owned = f->f_frame;
+        CHECK(owned->stackpointer != NULL);
+        int n = (int)(owned->stackpointer - owned->localsplus);
+        CHECK(n >= 0);
+        for (int i = 0; i < n; i++) {
+          // The copy holds the only owned ref. Abandon the original slot
+          // so a later clear of this frame cannot double-free it.
+          frame->localsplus[i] = PyStackRef_NULL;
+        }
+        frame->stackpointer = frame->localsplus;
+        frame->f_locals = NULL;
+        THP_PyFrame_ClearLocals(owned);
+        // ClearLocals closes the slots but leaves the bits in place.
+        // frame_dealloc clears this frame again; null the slots so that
+        // second clear cannot drop the same objects.
+        for (int i = 0; i < n; i++) {
+          owned->localsplus[i] = PyStackRef_NULL;
+        }
+        Py_CLEAR(f->f_locals_cache);
+        Py_END_CRITICAL_SECTION();
+        // Copy now owns these. Drop the original frame's refs. Borrowed
+        // stackrefs are a no-op for CLEAR; owned ones were DUP'd above.
+        // Generators keep the original frame, so they must not clear it.
+        PyStackRef_CLEAR(frame->f_executable);
+        PyStackRef_CLEAR(frame->f_funcobj);
+      }
       Py_DECREF(f);
       return;
     }
@@ -349,6 +402,7 @@ void THP_PyFrame_Clear(_PyInterpreterFrame* frame) {
   }
   THP_PyFrame_ClearLocals(frame);
   PyStackRef_CLEAR(frame->f_funcobj);
+  PyStackRef_CLEAR(frame->f_executable);
 }
 
 #else

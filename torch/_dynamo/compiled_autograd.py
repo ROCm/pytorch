@@ -1132,6 +1132,21 @@ class AutogradCompilerInstance:
     def create_graph_module(self, id: str) -> GraphModule:
         return GraphModule(self.fx_tracer.root, self.fx_tracer.graph, id)
 
+    def _release_capture_state(self) -> None:
+        # The C++ cache keeps runtime_wrapper for the process. Drop the
+        # capture objects it no longer needs so a saved tensor cannot stay
+        # reachable through the tracer or the fake-tensor mode.
+        tracer = self.fx_tracer
+        if tracer.tensor_tracker is not None:
+            tracer.tensor_tracker.clear()
+        tracer.graph = None
+        tracer.root = None
+        self.proxy_mode = None
+        self.fake_tensor_mode = None
+        self.shape_env = None
+        self.hooks_proxy = None
+        self.symnode_proxy_lookup = {}
+
     def end_capture(self, outputs: Any) -> tuple[Callable[..., Any], Any]:
         self.fx_tracer.create_proxy(
             "call_function",
@@ -1210,6 +1225,13 @@ class AutogradCompilerInstance:
             payload_fn=lambda: graph.print_readable(print_output=False),
         )
 
+        # Bind the fields the wrapper needs. Closing over `self` would pin
+        # the tracer, fake mode, and shape env in the process-lifetime
+        # compiled-autograd cache, and those can keep the saved tensor alive
+        # after backward (test_custom_function_cycle).
+        nan_checker = self.nan_checker
+        compile_id = self.id
+
         def runtime_wrapper(
             compiled_fn: Callable[..., Any],
             inputs: Any,
@@ -1222,8 +1244,8 @@ class AutogradCompilerInstance:
             try:
                 in_compiled_autograd_region = True
 
-                if self.nan_checker:
-                    self.nan_checker.prep_with_inputs(inputs)
+                if nan_checker:
+                    nan_checker.prep_with_inputs(inputs)
 
                 filtered_sizes = []
                 for idx, integer in enumerate(sizes):
@@ -1238,12 +1260,12 @@ class AutogradCompilerInstance:
                 for i in runtime_inputs_to_move:
                     inputs[i] = inputs[i].pin_memory().cuda(non_blocking=True)
 
-                with _disable(), make_compile_context(self.id):
+                with _disable(), make_compile_context(compile_id):
                     out = compiled_fn(
                         inputs, filtered_sizes, scalars, hooks, packed_inputs
                     )
-                    if self.nan_checker:
-                        self.nan_checker.check(out)
+                    if nan_checker:
+                        nan_checker.check(out)
                     return out
             finally:
                 in_compiled_autograd_region = False
@@ -1256,7 +1278,9 @@ class AutogradCompilerInstance:
             log_pt2_compile_event=True,
         )
         self.compile_context.__exit__(None, None, None)
-        return runtime_wrapper, self.compiler_fn(graph)
+        compiled = self.compiler_fn(graph)
+        self._release_capture_state()
+        return runtime_wrapper, compiled
 
     @staticmethod
     def get_all_nodes(args: Sequence[Any]) -> list[torch.fx.Node]:
