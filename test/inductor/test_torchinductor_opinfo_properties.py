@@ -66,6 +66,7 @@ from torch.testing._internal.common_utils import (
 )
 from torch.testing._internal.inductor_utils import HAS_GPU
 from torch.testing._internal.opinfo.core import _filter_unary_elementwise_tensor
+from torch.utils import _pytree as pytree
 
 
 # LLM-useful op names to filter from unary_ufuncs
@@ -366,6 +367,25 @@ def sample_operates_on_batch_dim(op_name, sample_input):
 # Dtype shorthands
 fp32, fp16, bf16, ALL = torch.float32, torch.float16, torch.bfloat16, None
 
+
+def _dtype_numerical_tolerances(dtype, rtol_multiplier=1.0):
+    """Return the baseline ``(rtol, atol)`` for a floating-point dtype.
+
+    The relative term is one epsilon, about 1 ULP over the normal range.
+    The absolute term is one minimum subnormal step around zero.
+    """
+    finfo = torch.finfo(dtype)
+    return rtol_multiplier * finfo.eps, finfo.smallest_normal * finfo.eps
+
+
+# ROCm inductor_default tanh fp32 matches eager within this one-ULP bound,
+# which is the release/2.15 unary numerical tolerance for the same case.
+ROCM_NUMERICAL_TOLERANCE_OVERRIDES = {
+    ("unary_numerical", "inductor_default", "tanh", fp32): (
+        _dtype_numerical_tolerances(fp32)
+    ),
+}
+
 EAGER_EQUIV_XFAILS = {
     "aot_eager_decomp_partition": {
         "nn.functional.gelu": {fp32},
@@ -491,7 +511,6 @@ ROCM_UNARY_NUMERICAL_XFAILS = {
         "sigmoid": {fp32},
         "sin": {fp32},
         "tan": {fp32},
-        "tanh": {fp32},
     },
     "inductor_numerics": {
         "log10": {fp16, fp32},
@@ -614,6 +633,119 @@ def is_relaxed_property_case(device_type, op_name, backend, test_type, dtype=Non
     return dtype in allowed or ALL in allowed
 
 
+def _get_numerical_tolerances(dtype, test_type, backend, op_name):
+    """Return compiled-vs-eager tolerances for one property test.
+
+    release/2.14 stays bitwise. ROCM_RELAXED_PROPERTY_CASES keep TestCase's
+    default tolerance. The override table selects the release/2.15 one-ULP
+    bound for a ROCm case that meets it.
+    """
+    if is_relaxed_property_case("cuda", op_name, backend, test_type, dtype):
+        return None, None
+    if torch.version.hip is not None:
+        override = ROCM_NUMERICAL_TOLERANCE_OVERRIDES.get(
+            (test_type, backend, op_name, dtype)
+        )
+        if override is not None:
+            return override
+    return 0.0, 0.0
+
+
+def _ordered_float_ranks(tensor):
+    """Map finite fp16/bf16/fp32 values to monotonic integer ranks.
+
+    IEEE sign-magnitude encodings are reflected across the sign boundary so
+    adjacent floating-point values receive adjacent ranks. Subtracting two
+    ranks therefore gives their ULP distance, including across signed zero.
+    """
+    int_dtype = torch.int32 if tensor.dtype == torch.float32 else torch.int16
+    width = tensor.element_size() * 8
+    sign_mask = 1 << (width - 1)
+    bits = tensor.contiguous().view(int_dtype).to(torch.int64)
+    bits = torch.bitwise_and(bits, (1 << width) - 1)
+    magnitude = torch.bitwise_and(bits, sign_mask - 1)
+    return torch.where(
+        torch.bitwise_and(bits, sign_mask).bool(),
+        sign_mask - magnitude,
+        sign_mask + magnitude,
+    )
+
+
+def _unravel_index(flat_index, shape):
+    """Convert a row-major flat offset to an index tuple for diagnostics."""
+    index = []
+    for size in reversed(shape):
+        index.append(flat_index % size)
+        flat_index //= size
+    return tuple(reversed(index))
+
+
+def _tensor_ulp_diagnostic(actual, expected):
+    """Return the largest finite ULP difference for a compatible tensor pair.
+
+    The result contains the ULP distance, tensor index, actual value, and
+    expected value. Unsupported dtypes, mismatched tensors, empty tensors, and
+    pairs without any finite values return ``None``; the main assertion reports
+    those structural or nonfinite mismatches directly.
+    """
+    if (
+        actual.dtype != expected.dtype
+        or actual.shape != expected.shape
+        or actual.dtype not in (torch.float16, torch.bfloat16, torch.float32)
+        or actual.numel() == 0
+    ):
+        return None
+
+    finite = torch.isfinite(actual) & torch.isfinite(expected)
+    if not finite.any():
+        return None
+
+    ulps = torch.zeros_like(actual, dtype=torch.int64)
+    actual_ranks = _ordered_float_ranks(actual)
+    expected_ranks = _ordered_float_ranks(expected)
+    ulps[finite] = (actual_ranks[finite] - expected_ranks[finite]).abs()
+
+    flat_index = int(torch.argmax(ulps).item())
+    index = _unravel_index(flat_index, actual.shape)
+    return (
+        int(ulps.flatten()[flat_index].item()),
+        index,
+        actual[index].item(),
+        expected[index].item(),
+    )
+
+
+def _format_ulp_diagnostics(actual, expected):
+    """Format maximum-ULP details for tensor leaves in matching output pytrees.
+
+    Non-tensor and unsupported leaves are omitted. An empty string is returned
+    when the output structures differ or no tensor leaf supports ULP analysis.
+    """
+    actual_leaves, actual_spec = pytree.tree_flatten(actual)
+    expected_leaves, expected_spec = pytree.tree_flatten(expected)
+    if actual_spec != expected_spec:
+        return ""
+
+    diagnostics = []
+    for leaf_index, (actual_leaf, expected_leaf) in enumerate(
+        zip(actual_leaves, expected_leaves, strict=True)
+    ):
+        if not isinstance(actual_leaf, torch.Tensor) or not isinstance(
+            expected_leaf, torch.Tensor
+        ):
+            continue
+        diagnostic = _tensor_ulp_diagnostic(actual_leaf, expected_leaf)
+        if diagnostic is None:
+            continue
+        max_ulps, index, actual_value, expected_value = diagnostic
+        diagnostics.append(
+            f"Output leaf {leaf_index}: max ULP distance {max_ulps} at {index}; "
+            f"compiled={actual_value!r}, eager={expected_value!r}"
+        )
+
+    return "\n".join(diagnostics)
+
+
 def compile_fn(fn, backend):
     """Compile a function with the given backend."""
     if backend == "aot_eager_decomp_partition":
@@ -654,6 +786,32 @@ class TestOpInfoProperties(TestCase):
         except Exception:
             samples = list(op.sample_inputs(device, dtype, requires_grad=False))
         return samples
+
+    def _assert_compiled_matches_eager(
+        self, compiled, eager, dtype, test_type, backend, op_name
+    ):
+        """Assert compiled output matches eager under the tolerance for this case.
+
+        The case selects bitwise equality, a ROCm relaxed tolerance, or the
+        one-ULP bound. ``assertEqual`` still checks the output pytree and exact
+        dtypes. Its failure message appends per-leaf ULP details only on failure.
+        """
+        rtol, atol = _get_numerical_tolerances(dtype, test_type, backend, op_name)
+
+        def failure_message(message):
+            """Append lazy per-leaf ULP details to the standard failure message."""
+            diagnostics = _format_ulp_diagnostics(compiled, eager)
+            return f"{message}\n{diagnostics}" if diagnostics else message
+
+        self.assertEqual(
+            compiled,
+            eager,
+            rtol=rtol,
+            atol=atol,
+            equal_nan=True,
+            exact_dtype=True,
+            msg=failure_message,
+        )
 
     def _run_with_expected_failure(
         self, device_type, op_name, backend, test_type, dtype, test_fn
@@ -995,13 +1153,14 @@ class TestOpInfoProperties(TestCase):
         compiled_out = compiled_fn(test_values)
 
         def run_test():
-            # Zero-tolerance equality unless this ROCm case needs numeric tolerance.
-            if is_relaxed_property_case(
-                device_type, op.name, backend, "unary_numerical", dtype
-            ):
-                self.assertEqual(eager_out, compiled_out)
-            else:
-                self.assertEqual(eager_out, compiled_out, rtol=0, atol=0)
+            self._assert_compiled_matches_eager(
+                compiled_out,
+                eager_out,
+                dtype,
+                "unary_numerical",
+                backend,
+                op.name,
+            )
 
         self._run_with_expected_failure(
             device_type, op.name, backend, "unary_numerical", dtype, run_test
