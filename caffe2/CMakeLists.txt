@@ -1619,7 +1619,10 @@ if(USE_ROCM)
   if(USE_NVSHMEM)
     if(rocshmem_FOUND AND rocshmem_VERSION VERSION_GREATER_EQUAL "3.3.0")
       # rocSHMEM upstream ships device code for a subset of AMD gfx targets only.
-      set(ROCSHMEM_SUPPORTED_ARCH gfx90a gfx942 gfx950 gfx1100 gfx1201 gfx1250)
+      # gfx1250 and gfx1250-strict are different offload targets. rocSHMEM adds
+      # both for ROCm >= 7.14, and list(FIND) below is an exact match, so both
+      # names have to be listed or torch_rocshmem omits that code object.
+      set(ROCSHMEM_SUPPORTED_ARCH gfx90a gfx942 gfx950 gfx1100 gfx1201 gfx1250 gfx1250-strict)
       set(_torch_rocshmem_build_arches)
       foreach(_arch ${PYTORCH_ROCM_ARCH})
         list(FIND ROCSHMEM_SUPPORTED_ARCH "${_arch}" _rocsmem_supported_idx)
