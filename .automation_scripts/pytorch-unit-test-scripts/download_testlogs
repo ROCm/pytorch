@@ -168,6 +168,8 @@ def write_test_log_to_file(filename, test_key, jobs, sha):
         with open(filename + ".job_url", "w", encoding="utf-8") as f:
             f.write(job_url)
 
+JOBS_PAGE_SIZE = 50
+
 def _fetch_jobs_page(jobs_url, params, max_retries=7):
     """GET one page of the jobs API, retrying transient failures.
 
@@ -247,7 +249,9 @@ def get_workflow_jobs(wf, all_attempts=False):
     """
     if wf is None:
         raise Exception("wf is None!")
-    page_size = 100 #max allowed by Github API
+    # GitHub's max is 100, but on large pytorch trunk runs per_page=100 times
+    # out with HTTP 502 on every attempt, so retries never recover. 50 works.
+    page_size = JOBS_PAGE_SIZE
     base_params = {'per_page': page_size}
     if all_attempts:
         base_params['filter'] = 'all'
