@@ -159,6 +159,7 @@ class TORCH_API Context {
   static bool hasLAPACK();
   static bool hasMKLDNN();
   static bool ckSupported();
+  static bool ckGemmSupported();
   static bool hasEigenSparse();
   static bool hasMAGMA() {
     return detail::getCUDAHooks().hasMAGMA();

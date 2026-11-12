@@ -269,6 +269,13 @@ cmake_dependent_option(
   "USE_CUDA AND LINUX AND BUILD_PYTHON" OFF)
 cmake_dependent_option(USE_ROCM "Use ROCm" ON "LINUX OR WIN32" OFF)
 cmake_dependent_option(USE_ROCM_CK_GEMM "Use ROCm Composable Kernel for GEMMs" ON "USE_ROCM;NOT WIN32" OFF)
+# Single source of truth for the GPU archs Composable Kernel GEMM supports. It
+# drives both the ck_gemm build arch filter (torch_filter_ck_gemm_arches in
+# cmake/public/utils.cmake) and the runtime support check / dispatch, which read
+# it through the generated ATen/ROCmCKGEMMConfig.h. Add a WMMA arch (e.g.
+# gfx1200) here to opt it back in without patching source.
+set(TORCH_CK_GEMM_ARCH_LIST "gfx90a;gfx942;gfx950" CACHE STRING
+    "Semicolon-separated GPU archs Composable Kernel GEMM is built and enabled for")
 cmake_dependent_option(USE_ROCM_CK_SDPA "Use ROCm Composable Kernel for SDPA" ON "USE_ROCM;NOT WIN32" OFF)
 option(CAFFE2_STATIC_LINK_CUDA "Statically link CUDA libraries" OFF)
 cmake_dependent_option(USE_CUDNN "Use cuDNN" ON "USE_CUDA" OFF)
@@ -984,6 +991,22 @@ cmake_dependent_option(
 # Cannot be put into Dependencies.cmake due circular dependency:
 # USE_FLASH_ATTENTION -> USE_ROCM -> Dependencies.cmake -> aotriton.cmake
 #
+# AOTriton publishes a gfx1250 image and no gfx1250-strict image. Flash and
+# mem-eff attention on ROCm compile against aotriton headers and link
+# __caffe2_aotriton, so a strict-only arch list has to turn those options off
+# before the include below. Leave mixed lists alone: gfx1250 still has an image.
+# Remove this once AOTriton publishes gfx1250-strict kernels.
+if(USE_ROCM AND (USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION))
+  set(_aotriton_supported_arches ${PYTORCH_ROCM_ARCH})
+  list(REMOVE_ITEM _aotriton_supported_arches "gfx1250-strict")
+  if(_aotriton_supported_arches STREQUAL "")
+    message(STATUS "AOTriton disabled: PYTORCH_ROCM_ARCH (${PYTORCH_ROCM_ARCH}) has no arch with an AOTriton image")
+    caffe2_update_option(USE_FLASH_ATTENTION OFF)
+    caffe2_update_option(USE_MEM_EFF_ATTENTION OFF)
+  endif()
+  unset(_aotriton_supported_arches)
+endif()
+
 if(USE_ROCM)
   if(USE_FLASH_ATTENTION OR USE_MEM_EFF_ATTENTION)
     include(cmake/External/aotriton.cmake)

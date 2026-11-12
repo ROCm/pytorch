@@ -48,6 +48,7 @@ from torch.testing._internal.inductor_utils import (
     HAS_CUDA_AND_TRITON,
     HAS_GPU,
     HAS_XPU_AND_TRITON,
+    requires_block_ptr,
 )
 from torch.testing._internal.logging_utils import log_settings, logs_to_string
 
@@ -3839,6 +3840,7 @@ class MutationTests(torch._inductor.test_case.TestCase):
         )
 
     @skipIfXpu(msg="Blocked by https://github.com/pytorch/pytorch/issues/170049")
+    @requires_block_ptr
     @make_mutation_test
     def test_for_loop_arg_2():
         @triton.jit
@@ -3900,6 +3902,7 @@ class MutationTests(torch._inductor.test_case.TestCase):
         )
 
     @skipIfXpu(msg="Blocked by https://github.com/pytorch/pytorch/issues/170049")
+    @requires_block_ptr
     @make_mutation_test
     def test_while_loop():
         @triton.jit
@@ -4342,6 +4345,11 @@ if HAS_GPU:
 
         if kernel.fn.__name__ == "add_kernel_2d_autotuned":
             fn = unittest.skip("Fails with Triton update")(fn)
+        elif kernel.fn.__name__ in {
+            "add_kernel_with_block_ptr",
+            "kernel_with_block_ptr_2d",
+        }:
+            fn = requires_block_ptr(fn)
 
         setattr(MutationTests, name, fn)
 

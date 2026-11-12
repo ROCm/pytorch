@@ -42,6 +42,7 @@ from torch.testing._internal.common_cuda import (
     CUDA_DEVICE_IS_INTEGRATED,
     PLATFORM_SUPPORTS_GREEN_CONTEXT,
     PLATFORM_SUPPORTS_WORKQUEUE_CONFIG,
+    ROCM_VERSION,
     SM70OrLater,
     SM89OrLater,
     TEST_CUDNN,
@@ -851,7 +852,6 @@ print(t.is_pinned())
             else:
                 # ROCm logic is less so, it's cublaslt for some Instinct, cublas for all else
                 # Mirror CUDAHooks::getHipblasltPreferredArchs in CUDAHooks.cpp
-                ROCM_VERSION = tuple(int(v) for v in torch.version.hip.split(".")[:2])
                 archs = ["gfx90a", "gfx942"]
                 if ROCM_VERSION >= (6, 4):
                     archs.extend(["gfx1200", "gfx1201"])
@@ -860,9 +860,16 @@ print(t.is_pinned())
                 if ROCM_VERSION >= (7, 13):
                     archs.extend(["gfx1100", "gfx1101", "gfx1151"])
                 if ROCM_VERSION >= (7, 14):
-                    archs.extend(["gfx1250"])
+                    archs.append("gfx1250")
+                if ROCM_VERSION >= (10, 3):
+                    archs.extend(["gfx1170", "gfx1171", "gfx1250-strict"])
                 gcn_arch_name = torch.cuda.get_device_properties(0).gcnArchName
-                hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
+                # "gfx1250" is a prefix of "gfx1250-strict". The strict target
+                # is gated on ROCm 10.3, so do not let the shorter name match it.
+                if "gfx1250-strict" in gcn_arch_name:
+                    hipblaslt_preferred = ROCM_VERSION >= (10, 3)
+                else:
+                    hipblaslt_preferred = any(arch in gcn_arch_name for arch in archs)
                 if hipblaslt_preferred:
                     self.assertTrue(default == torch._C._BlasBackend.Cublaslt)
                 else:
@@ -950,7 +957,7 @@ print(t.is_pinned())
             gcn_arch = str(
                 torch.cuda.get_device_properties(0).gcnArchName.split(":", 1)[0]
             )
-            if gcn_arch in ["gfx942", "gfx950", "gfx1250"]:
+            if gcn_arch in ["gfx942", "gfx950", "gfx1250", "gfx1250-strict"]:
                 default_workspace_size = 1024 * 128 * 1024  # :1024:128
         else:
             default_workspace_size = (
@@ -3689,12 +3696,11 @@ exit(2)
         elem = 4
 
         # this was annoying to write but stresses the expectations pretty rigorously
-        # For small_pool cases, delta_cudaMallocs and delta_cudaMalloc_bytes include
-        # an extra kSmallBuffer segment for the per-capture RNG state tensors, which
-        # are allocated on the default stream (separate from stream s).
+        # The per-capture RNG state tensors go to the default stream; an anchor block
+        # there (below) makes them reuse an existing segment regardless of earlier tests.
         cases = (
-            (512 // elem, 2, 2 * kSmallBuffer, kSmallBuffer, "small_pool"),
-            (kSmallSize // elem, 3, 3 * kSmallBuffer, kSmallBuffer, "small_pool"),
+            (512 // elem, 1, 1 * kSmallBuffer, kSmallBuffer, "small_pool"),
+            (kSmallSize // elem, 2, 2 * kSmallBuffer, kSmallBuffer, "small_pool"),
             ((kSmallSize + 512) // elem, 1, kLargeBuffer, kLargeBuffer, "large_pool"),
             (
                 (kMinLargeAlloc - 512) // elem,
@@ -3721,6 +3727,9 @@ exit(2)
         gc.collect()
         torch.cuda.empty_cache()
 
+        with torch.cuda.stream(torch.cuda.default_stream()):
+            anchor = torch.empty((1,), device="cuda")  # noqa: F841
+
         s = torch.cuda.Stream()
 
         for (
@@ -3742,9 +3751,6 @@ exit(2)
             g = torch.cuda.CUDAGraph()
             s.wait_stream(torch.cuda.current_stream())
             with torch.cuda.stream(s):
-                # Per-capture RNG state tensors are allocated on the default stream
-                # (not the capture stream), so they occupy a separate segment from
-                # user tensors created here on stream s.
                 a = torch.ones((numel,), device="cuda")
 
                 precapture_stats = torch.cuda.memory_stats()
@@ -9783,7 +9789,7 @@ class TestCompileKernel(TestCase):
         # Test error handling with more than supported shared memory size
         if torch.version.hip:
             gcn_arch = get_device_properties().gcnArchName.split(":", 1)[0]
-            if gcn_arch == "gfx1250":
+            if gcn_arch in ("gfx1250", "gfx1250-strict"):
                 max_smem = 320 * 1024
             elif gcn_arch == "gfx950":
                 max_smem = 160 * 1024

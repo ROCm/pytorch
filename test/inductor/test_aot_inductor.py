@@ -7702,7 +7702,10 @@ class AOTInductorTestsTemplate:
 
         if TEST_WITH_ROCM:
             if CDNA5OrLater():
-                self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+                self.skipTest(
+                    "int4 mm not yet implemented for "
+                    "gfx1250/gfx1250-strict (needs WMMA)"
+                )
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
@@ -7741,7 +7744,10 @@ class AOTInductorTestsTemplate:
 
         if TEST_WITH_ROCM:
             if CDNA5OrLater():
-                self.skipTest("int4 mm not yet implemented for gfx1250 (needs WMMA)")
+                self.skipTest(
+                    "int4 mm not yet implemented for "
+                    "gfx1250/gfx1250-strict (needs WMMA)"
+                )
             if not CDNA2OrLater():
                 self.skipTest("_int4_mm is supported only for CDNA2 or later")
 
@@ -8484,6 +8490,10 @@ class AOTInductorTestsTemplate:
 
             del model, example_inputs, ep
             torch.accelerator.synchronize()
+            # cuBLAS/hipBLASLt workspaces are cached per handle and stream and
+            # counted by memory_allocated(); drop them so only leaks remain.
+            if self.device == "cuda":
+                torch._C._cuda_clearCublasWorkspaces()
             torch.accelerator.empty_cache()
             gc.collect()
             allocated_memory.append(torch.accelerator.memory_allocated())

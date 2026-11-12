@@ -538,10 +538,16 @@ bool CUDAHooks::isGPUArch(const std::vector<std::string>& archs, DeviceIndex dev
   }
 
   std::string device_arch = prop->gcnArchName;
-  for (std::string arch : archs) {
+  for (const std::string& arch : archs) {
       size_t substring = device_arch.find(arch);
-      if (substring != std::string::npos) {
-          return true;
+      while (substring != std::string::npos) {
+          size_t end = substring + arch.size();
+          // '-' continues a different offload target (gfx1250 vs gfx1250-strict).
+          // ':' is a feature suffix and still belongs to this target.
+          if (end >= device_arch.size() || device_arch[end] != '-') {
+              return true;
+          }
+          substring = device_arch.find(arch, substring + 1);
       }
   }
   return false;
@@ -562,6 +568,9 @@ const std::vector<std::string>& CUDAHooks::getHipblasltPreferredArchs() const {
 #if ROCM_VERSION >= 71400
     "gfx1250",
 #endif
+#if ROCM_VERSION >= 100300
+    "gfx1170", "gfx1171", "gfx1250-strict",
+#endif
   };
   return archs;
 }
@@ -576,7 +585,10 @@ const std::vector<std::string>& CUDAHooks::getHipblasltSupportedArchs() const {
     "gfx950", "gfx1150", "gfx1151",
 #endif
 #if ROCM_VERSION >= 71400
-    "gfx1250"
+    "gfx1250",
+#endif
+#if ROCM_VERSION >= 100300
+    "gfx1170", "gfx1171", "gfx1250-strict",
 #endif
   };
   return archs;
