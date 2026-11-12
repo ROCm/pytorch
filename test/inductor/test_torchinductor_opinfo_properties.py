@@ -456,7 +456,7 @@ ROCM_EAGER_EQUIV_XFAILS = {
         "sigmoid": {fp32},
         "nn.functional.gelu": {fp32},
         "nn.functional.layer_norm": {fp32},
-        "nn.functional.silu": {fp16, fp32},
+        "nn.functional.silu": {fp32},
         "softmax": {fp32},
         "log_softmax": {fp32},
     },
