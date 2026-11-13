@@ -1,0 +1,63 @@
+name: Require upstream PR
+
+# PRs to release branches must record whether the change goes upstream: either
+# reference the pytorch/pytorch PR in the description, or apply the
+# `no-upstream` label for a ROCm-only change. Only the event payload is read;
+# PR code is never checked out, so pull_request_target is safe here.
+
+on:
+  pull_request_target:
+    branches: [release/**]
+    types: [opened, edited, reopened, synchronize, labeled, unlabeled]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: upstream-pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  upstream-pr-check:
+    if: github.repository == 'ROCm/pytorch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const marker = '<!-- upstream-pr-check -->';
+            const label = 'no-upstream';
+            const upstreamRef = /pytorch\/pytorch(#|\/pull\/)\d+/i;
+
+            const hasRef = upstreamRef.test(pr.body || '');
+            const hasLabel = pr.labels.some((l) => l.name === label);
+            const passed = hasRef || hasLabel;
+
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              ...context.repo, issue_number: pr.number,
+            });
+            const sticky = comments.find((c) => c.body.includes(marker));
+
+            const body = passed
+              ? `${marker}\n✅ Upstream decision recorded (${hasRef ? 'upstream PR referenced' : `\`${label}\` label`}).`
+              : [
+                  marker,
+                  '❌ **Upstream decision required.** PRs to release branches must record whether the change goes upstream. Do one of:',
+                  '',
+                  '- **Has upstream:** add the upstream PR to the description, e.g. `pytorch/pytorch#12345` or `https://github.com/pytorch/pytorch/pull/12345`.',
+                  `- **ROCm-only change:** apply the \`${label}\` label.`,
+                  '',
+                  'This check re-runs automatically when you edit the description or change labels.',
+                ].join('\n');
+
+            if (sticky) {
+              await github.rest.issues.updateComment({ ...context.repo, comment_id: sticky.id, body });
+            } else if (!passed) {
+              await github.rest.issues.createComment({ ...context.repo, issue_number: pr.number, body });
+            }
+
+            if (!passed) {
+              core.setFailed(`No upstream PR reference in the description and no '${label}' label.`);
+            }
