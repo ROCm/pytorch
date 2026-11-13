@@ -71,13 +71,8 @@ def _promote_type_fft(
 
     if maybe_support_half:
         allowed_types.append(torch.float16)
-        # Match aten promote_type_fft: hipFFT has no bfloat16 kernel, so ROCm
-        # casts bfloat16 to float32 before planning. CUDA on this branch does not.
-        if (
-            dtype == torch.bfloat16
-            and device.type == "cuda"
-            and torch.version.hip is not None
-        ):
+        # hipFFT has no bfloat16 kernel; ROCm promotes for cuda and meta devices
+        if dtype == torch.bfloat16 and torch.version.hip is not None:
             dtype = torch.float32
     torch._check(dtype in allowed_types, lambda: f"Unsupported dtype {dtype}")
 
