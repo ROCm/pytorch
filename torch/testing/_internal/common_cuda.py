@@ -224,16 +224,11 @@ def gfx_arch_supports_opportunistic_fastatomics():
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250/gfx1250-strict are omitted until flash-attention artifacts
-        # ship for them. The AOTriton path needs the gfx1250 GPU image from
-        # AOTriton 0.12.1b, which is wired up by PR #188242 (which also adds
-        # gfx1250 to this list); this gate-only PR leaves them out so the two
-        # changes do not conflict (see cmake/External/aotriton.cmake). The
-        # anchored image matcher does not select that image for gfx1250-strict,
-        # and AOTriton publishes no strict image. The CK FAv3/AITER codegen is
-        # separately not yet wired for gfx1250/gfx1250-strict
+        # gfx1250 and gfx1250-strict use the AOTriton gfx1250 GPU image.
+        # "gfx1250" already matches gfx1250-strict by substring; listed for explicitness.
+        # The CK FAv3/AITER codegen is not wired for gfx1250
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250", "gfx1250-strict"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
@@ -270,14 +265,11 @@ def evaluate_platform_supports_ck_gemms():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-        # NOTE: gfx1250/gfx1250-strict are omitted until mem-efficient-attention
-        # artifacts ship for them. The AOTriton gfx1250 image (from AOTriton
-        # 0.12.1b) is wired up by PR #188242, which also adds gfx1250 here; this
-        # gate-only PR leaves them out to avoid conflicting with that change.
-        # The anchored matcher does not select that image for gfx1250-strict.
-        # The CK FAv3/AITER codegen is separately not yet wired for
-        # gfx1250/gfx1250-strict.
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950"]
+        # gfx1250 and gfx1250-strict use the AOTriton gfx1250 GPU image.
+        # "gfx1250" already matches gfx1250-strict by substring; listed for explicitness.
+        # The CK FAv3/AITER codegen is not wired for gfx1250
+        # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250", "gfx1250-strict"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
@@ -659,11 +651,39 @@ def _get_torch_rocm_version():
     return tuple(int(x) for x in rocm_version.split("."))
 
 def rocm_mx_swizzle(mat_dtype):
-    """Whether this device takes MX block scales for `mat_dtype` in the swizzled layout."""
-    if not torch.version.hip or not evaluate_gfx_arch_within(["gfx950"]):
+    """Whether this device takes MX block scales for `mat_dtype` pre-swizzled.
+
+    gfx950 requests SWIZZLE_32_8, a 32x8 tile. gfx1250 requests SWIZZLE_128.
+    `mx_scale_swizzle` builds the matching bytes.
+    """
+    if not torch.version.hip:
         return False
-    min_version = (7, 13) if mat_dtype == torch.float4_e2m1fn_x2 else (7, 14)
-    return _get_torch_rocm_version() >= min_version
+    version = _get_torch_rocm_version()
+    if evaluate_gfx_arch_within(["gfx950"]):
+        min_version = (7, 13) if mat_dtype == torch.float4_e2m1fn_x2 else (7, 14)
+        return version >= min_version
+    if evaluate_gfx_arch_within(["gfx1250"]):
+        return version >= (7, 14)
+    return False
+
+
+def mx_scale_swizzle(scale, mat_dtype, block_size=32):
+    """Flatten block scales into the layout this device's scaled_mm expects.
+
+    gfx950 uses a 32x8 tile. gfx1250 uses its own order. block_size is 32 for
+    MX and 16 for NVFP4. Other ROCm archs and XPU are returned unchanged.
+    """
+    from torch.testing._internal.common_quantized import to_blocked, to_mx_swizzled_gfx1250
+
+    if torch.version.hip:
+        if not rocm_mx_swizzle(mat_dtype):
+            return scale
+        if evaluate_gfx_arch_within(["gfx1250"]):
+            return to_mx_swizzled_gfx1250(scale, block_size)
+        return to_blocked(scale, swizzle_32_8=True)
+    if scale.device.type == "xpu":
+        return scale
+    return to_blocked(scale)
 
 def _get_torch_hipblaslt_version():
     if not TEST_WITH_ROCM:
