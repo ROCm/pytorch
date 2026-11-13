@@ -124,8 +124,6 @@ TEST_PIN_MEMORY = torch.accelerator.is_available() and not (
 
 # Get a multiprocessing context because some test / third party library will
 # set start_method when imported, and setting again triggers `RuntimeError`.
-if "forkserver" in mp.get_all_start_methods():
-    mp.set_forkserver_preload([])
 mp = mp.get_context(method="spawn")
 
 # test_multiprocessing_contexts and test_nested_tensor_multiprocessing ask for
