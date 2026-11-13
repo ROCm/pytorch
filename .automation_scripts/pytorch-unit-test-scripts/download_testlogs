@@ -723,7 +723,55 @@ def _record_shard_run_ids(job_ids, workflow_run_id):
     with open("_wf_run_ids.json", "w") as f:
         json.dump(mapping, f)
 
-def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None):
+def job_runner_labels(jobs, job_ids):
+    """Runner labels (last field of "... / test (cfg, i, n, runner)") for job_ids."""
+    wanted = {str(jid) for jid in job_ids}
+    labels = set()
+    for job in jobs:
+        if str(job.get("id")) not in wanted:
+            continue
+        match = re.search(r"\(([^()]*)\)\s*$", job.get("name", ""))
+        if match and "," in match.group(1):
+            labels.add(match.group(1).rsplit(",", 1)[1].strip())
+    return labels
+
+def _list_s3_artifact_names(workflow_run_id, attempt, prefix):
+    from upload_stats_lib import S3_RESOURCE
+    bucket = S3_RESOURCE.Bucket("gha-artifacts")
+    base = f"pytorch/pytorch/{workflow_run_id}/{attempt}/artifact/"
+    return [
+        obj.key[len(base):]
+        for obj in bucket.objects.filter(Prefix=base + prefix)
+    ]
+
+def _download_s3_artifact(workflow_run_id, attempt, name):
+    from upload_stats_lib import S3_RESOURCE
+    key = f"pytorch/pytorch/{workflow_run_id}/{attempt}/artifact/{name}"
+    path = Path(name)
+    print(f"Downloading {path}")
+    with open(path, "wb") as f:
+        f.write(S3_RESOURCE.Object("gha-artifacts", key).get()["Body"].read())
+    return path
+
+def download_empty_jobid_artifact(workflow_run_id, max_attempt, prefix, runners):
+    """Fetch "<prefix>-<runner>_.zip", which upstream sometimes uploads with no
+    job ID, when exactly one such file exists for this shard and runner set."""
+    for attempt in range(max_attempt, 0, -1):
+        names = [
+            name for name in _list_s3_artifact_names(workflow_run_id, attempt, prefix)
+            if any(name == f"{prefix}-{runner}_.zip" for runner in runners)
+        ]
+        if len(names) == 1:
+            print(f"  Using empty-job-ID artifact {names[0]} (attempt {attempt})")
+            return [_download_s3_artifact(workflow_run_id, attempt, names[0])]
+        if len(names) > 1:
+            print(f"  WARNING: {len(names)} empty-job-ID artifacts match {prefix}; "
+                  f"skipping ambiguous fallback: {names}")
+            return []
+    return []
+
+def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allowed_substrings=None,
+                       empty_jobid_runners=None):
     # Get from S3 artifacts.
     #
     # When an upstream run is re-run, GitHub only re-executes the jobs that
@@ -764,6 +812,13 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
             if found:
                 prefix_paths += found
                 break
+        if not prefix_paths and empty_jobid_runners:
+            try:
+                prefix_paths = download_empty_jobid_artifact(
+                    workflow_run_id, max_attempt, prefix, empty_jobid_runners
+                )
+            except Exception as error:
+                print(f"WARNING: empty-job-ID S3 lookup failed for {prefix}: {error}")
         if prefix_paths:
             artifact_paths += prefix_paths
         else:
@@ -832,7 +887,8 @@ def download_xml_files(workflow_run_id, workflow_run_attempts, prefixes=[], allo
 
     return shards
 
-def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None):
+def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None,
+                       empty_jobid_runners=None):
     original_cwd = os.getcwd()
     try:
         os.chdir(test_folder)
@@ -842,6 +898,7 @@ def download_artifacts(wf, prefixes=[], test_folder=".", allowed_substrings=None
             wf.get('run_attempt',1),
             prefixes,
             allowed_substrings=allowed_substrings,
+            empty_jobid_runners=empty_jobid_runners,
         )
     finally:
         os.chdir(original_cwd)
@@ -1666,6 +1723,9 @@ def main():
             )
         )
         cuda_artifact_substrings = [f"_{jid}" for jid in cuda_job_ids] if cuda_job_ids else ["nvidia.gpu"]
+        cuda_empty_jobid_runners = job_runner_labels(
+            all_cuda_jobs + all_attempt_cuda_jobs, cuda_job_ids
+        )
         print(f"Using CUDA job prefix: {cuda_job_prefix}")
         print(f"Using CUDA test job kind: {cuda_test_job_kind}")
         print(f"Found {len(cuda_test_jobs)} CUDA test jobs matching prefix")
@@ -1723,6 +1783,7 @@ def main():
                 test_artifacts_list_cuda,
                 test_folder=folder_list[1],
                 allowed_substrings=cuda_artifact_substrings,
+                empty_jobid_runners=cuda_empty_jobid_runners,
             )
 
         # add new inductor workflow downloading for CUDA
@@ -1801,6 +1862,10 @@ def main():
                     test_artifacts_list_cuda_inductor,
                     test_folder=folder_list[1],
                     allowed_substrings=cuda_inductor_artifact_substrings,
+                    empty_jobid_runners=job_runner_labels(
+                        cuda_inductor_test_jobs + all_attempt_inductor_test_jobs,
+                        cuda_inductor_job_ids,
+                    ),
                 )
 
         if not args.exclude_slow:
