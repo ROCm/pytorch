@@ -1416,16 +1416,6 @@ TRACE FX call mul from test_logging.py:N in fn (LoggingTests.test_trace_call_pre
         )
 
     def test_logs_out(self):
-        from torch.testing._internal.common_utils import (
-            getRocmVersion,
-            TEST_WITH_ROCM,
-        )
-
-        if TEST_WITH_ROCM and getRocmVersion() >= (7, 14):
-            self.skipTest(
-                "ROCm runtime emits spurious W-lines into the captured log stream "
-                "that break assertExpectedInline on ROCm 7.14+"
-            )
         import tempfile
 
         with tempfile.NamedTemporaryFile(delete=True) as tmp:
@@ -1453,6 +1443,16 @@ fn(torch.randn(5))
                 """,
                 env=env,
             )
+            torch_log_line = re.compile(
+                r"(\[rank\d+\]:)?[VIWEC]\d{4} \d{2}:\d{2}:\d{2}\.\d{6} \d+ \S+\.py:\d+\]"
+            )
+            # Other libraries (e.g. kineto) may write to stderr concurrently,
+            # without an atomic trailing newline; compare only torch log lines.
+            stderr_logs = "".join(
+                line[m.start() :] + "\n"
+                for line in stderr.decode("utf-8").splitlines()
+                if (m := torch_log_line.search(line))
+            )
             with open(
                 file_path, encoding="utf-8"
             ) as fd:  # encoding file to UTF-8 for Windows.
@@ -1462,7 +1462,7 @@ fn(torch.randn(5))
                 try:
                     self.assertEqual(  # process wrap difference: /r/n on Windows, /n on posix.
                         empty_line_normalizer(lines),
-                        empty_line_normalizer(stderr.decode("utf-8")),
+                        empty_line_normalizer(stderr_logs),
                     )
                 except Exception:
                     unittest.TestCase.maxDiff = orig_maxDiff
