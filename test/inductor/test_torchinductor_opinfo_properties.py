@@ -526,6 +526,27 @@ ROCM_XFAIL_DICTS = {
     "binary_numerical": ROCM_BINARY_NUMERICAL_XFAILS,
 }
 
+ROCM_RELAXED_PROPERTY_CASES = {
+    "eager_equivalence": {
+        "inductor_default": {
+            "exp": {fp32},
+            "log1p": {fp32},
+            "rsqrt": {fp32},
+            "tanh": {fp32},
+        },
+    },
+    "unary_numerical": {
+        "inductor_default": {
+            "cos": {fp32},
+            "exp": {fp32},
+            "log1p": {fp16, fp32},
+        },
+        "inductor_numerics": {
+            "rsqrt": {bf16},
+        },
+    },
+}
+
 
 def is_expected_failure(device_type, op_name, backend, test_type, dtype=None):
     """Check if a test is expected to fail."""
