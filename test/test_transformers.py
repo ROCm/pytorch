@@ -70,6 +70,7 @@ from torch.testing._internal.common_cuda import (
     PLATFORM_SUPPORTS_CUDNN_ATTENTION,
     PLATFORM_SUPPORTS_CK_SDPA,
     PLATFORM_FUSED_ATTENTION_SUPPORTS_HDIM512,
+    evaluate_gfx_arch_within,
     tf32_off,
     tf32_on_and_off,
     tf32_enabled,
@@ -138,6 +139,16 @@ def _cudnn_supports_d192_attention():
     device_capability = torch.cuda.get_device_capability()
     is_sm90_or_sm10x = device_capability == (9, 0) or device_capability[0] == 10
     return is_sm90_or_sm10x and cudnn_version >= 91100
+
+
+def _hipdnn_trains_mixed_head_dims():
+    # hipDNN's gfx950 and gfx11 engines run forward and backward with Q/K and V head
+    # dims that differ (192/128, 256/64); gfx942 has no backward engine for them.
+    return (
+        TEST_WITH_ROCM
+        and PLATFORM_SUPPORTS_CUDNN_ATTENTION
+        and evaluate_gfx_arch_within(["gfx950", "gfx11"])
+    )
 
 
 def _check_equal(
@@ -4561,7 +4572,7 @@ class TestSDPAAccelerator(NNTestCase):
             self.assertEqual(actual.contiguous(), math_ref.contiguous().to(dtype), atol=1e-3, rtol=1e-2)
 
         # cuDNN d_qk=256, d_v=64 bprop is unsupported on the d256 support surface.
-        if _cudnn_d256_mixed_head_dim_bprop_unsupported():
+        if _cudnn_d256_mixed_head_dim_bprop_unsupported() or _hipdnn_trains_mixed_head_dims():
             test()
         else:
             with self.assertRaisesRegex(RuntimeError, "No available kernel."):
@@ -4632,7 +4643,7 @@ class TestSDPAAccelerator(NNTestCase):
 
         # head_dim=192 support on SM 9.0 (Hopper) and SM 10.x (Blackwell) requires cuDNN >= 9.11.0 (91100)
         # This is a special case for DeepSeek model dimensions
-        if _cudnn_supports_d192_attention():
+        if _cudnn_supports_d192_attention() or _hipdnn_trains_mixed_head_dims():
             test()
         else:
             with self.assertRaisesRegex(RuntimeError, "No available kernel."):
@@ -5686,6 +5697,12 @@ class TestSDPAAccelerator(NNTestCase):
         cudnn_version = torch.backends.cudnn.version() if torch.backends.cudnn.is_available() else 0
         is_hopper_or_newer = device_capability and (device_capability[0] == 9 or device_capability[0] == 10)
         prefer_cudnn = prefer_cudnn and is_hopper_or_newer and cudnn_version > 91500
+        if TEST_WITH_ROCM:
+            # sdp_utils.cpp puts hipDNN first on gfx950 and gfx11 unless deprioritized.
+            prefer_cudnn = (
+                os.environ.get("TORCH_CUDNN_SDPA_DEPRIORITIZED", "0") != "1"
+                and evaluate_gfx_arch_within(["gfx950", "gfx11"])
+            )
 
         # cuDNN is enabled by default on SM 9.0/10.0 with cuDNN > 9.15.0 (per #169849)
         # For older cuDNN versions or other architectures, Flash Attention is preferred

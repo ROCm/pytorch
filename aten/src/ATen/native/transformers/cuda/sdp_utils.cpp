@@ -95,7 +95,18 @@ bool priority_order_init_ = false;
 // Needs to be kept in-sync with test_fused_chocie in test_transformers.py
 bool check_prefer_cudnn_attention() {
 #if defined(USE_ROCM)
+#if AT_HIPDNN_ENABLED()
+  // hipDNN serves CUDNN_ATTENTION on ROCm. can_use_cudnn_attention asks hipDNN
+  // whether an engine serves the graph, so graphs it declines still fall through
+  // to flash and mem-efficient attention. gfx942 is left out: hipDNN serves many
+  // forward graphs there but few backward ones, so inference and training of the
+  // same model would run on different backends.
+  static const bool prefer_cudnn = c10::utils::check_env("TORCH_CUDNN_SDPA_DEPRIORITIZED") != true;
+  // "gfx11" matches every gfx11 device, the members of the gfx11-generic target.
+  return prefer_cudnn && at::detail::getCUDAHooks().isGPUArch({"gfx950", "gfx11"});
+#else
   return false;
+#endif
 #else
   static const bool prefer_cudnn = c10::utils::check_env("TORCH_CUDNN_SDPA_DEPRIORITIZED") != true;
   if (!prefer_cudnn) {
@@ -743,6 +754,15 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
   const auto d_qk = params.query.sym_size(3);
   const auto d_v = params.value.sym_size(3);
 #if defined(USE_ROCM)
+  // MHA.cpp requires 16-byte-aligned rows (checkSDPAAlignment), which the
+  // hipDNN query below cannot check because it builds the graph from meta tensors.
+  if (!(TORCH_GUARD_OR_FALSE((d_qk % 8).sym_eq(0)) &&
+        TORCH_GUARD_OR_FALSE((d_v % 8).sym_eq(0)))) {
+    if (debug) {
+      TORCH_WARN("head_dim should be a multiple of 8");
+    }
+    return false;
+  }
   static const bool skip_hipdnn_probe =
       c10::utils::check_env("TORCH_ROCM_HIPDNN_SDPA_ENABLE_EXPERIMENTAL") == true;
   if (skip_hipdnn_probe) {

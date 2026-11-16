@@ -231,10 +231,15 @@ These backends include:
 
 On ROCm, :attr:`~torch.nn.attention.SDPBackend.CUDNN_ATTENTION` is served by
 hipDNN's cuDNN-compatibility layer when PyTorch is built against ROCm 10.3 or
-later with hipDNN available, and is supported on gfx942 and gfx950 only
-(gfx942 only when gradients are required). It is never selected by the default
-backend priority order; request it explicitly with
-:func:`torch.nn.attention.sdpa_kernel`.
+later with hipDNN available, and is supported on gfx942, gfx950 and gfx11
+devices only. On gfx950 and gfx11 it is first in the default backend priority
+order: each new input configuration is offered to hipDNN, and configurations
+for which hipDNN has no engine (forward, or backward when gradients are
+required) fall through to flash and memory-efficient attention. Set
+``TORCH_CUDNN_SDPA_DEPRIORITIZED=1`` to keep it out of the default order; it
+can still be requested explicitly with :func:`torch.nn.attention.sdpa_kernel`.
+``TORCH_ROCM_HIPDNN_SDPA_ENABLE_EXPERIMENTAL=1`` skips the hipDNN query, so
+with the default order every configuration is sent to hipDNN.
 
 
 ```{eval-rst}
