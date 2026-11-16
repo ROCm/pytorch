@@ -3,6 +3,7 @@
 import argparse
 import ast
 import csv
+import json
 import os
 import re
 import sys
@@ -26,6 +27,29 @@ DIAGNOSTIC_FIELDS = {
     'reason',
     'skip_reason',
 }
+_PARITY_CONFIG_PATH = os.path.join(os.path.dirname(__file__), 'parity_job_config.json')
+
+
+def load_parity_config(path=_PARITY_CONFIG_PATH):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def hud_display_label(arch, parity_config=None):
+    """Return the Framework HUD column label for an arch (first hud_alias, else arch)."""
+    config = parity_config if parity_config is not None else load_parity_config()
+    aliases = (config.get('rocm') or {}).get(arch, {}).get('hud_aliases') or []
+    return aliases[0] if aliases else arch
+
+
+def arch_parity_scope(arch, parity_config=None):
+    """Return Agree% scope for an arch: 'full' (default) or 'rocm_present'."""
+    config = parity_config if parity_config is not None else load_parity_config()
+    scope = (config.get('rocm') or {}).get(arch, {}).get('parity_scope') or 'full'
+    return scope if scope in ('full', 'rocm_present') else 'full'
 
 
 def _configure_csv_field_limit():
@@ -129,20 +153,32 @@ def test_config_stats_keys(s1_name, s2_name, has_set2=True):
     ]
 
 
-def parity_metric_rows(rows, s2_col, has_set2=True):
-    """Exclude Slow rows CUDA did not pass from parity metrics."""
+def parity_metric_rows(rows, s2_col, has_set2=True, s1_col=None, parity_scope='full'):
+    """Exclude Slow rows CUDA did not pass from parity metrics.
+
+    When parity_scope is 'rocm_present', also drop rows ROCm never ran (MISSED),
+    so subset suites (e.g. rx7900 default-only) are scored against their own
+    coverage instead of the full CUDA trunk catalog.
+    """
     if not has_set2:
         return rows
-    return [
+    filtered = [
         row for row in rows
         if row.get('test_config') != 'slow' or row.get(s2_col) == 'PASSED'
     ]
+    if parity_scope == 'rocm_present' and s1_col:
+        filtered = [row for row in filtered if row.get(s1_col) != 'MISSED']
+    return filtered
 
 
-def compute_test_config_stats(rows, s1_col, s2_col, s1_name, s2_name, has_set2=True):
+def compute_test_config_stats(
+    rows, s1_col, s2_col, s1_name, s2_name, has_set2=True, parity_scope='full',
+):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
-    rows = parity_metric_rows(rows, s2_col, has_set2)
+    rows = parity_metric_rows(
+        rows, s2_col, has_set2, s1_col=s1_col, parity_scope=parity_scope,
+    )
 
     if not has_set2:
         vals = {}
@@ -223,10 +259,15 @@ def overall_stats_keys(s1_name, s2_name, has_set2=True):
     return keys
 
 
-def compute_overall_stats(rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_name, s2_name, has_set2=True):
+def compute_overall_stats(
+    rows, s1_col, s2_col, s1_time_col, s2_time_col, s1_name, s2_name,
+    has_set2=True, parity_scope='full',
+):
     s1 = s1_name.upper()
     s2 = s2_name.upper()
-    rows = parity_metric_rows(rows, s2_col, has_set2)
+    rows = parity_metric_rows(
+        rows, s2_col, has_set2, s1_col=s1_col, parity_scope=parity_scope,
+    )
 
     def safe_float(v):
         try:
@@ -666,10 +707,11 @@ def fmt_run_time(v):
         return ''
 
 
-def build_rows(args, archs, arch_data):
+def build_rows(args, archs, arch_data, parity_config=None):
     """Return a list of (label, val_per_arch...) tuples and section markers."""
     out = []
     any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())
+    config = parity_config if parity_config is not None else load_parity_config()
 
     if args.sha:
         out.append(('__header__', f'Commit SHA: {args.sha}'))
@@ -696,10 +738,12 @@ def build_rows(args, archs, arch_data):
             d = arch_data[arch]
             s1_col, s2_col, _, _ = d['cols']
             has_set2 = d.get('has_set2', True)
+            source_arch = d.get('source_arch', arch)
+            scope = arch_parity_scope(source_arch, config)
             wf_rows = [r for r in d['rows'] if r['test_config'] == wf]
             arch_stats[arch] = compute_test_config_stats(
                 wf_rows, s1_col, s2_col, args.set1_name, args.set2_name,
-                has_set2=has_set2,
+                has_set2=has_set2, parity_scope=scope,
             )
         for key in wf_keys:
             out.append((key, [arch_stats[a].get(key, 0) for a in archs]))
@@ -711,9 +755,11 @@ def build_rows(args, archs, arch_data):
         d = arch_data[arch]
         s1_col, s2_col, s1_time, s2_time = d['cols']
         has_set2 = d.get('has_set2', True)
+        source_arch = d.get('source_arch', arch)
+        scope = arch_parity_scope(source_arch, config)
         arch_overall[arch] = compute_overall_stats(
             d['rows'], s1_col, s2_col, s1_time, s2_time,
-            args.set1_name, args.set2_name, has_set2=has_set2,
+            args.set1_name, args.set2_name, has_set2=has_set2, parity_scope=scope,
         )
     for key in ov_keys:
         out.append((key, [arch_overall[a].get(key, 0) for a in archs]))
@@ -1105,17 +1151,26 @@ def main():
         print('Error: --csv and --arch must have the same number of values')
         sys.exit(1)
 
-    archs = args.arch
+    parity_config = load_parity_config()
+    # Report columns use Framework HUD labels (e.g. navi31) when configured,
+    # while source_arch keeps the canonical topology key (rx7900) for scope lookup.
+    source_archs = list(args.arch)
+    archs = [hud_display_label(a, parity_config) for a in source_archs]
     arch_data = {}
-    for csv_path, arch in zip(args.csv, archs):
+    for csv_path, source_arch, display_arch in zip(args.csv, source_archs, archs):
         rows = load_csv(csv_path)
         headers = set(rows[0].keys()) if rows else set()
         cols = detect_columns(headers, args.set1_name, args.set2_name)
         s2_col = cols[1]
         has_set2 = any(r.get(s2_col, '').strip() for r in rows)
-        arch_data[arch] = {'rows': rows, 'cols': cols, 'has_set2': has_set2}
+        arch_data[display_arch] = {
+            'rows': rows,
+            'cols': cols,
+            'has_set2': has_set2,
+            'source_arch': source_arch,
+        }
 
-    data_rows = build_rows(args, archs, arch_data)
+    data_rows = build_rows(args, archs, arch_data, parity_config=parity_config)
     xml_failed = collect_failed_tests(
         arch_data, archs, args.set1_name, args.set2_name)
     any_has_set2 = any(d.get('has_set2', True) for d in arch_data.values())

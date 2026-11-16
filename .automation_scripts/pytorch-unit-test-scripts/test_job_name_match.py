@@ -19,17 +19,23 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
             rocm = json.load(config_file)["rocm"]
 
         self.assertNotIn("navi31", rocm)
+        rx7900 = rocm["rx7900"]
         self.assertEqual(
-            rocm["rx7900"],
-            {
-                "default": [{
-                    "workflow": "rocm-rx7900",
-                    "job_prefix": "linux-jammy-rocm-py3.11-rx7900",
-                }],
-                "shard_counts": {"default": 2},
-                "checkrun_regex": "rocm.*rx7900.*/ test [(]default,",
-            },
+            rx7900["default"],
+            [{
+                "workflow": "rocm-rx7900",
+                "job_prefix": "linux-jammy-rocm-py3.11-rx7900",
+            }],
         )
+        self.assertEqual(rx7900["shard_counts"], {"default": 2})
+        self.assertEqual(
+            rx7900["checkrun_regex"],
+            "rocm.*rx7900.*/ test [(]default,",
+        )
+        # Framework HUD still keys the Navi lane as navi31; dual-publish +
+        # subset Agree% keep that lane non-empty and comparable.
+        self.assertEqual(rx7900["hud_aliases"], ["navi31"])
+        self.assertEqual(rx7900["parity_scope"], "rocm_present")
 
     def test_cuda_inductor_source_is_trunk(self):
         """pytorch/pytorch#199291 moved the only CUDA inductor config to trunk."""

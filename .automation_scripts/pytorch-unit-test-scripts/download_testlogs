@@ -344,8 +344,11 @@ def _candidate_job_prefixes(names, test_config):
     return out
 
 def _hardware_token(prefix):
-    """Return the accelerator family named by a job prefix, if any."""
-    m = re.search(r"(mi\d+|navi\d+|gfx\w+|cuda)", prefix.lower())
+    """Return the accelerator family named by a job prefix, if any.
+
+    Matches mi*, navi* (legacy), rx* (e.g. rx7900 after #3753), gfx*, and cuda.
+    """
+    m = re.search(r"(mi\d+|navi\d+|rx\d+|gfx\w+|cuda)", prefix.lower())
     return m.group(1) if m else None
 
 def resolve_job_prefix(wf, test_config, configured_prefix):

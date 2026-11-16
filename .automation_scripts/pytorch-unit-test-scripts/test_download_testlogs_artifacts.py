@@ -360,6 +360,25 @@ class CrossSourceComparisonTest(unittest.TestCase):
 
         self.assertEqual(args.arch, "rx7900")
 
+    def test_hardware_token_recognizes_rx7900_and_legacy_navi(self):
+        self.assertEqual(
+            dtl._hardware_token("linux-jammy-rocm-py3.11-rx7900"),
+            "rx7900",
+        )
+        self.assertEqual(
+            dtl._hardware_token("linux-jammy-rocm-py3.10-navi31"),
+            "navi31",
+        )
+        self.assertEqual(
+            dtl._hardware_token("linux-noble-rocm-py3.11-mi300"),
+            "mi300",
+        )
+        self.assertEqual(
+            dtl._hardware_token("linux-jammy-cuda13.2-py3.11-gcc11"),
+            "cuda",
+        )
+        self.assertIsNone(dtl._hardware_token("linux-jammy-py3.11-gcc11"))
+
     def test_mi350_has_trunk_and_four_gpu_distributed_sources(self):
         config = dtl.PARITY_CONFIG["rocm"]["mi350"]
 
