@@ -1616,6 +1616,7 @@ if(USE_ROCM)
           # One --image per arch with a bitcode file; skip duplicate arches.
           set(_rocshmem_bc_images)
           set(_rocshmem_bc_arches)
+          set(_rocshmem_bc_files)
           foreach(_arch ${_torch_rocshmem_build_arches})
             if(_arch IN_LIST _rocshmem_bc_arches)
               continue()
@@ -1630,6 +1631,7 @@ if(USE_ROCM)
               continue()
             endif()
             list(APPEND _rocshmem_bc_arches "${_arch}")
+            list(APPEND _rocshmem_bc_files "${_dev_bc}")
             list(APPEND _rocshmem_bc_images
               "--image=file=${_dev_bc},kind=hip,triple=amdgcn-amd-amdhsa,arch=${_arch}")
           endforeach()
@@ -1654,29 +1656,30 @@ if(USE_ROCM)
             set(_rocshmem_anchor_obj "${_rocshmem_bc_dir}/anchor.o")
 
             # Empty host function; carries the embedded package. "used" keeps it.
-            file(WRITE "${_rocshmem_anchor_src}"
-              "extern \"C\" __attribute__((used)) void torch_rocshmem_asan_device_bitcode_anchor() {}\n")
-
-            # Bundle per-arch bitcode into one package.
-            execute_process(
-              COMMAND "${_rocshmem_packager}" -o "${_rocshmem_package}" ${_rocshmem_bc_images}
-              RESULT_VARIABLE _rocshmem_packager_rc
-              ERROR_VARIABLE _rocshmem_packager_err)
-            if(NOT _rocshmem_packager_rc EQUAL 0)
-              message(FATAL_ERROR
-                "clang-offload-packager failed (${_rocshmem_packager_rc}): ${_rocshmem_packager_err}")
+            # Write once so a later configure does not change the timestamp.
+            if(NOT EXISTS "${_rocshmem_anchor_src}")
+              file(WRITE "${_rocshmem_anchor_src}"
+                "extern \"C\" __attribute__((used)) void torch_rocshmem_asan_device_bitcode_anchor() {}\n")
             endif()
 
-            # Compile anchor and embed the package in its object.
-            execute_process(
+            # Rebuild the package when a per-arch bitcode file changes.
+            add_custom_command(
+              OUTPUT "${_rocshmem_package}"
+              COMMAND "${_rocshmem_packager}" -o "${_rocshmem_package}" ${_rocshmem_bc_images}
+              DEPENDS ${_rocshmem_bc_files}
+              COMMENT "Packaging rocSHMEM ASAN device bitcode"
+              VERBATIM)
+            # Rebuild the object when the package or the anchor source changes.
+            add_custom_command(
+              OUTPUT "${_rocshmem_anchor_obj}"
               COMMAND "${_rocshmem_clang}" -c "${_rocshmem_anchor_src}" -o "${_rocshmem_anchor_obj}"
                       "-Xclang" "-fembed-offload-object=${_rocshmem_package}"
-              RESULT_VARIABLE _rocshmem_embed_rc
-              ERROR_VARIABLE _rocshmem_embed_err)
-            if(NOT _rocshmem_embed_rc EQUAL 0)
-              message(FATAL_ERROR
-                "Failed to embed rocSHMEM device bitcode (${_rocshmem_embed_rc}): ${_rocshmem_embed_err}")
-            endif()
+              DEPENDS "${_rocshmem_anchor_src}" "${_rocshmem_package}"
+              COMMENT "Embedding rocSHMEM ASAN device bitcode"
+              VERBATIM)
+            add_custom_target(torch_rocshmem_asan_device_bitcode
+              DEPENDS "${_rocshmem_anchor_obj}")
+            add_dependencies(torch_rocshmem torch_rocshmem_asan_device_bitcode)
 
             # Generated object: use as-is and link into torch_rocshmem.
             set_source_files_properties("${_rocshmem_anchor_obj}" PROPERTIES
