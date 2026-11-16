@@ -1512,39 +1512,22 @@ if(USE_ROCM)
 
         target_link_libraries(torch_rocshmem PRIVATE roc::rocshmem)
 
-        # ASAN SDKs keep rocSHMEM's device definitions in per-architecture
-        # bitcode (librocshmem_device_<arch>.bc) instead of in librocshmem.a.
-        # Non-ASAN archives already contain the device code, so this block is
-        # ASAN-only.
-        #
-        # Why not just pass the bitcode with -Xoffload-linker: that flag is
-        # copied into every device link. A multi-arch build (for example
-        # gfx942;gfx90a;gfx950) then defines the same rocSHMEM symbols in
-        # several bitcode files at once and the link fails with duplicate
-        # symbols.
-        #
-        # Instead, package one HIP image per architecture with
-        # clang-offload-packager, embed the package in a small host object,
-        # and add that object to torch_rocshmem. clang-linker-wrapper gives
-        # each device link only the image for its own architecture.
+        # ASAN SDK keeps rocSHMEM device code in per-arch bitcode files, not
+        # librocshmem.a. Passing them with -Xoffload-linker duplicates symbols
+        # across archs in multi-arch builds, so package one image per arch
+        # and embed it in a host object instead.
         if(USE_ASAN)
-          # Collect one "--image=..." argument per architecture that has a
-          # bitcode file. _rocshmem_bc_arches guards against listing the same
-          # architecture twice, for example when both gfx942 and gfx942:xnack-
-          # are requested.
+          # One --image per arch with a bitcode file; skip duplicate arches.
           set(_rocshmem_bc_images)
           set(_rocshmem_bc_arches)
           foreach(_arch ${_torch_rocshmem_build_arches})
             if(_arch IN_LIST _rocshmem_bc_arches)
               continue()
             endif()
-            # Strip any target-ID suffix (:xnack-, :xnack+) because the bitcode
-            # file name only carries the base architecture.
+            # Drop target-ID suffix (e.g. :xnack+); bitcode names use base arch.
             string(REGEX REPLACE ":.*" "" _arch_base "${_arch}")
             set(_dev_bc "${ROCM_PATH}/lib/librocshmem_device_${_arch_base}.bc")
-            # A missing file is a warning, not an error: that architecture is
-            # skipped and the others still link. This matches how the rocSHMEM
-            # supported-arch list is handled above.
+            # Missing bitcode: warn and skip this arch.
             if(NOT EXISTS "${_dev_bc}")
               message(WARNING
                 "rocSHMEM device bitcode not found for ${_arch_base}: ${_dev_bc}")
@@ -1555,11 +1538,9 @@ if(USE_ROCM)
               "--image=file=${_dev_bc},kind=hip,triple=amdgcn-amd-amdhsa,arch=${_arch}")
           endforeach()
 
-          # Only build the package when at least one architecture has bitcode.
+          # Skip packaging if no arch had bitcode.
           if(_rocshmem_bc_images)
-            # The packager and clang++ are needed from the ROCm LLVM install.
-            # Missing tools are a hard error, because the build cannot link
-            # rocSHMEM for ASAN without them.
+            # Need ROCm LLVM tools; fail hard if missing.
             find_program(_rocshmem_packager clang-offload-packager
               HINTS "${ROCM_PATH}/lib/llvm/bin" "${ROCM_PATH}/llvm/bin")
             find_program(_rocshmem_clang clang++
@@ -1576,13 +1557,11 @@ if(USE_ROCM)
             set(_rocshmem_anchor_src "${_rocshmem_bc_dir}/anchor.cpp")
             set(_rocshmem_anchor_obj "${_rocshmem_bc_dir}/anchor.o")
 
-            # The anchor is an empty host function. Its only job is to give the
-            # host object something to carry the embedded device package. Nothing
-            # calls it, so it is marked "used" to keep it from being discarded.
+            # Empty host function; carries the embedded package. "used" keeps it.
             file(WRITE "${_rocshmem_anchor_src}"
               "extern \"C\" __attribute__((used)) void torch_rocshmem_asan_device_bitcode_anchor() {}\n")
 
-            # Step 1: bundle the per-architecture bitcode files into one package.
+            # Bundle per-arch bitcode into one package.
             execute_process(
               COMMAND "${_rocshmem_packager}" -o "${_rocshmem_package}" ${_rocshmem_bc_images}
               RESULT_VARIABLE _rocshmem_packager_rc
@@ -1592,8 +1571,7 @@ if(USE_ROCM)
                 "clang-offload-packager failed (${_rocshmem_packager_rc}): ${_rocshmem_packager_err}")
             endif()
 
-            # Step 2: compile the anchor and embed the package into its object
-            # file with -fembed-offload-object.
+            # Compile anchor and embed the package in its object.
             execute_process(
               COMMAND "${_rocshmem_clang}" -c "${_rocshmem_anchor_src}" -o "${_rocshmem_anchor_obj}"
                       "-Xclang" "-fembed-offload-object=${_rocshmem_package}"
@@ -1604,9 +1582,7 @@ if(USE_ROCM)
                 "Failed to embed rocSHMEM device bitcode (${_rocshmem_embed_rc}): ${_rocshmem_embed_err}")
             endif()
 
-            # The object is produced by a custom command outside CMake's usual
-            # source handling, so tell CMake to use it as-is and link it into
-            # torch_rocshmem.
+            # Generated object: use as-is and link into torch_rocshmem.
             set_source_files_properties("${_rocshmem_anchor_obj}" PROPERTIES
               EXTERNAL_OBJECT TRUE GENERATED TRUE)
             target_sources(torch_rocshmem PRIVATE "${_rocshmem_anchor_obj}")
