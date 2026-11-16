@@ -70,7 +70,8 @@ namespace {
 // Promote inputs to FFT functions
 // * Integers are promoted to the default floating type
 // * If require_complex=True, all types are promoted to complex
-// * bfloat16 on ROCm is promoted to float32 (hipFFT has no bfloat16 kernel)
+// * bfloat16 on ROCm is promoted to float32, including meta tensors
+//   (hipFFT has no bfloat16 kernel)
 // * Raises an error for half-precision dtypes to allow future support
 ScalarType promote_type_fft(ScalarType type, bool require_complex, Device device) {
   if (at::isComplexType(type)) {
@@ -86,8 +87,9 @@ ScalarType promote_type_fft(ScalarType type, bool require_complex, Device device
     // device we err on the side of accepting it
     device.is_cuda() || device.is_meta() || device.is_xpu()
   );
-  // hipFFT has no bfloat16 kernel. Cast first so the float32 plan is used.
-  if (type == kBFloat16 && device.is_cuda() && at::globalContext().hasROCM()) {
+  // hipFFT has no bfloat16 kernel. Promote on cuda and meta so the
+  // meta crossref matches the ROCm device result.
+  if (type == kBFloat16 && maybe_support_half && at::globalContext().hasROCM()) {
     type = kFloat;
   }
   if (maybe_support_half) {
