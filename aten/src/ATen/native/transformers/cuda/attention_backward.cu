@@ -269,11 +269,21 @@ std::tuple<Tensor, Tensor, Tensor> _cudnn_attention_backward(
 
       // This is needed because SaveVariable automatically converts
       // std::optional to undefined tensor
-      const auto attn_bias_ = expand_attn_bias_for_cudnn(
-          attn_bias.defined() ? std::optional<Tensor>(attn_bias) : std::nullopt,
-          batch_size,
-          max_q,
-          max_k);
+      std::optional<Tensor> attn_bias_;
+      if (attn_bias.defined()) {
+        attn_bias_ = attn_bias;
+      }
+      if (attn_bias_.has_value()) {
+        const auto bias_dim = attn_bias_.value().dim();
+        if (bias_dim == 2) {
+          attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_q, max_k});
+        } else if (bias_dim == 3) {
+          attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_q, max_k});
+        } else {
+          TORCH_CHECK(bias_dim == 4, "cuDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ", attn_bias_.value().dim(), "D");
+          attn_bias_ = attn_bias_.value().expand({batch_size, attn_bias_.value().size(1), max_q, max_k});
+        }
+      }
 
       const auto softmax_scale = sdp::calculate_scale(query, scale).expect_float();
       auto dq = at::empty_like(query);
@@ -309,11 +319,21 @@ std::tuple<Tensor, Tensor, Tensor> _cudnn_attention_backward(
       const int64_t num_heads_v = value.size(-2);
       const int64_t head_dim_qk = query.size(-1);
       const int64_t head_dim_v = value.size(-1);
-      const auto attn_bias_ = expand_attn_bias_for_cudnn(
-          attn_bias.defined() ? std::optional<Tensor>(attn_bias) : std::nullopt,
-          batch_size,
-          max_q,
-          max_k);
+      std::optional<Tensor> attn_bias_;
+      if (attn_bias.defined()) {
+        attn_bias_ = attn_bias;
+      }
+      if (attn_bias_.has_value()) {
+        const auto bias_dim = attn_bias_.value().dim();
+        if (bias_dim == 2) {
+          attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_q, max_k});
+        } else if (bias_dim == 3) {
+          attn_bias_ = attn_bias_.value().expand({batch_size, 1, max_q, max_k});
+        } else {
+          attn_bias_ = attn_bias_.value().expand({batch_size, attn_bias_.value().size(1), max_q, max_k});
+          TORCH_CHECK(bias_dim == 4, "cuDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ", attn_bias_.value().dim(), "D");
+        }
+      }
 
       auto dq = at::empty_like(query);
       auto dk = at::empty_like(key);

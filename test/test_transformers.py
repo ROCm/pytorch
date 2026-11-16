@@ -4575,7 +4575,8 @@ class TestSDPAAccelerator(NNTestCase):
         if _cudnn_d256_mixed_head_dim_bprop_unsupported() or _hipdnn_trains_mixed_head_dims():
             test()
         else:
-            with self.assertRaisesRegex(RuntimeError, "No available kernel."):
+            # ROCm does not query hipDNN before dispatch, so the graph build fails instead.
+            with self.assertRaisesRegex(RuntimeError, "No available kernel.|No engine configurations available"):
                 test()
 
     @unittest.skipIf(not PLATFORM_SUPPORTS_CUDNN_ATTENTION, "cuDNN Attention is not supported on this system")
@@ -4646,7 +4647,8 @@ class TestSDPAAccelerator(NNTestCase):
         if _cudnn_supports_d192_attention() or _hipdnn_trains_mixed_head_dims():
             test()
         else:
-            with self.assertRaisesRegex(RuntimeError, "No available kernel."):
+            # ROCm does not query hipDNN before dispatch, so the graph build fails instead.
+            with self.assertRaisesRegex(RuntimeError, "No available kernel.|No engine configurations available"):
                 test()
 
     def test_flash_attention_rejects_different_dk_dv(self, device):

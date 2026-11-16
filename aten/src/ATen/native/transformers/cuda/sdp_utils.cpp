@@ -27,7 +27,6 @@
 #endif
 #elif AT_HIPDNN_ENABLED()
 #include <ATen/hipdnn/cudnn_compat.h>
-#include <ATen/native/cudnn/hip/MHA.h>
 #endif
 
 #include <c10/core/SymBool.h>
@@ -96,11 +95,8 @@ bool priority_order_init_ = false;
 bool check_prefer_cudnn_attention() {
 #if defined(USE_ROCM)
 #if AT_HIPDNN_ENABLED()
-  // hipDNN serves CUDNN_ATTENTION on ROCm. can_use_cudnn_attention asks hipDNN
-  // whether an engine serves the graph, so graphs it declines still fall through
-  // to flash and mem-efficient attention. gfx942 is left out: hipDNN serves many
-  // forward graphs there but few backward ones, so inference and training of the
-  // same model would run on different backends.
+  // hipDNN serves CUDNN_ATTENTION on ROCm. gfx942 is left out: hipDNN serves
+  // many forward graphs there but few backward ones.
   static const bool prefer_cudnn = c10::utils::check_env("TORCH_CUDNN_SDPA_DEPRIORITIZED") != true;
   // "gfx11" matches every gfx11 device, the members of the gfx11-generic target.
   return prefer_cudnn && at::detail::getCUDAHooks().isGPUArch({"gfx950", "gfx11"});
@@ -754,8 +750,7 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
   const auto d_qk = params.query.sym_size(3);
   const auto d_v = params.value.sym_size(3);
 #if defined(USE_ROCM)
-  // MHA.cpp requires 16-byte-aligned rows (checkSDPAAlignment), which the
-  // hipDNN query below cannot check because it builds the graph from meta tensors.
+  // MHA.cpp requires 16-byte-aligned rows (checkSDPAAlignment).
   if (!(TORCH_GUARD_OR_FALSE((d_qk % 8).sym_eq(0)) &&
         TORCH_GUARD_OR_FALSE((d_v % 8).sym_eq(0)))) {
     if (debug) {
@@ -763,40 +758,8 @@ bool check_cudnn_tensor_shapes(sdp_params const& params, bool debug) {
     }
     return false;
   }
-  static const bool skip_hipdnn_probe =
-      c10::utils::check_env("TORCH_ROCM_HIPDNN_SDPA_ENABLE_EXPERIMENTAL") == true;
-  if (skip_hipdnn_probe) {
-    return true;
-  }
-#if AT_HIPDNN_ENABLED()
-  if (!at::native::cudnn_sdpa_is_supported(
-          b.guard_int(__FILE__, __LINE__),
-          h.guard_int(__FILE__, __LINE__),
-          s_q.guard_int(__FILE__, __LINE__),
-          s_k.guard_int(__FILE__, __LINE__),
-          d_qk.guard_int(__FILE__, __LINE__),
-          d_v.guard_int(__FILE__, __LINE__),
-          params.query,
-          params.key,
-          params.value,
-          params.attn_mask,
-          params.dropout,
-          params.is_causal,
-          input_requires_grad(params))) {
-    if (debug) {
-      TORCH_WARN(
-          "hipDNN has no engine for this attention graph on the current "
-          "device (head dims ", d_qk, "/", d_v, ", requires_grad ",
-          input_requires_grad(params), ").");
-    }
-    return false;
-  }
-#else
   (void)s_q;
   (void)s_k;
-  (void)d_qk;
-  (void)d_v;
-#endif // AT_HIPDNN_ENABLED()
   return true;
 #else
   long cudnn_version = at::detail::getCUDAHooks().versionRuntimeCuDNN();
@@ -1054,8 +1017,18 @@ bool check_cudnn_layout(sdp_params const& params, bool debug) {
 
 bool check_cudnn_hardware_support(sdp_params const& params, bool debug) {
 #if defined(USE_ROCM)
+  static const bool allow_experimental_archs =
+      c10::utils::check_env("TORCH_ROCM_HIPDNN_SDPA_ENABLE_EXPERIMENTAL") == true;
+  if (!allow_experimental_archs &&
+      !at::detail::getCUDAHooks().isGPUArch({"gfx942", "gfx950", "gfx11"})) {
+    if (debug) {
+      TORCH_WARN(
+          "hipDNN SDPA is only supported on gfx942, gfx950 and gfx11. Set "
+          "TORCH_ROCM_HIPDNN_SDPA_ENABLE_EXPERIMENTAL=1 to try it anyway.");
+    }
+    return false;
+  }
   (void)params;
-  (void)debug;
   return true;
 #else
   using sm80 = SMVersion<8, 0>;

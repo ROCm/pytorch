@@ -6,43 +6,6 @@ namespace at::native {
 // Check the pointer and stride alignment cuDNN requires for varlen tensors.
 bool has_aligned_varlen_layout(const Tensor& tensor);
 
-// The cuDNN SDPA graph takes a 4D bias. Broadcastable 2D/3D masks are expanded
-// (no copy) to [b, 1 or h, s_q, s_kv].
-inline std::optional<Tensor> expand_attn_bias_for_cudnn(
-    const std::optional<Tensor>& attn_bias,
-    int64_t b,
-    int64_t s_q,
-    int64_t s_kv) {
-  if (!attn_bias.has_value()) {
-    return std::nullopt;
-  }
-  const Tensor& bias = attn_bias.value();
-  TORCH_CHECK(
-      bias.dim() >= 2 && bias.dim() <= 4,
-      "cuDNN SDPA expects either a 2D, 3D, or 4D attn_bias but got ",
-      bias.dim(),
-      "D");
-  const int64_t h = bias.dim() == 4 ? bias.size(1) : 1;
-  return bias.expand({b, h, s_q, s_kv});
-}
-
-// Whether hipDNN can serve this attention configuration (ROCm only; defined in
-// MHA.cpp when AT_HIPDNN_ENABLED()).
-bool cudnn_sdpa_is_supported(
-    int64_t b,
-    int64_t h,
-    int64_t s_q,
-    int64_t s_kv,
-    int64_t d_qk,
-    int64_t d_v,
-    const Tensor& q,
-    const Tensor& k,
-    const Tensor& v,
-    const std::optional<Tensor>& attn_mask,
-    double dropout_probability,
-    bool is_causal,
-    bool requires_grad);
-
 void run_cudnn_SDP_fprop(
     int64_t b,
     int64_t h,
