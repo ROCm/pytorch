@@ -63,7 +63,6 @@ from torch.testing._internal.common_utils import (
     decorateIf,
     instantiate_parametrized_tests,
     parametrize,
-    skipIfRocm,
     skipIfWindows,
     skipIfXpu,
     TEST_WITH_ROCM,
@@ -953,7 +952,6 @@ class CompiledOptimizerTests(TestCase):
         self.assertLess(end - start, 90)
 
     @requires_gpu_and_triton
-    @skipIfRocm(msg="ROCm Triton compile time regresses on joined foreach bodies")
     def test_foreach_shared_body_codegen(self):
         from torch._inductor.utils import fresh_cache, run_and_get_code
 
@@ -1016,10 +1014,7 @@ class CompiledOptimizerTests(TestCase):
         self.assertEqual(params, params_ref)
         self.assertEqual(momentum, momentum_ref)
         foreach_codes = [code for code in codes if "@triton_heuristics.foreach" in code]
-        if torch.version.hip is not None:
-            self.assertFalse(any("foreach_arg0" in code for code in foreach_codes))
-        else:
-            self.assertTrue(any("foreach_arg0" in code for code in foreach_codes))
+        self.assertTrue(any("foreach_arg0" in code for code in foreach_codes))
 
     @requires_gpu_and_triton
     def test_S429861(self):

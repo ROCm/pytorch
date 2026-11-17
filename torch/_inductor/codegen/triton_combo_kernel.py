@@ -1296,12 +1296,6 @@ class ComboKernel(Kernel):
             return False
         if self.enable_autotune or self.per_subkernel_blocks:
             return False
-        if torch.version.hip is not None:
-            # The shared-body form joins live pointer placeholders after a
-            # many-way dispatch branch. HIP/Triton currently has pathological
-            # compile times for that IR shape on large foreach lists, so keep
-            # ROCm on the existing per-branch body emission path.
-            return False
         if self.dispatch_class not in (
             ComboKernel.SequentialDispatch,
             ComboKernel.RoundRobinDispatch,
