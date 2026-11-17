@@ -110,10 +110,13 @@ jobs:
 
           # Use the expanded form of ~/pytorch inside the image.
           RUN mkdir -p "$(dirname "${PYTORCH_SRC_DIR}")" \
-              && git clone --filter=blob:none --branch "${PYTORCH_BRANCH}" \
+              && git clone --depth 1 --filter=blob:none --branch "${PYTORCH_BRANCH}" \
                    "https://github.com/${PYTORCH_REPO}.git" "${PYTORCH_SRC_DIR}" \
               && cd "${PYTORCH_SRC_DIR}" \
-              && git checkout --detach "${PYTORCH_SHA}"
+              && git fetch --depth 1 origin "${PYTORCH_SHA}" \
+              && git checkout --detach "${PYTORCH_SHA}" \
+              && git rev-parse HEAD > .pytorch-source-sha \
+              && rm -rf .git
 
           WORKDIR ${PYTORCH_SRC_DIR}
           EOF
@@ -160,7 +163,8 @@ jobs:
           print("hip", torch.version.hip)
           print("rocm", torch.version.rocm)
           PY
-            test "$(git -C "${PYTORCH_SRC_DIR}" rev-parse HEAD)" = "${{ steps.resolve.outputs.sha }}"
+            test "$(cat "${PYTORCH_SRC_DIR}/.pytorch-source-sha")" = "${{ steps.resolve.outputs.sha }}"
+            test ! -d "${PYTORCH_SRC_DIR}/.git"
           '
 
       - name: Log in to Docker Hub
