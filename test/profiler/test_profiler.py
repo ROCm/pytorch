@@ -2764,7 +2764,11 @@ class TestProfilerDevice(TestCase):
                 found_mm = True
             if "gemm" in e.name.lower() or "Cijk" in e.name:
                 found_gemm = True
-            if "memcpy" in e.name.lower() or "__amd_rocclr_copyBuffer" in e.name:
+            # Only a device-side copy counts on CUDA and ROCm; the CPU runtime
+            # call (cudaMemcpyAsync, hipMemcpyWithStream) is named memcpy too.
+            if "memcpy" in e.name.lower() and (
+                device_type == "xpu" or e.device_type != DeviceType.CPU
+            ):
                 found_memcpy = True
         if device_type in ("cuda",):
             self.assertTrue(found_gemm)
@@ -3519,7 +3523,6 @@ if KinetoStepTracker.current_step() != initial_step + 2 * niters:
             y = torch.mm(x, x)
         self.assertEqual(len(p.events()), 0)
 
-    @skipIfRocm(msg="https://github.com/pytorch/pytorch/issues/180072")
     @onlyAccelerator
     @unittest.skipIf(not kineto_available(), "Kineto is required")
     def test_kineto_kernel_metadata_in_trace(self, device):
@@ -5241,7 +5244,6 @@ class TestProfilerEventsParity(TestCase):
                     f"activity_type mismatch for {e.name}",
                 )
 
-    @skipIfRocm(msg="https://github.com/pytorch/pytorch/issues/179944")
     def test_structured_metadata_matches_chrome_trace(self):
         # Compare metadata fields between events() and Chrome trace JSON to make sure they stay in parity
         # 1. Run a dummy workload with profiling enabled and collect the json/events() outputs
