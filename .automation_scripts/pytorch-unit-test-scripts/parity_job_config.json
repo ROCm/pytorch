@@ -9,7 +9,9 @@
   },
   "_notes": {
     "artifact_substrings": "The S3 artifact downloader always filters on the ROCm-GPU runner tag (rocm.gpu), since every ROCm runner label follows that convention; no per-arch config is needed.",
-    "workflow_regex": "parity-auto derives the per-arch upstream-workflow-path regex from the union of the workflow values across this arch's configs, so it is not stored here."
+    "workflow_regex": "parity-auto derives the per-arch upstream-workflow-path regex from the union of the workflow values across this arch's configs, so it is not stored here.",
+    "hud_aliases": "Optional list of legacy Framework HUD / scraper arch keys. parity.yml dual-uploads the same per-arch artifact under each alias (e.g. rx7900 also as navi31), and generate_summary uses the first alias as the report column label.",
+    "parity_scope": "Optional Agree% scope. 'rocm_present' restricts Agree/Disagree denominators to tests ROCm actually ran (status != MISSED), for subset suites like rx7900 default-only. Omit or 'full' for the default full-CUDA comparison used by mi200/mi300/mi350."
   },
   "cuda": {
     "default": [{ "workflow": "trunk", "job_prefix": "linux-jammy-cuda13.2-py3.11-gcc11" }],
@@ -54,7 +56,10 @@
     "rx7900": {
       "default": [{ "workflow": "rocm-rx7900", "job_prefix": "linux-jammy-rocm-py3.11-rx7900" }],
       "shard_counts": { "default": 2 },
-      "checkrun_regex": "rocm.*rx7900.*/ test [(]default,"
+      "checkrun_regex": "rocm.*rx7900.*/ test [(]default,",
+      "_hud_comment": "Framework HUD at rocm-framework-41 still labels the Navi lane navi31 (pre-#3753). Dual-publish results under those aliases and scope Agree% to ROCm-present tests so the subset default suite is not drowned by full-CUDA MISSED rows.",
+      "hud_aliases": ["navi31"],
+      "parity_scope": "rocm_present"
     },
     "preview": {
       "default": [{ "workflow": "rocm-preview", "job_prefix": "linux-noble-rocm-preview-py3.11-mi350" }],
