@@ -85,6 +85,37 @@ class C10_CUDA_API CUDAError : public c10::Error {
     C10_CUDA_KERNEL_LAUNCH_CHECK();                                   \
   } while (0)
 
+// Variant of TORCH_DSA_KERNEL_LAUNCH that accepts a *parenthesized* kernel
+// expression as the first argument. This lets you launch a kernel whose name
+// contains commas at the top level (e.g. a function template-id with more
+// than one template argument such as `foo<16, T, U>`), which the standard
+// macro cannot accept because the preprocessor would split the template
+// argument list on those commas.
+//
+// Example:
+//   TORCH_DSA_KERNEL_LAUNCH_T(
+//       (reduce_kernel<max_threads / 4, 4, R>),
+//       grid, block, shared_memory, stream, reduction);
+#define TORCH_DSA_KERNEL_LAUNCH_T_UNWRAP(...) __VA_ARGS__
+#define TORCH_DSA_KERNEL_LAUNCH_T(                                    \
+    kernel_paren, blocks, threads, shared_mem, stream, ...)           \
+  do {                                                                \
+    auto& launch_registry =                                           \
+        c10::cuda::CUDAKernelLaunchRegistry::get_singleton_ref();     \
+    TORCH_DSA_KERNEL_LAUNCH_T_UNWRAP kernel_paren                     \
+        <<<blocks, threads, shared_mem, stream>>>(                    \
+            __VA_ARGS__,                                              \
+            launch_registry                                           \
+                .get_uvm_assertions_ptr_for_current_device(),         \
+            launch_registry.insert(                                   \
+                __FILE__,                                             \
+                __FUNCTION__,                                         \
+                __LINE__,                                             \
+                #kernel_paren,                                        \
+                stream.id()));                                        \
+    C10_CUDA_KERNEL_LAUNCH_CHECK();                                   \
+  } while (0)
+
 namespace c10::cuda {
 
 /// In the event of a CUDA failure, formats a nice error message about that
