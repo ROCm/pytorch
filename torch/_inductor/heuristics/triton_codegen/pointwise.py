@@ -175,6 +175,19 @@ class ROCmPointwiseHeuristic(PointwiseHeuristic):
                 triton_config_fn(size_hints, xblock, num_warps=num_warps, num_stages=1)
                 for xblock, num_warps in ((1024, 1), (2048, 1), (8192, 8))
             )
+        elif len(size_hints) == 2:
+            configs.extend(
+                triton_config_fn(
+                    size_hints, xblock, yblock, num_warps=num_warps, num_stages=1
+                )
+                for xblock, yblock, num_warps in (
+                    (128, 64, 1),
+                    (8, 512, 1),
+                    (64, 128, 1),
+                    (256, 64, 8),
+                    (128, 32, 1),
+                )
+            )
         return configs
 
     def _configs_1d(
