@@ -6,7 +6,7 @@ name: Require upstream PR
 # PR code is never checked out, so pull_request_target is safe here.
 
 on:
-  pull_request_target:
+  pull_request_target: # zizmor: ignore[dangerous-triggers] only reads the event payload; PR code is never checked out
     branches: [release/**]
     types: [opened, edited, reopened, synchronize, labeled, unlabeled]
 
