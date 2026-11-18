@@ -38,6 +38,7 @@ class PointwiseHeuristic(CodegenConfigHeuristics):
         hinted_configs: list[Any],
         tile_hint: TileHint | None = None,
         inductor_meta: dict[str, Any] | None = None,
+        triton_meta: dict[str, Any] | None = None,
     ) -> list[Any]:
         inductor_meta = inductor_meta or {}
         n = len(size_hints)
@@ -118,6 +119,28 @@ class PointwiseHeuristic(CodegenConfigHeuristics):
 # ----------------------------------------------------------------------
 # ROCm/HIP pointwise heuristic
 # ----------------------------------------------------------------------
+
+
+def _use_tdm_max_autotune_configs(
+    inductor_meta: dict[str, Any], triton_meta: dict[str, Any] | None
+) -> bool:
+    """Whether to add the gfx1250 TDM configs: max-autotune is on, TDM codegen is
+    enabled, and the kernel targets a TDM-capable device."""
+    from torch._inductor import config
+    from torch._inductor.utils import _gfx1250_arch_prereqs
+
+    if not (
+        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    ):
+        return False
+    if not (config.triton.use_tensor_descriptor and config.assume_aligned_inputs):
+        return False
+    device = (triton_meta or {}).get("device")
+    return (
+        device is not None
+        and device.type == "hip"
+        and _gfx1250_arch_prereqs(str(device.cc))
+    )
 
 
 @register_codegen_heuristic("pointwise", "hip", register=torch.version.hip is not None)
