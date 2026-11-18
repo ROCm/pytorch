@@ -222,13 +222,18 @@ __global__ void upsample_nearest2d_backward_nhwc_out_frame(
   }
 }
 
-// On ROCm/HIP, gridDim.x * blockDim.x must fit in uint32_t per dimension (the
-// HSA AQL dispatch packet stores grid_size_{x,y,z} as uint32_t); violating it
-// returns hipErrorInvalidConfiguration.  Only the NHWC 1D-grid forward launch
-// can hit this in practice: with output.numel() near 2^32, a one-element-per-
-// thread grid overflows that field.  The contiguous (NCHW) 3D launch derives
-// grid_x/grid_y from int output_width/output_height, so per-dimension grids
-// are bounded well below the HIP limit.  See PR pytorch/pytorch#180310.
+// On ROCm/HIP, each dispatched dimension's global work size (gridDim * blockDim)
+// must fit in uint32_t (the HSA AQL dispatch packet stores grid_size_{x,y,z} as
+// uint32_t); violating it returns hipErrorInvalidConfiguration.  Two forward
+// launches need ROCm-specific handling:
+//   - NHWC 1D grid (PATH 1): with output.numel() near 2^32, a one-element-per-
+//     thread grid overflows grid_x; handled by host clamp + grid-stride kernel.
+//   - NCHW 3D grid (PATH 2): grid_z derives from nc = nbatch * channels and is
+//     clamped against maxGridSize[2].  On HIP that limit surfaces as -1 through
+//     the signed cudaDeviceProp field, so the clamp must use int64 math and
+//     unsigned dim3 construction (see PATH 2 below) to avoid grid_z wrapping to
+//     0xFFFFFFFF.  grid_x/grid_y stay bounded by int output_width/height.
+// See PR pytorch/pytorch#180310.
 template<nn_compute_source_index_fn_t nn_compute_source_index_fn>
 static void upsample_nearest2d_out_cuda_template(
     const Tensor& output,
@@ -329,7 +334,6 @@ static void upsample_nearest2d_out_cuda_template(
         at::cuda::getCurrentDeviceProperties()->maxThreadsPerBlock, MAX_THREADS);
 
     int* maxThreadsDim = at::cuda::getCurrentDeviceProperties()->maxThreadsDim;
-    int* maxGridSize = at::cuda::getCurrentDeviceProperties()->maxGridSize;
 
     // upsample_nearest2d meta call makes sure input/output tensor is not empty;
     int block_x = std::min<int>(
@@ -343,12 +347,43 @@ static void upsample_nearest2d_out_cuda_template(
 
     int grid_x = ceil_div(output_width, block_x);
     int grid_y = ceil_div(output_height, block_y);
+
+#ifdef USE_ROCM
+    // HIP/HSA stores each dispatched dimension's global work size
+    // (gridDim * blockDim) in a uint32_t AQL packet field, so every launched
+    // dimension must satisfy gridDim * blockDim <= UINT32_MAX.
+    //
+    // Do NOT clamp grid_z with maxGridSize[2] on ROCm: HIP reports the uint32
+    // maximum through the signed `int` cudaDeviceProp field as -1, so
+    // std::min<int>(maxGridSize[2], requested) collapses to -1, which becomes
+    // 0xFFFFFFFF once stored in dim3 and makes the launch fail with
+    // hipErrorInvalidConfiguration ("invalid configuration argument").
+    //
+    // grid_x / grid_y derive from int output_width / output_height, so they are
+    // bounded by INT_MAX/block_dim and always satisfy the HIP limit; the kernel
+    // does not stride over X/Y, so they must cover the spatial extent exactly
+    // and are left unclamped.  grid_z can be large (nc = nbatch * channels), but
+    // the kernel strides over the NC dimension, so a clamped grid_z still covers
+    // the full output.
+    constexpr int64_t kHipMaxGlobalWorkSize = 4294967295LL;  // UINT32_MAX
+    const int64_t requested_grid_z =
+        ceil_div(nc, static_cast<int64_t>(block_z) * 4);
+    const int64_t max_grid_z =
+        kHipMaxGlobalWorkSize / static_cast<int64_t>(block_z);
+    const unsigned int grid_z = static_cast<unsigned int>(
+        std::max<int64_t>(1, std::min<int64_t>(requested_grid_z, max_grid_z)));
+    const dim3 grid(
+        static_cast<unsigned int>(grid_x),
+        static_cast<unsigned int>(grid_y),
+        grid_z);
+#else
+    int* maxGridSize = at::cuda::getCurrentDeviceProperties()->maxGridSize;
     int grid_z = std::min<int>(
         maxGridSize[2], ceil_div(nc, (int64_t) block_z * 4));
 
-    // output_height / output_width are int, so grid_x and grid_y are bounded
-    // by INT_MAX/block_dim - well below both the CUDA maxGridSize and the
-    // ROCm/HIP uint32_t per-dimension limit.  No HIP-specific clamp needed.
+    // Error out on cases where grid_x & grid_y exceeds limit of launch config, as
+    // the current kernel implementation doesn't loop over the two dimensions.
+    // This is unlikely to happen.
     // TODO: kernel implementation could stride on spatial dimension. We probably
     //       need to overhaul the kernel.
     TORCH_CHECK(
@@ -356,6 +391,7 @@ static void upsample_nearest2d_out_cuda_template(
         "input tensor has spatial dimension larger than the kernel capacity");
 
     const dim3 grid(grid_x, grid_y, grid_z);
+#endif
     cudaStream_t stream = at::cuda::getCurrentCUDAStream();
     AT_DISPATCH_FLOATING_TYPES_AND3(ScalarType::Half, ScalarType::BFloat16, ScalarType::Byte, input.scalar_type(), "upsample_nearest2d_out_frame", [&] {
           using accscalar_t = at::acc_type<scalar_t, true>;
