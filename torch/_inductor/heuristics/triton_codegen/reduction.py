@@ -804,6 +804,67 @@ class ROCmReductionHeuristic(ReductionHeuristic):
                 configs.append(conf)
         return configs
 
+    def get_persistent_configs(
+        self,
+        *,
+        size_hints: dict[str, int],
+        reduction_hint: Any = False,
+        inductor_meta: dict[str, Any],
+        triton_meta: dict[str, Any],
+    ) -> list[Config]:
+        configs = super().get_persistent_configs(
+            size_hints=size_hints,
+            reduction_hint=reduction_hint,
+            inductor_meta=inductor_meta,
+            triton_meta=triton_meta,
+        )
+        inductor_meta = {} if inductor_meta is None else inductor_meta
+        if inductor_meta.get("RSPLIT_SIZE") or not _use_tdm_max_autotune_configs(
+            size_hints, inductor_meta, triton_meta
+        ):
+            return configs
+
+        from torch._inductor.runtime.triton_heuristics import (
+            get_total_reduction_numel,
+            triton_config_reduction,
+        )
+
+        rnumel = get_total_reduction_numel(size_hints)
+        warp_size = triton_meta["device"].warp_size_or_default
+        for xblock, num_warps in (
+            (16, 1),
+            (4, 1),
+            (8, 4),
+            (16, 8),
+            (256, 1),
+            (16, 4),
+            (8, 8),
+            (32, 8),
+        ):
+            config = triton_config_reduction(
+                size_hints,
+                xblock,
+                rnumel,
+                num_warps=num_warps,
+                register_intensive=True,
+                min_num_warps=1,
+                reduction_hint=reduction_hint,
+                warp_size=warp_size,
+            )
+            # Larger tiles with few warps can take minutes in the AMD LLVM
+            # register allocator.
+            block_numel = 1
+            for name, value in config.kwargs.items():
+                if name.endswith("BLOCK"):
+                    block_numel *= value
+            if block_numel > 16384:
+                continue
+            for prefix in size_hints:
+                if prefix_is_reduction(prefix):
+                    config.kwargs.pop(f"{prefix.upper()}BLOCK")  # type: ignore[union-attr]
+            configs.append(config)
+        return configs
+
     def _max_warps_limit(self) -> int:
         return 16
 
