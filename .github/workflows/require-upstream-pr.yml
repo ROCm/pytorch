@@ -47,7 +47,7 @@ jobs:
                   '❌ **Upstream decision required.** PRs to release branches must record whether the change goes upstream. Do one of:',
                   '',
                   '- **Has upstream:** add the upstream PR to the description, e.g. `pytorch/pytorch#12345` or `https://github.com/pytorch/pytorch/pull/12345`.',
-                  `- **ROCm-only change:** apply the \`${label}\` label.`,
+                  `- **ROCm fork-only change:** apply the \`${label}\` label.`,
                   '',
                   'This check re-runs automatically when you edit the description or change labels.',
                 ].join('\n');
