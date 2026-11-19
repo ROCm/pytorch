@@ -6,9 +6,9 @@ integration in _nvshmem_triton.py.  It is only imported on ROCm builds
 (i.e. when ``torch.version.hip is not None``).
 """
 
+import importlib.util
 import logging
 import os
-import sysconfig
 from typing import Any
 
 import torch
@@ -26,10 +26,15 @@ class RocshmemLibFinder:
     """
     Find the architecture-specific rocSHMEM device bitcode library.
 
-    Environment variable:
-        ``ROCSHMEM_LIB_DIR`` (Optional[str]): directory containing
-        ``librocshmem_device_{arch}.bc``.  When not set, the standard
-        ROCm installation at ``/opt/rocm/lib`` is searched.
+    Search order:
+        1. ``ROCSHMEM_LIB_DIR``, if set (no fallback when the file is missing).
+        2. ``$ROCM_HOME/lib`` or ``$ROCM_PATH/lib``, if either is set.
+        3. ``lib`` of the ``_rocm_sdk_devel`` package from the ``rocm[devel]``
+           wheel, which matches the ROCm version torch depends on.
+        4. ``/opt/rocm/lib``, ``/usr/local/lib`` and ``/usr/lib``.
+
+    Steps 2-4 use the precedence of ``torch.utils.cpp_extension._find_rocm_home``,
+    but fall through when a directory lacks the bitcode.
 
     Example::
         export ROCSHMEM_LIB_DIR=/opt/rocm/lib
@@ -54,9 +59,16 @@ class RocshmemLibFinder:
 
         lib_name = f"librocshmem_device_{arch}.bc"
 
-        search_paths = [
-            os.path.join(sysconfig.get_path("purelib"), "amd", "rocshmem", "lib"),
-            os.path.join(os.environ.get("ROCM_PATH") or "/opt/rocm", "lib"),
+        search_paths = []
+        rocm_home = os.environ.get("ROCM_HOME") or os.environ.get("ROCM_PATH")
+        if rocm_home:
+            search_paths.append(os.path.join(rocm_home, "lib"))
+        # find_spec locates the wheel without importing it.
+        devel_spec = importlib.util.find_spec("_rocm_sdk_devel")
+        if devel_spec is not None and devel_spec.origin is not None:
+            search_paths.append(os.path.join(os.path.dirname(devel_spec.origin), "lib"))
+        search_paths += [
+            "/opt/rocm/lib",
             "/usr/local/lib",
             "/usr/lib",
         ]
