@@ -18,6 +18,7 @@ from torch._inductor.test_case import TestCase
 from torch.testing._internal.common_device_type import (
     instantiate_device_type_tests,
     onlyAccelerator,
+    preserves_device_selection,
 )
 from torch.testing._internal.common_utils import (
     HardwareClassification,
@@ -34,6 +35,26 @@ _IS_WINDOWS = sys.platform == "win32"
 
 class TestUtils(TestCase):
     hw_classification = HardwareClassification.GENERIC
+
+    def test_preserve_rng_state_explicit_accelerator(self):
+        device_state = torch.tensor([1], dtype=torch.uint8)
+        device_module = mock.Mock()
+        device_module.is_available.return_value = True
+        device_module.get_rng_state.return_value = device_state
+
+        with (
+            mock.patch.object(
+                torch, "get_device_module", return_value=device_module
+            ) as get_device_module,
+            utils.preserve_rng_state("privateuseone", 3),
+        ):
+            pass
+
+        get_device_module.assert_called_once_with("privateuseone")
+        device_module.get_rng_state.assert_called_once_with(3)
+        restored_state, device = device_module.set_rng_state.call_args.args
+        self.assertEqual(restored_state, device_state)
+        self.assertEqual(device, 3)
 
     def test_cleanup_hook_tolerates_missing_name(self):
         # During interpreter shutdown the scope's module __dict__ may already be
@@ -1414,6 +1435,8 @@ class TestDynamoTimed(TestCase):
 
 class TestTimedSync(TestCase):
     hw_classification = HardwareClassification.ACCELERATOR
+    setUp = preserves_device_selection(TestCase.setUp)
+    setUpClass = classmethod(preserves_device_selection(TestCase.setUpClass.__func__))
 
     @onlyAccelerator
     def test_timed_syncs_on_accelerator(self, device):
