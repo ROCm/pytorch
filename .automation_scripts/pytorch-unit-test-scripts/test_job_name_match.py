@@ -27,10 +27,7 @@ class ChooseTestJobFamilyTest(unittest.TestCase):
                     "job_prefix": "linux-jammy-rocm-py3.11-rx7900",
                 }],
                 "shard_counts": {"default": 2},
-                "checkrun_regex": (
-                    "linux-jammy-rocm-py3[.]11-rx7900 "
-                    "/ test [(]default,"
-                ),
+                "checkrun_regex": "rocm.*rx7900.*/ test [(]default,",
             },
         )
 

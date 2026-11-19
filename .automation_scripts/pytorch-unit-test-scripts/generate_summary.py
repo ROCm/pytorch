@@ -6,6 +6,7 @@ import csv
 import os
 import re
 import sys
+from typing import NamedTuple
 
 
 TEST_CONFIGS = ['default', 'distributed', 'inductor', 'slow']
@@ -744,6 +745,27 @@ def _parse_log_failure_names(lf):
     return parts[0], parts[1]
 
 
+class _TestKey(NamedTuple):
+    """Identity of a single test that matches XML and log rows."""
+    arch: str
+    test_config: str
+    test_file: str
+    test_class: str
+    test_name: str
+
+    @classmethod
+    def of(cls, row, test_class, test_name):
+        # XML classes carry the module path ('test.distributed.test_x.FooTest')
+        # while log reasons only name the class ('FooTest').
+        return cls(row.get('arch', ''), row.get('test_config', ''),
+                   _norm_test_file(row.get('test_file', '')),
+                   test_class.rsplit('.', 1)[-1], test_name)
+
+    @property
+    def file(self):
+        return (self.arch, self.test_config, self.test_file)
+
+
 def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     """ROCm log-detected failures not already in the XML FAILED TESTS table,
     deduplicated to one row per test.
@@ -752,32 +774,38 @@ def _select_rocm_log_failures(log_failures, failed_tests, s1_name):
     'FAILED' line and a 'FAILED CONSISTENTLY' line (category CONSISTENT_FAILURE)
     describe the same test. Collapse those to a single row, preferring
     CONSISTENT_FAILURE over a one-off FAILED so a test is never listed as both.
+
+    A whole-file entry (no test class/name, e.g. 'cpp/test_api 1/1 failed!')
+    is dropped when a named failure is already reported for the same file;
+    it is kept when nothing else explains the file failing (e.g. a crash
+    before any test ran).
     """
-    xml_failed_keys = {
-        (t['arch'], _norm_test_file(t['test_file']), t['test_class'], t['test_name'])
-        for t in (failed_tests or [])
-    }
+    rocm_log_failures = [
+        (lf, _TestKey.of(lf, *_parse_log_failure_names(lf)))
+        for lf in (log_failures or [])
+        if _is_primary_platform(lf.get('platform', ''), s1_name)
+    ]
+    xml_keys = {_TestKey.of(t, t['test_class'], t['test_name'])
+                for t in (failed_tests or [])}
+    failing_keys = xml_keys | {key for lf, key in rocm_log_failures
+                               if lf.get('category', '') != 'FLAKY'}
+    files_with_named_failure = {key.file for key in failing_keys if key.test_name}
+
     best = {}
-    order = []
-    for lf in (log_failures or []):
-        if not _is_primary_platform(lf.get('platform', ''), s1_name):
-            continue
-        test_class, test_name = _parse_log_failure_names(lf)
-        key = (lf.get('arch', ''), _norm_test_file(lf.get('test_file', '')),
-               test_class, test_name)
-        # Skip entries already present in the XML-based FAILED TESTS table to
-        # avoid double-counting the same failure, except FLAKY entries which
-        # represent an independent signal (a rerun passed).
-        if key in xml_failed_keys and lf.get('category', '') != 'FLAKY':
+    for lf, key in rocm_log_failures:
+        # Skip failures the XML table already reports, and whole-file rows for
+        # a file that has a named failure. FLAKY entries are an independent
+        # signal (a rerun passed), so always keep them.
+        already_reported = key in xml_keys or (
+            not key.test_name and key.file in files_with_named_failure)
+        if already_reported and lf.get('category', '') != 'FLAKY':
             continue
         existing = best.get(key)
-        if existing is None:
+        if existing is None or (
+                lf.get('category') == 'CONSISTENT_FAILURE'
+                and existing.get('category') != 'CONSISTENT_FAILURE'):
             best[key] = lf
-            order.append(key)
-        elif (lf.get('category') == 'CONSISTENT_FAILURE'
-              and existing.get('category') != 'CONSISTENT_FAILURE'):
-            best[key] = lf
-    return [best[k] for k in order]
+    return list(best.values())
 
 
 def collect_log_failed_tests(log_failures, xml_failed_tests, s1_name):

@@ -85,6 +85,14 @@ def _test_config_from_dir(dirname):
     return ""
 
 
+def _canonical_classname(invoking_file, classname):
+    """Remove an invoking-module prefix that pytest may omit on retries."""
+    for prefix in (f"test.{invoking_file}.", f"{invoking_file}."):
+        if classname.startswith(prefix):
+            return classname[len(prefix):]
+    return classname
+
+
 def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="."):
     test_config = ""
     test_cases = {}
@@ -151,6 +159,10 @@ def parse_xml_reports_as_dict(workflow_run_id, workflow_run_attempt, tag, path="
                     case["shard"] = shard
                     case["job_url"] = job_url
                     if tag == "testcase":
+                        invoking_file, classname, test_name, config = key
+                        classname = _canonical_classname(invoking_file, classname)
+                        case["classname"] = classname
+                        key = (invoking_file, classname, test_name, config)
                         existing = test_cases.get(key)
                         if existing is None or _status_priority(case) > _status_priority(existing):
                             test_cases[key] = case
