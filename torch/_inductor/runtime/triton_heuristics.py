@@ -1039,6 +1039,49 @@ class CachingAutotuner(KernelInterface):
         self.compile_results = [result]
         return result.make_launcher()
 
+    def compile_with_smaller_rblock(self, config) -> LauncherType | None:
+        """
+        Looped reductions choose their reduction block at runtime, so when every
+        config runs out of a resource (e.g. tensor descriptor tiles staged in
+        shared memory), retry the same kernel with the largest one halved.
+        """
+        if (
+            self.heuristic_type != HeuristicType.REDUCTION
+            or "strict_sum_rblock" in self.inductor_meta
+        ):
+            return None
+        tma_min_block_sizes = self.inductor_meta.get("tma_min_block_sizes") or {}
+        min_rblock = self.inductor_meta.get("min_rblock") or 1
+        self._ensure_kernel_loaded()
+        cfg = config
+        while True:
+            rblock_names = [
+                name
+                for name in cfg.kwargs
+                if name.endswith("BLOCK") and prefix_is_reduction(name.lower())
+            ]
+            if not rblock_names:
+                return None
+            largest = max(rblock_names, key=cfg.kwargs.__getitem__)
+            floor = tma_min_block_sizes.get(largest, 1)
+            if largest == "R0_BLOCK":
+                floor = max(floor, min_rblock)
+            if cfg.kwargs[largest] // 2 < floor:
+                return None
+            cfg = copy.deepcopy(cfg)
+            cfg.kwargs[largest] //= 2
+            log.debug("Out of resources; retrying with %s", cfg)
+            try:
+                result = self._precompile_config(cfg)
+            except OutOfResources:
+                continue
+            launcher, exc = self._make_launcher(result)
+            if launcher is not None:
+                self.compile_results = [result]
+                return launcher
+            if not isinstance(exc, (OutOfResources, torch.cuda.OutOfMemoryError)):
+                return None
+
     def _make_launcher(
         self, compile_result: _KernelCompileResult
     ) -> tuple[LauncherType, None] | tuple[None, Exception]:
@@ -1088,6 +1131,11 @@ class CachingAutotuner(KernelInterface):
                         and self.inductor_meta.get("dynamic_disable_pipelining", True)
                     ):
                         self.launchers = [self.compile_by_disabling_pipelining(config)]
+                        return
+                    if isinstance(
+                        exc, (OutOfResources, torch.cuda.OutOfMemoryError)
+                    ) and (launcher := self.compile_with_smaller_rblock(config)):
+                        self.launchers = [launcher]
                         return
                     raise RuntimeError(
                         f"No valid triton configs. {type(exc).__name__}: {exc}"
