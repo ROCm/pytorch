@@ -6,7 +6,7 @@
     "shard_counts": "Number of shards per test config.",
     "test_kinds": "CUDA only: upstream test-job kinds to match (e.g. test-osdc, test).",
     "checkrun_regex": "PCRE matching this arch's ROCm test check-run names (parity-auto gating). CUDA uses it for the trunk CUDA test jobs.",
-    "slow_checkrun_regex": "CUDA only: rename-tolerant PCRE for slow test check-runs."
+    "slow_checkrun_regex": "CUDA only: PCRE for the slow.yml CUDA test check-runs, which run on the sm86 build, not the trunk build checkrun_regex matches. Like checkrun_regex it accepts any py3.N/gccN. Without it, parity-auto matches cuda.slow[].job_prefix exactly."
   },
   "_notes": {
     "artifact_substrings": "The S3 artifact downloader always filters on the ROCm-GPU runner tag (rocm.gpu), since every ROCm runner label follows that convention; no per-arch config is needed.",
@@ -20,7 +20,7 @@
     "test_kinds": ["test-osdc", "test"],
     "shard_counts": { "default": 14, "distributed": 10, "inductor": 2, "slow": 3 },
     "checkrun_regex": "linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+ / (test-osdc|test) [(](default|distributed|inductor),",
-    "slow_checkrun_regex": "^linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+-sm86 / (test-osdc|test) [(]slow,"
+    "slow_checkrun_regex": "linux-jammy-cuda13[.]2-py3[.][0-9]+-gcc[0-9]+-sm86 / (test-osdc|test) [(]slow,"
   },
   "rocm": {
     "mi350": {
