@@ -85,6 +85,7 @@ from ..utils import (
     device_supports_fp64,
     get_bounds_index_expr,
     get_fused_kernel_name,
+    get_gpu_shared_memory,
     get_kernel_metadata,
     is_welford_reduction,
     Placeholder,
@@ -3235,6 +3236,10 @@ class TMACompatibilityChecker:
                     persistent_rblock,
                 )
                 return False
+            if self._persistent_tdm_tiles_exceed_shared_memory(
+                block_params.block_shape, self.kernel.tma_min_block_sizes
+            ):
+                return False
 
         else:
             # E.g. if the innermost block shape is Min(2, XBLOCK)
@@ -3325,6 +3330,14 @@ class TMACompatibilityChecker:
                         )
                         return False
                 else:
+                    min_block_sizes = self.kernel.tma_min_block_sizes
+                    min_block_sizes[block_type_str] = max(
+                        min_block_sizes.get(block_type_str, 1), min_block_size
+                    )
+                    if self._persistent_tdm_tiles_exceed_shared_memory(
+                        block_params.block_shape, min_block_sizes
+                    ):
+                        return False
                     self.kernel._record_tma_min_block_size(
                         self.buffer_name,
                         block_type_str,
@@ -3339,7 +3352,68 @@ class TMACompatibilityChecker:
                 )
                 return False
 
+        if self.kernel.persistent_reduction and self._gfx1250_capable(device):
+            self.kernel._record_tdm_tile(
+                self.buffer_name, block_params.block_shape, element_size
+            )
         return True
+
+    def _persistent_tdm_tiles_exceed_shared_memory(
+        self,
+        block_shape: Sequence[sympy.Expr],
+        min_block_sizes: dict[str, int],
+    ) -> bool:
+        """
+        TDM stages every descriptor tile in shared memory, and a persistent
+        reduction fixes RBLOCK at compile time. If the kernel's tiles plus this
+        one do not fit at the smallest block sizes the descriptors allow, no
+        config can launch, so this access must use a regular load / store.
+        """
+        kernel = self.kernel
+        if not (
+            kernel.persistent_reduction
+            and self._gfx1250_capable(V.graph.get_current_device_or_throw())
+        ):
+            return False
+        shared_memory_limit = get_gpu_shared_memory()
+        if not shared_memory_limit:
+            return False
+
+        block_values: dict[sympy.Expr, int] = {}
+        for tree in kernel.range_trees:
+            block_size = TritonSymbols.get_block_size(tree)
+            if tree.is_reduction:
+                block_values[block_size] = kernel._get_persistent_reduction_block(
+                    tree.numel
+                )
+            else:
+                block_values[block_size] = min_block_sizes.get(
+                    kernel.index_to_str(block_size), 1
+                )
+
+        active_buffers = kernel._active_tma_buffer_names()
+        tiles = OrderedSet(
+            (buffer_name, tile)
+            for buffer_name, buffer_tiles in kernel._tdm_tiles_by_buffer.items()
+            if buffer_name in active_buffers
+            for tile in buffer_tiles
+        )
+        tiles.add((self.buffer_name, (tuple(block_shape), self.dtype.itemsize)))
+        tile_bytes = sympy.Integer(0)
+        for _, (shape, itemsize) in tiles:
+            tile_bytes += sympy_subs(sympy_product(shape), block_values) * itemsize
+        if V.graph.sizevars.statically_known_gt(tile_bytes, shared_memory_limit):
+            log.debug(
+                "%s TDM tiles need %s bytes of shared memory at block sizes %s, "
+                "above the %d byte limit. Block shape: %s",
+                self.failed_debug_prefix,
+                tile_bytes,
+                block_values,
+                shared_memory_limit,
+                block_shape,
+            )
+            return True
+        return False
 
     def can_lift(self) -> bool:
         """
@@ -3401,6 +3475,9 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
             collections.defaultdict(dict)
         )
         self._tma_min_block_sizes_by_buffer: dict[str | None, dict[str, int]] = {}
+        self._tdm_tiles_by_buffer: dict[
+            str | None, OrderedSet[tuple[tuple[sympy.Expr, ...], int]]
+        ] = {}
         self.host_tma_descriptor_args: dict[str, TensorDescriptorOptions] = {}
         self._host_tma_non_materializable: OrderedSet[str] = OrderedSet()
         self._host_tma_non_materializable_buffers: OrderedSet[str] | None = None
@@ -3495,6 +3572,16 @@ class TritonKernel(SIMDKernel[TritonCSEVariable]):
     ) -> None:
         requirements = self._tma_min_block_sizes_by_buffer.setdefault(buffer_name, {})
         requirements[block_type] = max(min_block_size, requirements.get(block_type, 1))
+
+    def _record_tdm_tile(
+        self,
+        buffer_name: str | None,
+        block_shape: Sequence[sympy.Expr],
+        itemsize: int,
+    ) -> None:
+        self._tdm_tiles_by_buffer.setdefault(buffer_name, OrderedSet()).add(
+            (tuple(block_shape), itemsize)
+        )
 
     def _discard_host_tma_descriptor(self, var: str) -> None:
         self.host_tma_descriptor_args.pop(var, None)
