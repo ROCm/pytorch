@@ -75,6 +75,11 @@ on:
         required: false
         default: false
         type: boolean
+      exclude_slow:
+        description: 'Exclude slow tests (auto-excluded for arches without a slow source)'
+        required: false
+        default: false
+        type: boolean
       include_logs:
         description: 'Download and include CI log files (.txt) in artifact zip'
         required: false
@@ -243,7 +248,9 @@ jobs:
           if [ "${{ inputs.exclude_default }}" = "true" ]; then
             ARGS="$ARGS --exclude_default"
           fi
-          ARGS="$ARGS --exclude_slow"
+          if [ "${{ inputs.exclude_slow }}" = "true" ]; then
+            ARGS="$ARGS --exclude_slow"
+          fi
           ARGS="$ARGS --ignore_status"
           if [ "${{ inputs.include_logs }}" != "true" ]; then
             ARGS="$ARGS --artifacts_only"
@@ -334,7 +341,7 @@ jobs:
           # a reported incomplete download already fails the job later and we
           # still want its partial report.
           ARCH_CONFIGS=$(jq -r --arg a "$ARCH" \
-            '.rocm[$a] | keys_unsorted[] | select(IN("default","distributed","inductor"))' \
+            '.rocm[$a] | keys_unsorted[] | select(IN("default","distributed","inductor","slow"))' \
             parity_job_config.json)
           require_config_xml() {
             local directory="$1" label="$2" config
@@ -343,6 +350,7 @@ jobs:
                 default)     [ "${{ inputs.exclude_default }}" = "true" ] && continue ;;
                 distributed) [ "${{ inputs.exclude_distributed }}" = "true" ] && continue ;;
                 inductor)    [ "${{ inputs.exclude_inductor }}" = "true" ] && continue ;;
+                slow)        [ "${{ inputs.exclude_slow }}" = "true" ] && continue ;;
               esac
               if ! find "$directory" -maxdepth 1 -type d -name "test-${config}-*" \
                    -print -quit 2>/dev/null | grep -q .; then
