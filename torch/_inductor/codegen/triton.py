@@ -3365,9 +3365,11 @@ class TMACompatibilityChecker:
     ) -> bool:
         """
         TDM stages every descriptor tile in shared memory, and a persistent
-        reduction fixes RBLOCK at compile time. If the kernel's tiles plus this
-        one do not fit at the smallest block sizes the descriptors allow, no
-        config can launch, so this access must use a regular load / store.
+        reduction fixes RBLOCK at compile time. If one of the kernel's tiles,
+        including this one, cannot fit at the smallest block sizes the
+        descriptors allow, no config can launch, so this access must use a
+        regular load / store. Triton reuses shared memory between tiles that
+        are not live together, so their sum is not a reliable bound.
         """
         kernel = self.kernel
         if not (
@@ -3399,12 +3401,15 @@ class TMACompatibilityChecker:
             for tile in buffer_tiles
         )
         tiles.add((self.buffer_name, (tuple(block_shape), self.dtype.itemsize)))
-        tile_bytes = sympy.Integer(0)
-        for _, (shape, itemsize) in tiles:
-            tile_bytes += sympy_subs(sympy_product(shape), block_values) * itemsize
+        tile_bytes = sympy.Max(
+            *(
+                sympy_subs(sympy_product(shape), block_values) * itemsize
+                for _, (shape, itemsize) in tiles
+            )
+        )
         if V.graph.sizevars.statically_known_gt(tile_bytes, shared_memory_limit):
             log.debug(
-                "%s TDM tiles need %s bytes of shared memory at block sizes %s, "
+                "%s a TDM tile needs %s bytes of shared memory at block sizes %s, "
                 "above the %d byte limit. Block shape: %s",
                 self.failed_debug_prefix,
                 tile_bytes,
