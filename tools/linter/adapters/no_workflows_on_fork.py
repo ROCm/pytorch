@@ -120,6 +120,7 @@ def check_file(filename: str) -> list[LintMessage]:
                 lambda x: "github.repository == 'pytorch/pytorch'" in x
                 and "github.event_name != 'schedule' || github.repository == 'pytorch/pytorch'"
                 not in x,
+                lambda x: "github.repository == 'ROCm/pytorch'" in x,
                 lambda x: "github.repository_owner == 'pytorch'" in x,
             ]
             if not any(f(if_statement) for f in valid_checks):

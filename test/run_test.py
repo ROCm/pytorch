@@ -1025,7 +1025,12 @@ def test_distributed(test_module, test_directory, options):
             continue
         if backend == "mpi" and not mpi_available:
             continue
-        for with_init_file in {True, False}:
+        init_file_options = (
+            {False}
+            if os.environ.get("DISTRIBUTED_TESTS_ENV_INIT_ONLY") == "1"
+            else {True, False}
+        )
+        for with_init_file in init_file_options:
             if sys.platform == "win32" and not with_init_file:
                 continue
             tmp_dir = tempfile.mkdtemp()
