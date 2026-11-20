@@ -2,6 +2,7 @@
 import itertools
 import math
 import os
+import time
 import unittest
 import warnings
 from itertools import product
@@ -1175,6 +1176,32 @@ class TestConvolutionNN(NNTestCase):
 
 class TestConvolutionNNDevice(NNTestCase):
     hw_classification = HardwareClassification.ACCELERATOR
+
+    @onlyCUDA
+    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm grouped ConvTranspose1d regression")
+    def test_rocm_grouped_conv_transpose1d_without_miopen(self, device):
+        torch.manual_seed(0)
+        inputs = torch.randn(1, 768, 2505, device=device, dtype=torch.float32)
+        weights = torch.randn(768, 1, 12, device=device, dtype=torch.float32)
+        # Independent scatter-add reference for stride 2, one channel per group.
+        # Accumulate in CPU FP64, without another convolution implementation.
+        inputs_cpu, weights_cpu = inputs.cpu().double(), weights.cpu().double()
+        reference = torch.zeros(1, 768, 5020, dtype=torch.float64)
+        for tap in range(12):
+            reference[:, :, tap : tap + 2 * 2505 : 2] += (
+                inputs_cpu * weights_cpu[:, 0, tap].view(1, 768, 1)
+            )
+        # Disabling cuDNN also disables MIOpen on ROCm, exposing the grouped
+        # slow-convolution path from the reported AudioVAE workload.
+        with cudnn.flags(enabled=False):
+            torch.cuda.synchronize(device)
+            start = time.perf_counter()
+            output = F.conv_transpose1d(inputs, weights, stride=2, groups=768)
+            torch.cuda.synchronize(device)
+            elapsed_ms = (time.perf_counter() - start) * 1000
+        self.assertEqual(output.cpu(), reference.float(), atol=1e-5, rtol=1e-5)
+        # Diagnostic only: performance acceptance needs a same-machine baseline.
+        print(f"ROCm grouped ConvTranspose1d synchronized elapsed: {elapsed_ms:.3f} ms")
 
     @skipMPS
     @expectedFailureXPU
