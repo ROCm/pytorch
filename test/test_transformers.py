@@ -3501,6 +3501,43 @@ class TestSDPAAccelerator(NNTestCase):
     _do_cuda_non_default_stream = True
     hw_classification = HardwareClassification.ACCELERATOR
 
+    @onlyCUDA
+    @unittest.skipIf(not TEST_WITH_ROCM, "ROCm large-head SDPA regression")
+    @parametrize("dtype", [torch.float16, torch.bfloat16])
+    @parametrize("head_dim", [64, 128, 255, 256, 257, 264, 512])
+    @parametrize("strided", [False, True])
+    def test_rocm_sdpa_large_head_correctness(self, device, dtype, head_dim, strided):
+        # The original failure silently corrupted FP16 [1, 1, 256, 512]
+        # output on gfx11. Keep that seed and shape as well as boundary controls.
+        torch.manual_seed(0 if not strided else 1)
+        shape = (1, 2 if strided else 1, 256, head_dim)
+        q, k, v = (torch.randn(shape, device=device, dtype=dtype) for _ in range(3))
+        if strided:
+            q, k, v = (x.transpose(1, 2).contiguous().transpose(1, 2) for x in (q, k, v))
+        q_ref, k_ref, v_ref = (x.cpu().float() for x in (q, k, v))
+        reference = torch.softmax(q_ref @ k_ref.transpose(-2, -1) / math.sqrt(head_dim), dim=-1) @ v_ref
+        atol, rtol = (3e-3, 1e-2) if dtype == torch.float16 else (3e-2, 3e-2)
+
+        result = F.scaled_dot_product_attention(q, k, v)
+        self.assertTrue(torch.isfinite(result).all())
+        self.assertEqual(result.cpu().float(), reference, atol=atol, rtol=rtol)
+
+        if head_dim in (128, 512):
+            for backend in (SDPBackend.FLASH_ATTENTION, SDPBackend.EFFICIENT_ATTENTION):
+                with self.subTest(backend=backend), sdpa_kernel(backend):
+                    try:
+                        result = F.scaled_dot_product_attention(q, k, v)
+                    except RuntimeError as error:
+                        # Only dispatch rejection is expected. Launch/device errors
+                        # must fail, and future working fused kernels may pass.
+                        self.assertEqual(head_dim, 512)
+                        self.assertRegex(str(error), r"^No available kernel\. Aborting execution\.$")
+                    else:
+                        self.assertTrue(torch.isfinite(result).all())
+                        self.assertEqual(result.cpu().float(), reference, atol=atol, rtol=rtol)
+                self.assertEqual(torch.ones(1, device=device) + 1, torch.full((1,), 2.0, device=device))
+                torch.cuda.synchronize(device)
+
     @unittest.skipIf(not PLATFORM_SUPPORTS_FLASH_ATTENTION, "Flash Attention is not supported on this system")
     @unittest.skipIf(TEST_WITH_ROCM and not PLATFORM_SUPPORTS_CK_SDPA, "ROCm empty-batch handling is CK-only")
     def test_fused_attention_empty_batch(self, device):
