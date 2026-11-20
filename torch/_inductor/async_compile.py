@@ -511,7 +511,11 @@ class AsyncCompile:
             ]
             extra_env = {v: os.environ.get(v) for v in env_vars}
             extra_config = {
-                "use_static_triton_launcher": torch._inductor.config.use_static_triton_launcher
+                "use_static_triton_launcher": torch._inductor.config.use_static_triton_launcher,
+                # The ROCm TDM autotuning configs are gated on these at kernel load,
+                # which happens in the worker.
+                "triton.use_tensor_descriptor": torch._inductor.config.triton.use_tensor_descriptor,
+                "assume_aligned_inputs": torch._inductor.config.assume_aligned_inputs,
             }
 
             if len(torch._inductor.config.autotune_lookup_table) > 0:
