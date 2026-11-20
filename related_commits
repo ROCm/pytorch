@@ -1,0 +1,3 @@
+ubuntu|pytorch|apex|master|master|https://github.com/ROCm/apex
+ubuntu|pytorch|torchvision|nightly|nightly|https://github.com/pytorch/vision.git
+ubuntu|pytorch|torchaudio|nightly|nightly|https://github.com/pytorch/audio.git
