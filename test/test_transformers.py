@@ -37,8 +37,10 @@ from torch.testing._internal.common_utils import (
     TEST_WITH_ROCM,
     isRocmArchAnyOf,
     MI350_ARCH,
+    MI450_ARCH,
     NAVI4_ARCH,
     skipIfRocm,
+    skipIfRocmArch,
     skipIfTorchDynamo,
     TEST_FAIRSEQ,
     run_tests,
@@ -4239,6 +4241,7 @@ class TestSDPAAccelerator(NNTestCase):
             torch.zeros_like(actual_grads[0][:, :fully_masked]),
         )
 
+    @skipIfRocmArch(MI450_ARCH)
     @onlyCUDA
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Does not support Efficient Attention")
     @tf32_off()
@@ -5182,6 +5185,7 @@ class TestSDPAAccelerator(NNTestCase):
         max_diff = (out - out_contig).abs().mean()
         self.assertTrue(max_diff.item() < 1e-7)
 
+    @skipIfRocmArch(MI450_ARCH)
     @unittest.skipIf(not PLATFORM_FUSED_ATTENTION_SUPPORTS_HDIM512, "hdim=512 fused attention is unsupported.")
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
     def test_mem_eff_attention_single_query_tail_mask(self, device):
@@ -5199,6 +5203,7 @@ class TestSDPAAccelerator(NNTestCase):
 
         self.assertEqual(actual, expected, atol=2e-2, rtol=2e-2)
 
+    @skipIfRocmArch(MI450_ARCH)
     @unittest.skipIf(not PLATFORM_FUSED_ATTENTION_SUPPORTS_HDIM512, "hdim=512 fused attention is unsupported.")
     @unittest.skipIf(not SM80OrLater, "bfloat16 requires SM80 or later")
     @unittest.skipIf(not PLATFORM_SUPPORTS_MEM_EFF_ATTENTION, "Fused SDPA was not built for this system")
