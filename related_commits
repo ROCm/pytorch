@@ -1,3 +1,3 @@
-ubuntu|pytorch|apex|release/1.13.0|cee42af4524db0ac4c7c08aec5ac0799e084c993|https://github.com/ROCm/apex
+ubuntu|pytorch|apex|release/1.13.0|f678def1fa1c50d5307323fcae8d231a977634f2|https://github.com/ROCm/apex
 ubuntu|pytorch|torchvision|release/0.28|fc4106accc3a764ef48d0ff86e9d2842189d74ae|https://github.com/ROCm/vision
 ubuntu|pytorch|torchaudio|release/2.11.0.2|289149bdf3061ea06e520a2fde1e5960bb3dc823|https://github.com/ROCm/audio
