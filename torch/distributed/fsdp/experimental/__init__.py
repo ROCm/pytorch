@@ -10,11 +10,14 @@ on a fully sharded model::
     )
     model.set_reduce_scatter_input_fn(reduce_scatter_input_fn_with_native_copy)
 
-The native CUDA copies can improve performance for wide contiguous tensors with
-small ``outer_size`` (the product of dimensions before the shard dimension),
-such as ``Shard(1)`` over ``[2, F, D]``. Large outer sizes, skinny tensors, and
-strided collective buffers can increase CPU time, GPU time, and metadata memory.
-Benchmark the callbacks on the target workload before enabling them.
+The native CUDA copies write contiguous tensors without intermediate buffers and
+can improve performance for wide tensors with small ``outer_size`` (the product of
+dimensions before the shard dimension), such as ``Shard(1)`` over ``[2, F, D]``.
+Their CPU time, GPU time, and metadata memory grow with the total outer size of a
+parameter group, and strided collective buffers take a slower path. Benchmark
+the callbacks on the target workload before enabling them. Groups with
+parameters sharded unevenly on a nonzero dim take the default copy-out, and the
+native reduce-scatter copy-in rejects their gradients.
 
 All-gather extensions can return ``AllGatherInput`` records from
 ``fsdp_pre_all_gather`` to declare each payload's concatenation dimension. FSDP
@@ -30,10 +33,12 @@ from collections.abc import Callable
 
 import torch
 from torch.distributed.fsdp._fully_shard._all_gather_layout import (
-    _default_all_gather_output_fn,
     DefaultAllGatherLayout,
 )
 from torch.distributed.fsdp._fully_shard._fsdp_api import AllGatherInput
+from torch.distributed.fsdp._fully_shard._fsdp_collectives import (
+    _default_all_gather_output_fn,
+)
 
 
 __all__ = [
@@ -50,6 +55,7 @@ DefaultAllGatherLayout.__module__ = "torch.distributed.fsdp.experimental"
 def all_gather_output_fn_with_native_copy(
     all_gather_output: torch.Tensor,
     outputs: list[torch.Tensor],
+    *,
     split_sizes: list[int],
     outer_sizes: list[int],
     world_size: int,
@@ -58,7 +64,9 @@ def all_gather_output_fn_with_native_copy(
 
     Use as the ``output_fn`` of :class:`DefaultAllGatherLayout`.
     See the module documentation for the performance tradeoffs. Groups with a
-    tensor payload smaller than its cached output use the default copy-out.
+    tensor payload smaller than its cached output, or with an output smaller than
+    its gathered chunks, as of parameters sharded unevenly on a nonzero dim, use
+    the default copy-out.
     """
     # The op copies within one dtype, so mixed-dtype groups copy bytes
     copy_outputs = outputs
@@ -69,7 +77,11 @@ def all_gather_output_fn_with_native_copy(
         for output, split_size in zip(copy_outputs, split_sizes)
     ):
         _default_all_gather_output_fn(
-            all_gather_output, outputs, split_sizes, outer_sizes, world_size
+            all_gather_output,
+            outputs,
+            split_sizes=split_sizes,
+            outer_sizes=outer_sizes,
+            world_size=world_size,
         )
         return
     torch.ops.fsdp._all_gather_copy_out_(
@@ -79,9 +91,10 @@ def all_gather_output_fn_with_native_copy(
 
 def reduce_scatter_input_fn_with_native_copy(
     unsharded_grads: list[torch.Tensor],
+    *,
     shard_dims: list[int],
     world_size: int,
-) -> Callable:
+) -> Callable[[torch.Tensor], None]:
     r"""Prepare gradients for a native copy into the reduce-scatter buffer.
 
     Register with
@@ -89,13 +102,23 @@ def reduce_scatter_input_fn_with_native_copy(
     See the module documentation for the performance tradeoffs.
 
     Contiguous nonzero-dimension shards copy directly into the collective buffer.
-    Noncontiguous gradients use the existing chunk-and-concatenate reorder.
+    Noncontiguous gradients sharded on a nonzero dim use the existing
+    chunk-and-concatenate reorder. Gradients sharded unevenly on a nonzero dim
+    raise ``NotImplementedError``.
     """
     num_leading_dims = [0] * len(unsharded_grads)
     if world_size > 1:
         for i, shard_dim in enumerate(shard_dims):
             if shard_dim == 0:
                 continue
+            size = unsharded_grads[i].shape
+            if size[shard_dim] % world_size:
+                raise NotImplementedError(
+                    "reduce_scatter_input_fn_with_native_copy does not support "
+                    f"gradients sharded unevenly on dim {shard_dim}: size "
+                    f"{tuple(size)} over {world_size} ranks. Use the default "
+                    "reduce-scatter copy-in."
+                )
             if unsharded_grads[i].is_contiguous():
                 num_leading_dims[i] = shard_dim
             else:
