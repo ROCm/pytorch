@@ -476,6 +476,16 @@ jobs:
           name: ${{ needs.setup-matrix.outputs.prefix }}-results-${{ matrix.arch }}
           path: ${{ steps.upload-paths.outputs.paths }}
 
+      # Framework HUD (http://rocm-framework-41:8501/hud/) still keys the Navi
+      # lane as navi31 (pre-#3753). Dual-publish the same rx7900 payload under
+      # that alias so the scraper finds non-empty data alongside mi200/mi300/mi350.
+      - name: Upload navi31 HUD alias artifact
+        if: ${{ always() && steps.upload-paths.outputs.paths != '' && matrix.arch == 'rx7900' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: ${{ needs.setup-matrix.outputs.prefix }}-results-navi31
+          path: ${{ steps.upload-paths.outputs.paths }}
+
       - name: Flag incomplete download
         # A partial download (some config's upstream jobs missing) still produces
         # and uploads a report above; fail the job here so the run is clearly
