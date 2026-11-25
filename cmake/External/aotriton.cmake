@@ -284,11 +284,16 @@ if(NOT __AOTRITON_INCLUDED)
     foreach(image ${__AOTRITON_IMAGE_LIST})
       string(SUBSTRING ${image} 7 -1 gfx_pattern)
       string(REPLACE "x" "." gfx_regex ${gfx_pattern})
+      # -strict is a peer of gfx1250 only. Other images stay exact so a
+      # future gfx942-strict does not silently take the base image.
+      # A ':' feature suffix still matches for every image.
+      set(__AOTRITON_STRICT_SUFFIX "")
+      if(gfx_pattern STREQUAL "1250")
+        set(__AOTRITON_STRICT_SUFFIX "(-strict)?")
+      endif()
       foreach(target ${PYTORCH_ROCM_ARCH})
-        # Anchor the arch. The optional -strict suffix lets gfx1250-strict
-        # select the amd-gfx1250 image. Feature suffixes such as
-        # gfx90a:xnack- still match.
-        if(target MATCHES "^gfx${gfx_regex}(-strict)?($|:)")
+        # Anchor the arch so gfx1250 does not match an unrelated name.
+        if(target MATCHES "^gfx${gfx_regex}${__AOTRITON_STRICT_SUFFIX}($|:)")
           set(__AOTRITON_DOWNLOAD_TARGET aotriton_image_${gfx_pattern})
           aotriton_download_image(${image} ${__AOTRITON_DOWNLOAD_TARGET})
           add_dependencies(${__AOTRITON_CHAINED_IMAGE} ${__AOTRITON_DOWNLOAD_TARGET})
