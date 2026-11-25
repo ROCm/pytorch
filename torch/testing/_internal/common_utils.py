@@ -6229,24 +6229,26 @@ def scoped_load_inline(func):
         return func(*args, load_inline=load_inline, **kwargs)
     return wrapper
 
+
+# The snapshot is the stored state, not the values the getters resolve to:
+# writing a resolved value back through a setter pins a setting that was
+# inheriting from its parent, a leak that only shows once the parent changes.
+def _snapshot_fp32_precision(*keys):
+    return torch.backends._get_fp32_precision_state(*keys)
+
+
+def _restore_fp32_precision(snapshot):
+    torch.backends._set_fp32_precision_state(snapshot)
+
+
 def recover_orig_fp32_precision(fn):
     @contextlib.contextmanager
     def recover():
-        old_mkldnn_conv_p = torch.backends.mkldnn.conv.fp32_precision  # type: ignore[attr-defined]
-        old_mkldnn_rnn_p = torch.backends.mkldnn.rnn.fp32_precision  # type: ignore[attr-defined]
-        old_mkldnn_matmul_p = torch.backends.mkldnn.matmul.fp32_precision  # type: ignore[attr-defined]
-        old_cudnn_conv_p = torch.backends.cudnn.conv.fp32_precision  # type: ignore[attr-defined]
-        old_cudnn_rnn_p = torch.backends.cudnn.rnn.fp32_precision  # type: ignore[attr-defined]
-        old_cuda_matmul_p = torch.backends.cuda.matmul.fp32_precision
+        snap = _snapshot_fp32_precision()
         try:
             yield
         finally:
-            torch.backends.mkldnn.conv.fp32_precision = old_mkldnn_conv_p  # type: ignore[attr-defined]
-            torch.backends.mkldnn.rnn.fp32_precision = old_mkldnn_rnn_p  # type: ignore[attr-defined]
-            torch.backends.mkldnn.matmul.fp32_precision = old_mkldnn_matmul_p  # type: ignore[attr-defined]
-            torch.backends.cudnn.conv.fp32_precision = old_cudnn_conv_p  # type: ignore[attr-defined]
-            torch.backends.cudnn.rnn.fp32_precision = old_cudnn_rnn_p  # type: ignore[attr-defined]
-            torch.backends.cuda.matmul.fp32_precision = old_cuda_matmul_p
+            _restore_fp32_precision(snap)
 
     return recover()(fn)
 
@@ -6267,15 +6269,13 @@ def with_ieee_matmul_precision(f):
     """
     @functools.wraps(f)
     def wrapped(*args, **kwargs):
-        old_cuda = torch.backends.cuda.matmul.fp32_precision
-        old_mkldnn = torch.backends.mkldnn.matmul.fp32_precision  # type: ignore[attr-defined]
+        old_fp32_precision = _snapshot_fp32_precision("cuda.matmul", "mkldnn.matmul")
         try:
             torch.backends.cuda.matmul.fp32_precision = "ieee"
             torch.backends.mkldnn.matmul.fp32_precision = "ieee"  # type: ignore[attr-defined]
             return f(*args, **kwargs)
         finally:
-            torch.backends.mkldnn.matmul.fp32_precision = old_mkldnn  # type: ignore[attr-defined]
-            torch.backends.cuda.matmul.fp32_precision = old_cuda
+            _restore_fp32_precision(old_fp32_precision)
     return wrapped
 
 def skipIfPythonVersionMismatch(predicate):
