@@ -212,11 +212,11 @@ def gfx_arch_supports_opportunistic_fastatomics():
 
 def evaluate_platform_supports_flash_attention():
     if TEST_WITH_ROCM:
-        # gfx1250 and gfx1250-strict use the AOTriton gfx1250 GPU image
-        # (see cmake/External/aotriton.cmake). The CK
+        # gfx1250 uses the AOTriton gfx1250 GPU image. gfx1250-strict has no
+        # AOTriton image (see cmake/External/aotriton.cmake). The CK
         # FAv3/AITER codegen is not wired for gfx1250
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250", "gfx1250-strict"]
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
@@ -240,11 +240,11 @@ def evaluate_platform_supports_ck_gemms():
 
 def evaluate_platform_supports_efficient_attention():
     if TEST_WITH_ROCM:
-        # gfx1250 and gfx1250-strict use the AOTriton gfx1250 GPU image
-        # (see cmake/External/aotriton.cmake). The CK
+        # gfx1250 uses the AOTriton gfx1250 GPU image. gfx1250-strict has no
+        # AOTriton image (see cmake/External/aotriton.cmake). The CK
         # FAv3/AITER codegen is not wired for gfx1250
         # (see aten/src/ATen/native/transformers/hip/flash_attn/ck/fav_v3/CMakeLists.txt).
-        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250", "gfx1250-strict"]
+        arch_list = ["gfx90a", "gfx942", "gfx1100", "gfx1201", "gfx950", "gfx1250"]
         if os.environ.get("TORCH_ROCM_AOTRITON_ENABLE_EXPERIMENTAL", "0") != "0":
             arch_list += ["gfx1101", "gfx1102", "gfx1150", "gfx1151", "gfx1200"]
         return evaluate_gfx_arch_within(arch_list)
