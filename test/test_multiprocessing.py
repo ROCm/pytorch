@@ -53,8 +53,7 @@ TEST_CUDA_IPC = (
     and sys.platform != "darwin"
     and sys.platform != "win32"
     and not IS_JETSON
-    and not TEST_WITH_ROCM
-)  # https://github.com/pytorch/pytorch/issues/90940
+)
 
 TEST_MULTIGPU = TEST_CUDA_IPC and torch.cuda.device_count() > 1
 
@@ -1029,6 +1028,8 @@ class TestMultiprocessingCUDA(_MultiprocessingTestMixin, TestCase):
     @parametrize("expandable", [False, True])
     @parametrize("peer", [False, True])
     def test_rebuild_cuda_tensor(self, expandable, peer):
+        if expandable and TEST_WITH_ROCM:
+            self.skipTest("importing an expandable-segment IPC handle fails on ROCm")
         if peer and (not TEST_MULTIGPU or not torch.cuda.can_device_access_peer(1, 0)):
             self.skipTest("requires peer access from cuda:1 to cuda:0")
         ctx = mp.get_context("spawn")
