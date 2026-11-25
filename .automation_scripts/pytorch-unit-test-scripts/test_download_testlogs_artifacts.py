@@ -179,6 +179,90 @@ class CorruptArtifactTest(unittest.TestCase):
         )
 
 
+class EmptyJobIdArtifactTest(unittest.TestCase):
+    PREFIX = "test-reports-test-distributed-4-10"
+    RUNNER = "mt-l-x86iavx512-45-172-t4-4"
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        cwd = os.getcwd()
+        self.addCleanup(os.chdir, cwd)
+        os.chdir(self.tmp.name)
+        dtl.error_msgs.clear()
+        self.addCleanup(dtl.error_msgs.clear)
+
+    def _fake_download(self, run_id, attempt, name):
+        with zipfile.ZipFile(name, "w") as archive:
+            archive.writestr("test-reports/TEST-cuda.xml", "<testsuite/>")
+        return Path(name)
+
+    def test_runner_labels_come_from_selected_jobs(self):
+        jobs = [
+            {"id": 1, "name": f"cuda / test (distributed, 4, 10, {self.RUNNER})"},
+            {"id": 2, "name": "cuda / test (default, 1, 14, mt-l-x86aavx2-11-41-l4)"},
+            {"id": 3, "name": "rocm / test (default, 1, 8, linux.rocm.gpu.gfx950.1)"},
+        ]
+
+        self.assertEqual(
+            dtl.job_runner_labels(jobs, ["1", "2"]),
+            {self.RUNNER, "mt-l-x86aavx2-11-41-l4"},
+        )
+
+    def test_missing_jobid_artifact_falls_back_to_empty_jobid_name(self):
+        empty = f"{self.PREFIX}-{self.RUNNER}_.zip"
+        with (
+            mock.patch.object(dtl, "download_s3_artifacts", return_value=[]),
+            mock.patch.object(
+                dtl, "_list_s3_artifact_names",
+                return_value=[empty, f"{self.PREFIX}-other-runner_.zip"],
+            ),
+            mock.patch.object(
+                dtl, "_download_s3_artifact", side_effect=self._fake_download
+            ) as download,
+            mock.patch.object(dtl, "download_gha_artifacts_filtered") as gha,
+        ):
+            shards = dtl.download_xml_files(
+                123, 1, prefixes=[self.PREFIX],
+                allowed_substrings=["_130993271847"],
+                empty_jobid_runners={self.RUNNER},
+            )
+
+        download.assert_called_once_with(123, 1, empty)
+        gha.assert_not_called()
+        self.assertEqual(shards, [("distributed", 4, 10)])
+        self.assertTrue(Path("test-distributed-4-10").is_dir())
+
+    def test_ambiguous_empty_jobid_artifacts_are_not_used(self):
+        names = [
+            f"{self.PREFIX}-{self.RUNNER}_.zip",
+            f"{self.PREFIX}-mt-l-x86iavx512-45-172-t4-8_.zip",
+        ]
+        with (
+            mock.patch.object(dtl, "_list_s3_artifact_names", return_value=names),
+            mock.patch.object(dtl, "_download_s3_artifact") as download,
+        ):
+            paths = dtl.download_empty_jobid_artifact(
+                123, 1, self.PREFIX,
+                {self.RUNNER, "mt-l-x86iavx512-45-172-t4-8"},
+            )
+
+        self.assertEqual(paths, [])
+        download.assert_not_called()
+
+    def test_no_fallback_without_runner_labels(self):
+        with (
+            mock.patch.object(dtl, "download_s3_artifacts", return_value=[]),
+            mock.patch.object(dtl, "_list_s3_artifact_names") as listing,
+            mock.patch.object(
+                dtl, "download_gha_artifacts_filtered", return_value=[]
+            ),
+        ):
+            dtl.download_xml_files(123, 1, prefixes=[self.PREFIX])
+
+        listing.assert_not_called()
+
+
 class ApiRetryTest(unittest.TestCase):
     def setUp(self):
         dtl.authentication_headers = {}
