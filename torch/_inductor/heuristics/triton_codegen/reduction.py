@@ -679,6 +679,42 @@ class ReductionHeuristic(CodegenConfigHeuristics):
 # ------------------------------------------------------------------
 
 
+def _use_tdm_max_autotune_configs(
+    size_hints: dict[str, int],
+    inductor_meta: dict[str, Any],
+    triton_meta: dict[str, Any] | None,
+) -> bool:
+    """Whether to use the gfx1250 TDM reduction configs: max-autotune is on, TDM
+    codegen is enabled, and the kernel targets a TDM-capable gfx1250 or
+    gfx1250-strict device. Tiled, native-matmul and deterministic reductions keep
+    their existing configs."""
+    from torch._inductor import config
+    from torch._inductor.utils import _gfx1250_arch_prereqs
+
+    triton_meta = triton_meta or {}
+    if not (
+        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    ):
+        return False
+    if (
+        "y" in size_hints
+        or triton_meta.get("native_matmul")
+        or inductor_meta.get("deterministic")
+        or inductor_meta.get("batch_invariant")
+        or inductor_meta.get("force_filter_reduction_configs")
+        or inductor_meta.get("are_deterministic_algorithms_enabled")
+    ):
+        return False
+    if not (config.triton.use_tensor_descriptor and config.assume_aligned_inputs):
+        return False
+    device = triton_meta.get("device")
+    return (
+        device is not None
+        and device.type == "hip"
+        and _gfx1250_arch_prereqs(str(device.cc))
+    )
+
+
 @register_codegen_heuristic("reduction", "hip", register=torch.version.hip is not None)
 class ROCmReductionHeuristic(ReductionHeuristic):
     """Reduction configs for ROCm/HIP devices."""
