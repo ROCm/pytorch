@@ -719,6 +719,63 @@ def _use_tdm_max_autotune_configs(
 class ROCmReductionHeuristic(ReductionHeuristic):
     """Reduction configs for ROCm/HIP devices."""
 
+    def get_configs(
+        self,
+        *,
+        size_hints: dict[str, int],
+        inductor_meta: dict[str, Any],
+        triton_meta: dict[str, Any],
+        num_dynamic: int = 0,
+    ) -> list[Config]:
+        if _use_tdm_max_autotune_configs(size_hints, inductor_meta, triton_meta):
+            from torch._inductor.heuristics.triton_codegen.pointwise import (
+                meets_tma_min_block_sizes,
+                within_elements_per_thread,
+            )
+            from torch._inductor.runtime.triton_heuristics import (
+                triton_config_reduction,
+            )
+
+            warp_size = triton_meta["device"].warp_size_or_default
+            max_persistent_rblock = inductor_meta.get("max_persistent_rblock", 0)
+            configs = []
+            for xblock, rblock, num_warps in (
+                (1, 16384, 2),
+                (8, 256, 8),
+                (1, 1024, 4),
+                (64, 128, 8),
+                (1, 512, 4),
+                (4, 16384, 8),
+                (4, 1024, 8),
+            ):
+                config = triton_config_reduction(
+                    size_hints,
+                    xblock,
+                    rblock,
+                    num_warps=num_warps,
+                    num_stages=1,
+                    reduction_hint=inductor_meta.get("reduction_hint"),
+                    warp_size=warp_size,
+                )
+                # Same filter _finalize_configs applies to the other HIP configs.
+                if (
+                    max_persistent_rblock > 0
+                    and config.kwargs["XBLOCK"] * max_persistent_rblock > 4096
+                ):
+                    continue
+                if meets_tma_min_block_sizes(
+                    config, inductor_meta
+                ) and within_elements_per_thread(config, warp_size):
+                    configs.append(config)
+            if configs:
+                return configs
+        return super().get_configs(
+            size_hints=size_hints,
+            inductor_meta=inductor_meta,
+            triton_meta=triton_meta,
+            num_dynamic=num_dynamic,
+        )
+
     def _get_outer_config(
         self,
         make_config,
