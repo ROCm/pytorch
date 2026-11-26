@@ -38,9 +38,18 @@
       "checkrun_regex": "rocm.*mi350.*/ test [(](default|distributed|distributed_4gpu|inductor),"
     },
     "mi300": {
-      "default": [{ "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
-      "distributed": [{ "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
-      "inductor": [{ "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }],
+      "default": [
+        { "workflow": "scheduled-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" },
+        { "workflow": "rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }
+      ],
+      "distributed": [
+        { "workflow": "scheduled-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" },
+        { "workflow": "periodic-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }
+      ],
+      "inductor": [
+        { "workflow": "scheduled-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" },
+        { "workflow": "inductor-rocm-mi300", "job_prefix": "linux-noble-rocm-py3.12-mi300" }
+      ],
       "shard_counts": { "default": 8, "distributed": 3, "inductor": 2 },
       "checkrun_regex": "rocm.*mi300.*/ test [(](default|distributed|inductor),"
     },
