@@ -38,6 +38,7 @@ class PointwiseHeuristic(CodegenConfigHeuristics):
         hinted_configs: list[Any],
         tile_hint: TileHint | None = None,
         inductor_meta: dict[str, Any] | None = None,
+        triton_meta: dict[str, Any] | None = None,
     ) -> list[Any]:
         inductor_meta = inductor_meta or {}
         n = len(size_hints)
@@ -120,12 +121,112 @@ class PointwiseHeuristic(CodegenConfigHeuristics):
 # ----------------------------------------------------------------------
 
 
+def _use_tdm_max_autotune_configs(
+    inductor_meta: dict[str, Any], triton_meta: dict[str, Any] | None
+) -> bool:
+    """Whether to use the gfx1250 TDM configs: max-autotune is on, TDM codegen is
+    enabled, and the kernel targets a TDM-capable gfx1250 or gfx1250-strict
+    device."""
+    from torch._inductor import config
+    from torch._inductor.utils import _gfx1250_arch_prereqs
+
+    if not (
+        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    ):
+        return False
+    if not (config.triton.use_tensor_descriptor and config.assume_aligned_inputs):
+        return False
+    device = (triton_meta or {}).get("device")
+    return (
+        device is not None
+        and device.type == "hip"
+        and _gfx1250_arch_prereqs(str(device.cc))
+    )
+
+
+def meets_tma_min_block_sizes(config: Any, inductor_meta: dict[str, Any]) -> bool:
+    """Whether a config meets the kernel's TMA minimum block sizes. Inductor drops the
+    others and adds a copy of the first config with its blocks raised to the minimum."""
+    floors = inductor_meta.get("tma_min_block_sizes") or {}
+    return all(
+        config.kwargs.get(name, floor) >= floor for name, floor in floors.items()
+    )
+
+
+def within_elements_per_thread(config: Any, warp_size: int) -> bool:
+    """Whether a config holds at most 256 elements per thread. More can take minutes
+    to compile in the AMD LLVM register allocator."""
+    numel = 1
+    for name, value in config.kwargs.items():
+        if name.endswith("BLOCK"):
+            numel *= value
+    return numel <= 256 * config.num_warps * warp_size
+
+
 @register_codegen_heuristic("pointwise", "hip", register=torch.version.hip is not None)
 class ROCmPointwiseHeuristic(PointwiseHeuristic):
     """Pointwise configs for ROCm/HIP devices.
 
     Inherits _configs_3d from PointwiseHeuristic (same configs).
     """
+
+    def get_configs(
+        self,
+        size_hints: dict[str, int],
+        bs: int,
+        triton_config_fn: Callable[..., Any],
+        hinted_configs: list[Any],
+        tile_hint: TileHint | None = None,
+        inductor_meta: dict[str, Any] | None = None,
+        triton_meta: dict[str, Any] | None = None,
+    ) -> list[Any]:
+        if _use_tdm_max_autotune_configs(inductor_meta or {}, triton_meta):
+            configs = []
+            if len(size_hints) == 1:
+                configs = [
+                    triton_config_fn(
+                        size_hints, xblock, num_warps=num_warps, num_stages=1
+                    )
+                    for xblock, num_warps in (
+                        (1024, 1),
+                        (4096, 8),
+                        (2048, 1),
+                        (8192, 8),
+                        (2048, 8),
+                    )
+                ]
+            elif len(size_hints) == 2:
+                configs = [
+                    triton_config_fn(
+                        size_hints, xblock, yblock, num_warps=num_warps, num_stages=1
+                    )
+                    for xblock, yblock, num_warps in (
+                        (128, 64, 1),
+                        (8, 512, 1),
+                        (64, 128, 1),
+                        (64, 64, 2),
+                        (256, 64, 8),
+                        (64, 64, 8),
+                        (512, 8, 1),
+                    )
+                ]
+            warp_size = triton_meta["device"].warp_size_or_default  # type: ignore[index]
+            configs = [
+                config
+                for config in configs
+                if meets_tma_min_block_sizes(config, inductor_meta or {})
+                and within_elements_per_thread(config, warp_size)
+            ]
+            if configs:
+                return configs
+        return super().get_configs(
+            size_hints,
+            bs,
+            triton_config_fn,
+            hinted_configs,
+            tile_hint=tile_hint,
+            inductor_meta=inductor_meta,
+        )
 
     def _configs_1d(
         self, size_hints, bs, hinted_configs, triton_config_fn, inductor_meta

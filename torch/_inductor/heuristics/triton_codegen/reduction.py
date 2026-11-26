@@ -679,9 +679,102 @@ class ReductionHeuristic(CodegenConfigHeuristics):
 # ------------------------------------------------------------------
 
 
+def _use_tdm_max_autotune_configs(
+    size_hints: dict[str, int],
+    inductor_meta: dict[str, Any],
+    triton_meta: dict[str, Any] | None,
+) -> bool:
+    """Whether to use the gfx1250 TDM reduction configs: max-autotune is on, TDM
+    codegen is enabled, and the kernel targets a TDM-capable gfx1250 or
+    gfx1250-strict device. Tiled, native-matmul and deterministic reductions keep
+    their existing configs."""
+    from torch._inductor import config
+    from torch._inductor.utils import _gfx1250_arch_prereqs
+
+    triton_meta = triton_meta or {}
+    if not (
+        inductor_meta.get("max_autotune") or inductor_meta.get("max_autotune_pointwise")
+    ):
+        return False
+    if (
+        "y" in size_hints
+        or triton_meta.get("native_matmul")
+        or inductor_meta.get("deterministic")
+        or inductor_meta.get("batch_invariant")
+        or inductor_meta.get("force_filter_reduction_configs")
+        or inductor_meta.get("are_deterministic_algorithms_enabled")
+    ):
+        return False
+    if not (config.triton.use_tensor_descriptor and config.assume_aligned_inputs):
+        return False
+    device = triton_meta.get("device")
+    return (
+        device is not None
+        and device.type == "hip"
+        and _gfx1250_arch_prereqs(str(device.cc))
+    )
+
+
 @register_codegen_heuristic("reduction", "hip", register=torch.version.hip is not None)
 class ROCmReductionHeuristic(ReductionHeuristic):
     """Reduction configs for ROCm/HIP devices."""
+
+    def get_configs(
+        self,
+        *,
+        size_hints: dict[str, int],
+        inductor_meta: dict[str, Any],
+        triton_meta: dict[str, Any],
+        num_dynamic: int = 0,
+    ) -> list[Config]:
+        if _use_tdm_max_autotune_configs(size_hints, inductor_meta, triton_meta):
+            from torch._inductor.heuristics.triton_codegen.pointwise import (
+                meets_tma_min_block_sizes,
+                within_elements_per_thread,
+            )
+            from torch._inductor.runtime.triton_heuristics import (
+                triton_config_reduction,
+            )
+
+            warp_size = triton_meta["device"].warp_size_or_default
+            max_persistent_rblock = inductor_meta.get("max_persistent_rblock", 0)
+            configs = []
+            for xblock, rblock, num_warps in (
+                (1, 16384, 2),
+                (8, 256, 8),
+                (1, 1024, 4),
+                (64, 128, 8),
+                (1, 512, 4),
+                (4, 16384, 8),
+                (4, 1024, 8),
+            ):
+                config = triton_config_reduction(
+                    size_hints,
+                    xblock,
+                    rblock,
+                    num_warps=num_warps,
+                    num_stages=1,
+                    reduction_hint=inductor_meta.get("reduction_hint"),
+                    warp_size=warp_size,
+                )
+                # Same filter _finalize_configs applies to the other HIP configs.
+                if (
+                    max_persistent_rblock > 0
+                    and config.kwargs["XBLOCK"] * max_persistent_rblock > 4096
+                ):
+                    continue
+                if meets_tma_min_block_sizes(
+                    config, inductor_meta
+                ) and within_elements_per_thread(config, warp_size):
+                    configs.append(config)
+            if configs:
+                return configs
+        return super().get_configs(
+            size_hints=size_hints,
+            inductor_meta=inductor_meta,
+            triton_meta=triton_meta,
+            num_dynamic=num_dynamic,
+        )
 
     def _get_outer_config(
         self,
@@ -719,6 +812,69 @@ class ROCmReductionHeuristic(ReductionHeuristic):
             if conf not in configs:
                 configs.append(conf)
         return configs
+
+    def get_persistent_configs(
+        self,
+        *,
+        size_hints: dict[str, int],
+        reduction_hint: Any = False,
+        inductor_meta: dict[str, Any],
+        triton_meta: dict[str, Any],
+    ) -> list[Config]:
+        inductor_meta = {} if inductor_meta is None else inductor_meta
+        if not inductor_meta.get("RSPLIT_SIZE") and _use_tdm_max_autotune_configs(
+            size_hints, inductor_meta, triton_meta
+        ):
+            from torch._inductor.heuristics.triton_codegen.pointwise import (
+                meets_tma_min_block_sizes,
+            )
+            from torch._inductor.runtime.triton_heuristics import (
+                get_total_reduction_numel,
+                triton_config_reduction,
+            )
+
+            rnumel = get_total_reduction_numel(size_hints)
+            warp_size = triton_meta["device"].warp_size_or_default
+            configs = []
+            for xblock, num_warps in (
+                (16, 1),
+                (4, 1),
+                (16, 8),
+                (128, 2),
+                (8, 1),
+                (2, 1),
+            ):
+                config = triton_config_reduction(
+                    size_hints,
+                    xblock,
+                    rnumel,
+                    num_warps=num_warps,
+                    register_intensive=True,
+                    min_num_warps=1,
+                    reduction_hint=reduction_hint,
+                    warp_size=warp_size,
+                )
+                # Larger tiles with few warps can take minutes in the AMD LLVM
+                # register allocator.
+                block_numel = 1
+                for name, value in config.kwargs.items():
+                    if name.endswith("BLOCK"):
+                        block_numel *= value
+                if block_numel > 16384:
+                    continue
+                for prefix in size_hints:
+                    if prefix_is_reduction(prefix):
+                        config.kwargs.pop(f"{prefix.upper()}BLOCK")  # type: ignore[union-attr]
+                if meets_tma_min_block_sizes(config, inductor_meta):
+                    configs.append(config)
+            if configs:
+                return configs
+        return super().get_persistent_configs(
+            size_hints=size_hints,
+            reduction_hint=reduction_hint,
+            inductor_meta=inductor_meta,
+            triton_meta=triton_meta,
+        )
 
     def _max_warps_limit(self) -> int:
         return 16

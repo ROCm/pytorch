@@ -2222,6 +2222,18 @@ def _gfx1250_device_prereqs(device: torch.device | None) -> bool:
     return is_gfx1250_arch(arch) and has_triton_amd_tdm_device(arch)
 
 
+def _gfx1250_arch_prereqs(arch: str) -> bool:
+    """``_gfx1250_device_prereqs`` from an arch string, for callers that must not
+    probe the device, such as autotuning heuristics running in compile workers."""
+    from torch.utils._triton import has_triton_amd_tdm_device
+
+    return (
+        _rocm_version_at_least(7, 14)
+        and is_gfx1250_arch(arch)
+        and has_triton_amd_tdm_device(arch)
+    )
+
+
 def _tdm_row_major_from_strides(strides_i: Sequence[sympy.Expr | int]) -> bool | None:
     """Classify an already-resolved 2D stride pair by its unit-stride dimension.
 
