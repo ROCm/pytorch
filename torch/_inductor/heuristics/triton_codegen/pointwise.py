@@ -170,6 +170,49 @@ class ROCmPointwiseHeuristic(PointwiseHeuristic):
     Inherits _configs_3d from PointwiseHeuristic (same configs).
     """
 
+    def get_configs(
+        self,
+        size_hints: dict[str, int],
+        bs: int,
+        triton_config_fn: Callable[..., Any],
+        hinted_configs: list[Any],
+        tile_hint: TileHint | None = None,
+        inductor_meta: dict[str, Any] | None = None,
+        triton_meta: dict[str, Any] | None = None,
+    ) -> list[Any]:
+        if _use_tdm_max_autotune_configs(inductor_meta or {}, triton_meta):
+            configs = []
+            if len(size_hints) == 1:
+                configs = [
+                    triton_config_fn(
+                        size_hints, xblock, num_warps=num_warps, num_stages=1
+                    )
+                    for xblock, num_warps in (
+                        (1024, 1),
+                        (4096, 8),
+                        (2048, 1),
+                        (8192, 8),
+                        (2048, 8),
+                    )
+                ]
+            warp_size = triton_meta["device"].warp_size_or_default  # type: ignore[index]
+            configs = [
+                config
+                for config in configs
+                if meets_tma_min_block_sizes(config, inductor_meta or {})
+                and within_elements_per_thread(config, warp_size)
+            ]
+            if configs:
+                return configs
+        return super().get_configs(
+            size_hints,
+            bs,
+            triton_config_fn,
+            hinted_configs,
+            tile_hint=tile_hint,
+            inductor_meta=inductor_meta,
+        )
+
     def _configs_1d(
         self, size_hints, bs, hinted_configs, triton_config_fn, inductor_meta
     ):
