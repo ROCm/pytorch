@@ -7326,6 +7326,7 @@ class TestCudaAllocator(TestCase):
             torch.cuda.memory._record_memory_history(None)
 
     @skipIfRocmArch(NAVI_ARCH)
+    @unittest.skipIf(not torch.profiler.kineto_available(), "Kineto is required")
     def test_memory_profiler_viz(self):
         with torch.profiler.profile(
             with_stack=True, profile_memory=True, record_shapes=True
