@@ -22,7 +22,10 @@ from unittest import mock, SkipTest
 import torch
 import torch.distributed as c10d
 import torch.distributed._functional_collectives as _functional_collectives
-from torch.distributed.distributed_c10d import SHRINK_ABORT as NCCL_SHRINK_ABORT
+from torch.distributed.distributed_c10d import (
+    SHRINK_ABORT as NCCL_SHRINK_ABORT,
+    SHRINK_DEFAULT as NCCL_SHRINK_DEFAULT,
+)
 
 
 if not c10d.is_available() or not c10d.is_nccl_available():
@@ -1433,6 +1436,7 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         dist.destroy_process_group()
 
     @requires_nccl_shrink()
+<<<<<<< HEAD
     @requires_world_size(2)
     def test_shrink_group_multiple_comms(self):
         """Test shrink_group with multiple communicators and subgroup invalidation."""
@@ -1455,12 +1459,20 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
         dist.barrier()  # Sync before default group test
 
         # Shrink default group: exclude last rank
+=======
+    @requires_world_size(3)
+    @parametrize("shrink_flags", [NCCL_SHRINK_DEFAULT, NCCL_SHRINK_ABORT])
+    def test_shrink_group_multiple_comms(self, shrink_flags):
+        """Test shrink_group across a subgroup and the default group."""
+        device, default_pg = self._setup_shrink_test("multiple_comms")
+>>>>>>> d0a965607c5 ([release/2.13] Fix shrink_group(SHRINK_ABORT) hang by aborting the parent group instead of destroying it (#194775) (#3811))
         ranks_to_exclude = [self.world_size - 1]
         if self.rank not in ranks_to_exclude:
             shrunk_default = c10d.shrink_group(ranks_to_exclude)
             expected_size = self.world_size - 1
             self.assertEqual(shrunk_default.size(), expected_size)
 
+<<<<<<< HEAD
             # Test collective on shrunk default group
             tensor = torch.full((1,), self.rank).cuda(device)
             c10d.all_reduce(tensor, group=shrunk_default)
@@ -1474,6 +1486,24 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
             # due to global rank reassignment
 
         dist.destroy_process_group()
+=======
+        subgroup = c10d.new_group(list(range(self.world_size)))
+        self._shrink_or_destroy(
+            ranks_to_exclude, subgroup, device, "subgroup", shrink_flags=shrink_flags
+        )
+
+        self._test_collective_on_shrunk_group(
+            default_pg, device, [], "default after subgroup shrink"
+        )
+
+        self._shrink_or_destroy(
+            ranks_to_exclude,
+            default_pg,
+            device,
+            "default",
+            shrink_flags=shrink_flags,
+        )
+>>>>>>> d0a965607c5 ([release/2.13] Fix shrink_group(SHRINK_ABORT) hang by aborting the parent group instead of destroying it (#194775) (#3811))
 
     def _test_shrink_group_with_flag(self, shrink_flag, flag_name, rank_to_exclude):
         """Helper method to test shrink_group with a specific flag."""
@@ -1914,7 +1944,9 @@ class ProcessGroupNCCLGroupTest(MultiProcessTestCase):
             dist.destroy_process_group()
         else:
             log_test_info(self.rank, "Excluded from shrink test - exiting immediately")
-            dist.destroy_process_group()
+            # Survivors shrink with NCCL_SHRINK_ABORT and abort the parent, so
+            # the excluded rank must abort too; destroy here would hang.
+            pg1._get_backend(torch.device(device)).abort()
             return
 
         # Performance analysis (only for participating ranks)
