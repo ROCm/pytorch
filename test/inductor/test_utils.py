@@ -3,6 +3,7 @@
 import importlib.util
 import unittest
 from collections.abc import Callable, Iterator
+from unittest import mock
 
 from sympy import I, Max, Min, Symbol, sympify
 
@@ -30,6 +31,7 @@ from torch.testing._internal.common_utils import (
     TestCase,
     xfailIfNoAcceleratorTriton,
 )
+from torch.utils import _triton as triton_utils
 from torch.utils._sympy.functions import Identity
 
 
@@ -307,6 +309,29 @@ class TestUtils(TestCase):
     def test_get_device_tflops(self, dtype):
         ret = get_device_tflops(dtype)
         self.assertTrue(type(ret) is float)
+
+
+class TestDeviceTflopsTritonFallback(TestCase):
+    def setUp(self):
+        super().setUp()
+        get_device_tflops.cache_clear()
+        self.addCleanup(get_device_tflops.cache_clear)
+
+    @unittest.skipIf(
+        not triton_utils.has_triton_package(),
+        "requires Triton",
+    )
+    @unittest.skipIf(not torch.cuda.is_available(), "skip if no device")
+    def test_get_device_tflops_triton_fallback_magnitude(self):
+        # The Triton fallback feeds max_clock_rate() (MHz) into triton's tflops
+        # helpers, which are dimensioned in kHz. Getting that wrong under-reports
+        # peak throughput by 1000x, which a type-only assertion cannot catch, so
+        # pin the magnitude too. Measured fp16 values: the worst pre-fix case is
+        # ~1.06 (MI300X) and the smallest post-fix case is ~312 (A100), so 10.0
+        # clears the former by ~10x and sits far below the latter.
+        with mock.patch("torch._inductor.utils.datasheet_tops", return_value=None):
+            ret = get_device_tflops(torch.float16)
+        self.assertGreater(ret, 10.0)
 
 
 instantiate_device_type_tests(TestUtils, globals(), allow_xpu=True)
