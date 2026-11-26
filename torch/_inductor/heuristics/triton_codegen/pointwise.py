@@ -195,6 +195,21 @@ class ROCmPointwiseHeuristic(PointwiseHeuristic):
                         (2048, 8),
                     )
                 ]
+            elif len(size_hints) == 2:
+                configs = [
+                    triton_config_fn(
+                        size_hints, xblock, yblock, num_warps=num_warps, num_stages=1
+                    )
+                    for xblock, yblock, num_warps in (
+                        (128, 64, 1),
+                        (8, 512, 1),
+                        (64, 128, 1),
+                        (64, 64, 2),
+                        (256, 64, 8),
+                        (64, 64, 8),
+                        (512, 8, 1),
+                    )
+                ]
             warp_size = triton_meta["device"].warp_size_or_default  # type: ignore[index]
             configs = [
                 config
